@@ -29,21 +29,21 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
       >
         {eyebrow && (
           <p 
-            className="font-instrument-sans uppercase tracking-[0.51em] leading-[133%] text-center text-[19px] mt-[249px] mb-8 text-[#000000] animate-appear opacity-0"
+            className="font-instrument-sans uppercase tracking-[0.51em] leading-[133%] text-center text-[19px] mt-[180px] mb-6 text-[#000000] animate-appear opacity-0"
           >
             {eyebrow}
           </p>
         )}
 
         <h1 
-          className="text-[64px] leading-[83px] text-center px-4 lg:px-[314px] text-[#000000] animate-appear opacity-0 delay-100"
+          className="text-[76px] leading-[92px] text-center px-4 lg:px-[240px] text-[#000000] animate-appear opacity-0 delay-100"
         >
           {title}
         </h1>
 
         {subtitle && (
           <p 
-            className="text-[28px] text-center font-instrument-sans font-light px-4 lg:px-[314px] mt-[25px] mb-[48px] leading-[133%] text-[#000000] animate-appear opacity-0 delay-300"
+            className="text-[32px] text-center font-instrument-sans font-light px-4 lg:px-[240px] mt-[18px] mb-[32px] leading-[133%] text-[#000000] animate-appear opacity-0 delay-300"
           >
             {subtitle}
           </p>
@@ -52,17 +52,17 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
         {ctaText && ctaLink && (
           <a href={ctaLink}>
             <div 
-              className="inline-flex items-center bg-[#000000] text-[#ffffff] rounded-[10px] hover:bg-[#000000]/90 transition-colors font-instrument-sans w-[227px] h-[49px] animate-appear opacity-0 delay-500"
+              className="inline-flex items-center bg-[#000000] text-[#ffffff] rounded-[10px] hover:bg-[#000000]/90 transition-colors font-instrument-sans w-[272px] h-[58px] animate-appear opacity-0 delay-500"
             >
-              <div className="flex items-center justify-between w-full pl-[22px] pr-[17px]">
-                <span className="text-[19px] whitespace-nowrap">{ctaText}</span>
+              <div className="flex items-center justify-between w-full pl-[26px] pr-[20px]">
+                <span className="text-[22px] whitespace-nowrap">{ctaText}</span>
                 <div className="flex items-center gap-[14px]">
-                  <div className="w-[36px] h-[15px] relative">
+                  <div className="w-[43px] h-[18px] relative">
                     <img
                       src="https://res.cloudinary.com/ducqjmtlk/image/upload/v1737918196/Arrow_1_tacbar.svg"
                       alt="Arrow"
-                      width={36}
-                      height={15}
+                      width={43}
+                      height={18}
                       className="object-contain"
                     />
                   </div>
@@ -73,7 +73,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
         )}
 
         {mockupImage && (
-          <div className="mt-20 w-full relative animate-appear opacity-0 delay-700">
+          <div className="mt-16 w-full relative animate-appear opacity-0 delay-700">
             <MockupFrame>
               <Mockup type="responsive">
                 <img
