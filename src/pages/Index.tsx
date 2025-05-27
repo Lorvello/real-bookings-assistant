@@ -1,6 +1,5 @@
 
 import Hero from "@/components/Hero";
-import Timeline from "@/components/Timeline";
 import ProcessSection from "@/components/ProcessSection";
 import PainPoint from "@/components/PainPoint";
 import Solution from "@/components/Solution";
@@ -14,7 +13,6 @@ const Index = () => {
     <div className="min-h-screen bg-white">
       <Hero />
       <ProcessSection />
-      <Timeline />
       <PainPoint />
       <Solution />
       <Features />
