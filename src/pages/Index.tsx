@@ -5,7 +5,6 @@ import CalendarDisplay from "@/components/CalendarDisplay";
 import ProcessSection from "@/components/ProcessSection";
 import PainPoint from "@/components/PainPoint";
 import Solution from "@/components/Solution";
-import HowItWorks from "@/components/HowItWorks";
 import Features from "@/components/Features";
 import Results from "@/components/Results";
 import SocialProof from "@/components/SocialProof";
@@ -25,7 +24,6 @@ const Index = () => {
       />
       <PainPoint />
       <Solution />
-      <HowItWorks />
       <Features />
       <Results />
       <SocialProof />
