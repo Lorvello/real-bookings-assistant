@@ -15,7 +15,6 @@ const Hero = () => {
         <div className="space-y-12">
           {/* Large Standalone Headline */}
           <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-white leading-tight tracking-tight">
-            Your AI Appointment Agent –<br />
             Bookings on{" "}
             <span className="bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
               Auto-Pilot
