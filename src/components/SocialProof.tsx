@@ -42,13 +42,6 @@ const SocialProof = () => {
           </div>
         </div>
         
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
-            Trusted by <span className="text-green-600">1000+ Businesses</span>
-          </h2>
-          <p className="text-xl text-gray-600">Join successful businesses already automating their bookings</p>
-        </div>
-        
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           {testimonials.map((testimonial, index) => (
             <div key={index} className="bg-gray-50 p-8 rounded-2xl">
