@@ -1,9 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Brain, Target } from "lucide-react";
 
 const Solution = () => {
   return (
-    <section className="py-20 px-4 bg-white">
+    <section className="py-20 px-4 bg-red-50">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
@@ -14,7 +15,7 @@ const Solution = () => {
           </p>
         </div>
         
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto mb-16">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
               <div className="flex flex-col items-center text-center space-y-4">
@@ -64,6 +65,13 @@ const Solution = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Visual transition element */}
+        <div className="text-center py-8">
+          <p className="text-sm font-semibold text-red-600 uppercase tracking-wider">
+            Without an AI Agent, here's what happens…
+          </p>
         </div>
       </div>
     </section>
