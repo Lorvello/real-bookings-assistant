@@ -56,10 +56,10 @@ const Solution = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
-                    Books Niche Services With Precision
+                    Works for Any Appointment Business
                   </h3>
                   <p className="text-gray-600 leading-relaxed">
-                    From hair tattoo sessions to 1-hour massages, the AI handles your unique workflows like it's part of your team.
+                    From salons to clinics, fitness studios to consultants — the AI adapts to any business that books appointments.
                   </p>
                 </div>
               </div>
