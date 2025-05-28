@@ -69,7 +69,7 @@ function PricingBasic() {
       <Pricing 
         plans={demoPlans}
         title="Try 2 Weeks Free – Flexible Pricing for Every Business"
-        description="Choose the plan that works for you\nAll plans include access to our platform and dedicated support."
+        description="Choose the plan that works for you. All plans include access to our platform and dedicated support."
       />
     </div>
   );
