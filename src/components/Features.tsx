@@ -8,8 +8,8 @@ const Features = () => {
     },
     {
       icon: "🧠",
-      title: "Smart Client Qualification",
-      description: "Pre-qualifies leads with intelligent questions tailored to your business"
+      title: "Fully Personalized for Your Business",
+      description: "Tailor the AI Agent to your services, FAQs, and booking logic — from custom haircut types to business-specific questions"
     },
     {
       icon: "🔄",
