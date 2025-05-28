@@ -32,32 +32,16 @@ const WhatsAppChat = () => {
             {/* AI response */}
             <div className="flex justify-start">
               <div className="bg-white rounded-lg px-3 py-2 max-w-[80%] shadow-sm">
-                <p className="text-sm text-gray-800">Sure! What day works best for you?</p>
+                <p className="text-sm text-gray-800">Sure! What day and time works best for you?</p>
                 <p className="text-xs text-gray-500 mt-1">10:30</p>
               </div>
             </div>
             
-            {/* User reply */}
+            {/* User provides full details */}
             <div className="flex justify-end">
               <div className="bg-[#dcf8c6] rounded-lg px-3 py-2 max-w-[80%] shadow-sm">
-                <p className="text-sm text-gray-800">Monday would be perfect</p>
+                <p className="text-sm text-gray-800">Monday morning at 10 a.m.</p>
                 <p className="text-xs text-gray-500 mt-1">10:31</p>
-              </div>
-            </div>
-            
-            {/* AI response */}
-            <div className="flex justify-start">
-              <div className="bg-white rounded-lg px-3 py-2 max-w-[80%] shadow-sm">
-                <p className="text-sm text-gray-800">Great! Morning or afternoon?</p>
-                <p className="text-xs text-gray-500 mt-1">10:31</p>
-              </div>
-            </div>
-            
-            {/* User reply */}
-            <div className="flex justify-end">
-              <div className="bg-[#dcf8c6] rounded-lg px-3 py-2 max-w-[80%] shadow-sm">
-                <p className="text-sm text-gray-800">Morning please</p>
-                <p className="text-xs text-gray-500 mt-1">10:32</p>
               </div>
             </div>
             
@@ -65,7 +49,7 @@ const WhatsAppChat = () => {
             <div className="flex justify-start">
               <div className="bg-white rounded-lg px-3 py-2 max-w-[80%] shadow-sm">
                 <p className="text-sm text-gray-800">Perfect! You're booked for Monday at 10:00 AM. I'll send you a confirmation.</p>
-                <p className="text-xs text-gray-500 mt-1">10:32</p>
+                <p className="text-xs text-gray-500 mt-1">10:31</p>
               </div>
             </div>
           </div>
