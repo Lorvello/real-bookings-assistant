@@ -53,14 +53,14 @@ const CalendarMockup = () => {
         <div className="grid grid-cols-7 gap-2">
           {calendarDates.map((dateObj, index) => {
             const { date, isPrevMonth, isNextMonth } = dateObj;
-            const isHighlightedDate = date === 30 && !isPrevMonth && !isNextMonth; // May 30th
-            const isToday = date === 28 && !isPrevMonth && !isNextMonth; // May 28th (current date)
+            const isHighlightedDate = date === 20 && !isPrevMonth && !isNextMonth; // May 20th
+            const isToday = date === 14 && !isPrevMonth && !isNextMonth; // May 14th (current date)
             
             return (
-              <div key={`${date}-${index}`} className="relative">
+              <div key={`${date}-${index}`} className="relative h-16">
                 <div 
                   className={`
-                    text-center py-3 text-sm rounded-lg transition-all duration-200 ease-in-out cursor-pointer
+                    text-center py-2 text-sm rounded-lg transition-all duration-200 ease-in-out cursor-pointer h-full flex items-center justify-center
                     ${isPrevMonth || isNextMonth 
                       ? 'text-gray-300' 
                       : isToday 
@@ -74,21 +74,21 @@ const CalendarMockup = () => {
                   {date}
                 </div>
                 
-                {/* Event on May 30th */}
+                {/* Event on May 20th */}
                 {isHighlightedDate && (
-                  <div className="absolute top-12 left-0 right-0 mx-1 z-10">
-                    <div className="bg-[#075e54] text-white text-xs px-2 py-2 rounded-md shadow-sm">
-                      <div className="font-medium leading-tight">10:00 AM</div>
-                      <div className="opacity-90 leading-tight">Haircut - Lisa</div>
-                      <div className="opacity-75 text-xs leading-tight">(via WhatsApp)</div>
+                  <div className="absolute top-full left-0 right-0 mt-1 z-20">
+                    <div className="bg-[#075e54] text-white text-xs px-2 py-1 rounded-md shadow-sm mx-1">
+                      <div className="font-medium text-center leading-tight truncate">10:00 AM</div>
+                      <div className="opacity-90 text-center leading-tight truncate">Haircut - Lisa</div>
+                      <div className="opacity-75 text-center leading-tight truncate">(via WhatsApp)</div>
                     </div>
                   </div>
                 )}
                 
                 {/* Today indicator */}
                 {isToday && (
-                  <div className="absolute top-12 left-0 right-0 mx-1 z-10">
-                    <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-md shadow-sm text-center">
+                  <div className="absolute top-full left-0 right-0 mt-1 z-10">
+                    <div className="bg-blue-500 text-white text-xs px-2 py-1 rounded-md shadow-sm text-center mx-1">
                       <div className="font-medium leading-tight">Today</div>
                     </div>
                   </div>

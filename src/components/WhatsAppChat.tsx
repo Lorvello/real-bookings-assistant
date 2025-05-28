@@ -1,6 +1,9 @@
+
 import React from 'react';
+
 const WhatsAppChat = () => {
-  return <div className="w-full max-w-sm mx-auto">
+  return (
+    <div className="w-full max-w-sm mx-auto">
       {/* Phone mockup container */}
       <div className="relative bg-black rounded-[2.5rem] p-2 shadow-2xl">
         {/* Phone screen */}
@@ -37,7 +40,7 @@ const WhatsAppChat = () => {
             {/* User provides full details */}
             <div className="flex justify-end">
               <div className="bg-[#dcf8c6] rounded-lg px-3 py-2 max-w-[80%] shadow-sm">
-                <p className="text-sm text-gray-800">Monday morning at 10 a.m.</p>
+                <p className="text-sm text-gray-800">Tuesday May 20th at 10 a.m.</p>
                 <p className="text-xs text-gray-500 mt-1">10:31</p>
               </div>
             </div>
@@ -45,7 +48,7 @@ const WhatsAppChat = () => {
             {/* Final AI confirmation */}
             <div className="flex justify-start">
               <div className="bg-white rounded-lg px-3 py-2 max-w-[80%] shadow-sm">
-                <p className="text-sm text-gray-800">Perfect! You're booked for Monday at 10:00 AM. I'll send you a confirmation.</p>
+                <p className="text-sm text-gray-800">Perfect! You're booked for Tuesday, May 20th at 10:00 AM with Lisa. I'll send you a confirmation.</p>
                 <p className="text-xs text-gray-500 mt-1">10:31</p>
               </div>
             </div>
@@ -53,13 +56,15 @@ const WhatsAppChat = () => {
             {/* User thank you message */}
             <div className="flex justify-end">
               <div className="bg-[#dcf8c6] rounded-lg px-3 py-2 max-w-[80%] shadow-sm">
-                <p className="text-sm text-gray-800">Thank you! </p>
+                <p className="text-sm text-gray-800">Thank you!</p>
                 <p className="text-xs text-gray-500 mt-1">10:32</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default WhatsAppChat;
