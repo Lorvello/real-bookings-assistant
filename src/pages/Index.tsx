@@ -5,7 +5,6 @@ import PainPoint from "@/components/PainPoint";
 import Solution from "@/components/Solution";
 import Features from "@/components/Features";
 import SocialProof from "@/components/SocialProof";
-import CallToAction from "@/components/CallToAction";
 
 const Index = () => {
   return (
@@ -16,7 +15,6 @@ const Index = () => {
       <ProcessSection />
       <Features />
       <SocialProof />
-      <CallToAction />
     </div>
   );
 };
