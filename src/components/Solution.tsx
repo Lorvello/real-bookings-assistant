@@ -1,7 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Brain, Target } from "lucide-react";
+
 const Solution = () => {
-  return <section className="py-20 px-4 bg-red-50">
+  return (
+    <section className="py-20 px-4 bg-red-50">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
@@ -14,12 +17,12 @@ const Solution = () => {
         
         <div className="max-w-5xl mx-auto mb-16">
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="flex flex-col items-center text-center space-y-4">
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 min-h-[280px]">
+              <div className="flex flex-col items-center text-center space-y-4 h-full">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                   <MessageCircle className="w-8 h-8 text-green-600" strokeWidth={2} />
                 </div>
-                <div>
+                <div className="flex-1 flex flex-col justify-center">
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
                     Instant Replies on WhatsApp
                   </h3>
@@ -28,12 +31,12 @@ const Solution = () => {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="flex flex-col items-center text-center space-y-4">
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 min-h-[280px]">
+              <div className="flex flex-col items-center text-center space-y-4 h-full">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                   <Brain className="w-8 h-8 text-green-600" strokeWidth={2} />
                 </div>
-                <div>
+                <div className="flex-1 flex flex-col justify-center">
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
                     Answers FAQs Like a Human
                   </h3>
@@ -42,12 +45,12 @@ const Solution = () => {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="flex flex-col items-center text-center space-y-4">
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 min-h-[280px]">
+              <div className="flex flex-col items-center text-center space-y-4 h-full">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                   <Target className="w-8 h-8 text-green-600" strokeWidth={2} />
                 </div>
-                <div>
+                <div className="flex-1 flex flex-col justify-center">
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
                     Works for Any Appointment Business
                   </h3>
@@ -65,6 +68,9 @@ const Solution = () => {
           </p>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default Solution;
+
