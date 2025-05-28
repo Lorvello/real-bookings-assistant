@@ -52,6 +52,14 @@ const WhatsAppChat = () => {
                 <p className="text-xs text-gray-500 mt-1">10:31</p>
               </div>
             </div>
+            
+            {/* User thank you message */}
+            <div className="flex justify-end">
+              <div className="bg-[#dcf8c6] rounded-lg px-3 py-2 max-w-[80%] shadow-sm">
+                <p className="text-sm text-gray-800">Thank you! See you Monday 😊</p>
+                <p className="text-xs text-gray-500 mt-1">10:32</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
