@@ -1,4 +1,3 @@
-
 const Features = () => {
   const features = [
     {
@@ -7,8 +6,8 @@ const Features = () => {
       description: "No manual intervention needed. Books, confirms, and reschedules automatically"
     },
     {
-      icon: "🧠",
-      title: "Fully Personalized for Your Business",
+      icon: "⚙️",
+      title: "Fully Personalized",
       description: "Tailor the AI Agent to your services, FAQs, and booking logic — from custom haircut types to business-specific questions"
     },
     {
