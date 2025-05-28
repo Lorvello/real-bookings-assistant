@@ -21,27 +21,9 @@ const SocialProof = () => {
     }
   ];
 
-  const integrations = [
-    "Google Calendar", "WhatsApp Business", "Calendly", "Outlook", 
-    "Zoom", "Microsoft Teams", "Stripe", "PayPal"
-  ];
-
   return (
     <section className="py-20 px-4 bg-white">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-8">
-            Seamlessly Integrates With Your Existing Tools
-          </h3>
-          <div className="flex flex-wrap justify-center gap-6">
-            {integrations.map((integration, index) => (
-              <div key={index} className="bg-gray-100 px-4 py-2 rounded-lg text-gray-700 font-medium">
-                {integration}
-              </div>
-            ))}
-          </div>
-        </div>
-        
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
             Trusted by <span className="text-green-600">1000+ Businesses</span>
