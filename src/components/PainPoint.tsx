@@ -8,6 +8,10 @@ const PainPoint = () => {
           <span className="text-red-600">80%</span> of Your Customers Drop Off Due to Poor Availability
         </h2>
         
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-16">
+          Customers expect instant access—when you're unavailable, they move on without waiting.
+        </p>
+        
         <div className="max-w-5xl mx-auto mb-16">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 min-h-[320px]">
