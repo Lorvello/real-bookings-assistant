@@ -1,5 +1,5 @@
-
 import { Button } from "@/components/ui/button";
+import { MessageCircle, Brain, Target } from "lucide-react";
 
 const Solution = () => {
   return (
@@ -14,41 +14,55 @@ const Solution = () => {
           </p>
         </div>
         
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
-            <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              Automate Bookings Through WhatsApp
-            </h3>
-            <ul className="space-y-6">
-              <li className="flex items-start gap-4">
-                <span className="text-green-500 text-xl flex-shrink-0 mt-1">✅</span>
-                <div>
-                  <strong className="text-gray-900">Available 24/7:</strong>
-                  <span className="text-gray-700 ml-1">Capture bookings anytime, even outside working hours</span>
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <MessageCircle className="w-8 h-8 text-green-600" strokeWidth={2} />
                 </div>
-              </li>
-              <li className="flex items-start gap-4">
-                <span className="text-green-500 text-xl flex-shrink-0 mt-1">✅</span>
                 <div>
-                  <strong className="text-gray-900">Tailored to Your Business:</strong>
-                  <span className="text-gray-700 ml-1">Customize the agent to answer FAQs and book specific services</span>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    Instant Replies on WhatsApp
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Never miss a lead again — your AI agent responds in seconds, 24/7, like a real staff member.
+                  </p>
                 </div>
-              </li>
-              <li className="flex items-start gap-4">
-                <span className="text-green-500 text-xl flex-shrink-0 mt-1">✅</span>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <Brain className="w-8 h-8 text-green-600" strokeWidth={2} />
+                </div>
                 <div>
-                  <strong className="text-gray-900">No Double Bookings:</strong>
-                  <span className="text-gray-700 ml-1">Instantly syncs with your calendar to avoid conflicts</span>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    Answers FAQs Like a Human
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Trained on your services, prices, and policies — the agent handles customer questions with ease.
+                  </p>
                 </div>
-              </li>
-              <li className="flex items-start gap-4">
-                <span className="text-green-500 text-xl flex-shrink-0 mt-1">✅</span>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <Target className="w-8 h-8 text-green-600" strokeWidth={2} />
+                </div>
                 <div>
-                  <strong className="text-gray-900">No-Code Setup:</strong>
-                  <span className="text-gray-700 ml-1">Go live in under 5 minutes — no tech skills needed</span>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    Books Niche Services With Precision
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    From hair tattoo sessions to 1-hour massages, the AI handles your unique workflows like it's part of your team.
+                  </p>
                 </div>
-              </li>
-            </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
