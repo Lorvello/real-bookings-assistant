@@ -28,23 +28,37 @@ export const Pricing: React.FC<PricingProps> = ({ plans, title, description }) =
   const [billingPeriod, setBillingPeriod] = useState<string>("monthly");
 
   return (
-    <section className="py-20 px-4 bg-white">
+    <section className="py-20 px-4 bg-gray-900">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">{title}</h2>
-          <p className="text-xl text-gray-600 whitespace-pre-line mb-8">{description}</p>
+          <h2 className="text-4xl font-bold text-white mb-6">{title}</h2>
+          <p className="text-xl text-gray-300 whitespace-pre-line mb-8">{description}</p>
           
           <div className="flex justify-center mb-8">
             <ToggleGroup 
               type="single" 
               value={billingPeriod} 
               onValueChange={(value) => value && setBillingPeriod(value)}
-              className="bg-gray-100 rounded-lg p-1"
+              className="bg-gray-800 rounded-lg p-1 border border-gray-700"
             >
-              <ToggleGroupItem value="monthly" className="px-6 py-2 rounded-md">
+              <ToggleGroupItem 
+                value="monthly" 
+                className={`px-6 py-2 rounded-md transition-all ${
+                  billingPeriod === 'monthly' 
+                    ? 'bg-white text-gray-900 shadow-md' 
+                    : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
+              >
                 Monthly
               </ToggleGroupItem>
-              <ToggleGroupItem value="yearly" className="px-6 py-2 rounded-md">
+              <ToggleGroupItem 
+                value="yearly" 
+                className={`px-6 py-2 rounded-md transition-all ${
+                  billingPeriod === 'yearly' 
+                    ? 'bg-white text-gray-900 shadow-md' 
+                    : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                }`}
+              >
                 Yearly
               </ToggleGroupItem>
             </ToggleGroup>
@@ -53,7 +67,7 @@ export const Pricing: React.FC<PricingProps> = ({ plans, title, description }) =
         
         <div className="grid md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
-            <Card key={index} className={`relative ${plan.isPopular ? 'border-green-500 shadow-lg scale-105' : 'border-gray-200'}`}>
+            <Card key={index} className={`relative bg-gray-800 border-gray-700 ${plan.isPopular ? 'border-green-500 shadow-lg scale-105' : ''}`}>
               {plan.isPopular && (
                 <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white">
                   Most Popular
@@ -61,22 +75,22 @@ export const Pricing: React.FC<PricingProps> = ({ plans, title, description }) =
               )}
               
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-bold text-gray-900">{plan.name}</CardTitle>
-                <CardDescription className="text-gray-600 mt-2">{plan.description}</CardDescription>
+                <CardTitle className="text-2xl font-bold text-white">{plan.name}</CardTitle>
+                <CardDescription className="text-gray-400 mt-2">{plan.description}</CardDescription>
                 <div className="mt-4">
                   {plan.isCustom ? (
-                    <span className="text-3xl font-bold text-gray-900">Custom</span>
+                    <span className="text-3xl font-bold text-white">Custom</span>
                   ) : (
                     <>
-                      <span className="text-5xl font-bold text-gray-900">
+                      <span className="text-5xl font-bold text-white">
                         €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
                       </span>
-                      <span className="text-gray-600 ml-2">/month</span>
+                      <span className="text-gray-400 ml-2">/month</span>
                     </>
                   )}
                 </div>
                 {!plan.isCustom && billingPeriod === "yearly" && (
-                  <div className="text-sm text-green-600 font-medium">
+                  <div className="text-sm text-green-400 font-medium">
                     Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
                   </div>
                 )}
@@ -86,8 +100,8 @@ export const Pricing: React.FC<PricingProps> = ({ plans, title, description }) =
                 <ul className="space-y-3">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-center">
-                      <span className="text-green-500 mr-3">✓</span>
-                      <span className="text-gray-700">{feature}</span>
+                      <span className="text-green-400 mr-3">✓</span>
+                      <span className="text-gray-300">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -95,7 +109,7 @@ export const Pricing: React.FC<PricingProps> = ({ plans, title, description }) =
               
               <CardFooter>
                 <Button 
-                  className={`w-full ${plan.isPopular ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-900 hover:bg-gray-800'}`}
+                  className={`w-full ${plan.isPopular ? 'bg-green-500 hover:bg-green-600' : 'bg-white hover:bg-gray-100 text-gray-900'}`}
                   asChild
                 >
                   <a href={plan.href}>{plan.buttonText}</a>
