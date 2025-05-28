@@ -67,21 +67,6 @@ const ProcessSection = () => {
             </div>
           </div>
         </div>
-
-        {/* Bottom CTA */}
-        <div className="text-center mt-20">
-          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto">
-            <h3 className="text-2xl font-bold text-black mb-4">
-              Ready to Automate Your Bookings?
-            </h3>
-            <p className="text-gray-700 mb-6">
-              Join hundreds of businesses already using our WhatsApp AI to handle bookings 24/7
-            </p>
-            <button className="bg-[#075e54] text-white px-8 py-3 rounded-lg font-medium hover:bg-[#075e54]/90 transition-colors">
-              Start Free Trial
-            </button>
-          </div>
-        </div>
       </div>
     </section>
   );
