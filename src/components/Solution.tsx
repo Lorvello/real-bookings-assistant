@@ -1,14 +1,11 @@
-
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Brain, Target } from "lucide-react";
-
 const Solution = () => {
-  return (
-    <section className="py-20 px-4 bg-red-50">
+  return <section className="py-20 px-4 bg-red-50">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
-            Meet Your <span className="text-green-600">24/7 AI Appointment Agent</span>
+            Meet Your <span className="text-green-600">24/7 Appointment Agent</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             The smart WhatsApp assistant that books qualified appointments while you focus on what you do best
@@ -26,9 +23,7 @@ const Solution = () => {
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
                     Instant Replies on WhatsApp
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Never miss a lead again — your AI agent responds in seconds, 24/7, like a real staff member.
-                  </p>
+                  <p className="text-gray-600 leading-relaxed">Never miss a lead again, your AI agent responds in seconds, 24/7, like a real staff member.</p>
                 </div>
               </div>
             </div>
@@ -42,9 +37,7 @@ const Solution = () => {
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
                     Answers FAQs Like a Human
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Trained on your services, prices, and policies — the agent handles customer questions with ease.
-                  </p>
+                  <p className="text-gray-600 leading-relaxed">Trained on your services, prices, and policies, the agent handles customer questions with ease.</p>
                 </div>
               </div>
             </div>
@@ -58,9 +51,7 @@ const Solution = () => {
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
                     Works for Any Appointment Business
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    From salons to clinics, fitness studios to consultants — the AI adapts to any business that books appointments.
-                  </p>
+                  <p className="text-gray-600 leading-relaxed">From salons to clinics, fitness studios to consultants, the AI adapts to any business that books appointments.</p>
                 </div>
               </div>
             </div>
@@ -74,8 +65,6 @@ const Solution = () => {
           </p>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Solution;
