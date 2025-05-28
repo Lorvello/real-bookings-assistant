@@ -1,16 +1,12 @@
 import { Phone, Calendar, Clock } from "lucide-react";
-
 const PainPoint = () => {
-  return (
-    <section className="pb-20 px-4 bg-red-50">
+  return <section className="pb-20 px-4 bg-red-50">
       <div className="max-w-6xl mx-auto text-center">
         <h2 className="text-4xl font-bold text-gray-900 mb-8">
           <span className="text-red-600">80%</span> of Your Customers Drop Off Due to Poor Availability
         </h2>
         
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-16">
-          Customers expect instant access—when you're unavailable, they move on without waiting.
-        </p>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-16">Customers expect instant access, when you're unavailable, they move on without waiting.</p>
         
         <div className="max-w-5xl mx-auto mb-16">
           <div className="grid md:grid-cols-3 gap-8">
@@ -59,8 +55,6 @@ const PainPoint = () => {
           </p>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default PainPoint;
