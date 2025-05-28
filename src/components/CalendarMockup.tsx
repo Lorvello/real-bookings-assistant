@@ -53,7 +53,7 @@ const CalendarMockup = () => {
         <div className="grid grid-cols-7 gap-2">
           {calendarDates.map((dateObj, index) => {
             const { date, isPrevMonth, isNextMonth } = dateObj;
-            const isHighlightedDate = date === 15 && !isPrevMonth && !isNextMonth; // May 15th
+            const isHighlightedDate = date === 30 && !isPrevMonth && !isNextMonth; // May 30th
             const isToday = date === 28 && !isPrevMonth && !isNextMonth; // May 28th (current date)
             
             return (
@@ -74,7 +74,7 @@ const CalendarMockup = () => {
                   {date}
                 </div>
                 
-                {/* Event on May 15th */}
+                {/* Event on May 30th */}
                 {isHighlightedDate && (
                   <div className="absolute top-12 left-0 right-0 mx-1 z-10">
                     <div className="bg-[#075e54] text-white text-xs px-2 py-2 rounded-md shadow-sm">
