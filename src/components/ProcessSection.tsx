@@ -2,7 +2,6 @@
 import React from 'react';
 import WhatsAppChat from './WhatsAppChat';
 import CalendarMockup from './CalendarMockup';
-import { ArrowRight, ArrowDown } from 'lucide-react';
 
 const ProcessSection = () => {
   return (
@@ -42,23 +41,6 @@ const ProcessSection = () => {
             
             <div className="flex-1 animate-appear opacity-0 delay-300">
               <WhatsAppChat />
-            </div>
-          </div>
-
-          {/* Timeline connector */}
-          <div className="flex justify-center">
-            <div className="flex flex-col items-center space-y-4">
-              {/* Desktop arrow */}
-              <div className="hidden lg:block">
-                <ArrowRight className="w-8 h-8 text-[#075e54]" />
-              </div>
-              {/* Mobile arrow */}
-              <div className="lg:hidden">
-                <ArrowDown className="w-8 h-8 text-[#075e54]" />
-              </div>
-              <div className="bg-[#075e54] text-white px-6 py-2 rounded-full text-sm font-medium">
-                Instant Booking
-              </div>
             </div>
           </div>
 
