@@ -30,6 +30,8 @@ const Signup = () => {
     setLoading(true);
 
     try {
+      console.log('Starting signup process for:', formData.email);
+      
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -42,6 +44,7 @@ const Signup = () => {
       });
 
       if (error) {
+        console.error('Signup error:', error);
         toast({
           title: "Error",
           description: error.message,
@@ -50,16 +53,27 @@ const Signup = () => {
         return;
       }
 
+      console.log('Signup successful:', data);
+
       if (data.user) {
-        toast({
-          title: "Success!",
-          description: "Your 7-day free trial has started. Welcome aboard!",
-        });
-        
-        // Redirect to profile page
-        navigate('/profile');
+        // Check if email confirmation is required
+        if (data.user.email_confirmed_at) {
+          toast({
+            title: "Success!",
+            description: "Your account has been created and you're now logged in!",
+          });
+          navigate('/profile');
+        } else {
+          toast({
+            title: "Check your email!",
+            description: "Please check your email and click the confirmation link to complete signup.",
+          });
+          // Still redirect to profile as user might be auto-logged in
+          navigate('/profile');
+        }
       }
     } catch (error) {
+      console.error('Signup error:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
