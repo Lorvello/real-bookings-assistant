@@ -68,7 +68,8 @@ export const useServices = (user: User | null) => {
 
     // Count appointments by service
     const serviceCounts = appointments.reduce((acc, appointment) => {
-      acc[appointment.service_name] = (acc[appointment.service_name] || 0) + 1;
+      const serviceName = appointment.service_name;
+      acc[serviceName] = (acc[serviceName] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
@@ -78,7 +79,7 @@ export const useServices = (user: User | null) => {
     return Object.entries(serviceCounts)
       .map(([serviceName, count]) => ({
         name: serviceName,
-        percentage: Math.round((count / totalAppointments) * 100)
+        percentage: Math.round((Number(count) / totalAppointments) * 100)
       }))
       .sort((a, b) => b.percentage - a.percentage)
       .slice(0, 3); // Top 3 services
