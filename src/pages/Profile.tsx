@@ -33,12 +33,14 @@ import { useServices } from '@/hooks/useServices';
 import { useNavigate } from 'react-router-dom';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [emergencyPaused, setEmergencyPaused] = useState(false);
+  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
 
   const { profile, setupProgress, loading: profileLoading, updateSetupProgress } = useProfile(user);
   const { appointments, getTodaysAppointments, getAppointmentsByDateRange } = useAppointments(user);
@@ -73,7 +75,11 @@ const Profile = () => {
   const handleStepAction = async (step: string, completed: boolean) => {
     switch (step) {
       case 'calendar_linked':
-        await updateSetupProgress('calendar_linked', !completed);
+        if (!completed) {
+          setCalendarModalOpen(true);
+        } else {
+          await updateSetupProgress('calendar_linked', false);
+        }
         break;
       case 'availability_configured':
         await updateSetupProgress('availability_configured', !completed);
@@ -82,6 +88,10 @@ const Profile = () => {
         await updateSetupProgress('booking_rules_set', !completed);
         break;
     }
+  };
+
+  const handleCalendarIntegrationComplete = async () => {
+    await updateSetupProgress('calendar_linked', true);
   };
 
   if (loading || profileLoading) {
@@ -510,6 +520,12 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      
+      <CalendarIntegrationModal
+        open={calendarModalOpen}
+        onOpenChange={setCalendarModalOpen}
+        onComplete={handleCalendarIntegrationComplete}
+      />
     </div>
   );
 };
