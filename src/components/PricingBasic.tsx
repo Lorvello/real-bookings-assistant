@@ -11,6 +11,7 @@ const demoPlans = [
     period: "per month",
     features: [
       "Own WhatsApp number",
+      "Unlimited bookings",
       "Automated reminders",
       "Detailed analytics",
       "Multi-language support",
