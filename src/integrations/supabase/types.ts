@@ -9,6 +9,90 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          end_time: string
+          id: string
+          notes: string | null
+          price: number | null
+          service_duration: number
+          service_name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          end_time: string
+          id?: string
+          notes?: string | null
+          price?: number | null
+          service_duration?: number
+          service_name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          price?: number | null
+          service_duration?: number
+          service_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      availability_slots: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          start_time: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          start_time: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          start_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_settings: {
         Row: {
           booking_buffer_minutes: number | null
@@ -42,6 +126,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           working_hours?: Json | null
+        }
+        Relationships: []
+      }
+      business_metrics: {
+        Row: {
+          avg_response_time_seconds: number
+          cancelled_appointments: number
+          completed_appointments: number
+          created_at: string
+          id: string
+          metric_date: string
+          new_clients: number
+          revenue: number
+          total_appointments: number
+          user_id: string
+        }
+        Insert: {
+          avg_response_time_seconds?: number
+          cancelled_appointments?: number
+          completed_appointments?: number
+          created_at?: string
+          id?: string
+          metric_date: string
+          new_clients?: number
+          revenue?: number
+          total_appointments?: number
+          user_id: string
+        }
+        Update: {
+          avg_response_time_seconds?: number
+          cancelled_appointments?: number
+          completed_appointments?: number
+          created_at?: string
+          id?: string
+          metric_date?: string
+          new_clients?: number
+          revenue?: number
+          total_appointments?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -84,6 +207,80 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          client_name: string | null
+          client_phone: string
+          created_at: string
+          id: string
+          last_message: string | null
+          last_message_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_name?: string | null
+          client_phone: string
+          created_at?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_name?: string | null
+          client_phone?: string
+          created_at?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_from_client: boolean
+          message_type: string
+          whatsapp_message_id: string | null
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_from_client?: boolean
+          message_type?: string
+          whatsapp_message_id?: string | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_from_client?: boolean
+          message_type?: string
+          whatsapp_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -108,6 +305,42 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration: number
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          price: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -146,7 +379,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_daily_metrics: {
+        Args: { target_user_id: string; target_date: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

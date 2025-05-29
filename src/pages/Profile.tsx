@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -27,6 +26,10 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
+import { useAppointments } from '@/hooks/useAppointments';
+import { useBusinessMetrics } from '@/hooks/useBusinessMetrics';
+import { useConversations } from '@/hooks/useConversations';
+import { useServices } from '@/hooks/useServices';
 import { useNavigate } from 'react-router-dom';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
@@ -38,6 +41,10 @@ const Profile = () => {
   const [emergencyPaused, setEmergencyPaused] = useState(false);
 
   const { profile, setupProgress, loading: profileLoading, updateSetupProgress } = useProfile(user);
+  const { appointments, getTodaysAppointments, getAppointmentsByDateRange } = useAppointments(user);
+  const { aggregatedMetrics, loading: metricsLoading } = useBusinessMetrics(user);
+  const { conversations } = useConversations(user);
+  const { services, getPopularServices } = useServices(user);
 
   useEffect(() => {
     const getUser = async () => {
@@ -121,47 +128,61 @@ const Profile = () => {
   const totalSteps = setupSteps.length;
   const incompleteSteps = setupSteps.filter(step => !step.completed);
 
-  // Enhanced metrics data
+  // Real metrics data
   const metrics = [
-    { label: 'Total Clients', value: '47', icon: Users },
-    { label: 'New This Week', value: '12', icon: TrendingUp },
-    { label: 'Avg Response', value: '2.3s', icon: MessageSquare },
-    { label: 'Success Rate', value: '94%', icon: CheckCircle },
-    { label: 'This Month', value: '156', icon: Calendar },
+    { label: 'Total Clients', value: aggregatedMetrics.totalClients.toString(), icon: Users },
+    { label: 'New This Week', value: aggregatedMetrics.newThisWeek.toString(), icon: TrendingUp },
+    { label: 'Avg Response', value: aggregatedMetrics.avgResponse, icon: MessageSquare },
+    { label: 'Success Rate', value: aggregatedMetrics.successRate, icon: CheckCircle },
+    { label: 'This Month', value: aggregatedMetrics.thisMonth.toString(), icon: Calendar },
   ];
 
-  // Today's schedule data
-  const todaySchedule = [
-    { time: '09:00', client: 'Sarah Johnson', service: 'Hair Cut & Style' },
-    { time: '11:30', client: 'Mike Wilson', service: 'Beard Trim' },
-    { time: '14:00', client: 'Emma Davis', service: 'Hair Color' },
-    { time: '16:30', client: 'John Smith', service: 'Consultation' },
-  ];
+  // Today's appointments from real data
+  const todaysAppointments = getTodaysAppointments();
+  const todaySchedule = todaysAppointments.map(apt => ({
+    time: apt.appointment_time.slice(0, 5), // Format HH:MM
+    client: apt.client_name,
+    service: apt.service_name
+  }));
 
-  // Booking trends data (last 14 days)
-  const bookingTrends = [
-    { day: '1', bookings: 8 },
-    { day: '2', bookings: 12 },
-    { day: '3', bookings: 6 },
-    { day: '4', bookings: 15 },
-    { day: '5', bookings: 9 },
-    { day: '6', bookings: 18 },
-    { day: '7', bookings: 11 },
-    { day: '8', bookings: 14 },
-    { day: '9', bookings: 7 },
-    { day: '10', bookings: 16 },
-    { day: '11', bookings: 13 },
-    { day: '12', bookings: 10 },
-    { day: '13', bookings: 19 },
-    { day: '14', bookings: 12 },
-  ];
+  // Generate booking trends from last 14 days
+  const generateBookingTrends = () => {
+    const trends = [];
+    const today = new Date();
+    
+    for (let i = 13; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const dayAppointments = appointments.filter(apt => apt.appointment_date === dateStr);
+      trends.push({
+        day: (14 - i).toString(),
+        bookings: dayAppointments.length
+      });
+    }
+    
+    return trends;
+  };
 
-  // Popular services data
-  const popularServices = [
-    { name: 'Hair Cut', percentage: 45 },
-    { name: 'Hair Color', percentage: 32 },
-    { name: 'Styling', percentage: 23 },
-  ];
+  const bookingTrends = generateBookingTrends();
+
+  // Popular services from real data
+  const popularServices = getPopularServices(appointments);
+
+  // Show loading state for metrics
+  if (metricsLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto py-8 px-4">
+          <div className="text-center py-20">
+            <div className="text-lg text-gray-600">Loading dashboard data...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -198,7 +219,7 @@ const Profile = () => {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           {/* Main Content */}
           <div className="xl:col-span-3 space-y-6">
-            {/* Enhanced Metrics */}
+            {/* Real Business Metrics */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
@@ -229,7 +250,7 @@ const Profile = () => {
 
             {/* Today's Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Today's Schedule */}
+              {/* Today's Real Schedule */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
@@ -239,30 +260,35 @@ const Profile = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {todaySchedule.map((appointment, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <div className="font-medium text-gray-900">{appointment.time}</div>
-                          <div className="text-sm text-gray-600">{appointment.client}</div>
-                        </div>
-                        <div className="text-sm text-gray-700 text-right">
-                          {appointment.service}
-                        </div>
+                    {todaySchedule.length > 0 ? (
+                      <>
+                        {todaySchedule.map((appointment, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <div className="font-medium text-gray-900">{appointment.time}</div>
+                              <div className="text-sm text-gray-600">{appointment.client}</div>
+                            </div>
+                            <div className="text-sm text-gray-700 text-right">
+                              {appointment.service}
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        No appointments scheduled for today
                       </div>
-                    ))}
-                    <div className="text-center pt-2 text-sm text-green-600 font-medium">
-                      3 slots remaining today
-                    </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Booking Trends */}
+              {/* Real Booking Trends */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
                     <TrendingUp className="h-5 w-5 text-green-600" />
-                    Booking Trends
+                    Booking Trends (14 days)
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -283,9 +309,6 @@ const Profile = () => {
                         </LineChart>
                       </ResponsiveContainer>
                     </ChartContainer>
-                  </div>
-                  <div className="text-center pt-2 text-sm text-gray-600">
-                    Peak hours: 10-12am, 2-4pm
                   </div>
                 </CardContent>
               </Card>
@@ -369,21 +392,27 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Popular Services */}
+            {/* Real Popular Services */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Popular Services</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {popularServices.map((service, index) => (
-                  <div key={index}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-gray-700">{service.name}</span>
-                      <span className="text-sm text-gray-500">{service.percentage}%</span>
+                {popularServices.length > 0 ? (
+                  popularServices.map((service, index) => (
+                    <div key={index}>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-gray-700">{service.name}</span>
+                        <span className="text-sm text-gray-500">{service.percentage}%</span>
+                      </div>
+                      <Progress value={service.percentage} className="h-2" />
                     </div>
-                    <Progress value={service.percentage} className="h-2" />
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500 text-sm">
+                    No booking data available yet
                   </div>
-                ))}
+                )}
               </CardContent>
             </Card>
 
