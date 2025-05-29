@@ -30,7 +30,9 @@ const Index = () => {
         <SocialProof />
       </ScrollAnimatedSection>
       <ScrollAnimatedSection delay={100}>
-        <PricingBasic />
+        <div id="pricing">
+          <PricingBasic />
+        </div>
       </ScrollAnimatedSection>
     </div>
   );
