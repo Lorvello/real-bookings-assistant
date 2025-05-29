@@ -11,6 +11,7 @@ import FAQ from "./pages/FAQ";
 import WhyUs from "./pages/WhyUs";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

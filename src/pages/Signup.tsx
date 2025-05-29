@@ -1,16 +1,73 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const Signup = () => {
-  const handleSignup = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    business: ''
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value
+    });
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Starting 7-day free trial');
-    // Handle signup and start free trial
-    // After successful signup, redirect to dashboard or success page
-    // For now, we'll just log the action
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.name,
+            business_name: formData.business
+          }
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Success!",
+          description: "Your 7-day free trial has started. Welcome aboard!",
+        });
+        
+        // Redirect to profile page
+        navigate('/profile');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,6 +91,8 @@ const Signup = () => {
                   type="text" 
                   id="name" 
                   required 
+                  value={formData.name}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
                   placeholder="Enter your full name" 
                 />
@@ -47,6 +106,8 @@ const Signup = () => {
                   type="email" 
                   id="email" 
                   required 
+                  value={formData.email}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
                   placeholder="Enter your email" 
                 />
@@ -60,6 +121,8 @@ const Signup = () => {
                   type="password" 
                   id="password" 
                   required 
+                  value={formData.password}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
                   placeholder="Create a password" 
                 />
@@ -72,6 +135,8 @@ const Signup = () => {
                 <input 
                   type="text" 
                   id="business" 
+                  value={formData.business}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
                   placeholder="Enter your organization name" 
                 />
@@ -95,9 +160,10 @@ const Signup = () => {
 
               <Button 
                 type="submit" 
+                disabled={loading}
                 className="w-full bg-green-600 hover:bg-green-700 text-lg py-3"
               >
-                Start Your 7-Day Free Trial Now
+                {loading ? 'Creating Account...' : 'Start Your 7-Day Free Trial Now'}
               </Button>
             </form>
 
