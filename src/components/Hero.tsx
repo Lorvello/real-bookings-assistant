@@ -29,12 +29,12 @@ const Hero = () => {
           {/* CTA Button with generous spacing */}
           <div className="pt-8">
             <Button className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-12 py-8 text-xl font-semibold rounded-xl shadow-lg shadow-green-500/25 border-0 transition-all duration-300 hover:scale-105">
-              Start Free Trial – Book 10 Appointments
+              Get More Bookings Today
             </Button>
           </div>
 
-          {/* Simple rating indicator */}
-          <div className="flex items-center justify-center gap-4 pt-6">
+          {/* Simple rating indicator - moved closer to button */}
+          <div className="flex items-center justify-center gap-4 pt-2">
             <div className="flex gap-1">
               {[...Array(5)].map((_, i) => (
                 <span key={i} className="text-yellow-400 text-xl">★</span>
