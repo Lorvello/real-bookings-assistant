@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star } from 'lucide-react';
+import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar } from 'lucide-react';
 
 const WhyUs = () => {
   const features = [
