@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown } from 'lucide-react';
@@ -126,32 +125,12 @@ const WhyUs = () => {
       traditional: false
     },
     {
-      feature: "White-Label & Custom Branding",
-      us: true,
-      traditional: false
-    },
-    {
       feature: "CRM Integrations (HubSpot, Notion, etc.)",
       us: true,
       traditional: false
     },
     {
       feature: "Advanced Analytics & Insights",
-      us: true,
-      traditional: false
-    },
-    {
-      feature: "Automated Waitlist Management",
-      us: true,
-      traditional: false
-    },
-    {
-      feature: "No-Show Follow Up System",
-      us: true,
-      traditional: false
-    },
-    {
-      feature: "Review System Integration",
       us: true,
       traditional: false
     },
