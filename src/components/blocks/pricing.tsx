@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -110,7 +109,7 @@ export const Pricing: React.FC<PricingProps> = ({
               </CardContent>
               
               <CardFooter>
-                <Button className={`w-full ${plan.name === 'ENTERPRISE' ? 'bg-white hover:bg-gray-100 text-black' : 'bg-green-500 hover:bg-green-600 text-white'}`} asChild>
+                <Button className={`w-full transition-all duration-300 ${plan.name === 'ENTERPRISE' ? 'bg-white hover:bg-gray-100 text-black hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]'}`} asChild>
                   <a href={plan.href}>{getButtonText(plan)}</a>
                 </Button>
               </CardFooter>
