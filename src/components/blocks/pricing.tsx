@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,10 +38,8 @@ export const Pricing: React.FC<PricingProps> = ({
   const getButtonText = (plan: PricingPlan) => {
     if (plan.name === 'ENTERPRISE') {
       return 'Contact Sales';
-    } else if (plan.name === 'PROFESSIONAL') {
-      return 'Get Free Trial Now';
     } else {
-      return 'Start Free Trial Now';
+      return 'Start Your Free Trial Now';
     }
   };
   
@@ -170,11 +167,9 @@ export const Pricing: React.FC<PricingProps> = ({
               <CardFooter>
                 <Button 
                   className={`w-full ${
-                    plan.isPopular 
-                      ? 'bg-green-500 hover:bg-green-600 text-white' 
-                      : plan.name === 'ENTERPRISE'
-                        ? 'bg-white hover:bg-gray-100 text-black'
-                        : 'bg-white hover:bg-gray-100 text-gray-900'
+                    plan.name === 'ENTERPRISE'
+                      ? 'bg-white hover:bg-gray-100 text-black'
+                      : 'bg-green-500 hover:bg-green-600 text-white'
                   }`} 
                   asChild
                 >
