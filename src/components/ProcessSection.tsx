@@ -1,11 +1,8 @@
-
 import React from 'react';
 import WhatsAppChat from './WhatsAppChat';
 import CalendarMockup from './CalendarMockup';
-
 const ProcessSection = () => {
-  return (
-    <section className="bg-gray-900 py-20 px-4">
+  return <section className="bg-gray-900 py-20 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
         <div className="text-center mb-16">
@@ -24,7 +21,7 @@ const ProcessSection = () => {
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="flex-1 space-y-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[#075e54] text-white rounded-full flex items-center justify-center font-bold text-lg">
+                <div className="w-12 h-12 text-white rounded-full flex items-center justify-center font-bold text-lg bg-green-600">
                   1
                 </div>
                 <h3 className="text-2xl font-bold text-white">Customer Starts WhatsApp Chat</h3>
@@ -35,7 +32,7 @@ const ProcessSection = () => {
                 and find the perfect appointment time.
               </p>
               <div className="bg-[#075e54]/10 border border-[#075e54]/20 rounded-lg p-4">
-                <p className="text-[#075e54] font-medium">✨ No apps to download, no complex forms to fill</p>
+                <p className="font-medium text-green-600">✨ No apps to download, no complex forms to fill</p>
               </div>
             </div>
             
@@ -48,7 +45,7 @@ const ProcessSection = () => {
           <div className="flex flex-col lg:flex-row-reverse items-center gap-12">
             <div className="flex-1 space-y-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[#075e54] text-white rounded-full flex items-center justify-center font-bold text-lg">
+                <div className="w-12 h-12 text-white rounded-full flex items-center justify-center font-bold text-lg bg-green-600">
                   2
                 </div>
                 <h3 className="text-2xl font-bold text-white">Appointment Automatically Booked</h3>
@@ -58,7 +55,7 @@ const ProcessSection = () => {
                 Both you and your customer receive confirmation messages with all the details.
               </p>
               <div className="bg-[#075e54]/10 border border-[#075e54]/20 rounded-lg p-4">
-                <p className="text-[#075e54] font-medium">📅 Syncs with Google Calendar, Outlook, and more</p>
+                <p className="font-medium text-green-600">📅 Syncs with Google Calendar, Outlook, and more</p>
               </div>
             </div>
             
@@ -68,8 +65,6 @@ const ProcessSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default ProcessSection;

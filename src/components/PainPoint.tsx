@@ -9,7 +9,7 @@ const PainPoint = () => {
             <span className="text-red-700 text-sm font-medium">The Problem</span>
           </div>
           
-          <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          <h2 className="text-4xl font-bold text-gray-900 mb-6 leading-tight md:text-6xl">
             <span className="text-red-600">80%</span> of Customers Drop Off
             <br />
             Due to <span className="bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">Poor Availability</span>
