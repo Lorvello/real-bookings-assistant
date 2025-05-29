@@ -29,10 +29,14 @@ export const Pricing: React.FC<PricingProps> = ({
   description
 }) => {
   const [billingPeriod, setBillingPeriod] = useState<string>("yearly");
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   
-  const handleCardClick = (planName: string) => {
-    setSelectedCard(selectedCard === planName ? null : planName);
+  const handleCardHover = (planName: string) => {
+    setHoveredCard(planName);
+  };
+
+  const handleCardLeave = () => {
+    setHoveredCard(null);
   };
 
   const getButtonText = (plan: PricingPlan) => {
@@ -53,7 +57,7 @@ export const Pricing: React.FC<PricingProps> = ({
           <div className="flex justify-center mb-8">
             <div className="relative">
               {billingPeriod === "yearly" && (
-                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">
+                <div className="absolute -top-8 right-0 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">
                   20% OFF
                 </div>
               )}
@@ -96,13 +100,14 @@ export const Pricing: React.FC<PricingProps> = ({
           {plans.map((plan, index) => (
             <Card 
               key={index} 
-              onClick={() => handleCardClick(plan.name)}
+              onMouseEnter={() => handleCardHover(plan.name)}
+              onMouseLeave={handleCardLeave}
               className={`relative cursor-pointer transition-all duration-300 ${
                 plan.name === 'ENTERPRISE' 
                   ? 'bg-black border-gray-600 text-white' 
                   : 'bg-gray-800 border-gray-700'
               } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} ${
-                selectedCard === plan.name ? 'scale-105 shadow-xl' : 'hover:scale-102'
+                hoveredCard === plan.name ? 'scale-105 shadow-xl' : 'hover:scale-102'
               }`}
             >
               {plan.isPopular && (
