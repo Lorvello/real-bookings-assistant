@@ -13,9 +13,11 @@ const ScrollAnimatedSection: React.FC<ScrollAnimatedSectionProps> = ({
   children, 
   className = '', 
   delay = 0,
-  as: Component = 'section'
+  as = 'section'
 }) => {
   const { ref, isVisible } = useScrollAnimation(0.1);
+
+  const Component = as as React.ElementType;
 
   return (
     <Component
