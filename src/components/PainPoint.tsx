@@ -1,9 +1,6 @@
-
 import { Phone, Calendar, Clock } from "lucide-react";
-
 const PainPoint = () => {
-  return (
-    <section className="py-24 px-4 bg-gradient-to-br from-red-50 via-rose-50 to-pink-50">
+  return <section className="py-24 px-4 bg-gradient-to-br from-red-50 via-rose-50 to-pink-50">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-20">
@@ -70,7 +67,8 @@ const PainPoint = () => {
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
           
           <div className="relative z-10">
-            <div className="text-4xl mb-4 opacity-20">"</div>
+            <div className="text-4xl mb-4 opacity-20">
+          </div>
             <p className="text-lg md:text-xl font-medium mb-4 max-w-3xl mx-auto leading-relaxed">
               "I was losing 3-4 bookings every week just because I couldn't answer my phone during sessions. 
               It was costing me thousands in revenue."
@@ -87,8 +85,6 @@ const PainPoint = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default PainPoint;
