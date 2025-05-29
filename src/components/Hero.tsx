@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Sparkles, Zap } from "lucide-react";
+import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "lucide-react";
 
 const Hero = () => {
   return (
@@ -58,33 +58,26 @@ const Hero = () => {
           <div className="flex items-center justify-center gap-8 pt-4 animate-appear opacity-0 delay-700">
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
+                {/* Hair salon/beauty - Scissors */}
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
-                  <img
-                    src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=32&h=32&fit=crop&crop=center"
-                    alt="Company logo"
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
+                  <Scissors className="w-4 h-4 text-slate-700" />
                 </div>
+                
+                {/* Dental clinic - Custom tooth shape */}
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
-                  <img
-                    src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=32&h=32&fit=crop&crop=center"
-                    alt="Company logo"
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
+                  <div className="w-4 h-4 bg-slate-700 rounded-t-full" style={{
+                    clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)"
+                  }}></div>
                 </div>
+                
+                {/* Fitness/gym - Dumbbell */}
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
-                  <img
-                    src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=32&h=32&fit=crop&crop=center"
-                    alt="Company logo"
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
+                  <Dumbbell className="w-4 h-4 text-slate-700" />
                 </div>
+                
+                {/* Medical/healthcare - Stethoscope */}
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
-                  <img
-                    src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=32&h=32&fit=crop&crop=center"
-                    alt="Company logo"
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
+                  <Stethoscope className="w-4 h-4 text-slate-700" />
                 </div>
               </div>
               <span className="text-slate-400 text-sm">1000+ businesses automated</span>
