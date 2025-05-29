@@ -25,63 +25,118 @@ export const Pricing: React.FC<PricingProps> = ({
   title,
   description
 }) => {
-  const [billingPeriod, setBillingPeriod] = useState<string>("monthly");
-  return <section className="py-20 px-4 bg-gray-900">
+  const [billingPeriod, setBillingPeriod] = useState<string>("yearly");
+  
+  return (
+    <section className="py-20 px-4 bg-gray-900">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-white mb-6">{title}</h2>
           <p className="text-xl text-gray-300 whitespace-pre-line mb-8">{description}</p>
           
           <div className="flex justify-center mb-8">
-            <ToggleGroup type="single" value={billingPeriod} onValueChange={value => value && setBillingPeriod(value)} className="bg-gray-800 rounded-lg p-1 border border-gray-700">
-              <ToggleGroupItem value="monthly" className={`px-6 py-2 rounded-md transition-all ${billingPeriod === 'monthly' ? 'bg-white text-gray-900 shadow-md' : 'text-gray-300 hover:text-white hover:bg-gray-700'}`}>
-                Monthly
-              </ToggleGroupItem>
-              <ToggleGroupItem value="yearly" className={`px-6 py-2 rounded-md transition-all ${billingPeriod === 'yearly' ? 'bg-white text-gray-900 shadow-md' : 'text-gray-300 hover:text-white hover:bg-gray-700'}`}>
-                Yearly
-              </ToggleGroupItem>
-            </ToggleGroup>
+            <div className="relative">
+              <div className="absolute -top-8 right-0 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">
+                20% OFF
+              </div>
+              <ToggleGroup 
+                type="single" 
+                value={billingPeriod} 
+                onValueChange={value => value && setBillingPeriod(value)} 
+                className="bg-gray-800 rounded-lg p-1 border border-gray-700"
+              >
+                <ToggleGroupItem 
+                  value="monthly" 
+                  className={`px-6 py-2 rounded-md transition-all ${
+                    billingPeriod === 'monthly' 
+                      ? 'bg-white text-gray-900 shadow-md' 
+                      : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                  }`}
+                >
+                  Monthly
+                </ToggleGroupItem>
+                <ToggleGroupItem 
+                  value="yearly" 
+                  className={`px-6 py-2 rounded-md transition-all ${
+                    billingPeriod === 'yearly' 
+                      ? 'bg-white text-gray-900 shadow-md' 
+                      : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                  }`}
+                >
+                  Yearly
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
           </div>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8">
-          {plans.map((plan, index) => <Card key={index} className={`relative bg-gray-800 border-gray-700 ${plan.isPopular ? 'border-green-500 shadow-lg scale-105' : ''}`}>
-              {plan.isPopular && <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white">
+          {plans.map((plan, index) => (
+            <Card 
+              key={index} 
+              className={`relative ${
+                plan.name === 'ENTERPRISE' 
+                  ? 'bg-gradient-to-b from-purple-900 to-purple-800 border-purple-500 shadow-lg shadow-purple-500/25' 
+                  : 'bg-gray-800 border-gray-700'
+              } ${plan.isPopular ? 'border-green-500 shadow-lg scale-105' : ''}`}
+            >
+              {plan.isPopular && (
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white">
                   Most Popular
-                </Badge>}
+                </Badge>
+              )}
               
               <CardHeader className="text-center">
                 <CardTitle className="font-bold text-white text-4xl">{plan.name}</CardTitle>
                 <CardDescription className="text-gray-400 mt-2">{plan.description}</CardDescription>
                 <div className="mt-4">
-                  {plan.isCustom ? <span className="text-3xl font-bold text-white">Custom</span> : <>
+                  {plan.isCustom ? (
+                    <span className="text-3xl font-bold text-white">Custom</span>
+                  ) : (
+                    <>
                       <span className="text-5xl font-bold text-white">
                         €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
                       </span>
                       <span className="text-gray-400 ml-2">/month</span>
-                    </>}
+                    </>
+                  )}
                 </div>
-                {!plan.isCustom && billingPeriod === "yearly" && <div className="text-sm text-green-400 font-medium">
+                {!plan.isCustom && billingPeriod === "yearly" && (
+                  <div className="text-sm text-green-400 font-medium">
                     Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
-                  </div>}
+                  </div>
+                )}
               </CardHeader>
               
               <CardContent>
                 <ul className="space-y-3">
-                  {plan.features.map((feature, featureIndex) => <li key={featureIndex} className="flex items-center">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-center">
                       <span className="text-green-400 mr-3">✓</span>
                       <span className="text-gray-300">{feature}</span>
-                    </li>)}
+                    </li>
+                  ))}
                 </ul>
               </CardContent>
               
               <CardFooter>
-                <Button className={`w-full ${plan.isPopular ? 'bg-green-500 hover:bg-green-600' : 'bg-white hover:bg-gray-100 text-gray-900'}`} asChild>
+                <Button 
+                  className={`w-full ${
+                    plan.isPopular 
+                      ? 'bg-green-500 hover:bg-green-600' 
+                      : plan.name === 'ENTERPRISE'
+                        ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                        : 'bg-white hover:bg-gray-100 text-gray-900'
+                  }`} 
+                  asChild
+                >
                   <a href={plan.href}>{plan.buttonText}</a>
                 </Button>
               </CardFooter>
-            </Card>)}
+            </Card>
+          ))}
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };

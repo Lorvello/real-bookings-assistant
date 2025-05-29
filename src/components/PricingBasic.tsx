@@ -6,8 +6,8 @@ import { Pricing } from "@/components/blocks/pricing";
 const demoPlans = [
   {
     name: "STARTER",
-    price: "20",
-    yearlyPrice: "15",
+    price: "25",
+    yearlyPrice: "20",
     period: "per month",
     features: [
       "Own WhatsApp number",
@@ -30,8 +30,8 @@ const demoPlans = [
   },
   {
     name: "PROFESSIONAL",
-    price: "40",
-    yearlyPrice: "30",
+    price: "60",
+    yearlyPrice: "48",
     period: "per month",
     features: [
       "All Starter features included",
@@ -43,6 +43,10 @@ const demoPlans = [
       "No-show follow up",
       "Support for multiple team members",
       "CRM integrations (e.g. Notion, Airtable, HubSpot)",
+      "Priority support",
+      "Review system",
+      "Multiple calendar syncing",
+      "Ultimate personal assistant",
     ],
     description: "Advanced booking intelligence with team management and CRM integrations",
     buttonText: "Get Started",
@@ -56,7 +60,6 @@ const demoPlans = [
     period: "",
     features: [
       "Everything in Professional",
-      "Ultimate personal assistant",
       "Voice call routing",
       "Multiple locations/numbers",
       "Custom AI workflows & advanced logic",
@@ -67,6 +70,7 @@ const demoPlans = [
       "Automated social media content creation",
       "Competitor tracker",
       "Google trend analytics",
+      "Social media DM integration",
     ],
     description: "Complete business automation with AI marketing and competitive intelligence",
     buttonText: "Contact Sales",
