@@ -59,7 +59,12 @@ export const useAppointments = (user: User | null) => {
       }
 
       console.log('Appointments fetched:', data);
-      setAppointments(data || []);
+      // Cast the data to proper types
+      const typedAppointments = (data || []).map(apt => ({
+        ...apt,
+        status: apt.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+      }));
+      setAppointments(typedAppointments);
     } catch (error) {
       console.error('Unexpected error fetching appointments:', error);
     } finally {

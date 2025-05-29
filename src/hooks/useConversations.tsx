@@ -54,7 +54,12 @@ export const useConversations = (user: User | null) => {
       }
 
       console.log('Conversations fetched:', data);
-      setConversations(data || []);
+      // Cast the data to proper types
+      const typedConversations = (data || []).map(conv => ({
+        ...conv,
+        status: conv.status as 'active' | 'archived' | 'blocked'
+      }));
+      setConversations(typedConversations);
     } catch (error) {
       console.error('Unexpected error fetching conversations:', error);
     } finally {
