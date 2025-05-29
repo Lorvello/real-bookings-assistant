@@ -1,15 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
   const location = useLocation();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const navItems = [
     { name: 'Home', path: '/' },
     { name: 'How it Works', path: '/how-it-works' },
-    { name: 'FAQ', path: '/faq' },
-    { name: 'Why Us', path: '/why-us' }
+    { name: 'Why Us', path: '/why-us' },
+    { name: 'FAQ', path: '/faq' }
   ];
 
   return (
@@ -44,9 +53,32 @@ const Navbar = () => {
           
           {/* CTA Button */}
           <div className="hidden md:block">
-            <button className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors shadow-lg">
-              Get Started
-            </button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <button className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors shadow-lg">
+                  Get Started
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="text-center text-2xl font-bold text-gray-900">
+                    Get Started
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col gap-4 pt-4">
+                  <Link to="/login" onClick={() => setIsDialogOpen(false)}>
+                    <Button variant="outline" className="w-full">
+                      Log In
+                    </Button>
+                  </Link>
+                  <Link to="/signup" onClick={() => setIsDialogOpen(false)}>
+                    <Button className="w-full bg-green-600 hover:bg-green-700">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
