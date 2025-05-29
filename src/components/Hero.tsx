@@ -25,13 +25,13 @@ const Hero = () => {
         {/* Main headline */}
         <div className="space-y-8">
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white leading-[0.9] tracking-tight animate-appear opacity-0 delay-100">
-            Never Miss A{" "}
             <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
-              Booking
+              Bookings
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
             </span>
+            {" "}on Auto Pilot
             <br />
-            Again
+            via WhatsApp
           </h1>
 
           <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-0 delay-300">
