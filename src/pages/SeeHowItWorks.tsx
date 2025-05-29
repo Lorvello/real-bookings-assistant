@@ -1,41 +1,36 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { Calendar, MessageCircle, CheckCircle, Clock, Users, Zap, ArrowRight, Smartphone, Settings } from 'lucide-react';
-
 const SeeHowItWorks = () => {
-  const benefits = [
-    {
-      icon: Clock,
-      title: "24/7 Available",
-      description: "Your AI assistant never sleeps and schedules appointments around the clock"
-    },
-    {
-      icon: Users,
-      title: "Unlimited Capacity",
-      description: "Handle hundreds of booking requests simultaneously"
-    },
-    {
-      icon: Zap,
-      title: "Instant Response",
-      description: "Customers get immediate replies, no more waiting"
-    },
-    {
-      icon: CheckCircle,
-      title: "100% Accurate",
-      description: "AI understands context and books correctly every time"
-    }
-  ];
-
-  const calendarOptions = [
-    { name: "Google Calendar", logo: "📅" },
-    { name: "Calendly", logo: "📆" },
-    { name: "Cal.com", logo: "🗓️" }
-  ];
-
-  return (
-    <div className="min-h-screen bg-white">
+  const benefits = [{
+    icon: Clock,
+    title: "24/7 Available",
+    description: "Your AI assistant never sleeps and schedules appointments around the clock"
+  }, {
+    icon: Users,
+    title: "Unlimited Capacity",
+    description: "Handle hundreds of booking requests simultaneously"
+  }, {
+    icon: Zap,
+    title: "Instant Response",
+    description: "Customers get immediate replies, no more waiting"
+  }, {
+    icon: CheckCircle,
+    title: "100% Accurate",
+    description: "AI understands context and books correctly every time"
+  }];
+  const calendarOptions = [{
+    name: "Google Calendar",
+    logo: "📅"
+  }, {
+    name: "Calendly",
+    logo: "📆"
+  }, {
+    name: "Cal.com",
+    logo: "🗓️"
+  }];
+  return <div className="min-h-screen bg-white">
       <Navbar />
       
       {/* Hero Section */}
@@ -50,15 +45,13 @@ const SeeHowItWorks = () => {
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mt-16">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            {benefits.map((benefit, index) => <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
                   <benefit.icon className="w-6 h-6 text-green-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{benefit.title}</h3>
                 <p className="text-gray-600 text-sm">{benefit.description}</p>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -82,12 +75,10 @@ const SeeHowItWorks = () => {
                 </p>
                 
                 <div className="space-y-4 mb-8">
-                  {calendarOptions.map((calendar, index) => (
-                    <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                  {calendarOptions.map((calendar, index) => <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
                       <span className="text-2xl">{calendar.logo}</span>
                       <span className="text-lg font-medium text-gray-900">{calendar.name}</span>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
                 
                 <div className="bg-green-50 border border-green-200 p-6 rounded-xl">
@@ -270,15 +261,11 @@ const SeeHowItWorks = () => {
                 Start Now
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <button className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/10 transition-colors">
-                View Demo
-              </button>
+              
             </div>
           </div>
         </section>
       </ScrollAnimatedSection>
-    </div>
-  );
+    </div>;
 };
-
 export default SeeHowItWorks;
