@@ -26,7 +26,7 @@ const demoPlans = [
     ],
     description: "Essential booking automation for solo entrepreneurs and new businesses getting started",
     buttonText: "Start Free Trial",
-    href: "/sign-up",
+    href: "/signup",
     isPopular: false,
   },
   {
@@ -51,7 +51,7 @@ const demoPlans = [
     ],
     description: "Advanced booking intelligence with team management and CRM integrations",
     buttonText: "Get Started",
-    href: "/sign-up",
+    href: "/signup",
     isPopular: true,
   },
   {
@@ -81,13 +81,30 @@ const demoPlans = [
   },
 ];
 
-function PricingBasic() {
+interface PricingBasicProps {
+  selectedPlan?: string;
+  onPlanSelect?: (plan: string) => void;
+  showAsSelection?: boolean;
+}
+
+function PricingBasic({ selectedPlan, onPlanSelect, showAsSelection = false }: PricingBasicProps) {
+  const title = showAsSelection 
+    ? "Choose Your Plan - 1 Week Free Trial" 
+    : "Try 1 Week Free – Flexible Pricing for Every Business";
+    
+  const description = showAsSelection
+    ? "Select the plan that works for you. All plans include access to our platform and dedicated support."
+    : "Choose the plan that works for you. All plans include access to our platform and dedicated support.";
+
   return (
     <div className="w-full">
       <Pricing 
         plans={demoPlans}
-        title="Try 1 Week Free – Flexible Pricing for Every Business"
-        description="Choose the plan that works for you. All plans include access to our platform and dedicated support."
+        title={title}
+        description={description}
+        selectedPlan={selectedPlan}
+        onPlanSelect={onPlanSelect}
+        showAsSelection={showAsSelection}
       />
     </div>
   );

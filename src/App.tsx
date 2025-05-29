@@ -11,7 +11,6 @@ import FAQ from "./pages/FAQ";
 import WhyUs from "./pages/WhyUs";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Plans from "./pages/Plans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,7 +26,6 @@ const AppRoutes = () => {
       <Route path="/why-us" element={<WhyUs />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/plans" element={<Plans />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
