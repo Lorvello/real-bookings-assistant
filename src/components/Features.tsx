@@ -1,55 +1,41 @@
-
 import { Check, Calendar, Globe, BarChart3, Bell, Settings, Zap } from "lucide-react";
-
 const Features = () => {
-  const features = [
-    {
-      icon: Zap,
-      title: "100% Automatic Bookings",
-      description: "No manual intervention needed. Books, confirms, and reschedules automatically",
-      color: "from-yellow-400 to-orange-500"
-    },
-    {
-      icon: Settings,
-      title: "Fully Personalized",
-      description: "Tailor the AI Agent to your services, FAQs, and booking logic — from custom haircut types to business-specific questions",
-      color: "from-purple-400 to-pink-500"
-    },
-    {
-      icon: Calendar,
-      title: "Calendar Sync",
-      description: "Integrates with Google Calendar, Outlook, Calendly, and more",
-      color: "from-blue-400 to-indigo-500"
-    },
-    {
-      icon: Bell,
-      title: "Automated Reminders",
-      description: "Sends confirmation and reminder messages to reduce no-shows",
-      color: "from-green-400 to-emerald-500"
-    },
-    {
-      icon: BarChart3,
-      title: "Detailed Analytics",
-      description: "Track booking rates, popular times, and revenue generated",
-      color: "from-cyan-400 to-blue-500"
-    },
-    {
-      icon: Globe,
-      title: "Multi-Language Support",
-      description: "Communicates in your customers' preferred language automatically",
-      color: "from-rose-400 to-red-500"
-    }
-  ];
-
-  return (
-    <section className="py-24 px-4 bg-gray-50">
+  const features = [{
+    icon: Zap,
+    title: "100% Automatic Bookings",
+    description: "No manual intervention needed. Books, confirms, and reschedules automatically",
+    color: "from-yellow-400 to-orange-500"
+  }, {
+    icon: Settings,
+    title: "Fully Personalized",
+    description: "Tailor the AI Agent to your services, FAQs, and booking logic — from custom haircut types to business-specific questions",
+    color: "from-purple-400 to-pink-500"
+  }, {
+    icon: Calendar,
+    title: "Calendar Sync",
+    description: "Integrates with Google Calendar, Outlook, Calendly, and more",
+    color: "from-blue-400 to-indigo-500"
+  }, {
+    icon: Bell,
+    title: "Automated Reminders",
+    description: "Sends confirmation and reminder messages to reduce no-shows",
+    color: "from-green-400 to-emerald-500"
+  }, {
+    icon: BarChart3,
+    title: "Detailed Analytics",
+    description: "Track booking rates, popular times, and revenue generated",
+    color: "from-cyan-400 to-blue-500"
+  }, {
+    icon: Globe,
+    title: "Multi-Language Support",
+    description: "Communicates in your customers' preferred language automatically",
+    color: "from-rose-400 to-red-500"
+  }];
+  return <section className="py-24 px-4 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2 mb-6 shadow-sm">
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span className="text-gray-700 text-sm font-medium">Complete Solution</span>
-          </div>
+          
           
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             Everything You Need to{" "}
@@ -64,18 +50,13 @@ const Features = () => {
         
         {/* Features grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-          {features.map((feature, index) => (
-            <div 
-              key={index} 
-              className="group bg-white p-8 rounded-3xl border border-gray-200 hover:shadow-xl hover:shadow-gray-100 transition-all duration-500 hover:-translate-y-1"
-            >
+          {features.map((feature, index) => <div key={index} className="group bg-white p-8 rounded-3xl border border-gray-200 hover:shadow-xl hover:shadow-gray-100 transition-all duration-500 hover:-translate-y-1">
               <div className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
                 <feature.icon className="w-7 h-7 text-white" strokeWidth={2} />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
               <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-            </div>
-          ))}
+            </div>)}
         </div>
         
         {/* CTA Section */}
@@ -110,8 +91,6 @@ const Features = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Features;
