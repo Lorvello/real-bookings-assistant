@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 import { 
   CheckCircle, 
   Calendar, 
@@ -18,15 +19,23 @@ import {
   Clock,
   Target,
   Users,
-  ExternalLink
+  ExternalLink,
+  Download,
+  Send,
+  Pause,
+  Play,
+  TrendingUp
 } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [emergencyPaused, setEmergencyPaused] = useState(false);
 
   const { profile, setupProgress, loading: profileLoading, updateSetupProgress } = useProfile(user);
 
@@ -112,13 +121,47 @@ const Profile = () => {
   const totalSteps = setupSteps.length;
   const incompleteSteps = setupSteps.filter(step => !step.completed);
 
-  // Mock data for dashboard
-  const botStats = {
-    totalConversations: 47,
-    thisWeek: 12,
-    avgResponseTime: '2.3s',
-    successRate: '94%'
-  };
+  // Enhanced metrics data
+  const metrics = [
+    { label: 'Total Clients', value: '47', icon: Users },
+    { label: 'New This Week', value: '12', icon: TrendingUp },
+    { label: 'Avg Response', value: '2.3s', icon: MessageSquare },
+    { label: 'Success Rate', value: '94%', icon: CheckCircle },
+    { label: 'This Month', value: '156', icon: Calendar },
+  ];
+
+  // Today's schedule data
+  const todaySchedule = [
+    { time: '09:00', client: 'Sarah Johnson', service: 'Hair Cut & Style' },
+    { time: '11:30', client: 'Mike Wilson', service: 'Beard Trim' },
+    { time: '14:00', client: 'Emma Davis', service: 'Hair Color' },
+    { time: '16:30', client: 'John Smith', service: 'Consultation' },
+  ];
+
+  // Booking trends data (last 14 days)
+  const bookingTrends = [
+    { day: '1', bookings: 8 },
+    { day: '2', bookings: 12 },
+    { day: '3', bookings: 6 },
+    { day: '4', bookings: 15 },
+    { day: '5', bookings: 9 },
+    { day: '6', bookings: 18 },
+    { day: '7', bookings: 11 },
+    { day: '8', bookings: 14 },
+    { day: '9', bookings: 7 },
+    { day: '10', bookings: 16 },
+    { day: '11', bookings: 13 },
+    { day: '12', bookings: 10 },
+    { day: '13', bookings: 19 },
+    { day: '14', bookings: 12 },
+  ];
+
+  // Popular services data
+  const popularServices = [
+    { name: 'Hair Cut', percentage: 45 },
+    { name: 'Hair Color', percentage: 32 },
+    { name: 'Styling', percentage: 23 },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -155,45 +198,105 @@ const Profile = () => {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           {/* Main Content */}
           <div className="xl:col-span-3 space-y-6">
-            {/* Bot Analytics */}
+            {/* Enhanced Metrics */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <Bot className="h-5 w-5 text-blue-600" />
-                  AI Assistant Performance
+                  <BarChart3 className="h-5 w-5 text-green-600" />
+                  Business Metrics
                 </CardTitle>
                 <CardDescription>
-                  Real-time insights into your booking assistant's activity
+                  Key performance indicators for your booking business
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900 mb-1">{botStats.totalConversations}</div>
-                    <div className="text-sm text-gray-600">Total Conversations</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900 mb-1">{botStats.thisWeek}</div>
-                    <div className="text-sm text-gray-600">This Week</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900 mb-1">{botStats.avgResponseTime}</div>
-                    <div className="text-sm text-gray-600">Avg Response</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900 mb-1">{botStats.successRate}</div>
-                    <div className="text-sm text-gray-600">Success Rate</div>
-                  </div>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                  {metrics.map((metric, index) => {
+                    const IconComponent = metric.icon;
+                    return (
+                      <div key={index} className="text-center">
+                        <div className="flex justify-center mb-2">
+                          <IconComponent className="h-5 w-5 text-green-600" />
+                        </div>
+                        <div className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</div>
+                        <div className="text-sm text-gray-600">{metric.label}</div>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Today's Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Today's Schedule */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <Calendar className="h-5 w-5 text-green-600" />
+                    Today's Schedule
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {todaySchedule.map((appointment, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="font-medium text-gray-900">{appointment.time}</div>
+                          <div className="text-sm text-gray-600">{appointment.client}</div>
+                        </div>
+                        <div className="text-sm text-gray-700 text-right">
+                          {appointment.service}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="text-center pt-2 text-sm text-green-600 font-medium">
+                      3 slots remaining today
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Booking Trends */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                    Booking Trends
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-48">
+                    <ChartContainer config={{}}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={bookingTrends}>
+                          <XAxis dataKey="day" axisLine={false} tickLine={false} />
+                          <YAxis axisLine={false} tickLine={false} />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="bookings" 
+                            stroke="#22C55E" 
+                            strokeWidth={2}
+                            dot={{ fill: '#22C55E', strokeWidth: 2, r: 4 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </div>
+                  <div className="text-center pt-2 text-sm text-gray-600">
+                    Peak hours: 10-12am, 2-4pm
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Setup Progress */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center gap-3">
-                    <BarChart3 className="h-5 w-5 text-blue-600" />
+                    <Bot className="h-5 w-5 text-green-600" />
                     Setup Progress
                   </span>
                   <Badge variant="outline">
@@ -266,7 +369,25 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
+            {/* Popular Services */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Popular Services</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {popularServices.map((service, index) => (
+                  <div key={index}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-gray-700">{service.name}</span>
+                      <span className="text-sm text-gray-500">{service.percentage}%</span>
+                    </div>
+                    <Progress value={service.percentage} className="h-2" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Expanded Quick Actions */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
@@ -296,6 +417,39 @@ const Profile = () => {
                   <Calendar className="h-4 w-4 mr-2" />
                   Calendar
                   <ExternalLink className="h-3 w-3 ml-auto" />
+                </Button>
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={() => console.log('Export data functionality')}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Data
+                </Button>
+                <Button 
+                  className="w-full justify-start" 
+                  variant="outline"
+                  onClick={() => console.log('Broadcast message functionality')}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Broadcast Message
+                </Button>
+                <Button 
+                  className={`w-full justify-start ${emergencyPaused ? 'text-green-600 hover:text-green-700' : 'text-red-600 hover:text-red-700'}`}
+                  variant="outline"
+                  onClick={() => setEmergencyPaused(!emergencyPaused)}
+                >
+                  {emergencyPaused ? (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      Resume Bookings
+                    </>
+                  ) : (
+                    <>
+                      <Pause className="h-4 w-4 mr-2" />
+                      Emergency Pause
+                    </>
+                  )}
                 </Button>
                 <Button 
                   className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
