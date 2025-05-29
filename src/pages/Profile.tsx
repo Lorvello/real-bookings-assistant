@@ -6,11 +6,21 @@ import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Circle, Calendar, Settings, User as UserIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CheckCircle, Circle, Calendar, Settings, User as UserIcon, Edit2 } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
 
 const Profile = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    full_name: '',
+    business_name: ''
+  });
+
+  const { profile, setupProgress, loading: profileLoading, updateProfile, updateSetupProgress } = useProfile(user);
 
   useEffect(() => {
     const getUser = async () => {
@@ -31,11 +41,39 @@ const Profile = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (profile) {
+      setEditForm({
+        full_name: profile.full_name || '',
+        business_name: profile.business_name || ''
+      });
+    }
+  }, [profile]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
-  if (loading) {
+  const handleEditSave = async () => {
+    await updateProfile(editForm);
+    setIsEditing(false);
+  };
+
+  const handleStepAction = async (step: string, completed: boolean) => {
+    switch (step) {
+      case 'calendar_linked':
+        await updateSetupProgress('calendar_linked', !completed);
+        break;
+      case 'availability_configured':
+        await updateSetupProgress('availability_configured', !completed);
+        break;
+      case 'booking_rules_set':
+        await updateSetupProgress('booking_rules_set', !completed);
+        break;
+    }
+  };
+
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -62,30 +100,27 @@ const Profile = () => {
 
   const setupSteps = [
     {
-      id: 1,
-      title: 'Account Created',
-      description: 'Your account has been successfully created',
-      completed: true,
-    },
-    {
-      id: 2,
+      id: 'calendar_linked',
       title: 'Link Your Calendar',
       description: 'Connect your calendar to start receiving bookings',
-      completed: false,
+      completed: setupProgress?.calendar_linked || false,
     },
     {
-      id: 3,
+      id: 'availability_configured',
       title: 'Configure Availability',
       description: 'Set your working hours and availability preferences',
-      completed: false,
+      completed: setupProgress?.availability_configured || false,
     },
     {
-      id: 4,
+      id: 'booking_rules_set',
       title: 'Set Up Booking Rules',
       description: 'Define your booking policies and requirements',
-      completed: false,
+      completed: setupProgress?.booking_rules_set || false,
     },
   ];
+
+  const completedSteps = setupSteps.filter(step => step.completed).length;
+  const totalSteps = setupSteps.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -102,19 +137,67 @@ const Profile = () => {
           <div className="lg:col-span-2">
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserIcon className="h-5 w-5" />
-                  Account Information
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <UserIcon className="h-5 w-5" />
+                    Account Information
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(!isEditing)}
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    {isEditing ? 'Cancel' : 'Edit'}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Email</label>
+                    <Label className="text-sm font-medium text-gray-700">Email</Label>
                     <p className="text-gray-900">{user.email}</p>
                   </div>
+                  
+                  {isEditing ? (
+                    <>
+                      <div>
+                        <Label htmlFor="full_name" className="text-sm font-medium text-gray-700">Full Name</Label>
+                        <Input
+                          id="full_name"
+                          value={editForm.full_name}
+                          onChange={(e) => setEditForm({...editForm, full_name: e.target.value})}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="business_name" className="text-sm font-medium text-gray-700">Business Name</Label>
+                        <Input
+                          id="business_name"
+                          value={editForm.business_name}
+                          onChange={(e) => setEditForm({...editForm, business_name: e.target.value})}
+                          className="mt-1"
+                        />
+                      </div>
+                      <Button onClick={handleEditSave} className="bg-green-600 hover:bg-green-700">
+                        Save Changes
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Full Name</Label>
+                        <p className="text-gray-900">{profile?.full_name || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Business Name</Label>
+                        <p className="text-gray-900">{profile?.business_name || 'Not set'}</p>
+                      </div>
+                    </>
+                  )}
+                  
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Account Status</label>
+                    <Label className="text-sm font-medium text-gray-700">Account Status</Label>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="secondary" className="bg-green-100 text-green-800">
                         7-Day Free Trial Active
@@ -122,9 +205,9 @@ const Profile = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Member Since</label>
+                    <Label className="text-sm font-medium text-gray-700">Member Since</Label>
                     <p className="text-gray-900">
-                      {new Date(user.created_at!).toLocaleDateString()}
+                      {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Unknown'}
                     </p>
                   </div>
                 </div>
@@ -136,7 +219,7 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle>Account Setup Progress</CardTitle>
                 <CardDescription>
-                  Complete these steps to get the most out of your booking assistant
+                  Complete these steps to get the most out of your booking assistant ({completedSteps}/{totalSteps} completed)
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -154,11 +237,13 @@ const Profile = () => {
                         </h4>
                         <p className="text-sm text-gray-600">{step.description}</p>
                       </div>
-                      {!step.completed && (
-                        <Button variant="outline" size="sm">
-                          Start
-                        </Button>
-                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleStepAction(step.id, step.completed)}
+                      >
+                        {step.completed ? 'Reset' : 'Start'}
+                      </Button>
                     </div>
                   ))}
                 </div>
