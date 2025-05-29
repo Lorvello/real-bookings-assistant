@@ -25,7 +25,7 @@ const PainPoint = () => {
         </div>
         
         {/* Pain points grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-20">
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
           <div className="group bg-white/80 backdrop-blur-sm border border-red-100 rounded-3xl p-8 hover:shadow-xl hover:shadow-red-100 transition-all duration-500 hover:-translate-y-2">
             <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
               <Phone className="w-8 h-8 text-white" strokeWidth={2} />
@@ -64,19 +64,19 @@ const PainPoint = () => {
         </div>
         
         {/* Testimonial */}
-        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 rounded-3xl p-12 text-center text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 rounded-3xl p-8 text-center text-white relative overflow-hidden">
           {/* Background decoration */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
           
           <div className="relative z-10">
-            <div className="text-6xl mb-6 opacity-20">"</div>
-            <p className="text-xl md:text-2xl font-medium mb-6 max-w-4xl mx-auto leading-relaxed">
+            <div className="text-4xl mb-4 opacity-20">"</div>
+            <p className="text-lg md:text-xl font-medium mb-4 max-w-3xl mx-auto leading-relaxed">
               "I was losing 3-4 bookings every week just because I couldn't answer my phone during sessions. 
               It was costing me thousands in revenue."
             </p>
             <div className="flex items-center justify-center gap-4">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold">S</span>
               </div>
               <div className="text-left">
