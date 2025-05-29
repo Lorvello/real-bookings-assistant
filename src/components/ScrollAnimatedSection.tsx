@@ -19,7 +19,7 @@ const ScrollAnimatedSection: React.FC<ScrollAnimatedSectionProps> = ({
 
   return (
     <Component
-      ref={ref as any}
+      ref={ref}
       className={`scroll-animate ${isVisible ? 'visible' : ''} ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
