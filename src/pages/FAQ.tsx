@@ -1,5 +1,6 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
+import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import {
   Accordion,
   AccordionContent,
@@ -236,7 +237,7 @@ const FAQ = () => {
       <Navbar />
       <div className="max-w-4xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
+        <ScrollAnimatedSection className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             Frequently Asked Questions
           </h1>
@@ -244,12 +245,16 @@ const FAQ = () => {
             Everything you need to know about our AI-powered WhatsApp booking platform. 
             Can't find what you're looking for? Contact our support team.
           </p>
-        </div>
+        </ScrollAnimatedSection>
 
         {/* FAQ Sections */}
         <div className="space-y-8">
           {faqSections.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="bg-gray-50 rounded-xl p-6">
+            <ScrollAnimatedSection 
+              key={sectionIndex} 
+              className="bg-gray-50 rounded-xl p-6"
+              delay={sectionIndex * 100}
+            >
               <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b border-gray-200 pb-3">
                 {section.title}
               </h2>
@@ -269,12 +274,15 @@ const FAQ = () => {
                   </AccordionItem>
                 ))}
               </Accordion>
-            </div>
+            </ScrollAnimatedSection>
           ))}
         </div>
 
         {/* Contact CTA */}
-        <div className="mt-16 text-center bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-8">
+        <ScrollAnimatedSection 
+          className="mt-16 text-center bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-8"
+          delay={800}
+        >
           <h3 className="text-2xl font-bold text-gray-900 mb-4">
             Still have questions?
           </h3>
@@ -285,7 +293,7 @@ const FAQ = () => {
           <button className="bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors shadow-lg">
             Contact Support
           </button>
-        </div>
+        </ScrollAnimatedSection>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
+import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown } from 'lucide-react';
 import { PricingBasic } from '@/components/PricingBasic';
 
@@ -151,7 +152,7 @@ const WhyUs = () => {
       <Navbar />
       
       {/* Hero Section - Why Choose Us */}
-      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-20 px-4 text-white">
+      <ScrollAnimatedSection as="section" className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-20 px-4 text-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
@@ -171,20 +172,24 @@ const WhyUs = () => {
           {/* Social Proof Stats */}
           <div className="grid md:grid-cols-4 gap-8">
             {proofPoints.map((stat, index) => (
-              <div key={index} className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 text-center">
+              <ScrollAnimatedSection 
+                key={index} 
+                className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 text-center"
+                delay={index * 100}
+              >
                 <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4 mx-auto">
                   <stat.icon className="w-6 h-6 text-green-400" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-2">{stat.number}</div>
                 <div className="text-slate-400">{stat.label}</div>
-              </div>
+              </ScrollAnimatedSection>
             ))}
           </div>
         </div>
-      </section>
+      </ScrollAnimatedSection>
 
       {/* Competitive Advantages Section */}
-      <section className="py-20 px-4 bg-slate-50">
+      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
@@ -197,7 +202,11 @@ const WhyUs = () => {
           
           <div className="grid lg:grid-cols-3 gap-8">
             {competitiveAdvantages.map((advantage, index) => (
-              <div key={index} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-lg hover:shadow-xl transition-all">
+              <ScrollAnimatedSection 
+                key={index} 
+                className="bg-white p-8 rounded-2xl border border-slate-200 shadow-lg hover:shadow-xl transition-all"
+                delay={index * 150}
+              >
                 <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mb-6">
                   <advantage.icon className="w-8 h-8 text-green-600" />
                 </div>
@@ -206,14 +215,14 @@ const WhyUs = () => {
                 <div className="text-green-600 font-bold text-sm bg-green-50 px-3 py-2 rounded-lg inline-block">
                   {advantage.proof}
                 </div>
-              </div>
+              </ScrollAnimatedSection>
             ))}
           </div>
         </div>
-      </section>
+      </ScrollAnimatedSection>
 
       {/* Why Choose Us Features */}
-      <section className="py-20 px-4">
+      <ScrollAnimatedSection as="section" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
@@ -226,21 +235,25 @@ const WhyUs = () => {
           
           <div className="grid lg:grid-cols-3 gap-8">
             {whyChooseUs.map((feature, index) => (
-              <div key={index} className="bg-gradient-to-br from-green-50 to-green-100/50 p-8 rounded-2xl border border-green-200 hover:border-green-300 transition-all">
+              <ScrollAnimatedSection 
+                key={index} 
+                className="bg-gradient-to-br from-green-50 to-green-100/50 p-8 rounded-2xl border border-green-200 hover:border-green-300 transition-all"
+                delay={index * 150}
+              >
                 <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mb-6">
                   <feature.icon className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">{feature.title}</h3>
                 <p className="text-gray-600 mb-4">{feature.description}</p>
                 <div className="text-green-700 font-bold text-lg">{feature.benefit}</div>
-              </div>
+              </ScrollAnimatedSection>
             ))}
           </div>
         </div>
-      </section>
+      </ScrollAnimatedSection>
 
       {/* Us vs Traditional */}
-      <section className="py-20 px-4 bg-gray-50">
+      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
@@ -249,7 +262,7 @@ const WhyUs = () => {
             <p className="text-xl text-gray-600">See why smart businesses are switching</p>
           </div>
           
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
+          <ScrollAnimatedSection className="bg-white rounded-2xl p-8 shadow-lg" delay={200}>
             <div className="grid md:grid-cols-3 gap-8 text-center mb-8">
               <div></div>
               <div className="bg-green-100 p-4 rounded-xl">
@@ -279,12 +292,12 @@ const WhyUs = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </ScrollAnimatedSection>
         </div>
-      </section>
+      </ScrollAnimatedSection>
 
       {/* Social Proof - Testimonials */}
-      <section className="py-20 px-4">
+      <ScrollAnimatedSection as="section" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
@@ -297,7 +310,11 @@ const WhyUs = () => {
           
           <div className="grid lg:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+              <ScrollAnimatedSection 
+                key={index} 
+                className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100"
+                delay={index * 150}
+              >
                 <div className="flex gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
@@ -313,14 +330,16 @@ const WhyUs = () => {
                     {testimonial.result}
                   </div>
                 </div>
-              </div>
+              </ScrollAnimatedSection>
             ))}
           </div>
         </div>
-      </section>
+      </ScrollAnimatedSection>
 
       {/* Pricing Section */}
-      <PricingBasic />
+      <ScrollAnimatedSection delay={200}>
+        <PricingBasic />
+      </ScrollAnimatedSection>
     </div>
   );
 };
