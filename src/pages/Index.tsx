@@ -1,4 +1,5 @@
 
+import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ProcessSection from "@/components/ProcessSection";
 import PainPoint from "@/components/PainPoint";
@@ -10,6 +11,7 @@ import { PricingBasic } from "@/components/PricingBasic";
 const Index = () => {
   return (
     <div className="min-h-screen bg-white">
+      <Navbar />
       <Hero />
       <PainPoint />
       <Solution />
