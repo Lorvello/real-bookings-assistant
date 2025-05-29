@@ -32,6 +32,10 @@ const Signup = () => {
     try {
       console.log('Starting signup process for:', formData.email);
       
+      // Get current origin for redirect URL
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      console.log('Redirect URL:', redirectTo);
+      
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -39,7 +43,8 @@ const Signup = () => {
           data: {
             full_name: formData.name,
             business_name: formData.business
-          }
+          },
+          emailRedirectTo: redirectTo
         }
       });
 
@@ -53,27 +58,37 @@ const Signup = () => {
         return;
       }
 
-      console.log('Signup successful:', data);
+      console.log('Signup response:', data);
 
       if (data.user) {
-        // Check if email confirmation is required
         if (data.user.email_confirmed_at) {
+          // Email is already confirmed (auto-confirm is enabled)
+          console.log('Email auto-confirmed, redirecting to profile');
           toast({
-            title: "Success!",
-            description: "Your account has been created and you're now logged in!",
+            title: "Welcome!",
+            description: "Your account has been created successfully!",
           });
           navigate('/profile');
         } else {
+          // Email confirmation required
+          console.log('Email confirmation required');
           toast({
             title: "Check your email!",
-            description: "Please check your email and click the confirmation link to complete signup.",
+            description: `We've sent a confirmation link to ${formData.email}. Click the link to complete your signup.`,
+            duration: 7000,
           });
-          // Still redirect to profile as user might be auto-logged in
-          navigate('/profile');
+          // Don't redirect immediately, let user know to check email
         }
+      } else {
+        console.log('No user returned from signup');
+        toast({
+          title: "Something went wrong",
+          description: "Please try again or contact support if the problem persists.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('Unexpected signup error:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",

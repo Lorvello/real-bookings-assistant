@@ -27,9 +27,11 @@ export const useProfile = (user: User | null) => {
 
   useEffect(() => {
     if (user) {
+      console.log('User detected, fetching profile and setup progress for:', user.id);
       fetchProfile();
       fetchSetupProgress();
     } else {
+      console.log('No user detected, clearing profile state');
       setProfile(null);
       setSetupProgress(null);
       setLoading(false);
@@ -37,44 +39,65 @@ export const useProfile = (user: User | null) => {
   }, [user]);
 
   const createProfileIfNotExists = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user available for profile creation');
+      return;
+    }
 
     try {
-      console.log('Creating profile for user:', user.id);
+      console.log('Attempting to create profile for user:', user.id);
+      console.log('User metadata:', user.user_metadata);
       
+      // Check if profile already exists
       const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (checkError) {
+      if (checkError && checkError.code !== 'PGRST116') {
         console.error('Error checking existing profile:', checkError);
+        return;
       }
 
       if (!existingProfile) {
-        console.log('Profile does not exist, creating...');
+        console.log('Creating new profile...');
         
-        // Create profile
-        const { error: profileError } = await supabase
+        // Create profile with user metadata and email fallback
+        const profileData = {
+          id: user.id,
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+          business_name: user.user_metadata?.business_name || null,
+        };
+
+        console.log('Profile data to insert:', profileData);
+
+        const { data: newProfile, error: profileError } = await supabase
           .from('profiles')
-          .insert({
-            id: user.id,
-            full_name: user.user_metadata?.full_name || null,
-            business_name: user.user_metadata?.business_name || null
-          });
+          .insert(profileData)
+          .select()
+          .single();
 
         if (profileError) {
           console.error('Error creating profile:', profileError);
-        } else {
-          console.log('Profile created successfully');
+          toast({
+            title: "Profile Creation Error",
+            description: "There was an issue creating your profile. Please try refreshing the page.",
+            variant: "destructive",
+          });
+          return;
         }
+
+        console.log('Profile created successfully:', newProfile);
 
         // Create setup progress
         const { error: setupError } = await supabase
           .from('setup_progress')
           .insert({
-            user_id: user.id
+            user_id: user.id,
+            calendar_linked: false,
+            availability_configured: false,
+            booking_rules_set: false
           });
 
         if (setupError) {
@@ -95,9 +118,19 @@ export const useProfile = (user: User | null) => {
         } else {
           console.log('Booking settings created successfully');
         }
+
+        setProfile(newProfile);
+      } else {
+        console.log('Profile already exists:', existingProfile);
+        setProfile(existingProfile);
       }
     } catch (error) {
-      console.error('Error in createProfileIfNotExists:', error);
+      console.error('Unexpected error in createProfileIfNotExists:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while setting up your profile.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -113,25 +146,21 @@ export const useProfile = (user: User | null) => {
         .eq('id', user.id)
         .maybeSingle();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Error fetching profile:', error);
-        // If profile doesn't exist, try to create it
-        await createProfileIfNotExists();
         return;
       }
 
       if (!data) {
-        console.log('No profile found, creating...');
+        console.log('No profile found, creating one...');
         await createProfileIfNotExists();
-        // Retry fetching after creation
-        setTimeout(() => fetchProfile(), 1000);
         return;
       }
 
       console.log('Profile fetched successfully:', data);
       setProfile(data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Unexpected error fetching profile:', error);
     }
   };
 
@@ -147,13 +176,13 @@ export const useProfile = (user: User | null) => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Error fetching setup progress:', error);
         return;
       }
 
       if (!data) {
-        console.log('No setup progress found');
+        console.log('No setup progress found, creating...');
         await createProfileIfNotExists();
         return;
       }
@@ -161,7 +190,7 @@ export const useProfile = (user: User | null) => {
       console.log('Setup progress fetched successfully:', data);
       setSetupProgress(data);
     } catch (error) {
-      console.error('Error fetching setup progress:', error);
+      console.error('Unexpected error fetching setup progress:', error);
     } finally {
       setLoading(false);
     }
@@ -173,34 +202,37 @@ export const useProfile = (user: User | null) => {
     try {
       console.log('Updating profile with:', updates);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({
           ...updates,
           updated_at: new Date().toISOString()
         })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select()
+        .single();
 
       if (error) {
         console.error('Error updating profile:', error);
         toast({
           title: "Error",
-          description: "Failed to update profile",
+          description: "Failed to update profile. Please try again.",
           variant: "destructive",
         });
         return;
       }
 
-      await fetchProfile();
+      console.log('Profile updated successfully:', data);
+      setProfile(data);
       toast({
         title: "Success",
         description: "Profile updated successfully",
       });
     } catch (error) {
-      console.error('Error in updateProfile:', error);
+      console.error('Unexpected error updating profile:', error);
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: "An unexpected error occurred while updating your profile.",
         variant: "destructive",
       });
     }
@@ -212,26 +244,34 @@ export const useProfile = (user: User | null) => {
     try {
       console.log('Updating setup progress:', step, completed);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('setup_progress')
         .update({
           [step]: completed,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .select()
+        .single();
 
       if (error) {
         console.error('Error updating setup progress:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update setup progress. Please try again.",
+          variant: "destructive",
+        });
         return;
       }
 
-      await fetchSetupProgress();
+      console.log('Setup progress updated successfully:', data);
+      setSetupProgress(data);
       toast({
         title: "Progress Updated",
         description: `${step.replace('_', ' ')} has been ${completed ? 'completed' : 'reset'}`,
       });
     } catch (error) {
-      console.error('Error updating setup progress:', error);
+      console.error('Unexpected error updating setup progress:', error);
     }
   };
 
@@ -242,8 +282,10 @@ export const useProfile = (user: User | null) => {
     updateProfile,
     updateSetupProgress,
     refetch: () => {
-      fetchProfile();
-      fetchSetupProgress();
+      if (user) {
+        fetchProfile();
+        fetchSetupProgress();
+      }
     }
   };
 };
