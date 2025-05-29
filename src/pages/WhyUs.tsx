@@ -1,7 +1,7 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar } from 'lucide-react';
+import { PricingBasic } from '@/components/PricingBasic';
 
 const WhyUs = () => {
   const features = [
@@ -205,28 +205,8 @@ const WhyUs = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="bg-gradient-to-r from-slate-900 to-slate-800 py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Ready to Transform Your Business?
-          </h2>
-          <p className="text-xl text-slate-300 mb-8">
-            Join thousands of businesses who've already automated their booking process
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-green-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-lg">
-              Start Free Trial - No Credit Card Required
-            </button>
-            <button className="border-2 border-slate-400 text-slate-300 px-8 py-4 rounded-xl font-semibold hover:bg-slate-800 transition-colors">
-              Schedule a Demo
-            </button>
-          </div>
-          <p className="text-slate-400 mt-4 text-sm">
-            14-day free trial • Cancel anytime • Setup in 5 minutes
-          </p>
-        </div>
-      </section>
+      {/* Pricing Section */}
+      <PricingBasic />
     </div>
   );
 };
