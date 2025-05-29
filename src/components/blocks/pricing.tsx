@@ -30,6 +30,21 @@ export const Pricing: React.FC<PricingProps> = ({
   description
 }) => {
   const [billingPeriod, setBillingPeriod] = useState<string>("yearly");
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  
+  const handleCardClick = (planName: string) => {
+    setSelectedCard(selectedCard === planName ? null : planName);
+  };
+
+  const getButtonText = (plan: PricingPlan) => {
+    if (plan.name === 'ENTERPRISE') {
+      return 'Contact Sales';
+    } else if (plan.name === 'PROFESSIONAL') {
+      return 'Get Free Trial Now';
+    } else {
+      return 'Start Free Trial Now';
+    }
+  };
   
   return (
     <section className="py-20 px-4 bg-gray-900">
@@ -84,11 +99,14 @@ export const Pricing: React.FC<PricingProps> = ({
           {plans.map((plan, index) => (
             <Card 
               key={index} 
-              className={`relative ${
+              onClick={() => handleCardClick(plan.name)}
+              className={`relative cursor-pointer transition-all duration-300 ${
                 plan.name === 'ENTERPRISE' 
-                  ? 'bg-white border-gray-300 shadow-lg' 
+                  ? 'bg-black border-gray-600 text-white' 
                   : 'bg-gray-800 border-gray-700'
-              } ${plan.isPopular ? 'border-green-500 shadow-lg scale-105' : ''}`}
+              } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} ${
+                selectedCard === plan.name ? 'scale-105 shadow-xl' : 'hover:scale-102'
+              }`}
             >
               {plan.isPopular && (
                 <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white">
@@ -98,31 +116,31 @@ export const Pricing: React.FC<PricingProps> = ({
               
               <CardHeader className="text-center">
                 <CardTitle className={`font-bold text-4xl ${
-                  plan.name === 'ENTERPRISE' ? 'text-gray-900' : 'text-white'
+                  plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'
                 }`}>
                   {plan.name}
                 </CardTitle>
                 <CardDescription className={`mt-2 ${
-                  plan.name === 'ENTERPRISE' ? 'text-gray-600' : 'text-gray-400'
+                  plan.name === 'ENTERPRISE' ? 'text-gray-300' : 'text-gray-400'
                 }`}>
                   {plan.description}
                 </CardDescription>
                 <div className="mt-4">
                   {plan.isCustom ? (
                     <span className={`text-3xl font-bold ${
-                      plan.name === 'ENTERPRISE' ? 'text-gray-900' : 'text-white'
+                      plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'
                     }`}>
                       Custom
                     </span>
                   ) : (
                     <>
                       <span className={`text-5xl font-bold ${
-                        plan.name === 'ENTERPRISE' ? 'text-gray-900' : 'text-white'
+                        plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'
                       }`}>
                         €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
                       </span>
                       <span className={`ml-2 ${
-                        plan.name === 'ENTERPRISE' ? 'text-gray-600' : 'text-gray-400'
+                        plan.name === 'ENTERPRISE' ? 'text-gray-300' : 'text-gray-400'
                       }`}>
                         /month
                       </span>
@@ -141,7 +159,7 @@ export const Pricing: React.FC<PricingProps> = ({
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-center">
                       <span className="text-green-400 mr-3">✓</span>
-                      <span className={plan.name === 'ENTERPRISE' ? 'text-gray-700' : 'text-gray-300'}>
+                      <span className={plan.name === 'ENTERPRISE' ? 'text-gray-200' : 'text-gray-300'}>
                         {feature}
                       </span>
                     </li>
@@ -155,12 +173,12 @@ export const Pricing: React.FC<PricingProps> = ({
                     plan.isPopular 
                       ? 'bg-green-500 hover:bg-green-600 text-white' 
                       : plan.name === 'ENTERPRISE'
-                        ? 'bg-gray-900 hover:bg-gray-800 text-white'
+                        ? 'bg-white hover:bg-gray-100 text-black'
                         : 'bg-white hover:bg-gray-100 text-gray-900'
                   }`} 
                   asChild
                 >
-                  <a href={plan.href}>{plan.buttonText}</a>
+                  <a href={plan.href}>{getButtonText(plan)}</a>
                 </Button>
               </CardFooter>
             </Card>
