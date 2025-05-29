@@ -33,8 +33,8 @@ const Hero = () => {
             </Button>
           </div>
 
-          {/* Simple rating indicator - moved closer to button */}
-          <div className="flex items-center justify-center gap-4 pt-2">
+          {/* Simple rating indicator - moved even closer to button */}
+          <div className="flex items-center justify-center gap-4 pt-1">
             <div className="flex gap-1">
               {[...Array(5)].map((_, i) => (
                 <span key={i} className="text-yellow-400 text-xl">★</span>
