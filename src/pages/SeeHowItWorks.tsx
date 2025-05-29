@@ -1,104 +1,133 @@
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
-import { Calendar, MessageCircle, CheckCircle, Clock, Users, Zap, ArrowRight, Smartphone, Settings } from 'lucide-react';
+import { Calendar, MessageCircle, CheckCircle, Clock, Zap, ArrowRight, Smartphone, Settings, Star, Shield, Target } from 'lucide-react';
+
 const SeeHowItWorks = () => {
-  const benefits = [{
-    icon: Clock,
-    title: "24/7 Available",
-    description: "Your AI assistant never sleeps and schedules appointments around the clock"
-  }, {
-    icon: Users,
-    title: "Unlimited Capacity",
-    description: "Handle hundreds of booking requests simultaneously"
-  }, {
-    icon: Zap,
-    title: "Instant Response",
-    description: "Customers get immediate replies, no more waiting"
-  }, {
-    icon: CheckCircle,
-    title: "100% Accurate",
-    description: "AI understands context and books correctly every time"
-  }];
-  const calendarOptions = [{
-    name: "Google Calendar",
-    logo: "📅"
-  }, {
-    name: "Calendly",
-    logo: "📆"
-  }, {
-    name: "Cal.com",
-    logo: "🗓️"
-  }];
-  return <div className="min-h-screen bg-white">
+  const processHighlights = [
+    {
+      icon: Clock,
+      title: "5-Minute Setup",
+      description: "From registration to live assistant - faster than making coffee"
+    },
+    {
+      icon: Zap,
+      title: "Instant Activation",
+      description: "Your WhatsApp assistant goes live immediately after setup"
+    },
+    {
+      icon: Shield,
+      title: "Zero Technical Skills",
+      description: "No coding, no complex configurations - just simple form filling"
+    },
+    {
+      icon: Target,
+      title: "Perfect Integration",
+      description: "Seamlessly connects with your existing calendar and workflow"
+    }
+  ];
+
+  const calendarOptions = [
+    {
+      name: "Google Calendar",
+      logo: "📅"
+    },
+    {
+      name: "Calendly",
+      logo: "📆"
+    },
+    {
+      name: "Cal.com",
+      logo: "🗓️"
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-white">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-green-50 to-emerald-50 py-20 px-4">
+      <section className="bg-gradient-to-br from-green-50 to-emerald-50 py-24 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             How does <span className="text-green-600">it work?</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
+          <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-16">
             Step by step explanation of how easy it is to get started with our system. 
             No complicated installation, no tech hassle — just go live immediately.
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mt-16">
-            {benefits.map((benefit, index) => <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                  <benefit.icon className="w-6 h-6 text-green-600" />
+            {processHighlights.map((highlight, index) => (
+              <ScrollAnimatedSection key={index} delay={index * 100}>
+                <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 group">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                    <highlight.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{highlight.title}</h3>
+                  <p className="text-gray-600">{highlight.description}</p>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{benefit.title}</h3>
-                <p className="text-gray-600 text-sm">{benefit.description}</p>
-              </div>)}
+              </ScrollAnimatedSection>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Step 1 */}
       <ScrollAnimatedSection>
-        <section className="py-20 px-4 bg-white">
+        <section className="py-24 px-4 bg-white">
           <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="grid lg:grid-cols-2 gap-20 items-center">
               <div>
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xl font-bold">1</span>
+                <div className="flex items-center gap-6 mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <span className="text-white text-2xl font-bold">1</span>
                   </div>
-                  <h2 className="text-4xl font-bold text-gray-900">Fill in your details</h2>
+                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900">Fill in your details</h2>
                 </div>
                 
-                <p className="text-xl text-gray-600 mb-8">
+                <p className="text-xl text-gray-600 mb-10 leading-relaxed">
                   Let us know who you are: your business name, website and email address. 
                   Then easily connect your calendar:
                 </p>
                 
-                <div className="space-y-4 mb-8">
-                  {calendarOptions.map((calendar, index) => <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                      <span className="text-2xl">{calendar.logo}</span>
-                      <span className="text-lg font-medium text-gray-900">{calendar.name}</span>
-                    </div>)}
+                <div className="space-y-4 mb-10">
+                  {calendarOptions.map((calendar, index) => (
+                    <div key={index} className="flex items-center gap-6 p-6 bg-gradient-to-r from-gray-50 to-green-50 rounded-2xl border border-gray-100 hover:border-green-200 transition-all duration-300">
+                      <span className="text-3xl">{calendar.logo}</span>
+                      <span className="text-xl font-semibold text-gray-900">{calendar.name}</span>
+                    </div>
+                  ))}
                 </div>
                 
-                <div className="bg-green-50 border border-green-200 p-6 rounded-xl">
-                  <p className="text-green-800 font-medium">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 p-8 rounded-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <p className="text-green-800 font-semibold text-lg">
+                      Automatic Sync
+                    </p>
+                  </div>
+                  <p className="text-green-700">
                     Our system automatically reads your availability. No hassle, everything connected in real-time.
                   </p>
                 </div>
               </div>
               
-              <div className="bg-gradient-to-br from-green-100 to-emerald-100 p-8 rounded-2xl">
+              <div className="bg-gradient-to-br from-green-100 via-emerald-100 to-blue-100 p-10 rounded-3xl shadow-xl">
                 <div className="text-center">
-                  <Settings className="w-16 h-16 text-green-600 mx-auto mb-6" />
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Simple Setup</h3>
-                  <p className="text-gray-600 mb-6">
+                  <div className="relative mb-8">
+                    <Settings className="w-20 h-20 text-green-600 mx-auto" />
+                    <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full blur opacity-75"></div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-6">Simple Setup</h3>
+                  <p className="text-gray-700 mb-8 text-lg">
                     Fully configured and ready to use within 5 minutes
                   </p>
-                  <div className="bg-white p-4 rounded-xl shadow-sm">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-gray-700">Calendar connected</span>
+                  <div className="bg-white p-6 rounded-2xl shadow-lg">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="font-semibold text-gray-700">Calendar connected</span>
                     </div>
                   </div>
                 </div>
@@ -110,35 +139,44 @@ const SeeHowItWorks = () => {
 
       {/* Step 2 */}
       <ScrollAnimatedSection delay={100}>
-        <section className="py-20 px-4 bg-gray-50">
+        <section className="py-24 px-4 bg-gradient-to-br from-gray-50 to-green-50">
           <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="grid lg:grid-cols-2 gap-20 items-center">
               <div className="order-2 lg:order-1">
-                <div className="bg-white p-8 rounded-2xl shadow-lg">
-                  <Smartphone className="w-16 h-16 text-green-600 mx-auto mb-6" />
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">WhatsApp Number Options</h3>
+                <div className="bg-white p-10 rounded-3xl shadow-xl">
+                  <div className="text-center mb-8">
+                    <div className="relative mb-6">
+                      <Smartphone className="w-20 h-20 text-green-600 mx-auto" />
+                      <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full blur opacity-75"></div>
+                    </div>
+                    <h3 className="text-3xl font-bold text-gray-900 mb-4">WhatsApp Number Options</h3>
+                  </div>
                   
                   <div className="space-y-6">
-                    <div className="border border-green-200 bg-green-50 p-6 rounded-xl">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">1</span>
-                        </div>
-                        <h4 className="font-semibold text-gray-900">We arrange a number for you (recommended)</h4>
+                    <div className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-8 rounded-2xl relative overflow-hidden">
+                      <div className="absolute top-4 right-4">
+                        <Star className="w-6 h-6 text-green-600 fill-current" />
                       </div>
-                      <p className="text-gray-700 text-sm">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold">1</span>
+                        </div>
+                        <h4 className="text-xl font-bold text-gray-900">We arrange a number for you</h4>
+                        <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">Recommended</span>
+                      </div>
+                      <p className="text-gray-700">
                         Super fast, no hassle. Your unique WhatsApp number is live within minutes.
                       </p>
                     </div>
                     
-                    <div className="border border-gray-200 p-6 rounded-xl">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">2</span>
+                    <div className="border border-gray-200 p-8 rounded-2xl bg-white">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold">2</span>
                         </div>
-                        <h4 className="font-semibold text-gray-900">Prefer to use your own number?</h4>
+                        <h4 className="text-xl font-bold text-gray-900">Prefer to use your own number?</h4>
                       </div>
-                      <p className="text-gray-700 text-sm">
+                      <p className="text-gray-700">
                         That's possible too. We'll help you step by step to safely connect it to our system.
                       </p>
                     </div>
@@ -147,19 +185,25 @@ const SeeHowItWorks = () => {
               </div>
               
               <div className="order-1 lg:order-2">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xl font-bold">2</span>
+                <div className="flex items-center gap-6 mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <span className="text-white text-2xl font-bold">2</span>
                   </div>
-                  <h2 className="text-4xl font-bold text-gray-900">Choose your WhatsApp number</h2>
+                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900">Choose your WhatsApp number</h2>
                 </div>
                 
-                <p className="text-xl text-gray-600 mb-8">
-                  You have two options:
+                <p className="text-xl text-gray-600 mb-10 leading-relaxed">
+                  You have two options to get started:
                 </p>
                 
-                <div className="bg-blue-50 border border-blue-200 p-6 rounded-xl">
-                  <p className="text-blue-800 font-medium">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-8 rounded-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Shield className="w-6 h-6 text-blue-600" />
+                    <p className="text-blue-800 font-semibold text-lg">
+                      Seamless Integration
+                    </p>
+                  </div>
+                  <p className="text-blue-700">
                     Whichever option you choose — we ensure everything works smoothly, 
                     without you having to do anything technical.
                   </p>
@@ -172,57 +216,66 @@ const SeeHowItWorks = () => {
 
       {/* Step 3 */}
       <ScrollAnimatedSection delay={200}>
-        <section className="py-20 px-4 bg-white">
+        <section className="py-24 px-4 bg-white">
           <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="grid lg:grid-cols-2 gap-20 items-center">
               <div>
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xl font-bold">3</span>
+                <div className="flex items-center gap-6 mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <span className="text-white text-2xl font-bold">3</span>
                   </div>
-                  <h2 className="text-4xl font-bold text-gray-900">Your WhatsApp assistant is live</h2>
+                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900">Your WhatsApp assistant is live</h2>
                 </div>
                 
-                <p className="text-xl text-gray-600 mb-8">
+                <p className="text-xl text-gray-600 mb-10 leading-relaxed">
                   Ready for action. From now on, your customers can via WhatsApp:
                 </p>
                 
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-center gap-4 p-4 bg-green-50 rounded-xl">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                    <span className="text-gray-900">Schedule appointments (based on your calendar)</span>
+                <div className="space-y-4 mb-10">
+                  <div className="flex items-center gap-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100">
+                    <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0" />
+                    <span className="text-gray-900 text-lg font-medium">Schedule appointments (based on your calendar)</span>
                   </div>
-                  <div className="flex items-center gap-4 p-4 bg-green-50 rounded-xl">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                    <span className="text-gray-900">Reschedule or cancel appointments</span>
+                  <div className="flex items-center gap-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100">
+                    <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0" />
+                    <span className="text-gray-900 text-lg font-medium">Reschedule or cancel appointments</span>
                   </div>
-                  <div className="flex items-center gap-4 p-4 bg-green-50 rounded-xl">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                    <span className="text-gray-900">Get immediate personal help, without waiting time</span>
+                  <div className="flex items-center gap-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100">
+                    <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0" />
+                    <span className="text-gray-900 text-lg font-medium">Get immediate personal help, without waiting time</span>
                   </div>
                 </div>
                 
-                <div className="bg-purple-50 border border-purple-200 p-6 rounded-xl">
-                  <p className="text-purple-800 font-medium">
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-500 p-8 rounded-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Zap className="w-6 h-6 text-purple-600" />
+                    <p className="text-purple-800 font-semibold text-lg">
+                      Fully Automated
+                    </p>
+                  </div>
+                  <p className="text-purple-700">
                     You don't have to do anything yourself. Your smart assistant handles everything — 24/7, 
                     fully automatic, in your style.
                   </p>
                 </div>
               </div>
               
-              <div className="bg-gradient-to-br from-purple-100 to-pink-100 p-8 rounded-2xl">
+              <div className="bg-gradient-to-br from-purple-100 via-pink-100 to-indigo-100 p-10 rounded-3xl shadow-xl">
                 <div className="text-center">
-                  <MessageCircle className="w-16 h-16 text-purple-600 mx-auto mb-6" />
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">24/7 Active</h3>
-                  <p className="text-gray-600 mb-6">
+                  <div className="relative mb-8">
+                    <MessageCircle className="w-20 h-20 text-purple-600 mx-auto" />
+                    <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur opacity-75"></div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-6">24/7 Active</h3>
+                  <p className="text-gray-700 mb-8 text-lg">
                     Your assistant is always available for your customers
                   </p>
-                  <div className="bg-white p-4 rounded-xl shadow-sm">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium text-gray-700">Live and active</span>
+                  <div className="bg-white p-6 rounded-2xl shadow-lg">
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                      <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="font-semibold text-gray-700">Live and active</span>
                     </div>
-                    <p className="text-xs text-gray-500">Automatically booking since today</p>
+                    <p className="text-sm text-gray-500">Automatically booking since today</p>
                   </div>
                 </div>
               </div>
@@ -231,41 +284,103 @@ const SeeHowItWorks = () => {
         </section>
       </ScrollAnimatedSection>
 
-      {/* Bonus Section */}
+      {/* Enhanced Bonus Section */}
       <ScrollAnimatedSection delay={100}>
-        <section className="py-20 px-4 bg-gray-50">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white p-8 rounded-2xl mb-12">
-              <h3 className="text-2xl font-bold mb-4">🎉 Bonus</h3>
-              <p className="text-lg">
-                You automatically receive reminders, updates and insights about who booked what — 
-                directly in your dashboard or inbox.
-              </p>
+        <section className="py-24 px-4 bg-gradient-to-br from-yellow-50 to-orange-50">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-8 py-4 rounded-2xl mb-8 shadow-lg">
+                <Star className="w-8 h-8 fill-current" />
+                <h3 className="text-3xl font-bold">Bonus Features</h3>
+                <Star className="w-8 h-8 fill-current" />
+              </div>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="bg-white p-8 rounded-2xl shadow-lg border border-orange-100">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-2xl flex items-center justify-center mb-6">
+                  <MessageCircle className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-4">Smart Notifications</h4>
+                <p className="text-gray-600">
+                  Get instant alerts for new bookings, cancellations, and customer messages directly in your dashboard.
+                </p>
+              </div>
+              
+              <div className="bg-white p-8 rounded-2xl shadow-lg border border-orange-100">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-2xl flex items-center justify-center mb-6">
+                  <Calendar className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-4">Booking Insights</h4>
+                <p className="text-gray-600">
+                  Detailed analytics about your bookings, peak times, and customer preferences to grow your business.
+                </p>
+              </div>
+              
+              <div className="bg-white p-8 rounded-2xl shadow-lg border border-orange-100">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-2xl flex items-center justify-center mb-6">
+                  <Settings className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-4">Easy Management</h4>
+                <p className="text-gray-600">
+                  Modify or cancel appointments within 5 minutes of booking. Full control over your schedule.
+                </p>
+              </div>
             </div>
           </div>
         </section>
       </ScrollAnimatedSection>
       
-      {/* CTA Section */}
+      {/* Enhanced CTA Section */}
       <ScrollAnimatedSection delay={200}>
-        <section className="bg-gradient-to-br from-green-600 to-emerald-600 py-20 px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold text-white mb-6">
+        <section className="bg-gradient-to-br from-green-600 via-emerald-600 to-green-700 py-24 px-4 relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 left-10 w-20 h-20 border border-white rounded-full"></div>
+            <div className="absolute top-40 right-20 w-16 h-16 border border-white rounded-full"></div>
+            <div className="absolute bottom-20 left-1/4 w-12 h-12 border border-white rounded-full"></div>
+            <div className="absolute bottom-40 right-1/3 w-24 h-24 border border-white rounded-full"></div>
+          </div>
+          
+          <div className="max-w-5xl mx-auto text-center relative z-10">
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-8 leading-tight">
               Ready to save time and never miss a customer again?
             </h2>
-            <p className="text-xl text-green-100 mb-8">
-              Start today — your assistant is already waiting.
+            <p className="text-2xl text-green-100 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Start today — your assistant is already waiting to transform your business.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-green-600 px-8 py-4 rounded-xl font-semibold hover:bg-gray-50 transition-colors flex items-center gap-2 justify-center">
-                Start Now
-                <ArrowRight className="w-5 h-5" />
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <button className="group bg-white text-green-600 px-12 py-6 rounded-2xl font-bold text-xl hover:bg-gray-50 transition-all duration-300 flex items-center gap-4 shadow-xl hover:shadow-2xl transform hover:scale-105">
+                <span>Start Now</span>
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
               
+              <div className="flex items-center gap-3 text-green-100">
+                <CheckCircle className="w-6 h-6" />
+                <span className="text-lg">Setup in 5 minutes</span>
+              </div>
+            </div>
+            
+            <div className="mt-12 flex flex-wrap justify-center gap-8 text-green-100">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                <span>No technical skills required</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5" />
+                <span>Instant activation</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                <span>24/7 support</span>
+              </div>
             </div>
           </div>
         </section>
       </ScrollAnimatedSection>
-    </div>;
+    </div>
+  );
 };
+
 export default SeeHowItWorks;
