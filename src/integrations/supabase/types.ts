@@ -207,6 +207,53 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_events: {
+        Row: {
+          calendar_connection_id: string | null
+          created_at: string
+          end_time: string
+          external_event_id: string
+          id: string
+          is_busy: boolean
+          last_synced_at: string
+          start_time: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          calendar_connection_id?: string | null
+          created_at?: string
+          end_time: string
+          external_event_id: string
+          id?: string
+          is_busy?: boolean
+          last_synced_at?: string
+          start_time: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          calendar_connection_id?: string | null
+          created_at?: string
+          end_time?: string
+          external_event_id?: string
+          id?: string
+          is_busy?: boolean
+          last_synced_at?: string
+          start_time?: string
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_calendar_connection_id_fkey"
+            columns: ["calendar_connection_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           client_name: string | null
@@ -280,6 +327,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      oauth_providers: {
+        Row: {
+          auth_url: string
+          client_id: string | null
+          client_secret: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          provider: string
+          scope: string
+          token_url: string
+          updated_at: string
+        }
+        Insert: {
+          auth_url: string
+          client_id?: string | null
+          client_secret?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          provider: string
+          scope: string
+          token_url: string
+          updated_at?: string
+        }
+        Update: {
+          auth_url?: string
+          client_id?: string | null
+          client_secret?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          provider?: string
+          scope?: string
+          token_url?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
