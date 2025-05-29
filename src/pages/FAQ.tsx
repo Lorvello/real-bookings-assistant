@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import {
@@ -39,8 +38,8 @@ const FAQ = () => {
       title: "Technical Questions",
       items: [
         {
-          question: "Do I need a new WhatsApp number?",
-          answer: "No, you can use your existing WhatsApp Business number. We integrate seamlessly with your current setup."
+          question: "Do I need a business WhatsApp number?",
+          answer: "It's recommended. You use our business WhatsApp number that we will give you, but you can also use your own if needed."
         },
         {
           question: "Which calendars does it integrate with?",
@@ -51,8 +50,8 @@ const FAQ = () => {
           answer: "Yes! Our AI speaks fluent English, Dutch, Spanish, French, German, and 20+ other languages. You can adjust the tone and style to match your business."
         },
         {
-          question: "What happens if the AI makes a mistake?",
-          answer: "You always get notifications of booked appointments and can cancel or modify them within 5 minutes. The AI also learns from every interaction and gets better over time."
+          question: "What happens if our AI makes a mistake?",
+          answer: "The AI does not make mistakes. You always get notifications of booked appointments and can cancel or modify them within 5 minutes."
         },
         {
           question: "Is my data secure?",
@@ -69,7 +68,7 @@ const FAQ = () => {
       items: [
         {
           question: "What does it cost?",
-          answer: "Starter starts at €20/month, Professional €48/month, and Enterprise custom pricing. All plans have a free 7-day trial."
+          answer: "Starter starts at €20/month, Professional €48/month, and Enterprise custom pricing. Starter and Professional plans have a free 7-day trial. Enterprise does not have a free trial."
         },
         {
           question: "Are there setup costs?",
@@ -122,12 +121,12 @@ const FAQ = () => {
       title: "Support",
       items: [
         {
-          question: "What support do I get?",
-          answer: "Starter: basic email support. Professional: priority support + live chat. Enterprise: dedicated account manager + phone support."
+          question: "What type of support can I get?",
+          answer: "Starter: dedicated support. Professional: priority support. Enterprise: dedicated priority support."
         },
         {
           question: "How quickly do I get a response?",
-          answer: "Email: within 24 hours. Priority support: within 4 hours. Enterprise: within 1 hour."
+          answer: "Dedicated support: within 24 hours. Priority support: within 4 hours. Dedicated priority support: within 1 hour."
         },
         {
           question: "Is training available?",
