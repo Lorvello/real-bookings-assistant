@@ -44,7 +44,7 @@ export const Pricing: React.FC<PricingProps> = ({
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-white mb-6">{title}</h2>
-          <p className="text-xl text-gray-300 whitespace-pre-line mb-8">{description}</p>
+          <p className="text-xl text-gray-300 whitespace-pre-line mb-8">Stop losing customers to missed calls and slow responses. All plans include instant WhatsApp booking and dedicated support.</p>
           
           <div className="flex justify-center mb-8">
             <div className="relative">
