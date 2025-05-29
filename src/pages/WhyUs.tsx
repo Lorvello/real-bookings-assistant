@@ -106,22 +106,62 @@ const WhyUs = () => {
       traditional: false
     },
     {
-      feature: "Understands Context & Intent",
+      feature: "24/7 Automated Availability",
       us: true,
       traditional: false
     },
     {
-      feature: "Learns Your Business",
+      feature: "Smart Context Understanding",
       us: true,
       traditional: false
     },
     {
-      feature: "No Monthly Limits",
+      feature: "Automated Reminders & Follow-ups",
+      us: true,
+      traditional: false
+    },
+    {
+      feature: "Multi-Language Support",
+      us: true,
+      traditional: false
+    },
+    {
+      feature: "White-Label & Custom Branding",
+      us: true,
+      traditional: false
+    },
+    {
+      feature: "CRM Integrations (HubSpot, Notion, etc.)",
+      us: true,
+      traditional: false
+    },
+    {
+      feature: "Advanced Analytics & Insights",
+      us: true,
+      traditional: false
+    },
+    {
+      feature: "Automated Waitlist Management",
+      us: true,
+      traditional: false
+    },
+    {
+      feature: "No-Show Follow Up System",
+      us: true,
+      traditional: false
+    },
+    {
+      feature: "Review System Integration",
       us: true,
       traditional: false
     },
     {
       feature: "Enterprise Security Included",
+      us: true,
+      traditional: false
+    },
+    {
+      feature: "Unlimited Monthly Bookings",
       us: true,
       traditional: false
     }
