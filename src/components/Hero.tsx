@@ -50,18 +50,42 @@ const Hero = () => {
             
             <button className="text-slate-300 hover:text-white text-lg font-medium flex items-center gap-2 group transition-colors">
               <Zap className="w-5 h-5 group-hover:text-emerald-400 transition-colors" />
-              Watch 2-min Demo
-              <span className="text-sm opacity-60">(See it work)</span>
+              See how it works
             </button>
           </div>
 
           {/* Social proof */}
-          <div className="flex items-center justify-center gap-8 pt-8 animate-appear opacity-0 delay-700">
+          <div className="flex items-center justify-center gap-8 pt-4 animate-appear opacity-0 delay-700">
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full border-2 border-slate-800"></div>
-                ))}
+                <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
+                  <img
+                    src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=32&h=32&fit=crop&crop=center"
+                    alt="Company logo"
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                </div>
+                <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
+                  <img
+                    src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=32&h=32&fit=crop&crop=center"
+                    alt="Company logo"
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                </div>
+                <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
+                  <img
+                    src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=32&h=32&fit=crop&crop=center"
+                    alt="Company logo"
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                </div>
+                <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
+                  <img
+                    src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=32&h=32&fit=crop&crop=center"
+                    alt="Company logo"
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                </div>
               </div>
               <span className="text-slate-400 text-sm">1000+ businesses automated</span>
             </div>
