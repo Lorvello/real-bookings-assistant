@@ -13,7 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Settings, Save, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Settings, Save, AlertTriangle, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -35,8 +35,34 @@ export const CalendarOAuthConfig: React.FC = () => {
     fetchProviders();
   }, []);
 
+  const ensureProvidersExist = async () => {
+    const requiredProviders = ['google', 'microsoft'];
+    
+    for (const providerName of requiredProviders) {
+      const { data: existing } = await supabase
+        .from('oauth_providers')
+        .select('id')
+        .eq('provider', providerName)
+        .single();
+
+      if (!existing) {
+        await supabase
+          .from('oauth_providers')
+          .insert({
+            provider: providerName,
+            client_id: null,
+            client_secret: null,
+            is_active: false
+          });
+      }
+    }
+  };
+
   const fetchProviders = async () => {
     try {
+      // Ensure providers exist first
+      await ensureProvidersExist();
+      
       const { data, error } = await supabase
         .from('oauth_providers')
         .select('id, provider, client_id, client_secret, is_active')
@@ -58,6 +84,11 @@ export const CalendarOAuthConfig: React.FC = () => {
   const updateProvider = async (providerId: string, updates: Partial<OAuthProvider>) => {
     setSaving(true);
     try {
+      // Auto-activate if both client_id and client_secret are provided
+      if (updates.client_id && updates.client_secret) {
+        updates.is_active = true;
+      }
+
       const { error } = await supabase
         .from('oauth_providers')
         .update(updates)
@@ -104,6 +135,36 @@ export const CalendarOAuthConfig: React.FC = () => {
     };
   };
 
+  const getSetupInstructions = (provider: string) => {
+    if (provider === 'google') {
+      return {
+        consoleUrl: 'https://console.developers.google.com/',
+        consoleName: 'Google Cloud Console',
+        steps: [
+          'Go to Google Cloud Console and create/select a project',
+          'Enable the Google Calendar API',
+          'Go to Credentials → Create OAuth 2.0 Client ID',
+          'Set Application type to "Web application"',
+          `Add redirect URI: ${window.location.origin}/auth/google/callback`,
+          'Copy the Client ID and Client Secret below',
+          'Set environment variable: VITE_GOOGLE_CLIENT_ID=your_client_id'
+        ]
+      };
+    } else {
+      return {
+        consoleUrl: 'https://portal.azure.com/',
+        consoleName: 'Microsoft Azure Portal',
+        steps: [
+          'Go to Azure Portal → App registrations',
+          'Create a new registration',
+          'Set redirect URI to your app URL',
+          'Copy the Client ID and Client Secret',
+          'Set environment variable: VITE_OUTLOOK_CLIENT_ID=your_client_id'
+        ]
+      };
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -122,45 +183,22 @@ export const CalendarOAuthConfig: React.FC = () => {
           OAuth Settings
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[600px] sm:w-[600px]">
+      <SheetContent className="w-[700px] sm:w-[700px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Calendar OAuth Configuration</SheetTitle>
           <SheetDescription>
-            Configure OAuth credentials for calendar providers. You need to register your app with each provider first.
+            Configure OAuth credentials for calendar providers. Follow the step-by-step instructions below.
           </SheetDescription>
         </SheetHeader>
 
         <div className="space-y-6 mt-6">
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Setup Required:</strong> You need to register OAuth applications with Google and Microsoft first.
-              <br />
-              <a 
-                href="https://console.developers.google.com/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                Google Cloud Console
-              </a>
-              {' | '}
-              <a 
-                href="https://portal.azure.com/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                Microsoft Azure Portal
-              </a>
-            </AlertDescription>
-          </Alert>
-
           {providers.map((provider) => {
             const envVar = checkEnvironmentVariable(provider.provider);
+            const instructions = getSetupInstructions(provider.provider);
+            const isFullyConfigured = provider.client_id && provider.client_secret && envVar.present;
             
             return (
-              <Card key={provider.id}>
+              <Card key={provider.id} className={isFullyConfigured ? 'border-green-500' : 'border-orange-500'}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     {provider.provider === 'google' ? (
@@ -169,12 +207,37 @@ export const CalendarOAuthConfig: React.FC = () => {
                       <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">O</div>
                     )}
                     {provider.provider === 'google' ? 'Google Calendar' : 'Microsoft Outlook'}
-                    {provider.client_id && provider.client_secret && envVar.present && (
+                    {isFullyConfigured ? (
                       <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-orange-600" />
                     )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Setup Instructions */}
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <AlertTriangle className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800">
+                      <div className="mb-2">
+                        <strong>Setup Instructions:</strong>
+                        <a 
+                          href={instructions.consoleUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="ml-2 text-blue-600 hover:underline inline-flex items-center"
+                        >
+                          Open {instructions.consoleName} <ExternalLink className="h-3 w-3 ml-1" />
+                        </a>
+                      </div>
+                      <ol className="list-decimal list-inside space-y-1 text-sm">
+                        {instructions.steps.map((step, index) => (
+                          <li key={index}>{step}</li>
+                        ))}
+                      </ol>
+                    </AlertDescription>
+                  </Alert>
+
                   {/* Environment Variable Status */}
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
@@ -239,8 +302,7 @@ export const CalendarOAuthConfig: React.FC = () => {
                   <Button 
                     onClick={() => updateProvider(provider.id, {
                       client_id: provider.client_id,
-                      client_secret: provider.client_secret,
-                      is_active: !!(provider.client_id && provider.client_secret)
+                      client_secret: provider.client_secret
                     })}
                     disabled={saving || !provider.client_id || !provider.client_secret}
                     className="w-full"
@@ -261,19 +323,6 @@ export const CalendarOAuthConfig: React.FC = () => {
               </Card>
             );
           })}
-
-          <Alert className="border-blue-200 bg-blue-50">
-            <AlertTriangle className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
-              <strong>Setup Checklist:</strong>
-              <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
-                <li>Create OAuth app in provider console (Google/Microsoft)</li>
-                <li>Set environment variable (VITE_GOOGLE_CLIENT_ID or VITE_OUTLOOK_CLIENT_ID)</li>
-                <li>Configure redirect URI in provider console</li>
-                <li>Save client ID and secret in this form</li>
-              </ol>
-            </AlertDescription>
-          </Alert>
         </div>
       </SheetContent>
     </Sheet>
