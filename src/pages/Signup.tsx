@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,7 +44,8 @@ const Signup = () => {
     try {
       console.log('[Signup] Starting Google signup...');
       
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      // Use the correct redirect URL that matches Google's expectation
+      const redirectTo = `https://preview--bookings-assistant.lovable.app/auth/callback`;
       console.log('[Signup] Google signup redirect URL:', redirectTo);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -88,7 +88,8 @@ const Signup = () => {
     try {
       console.log('[Signup] Starting email signup for:', formData.email);
       
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      // Use the correct redirect URL that matches Google's expectation
+      const redirectTo = `https://preview--bookings-assistant.lovable.app/auth/callback`;
       console.log('[Signup] Email signup redirect URL:', redirectTo);
       
       const { data, error } = await supabase.auth.signUp({

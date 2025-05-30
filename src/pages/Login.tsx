@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,7 +69,8 @@ const Login = () => {
     try {
       console.log('[Login] Starting Google login...');
       
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      // Use the correct redirect URL that matches Google's expectation
+      const redirectTo = `https://preview--bookings-assistant.lovable.app/auth/callback`;
       console.log('[Login] Google login redirect URL:', redirectTo);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
