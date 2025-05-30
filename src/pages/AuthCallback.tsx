@@ -18,6 +18,17 @@ const AuthCallback = () => {
         console.log('[AuthCallback] Processing auth callback...');
         setStatus('Verificatie...');
         
+        // Get URL parameters for potential calendar OAuth
+        const code = searchParams.get('code');
+        const state = searchParams.get('state');
+        const scope = searchParams.get('scope');
+        
+        console.log('[AuthCallback] URL params:', { 
+          code: code ? 'present' : 'missing', 
+          state, 
+          scope 
+        });
+
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -46,12 +57,54 @@ const AuthCallback = () => {
         if (data.session?.user) {
           console.log('[AuthCallback] User authenticated successfully:', data.session.user.id);
           
-          toast({
-            title: "Welkom!",
-            description: "Je bent succesvol ingelogd.",
-          });
+          // Check if this is a calendar OAuth callback
+          const isCalendarCallback = scope && scope.includes('calendar') && code && state;
           
-          // Always redirect to dashboard after successful login
+          if (isCalendarCallback) {
+            console.log('[AuthCallback] Processing calendar OAuth callback');
+            setStatus('Kalender koppelen...');
+            
+            try {
+              // Call our calendar OAuth edge function
+              const { data: oauthResult, error: oauthError } = await supabase.functions.invoke('google-calendar-oauth', {
+                body: { 
+                  code, 
+                  state, 
+                  user_id: data.session.user.id 
+                }
+              });
+
+              if (oauthError || !oauthResult?.success) {
+                console.error('[AuthCallback] Calendar OAuth failed:', oauthError);
+                toast({
+                  title: "Kalender Koppeling Mislukt",
+                  description: "Er ging iets mis bij het koppelen van je kalender.",
+                  variant: "destructive",
+                });
+              } else {
+                console.log('[AuthCallback] Calendar connected successfully');
+                toast({
+                  title: "Kalender Gekoppeld!",
+                  description: `${oauthResult.calendar.name} is succesvol gekoppeld.`,
+                });
+              }
+            } catch (calendarError) {
+              console.error('[AuthCallback] Calendar OAuth error:', calendarError);
+              toast({
+                title: "Kalender Koppeling Fout",
+                description: "Er ging iets mis bij het koppelen van je kalender.",
+                variant: "destructive",
+              });
+            }
+          } else {
+            console.log('[AuthCallback] Regular login callback');
+            toast({
+              title: "Welkom!",
+              description: "Je bent succesvol ingelogd.",
+            });
+          }
+          
+          // Always redirect to profile after successful authentication
           navigate('/profile');
         } else {
           console.log('[AuthCallback] No session found');

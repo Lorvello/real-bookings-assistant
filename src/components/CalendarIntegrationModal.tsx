@@ -74,17 +74,28 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     getUser();
   }, []);
 
+  // Update step based on connection status
   useEffect(() => {
     if (connectionManager.isConnected && step === 'select') {
+      console.log('[CalendarModal] Connection detected, moving to connected step');
       setStep('connected');
     }
   }, [connectionManager.isConnected, step]);
 
   useEffect(() => {
     if (connections.length > 0 && step === 'select') {
+      console.log('[CalendarModal] Connections found, moving to connected step');
       setStep('connected');
     }
   }, [connections, step]);
+
+  // Handle connection errors
+  useEffect(() => {
+    if (connectionManager.error && step === 'select') {
+      console.log('[CalendarModal] Connection error detected:', connectionManager.error);
+      setStep('error');
+    }
+  }, [connectionManager.error, step]);
 
   const handleGoogleConnect = () => {
     if (connectionManager.isConnecting) return;
@@ -98,12 +109,11 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
       console.log('[CalendarModal] Starting connection with confirmation modal');
       const success = await connectionManager.initiateConnection();
       
-      if (success) {
-        // The OAuth flow will redirect, so we don't need to wait here
-        console.log('[CalendarModal] OAuth flow initiated successfully');
-      } else {
+      if (!success) {
         setStep('error');
       }
+      // If successful, the OAuth flow will redirect to auth/callback
+      // and the connection will be handled there
     } catch (error: any) {
       console.error('[CalendarModal] Connection failed:', error);
       setStep('error');
