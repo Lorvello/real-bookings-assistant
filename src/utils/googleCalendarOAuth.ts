@@ -98,26 +98,26 @@ export const connectGoogleCalendar = async (user: User): Promise<{ success: bool
 
     const connectionId = connectionData.id;
     
-    console.log('[OAuth Debug] Starting Google OAuth flow with state:', connectionId);
+    console.log('[OAuth Debug] Starting Google Calendar OAuth flow with state:', connectionId);
     
-    // Use Supabase's built-in Google OAuth - NO custom redirectTo
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email',
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-          state: connectionId
-        }
-        // Remove redirectTo - let Supabase handle this automatically
-      }
-    });
+    // Build OAuth URL manually to avoid interfering with user session
+    const clientId = oauthProvider.client_id;
+    const redirectUri = `${window.location.origin}/auth/callback`;
+    const scope = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email';
+    
+    const oauthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    oauthUrl.searchParams.set('client_id', clientId);
+    oauthUrl.searchParams.set('redirect_uri', redirectUri);
+    oauthUrl.searchParams.set('response_type', 'code');
+    oauthUrl.searchParams.set('scope', scope);
+    oauthUrl.searchParams.set('state', connectionId);
+    oauthUrl.searchParams.set('access_type', 'offline');
+    oauthUrl.searchParams.set('prompt', 'consent');
 
-    if (error) {
-      console.error('Supabase OAuth error:', error);
-      return { success: false, error: error.message };
-    }
+    console.log('Redirecting to Google OAuth URL:', oauthUrl.toString());
+    
+    // Redirect to Google OAuth (this won't affect the user's current login session)
+    window.location.href = oauthUrl.toString();
 
     return { success: true };
 

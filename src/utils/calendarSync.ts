@@ -30,31 +30,47 @@ export const handleOAuthCallback = async (
   if (!user) return false;
 
   try {
-    console.log('Handling OAuth callback:', { code: code.substring(0, 10) + '...', state, provider });
+    console.log('Handling calendar OAuth callback:', { code: code.substring(0, 10) + '...', state, provider });
 
-    // Only handle Microsoft callbacks through edge functions now
-    // Google OAuth is handled entirely by Supabase Auth
-    if (provider === 'microsoft') {
-      const { data, error } = await supabase.functions.invoke('microsoft-calendar-oauth', {
+    // Handle Google calendar OAuth callback using our edge function
+    if (provider === 'google') {
+      const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
         body: { code, state, user_id: user.id }
       });
 
       if (error) {
-        console.error('Token exchange error:', error);
+        console.error('Google calendar OAuth error:', error);
         throw error;
       }
 
       if (data.success) {
         return true;
       } else {
-        throw new Error(data.error || 'Token exchange failed');
+        throw new Error(data.error || 'Google calendar OAuth failed');
       }
     }
 
-    // For Google, this should not be called as Supabase handles it
+    // Handle Microsoft callbacks
+    if (provider === 'microsoft') {
+      const { data, error } = await supabase.functions.invoke('microsoft-calendar-oauth', {
+        body: { code, state, user_id: user.id }
+      });
+
+      if (error) {
+        console.error('Microsoft calendar OAuth error:', error);
+        throw error;
+      }
+
+      if (data.success) {
+        return true;
+      } else {
+        throw new Error(data.error || 'Microsoft calendar OAuth failed');
+      }
+    }
+
     return false;
   } catch (error: any) {
-    console.error('OAuth callback error:', error);
+    console.error('Calendar OAuth callback error:', error);
     throw error;
   }
 };

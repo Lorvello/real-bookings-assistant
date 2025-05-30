@@ -28,7 +28,7 @@ serve(async (req) => {
 
     const { code, state, user_id } = await req.json()
 
-    console.log('Google OAuth token exchange:', { code: code?.substring(0, 10) + '...', state, user_id })
+    console.log('Google Calendar OAuth token exchange:', { code: code?.substring(0, 10) + '...', state, user_id })
 
     if (!code || !state) {
       return new Response(
@@ -49,10 +49,10 @@ serve(async (req) => {
       )
     }
 
-    // CRITICAL: Use the correct Supabase Auth callback URL
-    const redirectUri = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`
+    // Use the correct redirect URI for calendar OAuth (not Supabase auth)
+    const redirectUri = `${req.headers.get('origin') || 'https://preview--bookings-assistant.lovable.app'}/auth/callback`
 
-    console.log('Using redirect URI:', redirectUri)
+    console.log('Using redirect URI for calendar OAuth:', redirectUri)
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -96,7 +96,7 @@ serve(async (req) => {
     }
 
     const userInfo = await userResponse.json()
-    console.log('User info:', { email: userInfo.email, id: userInfo.id })
+    console.log('Google user info:', { email: userInfo.email, id: userInfo.id })
 
     // Get primary calendar info
     const calendarResponse = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary', {
@@ -111,7 +111,7 @@ serve(async (req) => {
     // Calculate token expiry
     const expiresAt = new Date(Date.now() + (tokens.expires_in * 1000)).toISOString()
 
-    // Update connection in database
+    // Update the pending connection in database
     const { error: updateError } = await supabase
       .from('calendar_connections')
       .update({
@@ -147,7 +147,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('OAuth exchange error:', error)
+    console.error('Google Calendar OAuth exchange error:', error)
     return new Response(
       JSON.stringify({ error: error.message || 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
