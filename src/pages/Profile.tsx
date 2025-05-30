@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,52 +23,66 @@ import {
   Send,
   Pause,
   Play,
-  TrendingUp
+  TrendingUp,
+  RefreshCw
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useBusinessMetrics } from '@/hooks/useBusinessMetrics';
 import { useConversations } from '@/hooks/useConversations';
 import { useServices } from '@/hooks/useServices';
-import { useNavigate } from 'react-router-dom';
+import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
+import { useCalendarSync } from '@/hooks/useCalendarSync';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading, signOut } = useAuth();
   const [emergencyPaused, setEmergencyPaused] = useState(false);
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
 
-  const { profile, setupProgress, loading: profileLoading, updateSetupProgress } = useProfile(user);
-  const { appointments, getTodaysAppointments, getAppointmentsByDateRange } = useAppointments(user);
-  const { aggregatedMetrics, loading: metricsLoading } = useBusinessMetrics(user);
-  const { conversations } = useConversations(user);
-  const { services, getPopularServices } = useServices(user);
+  const { profile, setupProgress, loading: profileLoading, updateSetupProgress, refetch } = useProfile(user);
+  const { appointments, getTodaysAppointments, refetch: refetchAppointments } = useAppointments(user);
+  const { aggregatedMetrics, loading: metricsLoading, refetch: refetchMetrics } = useBusinessMetrics(user);
+  const { conversations, refetch: refetchConversations } = useConversations(user);
+  const { services, getPopularServices, refetch: refetchServices } = useServices(user);
+  const { syncing, triggerSync } = useCalendarSync(user);
+
+  // Set up real-time updates
+  useRealTimeUpdates({
+    user,
+    onAppointmentUpdate: () => {
+      console.log('[Profile] Real-time appointment update received');
+      refetchAppointments();
+      refetchMetrics();
+    },
+    onConversationUpdate: () => {
+      console.log('[Profile] Real-time conversation update received');
+      refetchConversations();
+    },
+    onCalendarUpdate: () => {
+      console.log('[Profile] Real-time calendar update received');
+      refetchAppointments();
+    },
+    onSetupProgressUpdate: () => {
+      console.log('[Profile] Real-time setup progress update received');
+      refetch();
+    }
+  });
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
-    };
-
-    getUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
+    if (!authLoading && !user) {
+      console.log('[Profile] No user found, redirecting to login');
+      navigate('/login');
+      return;
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     navigate('/');
   };
 
@@ -92,21 +106,32 @@ const Profile = () => {
 
   const handleCalendarIntegrationComplete = async () => {
     await updateSetupProgress('calendar_linked', true);
+    await triggerSync();
   };
 
-  if (loading || profileLoading) {
+  const handleManualSync = async () => {
+    await triggerSync(true);
+    setTimeout(() => {
+      refetch();
+      refetchAppointments();
+    }, 1000);
+  };
+
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="flex items-center justify-center py-20">
-          <div className="text-lg text-gray-600">Loading dashboard...</div>
+          <div className="text-center">
+            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="text-lg text-gray-600">Loading dashboard...</div>
+          </div>
         </div>
       </div>
     );
   }
 
   if (!user) {
-    navigate('/login');
     return null;
   }
 
@@ -150,7 +175,7 @@ const Profile = () => {
   // Today's appointments from real data
   const todaysAppointments = getTodaysAppointments();
   const todaySchedule = todaysAppointments.map(apt => ({
-    time: apt.appointment_time.slice(0, 5), // Format HH:MM
+    time: apt.appointment_time.slice(0, 5),
     client: apt.client_name,
     service: apt.service_name
   }));
@@ -176,8 +201,6 @@ const Profile = () => {
   };
 
   const bookingTrends = generateBookingTrends();
-
-  // Popular services from real data
   const popularServices = getPopularServices(appointments);
 
   // Show loading state for metrics
@@ -187,6 +210,7 @@ const Profile = () => {
         <Navbar />
         <div className="max-w-7xl mx-auto py-8 px-4">
           <div className="text-center py-20">
+            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
             <div className="text-lg text-gray-600">Loading dashboard data...</div>
           </div>
         </div>
@@ -199,13 +223,24 @@ const Profile = () => {
       <Navbar />
       <div className="max-w-7xl mx-auto py-8 px-4">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Welcome back, {profile?.full_name || user.email?.split('@')[0] || 'there'}
-          </p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Dashboard
+            </h1>
+            <p className="text-gray-600">
+              Welcome back, {profile?.full_name || user.email?.split('@')[0] || 'there'}
+            </p>
+          </div>
+          <Button 
+            onClick={handleManualSync}
+            disabled={syncing}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing...' : 'Sync Calendar'}
+          </Button>
         </div>
 
         {/* Action Required Section */}

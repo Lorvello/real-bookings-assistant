@@ -51,6 +51,12 @@ const AuthCallback = () => {
           const hasGoogleTokens = sessionData.session.provider_token && 
                                   user.app_metadata?.provider === 'google';
           
+          console.log('[AuthCallback] User provider:', user.app_metadata?.provider);
+          console.log('[AuthCallback] Has Google tokens:', hasGoogleTokens);
+          
+          // Small delay to ensure user creation trigger has completed
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
           if (hasGoogleTokens) {
             console.log('[AuthCallback] Google OAuth login detected, setting up calendar...');
             
@@ -64,6 +70,8 @@ const AuthCallback = () => {
                 .maybeSingle();
 
               if (!existingConnection || !existingConnection.is_active) {
+                console.log('[AuthCallback] Creating/updating calendar connection...');
+                
                 const { error: connectionError } = await supabase
                   .from('calendar_connections')
                   .upsert({
@@ -82,6 +90,7 @@ const AuthCallback = () => {
 
                 if (connectionError) {
                   console.error('[AuthCallback] Calendar connection error:', connectionError);
+                  throw connectionError;
                 } else {
                   console.log('[AuthCallback] Calendar connection created/updated successfully');
                   
@@ -106,13 +115,30 @@ const AuthCallback = () => {
                     console.warn('[AuthCallback] Calendar sync failed, will retry later:', syncError);
                   }
                 }
+              } else {
+                console.log('[AuthCallback] Calendar connection already active');
+                
+                // Update tokens if they're different
+                if (existingConnection && sessionData.session.provider_token) {
+                  await supabase
+                    .from('calendar_connections')
+                    .update({
+                      access_token: sessionData.session.provider_token,
+                      refresh_token: sessionData.session.provider_refresh_token || null,
+                      expires_at: sessionData.session.expires_at ? 
+                        new Date(sessionData.session.expires_at * 1000).toISOString() : null,
+                      updated_at: new Date().toISOString()
+                    })
+                    .eq('id', existingConnection.id);
+                  
+                  console.log('[AuthCallback] Calendar connection tokens updated');
+                }
               }
 
               toast({
                 title: "Welcome!",
                 description: "Successfully logged in with Google. Your calendar has been connected.",
               });
-              navigate('/profile?success=google_login');
               
             } catch (calendarError) {
               console.error('[AuthCallback] Calendar setup error:', calendarError);
@@ -121,17 +147,19 @@ const AuthCallback = () => {
                 description: "Login successful, but calendar setup had issues. You can configure it manually.",
                 variant: "destructive",
               });
-              navigate('/profile?warning=calendar_setup_failed');
             }
           } else {
-            // Regular email login
-            console.log('[AuthCallback] Regular email login detected');
+            // Regular email login or other OAuth
+            console.log('[AuthCallback] Regular login detected');
             toast({
               title: "Welcome!",
               description: "Successfully logged in.",
             });
-            navigate('/profile?success=email_login');
           }
+          
+          // Navigate to profile after successful processing
+          navigate('/profile');
+          
         } else {
           // No session - likely email confirmation or signup completion
           console.log('[AuthCallback] No session found - checking for email confirmation');
@@ -145,7 +173,7 @@ const AuthCallback = () => {
               title: "Email Confirmed",
               description: "Your email has been confirmed. Welcome!",
             });
-            navigate('/profile?success=email_confirmed');
+            navigate('/profile');
           } else {
             console.log('[AuthCallback] No user found, redirecting to login');
             navigate('/login?message=please_login');
