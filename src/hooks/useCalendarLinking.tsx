@@ -7,7 +7,6 @@ export const useCalendarLinking = (user: User | null) => {
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Simple check if user has active calendar connection
   const checkCalendarConnection = async () => {
     if (!user) {
       setLoading(false);

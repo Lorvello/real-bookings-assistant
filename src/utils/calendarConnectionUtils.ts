@@ -25,35 +25,13 @@ export const fetchCalendarConnections = async (user: User): Promise<CalendarConn
   }
 };
 
-export const cleanupPendingConnections = async (user: User, provider: string) => {
-  if (!user) return;
-
-  try {
-    console.log(`[CalendarUtils] Cleaning up pending ${provider} connections for user:`, user.id);
-    
-    const { error } = await supabase
-      .from('calendar_connections')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('provider', provider)
-      .eq('provider_account_id', 'pending');
-
-    if (error) {
-      console.error('Error cleaning up pending connections:', error);
-    } else {
-      console.log(`[CalendarUtils] Successfully cleaned up pending ${provider} connections`);
-    }
-  } catch (error) {
-    console.error('Unexpected error cleaning up connections:', error);
-  }
-};
-
 export const getOAuthProvider = async (provider: 'google' | 'microsoft'): Promise<OAuthProvider | null> => {
   try {
     const { data, error } = await supabase
       .from('oauth_providers')
-      .select('id, provider, client_id, is_active')
+      .select('*')
       .eq('provider', provider)
+      .eq('is_active', true)
       .single();
 
     if (error) {
@@ -64,6 +42,34 @@ export const getOAuthProvider = async (provider: 'google' | 'microsoft'): Promis
     return data;
   } catch (error) {
     console.error('Unexpected error fetching OAuth provider:', error);
+    return null;
+  }
+};
+
+export const createPendingConnection = async (user: User, provider: string): Promise<string | null> => {
+  try {
+    console.log(`[CalendarUtils] Creating pending ${provider} connection for user:`, user.id);
+    
+    const { data, error } = await supabase
+      .from('calendar_connections')
+      .insert({
+        user_id: user.id,
+        provider: provider,
+        provider_account_id: 'pending',
+        is_active: false
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('Error creating pending connection:', error);
+      return null;
+    }
+
+    console.log(`[CalendarUtils] Created pending connection with ID:`, data.id);
+    return data.id;
+  } catch (error) {
+    console.error('Unexpected error creating pending connection:', error);
     return null;
   }
 };
@@ -86,35 +92,6 @@ export const disconnectCalendarProvider = async (user: User, connectionId: strin
     return true;
   } catch (error) {
     console.error('Unexpected error disconnecting provider:', error);
-    return false;
-  }
-};
-
-export const resetAllCalendarConnections = async (user: User): Promise<boolean> => {
-  if (!user) return false;
-
-  try {
-    console.log(`[CalendarUtils] Resetting all calendar connections for user:`, user.id);
-    
-    // First, cleanup any pending connections
-    await cleanupPendingConnections(user, 'google');
-    await cleanupPendingConnections(user, 'microsoft');
-    
-    // Then delete all connections for this user
-    const { error } = await supabase
-      .from('calendar_connections')
-      .delete()
-      .eq('user_id', user.id);
-
-    if (error) {
-      console.error('Error resetting connections:', error);
-      return false;
-    }
-
-    console.log(`[CalendarUtils] Successfully reset all connections`);
-    return true;
-  } catch (error) {
-    console.error('Unexpected error resetting connections:', error);
     return false;
   }
 };

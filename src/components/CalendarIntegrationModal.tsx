@@ -6,24 +6,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, Calendar, CheckCircle, ExternalLink } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  CalendarSelectStep,
-  CalendarConnectedStep,
-  CalendarErrorStep
-} from './calendar/CalendarIntegrationSteps';
-
-interface CalendarProvider {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  color: string;
-}
+import { getOAuthProvider, createPendingConnection } from '@/utils/calendarConnectionUtils';
 
 interface CalendarIntegrationModalProps {
   open: boolean;
@@ -31,33 +21,20 @@ interface CalendarIntegrationModalProps {
   onComplete: () => void;
 }
 
-const calendarProviders: CalendarProvider[] = [
-  {
-    id: 'google',
-    name: 'Google Calendar',
-    description: 'Meest populaire keuze - synchroniseert direct',
-    icon: <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">G</div>,
-    color: 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-  }
-];
-
 export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> = ({
   open,
   onOpenChange,
   onComplete
 }) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [step, setStep] = useState<'select' | 'connected' | 'error'>('select');
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState(false);
   const { toast } = useToast();
 
   const { 
     connections, 
-    loading, 
-    syncing,
-    disconnectProvider, 
-    syncCalendarEvents,
-    isProviderConnected,
+    loading: connectionsLoading,
+    disconnectProvider,
     refetch 
   } = useCalendarIntegration(user);
 
@@ -65,123 +42,71 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      setLoading(false);
     };
     getUser();
   }, []);
 
-  useEffect(() => {
-    if (connections.length > 0 && step === 'select') {
-      setStep('connected');
-      setErrorMessage('');
-    }
-  }, [connections, step]);
-
   const handleGoogleConnect = async () => {
-    try {
-      console.log('[CalendarModal] Starting Google OAuth with calendar scopes...');
-      
-      // Clear any existing errors
-      setErrorMessage('');
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?calendar=true`,
-          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
-        }
-      });
+    if (!user) return;
 
-      if (error) {
-        console.error('[CalendarModal] Google OAuth error:', error);
-        setErrorMessage(`OAuth fout: ${error.message}`);
-        setStep('error');
-        
-        toast({
-          title: "Verbindingsfout",
-          description: "Google Calendar verbinding mislukt. Controleer de OAuth configuratie.",
-          variant: "destructive",
-        });
-        return;
+    try {
+      setConnecting(true);
+      console.log('[CalendarModal] Starting Google Calendar OAuth...');
+
+      // Get OAuth provider configuration
+      const provider = await getOAuthProvider('google');
+      if (!provider) {
+        throw new Error('Google OAuth provider not configured');
       }
 
-      console.log('[CalendarModal] Google OAuth initiated successfully');
+      // Create pending connection
+      const connectionId = await createPendingConnection(user, 'google');
+      if (!connectionId) {
+        throw new Error('Failed to create pending connection');
+      }
+
+      // Build OAuth URL
+      const params = new URLSearchParams({
+        client_id: provider.client_id!,
+        redirect_uri: `${window.location.origin}/auth/callback?calendar=true`,
+        response_type: 'code',
+        scope: provider.scope,
+        access_type: 'offline',
+        prompt: 'consent',
+        state: connectionId
+      });
+
+      const authUrl = `${provider.auth_url}?${params.toString()}`;
       
+      console.log('[CalendarModal] Redirecting to Google OAuth...');
+      window.location.href = authUrl;
+
     } catch (error: any) {
-      console.error('[CalendarModal] Unexpected Google OAuth error:', error);
-      setErrorMessage(`Onverwachte fout: ${error.message}`);
-      setStep('error');
+      console.error('[CalendarModal] Google OAuth error:', error);
+      setConnecting(false);
       
       toast({
-        title: "Fout",
-        description: "Er ging iets mis bij het verbinden. Probeer het opnieuw.",
+        title: "Verbindingsfout",
+        description: error.message || "Google Calendar verbinding mislukt.",
         variant: "destructive",
       });
     }
   };
 
-  const handleDisconnect = async (provider: CalendarProvider) => {
-    const connection = connections.find(conn => conn.provider === provider.id);
-    if (connection) {
-      const success = await disconnectProvider(connection.id);
-      if (success && connections.length === 1) {
-        setStep('select');
-        setErrorMessage('');
-      }
-    }
-  };
-
-  const handleTestConnection = async () => {
-    const success = await syncCalendarEvents();
-    if (!success) {
-      setErrorMessage('Synchronisatie mislukt. Controleer je internetverbinding.');
-      setStep('error');
+  const handleDisconnect = async (connectionId: string) => {
+    const success = await disconnectProvider(connectionId);
+    if (success) {
+      await refetch();
     }
   };
 
   const handleContinue = () => {
     onComplete();
     onOpenChange(false);
-    setTimeout(() => {
-      setStep('select');
-      setErrorMessage('');
-    }, 300);
   };
 
-  const handleChangeCalendar = () => {
-    setStep('select');
-    setErrorMessage('');
-  };
-
-  const handleTryAgain = () => {
-    setStep('select');
-    setErrorMessage('');
-  };
-
-  const handleResetConnections = async () => {
-    // Disconnect all current connections
-    for (const connection of connections) {
-      await disconnectProvider(connection.id);
-    }
-    
-    setStep('select');
-    setErrorMessage('');
-    
-    toast({
-      title: "Reset Voltooid",
-      description: "Alle agenda verbindingen zijn verwijderd.",
-    });
-  };
-
-  const handleRetryConnection = () => {
-    setErrorMessage('');
-    handleGoogleConnect();
-  };
-
-  if (loading) {
+  if (loading || connectionsLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl">
@@ -194,43 +119,112 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     );
   }
 
+  const hasConnections = connections.length > 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Agenda Integratie Setup</DialogTitle>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-center mb-6">
+            {hasConnections ? 'Agenda Verbonden' : 'Verbind je Agenda'}
+          </DialogTitle>
         </DialogHeader>
         
         <div className="p-2">
-          {step === 'select' && (
-            <CalendarSelectStep
-              providers={calendarProviders}
-              isProviderConnected={isProviderConnected}
-              onGoogleConnect={handleGoogleConnect}
-              error={errorMessage}
-              onRetryConnection={handleRetryConnection}
-              onResetConnections={handleResetConnections}
-            />
-          )}
-          
-          {step === 'connected' && (
-            <CalendarConnectedStep
-              connections={connections}
-              providers={calendarProviders}
-              syncing={syncing}
-              onDisconnect={handleDisconnect}
-              onChangeCalendar={handleChangeCalendar}
-              onTestConnection={handleTestConnection}
-              onContinue={handleContinue}
-            />
-          )}
-          
-          {step === 'error' && (
-            <CalendarErrorStep
-              error={errorMessage}
-              onTryAgain={handleTryAgain}
-              onReset={handleResetConnections}
-            />
+          {hasConnections ? (
+            <div className="space-y-6">
+              <div className="text-center">
+                <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Perfect! Je agenda is verbonden
+                </h3>
+                <p className="text-gray-600">
+                  Je Google Calendar is succesvol gekoppeld en wordt automatisch gesynchroniseerd.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {connections.map((connection) => (
+                  <Card key={connection.id} className="border-green-200 bg-green-50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                          G
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-green-900">Google Calendar</h4>
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div className="text-sm text-green-800">
+                            Verbonden op {new Date(connection.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDisconnect(connection.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Verbreken
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="flex justify-center pt-4">
+                <Button onClick={handleContinue} className="bg-green-600 hover:bg-green-700">
+                  Doorgaan naar Dashboard
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="text-center">
+                <Calendar className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Kies je agenda provider
+                </h3>
+                <p className="text-gray-600">
+                  Verbind je agenda om automatisch beschikbaarheid te synchroniseren
+                </p>
+              </div>
+
+              <Card className="bg-blue-50 border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                      G
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900 mb-1">Google Calendar</h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Meest populaire keuze - synchroniseert direct
+                      </p>
+                      <Button 
+                        onClick={handleGoogleConnect}
+                        disabled={connecting}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {connecting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Verbinden...
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Verbind Google Calendar
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
         </div>
       </DialogContent>
