@@ -37,7 +37,7 @@ import { useCalendarLinking } from '@/hooks/useCalendarLinking';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
-import { CalendarEventsDisplay } from '@/components/CalendarEventsDisplay';
+import { CalendarEventsDisplay } from '@/components/calendar/CalendarEventsDisplay';
 
 const Profile = () => {
   const navigate = useNavigate();
