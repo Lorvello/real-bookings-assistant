@@ -151,11 +151,11 @@ export const useCalendarIntegration = (user: User | null) => {
       }
 
       const connectionId = connectionData.id;
-      const baseUrl = window.location.origin;
-      const redirectUri = `${baseUrl}/auth/google/callback`;
+      // Use Supabase Auth redirect URL that matches Google Cloud Console configuration
+      const redirectUri = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`;
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-      // Build Google OAuth URL with environment variables
+      // Build Google OAuth URL with Supabase redirect URI
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       authUrl.searchParams.set('client_id', clientId);
       authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -165,7 +165,7 @@ export const useCalendarIntegration = (user: User | null) => {
       authUrl.searchParams.set('prompt', 'consent');
       authUrl.searchParams.set('state', connectionId);
       
-      console.log('[OAuth Debug] Constructed OAuth URL:', authUrl.toString().replace(clientId, 'CLIENT_ID_HIDDEN'));
+      console.log('[OAuth Debug] Constructed OAuth URL with Supabase redirect:', authUrl.toString().replace(clientId, 'CLIENT_ID_HIDDEN'));
       console.log('[OAuth Debug] Redirect URI:', redirectUri);
       console.log('[OAuth Debug] Connection ID:', connectionId);
       

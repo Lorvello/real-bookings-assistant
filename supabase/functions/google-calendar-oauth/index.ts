@@ -49,7 +49,8 @@ serve(async (req) => {
       )
     }
 
-    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/auth/google/callback` || 'http://localhost:5173/auth/google/callback'
+    // Use the same redirect URI that's configured in Google Cloud Console
+    const redirectUri = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
