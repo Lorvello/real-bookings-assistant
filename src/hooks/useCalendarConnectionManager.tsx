@@ -52,19 +52,18 @@ export const useCalendarConnectionManager = (user: User | null) => {
     setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
     try {
-      console.log('[CalendarManager] Starting calendar connection flow');
+      console.log('[CalendarManager] Starting dedicated calendar connection');
       
-      // Force fresh OAuth flow with explicit consent
+      // Use dedicated calendar OAuth with forced consent
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?calendar=true`,
-          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid',
+          redirectTo: `${window.location.origin}/auth/callback`,
+          scopes: 'openid email profile https://www.googleapis.com/auth/calendar.readonly',
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent', // Force consent screen every time
-            include_granted_scopes: 'true',
-            approval_prompt: 'force' // Legacy parameter for extra safety
+            prompt: 'consent',
+            include_granted_scopes: 'false'
           }
         }
       });
@@ -85,7 +84,6 @@ export const useCalendarConnectionManager = (user: User | null) => {
         return false;
       }
 
-      // Don't wait here - let the callback handle success
       return true;
     } catch (error: any) {
       console.error('[CalendarManager] Unexpected error:', error);
@@ -104,42 +102,6 @@ export const useCalendarConnectionManager = (user: User | null) => {
     }
   }, [user, state.isConnecting, toast]);
 
-  const waitForConnection = useCallback(async (maxWaitTime: number = 30000): Promise<boolean> => {
-    if (!user) return false;
-
-    const startTime = Date.now();
-    const checkInterval = 2000;
-
-    while (Date.now() - startTime < maxWaitTime) {
-      const isConnected = await checkConnection();
-      
-      if (isConnected) {
-        setState(prev => ({ ...prev, isConnecting: false }));
-        toast({
-          title: "Kalender Verbonden",
-          description: "Google Calendar is succesvol gekoppeld!",
-        });
-        return true;
-      }
-
-      await new Promise(resolve => setTimeout(resolve, checkInterval));
-    }
-
-    setState(prev => ({ 
-      ...prev, 
-      isConnecting: false, 
-      error: 'Verbinding kon niet worden voltooid binnen 30 seconden' 
-    }));
-    
-    toast({
-      title: "Verbinding Mislukt",
-      description: "Kon geen verbinding maken met Google Calendar.",
-      variant: "destructive",
-    });
-    
-    return false;
-  }, [user, checkConnection, toast]);
-
   const resetState = useCallback(() => {
     setState({
       isConnecting: false,
@@ -153,7 +115,6 @@ export const useCalendarConnectionManager = (user: User | null) => {
     ...state,
     checkConnection,
     initiateConnection,
-    waitForConnection,
     resetState
   };
 };

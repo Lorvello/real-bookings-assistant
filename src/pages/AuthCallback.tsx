@@ -15,7 +15,7 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('[AuthCallback] Processing unified auth callback...');
+        console.log('[AuthCallback] Processing auth callback...');
         setStatus('Verificatie...');
         
         const { data, error } = await supabase.auth.getSession();
@@ -46,12 +46,13 @@ const AuthCallback = () => {
         if (data.session?.user) {
           console.log('[AuthCallback] User authenticated successfully:', data.session.user.id);
           
-          // Always redirect to dashboard for consistent experience
           toast({
             title: "Welkom!",
             description: "Je bent succesvol ingelogd.",
           });
-          navigate('/profile?success=login');
+          
+          // Always redirect to dashboard after successful login
+          navigate('/profile');
         } else {
           console.log('[AuthCallback] No session found');
           navigate('/login?message=please_login');

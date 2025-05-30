@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,44 +18,36 @@ const Login = () => {
     password: ''
   });
 
-  // Simplified Google OAuth config - basic login only
-  const GOOGLE_OAUTH_CONFIG = {
-    redirectTo: `${window.location.origin}/auth/callback`,
-    scopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid'
-  };
-
   useEffect(() => {
-    // Handle URL parameters for error messages
     const error = searchParams.get('error');
     const message = searchParams.get('message');
     
     if (error) {
       const errorMessages = {
-        'oauth_failed': 'OAuth login failed. Please try again.',
-        'session_failed': 'Session could not be established. Please try again.',
-        'unexpected': 'An unexpected error occurred. Please try again.',
-        'callback_failed': 'Login callback failed. Please try again.'
+        'oauth_failed': 'OAuth login mislukt. Probeer opnieuw.',
+        'session_failed': 'Sessie kon niet worden aangemaakt. Probeer opnieuw.',
+        'unexpected': 'Er ging iets mis. Probeer opnieuw.',
+        'callback_failed': 'Login callback mislukt. Probeer opnieuw.'
       };
       
       toast({
-        title: "Login Error",
-        description: errorMessages[error as keyof typeof errorMessages] || 'Login failed. Please try again.',
+        title: "Login Fout",
+        description: errorMessages[error as keyof typeof errorMessages] || 'Login mislukt. Probeer opnieuw.',
         variant: "destructive",
       });
     }
     
     if (message === 'please_login') {
       toast({
-        title: "Please Log In",
-        description: "Please log in to access your account.",
+        title: "Inloggen Vereist",
+        description: "Log in om toegang te krijgen tot je account.",
       });
     }
 
-    // Check if user is already logged in
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        console.log('[Login] User already logged in, redirecting to profile');
+        console.log('[Login] User already logged in, redirecting to dashboard');
         navigate('/profile');
       }
     };
@@ -75,30 +68,29 @@ const Login = () => {
     setGoogleLoading(true);
     
     try {
-      console.log('[Login] Starting Google OAuth (basic login)');
+      console.log('[Login] Starting simple Google login');
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: GOOGLE_OAUTH_CONFIG
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          scopes: 'openid email profile'
+        }
       });
 
       if (error) {
         console.error('[Login] Google OAuth error:', error);
         toast({
-          title: "Google Login Error",
+          title: "Google Login Fout",
           description: error.message,
           variant: "destructive",
         });
-        return;
       }
-
-      console.log('[Login] Google OAuth initiated successfully');
-      
     } catch (error) {
       console.error('[Login] Unexpected Google login error:', error);
       toast({
-        title: "Error",
-        description: "Something went wrong with Google login. Please try again.",
+        title: "Fout",
+        description: "Er ging iets mis met Google login. Probeer opnieuw.",
         variant: "destructive",
       });
     } finally {
@@ -122,13 +114,13 @@ const Login = () => {
         console.error('[Login] Email login error:', error);
         
         const errorMessages = {
-          'invalid_credentials': 'Invalid email or password. Please check your credentials and try again.',
-          'email_not_confirmed': 'Please check your email and click the confirmation link before logging in.',
-          'too_many_requests': 'Too many login attempts. Please wait a moment and try again.'
+          'invalid_credentials': 'Ongeldige email of wachtwoord. Controleer je gegevens en probeer opnieuw.',
+          'email_not_confirmed': 'Controleer je email en klik op de bevestigingslink voordat je inlogt.',
+          'too_many_requests': 'Te veel loginpogingen. Wacht even en probeer opnieuw.'
         };
         
         toast({
-          title: "Login Error",
+          title: "Login Fout",
           description: errorMessages[error.message as keyof typeof errorMessages] || error.message,
           variant: "destructive",
         });
@@ -137,15 +129,15 @@ const Login = () => {
 
       console.log('[Login] Email login successful:', data);
       toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in.",
+        title: "Welkom terug!",
+        description: "Je bent succesvol ingelogd.",
       });
-      navigate('/profile?success=email_login');
+      navigate('/profile');
     } catch (error) {
       console.error('[Login] Unexpected login error:', error);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "Fout",
+        description: "Er ging iets mis. Probeer opnieuw.",
         variant: "destructive",
       });
     } finally {
@@ -160,8 +152,8 @@ const Login = () => {
         <div className="flex justify-center">
           <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-              <p className="text-gray-600">Sign in to your AI booking assistant</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welkom Terug</h1>
+              <p className="text-gray-600">Log in bij je AI booking assistent</p>
             </div>
             
             <div className="mb-6">
@@ -177,7 +169,7 @@ const Login = () => {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                {googleLoading ? 'Signing in with Google...' : 'Continue with Google'}
+                {googleLoading ? 'Inloggen met Google...' : 'Doorgaan met Google'}
               </Button>
             </div>
 
@@ -186,14 +178,14 @@ const Login = () => {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+                <span className="px-2 bg-white text-gray-500">Of doorgaan met email</span>
               </div>
             </div>
             
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Email Adres
                 </label>
                 <input 
                   type="email" 
@@ -203,13 +195,13 @@ const Login = () => {
                   onChange={handleInputChange}
                   disabled={loading || googleLoading}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-                  placeholder="Enter your email" 
+                  placeholder="Voer je email in" 
                 />
               </div>
               
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
+                  Wachtwoord
                 </label>
                 <input 
                   type="password" 
@@ -219,7 +211,7 @@ const Login = () => {
                   onChange={handleInputChange}
                   disabled={loading || googleLoading}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-                  placeholder="Enter your password" 
+                  placeholder="Voer je wachtwoord in" 
                 />
               </div>
 
@@ -228,15 +220,15 @@ const Login = () => {
                 disabled={loading || googleLoading}
                 className="w-full bg-green-600 hover:bg-green-700 text-lg py-3 disabled:bg-green-400 disabled:cursor-not-allowed"
               >
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? 'Inloggen...' : 'Inloggen'}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Don't have an account?{' '}
+                Nog geen account?{' '}
                 <Link to="/signup" className="font-medium text-green-600 hover:text-green-500">
-                  Sign up
+                  Registreren
                 </Link>
               </p>
             </div>
