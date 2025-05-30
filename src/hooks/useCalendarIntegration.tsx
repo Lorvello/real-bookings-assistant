@@ -1,15 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarIntegrationState, CalendarConnection } from '@/types/calendar';
-import { 
-  fetchCalendarConnections, 
-  disconnectCalendarProvider, 
-  resetAllCalendarConnections 
-} from '@/utils/calendarConnectionUtils';
-import { connectOutlookCalendar } from '@/utils/outlookCalendarOAuth';
-import { syncCalendarEvents, handleOAuthCallback as handleCallback } from '@/utils/calendarSync';
-import { supabase } from '@/integrations/supabase/client';
+import { CalendarIntegrationState } from '@/types/calendar';
+import { fetchCalendarConnections, disconnectCalendarProvider } from '@/utils/calendarConnectionUtils';
+import { syncCalendarEvents } from '@/utils/calendarSync';
 
 export const useCalendarIntegration = (user: User | null) => {
   const [state, setState] = useState<CalendarIntegrationState>({
@@ -45,73 +40,6 @@ export const useCalendarIntegration = (user: User | null) => {
     }
   };
 
-  const handleConnectGoogle = async (): Promise<{ success: boolean; error?: string }> => {
-    if (!user) return { success: false, error: 'User not authenticated' };
-
-    setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
-
-    try {
-      console.log('[CalendarIntegration] Starting dedicated Google Calendar OAuth...');
-      
-      // Use dedicated calendar OAuth flow
-      const oauthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      oauthUrl.searchParams.set('client_id', '7344737510-1846vbrgkq4ac0e1ehrjg1dlg001o56.apps.googleusercontent.com');
-      oauthUrl.searchParams.set('redirect_uri', 'https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback');
-      oauthUrl.searchParams.set('response_type', 'code');
-      oauthUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar');
-      oauthUrl.searchParams.set('access_type', 'offline');
-      oauthUrl.searchParams.set('prompt', 'consent');
-      oauthUrl.searchParams.set('state', `calendar_connect_${Date.now()}`);
-
-      // Store connection attempt
-      sessionStorage.setItem('calendar_connect_attempt', 'true');
-      sessionStorage.setItem('calendar_connect_time', Date.now().toString());
-
-      // Redirect to Google OAuth
-      window.location.href = oauthUrl.toString();
-      
-      return { success: true };
-    } catch (error: any) {
-      console.error('[CalendarIntegration] Unexpected Google connection error:', error);
-      setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: error.message }));
-      toast({
-        title: "Connection Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      return { success: false, error: error.message };
-    }
-  };
-
-  const handleConnectOutlook = async (): Promise<{ success: boolean; error?: string }> => {
-    if (!user) return { success: false, error: 'User not authenticated' };
-
-    setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
-
-    try {
-      const result = await connectOutlookCalendar(user);
-      
-      if (!result.success) {
-        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: result.error || '' }));
-        toast({
-          title: "Configuration Error",
-          description: result.error,
-          variant: "destructive",
-        });
-      }
-
-      return result;
-    } catch (error: any) {
-      setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: error.message }));
-      toast({
-        title: "Connection Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      return { success: false, error: error.message };
-    }
-  };
-
   const disconnectProvider = async (connectionId: string): Promise<boolean> => {
     if (!user) return false;
 
@@ -134,67 +62,6 @@ export const useCalendarIntegration = (user: User | null) => {
 
       return success;
     } catch (error) {
-      return false;
-    }
-  };
-
-  const resetAllConnections = async (): Promise<boolean> => {
-    if (!user) return false;
-
-    try {
-      const success = await resetAllCalendarConnections(user);
-      
-      if (success) {
-        toast({
-          title: "Success",
-          description: "All calendar connections have been reset",
-        });
-        setState(prev => ({ 
-          ...prev, 
-          connections: [], 
-          connectionStatus: 'idle',
-          errorMessage: ''
-        }));
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to reset connections",
-          variant: "destructive",
-        });
-      }
-
-      return success;
-    } catch (error) {
-      return false;
-    }
-  };
-
-  const handleOAuthCallback = async (code: string, state: string, provider: string = 'microsoft') => {
-    if (!user) return false;
-
-    try {
-      // Only handle Microsoft callbacks - Google is handled by useCalendarLinking
-      if (provider === 'microsoft') {
-        const success = await handleCallback(code, state, provider, user);
-        
-        if (success) {
-          setState(prev => ({ ...prev, connectionStatus: 'connected' }));
-          await fetchConnections();
-          
-          toast({
-            title: "Success",
-            description: `${provider} calendar connected successfully`,
-          });
-
-          return true;
-        } else {
-          throw new Error('Token exchange failed');
-        }
-      }
-      
-      return false;
-    } catch (error: any) {
-      setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: error.message }));
       return false;
     }
   };
@@ -239,14 +106,10 @@ export const useCalendarIntegration = (user: User | null) => {
     syncing: state.syncing,
     connectionStatus: state.connectionStatus,
     errorMessage: state.errorMessage,
-    connectGoogleCalendar: handleConnectGoogle,
-    connectOutlookCalendar: handleConnectOutlook,
     disconnectProvider,
     syncCalendarEvents: handleSyncCalendarEvents,
     getConnectionByProvider,
     isProviderConnected,
-    handleOAuthCallback,
-    resetAllConnections,
     refetch: fetchConnections
   };
 };

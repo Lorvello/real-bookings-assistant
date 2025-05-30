@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,13 +43,13 @@ const Signup = () => {
     setGoogleLoading(true);
     
     try {
-      console.log('[Signup] Starting Google signup...');
+      console.log('[Signup] Starting Google signup with calendar scopes...');
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
         }
       });
 
@@ -63,7 +64,6 @@ const Signup = () => {
       }
 
       console.log('[Signup] Google signup initiated successfully:', data);
-      // User will be redirected to Google, then back to our callback
       
     } catch (error) {
       console.error('[Signup] Unexpected Google signup error:', error);
@@ -117,7 +117,6 @@ const Signup = () => {
 
       if (data.user) {
         if (data.user.email_confirmed_at) {
-          // Email is already confirmed (auto-confirm is enabled)
           console.log('[Signup] Email auto-confirmed, redirecting to profile');
           toast({
             title: "Welcome!",
@@ -125,14 +124,12 @@ const Signup = () => {
           });
           navigate('/profile?success=email_signup');
         } else {
-          // Email confirmation required
           console.log('[Signup] Email confirmation required');
           toast({
             title: "Check your email!",
             description: `We've sent a confirmation link to ${formData.email}. Click the link to complete your signup.`,
             duration: 7000,
           });
-          // Stay on signup page with success message
         }
       } else {
         console.log('[Signup] No user returned from signup');
@@ -178,7 +175,7 @@ const Signup = () => {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                {googleLoading ? 'Connecting with Google...' : 'Continue with Google'}
+                {googleLoading ? 'Connecting with Google...' : 'Continue with Google + Calendar'}
               </Button>
             </div>
 

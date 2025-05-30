@@ -24,22 +24,21 @@ export const useAuth = () => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle successful login events with proper timing
+        // Handle successful login events
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('[Auth] User signed in successfully');
           
-          // For Google users, ensure calendar connection is created with delay
+          // For Google users with calendar tokens, create calendar connection
           if (session.user.app_metadata?.provider === 'google' && session.provider_token) {
-            // Use longer delay to ensure database triggers have completed
             setTimeout(async () => {
               if (mounted) {
                 try {
-                  await ensureGoogleCalendarConnection(session.user, session);
+                  await ensureCalendarConnection(session.user, session);
                 } catch (error) {
                   console.warn('[Auth] Calendar connection setup failed:', error);
                 }
               }
-            }, 2000); // Increased delay from 100ms to 2000ms
+            }, 1000);
           }
         }
         
@@ -81,36 +80,21 @@ export const useAuth = () => {
     };
   }, []);
 
-  const ensureGoogleCalendarConnection = async (user: User, session: Session) => {
+  const ensureCalendarConnection = async (user: User, session: Session) => {
     try {
-      console.log('[Auth] Ensuring Google calendar connection for user:', user.id);
+      console.log('[Auth] Setting up calendar connection for user:', user.id);
       
-      // Check if connection already exists with retry logic
-      let existingConnection = null;
-      let retries = 3;
-      
-      while (retries > 0 && !existingConnection) {
-        const { data } = await supabase
-          .from('calendar_connections')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('provider', 'google')
-          .eq('is_active', true)
-          .maybeSingle();
-          
-        existingConnection = data;
-        
-        if (!existingConnection) {
-          retries--;
-          if (retries > 0) {
-            console.log('[Auth] Connection not found, retrying...', retries);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
-      }
+      // Check if connection already exists
+      const { data: existingConnection } = await supabase
+        .from('calendar_connections')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('provider', 'google')
+        .eq('is_active', true)
+        .maybeSingle();
 
       if (!existingConnection && session.provider_token) {
-        console.log('[Auth] Creating Google calendar connection...');
+        console.log('[Auth] Creating new calendar connection...');
         
         const { error: connectionError } = await supabase
           .from('calendar_connections')
@@ -129,36 +113,20 @@ export const useAuth = () => {
           });
 
         if (!connectionError) {
-          console.log('[Auth] Google calendar connection created successfully');
+          console.log('[Auth] Calendar connection created successfully');
           
-          // Update setup progress with retry logic
-          let setupUpdateSuccess = false;
-          let setupRetries = 3;
-          
-          while (setupRetries > 0 && !setupUpdateSuccess) {
-            const { error: setupError } = await supabase
-              .from('setup_progress')
-              .upsert({
-                user_id: user.id,
-                calendar_linked: true,
-                updated_at: new Date().toISOString()
-              }, {
-                onConflict: 'user_id'
-              });
-              
-            if (!setupError) {
-              setupUpdateSuccess = true;
-              console.log('[Auth] Setup progress updated successfully');
-            } else {
-              setupRetries--;
-              console.warn('[Auth] Setup progress update failed, retrying...', setupRetries);
-              if (setupRetries > 0) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-              }
-            }
-          }
+          // Update setup progress
+          await supabase
+            .from('setup_progress')
+            .upsert({
+              user_id: user.id,
+              calendar_linked: true,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'user_id'
+            });
 
-          // Trigger calendar sync with delay
+          // Trigger calendar sync
           setTimeout(async () => {
             try {
               await supabase.functions.invoke('sync-calendar-events', {
@@ -168,17 +136,15 @@ export const useAuth = () => {
             } catch (syncError) {
               console.warn('[Auth] Calendar sync failed:', syncError);
             }
-          }, 1000);
+          }, 2000);
         } else {
           console.error('[Auth] Failed to create calendar connection:', connectionError);
         }
-      } else if (existingConnection) {
-        console.log('[Auth] Active calendar connection already exists');
+      } else if (existingConnection && session.provider_token) {
+        console.log('[Auth] Updating existing calendar connection tokens');
         
         // Update tokens if they're different
         if (existingConnection.access_token !== session.provider_token) {
-          console.log('[Auth] Updating existing connection with new tokens');
-          
           await supabase
             .from('calendar_connections')
             .update({
@@ -192,7 +158,7 @@ export const useAuth = () => {
         }
       }
     } catch (error) {
-      console.error('[Auth] Error in ensureGoogleCalendarConnection:', error);
+      console.error('[Auth] Error in ensureCalendarConnection:', error);
     }
   };
 
