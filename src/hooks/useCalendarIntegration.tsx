@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -71,13 +70,38 @@ export const useCalendarIntegration = (user: User | null) => {
     }
   };
 
+  const cleanupPendingConnections = async (provider: string) => {
+    if (!user) return;
+
+    try {
+      // Delete any existing pending connections for this user and provider
+      const { error } = await supabase
+        .from('calendar_connections')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('provider', provider)
+        .eq('provider_account_id', 'pending');
+
+      if (error) {
+        console.error('Error cleaning up pending connections:', error);
+      } else {
+        console.log(`Cleaned up pending ${provider} connections for testing`);
+      }
+    } catch (error) {
+      console.error('Unexpected error cleaning up connections:', error);
+    }
+  };
+
   const connectGoogleCalendar = async (): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'User not authenticated' };
 
     try {
       setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
 
-      // Create a pending connection record
+      // Clean up any existing pending connections for this provider
+      await cleanupPendingConnections('google');
+
+      // Create a new pending connection record
       const { data: connectionData, error: connectionError } = await supabase
         .from('calendar_connections')
         .insert({
@@ -125,7 +149,10 @@ export const useCalendarIntegration = (user: User | null) => {
     try {
       setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
 
-      // Create a pending connection record
+      // Clean up any existing pending connections for this provider
+      await cleanupPendingConnections('microsoft');
+
+      // Create a new pending connection record
       const { data: connectionData, error: connectionError } = await supabase
         .from('calendar_connections')
         .insert({
@@ -196,6 +223,46 @@ export const useCalendarIntegration = (user: User | null) => {
 
     } catch (error) {
       console.error('Unexpected error disconnecting provider:', error);
+      return false;
+    }
+  };
+
+  const resetAllConnections = async (): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      // Delete all connections for this user (both active and pending)
+      const { error } = await supabase
+        .from('calendar_connections')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error resetting connections:', error);
+        toast({
+          title: "Error",
+          description: "Failed to reset connections",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      toast({
+        title: "Success",
+        description: "All calendar connections have been reset",
+      });
+
+      setState(prev => ({ 
+        ...prev, 
+        connections: [], 
+        connectionStatus: 'idle',
+        errorMessage: ''
+      }));
+
+      return true;
+
+    } catch (error) {
+      console.error('Unexpected error resetting connections:', error);
       return false;
     }
   };
@@ -292,6 +359,7 @@ export const useCalendarIntegration = (user: User | null) => {
     getConnectionByProvider,
     isProviderConnected,
     handleOAuthCallback,
+    resetAllConnections,
     refetch: fetchConnections
   };
 };
