@@ -8,8 +8,6 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
-import { useCalendarConnectionManager } from '@/hooks/useCalendarConnectionManager';
-import { CalendarConnectionConfirmModal } from '@/components/CalendarConnectionConfirmModal';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
@@ -50,12 +48,9 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
 }) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [step, setStep] = useState<'select' | 'connected' | 'error'>('select');
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const { toast } = useToast();
 
-  // Use the centralized connection manager
-  const connectionManager = useCalendarConnectionManager(user);
-  
   const { 
     connections, 
     loading, 
@@ -69,58 +64,62 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('[CalendarModal] Got user:', user?.id);
       setUser(user);
     };
     getUser();
   }, []);
 
-  // Update step based on connection status
   useEffect(() => {
-    console.log('[CalendarModal] Connection state changed:', {
-      isConnected: connectionManager.isConnected,
-      connections: connections.length,
-      step,
-      error: connectionManager.error
-    });
-
-    if (connectionManager.isConnected && step === 'select') {
-      console.log('[CalendarModal] Moving to connected step - connection manager');
+    if (connections.length > 0 && step === 'select') {
       setStep('connected');
-    } else if (connections.length > 0 && step === 'select') {
-      console.log('[CalendarModal] Moving to connected step - connections found');
-      setStep('connected');
-    } else if (connectionManager.error && step === 'select' && !connectionManager.isConnecting) {
-      console.log('[CalendarModal] Moving to error step:', connectionManager.error);
-      setStep('error');
+      setErrorMessage('');
     }
-  }, [connectionManager.isConnected, connectionManager.error, connectionManager.isConnecting, connections.length, step]);
+  }, [connections, step]);
 
-  const handleGoogleConnect = () => {
-    if (connectionManager.isConnecting) {
-      console.log('[CalendarModal] Already connecting, ignoring click');
-      return;
-    }
-    console.log('[CalendarModal] Starting Google connect flow');
-    setShowConfirmModal(true);
-  };
-
-  const handleConfirmConnection = async () => {
-    setShowConfirmModal(false);
-    
+  const handleGoogleConnect = async () => {
     try {
-      console.log('[CalendarModal] User confirmed connection, starting OAuth flow');
-      const success = await connectionManager.initiateConnection();
+      console.log('[CalendarModal] Starting Google OAuth with calendar scopes...');
       
-      if (!success && connectionManager.error) {
-        console.log('[CalendarModal] Connection failed, moving to error step');
+      // Clear any existing errors
+      setErrorMessage('');
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?calendar=true`,
+          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      });
+
+      if (error) {
+        console.error('[CalendarModal] Google OAuth error:', error);
+        setErrorMessage(`OAuth fout: ${error.message}`);
         setStep('error');
+        
+        toast({
+          title: "Verbindingsfout",
+          description: "Google Calendar verbinding mislukt. Controleer de OAuth configuratie.",
+          variant: "destructive",
+        });
+        return;
       }
-      // If successful, the OAuth flow will redirect to auth/callback
-      // and the connection will be handled there
+
+      console.log('[CalendarModal] Google OAuth initiated successfully');
+      
     } catch (error: any) {
-      console.error('[CalendarModal] Connection failed:', error);
+      console.error('[CalendarModal] Unexpected Google OAuth error:', error);
+      setErrorMessage(`Onverwachte fout: ${error.message}`);
       setStep('error');
+      
+      toast({
+        title: "Fout",
+        description: "Er ging iets mis bij het verbinden. Probeer het opnieuw.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -130,15 +129,15 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
       const success = await disconnectProvider(connection.id);
       if (success && connections.length === 1) {
         setStep('select');
-        await connectionManager.checkConnection();
+        setErrorMessage('');
       }
     }
   };
 
   const handleTestConnection = async () => {
-    console.log('[CalendarModal] Testing connection');
     const success = await syncCalendarEvents();
     if (!success) {
+      setErrorMessage('Synchronisatie mislukt. Controleer je internetverbinding.');
       setStep('error');
     }
   };
@@ -148,36 +147,38 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     onOpenChange(false);
     setTimeout(() => {
       setStep('select');
+      setErrorMessage('');
     }, 300);
   };
 
   const handleChangeCalendar = () => {
-    console.log('[CalendarModal] Changing calendar, back to select');
     setStep('select');
+    setErrorMessage('');
   };
 
   const handleTryAgain = () => {
-    console.log('[CalendarModal] Trying again, resetting state');
-    connectionManager.resetState();
     setStep('select');
+    setErrorMessage('');
   };
 
   const handleResetConnections = async () => {
-    console.log('[CalendarModal] Resetting all connections');
-    
+    // Disconnect all current connections
     for (const connection of connections) {
       await disconnectProvider(connection.id);
     }
     
-    connectionManager.resetState();
-    await connectionManager.checkConnection();
-    
     setStep('select');
+    setErrorMessage('');
     
     toast({
       title: "Reset Voltooid",
       description: "Alle agenda verbindingen zijn verwijderd.",
     });
+  };
+
+  const handleRetryConnection = () => {
+    setErrorMessage('');
+    handleGoogleConnect();
   };
 
   if (loading) {
@@ -194,54 +195,45 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   }
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Agenda Integratie Setup</DialogTitle>
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Agenda Integratie Setup</DialogTitle>
+        </DialogHeader>
+        
+        <div className="p-2">
+          {step === 'select' && (
+            <CalendarSelectStep
+              providers={calendarProviders}
+              isProviderConnected={isProviderConnected}
+              onGoogleConnect={handleGoogleConnect}
+              error={errorMessage}
+              onRetryConnection={handleRetryConnection}
+              onResetConnections={handleResetConnections}
+            />
+          )}
           
-          <div className="p-2">
-            {step === 'select' && (
-              <CalendarSelectStep
-                providers={calendarProviders}
-                isProviderConnected={isProviderConnected}
-                onGoogleConnect={handleGoogleConnect}
-                error={connectionManager.error || undefined}
-                onRetryConnection={handleGoogleConnect}
-                onResetConnections={handleResetConnections}
-              />
-            )}
-            
-            {step === 'connected' && (
-              <CalendarConnectedStep
-                connections={connections}
-                providers={calendarProviders}
-                syncing={syncing}
-                onDisconnect={handleDisconnect}
-                onChangeCalendar={handleChangeCalendar}
-                onTestConnection={handleTestConnection}
-                onContinue={handleContinue}
-              />
-            )}
-            
-            {step === 'error' && (
-              <CalendarErrorStep
-                error={connectionManager.error || 'Onbekende fout'}
-                onTryAgain={handleTryAgain}
-                onReset={handleResetConnections}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <CalendarConnectionConfirmModal
-        open={showConfirmModal}
-        onOpenChange={setShowConfirmModal}
-        onConfirm={handleConfirmConnection}
-        isConnecting={connectionManager.isConnecting}
-      />
-    </>
+          {step === 'connected' && (
+            <CalendarConnectedStep
+              connections={connections}
+              providers={calendarProviders}
+              syncing={syncing}
+              onDisconnect={handleDisconnect}
+              onChangeCalendar={handleChangeCalendar}
+              onTestConnection={handleTestConnection}
+              onContinue={handleContinue}
+            />
+          )}
+          
+          {step === 'error' && (
+            <CalendarErrorStep
+              error={errorMessage}
+              onTryAgain={handleTryAgain}
+              onReset={handleResetConnections}
+            />
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
