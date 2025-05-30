@@ -48,6 +48,33 @@ export const cleanupPendingConnections = async (user: User, provider: string) =>
   }
 };
 
+export const cleanupExpiredConnections = async (user: User) => {
+  if (!user) return;
+
+  try {
+    console.log(`[CalendarUtils] Cleaning up expired connections for user:`, user.id);
+    
+    // Get current time minus 1 hour (connections older than 1 hour without proper setup)
+    const oneHourAgo = new Date();
+    oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+    
+    const { error } = await supabase
+      .from('calendar_connections')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('provider_account_id', 'pending')
+      .lt('created_at', oneHourAgo.toISOString());
+
+    if (error) {
+      console.error('Error cleaning up expired connections:', error);
+    } else {
+      console.log(`[CalendarUtils] Successfully cleaned up expired connections`);
+    }
+  } catch (error) {
+    console.error('Unexpected error cleaning up expired connections:', error);
+  }
+};
+
 export const getOAuthProvider = async (provider: 'google' | 'microsoft'): Promise<OAuthProvider | null> => {
   try {
     const { data, error } = await supabase
@@ -115,6 +142,49 @@ export const resetAllCalendarConnections = async (user: User): Promise<boolean> 
     return true;
   } catch (error) {
     console.error('Unexpected error resetting connections:', error);
+    return false;
+  }
+};
+
+export const validateConnectionToken = async (user: User, connectionId: string): Promise<boolean> => {
+  if (!user) return false;
+
+  try {
+    console.log(`[CalendarUtils] Validating connection token for:`, connectionId);
+    
+    const { data: connection, error } = await supabase
+      .from('calendar_connections')
+      .select('*')
+      .eq('id', connectionId)
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single();
+
+    if (error || !connection) {
+      console.error('Connection not found or error:', error);
+      return false;
+    }
+
+    // Check if we have a valid access token
+    if (!connection.access_token || connection.access_token === 'pending') {
+      console.log('Invalid or pending access token');
+      return false;
+    }
+
+    // Check if token is expired
+    if (connection.expires_at) {
+      const expiryDate = new Date(connection.expires_at);
+      const now = new Date();
+      
+      if (now >= expiryDate) {
+        console.log('Access token has expired');
+        return false;
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Unexpected error validating token:', error);
     return false;
   }
 };

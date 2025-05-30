@@ -80,11 +80,35 @@ export const useAuth = () => {
     };
   }, []);
 
+  const cleanupPendingConnections = async (user: User, provider: string) => {
+    try {
+      console.log(`[Auth] Cleaning up pending ${provider} connections for user:`, user.id);
+      
+      const { error } = await supabase
+        .from('calendar_connections')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('provider', provider)
+        .eq('provider_account_id', 'pending');
+
+      if (error) {
+        console.error('[Auth] Error cleaning up pending connections:', error);
+      } else {
+        console.log(`[Auth] Successfully cleaned up pending ${provider} connections`);
+      }
+    } catch (error) {
+      console.error('[Auth] Unexpected error cleaning up connections:', error);
+    }
+  };
+
   const ensureCalendarConnection = async (user: User, session: Session) => {
     try {
       console.log('[Auth] Setting up calendar connection for user:', user.id);
       
-      // Check if connection already exists
+      // First, cleanup any pending connections for this user
+      await cleanupPendingConnections(user, 'google');
+      
+      // Check if connection already exists and is active
       const { data: existingConnection } = await supabase
         .from('calendar_connections')
         .select('*')
@@ -96,9 +120,15 @@ export const useAuth = () => {
       if (!existingConnection && session.provider_token) {
         console.log('[Auth] Creating new calendar connection...');
         
+        // Verify we have valid token before creating connection
+        if (!session.provider_token || session.provider_token.length < 10) {
+          console.error('[Auth] Invalid provider token received');
+          throw new Error('Invalid OAuth token received');
+        }
+        
         const { error: connectionError } = await supabase
           .from('calendar_connections')
-          .upsert({
+          .insert({
             user_id: user.id,
             provider: 'google',
             provider_account_id: user.user_metadata?.sub || user.id,
@@ -108,8 +138,6 @@ export const useAuth = () => {
               new Date(session.expires_at * 1000).toISOString() : null,
             is_active: true,
             updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id,provider'
           });
 
         if (!connectionError) {
@@ -139,6 +167,7 @@ export const useAuth = () => {
           }, 2000);
         } else {
           console.error('[Auth] Failed to create calendar connection:', connectionError);
+          throw connectionError;
         }
       } else if (existingConnection && session.provider_token) {
         console.log('[Auth] Updating existing calendar connection tokens');
@@ -159,6 +188,15 @@ export const useAuth = () => {
       }
     } catch (error) {
       console.error('[Auth] Error in ensureCalendarConnection:', error);
+      
+      // Cleanup any failed connection attempts
+      await cleanupPendingConnections(user, 'google');
+      
+      toast({
+        title: "Calendar Connection Error",
+        description: "Failed to connect calendar. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
