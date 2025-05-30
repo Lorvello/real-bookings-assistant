@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -98,10 +97,6 @@ export const useCalendarIntegration = (user: User | null) => {
     const clientId = import.meta.env[clientIdVar];
     
     console.log(`[OAuth Debug] Checking ${clientIdVar}:`, clientId ? 'Present' : 'Missing');
-    console.log(`[OAuth Debug] All environment variables:`, {
-      VITE_GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID ? 'Present' : 'Missing',
-      VITE_OUTLOOK_CLIENT_ID: import.meta.env.VITE_OUTLOOK_CLIENT_ID ? 'Present' : 'Missing'
-    });
 
     if (!clientId || clientId.trim() === '') {
       return {
@@ -131,10 +126,10 @@ export const useCalendarIntegration = (user: User | null) => {
         return { success: false, error: validation.error };
       }
 
-      // Clean up any existing pending connections for this provider
+      // Clean up any existing pending connections
       await cleanupPendingConnections('google');
 
-      // Create a new pending connection record
+      // Create a new pending connection record with state parameter
       const { data: connectionData, error: connectionError } = await supabase
         .from('calendar_connections')
         .insert({
@@ -152,25 +147,29 @@ export const useCalendarIntegration = (user: User | null) => {
       }
 
       const connectionId = connectionData.id;
-      // Use your app's callback URL that should be configured in Google Cloud Console
-      const redirectUri = `${window.location.origin}/auth/google/callback`;
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      
+      console.log('[OAuth Debug] Using Supabase Auth with state:', connectionId);
+      
+      // Use Supabase's built-in Google OAuth with scopes for calendar access
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+            state: connectionId // Pass connection ID as state
+          },
+          redirectTo: `${window.location.origin}/auth/google/callback`
+        }
+      });
 
-      // Build Google OAuth URL with your app's redirect URI
-      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      authUrl.searchParams.set('client_id', clientId);
-      authUrl.searchParams.set('redirect_uri', redirectUri);
-      authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email');
-      authUrl.searchParams.set('response_type', 'code');
-      authUrl.searchParams.set('access_type', 'offline');
-      authUrl.searchParams.set('prompt', 'consent');
-      authUrl.searchParams.set('state', connectionId);
-      
-      console.log('[OAuth Debug] Constructed OAuth URL with app redirect:', authUrl.toString().replace(clientId, 'CLIENT_ID_HIDDEN'));
-      console.log('[OAuth Debug] Redirect URI:', redirectUri);
-      console.log('[OAuth Debug] Connection ID:', connectionId);
-      
-      window.location.href = authUrl.toString();
+      if (error) {
+        console.error('Supabase OAuth error:', error);
+        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: error.message }));
+        return { success: false, error: error.message };
+      }
+
       return { success: true };
 
     } catch (error: any) {

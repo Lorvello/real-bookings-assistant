@@ -49,8 +49,10 @@ serve(async (req) => {
       )
     }
 
-    // Use your app's callback URL that's configured in Google Cloud Console
-    const redirectUri = `https://bookings-assistant.lovable.app/auth/google/callback`
+    // CRITICAL: Use the Supabase Auth callback URL that matches your dashboard configuration
+    const redirectUri = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`
+
+    console.log('Using redirect URI:', redirectUri)
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -66,7 +68,11 @@ serve(async (req) => {
     })
 
     const tokens = await tokenResponse.json()
-    console.log('Token response:', { access_token: tokens.access_token ? 'present' : 'missing', refresh_token: tokens.refresh_token ? 'present' : 'missing' })
+    console.log('Token response:', { 
+      access_token: tokens.access_token ? 'present' : 'missing', 
+      refresh_token: tokens.refresh_token ? 'present' : 'missing',
+      error: tokens.error || 'none'
+    })
 
     if (!tokenResponse.ok) {
       console.error('Token exchange failed:', tokens)

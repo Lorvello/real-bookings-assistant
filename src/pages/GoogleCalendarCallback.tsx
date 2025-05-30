@@ -2,37 +2,27 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 
 const GoogleCalendarCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
-  const [message, setMessage] = useState('Connecting to Google Calendar...');
-  
-  // Get user
-  const [user, setUser] = useState(null);
-  const { handleOAuthCallback } = useCalendarIntegration(user);
+  const [message, setMessage] = useState('Processing Google Calendar connection...');
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-
     const handleCallback = async () => {
       try {
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const error = searchParams.get('error');
         
-        console.log('Google OAuth callback:', { code: code?.substring(0, 10) + '...', state, error });
+        console.log('Google OAuth callback received:', { 
+          code: code ? 'present' : 'missing', 
+          state, 
+          error,
+          url: window.location.href 
+        });
 
         if (error) {
           console.error('OAuth error:', error);
@@ -46,39 +36,68 @@ const GoogleCalendarCallback = () => {
         
         if (!code || !state) {
           setStatus('error');
-          setMessage('Invalid callback parameters');
+          setMessage('Invalid callback parameters - missing code or state');
           setTimeout(() => {
             navigate('/profile?error=invalid_callback');
           }, 3000);
           return;
         }
         
-        setMessage('Exchanging tokens...');
+        setMessage('Exchanging tokens with Google...');
         
-        const success = await handleOAuthCallback(code, state, 'google');
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setStatus('error');
+          setMessage('User not authenticated');
+          setTimeout(() => {
+            navigate('/login');
+          }, 3000);
+          return;
+        }
+
+        // Call the edge function to handle token exchange
+        const { data, error: functionError } = await supabase.functions.invoke('google-calendar-oauth', {
+          body: { code, state, user_id: user.id }
+        });
+
+        if (functionError) {
+          console.error('Edge function error:', functionError);
+          setStatus('error');
+          setMessage('Failed to connect calendar - please try again');
+          setTimeout(() => {
+            navigate('/profile?error=connection_failed');
+          }, 3000);
+          return;
+        }
         
-        if (success) {
+        if (data?.success) {
           setStatus('success');
           setMessage('Successfully connected to Google Calendar!');
           setTimeout(() => {
             navigate('/profile?success=calendar_connected&provider=google');
           }, 2000);
         } else {
-          throw new Error('Token exchange failed');
+          console.error('Token exchange failed:', data);
+          setStatus('error');
+          setMessage(data?.error || 'Connection failed - please try again');
+          setTimeout(() => {
+            navigate('/profile?error=connection_failed');
+          }, 3000);
         }
         
       } catch (error: any) {
         console.error('Callback error:', error);
         setStatus('error');
-        setMessage('Connection failed. Please try again.');
+        setMessage('An unexpected error occurred');
         setTimeout(() => {
-          navigate('/profile?error=connection_failed');
+          navigate('/profile?error=unexpected_error');
         }, 3000);
       }
     };
     
     handleCallback();
-  }, [user, searchParams, navigate, handleOAuthCallback]);
+  }, [searchParams, navigate]);
 
   const renderIcon = () => {
     switch (status) {
