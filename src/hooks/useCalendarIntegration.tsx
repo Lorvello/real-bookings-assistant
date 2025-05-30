@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -15,6 +16,13 @@ interface CalendarConnection {
   expires_at?: string;
   provider_user_id?: string;
   calendar_id?: string;
+}
+
+interface OAuthProvider {
+  id: string;
+  provider: string;
+  client_id: string | null;
+  is_active: boolean;
 }
 
 interface CalendarIntegrationState {
@@ -74,7 +82,6 @@ export const useCalendarIntegration = (user: User | null) => {
     if (!user) return;
 
     try {
-      // Delete any existing pending connections for this user and provider
       const { error } = await supabase
         .from('calendar_connections')
         .delete()
@@ -85,27 +92,31 @@ export const useCalendarIntegration = (user: User | null) => {
       if (error) {
         console.error('Error cleaning up pending connections:', error);
       } else {
-        console.log(`Cleaned up pending ${provider} connections for testing`);
+        console.log(`Cleaned up pending ${provider} connections`);
       }
     } catch (error) {
       console.error('Unexpected error cleaning up connections:', error);
     }
   };
 
-  const validateEnvironmentVariables = (provider: 'google' | 'microsoft') => {
-    const clientIdVar = provider === 'google' ? 'VITE_GOOGLE_CLIENT_ID' : 'VITE_OUTLOOK_CLIENT_ID';
-    const clientId = import.meta.env[clientIdVar];
-    
-    console.log(`[OAuth Debug] Checking ${clientIdVar}:`, clientId ? 'Present' : 'Missing');
+  const getOAuthProvider = async (provider: 'google' | 'microsoft'): Promise<OAuthProvider | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('oauth_providers')
+        .select('id, provider, client_id, is_active')
+        .eq('provider', provider)
+        .single();
 
-    if (!clientId || clientId.trim() === '') {
-      return {
-        valid: false,
-        error: `Missing ${provider} OAuth configuration. Please set ${clientIdVar} environment variable.`
-      };
+      if (error) {
+        console.error('Error fetching OAuth provider:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Unexpected error fetching OAuth provider:', error);
+      return null;
     }
-
-    return { valid: true };
   };
 
   const connectGoogleCalendar = async (): Promise<{ success: boolean; error?: string }> => {
@@ -114,16 +125,17 @@ export const useCalendarIntegration = (user: User | null) => {
     try {
       setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
 
-      // Validate environment variables first
-      const validation = validateEnvironmentVariables('google');
-      if (!validation.valid) {
-        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: validation.error }));
+      // Get OAuth configuration from database
+      const oauthProvider = await getOAuthProvider('google');
+      if (!oauthProvider || !oauthProvider.client_id) {
+        const errorMsg = 'Google OAuth not configured. Please set up OAuth credentials in settings.';
+        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: errorMsg }));
         toast({
           title: "Configuration Error",
-          description: validation.error,
+          description: errorMsg,
           variant: "destructive",
         });
-        return { success: false, error: validation.error };
+        return { success: false, error: errorMsg };
       }
 
       // Clean up any existing pending connections
@@ -158,7 +170,7 @@ export const useCalendarIntegration = (user: User | null) => {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-            state: connectionId // Pass connection ID as state
+            state: connectionId
           },
           redirectTo: `${window.location.origin}/auth/google/callback`
         }
@@ -190,16 +202,17 @@ export const useCalendarIntegration = (user: User | null) => {
     try {
       setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
 
-      // Validate environment variables first
-      const validation = validateEnvironmentVariables('microsoft');
-      if (!validation.valid) {
-        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: validation.error }));
+      // Get OAuth configuration from database
+      const oauthProvider = await getOAuthProvider('microsoft');
+      if (!oauthProvider || !oauthProvider.client_id) {
+        const errorMsg = 'Microsoft OAuth not configured. Please set up OAuth credentials in settings.';
+        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: errorMsg }));
         toast({
           title: "Configuration Error",
-          description: validation.error,
+          description: errorMsg,
           variant: "destructive",
         });
-        return { success: false, error: validation.error };
+        return { success: false, error: errorMsg };
       }
 
       // Clean up any existing pending connections for this provider
@@ -225,18 +238,17 @@ export const useCalendarIntegration = (user: User | null) => {
       const connectionId = connectionData.id;
       const baseUrl = window.location.origin;
       const redirectUri = `${baseUrl}/auth/outlook/callback`;
-      const clientId = import.meta.env.VITE_OUTLOOK_CLIENT_ID;
 
       // Build Microsoft OAuth URL
       const authUrl = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
-      authUrl.searchParams.set('client_id', clientId);
+      authUrl.searchParams.set('client_id', oauthProvider.client_id);
       authUrl.searchParams.set('redirect_uri', redirectUri);
       authUrl.searchParams.set('scope', 'https://graph.microsoft.com/calendars.read https://graph.microsoft.com/user.read');
       authUrl.searchParams.set('response_type', 'code');
       authUrl.searchParams.set('response_mode', 'query');
       authUrl.searchParams.set('state', connectionId);
       
-      console.log('[OAuth Debug] Constructed Microsoft OAuth URL:', authUrl.toString().replace(clientId, 'CLIENT_ID_HIDDEN'));
+      console.log('[OAuth Debug] Constructed Microsoft OAuth URL');
       console.log('[OAuth Debug] Redirect URI:', redirectUri);
       
       window.location.href = authUrl.toString();
@@ -292,7 +304,6 @@ export const useCalendarIntegration = (user: User | null) => {
     if (!user) return false;
 
     try {
-      // Delete all connections for this user (both active and pending)
       const { error } = await supabase
         .from('calendar_connections')
         .delete()
@@ -334,7 +345,6 @@ export const useCalendarIntegration = (user: User | null) => {
     try {
       console.log('Handling OAuth callback:', { code: code.substring(0, 10) + '...', state, provider });
 
-      // Call the appropriate edge function for token exchange
       const { data, error } = await supabase.functions.invoke(`${provider}-calendar-oauth`, {
         body: { code, state, user_id: user.id }
       });
@@ -370,7 +380,6 @@ export const useCalendarIntegration = (user: User | null) => {
     setState(prev => ({ ...prev, syncing: true }));
 
     try {
-      // Call the sync edge function
       const { data, error } = await supabase.functions.invoke('sync-calendar-events', {
         body: { user_id: user.id }
       });
