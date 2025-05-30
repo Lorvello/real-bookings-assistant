@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,23 +35,39 @@ export const CalendarOAuthConfig: React.FC = () => {
   }, []);
 
   const ensureProvidersExist = async () => {
-    const requiredProviders = ['google', 'microsoft'];
+    const requiredProviders = [
+      {
+        name: 'google',
+        auth_url: 'https://accounts.google.com/o/oauth2/v2/auth',
+        token_url: 'https://oauth2.googleapis.com/token',
+        scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email'
+      },
+      {
+        name: 'microsoft',
+        auth_url: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+        token_url: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+        scope: 'https://graph.microsoft.com/calendars.read https://graph.microsoft.com/user.read'
+      }
+    ];
     
-    for (const providerName of requiredProviders) {
+    for (const providerConfig of requiredProviders) {
       const { data: existing } = await supabase
         .from('oauth_providers')
         .select('id')
-        .eq('provider', providerName)
+        .eq('provider', providerConfig.name)
         .single();
 
       if (!existing) {
         await supabase
           .from('oauth_providers')
           .insert({
-            provider: providerName,
+            provider: providerConfig.name,
             client_id: null,
             client_secret: null,
-            is_active: false
+            is_active: false,
+            auth_url: providerConfig.auth_url,
+            token_url: providerConfig.token_url,
+            scope: providerConfig.scope
           });
       }
     }

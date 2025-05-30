@@ -18,15 +18,34 @@ const ensureOAuthProviderExists = async (provider: string) => {
     }
 
     if (!existingProvider) {
-      // Create the provider record if it doesn't exist
+      // Create the provider record if it doesn't exist with proper OAuth URLs
       console.log(`Creating OAuth provider record for ${provider}`);
+      
+      const providerConfig = {
+        google: {
+          auth_url: 'https://accounts.google.com/o/oauth2/v2/auth',
+          token_url: 'https://oauth2.googleapis.com/token',
+          scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email'
+        },
+        microsoft: {
+          auth_url: 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+          token_url: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+          scope: 'https://graph.microsoft.com/calendars.read https://graph.microsoft.com/user.read'
+        }
+      };
+
+      const config = providerConfig[provider as keyof typeof providerConfig];
+      
       const { data: newProvider, error: insertError } = await supabase
         .from('oauth_providers')
         .insert({
           provider: provider,
           client_id: null,
           client_secret: null,
-          is_active: false
+          is_active: false,
+          auth_url: config.auth_url,
+          token_url: config.token_url,
+          scope: config.scope
         })
         .select()
         .single();
