@@ -56,34 +56,61 @@ const AuthCallback = () => {
         }
 
         if (data.session) {
-          console.log('Auth callback successful, checking if this is Google OAuth signup');
+          console.log('Auth callback successful, user session established');
           
-          // Check if this user signed up with Google (they have provider_token)
+          // Check if this user signed in with Google and has provider tokens
           const { data: userData, error: userError } = await supabase.auth.getUser();
           
           if (userData.user && data.session.provider_token) {
-            console.log('Google OAuth signup detected, creating calendar connection...');
+            console.log('Google OAuth login detected, creating calendar connection...');
             
             try {
-              // Create calendar connection directly with the OAuth tokens
-              const { error: connectionError } = await supabase
+              // Check if calendar connection already exists
+              const { data: existingConnection } = await supabase
                 .from('calendar_connections')
-                .insert({
-                  user_id: userData.user.id,
-                  provider: 'google',
-                  provider_account_id: userData.user.user_metadata?.sub || userData.user.id,
-                  access_token: data.session.provider_token,
-                  refresh_token: data.session.provider_refresh_token || null,
-                  expires_at: data.session.expires_at ? new Date(data.session.expires_at * 1000).toISOString() : null,
-                  is_active: true
-                });
+                .select('id')
+                .eq('user_id', userData.user.id)
+                .eq('provider', 'google')
+                .eq('is_active', true)
+                .maybeSingle();
 
-              if (connectionError) {
-                console.error('Error creating calendar connection:', connectionError);
+              if (!existingConnection) {
+                // Create calendar connection with the OAuth tokens from Supabase Auth
+                const { error: connectionError } = await supabase
+                  .from('calendar_connections')
+                  .insert({
+                    user_id: userData.user.id,
+                    provider: 'google',
+                    provider_account_id: userData.user.user_metadata?.sub || userData.user.id,
+                    access_token: data.session.provider_token,
+                    refresh_token: data.session.provider_refresh_token || null,
+                    expires_at: data.session.expires_at ? new Date(data.session.expires_at * 1000).toISOString() : null,
+                    is_active: true
+                  });
+
+                if (connectionError) {
+                  console.error('Error creating calendar connection:', connectionError);
+                } else {
+                  console.log('Calendar connection created successfully from Google login');
+                  
+                  // Update setup progress to reflect calendar is linked
+                  const { error: progressError } = await supabase
+                    .from('setup_progress')
+                    .update({ 
+                      calendar_linked: true,
+                      updated_at: new Date().toISOString()
+                    })
+                    .eq('user_id', userData.user.id);
+
+                  if (progressError) {
+                    console.error('Error updating setup progress:', progressError);
+                  }
+
+                  navigate('/profile?google_signup_complete=true&calendar_connected=true');
+                  return;
+                }
               } else {
-                console.log('Calendar connection created successfully');
-                navigate('/profile?google_signup_complete=true&calendar_connected=true');
-                return;
+                console.log('Calendar connection already exists');
               }
             } catch (error) {
               console.error('Error in calendar connection creation:', error);
