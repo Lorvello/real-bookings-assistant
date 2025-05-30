@@ -46,7 +46,7 @@ const AuthCallback = () => {
           return;
         }
         
-        // If no OAuth params, check for regular Supabase auth callback
+        // If no OAuth params, this is likely a Supabase auth callback (signup/login)
         const { data, error: authError } = await supabase.auth.getSession();
         
         if (authError) {
@@ -56,7 +56,41 @@ const AuthCallback = () => {
         }
 
         if (data.session) {
-          console.log('Auth callback successful, redirecting to profile');
+          console.log('Auth callback successful, checking if this is Google OAuth signup');
+          
+          // Check if this user signed up with Google (they have provider_token)
+          const { data: userData, error: userError } = await supabase.auth.getUser();
+          
+          if (userData.user && data.session.provider_token) {
+            console.log('Google OAuth signup detected, creating calendar connection...');
+            
+            try {
+              // Create calendar connection directly with the OAuth tokens
+              const { error: connectionError } = await supabase
+                .from('calendar_connections')
+                .insert({
+                  user_id: userData.user.id,
+                  provider: 'google',
+                  provider_account_id: userData.user.user_metadata?.sub || userData.user.id,
+                  access_token: data.session.provider_token,
+                  refresh_token: data.session.provider_refresh_token || null,
+                  expires_at: data.session.expires_at ? new Date(data.session.expires_at * 1000).toISOString() : null,
+                  is_active: true
+                });
+
+              if (connectionError) {
+                console.error('Error creating calendar connection:', connectionError);
+              } else {
+                console.log('Calendar connection created successfully');
+                navigate('/profile?google_signup_complete=true&calendar_connected=true');
+                return;
+              }
+            } catch (error) {
+              console.error('Error in calendar connection creation:', error);
+            }
+          }
+          
+          console.log('Regular auth callback, redirecting to profile');
           navigate('/profile');
         } else {
           console.log('No session found, redirecting to login');
@@ -75,8 +109,8 @@ const AuthCallback = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
       <div className="text-center">
         <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Completing connection...</h1>
-        <p className="text-gray-600">Please wait while we finish setting up your calendar connection.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Completing setup...</h1>
+        <p className="text-gray-600">Please wait while we finish setting up your account and calendar connection.</p>
       </div>
     </div>
   );
