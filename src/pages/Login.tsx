@@ -69,14 +69,10 @@ const Login = () => {
     try {
       console.log('[Login] Starting Google login...');
       
-      // Use the Supabase redirect URL that matches your Google Cloud Console setup
-      const redirectTo = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`;
-      console.log('[Login] Google login redirect URL:', redirectTo);
-      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectTo,
+          redirectTo: `${window.location.origin}/auth/callback`,
           scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
         }
       });

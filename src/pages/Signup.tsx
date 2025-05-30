@@ -44,14 +44,10 @@ const Signup = () => {
     try {
       console.log('[Signup] Starting Google signup...');
       
-      // Use the Supabase redirect URL that matches your Google Cloud Console setup
-      const redirectTo = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`;
-      console.log('[Signup] Google signup redirect URL:', redirectTo);
-      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectTo,
+          redirectTo: `${window.location.origin}/auth/callback`,
           scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
         }
       });
@@ -88,10 +84,6 @@ const Signup = () => {
     try {
       console.log('[Signup] Starting email signup for:', formData.email);
       
-      // Use the Supabase redirect URL that matches your Google Cloud Console setup
-      const redirectTo = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`;
-      console.log('[Signup] Email signup redirect URL:', redirectTo);
-      
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -100,7 +92,7 @@ const Signup = () => {
             full_name: formData.name,
             business_name: formData.business
           },
-          emailRedirectTo: redirectTo
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
