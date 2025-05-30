@@ -1,84 +1,23 @@
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
+import { useNavigate } from 'react-router-dom';
 import { CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 
 const OutlookCalendarCallback = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
-  const [message, setMessage] = useState('Connecting to Outlook Calendar...');
-  
-  // Get user
-  const [user, setUser] = useState(null);
-  const { handleOAuthCallback } = useCalendarIntegration(user);
+  const [message, setMessage] = useState('Processing callback...');
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-
-    const handleCallback = async () => {
-      try {
-        const code = searchParams.get('code');
-        const state = searchParams.get('state');
-        const error = searchParams.get('error');
-        
-        console.log('Outlook OAuth callback:', { code: code?.substring(0, 10) + '...', state, error });
-
-        if (error) {
-          console.error('OAuth error:', error);
-          setStatus('error');
-          setMessage('Outlook authentication was denied or failed');
-          setTimeout(() => {
-            navigate('/profile?error=outlook_auth_denied');
-          }, 3000);
-          return;
-        }
-        
-        if (!code || !state) {
-          setStatus('error');
-          setMessage('Invalid callback parameters');
-          setTimeout(() => {
-            navigate('/profile?error=invalid_callback');
-          }, 3000);
-          return;
-        }
-        
-        setMessage('Exchanging tokens...');
-        
-        const success = await handleOAuthCallback(code, state, 'microsoft');
-        
-        if (success) {
-          setStatus('success');
-          setMessage('Successfully connected to Outlook Calendar!');
-          setTimeout(() => {
-            navigate('/profile?success=calendar_connected&provider=outlook');
-          }, 2000);
-        } else {
-          throw new Error('Token exchange failed');
-        }
-        
-      } catch (error: any) {
-        console.error('Callback error:', error);
-        setStatus('error');
-        setMessage('Connection failed. Please try again.');
-        setTimeout(() => {
-          navigate('/profile?error=connection_failed');
-        }, 3000);
-      }
-    };
+    // Since we're using simplified OAuth flow through Supabase Auth,
+    // Outlook callbacks should redirect through the normal auth flow
+    setStatus('error');
+    setMessage('Outlook Calendar integration is not available in this simplified flow');
     
-    handleCallback();
-  }, [user, searchParams, navigate, handleOAuthCallback]);
+    setTimeout(() => {
+      navigate('/profile?error=outlook_not_supported');
+    }, 3000);
+  }, [navigate]);
 
   const renderIcon = () => {
     switch (status) {
@@ -110,9 +49,9 @@ const OutlookCalendarCallback = () => {
         </div>
         
         <h2 className={`text-xl font-semibold mb-2 ${getStatusColor()}`}>
-          {status === 'processing' && 'Connecting to Outlook'}
-          {status === 'success' && 'Connection Successful!'}
-          {status === 'error' && 'Connection Failed'}
+          {status === 'processing' && 'Processing...'}
+          {status === 'success' && 'Success!'}
+          {status === 'error' && 'Not Supported'}
         </h2>
         
         <p className="text-gray-600 mb-4">{message}</p>

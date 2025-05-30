@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -13,11 +14,9 @@ import {
   Calendar, 
   CheckCircle, 
   Loader2, 
-  ExternalLink,
   Shield,
   RefreshCw,
-  AlertTriangle,
-  RotateCcw
+  AlertTriangle
 } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { CalendarOAuthConfig } from '@/components/CalendarOAuthConfig';
@@ -30,7 +29,6 @@ interface CalendarProvider {
   description: string;
   icon: React.ReactNode;
   color: string;
-  isComingSoon?: boolean;
 }
 
 interface CalendarIntegrationModalProps {
@@ -46,21 +44,6 @@ const calendarProviders: CalendarProvider[] = [
     description: 'Most popular choice - syncs instantly',
     icon: <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">G</div>,
     color: 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-  },
-  {
-    id: 'microsoft',
-    name: 'Microsoft Outlook',
-    description: 'Perfect for business users',
-    icon: <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">O</div>,
-    color: 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-  },
-  {
-    id: 'apple',
-    name: 'Apple Calendar',
-    description: 'Coming soon - CalDAV integration',
-    icon: <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center text-white">🍎</div>,
-    color: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
-    isComingSoon: true
   }
 ];
 
@@ -70,21 +53,15 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   onComplete
 }) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [step, setStep] = useState<'select' | 'connecting' | 'connected' | 'error'>('select');
-  const [selectedProvider, setSelectedProvider] = useState<CalendarProvider | null>(null);
+  const [step, setStep] = useState<'select' | 'connected' | 'error'>('select');
 
   const { 
     connections, 
     loading, 
     syncing,
-    connectionStatus,
-    errorMessage,
-    connectGoogleCalendar,
-    connectOutlookCalendar,
     disconnectProvider, 
     syncCalendarEvents,
     isProviderConnected,
-    resetAllConnections,
     refetch 
   } = useCalendarIntegration(user);
 
@@ -102,43 +79,9 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     }
   }, [connections]);
 
-  useEffect(() => {
-    if (connectionStatus === 'connected') {
-      setStep('connected');
-    } else if (connectionStatus === 'error') {
-      setStep('error');
-    }
-  }, [connectionStatus]);
-
-  const handleProviderSelect = async (provider: CalendarProvider) => {
-    if (provider.isComingSoon) {
-      setStep('error');
-      return;
-    }
-
-    setSelectedProvider(provider);
-    setStep('connecting');
-
-    try {
-      let result;
-      
-      if (provider.id === 'google') {
-        result = await connectGoogleCalendar();
-      } else if (provider.id === 'microsoft') {
-        result = await connectOutlookCalendar();
-      } else {
-        setStep('error');
-        return;
-      }
-      
-      if (!result.success && result.error) {
-        setStep('error');
-      }
-      // Note: If successful, the redirect will happen and we won't reach this point
-    } catch (err: any) {
-      console.error('Provider selection error:', err);
-      setStep('error');
-    }
+  const handleGoogleConnect = () => {
+    // Redirect to login page with Google OAuth for calendar access
+    window.location.href = '/login?provider=google&scope=calendar';
   };
 
   const handleDisconnect = async (provider: CalendarProvider) => {
@@ -151,14 +94,6 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     }
   };
 
-  const handleResetConnections = async () => {
-    const success = await resetAllConnections();
-    if (success) {
-      setStep('select');
-      setSelectedProvider(null);
-    }
-  };
-
   const handleTestConnection = async () => {
     await syncCalendarEvents();
   };
@@ -166,16 +101,13 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   const handleContinue = () => {
     onComplete();
     onOpenChange(false);
-    // Reset state for next time
     setTimeout(() => {
       setStep('select');
-      setSelectedProvider(null);
     }, 300);
   };
 
   const handleChangeCalendar = () => {
     setStep('select');
-    setSelectedProvider(null);
   };
 
   if (loading) {
@@ -195,39 +127,27 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     <>
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Connect Your Calendar</h2>
-        <p className="text-gray-600 mb-4">Choose your calendar provider to sync appointments automatically</p>
+        <p className="text-gray-600 mb-4">Connect Google Calendar to sync appointments automatically</p>
         <Badge variant="outline" className="text-sm">
           Step 1 of 3
         </Badge>
       </div>
 
-      <div className="mb-4 flex justify-between items-center">
+      <div className="mb-4">
         <CalendarOAuthConfig />
-        {process.env.NODE_ENV === 'development' && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleResetConnections}
-            className="text-red-600 hover:text-red-700"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset All (Dev)
-          </Button>
-        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 gap-4 mb-6">
         {calendarProviders.map((provider) => {
           const isConnected = isProviderConnected(provider.id);
-          const isConnecting = connectionStatus === 'connecting' && selectedProvider?.id === provider.id;
           
           return (
             <Card 
               key={provider.id}
               className={`cursor-pointer transition-all duration-200 ${
                 isConnected ? 'border-green-500 bg-green-50' : provider.color
-              } hover:shadow-md ${isConnecting ? 'opacity-50' : ''}`}
-              onClick={() => !isConnecting && !provider.isComingSoon && handleProviderSelect(provider)}
+              } hover:shadow-md`}
+              onClick={() => !isConnected && handleGoogleConnect()}
             >
               <CardContent className="p-6 text-center">
                 <div className="flex justify-center mb-4 relative">
@@ -238,31 +158,16 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
                 </div>
                 <h3 className="font-semibold text-lg mb-2">{provider.name}</h3>
                 <p className="text-sm text-gray-600 mb-4">{provider.description}</p>
-                {isConnecting ? (
-                  <Button disabled className="w-full" size="sm">
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Connecting...
-                  </Button>
-                ) : (
-                  <Button 
-                    className={`w-full ${
-                      provider.isComingSoon 
-                        ? 'bg-gray-400 hover:bg-gray-500' 
-                        : isConnected 
-                        ? 'bg-green-600 hover:bg-green-700' 
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    } text-white`}
-                    size="sm"
-                    disabled={provider.isComingSoon}
-                  >
-                    {provider.isComingSoon 
-                      ? 'Coming Soon' 
-                      : isConnected 
-                      ? 'Connected' 
-                      : 'Connect'
-                    }
-                  </Button>
-                )}
+                <Button 
+                  className={`w-full ${
+                    isConnected 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  } text-white`}
+                  size="sm"
+                >
+                  {isConnected ? 'Connected' : 'Connect'}
+                </Button>
               </CardContent>
             </Card>
           );
@@ -272,33 +177,12 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
       <Alert className="border-green-200 bg-green-50">
         <Shield className="h-4 w-4 text-green-600" />
         <AlertDescription className="text-green-800">
-          <div className="flex items-center justify-between">
-            <span className="text-sm">
-              We only access your calendar availability, not personal details
-            </span>
-            <Button variant="link" size="sm" className="text-green-700 p-0 h-auto">
-              <ExternalLink className="h-3 w-3 ml-1" />
-              Privacy Policy
-            </Button>
-          </div>
+          <span className="text-sm">
+            We only access your calendar availability, not personal details
+          </span>
         </AlertDescription>
       </Alert>
     </>
-  );
-
-  const renderConnectingStep = () => (
-    <div className="text-center py-8">
-      <div className="flex justify-center mb-4">
-        {selectedProvider?.icon}
-      </div>
-      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-green-600" />
-      <h3 className="text-xl font-semibold mb-2">
-        Connecting to {selectedProvider?.name}...
-      </h3>
-      <p className="text-gray-600">
-        You will be redirected to complete the authorization
-      </p>
-    </div>
   );
 
   const renderConnectedStep = () => (
@@ -358,7 +242,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
           onClick={handleChangeCalendar}
           className="flex-1"
         >
-          Add Another Calendar
+          Change Calendar
         </Button>
         <Button 
           variant="outline" 
@@ -391,7 +275,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
         <AlertTriangle className="h-16 w-16 mx-auto" />
       </div>
       <h3 className="text-xl font-semibold mb-2 text-red-900">Connection Failed</h3>
-      <p className="text-red-700 mb-6">{errorMessage || "Unable to connect to calendar provider"}</p>
+      <p className="text-red-700 mb-6">Unable to connect to calendar provider</p>
       
       <div className="flex gap-3">
         <Button 
@@ -400,14 +284,6 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
           className="flex-1"
         >
           Try Again
-        </Button>
-        <Button 
-          variant="outline" 
-          className="flex-1"
-          onClick={() => window.open('mailto:support@example.com', '_blank')}
-        >
-          <ExternalLink className="h-4 w-4 mr-2" />
-          Contact Support
         </Button>
       </div>
     </div>
@@ -422,20 +298,6 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
         
         <div className="p-2">
           {step === 'select' && renderSelectStep()}
-          {step === 'connecting' && (
-            <div className="text-center py-8">
-              <div className="flex justify-center mb-4">
-                {selectedProvider?.icon}
-              </div>
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-green-600" />
-              <h3 className="text-xl font-semibold mb-2">
-                Connecting to {selectedProvider?.name}...
-              </h3>
-              <p className="text-gray-600">
-                You will be redirected to complete the authorization
-              </p>
-            </div>
-          )}
           {step === 'connected' && renderConnectedStep()}
           {step === 'error' && renderErrorStep()}
         </div>

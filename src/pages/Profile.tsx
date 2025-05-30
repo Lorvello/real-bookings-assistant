@@ -37,7 +37,6 @@ import { useCalendarLinking } from '@/hooks/useCalendarLinking';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
-import { CalendarLinkingModal } from '@/components/CalendarLinkingModal';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -52,13 +51,10 @@ const Profile = () => {
   const { services, getPopularServices, refetch: refetchServices } = useServices(user);
   const { syncing, triggerSync } = useCalendarSync(user);
   
-  // Add calendar linking hook
+  // Simplified calendar linking hook
   const { 
-    showLinkingModal, 
-    setShowLinkingModal, 
     isConnected: calendarConnected, 
     loading: calendarLoading,
-    handleLinkingSuccess,
     refetchConnection 
   } = useCalendarLinking(user);
 
@@ -102,7 +98,8 @@ const Profile = () => {
     switch (step) {
       case 'calendar_linked':
         if (!completed) {
-          setShowLinkingModal(true);
+          // Redirect to login with Google + Calendar scopes
+          window.location.href = '/login?provider=google&scope=calendar';
         } else {
           await updateSetupProgress('calendar_linked', false);
         }
@@ -567,13 +564,6 @@ const Profile = () => {
           </div>
         </div>
       </div>
-      
-      {/* Calendar Linking Modal */}
-      <CalendarLinkingModal
-        open={showLinkingModal}
-        onOpenChange={setShowLinkingModal}
-        onSuccess={handleLinkingSuccess}
-      />
       
       <CalendarIntegrationModal
         open={calendarModalOpen}
