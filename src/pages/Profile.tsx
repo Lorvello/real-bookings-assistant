@@ -37,6 +37,7 @@ import { useCalendarLinking } from '@/hooks/useCalendarLinking';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
+import { CalendarEventsDisplay } from '@/components/CalendarEventsDisplay';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -367,6 +368,9 @@ const Profile = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Calendar Events Display */}
+            <CalendarEventsDisplay user={user} syncing={syncing} />
 
             {/* Setup Progress */}
             <Card>

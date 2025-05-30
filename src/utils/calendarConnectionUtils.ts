@@ -29,6 +29,8 @@ export const cleanupPendingConnections = async (user: User, provider: string) =>
   if (!user) return;
 
   try {
+    console.log(`[CalendarUtils] Cleaning up pending ${provider} connections for user:`, user.id);
+    
     const { error } = await supabase
       .from('calendar_connections')
       .delete()
@@ -39,7 +41,7 @@ export const cleanupPendingConnections = async (user: User, provider: string) =>
     if (error) {
       console.error('Error cleaning up pending connections:', error);
     } else {
-      console.log(`Cleaned up pending ${provider} connections`);
+      console.log(`[CalendarUtils] Successfully cleaned up pending ${provider} connections`);
     }
   } catch (error) {
     console.error('Unexpected error cleaning up connections:', error);
@@ -92,6 +94,13 @@ export const resetAllCalendarConnections = async (user: User): Promise<boolean> 
   if (!user) return false;
 
   try {
+    console.log(`[CalendarUtils] Resetting all calendar connections for user:`, user.id);
+    
+    // First, cleanup any pending connections
+    await cleanupPendingConnections(user, 'google');
+    await cleanupPendingConnections(user, 'microsoft');
+    
+    // Then delete all connections for this user
     const { error } = await supabase
       .from('calendar_connections')
       .delete()
@@ -102,6 +111,7 @@ export const resetAllCalendarConnections = async (user: User): Promise<boolean> 
       return false;
     }
 
+    console.log(`[CalendarUtils] Successfully reset all connections`);
     return true;
   } catch (error) {
     console.error('Unexpected error resetting connections:', error);

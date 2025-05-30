@@ -24,8 +24,8 @@ export const useCalendarSync = (user: User | null) => {
         console.error('[CalendarSync] Sync failed:', error);
         if (showToast) {
           toast({
-            title: "Sync Failed",
-            description: "Failed to sync calendar events. Please try again later.",
+            title: "Sync Mislukt",
+            description: "Kon agenda events niet synchroniseren. Probeer het later opnieuw.",
             variant: "destructive",
           });
         }
@@ -36,9 +36,10 @@ export const useCalendarSync = (user: User | null) => {
       setLastSyncTime(new Date());
       
       if (showToast) {
+        const eventsCount = data?.syncResults?.reduce((total: number, result: any) => total + result.events_synced, 0) || 0;
         toast({
-          title: "Calendar Synced",
-          description: "Your calendar has been synchronized successfully.",
+          title: "Agenda Gesynchroniseerd",
+          description: `${eventsCount} events succesvol gesynchroniseerd.`,
         });
       }
       
@@ -47,8 +48,8 @@ export const useCalendarSync = (user: User | null) => {
       console.error('[CalendarSync] Unexpected sync error:', error);
       if (showToast) {
         toast({
-          title: "Sync Error",
-          description: "An unexpected error occurred during sync.",
+          title: "Sync Fout",
+          description: "Er ging iets mis tijdens synchronisatie.",
           variant: "destructive",
         });
       }
@@ -58,13 +59,32 @@ export const useCalendarSync = (user: User | null) => {
     }
   };
 
-  // Auto-sync on mount for Google users
+  // Auto-sync on mount for users with Google connections
   useEffect(() => {
-    if (user?.app_metadata?.provider === 'google') {
-      setTimeout(() => {
-        triggerSync(false); // Silent sync on mount
-      }, 2000);
-    }
+    const checkAndSync = async () => {
+      if (!user) return;
+
+      try {
+        // Check if user has active calendar connections
+        const { data: connections } = await supabase
+          .from('calendar_connections')
+          .select('id, provider')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .neq('provider_account_id', 'pending');
+
+        if (connections && connections.length > 0) {
+          console.log('[CalendarSync] Found active connections, triggering auto-sync');
+          setTimeout(() => {
+            triggerSync(false); // Silent sync on mount
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('[CalendarSync] Error checking connections:', error);
+      }
+    };
+
+    checkAndSync();
   }, [user]);
 
   return {
