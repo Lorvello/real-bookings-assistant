@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -10,12 +10,52 @@ import { useToast } from '@/hooks/use-toast';
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+
+  useEffect(() => {
+    // Handle URL parameters for error messages
+    const error = searchParams.get('error');
+    const message = searchParams.get('message');
+    
+    if (error) {
+      const errorMessages = {
+        'oauth_failed': 'OAuth login failed. Please try again.',
+        'session_failed': 'Session could not be established. Please try again.',
+        'unexpected': 'An unexpected error occurred. Please try again.',
+        'callback_failed': 'Login callback failed. Please try again.'
+      };
+      
+      toast({
+        title: "Login Error",
+        description: errorMessages[error as keyof typeof errorMessages] || 'Login failed. Please try again.',
+        variant: "destructive",
+      });
+    }
+    
+    if (message === 'please_login') {
+      toast({
+        title: "Please Log In",
+        description: "Please log in to access your account.",
+      });
+    }
+
+    // Check if user is already logged in
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        console.log('[Login] User already logged in, redirecting to profile');
+        navigate('/profile');
+      }
+    };
+    
+    checkUser();
+  }, [searchParams, toast, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -28,10 +68,10 @@ const Login = () => {
     setGoogleLoading(true);
     
     try {
-      console.log('Starting Google login...');
+      console.log('[Login] Starting Google login...');
       
       const redirectTo = `${window.location.origin}/auth/callback`;
-      console.log('Google login redirect URL:', redirectTo);
+      console.log('[Login] Google login redirect URL:', redirectTo);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -42,20 +82,20 @@ const Login = () => {
       });
 
       if (error) {
-        console.error('Google login error:', error);
+        console.error('[Login] Google login error:', error);
         toast({
-          title: "Error",
+          title: "Google Login Error",
           description: error.message,
           variant: "destructive",
         });
         return;
       }
 
-      console.log('Google login initiated:', data);
+      console.log('[Login] Google login initiated successfully:', data);
       // User will be redirected to Google, then back to our callback
       
     } catch (error) {
-      console.error('Unexpected Google login error:', error);
+      console.error('[Login] Unexpected Google login error:', error);
       toast({
         title: "Error",
         description: "Something went wrong with Google login. Please try again.",
@@ -71,7 +111,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      console.log('Starting login process for:', formData.email);
+      console.log('[Login] Starting email login for:', formData.email);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
@@ -79,23 +119,30 @@ const Login = () => {
       });
 
       if (error) {
-        console.error('Login error:', error);
+        console.error('[Login] Email login error:', error);
+        
+        const errorMessages = {
+          'invalid_credentials': 'Invalid email or password. Please check your credentials and try again.',
+          'email_not_confirmed': 'Please check your email and click the confirmation link before logging in.',
+          'too_many_requests': 'Too many login attempts. Please wait a moment and try again.'
+        };
+        
         toast({
-          title: "Error",
-          description: error.message,
+          title: "Login Error",
+          description: errorMessages[error.message as keyof typeof errorMessages] || error.message,
           variant: "destructive",
         });
         return;
       }
 
-      console.log('Login successful:', data);
+      console.log('[Login] Email login successful:', data);
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
-      navigate('/profile');
+      navigate('/profile?success=email_login');
     } catch (error) {
-      console.error('Unexpected login error:', error);
+      console.error('[Login] Unexpected login error:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -110,7 +157,6 @@ const Login = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="py-20 px-4">
-        {/* Login Form Section */}
         <div className="flex justify-center">
           <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
             <div className="text-center mb-8">
@@ -118,11 +164,10 @@ const Login = () => {
               <p className="text-gray-600">Sign in to your AI booking assistant</p>
             </div>
             
-            {/* Google Login Button */}
             <div className="mb-6">
               <Button 
                 onClick={handleGoogleLogin}
-                disabled={googleLoading}
+                disabled={googleLoading || loading}
                 className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 py-3 flex items-center justify-center gap-3"
                 variant="outline"
               >
@@ -136,7 +181,6 @@ const Login = () => {
               </Button>
             </div>
 
-            {/* Divider */}
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -157,7 +201,8 @@ const Login = () => {
                   required 
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+                  disabled={loading || googleLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
                   placeholder="Enter your email" 
                 />
               </div>
@@ -172,15 +217,16 @@ const Login = () => {
                   required 
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+                  disabled={loading || googleLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
                   placeholder="Enter your password" 
                 />
               </div>
 
               <Button 
                 type="submit" 
-                disabled={loading}
-                className="w-full bg-green-600 hover:bg-green-700 text-lg py-3"
+                disabled={loading || googleLoading}
+                className="w-full bg-green-600 hover:bg-green-700 text-lg py-3 disabled:bg-green-400 disabled:cursor-not-allowed"
               >
                 {loading ? 'Signing In...' : 'Sign In'}
               </Button>

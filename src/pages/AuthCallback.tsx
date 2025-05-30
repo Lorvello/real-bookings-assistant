@@ -2,142 +2,175 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
+import { useToast } from '@/hooks/use-toast';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { handleOAuthCallback } = useCalendarIntegration(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('Handling auth callback...');
+        console.log('[AuthCallback] Processing auth callback...');
         
-        // Check if this is a calendar OAuth callback (has code and state parameters)
-        const code = searchParams.get('code');
-        const state = searchParams.get('state');
+        // Check for OAuth errors first
         const error = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
         
         if (error) {
-          console.log('OAuth error:', error);
-          navigate('/profile?error=oauth_error');
-          return;
-        }
-        
-        if (code && state) {
-          console.log('Calendar OAuth callback detected');
-          
-          // Get current user from existing session (don't interfere with auth)
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-            console.log('No authenticated user for calendar OAuth callback');
-            navigate('/login?error=oauth_no_user');
-            return;
-          }
-
-          // Handle calendar OAuth callback without affecting user session
-          const success = await handleOAuthCallback(code, state, 'google');
-          if (success) {
-            navigate('/profile?calendar_connected=true');
-          } else {
-            navigate('/profile?error=calendar_connection_failed');
-          }
-          return;
-        }
-        
-        // If no OAuth params, this is likely a Supabase auth callback (signup/login)
-        const { data, error: authError } = await supabase.auth.getSession();
-        
-        if (authError) {
-          console.error('Auth callback error:', authError);
-          navigate('/login?error=callback_failed');
+          console.error('[AuthCallback] OAuth error:', error, errorDescription);
+          toast({
+            title: "Login Error",
+            description: errorDescription || "Authentication failed. Please try again.",
+            variant: "destructive",
+          });
+          navigate('/login?error=oauth_failed');
           return;
         }
 
-        if (data.session) {
-          console.log('Auth callback successful, user session established');
+        // Handle Supabase auth session
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('[AuthCallback] Session error:', sessionError);
+          toast({
+            title: "Session Error",
+            description: "Failed to establish session. Please try logging in again.",
+            variant: "destructive",
+          });
+          navigate('/login?error=session_failed');
+          return;
+        }
+
+        if (sessionData.session) {
+          console.log('[AuthCallback] Valid session found');
+          const user = sessionData.session.user;
           
-          // Check if this user signed in with Google and has provider tokens
-          const { data: userData, error: userError } = await supabase.auth.getUser();
+          // Check if this is a Google OAuth login with provider tokens
+          const hasGoogleTokens = sessionData.session.provider_token && 
+                                  user.app_metadata?.provider === 'google';
           
-          if (userData.user && data.session.provider_token) {
-            console.log('Google OAuth login detected, creating calendar connection...');
+          if (hasGoogleTokens) {
+            console.log('[AuthCallback] Google OAuth login detected, setting up calendar...');
             
             try {
-              // Check if calendar connection already exists
+              // Create or update calendar connection
               const { data: existingConnection } = await supabase
                 .from('calendar_connections')
-                .select('id')
-                .eq('user_id', userData.user.id)
+                .select('id, is_active')
+                .eq('user_id', user.id)
                 .eq('provider', 'google')
-                .eq('is_active', true)
                 .maybeSingle();
 
-              if (!existingConnection) {
-                // Create calendar connection with the OAuth tokens from Supabase Auth
+              if (!existingConnection || !existingConnection.is_active) {
                 const { error: connectionError } = await supabase
                   .from('calendar_connections')
-                  .insert({
-                    user_id: userData.user.id,
+                  .upsert({
+                    user_id: user.id,
                     provider: 'google',
-                    provider_account_id: userData.user.user_metadata?.sub || userData.user.id,
-                    access_token: data.session.provider_token,
-                    refresh_token: data.session.provider_refresh_token || null,
-                    expires_at: data.session.expires_at ? new Date(data.session.expires_at * 1000).toISOString() : null,
-                    is_active: true
+                    provider_account_id: user.user_metadata?.sub || user.id,
+                    access_token: sessionData.session.provider_token,
+                    refresh_token: sessionData.session.provider_refresh_token || null,
+                    expires_at: sessionData.session.expires_at ? 
+                      new Date(sessionData.session.expires_at * 1000).toISOString() : null,
+                    is_active: true,
+                    updated_at: new Date().toISOString()
+                  }, {
+                    onConflict: 'user_id,provider'
                   });
 
                 if (connectionError) {
-                  console.error('Error creating calendar connection:', connectionError);
+                  console.error('[AuthCallback] Calendar connection error:', connectionError);
                 } else {
-                  console.log('Calendar connection created successfully from Google login');
+                  console.log('[AuthCallback] Calendar connection created/updated successfully');
                   
-                  // Update setup progress to reflect calendar is linked
-                  const { error: progressError } = await supabase
+                  // Update setup progress
+                  await supabase
                     .from('setup_progress')
-                    .update({ 
+                    .upsert({
+                      user_id: user.id,
                       calendar_linked: true,
                       updated_at: new Date().toISOString()
-                    })
-                    .eq('user_id', userData.user.id);
+                    }, {
+                      onConflict: 'user_id'
+                    });
 
-                  if (progressError) {
-                    console.error('Error updating setup progress:', progressError);
+                  // Trigger initial calendar sync
+                  try {
+                    await supabase.functions.invoke('sync-calendar-events', {
+                      body: { user_id: user.id }
+                    });
+                    console.log('[AuthCallback] Initial calendar sync triggered');
+                  } catch (syncError) {
+                    console.warn('[AuthCallback] Calendar sync failed, will retry later:', syncError);
                   }
-
-                  navigate('/profile?google_signup_complete=true&calendar_connected=true');
-                  return;
                 }
-              } else {
-                console.log('Calendar connection already exists');
               }
-            } catch (error) {
-              console.error('Error in calendar connection creation:', error);
+
+              toast({
+                title: "Welcome!",
+                description: "Successfully logged in with Google. Your calendar has been connected.",
+              });
+              navigate('/profile?success=google_login');
+              
+            } catch (calendarError) {
+              console.error('[AuthCallback] Calendar setup error:', calendarError);
+              toast({
+                title: "Logged In",
+                description: "Login successful, but calendar setup had issues. You can configure it manually.",
+                variant: "destructive",
+              });
+              navigate('/profile?warning=calendar_setup_failed');
             }
+          } else {
+            // Regular email login
+            console.log('[AuthCallback] Regular email login detected');
+            toast({
+              title: "Welcome!",
+              description: "Successfully logged in.",
+            });
+            navigate('/profile?success=email_login');
           }
-          
-          console.log('Regular auth callback, redirecting to profile');
-          navigate('/profile');
         } else {
-          console.log('No session found, redirecting to login');
-          navigate('/login');
+          // No session - likely email confirmation or signup completion
+          console.log('[AuthCallback] No session found - checking for email confirmation');
+          
+          // Try to get the current user to see if email was just confirmed
+          const { data: userData, error: userError } = await supabase.auth.getUser();
+          
+          if (userData.user && !userError) {
+            console.log('[AuthCallback] Email confirmed, user logged in');
+            toast({
+              title: "Email Confirmed",
+              description: "Your email has been confirmed. Welcome!",
+            });
+            navigate('/profile?success=email_confirmed');
+          } else {
+            console.log('[AuthCallback] No user found, redirecting to login');
+            navigate('/login?message=please_login');
+          }
         }
       } catch (error) {
-        console.error('Unexpected error in auth callback:', error);
+        console.error('[AuthCallback] Unexpected error:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try logging in again.",
+          variant: "destructive",
+        });
         navigate('/login?error=unexpected');
       }
     };
 
     handleAuthCallback();
-  }, [navigate, searchParams, handleOAuthCallback]);
+  }, [navigate, searchParams, toast]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
       <div className="text-center">
         <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Completing setup...</h1>
-        <p className="text-gray-600">Please wait while we finish setting up your account and calendar connection.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Setting up your account...</h1>
+        <p className="text-gray-600">Please wait while we complete your login and configure your calendar.</p>
       </div>
     </div>
   );

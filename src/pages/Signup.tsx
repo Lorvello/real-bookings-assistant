@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
@@ -19,6 +19,19 @@ const Signup = () => {
     business: ''
   });
 
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        console.log('[Signup] User already logged in, redirecting to profile');
+        navigate('/profile');
+      }
+    };
+    
+    checkUser();
+  }, [navigate]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -30,10 +43,10 @@ const Signup = () => {
     setGoogleLoading(true);
     
     try {
-      console.log('Starting Google signup...');
+      console.log('[Signup] Starting Google signup...');
       
       const redirectTo = `${window.location.origin}/auth/callback`;
-      console.log('Google signup redirect URL:', redirectTo);
+      console.log('[Signup] Google signup redirect URL:', redirectTo);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -44,20 +57,20 @@ const Signup = () => {
       });
 
       if (error) {
-        console.error('Google signup error:', error);
+        console.error('[Signup] Google signup error:', error);
         toast({
-          title: "Error",
+          title: "Google Signup Error",
           description: error.message,
           variant: "destructive",
         });
         return;
       }
 
-      console.log('Google signup initiated:', data);
+      console.log('[Signup] Google signup initiated successfully:', data);
       // User will be redirected to Google, then back to our callback
       
     } catch (error) {
-      console.error('Unexpected Google signup error:', error);
+      console.error('[Signup] Unexpected Google signup error:', error);
       toast({
         title: "Error",
         description: "Something went wrong with Google signup. Please try again.",
@@ -73,11 +86,10 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      console.log('Starting email signup process for:', formData.email);
+      console.log('[Signup] Starting email signup for:', formData.email);
       
-      // Get current origin for redirect URL
       const redirectTo = `${window.location.origin}/auth/callback`;
-      console.log('Email signup redirect URL:', redirectTo);
+      console.log('[Signup] Email signup redirect URL:', redirectTo);
       
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -92,38 +104,45 @@ const Signup = () => {
       });
 
       if (error) {
-        console.error('Signup error:', error);
+        console.error('[Signup] Email signup error:', error);
+        
+        const errorMessages = {
+          'user_already_registered': 'This email is already registered. Please try logging in instead.',
+          'weak_password': 'Password is too weak. Please choose a stronger password.',
+          'invalid_email': 'Please enter a valid email address.'
+        };
+        
         toast({
-          title: "Error",
-          description: error.message,
+          title: "Signup Error",
+          description: errorMessages[error.message as keyof typeof errorMessages] || error.message,
           variant: "destructive",
         });
         return;
       }
 
-      console.log('Signup response:', data);
+      console.log('[Signup] Signup response:', data);
 
       if (data.user) {
         if (data.user.email_confirmed_at) {
           // Email is already confirmed (auto-confirm is enabled)
-          console.log('Email auto-confirmed, redirecting to profile');
+          console.log('[Signup] Email auto-confirmed, redirecting to profile');
           toast({
             title: "Welcome!",
             description: "Your account has been created successfully!",
           });
-          navigate('/profile');
+          navigate('/profile?success=email_signup');
         } else {
           // Email confirmation required
-          console.log('Email confirmation required');
+          console.log('[Signup] Email confirmation required');
           toast({
             title: "Check your email!",
             description: `We've sent a confirmation link to ${formData.email}. Click the link to complete your signup.`,
             duration: 7000,
           });
-          // Don't redirect immediately, let user know to check email
+          // Stay on signup page with success message
         }
       } else {
-        console.log('No user returned from signup');
+        console.log('[Signup] No user returned from signup');
         toast({
           title: "Something went wrong",
           description: "Please try again or contact support if the problem persists.",
@@ -131,7 +150,7 @@ const Signup = () => {
         });
       }
     } catch (error) {
-      console.error('Unexpected signup error:', error);
+      console.error('[Signup] Unexpected signup error:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -146,7 +165,6 @@ const Signup = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="py-20 px-4">
-        {/* Sign-up Form Section */}
         <div className="flex justify-center">
           <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
             <div className="text-center mb-8">
@@ -154,11 +172,10 @@ const Signup = () => {
               <p className="text-gray-600">Get started with your AI booking assistant</p>
             </div>
             
-            {/* Google Signup Button */}
             <div className="mb-6">
               <Button 
                 onClick={handleGoogleSignup}
-                disabled={googleLoading}
+                disabled={googleLoading || loading}
                 className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 py-3 flex items-center justify-center gap-3"
                 variant="outline"
               >
@@ -172,7 +189,6 @@ const Signup = () => {
               </Button>
             </div>
 
-            {/* Divider */}
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -193,7 +209,8 @@ const Signup = () => {
                   required 
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+                  disabled={loading || googleLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
                   placeholder="Enter your full name" 
                 />
               </div>
@@ -208,7 +225,8 @@ const Signup = () => {
                   required 
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+                  disabled={loading || googleLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
                   placeholder="Enter your email" 
                 />
               </div>
@@ -223,7 +241,8 @@ const Signup = () => {
                   required 
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+                  disabled={loading || googleLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
                   placeholder="Create a password" 
                 />
               </div>
@@ -237,7 +256,8 @@ const Signup = () => {
                   id="business" 
                   value={formData.business}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+                  disabled={loading || googleLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
                   placeholder="Enter your organization name" 
                 />
               </div>
@@ -248,7 +268,8 @@ const Signup = () => {
                   name="terms" 
                   type="checkbox" 
                   required 
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded" 
+                  disabled={loading || googleLoading}
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded disabled:bg-gray-100 disabled:cursor-not-allowed" 
                 />
                 <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
                   I agree to the{' '}
@@ -260,8 +281,8 @@ const Signup = () => {
 
               <Button 
                 type="submit" 
-                disabled={loading}
-                className="w-full bg-green-600 hover:bg-green-700 text-lg py-3"
+                disabled={loading || googleLoading}
+                className="w-full bg-green-600 hover:bg-green-700 text-lg py-3 disabled:bg-green-400 disabled:cursor-not-allowed"
               >
                 {loading ? 'Creating Account...' : 'Start Your 7-Day Free Trial Now'}
               </Button>
