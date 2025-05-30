@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -72,6 +71,22 @@ export const useCalendarIntegration = (user: User | null) => {
     try {
       setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
 
+      // Check if OAuth credentials are configured
+      const { data: oauthProvider, error: configError } = await supabase
+        .from('oauth_providers')
+        .select('client_id, client_secret, is_active')
+        .eq('provider', provider)
+        .single();
+
+      if (configError || !oauthProvider || !oauthProvider.client_id || !oauthProvider.is_active) {
+        setState(prev => ({ 
+          ...prev, 
+          connectionStatus: 'error', 
+          errorMessage: `OAuth credentials not configured for ${provider}. Please configure them in the OAuth settings first.` 
+        }));
+        return { success: false, error: `OAuth credentials not configured for ${provider}` };
+      }
+
       // Create a pending connection record
       const { data: connectionData, error: connectionError } = await supabase
         .from('calendar_connections')
@@ -93,10 +108,10 @@ export const useCalendarIntegration = (user: User | null) => {
       const baseUrl = window.location.origin;
       const redirectUri = `${baseUrl}/auth/callback`;
 
-      // Direct OAuth redirects with proper configuration
+      // Direct OAuth redirects with configured credentials
       if (provider === 'google') {
         const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-        authUrl.searchParams.set('client_id', '1057846080962-example.apps.googleusercontent.com'); // Replace with actual client ID
+        authUrl.searchParams.set('client_id', oauthProvider.client_id);
         authUrl.searchParams.set('redirect_uri', redirectUri);
         authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar.readonly');
         authUrl.searchParams.set('response_type', 'code');
@@ -109,7 +124,7 @@ export const useCalendarIntegration = (user: User | null) => {
       
       if (provider === 'microsoft') {
         const authUrl = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
-        authUrl.searchParams.set('client_id', 'your-microsoft-client-id'); // Replace with actual client ID
+        authUrl.searchParams.set('client_id', oauthProvider.client_id);
         authUrl.searchParams.set('redirect_uri', redirectUri);
         authUrl.searchParams.set('scope', 'https://graph.microsoft.com/calendars.read');
         authUrl.searchParams.set('response_type', 'code');

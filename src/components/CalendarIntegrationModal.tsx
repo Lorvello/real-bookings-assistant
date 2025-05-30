@@ -15,12 +15,12 @@ import {
   Loader2, 
   ExternalLink,
   Shield,
-  Mail,
-  User,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Settings
 } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
+import { CalendarOAuthConfig } from '@/components/CalendarOAuthConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -181,6 +181,10 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
         </Badge>
       </div>
 
+      <div className="mb-4 flex justify-end">
+        <CalendarOAuthConfig />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {calendarProviders.map((provider) => {
           const isConnected = isProviderConnected(provider.id);
@@ -293,7 +297,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
                     </div>
                     <div className="flex items-center gap-4 text-sm text-green-800">
                       <div className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
+                        <Calendar className="h-3 w-3" />
                         Connected
                       </div>
                       <div className="flex items-center gap-1">
