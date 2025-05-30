@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -151,11 +152,11 @@ export const useCalendarIntegration = (user: User | null) => {
       }
 
       const connectionId = connectionData.id;
-      // Use Supabase Auth redirect URL that matches Google Cloud Console configuration
-      const redirectUri = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`;
+      // Use your app's callback URL that should be configured in Google Cloud Console
+      const redirectUri = `${window.location.origin}/auth/google/callback`;
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-      // Build Google OAuth URL with Supabase redirect URI
+      // Build Google OAuth URL with your app's redirect URI
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       authUrl.searchParams.set('client_id', clientId);
       authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -165,7 +166,7 @@ export const useCalendarIntegration = (user: User | null) => {
       authUrl.searchParams.set('prompt', 'consent');
       authUrl.searchParams.set('state', connectionId);
       
-      console.log('[OAuth Debug] Constructed OAuth URL with Supabase redirect:', authUrl.toString().replace(clientId, 'CLIENT_ID_HIDDEN'));
+      console.log('[OAuth Debug] Constructed OAuth URL with app redirect:', authUrl.toString().replace(clientId, 'CLIENT_ID_HIDDEN'));
       console.log('[OAuth Debug] Redirect URI:', redirectUri);
       console.log('[OAuth Debug] Connection ID:', connectionId);
       

@@ -49,8 +49,8 @@ serve(async (req) => {
       )
     }
 
-    // Use the same redirect URI that's configured in Google Cloud Console
-    const redirectUri = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`
+    // Use your app's callback URL that's configured in Google Cloud Console
+    const redirectUri = `https://bookings-assistant.lovable.app/auth/google/callback`
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
