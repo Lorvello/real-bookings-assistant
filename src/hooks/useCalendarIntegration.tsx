@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
@@ -8,9 +7,9 @@ import {
   disconnectCalendarProvider, 
   resetAllCalendarConnections 
 } from '@/utils/calendarConnectionUtils';
-import { connectGoogleCalendar } from '@/utils/googleCalendarOAuth';
 import { connectOutlookCalendar } from '@/utils/outlookCalendarOAuth';
 import { syncCalendarEvents, handleOAuthCallback as handleCallback } from '@/utils/calendarSync';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useCalendarIntegration = (user: User | null) => {
   const [state, setState] = useState<CalendarIntegrationState>({
@@ -52,19 +51,32 @@ export const useCalendarIntegration = (user: User | null) => {
     setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
 
     try {
-      const result = await connectGoogleCalendar(user);
+      console.log('[CalendarIntegration] Starting Google OAuth via Supabase...');
       
-      if (!result.success) {
-        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: result.error || '' }));
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+        }
+      });
+
+      if (error) {
+        console.error('[CalendarIntegration] Google OAuth error:', error);
+        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: error.message }));
         toast({
-          title: "Configuration Error",
-          description: result.error,
+          title: "Connection Error",
+          description: error.message,
           variant: "destructive",
         });
+        return { success: false, error: error.message };
       }
 
-      return result;
+      console.log('[CalendarIntegration] Google OAuth initiated successfully');
+      // User will be redirected to Google, then back to our callback
+      return { success: true };
     } catch (error: any) {
+      console.error('[CalendarIntegration] Unexpected Google connection error:', error);
       setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: error.message }));
       toast({
         title: "Connection Error",
