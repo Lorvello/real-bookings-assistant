@@ -12,6 +12,36 @@ const AuthCallback = () => {
   const [processing, setProcessing] = useState(true);
   const [status, setStatus] = useState('Inloggen...');
 
+  const createManualCalendarConnection = async (userId: string) => {
+    try {
+      console.log('[AuthCallback] Creating manual calendar connection for user:', userId);
+      
+      // Start a new OAuth flow specifically for calendar access
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?calendar=true&manual=true`,
+          scopes: 'https://www.googleapis.com/auth/calendar',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+            include_granted_scopes: 'true'
+          }
+        }
+      });
+
+      if (error) {
+        console.error('[AuthCallback] Manual calendar OAuth error:', error);
+        throw error;
+      }
+
+      console.log('[AuthCallback] Manual calendar OAuth initiated:', data);
+    } catch (error) {
+      console.error('[AuthCallback] Error creating manual calendar connection:', error);
+      throw error;
+    }
+  };
+
   const cleanupFailedConnection = async (userId: string) => {
     try {
       console.log('[AuthCallback] Cleaning up failed connection for user:', userId);
@@ -65,79 +95,105 @@ const AuthCallback = () => {
 
         if (data.session?.user) {
           console.log('[AuthCallback] User authenticated successfully:', data.session.user.id);
+          console.log('[AuthCallback] Session details:', {
+            provider_token: !!data.session.provider_token,
+            provider_refresh_token: !!data.session.provider_refresh_token,
+            provider: data.session.user.app_metadata?.provider
+          });
+          
           setStatus('Verbinding maken...');
           
           // Check if this was a calendar-specific OAuth flow
           const isCalendarFlow = searchParams.get('calendar') === 'true';
+          const isManualFlow = searchParams.get('manual') === 'true';
           
           if (isCalendarFlow) {
             console.log('[AuthCallback] Calendar OAuth flow detected');
             
-            // Verify we have the necessary tokens for calendar access
-            if (!data.session.provider_token) {
-              console.error('[AuthCallback] No provider token received for calendar flow');
+            // Check if we have provider token for calendar access
+            if (data.session.provider_token) {
+              console.log('[AuthCallback] Provider token available, setting up calendar connection');
               
-              await cleanupFailedConnection(data.session.user.id);
+              setStatus('Agenda synchroniseren...');
               
-              toast({
-                title: "Calendar Verbinding Mislukt",
-                description: "Geen toegangstoken ontvangen. Probeer opnieuw.",
-                variant: "destructive",
-              });
+              // Wait for the calendar connection to be created by useAuth
+              let retries = 0;
+              const maxRetries = 8; // Increased retries
               
-              navigate('/profile?error=calendar_token_missing');
-              return;
-            }
-            
-            // Wait a moment for the calendar connection to be created
-            setStatus('Agenda synchroniseren...');
-            
-            // Give the auth hook time to process the calendar connection
-            let retries = 0;
-            const maxRetries = 5;
-            
-            const checkConnection = async () => {
-              try {
-                const { data: connections } = await supabase
-                  .from('calendar_connections')
-                  .select('*')
-                  .eq('user_id', data.session!.user.id)
-                  .eq('provider', 'google')
-                  .eq('is_active', true);
+              const checkConnection = async () => {
+                try {
+                  const { data: connections } = await supabase
+                    .from('calendar_connections')
+                    .select('*')
+                    .eq('user_id', data.session!.user.id)
+                    .eq('provider', 'google')
+                    .eq('is_active', true);
+                  
+                  if (connections && connections.length > 0) {
+                    console.log('[AuthCallback] Calendar connection verified');
+                    
+                    toast({
+                      title: "Welkom terug!",
+                      description: "Google Calendar is succesvol verbonden.",
+                    });
+                    navigate('/profile?success=calendar_connected');
+                  } else if (retries < maxRetries) {
+                    retries++;
+                    console.log(`[AuthCallback] Connection not found, retry ${retries}/${maxRetries}`);
+                    setTimeout(checkConnection, 1500); // Increased wait time
+                  } else {
+                    console.error('[AuthCallback] Calendar connection failed after max retries');
+                    
+                    await cleanupFailedConnection(data.session!.user.id);
+                    
+                    toast({
+                      title: "Calendar Verbinding Mislukt",
+                      description: "Kon geen verbinding maken met je agenda. Probeer opnieuw via je dashboard.",
+                      variant: "destructive",
+                    });
+                    navigate('/profile?error=calendar_connection_failed');
+                  }
+                } catch (error) {
+                  console.error('[AuthCallback] Error checking connection:', error);
+                  navigate('/profile?error=calendar_check_failed');
+                }
+              };
+              
+              // Start checking for connection after a delay
+              setTimeout(checkConnection, 3000); // Increased initial delay
+              
+            } else {
+              console.warn('[AuthCallback] No provider token received for calendar flow');
+              
+              if (isManualFlow) {
+                // This is already a manual flow but still no token - something is wrong
+                toast({
+                  title: "Calendar Verbinding Mislukt",
+                  description: "Kon geen toegang krijgen tot je agenda. Controleer je Google account instellingen.",
+                  variant: "destructive",
+                });
+                navigate('/profile?error=calendar_manual_failed');
+              } else {
+                // Try to create a manual calendar connection
+                setStatus('Agenda toegang aanvragen...');
                 
-                if (connections && connections.length > 0) {
-                  console.log('[AuthCallback] Calendar connection verified');
-                  
-                  toast({
-                    title: "Welkom terug!",
-                    description: "Google Calendar is succesvol verbonden.",
-                  });
-                  navigate('/profile?success=calendar_connected');
-                } else if (retries < maxRetries) {
-                  retries++;
-                  console.log(`[AuthCallback] Connection not found, retry ${retries}/${maxRetries}`);
-                  setTimeout(checkConnection, 1000);
-                } else {
-                  console.error('[AuthCallback] Calendar connection failed after max retries');
-                  
-                  await cleanupFailedConnection(data.session!.user.id);
+                try {
+                  await createManualCalendarConnection(data.session.user.id);
+                  // The OAuth flow will redirect back here with manual=true
+                } catch (error) {
+                  console.error('[AuthCallback] Manual calendar connection failed:', error);
                   
                   toast({
                     title: "Calendar Verbinding Mislukt",
-                    description: "Kon geen verbinding maken met je agenda. Probeer opnieuw via je dashboard.",
+                    description: "Kon geen verbinding maken met je agenda. Probeer later opnieuw.",
                     variant: "destructive",
                   });
-                  navigate('/profile?error=calendar_connection_failed');
+                  navigate('/profile?error=calendar_manual_start_failed');
                 }
-              } catch (error) {
-                console.error('[AuthCallback] Error checking connection:', error);
-                navigate('/profile?error=calendar_check_failed');
               }
-            };
-            
-            // Start checking for connection after a short delay
-            setTimeout(checkConnection, 2000);
+            }
           } else {
+            // Regular login without calendar focus
             toast({
               title: "Welkom terug!",
               description: "Je bent succesvol ingelogd.",

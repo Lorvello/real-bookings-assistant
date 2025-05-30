@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -68,13 +67,18 @@ const Login = () => {
     setGoogleLoading(true);
     
     try {
-      console.log('[Login] Starting Google login with calendar scopes...');
+      console.log('[Login] Starting Google login with explicit calendar scopes...');
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+          redirectTo: `${window.location.origin}/auth/callback?calendar=true`,
+          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+            include_granted_scopes: 'true'
+          }
         }
       });
 

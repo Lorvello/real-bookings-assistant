@@ -105,7 +105,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     
     try {
       setIsConnecting(true);
-      console.log('[CalendarModal] Starting Google OAuth with calendar scopes...');
+      console.log('[CalendarModal] Starting Google OAuth with explicit calendar scopes...');
       
       // Clear any existing errors
       setErrorMessage('');
@@ -117,10 +117,11 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback?calendar=true`,
-          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+          scopes: 'https://www.googleapis.com/auth/calendar',
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent'
+            prompt: 'consent',
+            include_granted_scopes: 'true'
           }
         }
       });

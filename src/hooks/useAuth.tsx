@@ -19,6 +19,11 @@ export const useAuth = () => {
         if (!mounted) return;
         
         console.log('[Auth] Auth state change:', event, session?.user?.id);
+        console.log('[Auth] Session tokens:', {
+          provider_token: !!session?.provider_token,
+          provider_refresh_token: !!session?.provider_refresh_token,
+          provider: session?.user?.app_metadata?.provider
+        });
         
         // Always update session and user state
         setSession(session);
@@ -30,6 +35,7 @@ export const useAuth = () => {
           
           // For Google users with calendar tokens, create calendar connection
           if (session.user.app_metadata?.provider === 'google' && session.provider_token) {
+            console.log('[Auth] Google user with provider token detected, setting up calendar connection');
             setTimeout(async () => {
               if (mounted) {
                 try {
@@ -39,6 +45,8 @@ export const useAuth = () => {
                 }
               }
             }, 1000);
+          } else if (session.user.app_metadata?.provider === 'google' && !session.provider_token) {
+            console.warn('[Auth] Google user without provider token - calendar connection not possible');
           }
         }
         
@@ -185,6 +193,8 @@ export const useAuth = () => {
             })
             .eq('id', existingConnection.id);
         }
+      } else if (!session.provider_token) {
+        console.warn('[Auth] No provider token available for calendar connection');
       }
     } catch (error) {
       console.error('[Auth] Error in ensureCalendarConnection:', error);
