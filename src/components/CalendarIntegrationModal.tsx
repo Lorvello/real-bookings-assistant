@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -73,13 +72,13 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [step, setStep] = useState<'select' | 'connecting' | 'connected' | 'error'>('select');
   const [selectedProvider, setSelectedProvider] = useState<CalendarProvider | null>(null);
-  const [error, setError] = useState<string>('');
-  const [connectingProvider, setConnectingProvider] = useState<string>('');
 
   const { 
     connections, 
     loading, 
     syncing,
+    connectionStatus,
+    errorMessage,
     connectProvider, 
     disconnectProvider, 
     syncCalendarEvents,
@@ -101,36 +100,32 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     }
   }, [connections]);
 
+  useEffect(() => {
+    if (connectionStatus === 'connected') {
+      setStep('connected');
+    } else if (connectionStatus === 'error') {
+      setStep('error');
+    }
+  }, [connectionStatus]);
+
   const handleProviderSelect = async (provider: CalendarProvider) => {
     if (provider.isComingSoon) {
-      setError(`${provider.name} integration is coming soon. Please choose another provider.`);
       setStep('error');
       return;
     }
 
     setSelectedProvider(provider);
-    setConnectingProvider(provider.id);
     setStep('connecting');
-    setError('');
 
     try {
       const result = await connectProvider(provider.id);
       
-      if (result.success) {
-        setStep('connected');
-        // Refresh connections to get the latest data
-        setTimeout(() => {
-          refetch();
-        }, 1000);
-      } else {
-        setError(result.error || `Failed to connect to ${provider.name}`);
+      if (!result.success && result.error) {
         setStep('error');
       }
+      // Note: If successful, the redirect will happen and we won't reach this point
     } catch (err: any) {
-      setError(`Failed to connect to ${provider.name}. ${err.message}`);
       setStep('error');
-    } finally {
-      setConnectingProvider('');
     }
   };
 
@@ -145,10 +140,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   };
 
   const handleTestConnection = async () => {
-    const success = await syncCalendarEvents();
-    if (success) {
-      setStep('connected');
-    }
+    await syncCalendarEvents();
   };
 
   const handleContinue = () => {
@@ -158,14 +150,12 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     setTimeout(() => {
       setStep('select');
       setSelectedProvider(null);
-      setError('');
     }, 300);
   };
 
   const handleChangeCalendar = () => {
     setStep('select');
     setSelectedProvider(null);
-    setError('');
   };
 
   if (loading) {
@@ -194,7 +184,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {calendarProviders.map((provider) => {
           const isConnected = isProviderConnected(provider.id);
-          const isConnecting = connectingProvider === provider.id;
+          const isConnecting = connectionStatus === 'connecting' && selectedProvider?.id === provider.id;
           
           return (
             <Card 
@@ -271,7 +261,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
         Connecting to {selectedProvider?.name}...
       </h3>
       <p className="text-gray-600">
-        Please complete the authentication in the popup window
+        You will be redirected to complete the authorization
       </p>
     </div>
   );
@@ -366,7 +356,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
         <AlertTriangle className="h-16 w-16 mx-auto" />
       </div>
       <h3 className="text-xl font-semibold mb-2 text-red-900">Connection Failed</h3>
-      <p className="text-red-700 mb-6">{error}</p>
+      <p className="text-red-700 mb-6">{errorMessage || "Unable to connect to calendar provider"}</p>
       
       <div className="flex gap-3">
         <Button 

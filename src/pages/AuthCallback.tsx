@@ -1,17 +1,45 @@
 
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { handleOAuthCallback } = useCalendarIntegration(null);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
         console.log('Handling auth callback...');
         
-        // Get the session from the URL hash
+        // Check if this is an OAuth callback (has code and state parameters)
+        const code = searchParams.get('code');
+        const state = searchParams.get('state');
+        
+        if (code && state) {
+          console.log('OAuth callback detected');
+          
+          // Get current user
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            console.log('No authenticated user for OAuth callback');
+            navigate('/login?error=oauth_no_user');
+            return;
+          }
+
+          // Handle OAuth callback
+          const success = await handleOAuthCallback(code, state);
+          if (success) {
+            navigate('/profile?calendar_connected=true');
+          } else {
+            navigate('/profile?error=calendar_connection_failed');
+          }
+          return;
+        }
+        
+        // Regular Supabase auth callback
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -34,7 +62,7 @@ const AuthCallback = () => {
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, searchParams, handleOAuthCallback]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
