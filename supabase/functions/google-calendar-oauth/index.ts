@@ -38,8 +38,8 @@ serve(async (req) => {
     }
 
     // Get OAuth credentials from environment
-    const clientId = Deno.env.get('VITE_GOOGLE_CLIENT_ID')
-    const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET')
+    const clientId = Deno.env.get('166109063440-ig7abdsbvvnbarlkdu70tqums925rds0.apps.googleusercontent.com')
+    const clientSecret = Deno.env.get('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')
     
     if (!clientId || !clientSecret) {
       console.error('Missing Google OAuth credentials')
@@ -49,7 +49,7 @@ serve(async (req) => {
       )
     }
 
-    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/auth/google/callback` || 'http://localhost:5173/auth/google/callback'
+    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/auth/google/callback` || 'https://bookings-assistant.lovable.app/auth/google/callback'
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
