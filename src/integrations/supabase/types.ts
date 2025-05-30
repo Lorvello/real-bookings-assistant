@@ -171,6 +171,7 @@ export type Database = {
       calendar_connections: {
         Row: {
           access_token: string | null
+          connected_at: string | null
           created_at: string
           expires_at: string | null
           id: string
@@ -183,6 +184,7 @@ export type Database = {
         }
         Insert: {
           access_token?: string | null
+          connected_at?: string | null
           created_at?: string
           expires_at?: string | null
           id?: string
@@ -195,6 +197,7 @@ export type Database = {
         }
         Update: {
           access_token?: string | null
+          connected_at?: string | null
           created_at?: string
           expires_at?: string | null
           id?: string
@@ -212,6 +215,8 @@ export type Database = {
           calendar_connection_id: string | null
           created_at: string
           end_time: string
+          event_status: string | null
+          event_summary: string | null
           external_event_id: string
           id: string
           is_busy: boolean
@@ -224,6 +229,8 @@ export type Database = {
           calendar_connection_id?: string | null
           created_at?: string
           end_time: string
+          event_status?: string | null
+          event_summary?: string | null
           external_event_id: string
           id?: string
           is_busy?: boolean
@@ -236,6 +243,8 @@ export type Database = {
           calendar_connection_id?: string | null
           created_at?: string
           end_time?: string
+          event_status?: string | null
+          event_summary?: string | null
           external_event_id?: string
           id?: string
           is_busy?: boolean

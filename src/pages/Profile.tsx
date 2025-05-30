@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -34,9 +33,11 @@ import { useConversations } from '@/hooks/useConversations';
 import { useServices } from '@/hooks/useServices';
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 import { useCalendarSync } from '@/hooks/useCalendarSync';
+import { useCalendarLinking } from '@/hooks/useCalendarLinking';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
+import { CalendarLinkingModal } from '@/components/CalendarLinkingModal';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -50,6 +51,16 @@ const Profile = () => {
   const { conversations, refetch: refetchConversations } = useConversations(user);
   const { services, getPopularServices, refetch: refetchServices } = useServices(user);
   const { syncing, triggerSync } = useCalendarSync(user);
+  
+  // Add calendar linking hook
+  const { 
+    showLinkingModal, 
+    setShowLinkingModal, 
+    isConnected: calendarConnected, 
+    loading: calendarLoading,
+    handleLinkingSuccess,
+    refetchConnection 
+  } = useCalendarLinking(user);
 
   // Set up real-time updates
   useRealTimeUpdates({
@@ -66,6 +77,7 @@ const Profile = () => {
     onCalendarUpdate: () => {
       console.log('[Profile] Real-time calendar update received');
       refetchAppointments();
+      refetchConnection();
     },
     onSetupProgressUpdate: () => {
       console.log('[Profile] Real-time setup progress update received');
@@ -90,7 +102,7 @@ const Profile = () => {
     switch (step) {
       case 'calendar_linked':
         if (!completed) {
-          setCalendarModalOpen(true);
+          setShowLinkingModal(true);
         } else {
           await updateSetupProgress('calendar_linked', false);
         }
@@ -117,7 +129,7 @@ const Profile = () => {
     }, 1000);
   };
 
-  if (authLoading || profileLoading) {
+  if (authLoading || profileLoading || calendarLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -140,7 +152,7 @@ const Profile = () => {
       id: 'calendar_linked',
       title: 'Link Your Calendar',
       description: 'Connect your calendar to start receiving bookings',
-      completed: setupProgress?.calendar_linked || false,
+      completed: calendarConnected || setupProgress?.calendar_linked || false,
       icon: Calendar,
     },
     {
@@ -555,6 +567,13 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      
+      {/* Calendar Linking Modal */}
+      <CalendarLinkingModal
+        open={showLinkingModal}
+        onOpenChange={setShowLinkingModal}
+        onSuccess={handleLinkingSuccess}
+      />
       
       <CalendarIntegrationModal
         open={calendarModalOpen}

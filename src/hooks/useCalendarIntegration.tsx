@@ -51,29 +51,25 @@ export const useCalendarIntegration = (user: User | null) => {
     setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
 
     try {
-      console.log('[CalendarIntegration] Starting Google OAuth via Supabase...');
+      console.log('[CalendarIntegration] Starting dedicated Google Calendar OAuth...');
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
-        }
-      });
+      // Use dedicated calendar OAuth flow
+      const oauthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+      oauthUrl.searchParams.set('client_id', '7344737510-1846vbrgkq4ac0e1ehrjg1dlg001o56.apps.googleusercontent.com');
+      oauthUrl.searchParams.set('redirect_uri', 'https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback');
+      oauthUrl.searchParams.set('response_type', 'code');
+      oauthUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar');
+      oauthUrl.searchParams.set('access_type', 'offline');
+      oauthUrl.searchParams.set('prompt', 'consent');
+      oauthUrl.searchParams.set('state', `calendar_connect_${Date.now()}`);
 
-      if (error) {
-        console.error('[CalendarIntegration] Google OAuth error:', error);
-        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: error.message }));
-        toast({
-          title: "Connection Error",
-          description: error.message,
-          variant: "destructive",
-        });
-        return { success: false, error: error.message };
-      }
+      // Store connection attempt
+      sessionStorage.setItem('calendar_connect_attempt', 'true');
+      sessionStorage.setItem('calendar_connect_time', Date.now().toString());
 
-      console.log('[CalendarIntegration] Google OAuth initiated successfully');
-      // User will be redirected to Google, then back to our callback
+      // Redirect to Google OAuth
+      window.location.href = oauthUrl.toString();
+      
       return { success: true };
     } catch (error: any) {
       console.error('[CalendarIntegration] Unexpected Google connection error:', error);
@@ -177,7 +173,7 @@ export const useCalendarIntegration = (user: User | null) => {
     if (!user) return false;
 
     try {
-      // Only handle Microsoft callbacks - Google is handled by Supabase Auth
+      // Only handle Microsoft callbacks - Google is handled by useCalendarLinking
       if (provider === 'microsoft') {
         const success = await handleCallback(code, state, provider, user);
         
