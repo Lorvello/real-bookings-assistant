@@ -45,38 +45,13 @@ const AuthCallback = () => {
 
         if (data.session?.user) {
           console.log('[AuthCallback] User authenticated successfully:', data.session.user.id);
-          console.log('[AuthCallback] Provider token available:', !!data.session.provider_token);
           
-          const isCalendarFlow = searchParams.get('calendar') === 'true';
-          
-          if (isCalendarFlow && data.session.provider_token) {
-            console.log('[AuthCallback] Calendar OAuth successful with provider token');
-            setStatus('Agenda koppelen...');
-            
-            // Wait for the calendar connection to be processed by useAuth
-            setTimeout(() => {
-              toast({
-                title: "Succesvol Ingelogd",
-                description: "Google Calendar wordt gekoppeld...",
-              });
-              navigate('/profile?success=calendar_login');
-            }, 2000);
-          } else if (isCalendarFlow && !data.session.provider_token) {
-            console.warn('[AuthCallback] Calendar flow but no provider token - scope denied');
-            toast({
-              title: "Kalendertoegang Geweigerd",
-              description: "Geef toestemming voor calendertoegang om te synchroniseren.",
-              variant: "destructive",
-            });
-            navigate('/profile?error=calendar_scope_denied');
-          } else {
-            // Regular login
-            toast({
-              title: "Welkom terug!",
-              description: "Je bent succesvol ingelogd.",
-            });
-            navigate('/profile?success=login');
-          }
+          // Always redirect to dashboard for consistent experience
+          toast({
+            title: "Welkom!",
+            description: "Je bent succesvol ingelogd.",
+          });
+          navigate('/profile?success=login');
         } else {
           console.log('[AuthCallback] No session found');
           navigate('/login?message=please_login');
@@ -102,7 +77,7 @@ const AuthCallback = () => {
       <div className="text-center">
         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-green-600" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          {processing ? status : 'Verwerkt'}
+          {processing ? status : 'Voltooid'}
         </h2>
         <p className="text-gray-600">
           Even geduld terwijl we je inloggen.

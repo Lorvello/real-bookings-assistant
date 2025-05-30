@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -9,6 +8,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { useCalendarConnectionManager } from '@/hooks/useCalendarConnectionManager';
+import { CalendarConnectionConfirmModal } from '@/components/CalendarConnectionConfirmModal';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
@@ -49,6 +49,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
 }) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [step, setStep] = useState<'select' | 'connected' | 'error'>('select');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const { toast } = useToast();
 
   // Use the new centralized connection manager
@@ -84,19 +85,30 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     }
   }, [connections, step]);
 
-  const handleGoogleConnect = async () => {
+  const handleGoogleConnect = () => {
     if (connectionManager.isConnecting) return;
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmConnection = async () => {
+    setShowConfirmModal(false);
     
     try {
-      console.log('[CalendarModal] Starting unified Google connection');
-      await connectionManager.initiateConnection();
-      
-      // Wait for connection to complete
-      const success = await connectionManager.waitForConnection();
+      console.log('[CalendarModal] Starting connection with confirmation modal');
+      const success = await connectionManager.initiateConnection();
       
       if (success) {
-        setStep('connected');
-        await refetch();
+        // The callback will handle the actual connection creation
+        // We'll wait for it and then check for success
+        setTimeout(async () => {
+          const connected = await connectionManager.waitForConnection();
+          if (connected) {
+            setStep('connected');
+            await refetch();
+          } else {
+            setStep('error');
+          }
+        }, 1000);
       } else {
         setStep('error');
       }
@@ -137,16 +149,16 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   };
 
   const handleTryAgain = () => {
+    connectionManager.resetState();
     setStep('select');
   };
 
   const handleResetConnections = async () => {
-    // Disconnect all current connections
     for (const connection of connections) {
       await disconnectProvider(connection.id);
     }
     
-    await connectionManager.cleanupPendingConnections();
+    connectionManager.resetState();
     await connectionManager.checkConnection();
     
     setStep('select');
@@ -171,45 +183,54 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Agenda Integratie Setup</DialogTitle>
-        </DialogHeader>
-        
-        <div className="p-2">
-          {step === 'select' && (
-            <CalendarSelectStep
-              providers={calendarProviders}
-              isProviderConnected={isProviderConnected}
-              onGoogleConnect={handleGoogleConnect}
-              error={connectionManager.error || undefined}
-              onRetryConnection={handleGoogleConnect}
-              onResetConnections={handleResetConnections}
-            />
-          )}
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Agenda Integratie Setup</DialogTitle>
+          </DialogHeader>
           
-          {step === 'connected' && (
-            <CalendarConnectedStep
-              connections={connections}
-              providers={calendarProviders}
-              syncing={syncing}
-              onDisconnect={handleDisconnect}
-              onChangeCalendar={handleChangeCalendar}
-              onTestConnection={handleTestConnection}
-              onContinue={handleContinue}
-            />
-          )}
-          
-          {step === 'error' && (
-            <CalendarErrorStep
-              error={connectionManager.error || 'Onbekende fout'}
-              onTryAgain={handleTryAgain}
-              onReset={handleResetConnections}
-            />
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+          <div className="p-2">
+            {step === 'select' && (
+              <CalendarSelectStep
+                providers={calendarProviders}
+                isProviderConnected={isProviderConnected}
+                onGoogleConnect={handleGoogleConnect}
+                error={connectionManager.error || undefined}
+                onRetryConnection={handleGoogleConnect}
+                onResetConnections={handleResetConnections}
+              />
+            )}
+            
+            {step === 'connected' && (
+              <CalendarConnectedStep
+                connections={connections}
+                providers={calendarProviders}
+                syncing={syncing}
+                onDisconnect={handleDisconnect}
+                onChangeCalendar={handleChangeCalendar}
+                onTestConnection={handleTestConnection}
+                onContinue={handleContinue}
+              />
+            )}
+            
+            {step === 'error' && (
+              <CalendarErrorStep
+                error={connectionManager.error || 'Onbekende fout'}
+                onTryAgain={handleTryAgain}
+                onReset={handleResetConnections}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <CalendarConnectionConfirmModal
+        open={showConfirmModal}
+        onOpenChange={setShowConfirmModal}
+        onConfirm={handleConfirmConnection}
+        isConnecting={connectionManager.isConnecting}
+      />
+    </>
   );
 };

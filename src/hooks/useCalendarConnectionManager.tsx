@@ -46,32 +46,15 @@ export const useCalendarConnectionManager = (user: User | null) => {
     }
   }, [user]);
 
-  const cleanupPendingConnections = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      await supabase
-        .from('calendar_connections')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('provider', 'google')
-        .eq('provider_account_id', 'pending');
-    } catch (error) {
-      console.error('[CalendarManager] Error cleaning up:', error);
-    }
-  }, [user]);
-
-  const initiateConnection = useCallback(async (): Promise<void> => {
-    if (!user || state.isConnecting) return;
+  const initiateConnection = useCallback(async (): Promise<boolean> => {
+    if (!user || state.isConnecting) return false;
 
     setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
     try {
       console.log('[CalendarManager] Starting calendar connection flow');
       
-      // Cleanup any existing pending connections
-      await cleanupPendingConnections();
-
+      // Force fresh OAuth flow with explicit consent
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -79,8 +62,9 @@ export const useCalendarConnectionManager = (user: User | null) => {
           scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid',
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent',
-            include_granted_scopes: 'true'
+            prompt: 'consent', // Force consent screen every time
+            include_granted_scopes: 'true',
+            approval_prompt: 'force' // Legacy parameter for extra safety
           }
         }
       });
@@ -98,7 +82,11 @@ export const useCalendarConnectionManager = (user: User | null) => {
           description: error.message,
           variant: "destructive",
         });
+        return false;
       }
+
+      // Don't wait here - let the callback handle success
+      return true;
     } catch (error: any) {
       console.error('[CalendarManager] Unexpected error:', error);
       setState(prev => ({ 
@@ -112,17 +100,17 @@ export const useCalendarConnectionManager = (user: User | null) => {
         description: "Er ging iets mis. Probeer het opnieuw.",
         variant: "destructive",
       });
+      return false;
     }
-  }, [user, state.isConnecting, cleanupPendingConnections, toast]);
+  }, [user, state.isConnecting, toast]);
 
-  const waitForConnection = useCallback(async (): Promise<boolean> => {
+  const waitForConnection = useCallback(async (maxWaitTime: number = 30000): Promise<boolean> => {
     if (!user) return false;
 
-    let retries = 0;
-    const maxRetries = 15;
-    const retryDelay = 2000;
+    const startTime = Date.now();
+    const checkInterval = 2000;
 
-    while (retries < maxRetries) {
+    while (Date.now() - startTime < maxWaitTime) {
       const isConnected = await checkConnection();
       
       if (isConnected) {
@@ -134,16 +122,13 @@ export const useCalendarConnectionManager = (user: User | null) => {
         return true;
       }
 
-      retries++;
-      if (retries < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-      }
+      await new Promise(resolve => setTimeout(resolve, checkInterval));
     }
 
     setState(prev => ({ 
       ...prev, 
       isConnecting: false, 
-      error: 'Verbinding kon niet worden voltooid na meerdere pogingen' 
+      error: 'Verbinding kon niet worden voltooid binnen 30 seconden' 
     }));
     
     toast({
@@ -155,11 +140,20 @@ export const useCalendarConnectionManager = (user: User | null) => {
     return false;
   }, [user, checkConnection, toast]);
 
+  const resetState = useCallback(() => {
+    setState({
+      isConnecting: false,
+      isConnected: false,
+      connectionId: null,
+      error: null
+    });
+  }, []);
+
   return {
     ...state,
     checkConnection,
     initiateConnection,
     waitForConnection,
-    cleanupPendingConnections
+    resetState
   };
 };
