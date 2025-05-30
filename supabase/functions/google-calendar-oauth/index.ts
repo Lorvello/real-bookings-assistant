@@ -49,8 +49,8 @@ serve(async (req) => {
       )
     }
 
-    // Use the correct redirect URI for calendar OAuth (not Supabase auth)
-    const redirectUri = `${req.headers.get('origin') || 'https://preview--bookings-assistant.lovable.app'}/auth/callback`
+    // Use the same redirect URI that matches your Google Cloud Console setup
+    const redirectUri = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`
 
     console.log('Using redirect URI for calendar OAuth:', redirectUri)
 

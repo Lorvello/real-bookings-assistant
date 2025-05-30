@@ -69,8 +69,8 @@ const Login = () => {
     try {
       console.log('[Login] Starting Google login...');
       
-      // Use the correct redirect URL that matches Google's expectation
-      const redirectTo = `https://preview--bookings-assistant.lovable.app/auth/callback`;
+      // Use the Supabase redirect URL that matches your Google Cloud Console setup
+      const redirectTo = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`;
       console.log('[Login] Google login redirect URL:', redirectTo);
       
       const { data, error } = await supabase.auth.signInWithOAuth({

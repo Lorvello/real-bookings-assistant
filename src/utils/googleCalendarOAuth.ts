@@ -102,8 +102,8 @@ export const connectGoogleCalendar = async (user: User): Promise<{ success: bool
     
     // Build OAuth URL manually to avoid interfering with user session
     const clientId = oauthProvider.client_id;
-    // Fix: Use the correct redirect URI that matches what's expected
-    const redirectUri = `https://preview--bookings-assistant.lovable.app/auth/callback`;
+    // Use the Supabase redirect URI that matches your Google Cloud Console setup
+    const redirectUri = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`;
     const scope = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email';
     
     const oauthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');

@@ -44,8 +44,8 @@ const Signup = () => {
     try {
       console.log('[Signup] Starting Google signup...');
       
-      // Use the correct redirect URL that matches Google's expectation
-      const redirectTo = `https://preview--bookings-assistant.lovable.app/auth/callback`;
+      // Use the Supabase redirect URL that matches your Google Cloud Console setup
+      const redirectTo = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`;
       console.log('[Signup] Google signup redirect URL:', redirectTo);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -88,8 +88,8 @@ const Signup = () => {
     try {
       console.log('[Signup] Starting email signup for:', formData.email);
       
-      // Use the correct redirect URL that matches Google's expectation
-      const redirectTo = `https://preview--bookings-assistant.lovable.app/auth/callback`;
+      // Use the Supabase redirect URL that matches your Google Cloud Console setup
+      const redirectTo = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`;
       console.log('[Signup] Email signup redirect URL:', redirectTo);
       
       const { data, error } = await supabase.auth.signUp({
