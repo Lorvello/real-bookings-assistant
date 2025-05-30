@@ -92,11 +92,43 @@ export const useCalendarIntegration = (user: User | null) => {
     }
   };
 
+  const validateEnvironmentVariables = (provider: 'google' | 'microsoft') => {
+    const clientIdVar = provider === 'google' ? 'VITE_GOOGLE_CLIENT_ID' : 'VITE_OUTLOOK_CLIENT_ID';
+    const clientId = import.meta.env[clientIdVar];
+    
+    console.log(`[OAuth Debug] Checking ${clientIdVar}:`, clientId ? 'Present' : 'Missing');
+    console.log(`[OAuth Debug] All environment variables:`, {
+      VITE_GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID ? 'Present' : 'Missing',
+      VITE_OUTLOOK_CLIENT_ID: import.meta.env.VITE_OUTLOOK_CLIENT_ID ? 'Present' : 'Missing'
+    });
+
+    if (!clientId || clientId.trim() === '') {
+      return {
+        valid: false,
+        error: `Missing ${provider} OAuth configuration. Please set ${clientIdVar} environment variable.`
+      };
+    }
+
+    return { valid: true };
+  };
+
   const connectGoogleCalendar = async (): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'User not authenticated' };
 
     try {
       setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
+
+      // Validate environment variables first
+      const validation = validateEnvironmentVariables('google');
+      if (!validation.valid) {
+        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: validation.error }));
+        toast({
+          title: "Configuration Error",
+          description: validation.error,
+          variant: "destructive",
+        });
+        return { success: false, error: validation.error };
+      }
 
       // Clean up any existing pending connections for this provider
       await cleanupPendingConnections('google');
@@ -121,10 +153,11 @@ export const useCalendarIntegration = (user: User | null) => {
       const connectionId = connectionData.id;
       const baseUrl = window.location.origin;
       const redirectUri = `${baseUrl}/auth/google/callback`;
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
       // Build Google OAuth URL with environment variables
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      authUrl.searchParams.set('client_id', import.meta.env.VITE_GOOGLE_CLIENT_ID || '');
+      authUrl.searchParams.set('client_id', clientId);
       authUrl.searchParams.set('redirect_uri', redirectUri);
       authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email');
       authUrl.searchParams.set('response_type', 'code');
@@ -132,13 +165,21 @@ export const useCalendarIntegration = (user: User | null) => {
       authUrl.searchParams.set('prompt', 'consent');
       authUrl.searchParams.set('state', connectionId);
       
-      console.log('Redirecting to Google OAuth:', authUrl.toString());
+      console.log('[OAuth Debug] Constructed OAuth URL:', authUrl.toString().replace(clientId, 'CLIENT_ID_HIDDEN'));
+      console.log('[OAuth Debug] Redirect URI:', redirectUri);
+      console.log('[OAuth Debug] Connection ID:', connectionId);
+      
       window.location.href = authUrl.toString();
       return { success: true };
 
     } catch (error: any) {
       console.error('Error connecting to Google:', error);
       setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: error.message }));
+      toast({
+        title: "Connection Error",
+        description: error.message,
+        variant: "destructive",
+      });
       return { success: false, error: error.message };
     }
   };
@@ -148,6 +189,18 @@ export const useCalendarIntegration = (user: User | null) => {
 
     try {
       setState(prev => ({ ...prev, connectionStatus: 'connecting', errorMessage: '' }));
+
+      // Validate environment variables first
+      const validation = validateEnvironmentVariables('microsoft');
+      if (!validation.valid) {
+        setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: validation.error }));
+        toast({
+          title: "Configuration Error",
+          description: validation.error,
+          variant: "destructive",
+        });
+        return { success: false, error: validation.error };
+      }
 
       // Clean up any existing pending connections for this provider
       await cleanupPendingConnections('microsoft');
@@ -172,23 +225,31 @@ export const useCalendarIntegration = (user: User | null) => {
       const connectionId = connectionData.id;
       const baseUrl = window.location.origin;
       const redirectUri = `${baseUrl}/auth/outlook/callback`;
+      const clientId = import.meta.env.VITE_OUTLOOK_CLIENT_ID;
 
       // Build Microsoft OAuth URL
       const authUrl = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
-      authUrl.searchParams.set('client_id', import.meta.env.VITE_OUTLOOK_CLIENT_ID || '');
+      authUrl.searchParams.set('client_id', clientId);
       authUrl.searchParams.set('redirect_uri', redirectUri);
       authUrl.searchParams.set('scope', 'https://graph.microsoft.com/calendars.read https://graph.microsoft.com/user.read');
       authUrl.searchParams.set('response_type', 'code');
       authUrl.searchParams.set('response_mode', 'query');
       authUrl.searchParams.set('state', connectionId);
       
-      console.log('Redirecting to Microsoft OAuth:', authUrl.toString());
+      console.log('[OAuth Debug] Constructed Microsoft OAuth URL:', authUrl.toString().replace(clientId, 'CLIENT_ID_HIDDEN'));
+      console.log('[OAuth Debug] Redirect URI:', redirectUri);
+      
       window.location.href = authUrl.toString();
       return { success: true };
 
     } catch (error: any) {
       console.error('Error connecting to Outlook:', error);
       setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: error.message }));
+      toast({
+        title: "Connection Error",
+        description: error.message,
+        variant: "destructive",
+      });
       return { success: false, error: error.message };
     }
   };
