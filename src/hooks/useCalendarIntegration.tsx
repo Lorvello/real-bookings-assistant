@@ -161,25 +161,30 @@ export const useCalendarIntegration = (user: User | null) => {
     }
   };
 
-  const handleOAuthCallback = async (code: string, state: string, provider: string = 'google') => {
+  const handleOAuthCallback = async (code: string, state: string, provider: string = 'microsoft') => {
     if (!user) return false;
 
     try {
-      const success = await handleCallback(code, state, provider, user);
-      
-      if (success) {
-        setState(prev => ({ ...prev, connectionStatus: 'connected' }));
-        await fetchConnections();
+      // Only handle Microsoft callbacks - Google is handled by Supabase Auth
+      if (provider === 'microsoft') {
+        const success = await handleCallback(code, state, provider, user);
         
-        toast({
-          title: "Success",
-          description: `${provider} calendar connected successfully`,
-        });
+        if (success) {
+          setState(prev => ({ ...prev, connectionStatus: 'connected' }));
+          await fetchConnections();
+          
+          toast({
+            title: "Success",
+            description: `${provider} calendar connected successfully`,
+          });
 
-        return true;
-      } else {
-        throw new Error('Token exchange failed');
+          return true;
+        } else {
+          throw new Error('Token exchange failed');
+        }
       }
+      
+      return false;
     } catch (error: any) {
       setState(prev => ({ ...prev, connectionStatus: 'error', errorMessage: error.message }));
       return false;

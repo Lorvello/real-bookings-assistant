@@ -32,20 +32,27 @@ export const handleOAuthCallback = async (
   try {
     console.log('Handling OAuth callback:', { code: code.substring(0, 10) + '...', state, provider });
 
-    const { data, error } = await supabase.functions.invoke(`${provider}-calendar-oauth`, {
-      body: { code, state, user_id: user.id }
-    });
+    // Only handle Microsoft callbacks through edge functions now
+    // Google OAuth is handled entirely by Supabase Auth
+    if (provider === 'microsoft') {
+      const { data, error } = await supabase.functions.invoke('microsoft-calendar-oauth', {
+        body: { code, state, user_id: user.id }
+      });
 
-    if (error) {
-      console.error('Token exchange error:', error);
-      throw error;
+      if (error) {
+        console.error('Token exchange error:', error);
+        throw error;
+      }
+
+      if (data.success) {
+        return true;
+      } else {
+        throw new Error(data.error || 'Token exchange failed');
+      }
     }
 
-    if (data.success) {
-      return true;
-    } else {
-      throw new Error(data.error || 'Token exchange failed');
-    }
+    // For Google, this should not be called as Supabase handles it
+    return false;
   } catch (error: any) {
     console.error('OAuth callback error:', error);
     throw error;

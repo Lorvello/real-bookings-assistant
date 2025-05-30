@@ -80,7 +80,7 @@ export const connectGoogleCalendar = async (user: User): Promise<{ success: bool
     // Clean up any existing pending connections
     await cleanupPendingConnections(user, 'google');
 
-    // Create a new pending connection record with state parameter
+    // Create a new pending connection record
     const { data: connectionData, error: connectionError } = await supabase
       .from('calendar_connections')
       .insert({
@@ -100,7 +100,7 @@ export const connectGoogleCalendar = async (user: User): Promise<{ success: bool
     
     console.log('[OAuth Debug] Starting Google OAuth flow with state:', connectionId);
     
-    // Use Supabase's built-in Google OAuth with scopes for calendar access
+    // Use Supabase's built-in Google OAuth - NO custom redirectTo
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -109,8 +109,8 @@ export const connectGoogleCalendar = async (user: User): Promise<{ success: bool
           access_type: 'offline',
           prompt: 'consent',
           state: connectionId
-        },
-        redirectTo: `${window.location.origin}/auth/google/callback`
+        }
+        // Remove redirectTo - let Supabase handle this automatically
       }
     });
 

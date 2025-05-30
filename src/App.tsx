@@ -15,7 +15,6 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Conversations from "./pages/Conversations";
 import AuthCallback from "./pages/AuthCallback";
-import GoogleCalendarCallback from "./pages/GoogleCalendarCallback";
 import OutlookCalendarCallback from "./pages/OutlookCalendarCallback";
 import NotFound from "./pages/NotFound";
 
@@ -36,7 +35,6 @@ const AppRoutes = () => {
       <Route path="/settings" element={<Settings />} />
       <Route path="/conversations" element={<Conversations />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/auth/google/callback" element={<GoogleCalendarCallback />} />
       <Route path="/auth/outlook/callback" element={<OutlookCalendarCallback />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />

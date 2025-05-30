@@ -49,7 +49,7 @@ serve(async (req) => {
       )
     }
 
-    // CRITICAL: Use the Supabase Auth callback URL that matches your dashboard configuration
+    // CRITICAL: Use the correct Supabase Auth callback URL
     const redirectUri = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`
 
     console.log('Using redirect URI:', redirectUri)
