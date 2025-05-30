@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -98,8 +97,16 @@ const AuthCallback = () => {
           console.log('[AuthCallback] Session details:', {
             provider_token: !!data.session.provider_token,
             provider_refresh_token: !!data.session.provider_refresh_token,
-            provider: data.session.user.app_metadata?.provider
+            provider: data.session.user.app_metadata?.provider,
+            token_length: data.session.provider_token?.length || 0
           });
+          
+          // Log the actual scopes we received from Google
+          if (data.session.provider_token) {
+            console.log('[AuthCallback] Provider token received, length:', data.session.provider_token.length);
+          } else {
+            console.warn('[AuthCallback] NO PROVIDER TOKEN RECEIVED - This will prevent calendar connection');
+          }
           
           setStatus('Verbinding maken...');
           
@@ -118,7 +125,7 @@ const AuthCallback = () => {
               
               // Wait for the calendar connection to be created by useAuth
               let retries = 0;
-              const maxRetries = 8; // Increased retries
+              const maxRetries = 10; // Increased retries
               
               const checkConnection = async () => {
                 try {
@@ -130,7 +137,7 @@ const AuthCallback = () => {
                     .eq('is_active', true);
                   
                   if (connections && connections.length > 0) {
-                    console.log('[AuthCallback] Calendar connection verified');
+                    console.log('[AuthCallback] Calendar connection verified:', connections[0]);
                     
                     toast({
                       title: "Welkom terug!",
@@ -140,7 +147,7 @@ const AuthCallback = () => {
                   } else if (retries < maxRetries) {
                     retries++;
                     console.log(`[AuthCallback] Connection not found, retry ${retries}/${maxRetries}`);
-                    setTimeout(checkConnection, 1500); // Increased wait time
+                    setTimeout(checkConnection, 2000); // Increased wait time
                   } else {
                     console.error('[AuthCallback] Calendar connection failed after max retries');
                     
@@ -164,6 +171,7 @@ const AuthCallback = () => {
               
             } else {
               console.warn('[AuthCallback] No provider token received for calendar flow');
+              console.warn('[AuthCallback] This means Google did not grant calendar access');
               
               if (isManualFlow) {
                 // This is already a manual flow but still no token - something is wrong
@@ -174,22 +182,13 @@ const AuthCallback = () => {
                 });
                 navigate('/profile?error=calendar_manual_failed');
               } else {
-                // Try to create a manual calendar connection
-                setStatus('Agenda toegang aanvragen...');
-                
-                try {
-                  await createManualCalendarConnection(data.session.user.id);
-                  // The OAuth flow will redirect back here with manual=true
-                } catch (error) {
-                  console.error('[AuthCallback] Manual calendar connection failed:', error);
-                  
-                  toast({
-                    title: "Calendar Verbinding Mislukt",
-                    description: "Kon geen verbinding maken met je agenda. Probeer later opnieuw.",
-                    variant: "destructive",
-                  });
-                  navigate('/profile?error=calendar_manual_start_failed');
-                }
+                // The scopes were not granted, redirect with error
+                toast({
+                  title: "Calendar Toegang Geweigerd",
+                  description: "Je hebt Google Calendar toegang niet toegestaan. Probeer opnieuw en geef toestemming voor agenda toegang.",
+                  variant: "destructive",
+                });
+                navigate('/profile?error=calendar_scope_denied');
               }
             }
           } else {

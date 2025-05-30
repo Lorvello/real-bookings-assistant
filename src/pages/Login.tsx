@@ -67,13 +67,13 @@ const Login = () => {
     setGoogleLoading(true);
     
     try {
-      console.log('[Login] Starting Google login with explicit calendar scopes...');
+      console.log('[Login] Starting Google login with calendar scopes...');
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback?calendar=true`,
-          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -92,7 +92,7 @@ const Login = () => {
         return;
       }
 
-      console.log('[Login] Google login initiated successfully:', data);
+      console.log('[Login] Google OAuth initiated successfully');
       
     } catch (error) {
       console.error('[Login] Unexpected Google login error:', error);
