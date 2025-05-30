@@ -21,49 +21,67 @@ export const useCalendarConnectionManager = (user: User | null) => {
   const { toast } = useToast();
 
   const checkConnection = useCallback(async (): Promise<boolean> => {
-    if (!user) return false;
+    if (!user) {
+      console.log('[CalendarManager] No user, returning false');
+      return false;
+    }
 
     try {
       console.log('[CalendarManager] Checking connection for user:', user.id);
       
-      const { data: connection } = await supabase
+      const { data: connection, error } = await supabase
         .from('calendar_connections')
-        .select('id, is_active')
+        .select('id, is_active, access_token, provider')
         .eq('user_id', user.id)
         .eq('provider', 'google')
         .eq('is_active', true)
         .neq('access_token', 'pending')
         .maybeSingle();
 
-      const isConnected = !!connection;
-      console.log('[CalendarManager] Connection check result:', isConnected);
+      if (error) {
+        console.error('[CalendarManager] Error checking connection:', error);
+        setState(prev => ({ ...prev, error: error.message }));
+        return false;
+      }
+
+      const isConnected = !!connection && connection.access_token !== 'pending';
+      console.log('[CalendarManager] Connection check result:', { isConnected, connection });
       
       setState(prev => ({
         ...prev,
         isConnected,
-        connectionId: connection?.id || null
+        connectionId: connection?.id || null,
+        error: null
       }));
 
       return isConnected;
     } catch (error) {
-      console.error('[CalendarManager] Error checking connection:', error);
+      console.error('[CalendarManager] Unexpected error checking connection:', error);
+      setState(prev => ({ ...prev, error: 'Fout bij het controleren van verbinding' }));
       return false;
     }
   }, [user]);
 
   const createPendingConnection = useCallback(async (): Promise<string | null> => {
-    if (!user) return null;
+    if (!user) {
+      console.log('[CalendarManager] No user for creating pending connection');
+      return null;
+    }
 
     try {
-      console.log('[CalendarManager] Creating pending connection');
+      console.log('[CalendarManager] Creating pending connection for user:', user.id);
       
       // First cleanup any existing pending connections
-      await supabase
+      const { error: deleteError } = await supabase
         .from('calendar_connections')
         .delete()
         .eq('user_id', user.id)
         .eq('provider', 'google')
         .eq('access_token', 'pending');
+
+      if (deleteError) {
+        console.error('[CalendarManager] Error cleaning up pending connections:', deleteError);
+      }
 
       // Create new pending connection
       const { data, error } = await supabase
@@ -72,13 +90,15 @@ export const useCalendarConnectionManager = (user: User | null) => {
           user_id: user.id,
           provider: 'google',
           provider_account_id: 'pending',
-          access_token: 'pending'
+          access_token: 'pending',
+          is_active: false
         })
         .select('id')
         .single();
 
       if (error) {
         console.error('[CalendarManager] Error creating pending connection:', error);
+        setState(prev => ({ ...prev, error: `Database fout: ${error.message}` }));
         return null;
       }
 
@@ -86,17 +106,21 @@ export const useCalendarConnectionManager = (user: User | null) => {
       return data.id;
     } catch (error) {
       console.error('[CalendarManager] Unexpected error creating pending connection:', error);
+      setState(prev => ({ ...prev, error: 'Onverwachte fout bij aanmaken verbinding' }));
       return null;
     }
   }, [user]);
 
   const initiateConnection = useCallback(async (): Promise<boolean> => {
-    if (!user || state.isConnecting) return false;
+    if (!user || state.isConnecting) {
+      console.log('[CalendarManager] Cannot initiate connection:', { user: !!user, isConnecting: state.isConnecting });
+      return false;
+    }
 
     setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
     try {
-      console.log('[CalendarManager] Starting Google Calendar OAuth');
+      console.log('[CalendarManager] Starting Google Calendar OAuth for user:', user.id);
       
       // Create pending connection to get state parameter
       const connectionId = await createPendingConnection();
@@ -104,22 +128,24 @@ export const useCalendarConnectionManager = (user: User | null) => {
         setState(prev => ({ 
           ...prev, 
           isConnecting: false, 
-          error: 'Failed to create connection record' 
+          error: 'Kon verbinding niet aanmaken in database' 
         }));
         return false;
       }
 
-      // Start OAuth flow with dedicated calendar scopes
+      console.log('[CalendarManager] Starting OAuth with connection ID:', connectionId);
+
+      // Start OAuth flow with calendar-specific redirect
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback?type=calendar`,
           scopes: 'openid email profile https://www.googleapis.com/auth/calendar.readonly',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
             include_granted_scopes: 'false',
-            state: connectionId // Use connection ID as state
+            state: connectionId
           }
         }
       });
@@ -129,7 +155,7 @@ export const useCalendarConnectionManager = (user: User | null) => {
         setState(prev => ({ 
           ...prev, 
           isConnecting: false, 
-          error: `OAuth error: ${error.message}` 
+          error: `OAuth fout: ${error.message}` 
         }));
         return false;
       }
@@ -137,17 +163,18 @@ export const useCalendarConnectionManager = (user: User | null) => {
       console.log('[CalendarManager] OAuth flow initiated successfully');
       return true;
     } catch (error: any) {
-      console.error('[CalendarManager] Unexpected error:', error);
+      console.error('[CalendarManager] Unexpected error during OAuth:', error);
       setState(prev => ({ 
         ...prev, 
         isConnecting: false, 
-        error: 'Unexpected error during connection' 
+        error: 'Onverwachte fout tijdens verbinding' 
       }));
       return false;
     }
   }, [user, state.isConnecting, createPendingConnection]);
 
   const resetState = useCallback(() => {
+    console.log('[CalendarManager] Resetting state');
     setState({
       isConnecting: false,
       isConnected: false,
@@ -159,8 +186,10 @@ export const useCalendarConnectionManager = (user: User | null) => {
   // Check connection status on mount and user change
   useEffect(() => {
     if (user) {
+      console.log('[CalendarManager] User changed, checking connection');
       checkConnection();
     } else {
+      console.log('[CalendarManager] No user, resetting state');
       resetState();
     }
   }, [user, checkConnection, resetState]);

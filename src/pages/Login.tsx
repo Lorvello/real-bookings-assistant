@@ -48,7 +48,7 @@ const Login = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         console.log('[Login] User already logged in, redirecting to dashboard');
-        navigate('/profile');
+        navigate('/profile'); // Changed to profile which is the dashboard
       }
     };
     
@@ -68,13 +68,17 @@ const Login = () => {
     setGoogleLoading(true);
     
     try {
-      console.log('[Login] Starting simple Google login');
+      console.log('[Login] Starting Google login - simple login only');
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: 'openid email profile'
+          redirectTo: `${window.location.origin}/auth/callback?type=login`,
+          scopes: 'openid email profile',
+          queryParams: {
+            access_type: 'online',
+            prompt: 'select_account'
+          }
         }
       });
 
@@ -132,7 +136,7 @@ const Login = () => {
         title: "Welkom terug!",
         description: "Je bent succesvol ingelogd.",
       });
-      navigate('/profile');
+      navigate('/profile'); // Changed to profile which is the dashboard
     } catch (error) {
       console.error('[Login] Unexpected login error:', error);
       toast({

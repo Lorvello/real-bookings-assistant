@@ -18,17 +18,20 @@ const AuthCallback = () => {
         console.log('[AuthCallback] Processing auth callback...');
         setStatus('Verificatie...');
         
-        // Get URL parameters for potential calendar OAuth
+        // Get URL parameters
+        const type = searchParams.get('type');
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const scope = searchParams.get('scope');
         
         console.log('[AuthCallback] URL params:', { 
+          type,
           code: code ? 'present' : 'missing', 
           state, 
           scope 
         });
 
+        // Get the session
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -57,15 +60,12 @@ const AuthCallback = () => {
         if (data.session?.user) {
           console.log('[AuthCallback] User authenticated successfully:', data.session.user.id);
           
-          // Check if this is a calendar OAuth callback
-          const isCalendarCallback = scope && scope.includes('calendar') && code && state;
-          
-          if (isCalendarCallback) {
+          if (type === 'calendar' && scope && scope.includes('calendar') && code && state) {
+            // This is a calendar OAuth callback
             console.log('[AuthCallback] Processing calendar OAuth callback');
             setStatus('Kalender koppelen...');
             
             try {
-              // Call our calendar OAuth edge function
               const { data: oauthResult, error: oauthError } = await supabase.functions.invoke('google-calendar-oauth', {
                 body: { 
                   code, 
@@ -85,7 +85,7 @@ const AuthCallback = () => {
                 console.log('[AuthCallback] Calendar connected successfully');
                 toast({
                   title: "Kalender Gekoppeld!",
-                  description: `${oauthResult.calendar.name} is succesvol gekoppeld.`,
+                  description: `Je kalender is succesvol gekoppeld.`,
                 });
               }
             } catch (calendarError) {
@@ -97,6 +97,7 @@ const AuthCallback = () => {
               });
             }
           } else {
+            // Regular login callback
             console.log('[AuthCallback] Regular login callback');
             toast({
               title: "Welkom!",
@@ -104,7 +105,7 @@ const AuthCallback = () => {
             });
           }
           
-          // Always redirect to profile after successful authentication
+          // Always redirect to profile (dashboard) after authentication
           navigate('/profile');
         } else {
           console.log('[AuthCallback] No session found');

@@ -69,6 +69,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('[CalendarModal] Got user:', user?.id);
       setUser(user);
     };
     getUser();
@@ -76,29 +77,31 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
 
   // Update step based on connection status
   useEffect(() => {
+    console.log('[CalendarModal] Connection state changed:', {
+      isConnected: connectionManager.isConnected,
+      connections: connections.length,
+      step,
+      error: connectionManager.error
+    });
+
     if (connectionManager.isConnected && step === 'select') {
-      console.log('[CalendarModal] Connection detected, moving to connected step');
+      console.log('[CalendarModal] Moving to connected step - connection manager');
       setStep('connected');
-    }
-  }, [connectionManager.isConnected, step]);
-
-  useEffect(() => {
-    if (connections.length > 0 && step === 'select') {
-      console.log('[CalendarModal] Connections found, moving to connected step');
+    } else if (connections.length > 0 && step === 'select') {
+      console.log('[CalendarModal] Moving to connected step - connections found');
       setStep('connected');
-    }
-  }, [connections, step]);
-
-  // Handle connection errors
-  useEffect(() => {
-    if (connectionManager.error && step === 'select') {
-      console.log('[CalendarModal] Connection error detected:', connectionManager.error);
+    } else if (connectionManager.error && step === 'select' && !connectionManager.isConnecting) {
+      console.log('[CalendarModal] Moving to error step:', connectionManager.error);
       setStep('error');
     }
-  }, [connectionManager.error, step]);
+  }, [connectionManager.isConnected, connectionManager.error, connectionManager.isConnecting, connections.length, step]);
 
   const handleGoogleConnect = () => {
-    if (connectionManager.isConnecting) return;
+    if (connectionManager.isConnecting) {
+      console.log('[CalendarModal] Already connecting, ignoring click');
+      return;
+    }
+    console.log('[CalendarModal] Starting Google connect flow');
     setShowConfirmModal(true);
   };
 
@@ -106,10 +109,11 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     setShowConfirmModal(false);
     
     try {
-      console.log('[CalendarModal] Starting connection with confirmation modal');
+      console.log('[CalendarModal] User confirmed connection, starting OAuth flow');
       const success = await connectionManager.initiateConnection();
       
-      if (!success) {
+      if (!success && connectionManager.error) {
+        console.log('[CalendarModal] Connection failed, moving to error step');
         setStep('error');
       }
       // If successful, the OAuth flow will redirect to auth/callback
@@ -132,6 +136,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   };
 
   const handleTestConnection = async () => {
+    console.log('[CalendarModal] Testing connection');
     const success = await syncCalendarEvents();
     if (!success) {
       setStep('error');
@@ -147,15 +152,19 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   };
 
   const handleChangeCalendar = () => {
+    console.log('[CalendarModal] Changing calendar, back to select');
     setStep('select');
   };
 
   const handleTryAgain = () => {
+    console.log('[CalendarModal] Trying again, resetting state');
     connectionManager.resetState();
     setStep('select');
   };
 
   const handleResetConnections = async () => {
+    console.log('[CalendarModal] Resetting all connections');
+    
     for (const connection of connections) {
       await disconnectProvider(connection.id);
     }
