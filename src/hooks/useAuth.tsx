@@ -13,29 +13,22 @@ export const useAuth = () => {
   useEffect(() => {
     let mounted = true;
 
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
         
         console.log('[Auth] Auth state change:', event, session?.user?.id);
-        console.log('[Auth] Session tokens:', {
-          provider_token: !!session?.provider_token,
-          provider_refresh_token: !!session?.provider_refresh_token,
-          provider: session?.user?.app_metadata?.provider
-        });
         
-        // Always update session and user state
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle successful login events
+        // Handle calendar connection for Google users with provider tokens
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('[Auth] User signed in successfully');
           
-          // For Google users with calendar tokens, create calendar connection
           if (session.user.app_metadata?.provider === 'google' && session.provider_token) {
-            console.log('[Auth] Google user with provider token detected, setting up calendar connection');
+            console.log('[Auth] Google user with provider token - setting up calendar connection');
+            // Delay to ensure proper state sync
             setTimeout(async () => {
               if (mounted) {
                 try {
@@ -45,20 +38,14 @@ export const useAuth = () => {
                 }
               }
             }, 1000);
-          } else if (session.user.app_metadata?.provider === 'google' && !session.provider_token) {
-            console.warn('[Auth] Google user without provider token - calendar connection not possible');
           }
-        }
-        
-        if (event === 'SIGNED_OUT') {
-          console.log('[Auth] User signed out');
         }
         
         setLoading(false);
       }
     );
 
-    // THEN check for existing session
+    // Check for existing session
     const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -88,35 +75,11 @@ export const useAuth = () => {
     };
   }, []);
 
-  const cleanupPendingConnections = async (user: User, provider: string) => {
-    try {
-      console.log(`[Auth] Cleaning up pending ${provider} connections for user:`, user.id);
-      
-      const { error } = await supabase
-        .from('calendar_connections')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('provider', provider)
-        .eq('provider_account_id', 'pending');
-
-      if (error) {
-        console.error('[Auth] Error cleaning up pending connections:', error);
-      } else {
-        console.log(`[Auth] Successfully cleaned up pending ${provider} connections`);
-      }
-    } catch (error) {
-      console.error('[Auth] Unexpected error cleaning up connections:', error);
-    }
-  };
-
   const ensureCalendarConnection = async (user: User, session: Session) => {
     try {
-      console.log('[Auth] Setting up calendar connection for user:', user.id);
+      console.log('[Auth] Ensuring calendar connection for user:', user.id);
       
-      // First, cleanup any pending connections for this user
-      await cleanupPendingConnections(user, 'google');
-      
-      // Check if connection already exists and is active
+      // Check if connection already exists
       const { data: existingConnection } = await supabase
         .from('calendar_connections')
         .select('*')
@@ -126,13 +89,7 @@ export const useAuth = () => {
         .maybeSingle();
 
       if (!existingConnection && session.provider_token) {
-        console.log('[Auth] Creating new calendar connection...');
-        
-        // Verify we have valid token before creating connection
-        if (!session.provider_token || session.provider_token.length < 10) {
-          console.error('[Auth] Invalid provider token received');
-          throw new Error('Invalid OAuth token received');
-        }
+        console.log('[Auth] Creating calendar connection with provider token');
         
         const { error: connectionError } = await supabase
           .from('calendar_connections')
@@ -175,12 +132,10 @@ export const useAuth = () => {
           }, 2000);
         } else {
           console.error('[Auth] Failed to create calendar connection:', connectionError);
-          throw connectionError;
         }
       } else if (existingConnection && session.provider_token) {
         console.log('[Auth] Updating existing calendar connection tokens');
         
-        // Update tokens if they're different
         if (existingConnection.access_token !== session.provider_token) {
           await supabase
             .from('calendar_connections')
@@ -193,20 +148,9 @@ export const useAuth = () => {
             })
             .eq('id', existingConnection.id);
         }
-      } else if (!session.provider_token) {
-        console.warn('[Auth] No provider token available for calendar connection');
       }
     } catch (error) {
       console.error('[Auth] Error in ensureCalendarConnection:', error);
-      
-      // Cleanup any failed connection attempts
-      await cleanupPendingConnections(user, 'google');
-      
-      toast({
-        title: "Calendar Connection Error",
-        description: "Failed to connect calendar. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -220,8 +164,6 @@ export const useAuth = () => {
           description: "Failed to sign out. Please try again.",
           variant: "destructive",
         });
-      } else {
-        console.log('[Auth] Sign out successful');
       }
     } catch (error) {
       console.error('[Auth] Unexpected sign out error:', error);

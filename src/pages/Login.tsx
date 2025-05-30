@@ -17,6 +17,17 @@ const Login = () => {
     password: ''
   });
 
+  // Consistent OAuth configuration for all Google logins
+  const GOOGLE_OAUTH_CONFIG = {
+    redirectTo: `${window.location.origin}/auth/callback?calendar=true`,
+    scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid',
+    queryParams: {
+      access_type: 'offline',
+      prompt: 'consent',
+      include_granted_scopes: 'true'
+    }
+  };
+
   useEffect(() => {
     // Handle URL parameters for error messages
     const error = searchParams.get('error');
@@ -64,26 +75,20 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
+    if (googleLoading || loading) return;
+    
     setGoogleLoading(true);
     
     try {
-      console.log('[Login] Starting Google login with calendar scopes...');
+      console.log('[Login] Starting unified Google OAuth with calendar scopes');
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?calendar=true`,
-          scopes: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid',
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-            include_granted_scopes: 'true'
-          }
-        }
+        options: GOOGLE_OAUTH_CONFIG
       });
 
       if (error) {
-        console.error('[Login] Google login error:', error);
+        console.error('[Login] Google OAuth error:', error);
         toast({
           title: "Google Login Error",
           description: error.message,
@@ -92,7 +97,7 @@ const Login = () => {
         return;
       }
 
-      console.log('[Login] Google OAuth initiated successfully');
+      console.log('[Login] Google OAuth initiated successfully with unified config');
       
     } catch (error) {
       console.error('[Login] Unexpected Google login error:', error);

@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
+import { useCalendarConnectionManager } from '@/hooks/useCalendarConnectionManager';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
@@ -48,10 +49,11 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
 }) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [step, setStep] = useState<'select' | 'connected' | 'error'>('select');
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
 
+  // Use the new centralized connection manager
+  const connectionManager = useCalendarConnectionManager(user);
+  
   const { 
     connections, 
     loading, 
@@ -71,88 +73,36 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   }, []);
 
   useEffect(() => {
+    if (connectionManager.isConnected && step === 'select') {
+      setStep('connected');
+    }
+  }, [connectionManager.isConnected, step]);
+
+  useEffect(() => {
     if (connections.length > 0 && step === 'select') {
       setStep('connected');
-      setErrorMessage('');
     }
   }, [connections, step]);
 
-  const cleanupPendingConnections = async () => {
-    if (!user) return;
-    
-    try {
-      console.log('[CalendarModal] Cleaning up pending connections...');
-      
-      const { error } = await supabase
-        .from('calendar_connections')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('provider', 'google')
-        .eq('provider_account_id', 'pending');
-
-      if (error) {
-        console.error('[CalendarModal] Error cleaning up pending connections:', error);
-      } else {
-        console.log('[CalendarModal] Pending connections cleaned up successfully');
-      }
-    } catch (error) {
-      console.error('[CalendarModal] Unexpected error during cleanup:', error);
-    }
-  };
-
   const handleGoogleConnect = async () => {
-    if (isConnecting) return;
+    if (connectionManager.isConnecting) return;
     
     try {
-      setIsConnecting(true);
-      console.log('[CalendarModal] Starting Google OAuth with explicit calendar scopes...');
+      console.log('[CalendarModal] Starting unified Google connection');
+      await connectionManager.initiateConnection();
       
-      // Clear any existing errors
-      setErrorMessage('');
+      // Wait for connection to complete
+      const success = await connectionManager.waitForConnection();
       
-      // Cleanup any pending connections first
-      await cleanupPendingConnections();
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?calendar=true`,
-          scopes: 'https://www.googleapis.com/auth/calendar',
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-            include_granted_scopes: 'true'
-          }
-        }
-      });
-
-      if (error) {
-        console.error('[CalendarModal] Google OAuth error:', error);
-        setErrorMessage(`OAuth fout: ${error.message}`);
+      if (success) {
+        setStep('connected');
+        await refetch();
+      } else {
         setStep('error');
-        
-        toast({
-          title: "Verbindingsfout",
-          description: "Google Calendar verbinding mislukt. Controleer de OAuth configuratie.",
-          variant: "destructive",
-        });
-        return;
       }
-
-      console.log('[CalendarModal] Google OAuth initiated successfully');
-      
     } catch (error: any) {
-      console.error('[CalendarModal] Unexpected Google OAuth error:', error);
-      setErrorMessage(`Onverwachte fout: ${error.message}`);
+      console.error('[CalendarModal] Connection failed:', error);
       setStep('error');
-      
-      toast({
-        title: "Fout",
-        description: "Er ging iets mis bij het verbinden. Probeer het opnieuw.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsConnecting(false);
     }
   };
 
@@ -162,7 +112,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
       const success = await disconnectProvider(connection.id);
       if (success && connections.length === 1) {
         setStep('select');
-        setErrorMessage('');
+        await connectionManager.checkConnection();
       }
     }
   };
@@ -170,7 +120,6 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   const handleTestConnection = async () => {
     const success = await syncCalendarEvents();
     if (!success) {
-      setErrorMessage('Synchronisatie mislukt. Controleer je internetverbinding.');
       setStep('error');
     }
   };
@@ -180,18 +129,15 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     onOpenChange(false);
     setTimeout(() => {
       setStep('select');
-      setErrorMessage('');
     }, 300);
   };
 
   const handleChangeCalendar = () => {
     setStep('select');
-    setErrorMessage('');
   };
 
   const handleTryAgain = () => {
     setStep('select');
-    setErrorMessage('');
   };
 
   const handleResetConnections = async () => {
@@ -200,22 +146,15 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
       await disconnectProvider(connection.id);
     }
     
-    // Also cleanup any pending connections
-    await cleanupPendingConnections();
+    await connectionManager.cleanupPendingConnections();
+    await connectionManager.checkConnection();
     
     setStep('select');
-    setErrorMessage('');
     
     toast({
       title: "Reset Voltooid",
       description: "Alle agenda verbindingen zijn verwijderd.",
     });
-  };
-
-  const handleRetryConnection = async () => {
-    setErrorMessage('');
-    await cleanupPendingConnections();
-    await handleGoogleConnect();
   };
 
   if (loading) {
@@ -244,8 +183,8 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
               providers={calendarProviders}
               isProviderConnected={isProviderConnected}
               onGoogleConnect={handleGoogleConnect}
-              error={errorMessage}
-              onRetryConnection={handleRetryConnection}
+              error={connectionManager.error || undefined}
+              onRetryConnection={handleGoogleConnect}
               onResetConnections={handleResetConnections}
             />
           )}
@@ -264,7 +203,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
           
           {step === 'error' && (
             <CalendarErrorStep
-              error={errorMessage}
+              error={connectionManager.error || 'Onbekende fout'}
               onTryAgain={handleTryAgain}
               onReset={handleResetConnections}
             />
