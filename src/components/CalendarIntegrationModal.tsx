@@ -17,6 +17,7 @@ import {
   Shield,
   RefreshCw,
   AlertTriangle,
+  Settings
 } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { CalendarOAuthConfig } from '@/components/CalendarOAuthConfig';
@@ -78,8 +79,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     syncing,
     connectionStatus,
     errorMessage,
-    connectGoogleCalendar,
-    connectOutlookCalendar,
+    connectProvider, 
     disconnectProvider, 
     syncCalendarEvents,
     isProviderConnected,
@@ -118,16 +118,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
     setStep('connecting');
 
     try {
-      let result;
-      
-      if (provider.id === 'google') {
-        result = await connectGoogleCalendar();
-      } else if (provider.id === 'microsoft') {
-        result = await connectOutlookCalendar();
-      } else {
-        setStep('error');
-        return;
-      }
+      const result = await connectProvider(provider.id);
       
       if (!result.success && result.error) {
         setStep('error');
@@ -190,6 +181,10 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
         </Badge>
       </div>
 
+      <div className="mb-4 flex justify-end">
+        <CalendarOAuthConfig />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {calendarProviders.map((provider) => {
           const isConnected = isProviderConnected(provider.id);
@@ -243,7 +238,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
         })}
       </div>
 
-      <Alert className="border-green-200 bg-green-50 mb-4">
+      <Alert className="border-green-200 bg-green-50">
         <Shield className="h-4 w-4 text-green-600" />
         <AlertDescription className="text-green-800">
           <div className="flex items-center justify-between">
@@ -254,19 +249,6 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
               <ExternalLink className="h-3 w-3 ml-1" />
               Privacy Policy
             </Button>
-          </div>
-        </AlertDescription>
-      </Alert>
-
-      <Alert className="border-blue-200 bg-blue-50">
-        <AlertTriangle className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800">
-          <div className="text-sm">
-            <strong>Setup Required:</strong> You need to set environment variables for OAuth credentials:
-            <ul className="mt-2 space-y-1">
-              <li>• <code>VITE_GOOGLE_CLIENT_ID</code> and <code>VITE_GOOGLE_CLIENT_SECRET</code> for Google</li>
-              <li>• <code>VITE_OUTLOOK_CLIENT_ID</code> and <code>VITE_OUTLOOK_CLIENT_SECRET</code> for Outlook</li>
-            </ul>
           </div>
         </AlertDescription>
       </Alert>
