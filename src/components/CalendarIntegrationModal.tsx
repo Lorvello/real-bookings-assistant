@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -52,7 +53,7 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const { toast } = useToast();
 
-  // Use the new centralized connection manager
+  // Use the centralized connection manager
   const connectionManager = useCalendarConnectionManager(user);
   
   const { 
@@ -98,17 +99,8 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
       const success = await connectionManager.initiateConnection();
       
       if (success) {
-        // The callback will handle the actual connection creation
-        // We'll wait for it and then check for success
-        setTimeout(async () => {
-          const connected = await connectionManager.waitForConnection();
-          if (connected) {
-            setStep('connected');
-            await refetch();
-          } else {
-            setStep('error');
-          }
-        }, 1000);
+        // The OAuth flow will redirect, so we don't need to wait here
+        console.log('[CalendarModal] OAuth flow initiated successfully');
       } else {
         setStep('error');
       }
