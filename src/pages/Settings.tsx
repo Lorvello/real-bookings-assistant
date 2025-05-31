@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -8,15 +7,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Calendar } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
+import { CalendarConnectionManager } from '@/components/calendar/CalendarConnectionManager';
+import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
+import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
+import { useToast } from '@/hooks/use-toast';
+
+/**
+ * ⚙️ SETTINGS PAGE - Enhanced met Calendar Management
+ * ==================================================
+ * 
+ * 🎯 AFFABLE BOT CONTEXT:
+ * Uitgebreide instellingenpagina die nu ook calendar connection management bevat.
+ * Biedt gebruikers een centrale plek voor account settings én calendar disconnect
+ * functionaliteit zoals gevraagd in de requirements.
+ * 
+ * 🚀 NEW FEATURES:
+ * - Integrated calendar connection management sectie
+ * - Disconnect functionaliteit direct toegankelijk
+ * - Account settings én calendar settings in één interface
+ * - Consistent navigation en user experience
+ * 
+ * 🎪 SYSTEM INTEGRATION:
+ * - Profile Management: Bestaande account settings
+ * - Calendar Management: Nieuwe disconnect functionaliteit
+ * - Navigation: Clear routing tussen dashboard en settings
+ * - Toast Notifications: Consistent feedback system
+ */
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     business_name: '',
@@ -27,6 +54,7 @@ const Settings = () => {
   });
 
   const { profile, updateProfile } = useProfile(user);
+  const { connections, loading: calendarLoading, refetch: refetchCalendar } = useCalendarIntegration(user);
 
   useEffect(() => {
     const getUser = async () => {
@@ -79,6 +107,30 @@ const Settings = () => {
     setSaving(false);
   };
 
+  /**
+   * 🎯 Handles successful calendar integration
+   */
+  const handleCalendarIntegrationComplete = () => {
+    console.log('[Settings] Calendar integration completed');
+    setCalendarModalOpen(false);
+    
+    setTimeout(() => {
+      toast({
+        title: "Kalender Verbonden",
+        description: "Je kalender is succesvol verbonden",
+      });
+      refetchCalendar();
+    }, 1000);
+  };
+
+  /**
+   * 🔄 Handles calendar connection refresh
+   */
+  const handleCalendarRefresh = async () => {
+    console.log('[Settings] Refreshing calendar connections');
+    await refetchCalendar();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -106,22 +158,22 @@ const Settings = () => {
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            Terug naar Dashboard
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
-          <p className="text-gray-600 mt-2">Manage your account and business information</p>
+          <h1 className="text-3xl font-bold text-gray-900">Account Instellingen</h1>
+          <p className="text-gray-600 mt-2">Beheer je account en kalender verbindingen</p>
         </div>
 
         <div className="grid gap-6">
-          {/* Personal Information */}
+          {/* 👤 PERSONAL INFORMATION - Keep existing */}
           <Card>
             <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>Update your personal details</CardDescription>
+              <CardTitle>Persoonlijke Informatie</CardTitle>
+              <CardDescription>Update je persoonlijke gegevens</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">E-mailadres</Label>
                 <Input
                   id="email"
                   type="email"
@@ -129,52 +181,52 @@ const Settings = () => {
                   disabled
                   className="bg-gray-100"
                 />
-                <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
+                <p className="text-sm text-gray-500 mt-1">E-mailadres kan niet worden gewijzigd</p>
               </div>
               <div>
-                <Label htmlFor="full_name">Full Name</Label>
+                <Label htmlFor="full_name">Volledige Naam</Label>
                 <Input
                   id="full_name"
                   name="full_name"
                   value={formData.full_name}
                   onChange={handleInputChange}
-                  placeholder="Enter your full name"
+                  placeholder="Voer je volledige naam in"
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Business Information */}
+          {/* 🏢 BUSINESS INFORMATION - Keep existing */}
           <Card>
             <CardHeader>
-              <CardTitle>Business Information</CardTitle>
-              <CardDescription>Configure your business details for the booking assistant</CardDescription>
+              <CardTitle>Bedrijfsinformatie</CardTitle>
+              <CardDescription>Configureer je bedrijfsgegevens voor de booking assistent</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="business_name">Business Name</Label>
+                <Label htmlFor="business_name">Bedrijfsnaam</Label>
                 <Input
                   id="business_name"
                   name="business_name"
                   value={formData.business_name}
                   onChange={handleInputChange}
-                  placeholder="Enter your business name"
+                  placeholder="Voer je bedrijfsnaam in"
                 />
               </div>
               <div>
-                <Label htmlFor="business_description">Business Description</Label>
+                <Label htmlFor="business_description">Bedrijfsbeschrijving</Label>
                 <Textarea
                   id="business_description"
                   name="business_description"
                   value={formData.business_description}
                   onChange={handleInputChange}
-                  placeholder="Describe your business and services"
+                  placeholder="Beschrijf je bedrijf en diensten"
                   rows={3}
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="business_phone">Business Phone</Label>
+                  <Label htmlFor="business_phone">Bedrijfstelefoon</Label>
                   <Input
                     id="business_phone"
                     name="business_phone"
@@ -195,20 +247,42 @@ const Settings = () => {
                 </div>
               </div>
               <div>
-                <Label htmlFor="business_address">Business Address</Label>
+                <Label htmlFor="business_address">Bedrijfsadres</Label>
                 <Textarea
                   id="business_address"
                   name="business_address"
                   value={formData.business_address}
                   onChange={handleInputChange}
-                  placeholder="Enter your business address"
+                  placeholder="Voer je bedrijfsadres in"
                   rows={2}
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Save Button */}
+          {/* 📅 NEW: CALENDAR MANAGEMENT SECTION */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Calendar className="h-5 w-5 text-green-600" />
+                Kalender Verbindingen
+              </CardTitle>
+              <CardDescription>
+                Beheer je kalender koppelingen voor automatische beschikbaarheid en 24/7 booking via WhatsApp
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CalendarConnectionManager
+                user={user}
+                connections={connections}
+                loading={calendarLoading}
+                onRefresh={handleCalendarRefresh}
+                onAddCalendar={() => setCalendarModalOpen(true)}
+              />
+            </CardContent>
+          </Card>
+
+          {/* 💾 SAVE BUTTON - Keep existing */}
           <div className="flex justify-end">
             <Button 
               onClick={handleSave}
@@ -216,13 +290,47 @@ const Settings = () => {
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? 'Opslaan...' : 'Wijzigingen Opslaan'}
             </Button>
           </div>
         </div>
       </div>
+
+      {/* 📅 CALENDAR INTEGRATION MODAL */}
+      <CalendarIntegrationModal
+        open={calendarModalOpen}
+        onOpenChange={setCalendarModalOpen}
+        onComplete={handleCalendarIntegrationComplete}
+      />
     </div>
   );
 };
 
 export default Settings;
+
+/**
+ * 🎯 AFFABLE BOT SYSTEM NOTES:
+ * ============================
+ * 
+ * De Settings pagina is nu uitgebreid met calendar management functionaliteit,
+ * wat gebruikers een centrale plek geeft voor zowel account als kalender beheer.
+ * Dit vervult de requirement voor een toegankelijke "Disconnect Google Calendar" functie.
+ * 
+ * KEY ADDITIONS:
+ * - Calendar Connection Management sectie
+ * - Integrated disconnect functionality met confirmation
+ * - Clear navigation tussen account en calendar settings
+ * - Consistent user experience patterns
+ * 
+ * USER EXPERIENCE:
+ * - Single page voor alle settings reduces cognitive load
+ * - Clear sectie indeling voor different functional areas
+ * - Consistent button styling en interaction patterns
+ * - Proper loading states en error handling
+ * 
+ * BUSINESS VALUE:
+ * - Reduces support tickets door self-service calendar management
+ * - Improves user confidence in system control
+ * - Enables quick troubleshooting van connection issues
+ * - Maintains system reliability door proper disconnect flows
+ */
