@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { User } from '@supabase/supabase-js';
 import { ActionRequiredCard } from './ActionRequiredCard';
@@ -61,23 +60,22 @@ export const DashboardMainContent: React.FC<DashboardMainContentProps> = ({
       {/* 🚨 ACTION REQUIRED SECTION */}
       {/* Shows incomplete setup steps - critical voor system activation */}
       <ActionRequiredCard 
-        user={user}
-        onCalendarConnect={onCalendarModalOpen}
+        onCalendarModalOpen={onCalendarModalOpen}
       />
 
       {/* 📊 BUSINESS METRICS OVERVIEW */}
       {/* Core KPIs voor business performance monitoring */}
-      <BusinessMetricsCard user={user} />
+      <BusinessMetricsCard />
 
       {/* 📅 TODAY'S OPERATIONS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 🗓️ Today's Schedule Widget */}
-        <TodaysScheduleCard user={user} />
+        <TodaysScheduleCard />
         
         {/* 🤖 AI Bot Status Widget */}
         <AiBotStatusCard 
-          botActive={botActive}
-          onBotToggle={onBotToggle}
+          isActive={botActive}
+          onToggle={onBotToggle}
         />
       </div>
 
@@ -85,8 +83,7 @@ export const DashboardMainContent: React.FC<DashboardMainContentProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 📊 Booking Trends Chart */}
         <BookingTrendsChart 
-          data={bookingTrends}
-          loading={syncing}
+          bookingTrends={bookingTrends}
         />
         
         {/* 📅 Calendar Management */}
