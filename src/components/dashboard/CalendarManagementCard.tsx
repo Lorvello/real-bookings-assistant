@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,14 +10,6 @@ import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal'
 import { useToast } from '@/hooks/use-toast';
 import { CalendarConnectionManager } from '@/components/calendar/CalendarConnectionManager';
 import { NuclearDisconnectButton } from '@/components/calendar/NuclearDisconnectButton';
-
-/**
- * 📅 CALENDAR MANAGEMENT CARD - Enhanced Dashboard Widget
- * ======================================================
- * 
- * BELANGRIJKE WIJZIGING: Nuclear Disconnect prominent zichtbaar gemaakt
- * voor directe en definitieve kalender loskoppeling.
- */
 
 export const CalendarManagementCard = () => {
   const { user } = useAuth();
@@ -31,9 +24,6 @@ export const CalendarManagementCard = () => {
     refetch
   } = useCalendarIntegration(user);
 
-  /**
-   * 🔄 Handles manual calendar sync with user feedback
-   */
   const handleSync = async () => {
     console.log('[CalendarManagement] Starting manual sync');
     
@@ -56,9 +46,6 @@ export const CalendarManagementCard = () => {
     }
   };
 
-  /**
-   * 🎯 Handles successful calendar integration completion
-   */
   const handleCalendarIntegrationComplete = () => {
     console.log('[CalendarManagement] Calendar integration completed');
     setShowCalendarModal(false);
@@ -72,23 +59,16 @@ export const CalendarManagementCard = () => {
     }, 1000);
   };
 
-  /**
-   * 🆕 Opens calendar selection modal voor nieuwe verbindingen
-   */
   const handleNewCalendarConnect = () => {
     console.log('[CalendarManagement] Opening calendar selection modal');
     setShowCalendarModal(true);
   };
 
-  /**
-   * 🔄 Handles refresh after connection changes (zoals disconnect)
-   */
   const handleConnectionRefresh = async () => {
     console.log('[CalendarManagement] Refreshing connections after change');
     await refetch();
   };
 
-  // 🔄 LOADING STATE
   if (loading) {
     return (
       <Card>
@@ -108,7 +88,6 @@ export const CalendarManagementCard = () => {
     );
   }
 
-  // 🎨 MAIN CALENDAR MANAGEMENT INTERFACE MET PROMINENT NUCLEAR DISCONNECT
   return (
     <>
       <Card>
@@ -125,20 +104,20 @@ export const CalendarManagementCard = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           
-          {/* 🔥 NUCLEAR DISCONNECT - PROMINENT AAN DE TOP */}
+          {/* 🔥 NUCLEAR DISCONNECT - EXTRA PROMINENT */}
           {connections.length > 0 && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
+            <Alert className="border-red-300 bg-red-100">
+              <AlertTriangle className="h-5 w-5 text-red-700" />
               <AlertDescription>
-                <div className="flex items-center justify-between">
+                <div className="space-y-3">
                   <div>
-                    <strong className="text-red-900">Kalender Volledig Loskoppelen</strong>
-                    <p className="text-sm text-red-700 mt-1">
-                      Klik hieronder om je Google Calendar direct en definitief los te koppelen.
-                      Dit verwijdert alle verbindingen en data onmiddellijk.
+                    <h3 className="font-bold text-red-900 text-xl">🔥 KALENDER LOSKOPPELEN</h3>
+                    <p className="text-red-800 font-medium text-base">
+                      Klik hieronder om je Google Calendar DIRECT en DEFINITIEF los te koppelen.
+                      Alle verbindingen en data worden onmiddellijk verwijderd.
                     </p>
                   </div>
-                  <div className="ml-4">
+                  <div className="flex justify-center pt-2">
                     <NuclearDisconnectButton onSuccess={handleConnectionRefresh} />
                   </div>
                 </div>
@@ -146,7 +125,6 @@ export const CalendarManagementCard = () => {
             </Alert>
           )}
 
-          {/* 🎨 CONNECTION MANAGER */}
           <CalendarConnectionManager
             user={user}
             connections={connections}
@@ -157,7 +135,6 @@ export const CalendarManagementCard = () => {
         </CardContent>
       </Card>
 
-      {/* 📅 CALENDAR INTEGRATION MODAL */}
       <CalendarIntegrationModal
         open={showCalendarModal}
         onOpenChange={setShowCalendarModal}
@@ -166,30 +143,3 @@ export const CalendarManagementCard = () => {
     </>
   );
 };
-
-/**
- * 🎯 AFFABLE BOT SYSTEM NOTES:
- * ============================
- * 
- * Deze enhanced CalendarManagementCard biedt now volledige calendar connection
- * management inclusief de nieuwe disconnect functionaliteit. Het is een kritieke
- * component voor het onderhouden van het autonome booking systeem.
- * 
- * KEY IMPROVEMENTS:
- * - Integrated disconnect buttons met proper confirmation
- * - Enhanced visual feedback en status indicators
- * - Streamlined management interface
- * - Better error handling en user guidance
- * 
- * BUSINESS IMPACT:
- * - Reduced support tickets door clear management interface
- * - Quick troubleshooting van connection issues
- * - Improved user confidence in system reliability
- * - Faster resolution van sync problems
- * 
- * SYSTEM DEPENDENCIES:
- * - CalendarConnectionManager: New management interface
- * - DisconnectCalendarButton: Safe disconnect functionality
- * - useCalendarIntegration: Connection state management
- * - Calendar Sync: Manual sync capabilities
- */
