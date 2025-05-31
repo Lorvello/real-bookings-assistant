@@ -1,14 +1,15 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, CheckCircle, Unlink, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Calendar, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { useAuth } from '@/hooks/useAuth';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
 import { useToast } from '@/hooks/use-toast';
+import { CalendarConnectionItem } from './CalendarConnectionItem';
+import { CalendarManagementActions } from './CalendarManagementActions';
 
 export const CalendarManagementCard = () => {
   const { user } = useAuth();
@@ -38,12 +39,9 @@ export const CalendarManagementCard = () => {
           description: `${providerName} kalender is succesvol ontkoppeld`,
         });
         
-        // Force refresh after a short delay to ensure database updates are reflected
         setTimeout(async () => {
           console.log('[CalendarManagement] Refreshing connections after disconnect');
           await refetch();
-          
-          // Trigger a page refresh to ensure all components update
           window.location.reload();
         }, 1000);
       } else {
@@ -75,8 +73,6 @@ export const CalendarManagementCard = () => {
           title: "Kalender Gesynchroniseerd",
           description: "Je kalender events zijn gesynchroniseerd",
         });
-        
-        // Refresh connections after sync
         await refetch();
       }
     } catch (error) {
@@ -93,7 +89,6 @@ export const CalendarManagementCard = () => {
     console.log('[CalendarManagement] Calendar integration completed');
     setShowCalendarModal(false);
     
-    // Refresh connections after new integration with page reload
     setTimeout(() => {
       toast({
         title: "Kalender Verbonden",
@@ -150,79 +145,23 @@ export const CalendarManagementCard = () => {
           ) : (
             <div className="space-y-3">
               {connections.map((connection) => (
-                <div
+                <CalendarConnectionItem
                   key={connection.id}
-                  className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <div>
-                      <div className="font-medium text-green-900 capitalize">
-                        {connection.provider} Kalender
-                      </div>
-                      <div className="text-sm text-green-700">
-                        Verbonden op {new Date(connection.created_at).toLocaleDateString('nl-NL')}
-                      </div>
-                      {connection.provider_account_id !== 'pending' && (
-                        <div className="text-xs text-green-600">
-                          Account: {connection.provider_account_id}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDisconnect(connection.id, connection.provider)}
-                    disabled={disconnecting === connection.id}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
-                  >
-                    {disconnecting === connection.id ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                        Ontkoppelen...
-                      </>
-                    ) : (
-                      <>
-                        <Unlink className="h-4 w-4 mr-1" />
-                        Ontkoppelen
-                      </>
-                    )}
-                  </Button>
-                </div>
+                  connection={connection}
+                  disconnecting={disconnecting === connection.id}
+                  onDisconnect={handleDisconnect}
+                />
               ))}
             </div>
           )}
 
-          <div className="flex gap-2 pt-4 border-t">
-            <Button
-              onClick={handleNewCalendarConnect}
-              className="flex-1"
-              disabled={loading}
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              Nieuwe Kalender Verbinden
-            </Button>
-            {connections.length > 0 && (
-              <Button
-                variant="outline"
-                onClick={handleSync}
-                disabled={syncing || loading}
-              >
-                {syncing ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                    Synchroniseren...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-1" />
-                    Nu Synchroniseren
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
+          <CalendarManagementActions
+            hasConnections={connections.length > 0}
+            syncing={syncing}
+            loading={loading}
+            onNewCalendarConnect={handleNewCalendarConnect}
+            onSync={handleSync}
+          />
         </CardContent>
       </Card>
 
