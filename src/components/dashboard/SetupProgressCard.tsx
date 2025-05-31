@@ -1,21 +1,15 @@
 
-/**
- * 🚀 SETUP PROGRESS TRACKING CARD - Enhanced with Prominent Nuclear Disconnect
- * ===========================================================================
- */
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Clock, Target, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, Target, Zap } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendarLinking } from '@/hooks/useCalendarLinking';
 import { useToast } from '@/hooks/use-toast';
 import { SetupProgressIndicator } from './SetupProgressIndicator';
 import { SetupStepItem } from './SetupStepItem';
-import { NuclearDisconnectButton } from '@/components/calendar/NuclearDisconnectButton';
 import { disconnectAllCalendarConnections } from '@/utils/calendar/connectionDisconnect';
 
 interface SetupProgressCardProps {
@@ -151,31 +145,6 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* 🔥 NUCLEAR DISCONNECT - PROMINENT AT TOP IF CALENDAR IS CONNECTED */}
-        {calendarConnected && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <AlertDescription>
-              <div className="space-y-3">
-                <div>
-                  <h4 className="font-bold text-red-900 text-lg">🔥 Kalender Volledig Loskoppelen</h4>
-                  <p className="text-red-700 font-medium">
-                    Klik hieronder om je Google Calendar direct en definitief los te koppelen.
-                    Alle verbindingen, data en sync worden onmiddellijk verwijderd.
-                  </p>
-                </div>
-                <div className="flex justify-center">
-                  <NuclearDisconnectButton onSuccess={() => {
-                    setTimeout(() => {
-                      window.location.reload();
-                    }, 1000);
-                  }} />
-                </div>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
-
         <SetupProgressIndicator 
           completedSteps={completedSteps}
           totalSteps={totalSteps}

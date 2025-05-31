@@ -1,16 +1,11 @@
-/**
- * 📅 CALENDAR CONNECTION MANAGER - Enhanced with Nuclear Options
- * =============================================================
- */
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Calendar, Plus, RefreshCw, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Calendar, Plus, RefreshCw } from 'lucide-react';
 import { CalendarConnection } from '@/types/calendar';
 import { DisconnectCalendarButton } from './DisconnectCalendarButton';
-import { NuclearDisconnectButton } from './NuclearDisconnectButton';
 import { User } from '@supabase/supabase-js';
 
 interface CalendarConnectionManagerProps {
@@ -21,22 +16,6 @@ interface CalendarConnectionManagerProps {
   onAddCalendar: () => void;
 }
 
-/**
- * 🎮 Manager component for calendar connections overview
- * 
- * FEATURES:
- * - Connection cards with provider details
- * - Integrated disconnect buttons
- * - Refresh functionality for manual updates
- * - Add new calendar quick action
- * - Empty state guidance
- * 
- * UX PATTERNS:
- * - Clear visual hierarchy with provider branding
- * - Consistent action placement
- * - Loading states for smooth interactions
- * - Progressive disclosure of advanced options
- */
 export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps> = ({
   user,
   connections,
@@ -44,15 +23,6 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
   onRefresh,
   onAddCalendar
 }) => {
-  /**
-   * 🎨 Renders individual connection card
-   * 
-   * DESIGN:
-   * - Provider branding and name
-   * - Connection date for context
-   * - Status indicators
-   * - Integrated disconnect button
-   */
   const renderConnectionCard = (connection: CalendarConnection) => {
     const getProviderDetails = (provider: string) => {
       switch (provider.toLowerCase()) {
@@ -107,7 +77,7 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
                 connectionId={connection.id}
                 providerName={providerDetails.name}
                 onDisconnectSuccess={onRefresh}
-                variant="outline"
+                variant="destructive"
                 size="sm"
               />
             </div>
@@ -117,7 +87,6 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
     );
   };
 
-  // 🔄 LOADING STATE
   if (loading) {
     return (
       <Card>
@@ -150,7 +119,6 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
       </CardHeader>
       <CardContent className="space-y-4">
         {connections.length === 0 ? (
-          // 🎨 EMPTY STATE
           <div className="text-center py-8">
             <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -166,11 +134,9 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
             </Button>
           </div>
         ) : (
-          // 🎨 CONNECTIONS LIST
           <div className="space-y-3">
             {connections.map(renderConnectionCard)}
             
-            {/* 🔧 ACTION BUTTONS */}
             <div className="flex gap-2 pt-4 border-t">
               <Button
                 onClick={onAddCalendar}
@@ -189,52 +155,9 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
                 Vernieuwen
               </Button>
             </div>
-
-            {/* 🔥 NUCLEAR OPTION */}
-            <div className="pt-4 border-t border-red-200">
-              <div className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
-                  <div>
-                    <div className="font-medium text-red-900">Nuclear Disconnect</div>
-                    <div className="text-sm text-red-700">
-                      Complete calendar reset - gebruik alleen bij problemen
-                    </div>
-                  </div>
-                </div>
-                <NuclearDisconnectButton onSuccess={onRefresh} />
-              </div>
-            </div>
           </div>
         )}
       </CardContent>
     </Card>
   );
 };
-
-/**
- * 🎯 AFFABLE BOT SYSTEM NOTES:
- * ============================
- * 
- * Deze component vormt de interface voor calendar connection management,
- * wat essentieel is voor het autonome booking systeem. Zonder actieve
- * calendar verbindingen kan de WhatsApp bot geen beschikbaarheid controleren.
- * 
- * KEY BUSINESS VALUE:
- * - Visual connection status prevents user confusion
- * - Quick disconnect enables troubleshooting connection issues
- * - Clear re-connection path maintains system usability
- * - Proactive empty state guidance improves onboarding completion
- * 
- * SYSTEM DEPENDENCIES:
- * - CalendarConnection types: Database schema alignment
- * - DisconnectCalendarButton: Safe token cleanup
- * - Dashboard integration: Primary management interface
- * - Setup Progress: Fallback flows voor disconnected users
- * 
- * BUSINESS METRICS IMPACT:
- * - Connection uptime affects booking volume
- * - Quick reconnection reduces system downtime
- * - Clear status messaging reduces support tickets
- * - Streamlined management improves user retention
- */

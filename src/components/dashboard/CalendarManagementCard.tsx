@@ -2,14 +2,12 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Calendar, RefreshCw } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { useAuth } from '@/hooks/useAuth';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarConnectionManager } from '@/components/calendar/CalendarConnectionManager';
-import { NuclearDisconnectButton } from '@/components/calendar/NuclearDisconnectButton';
 
 export const CalendarManagementCard = () => {
   const { user } = useAuth();
@@ -103,28 +101,6 @@ export const CalendarManagementCard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          
-          {/* 🔥 NUCLEAR DISCONNECT - EXTRA PROMINENT */}
-          {connections.length > 0 && (
-            <Alert className="border-red-300 bg-red-100">
-              <AlertTriangle className="h-5 w-5 text-red-700" />
-              <AlertDescription>
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="font-bold text-red-900 text-xl">🔥 KALENDER LOSKOPPELEN</h3>
-                    <p className="text-red-800 font-medium text-base">
-                      Klik hieronder om je Google Calendar DIRECT en DEFINITIEF los te koppelen.
-                      Alle verbindingen en data worden onmiddellijk verwijderd.
-                    </p>
-                  </div>
-                  <div className="flex justify-center pt-2">
-                    <NuclearDisconnectButton onSuccess={handleConnectionRefresh} />
-                  </div>
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-
           <CalendarConnectionManager
             user={user}
             connections={connections}

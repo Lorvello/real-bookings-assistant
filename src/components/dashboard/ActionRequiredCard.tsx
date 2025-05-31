@@ -1,7 +1,3 @@
-/**
- * 🚨 ACTION REQUIRED CARD - Enhanced met Prominent Nuclear Disconnect
- * ================================================================
- */
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +8,6 @@ import { AlertTriangle, Calendar, CheckCircle, Zap } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendarLinking } from '@/hooks/useCalendarLinking';
-import { NuclearDisconnectButton } from '@/components/calendar/NuclearDisconnectButton';
 
 interface ActionRequiredCardProps {
   onCalendarModalOpen: () => void;
@@ -25,7 +20,6 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
   const { setupProgress, loading } = useProfile(user);
   const { isConnected: calendarConnected, loading: calendarLoading } = useCalendarLinking(user);
 
-  // 🔄 Loading state
   if (loading || calendarLoading) {
     return (
       <Card>
@@ -42,7 +36,6 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
     );
   }
 
-  // 📊 Check wat er nog moet gebeuren
   const needsCalendarLink = !calendarConnected && !setupProgress?.calendar_linked;
   const needsAvailability = !setupProgress?.availability_configured;
   const needsBookingRules = !setupProgress?.booking_rules_set;
@@ -73,7 +66,6 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
     });
   }
 
-  // ✅ Als alles compleet is - MET PROMINENT NUCLEAR DISCONNECT
   if (actionItems.length === 0) {
     return (
       <Card className="border-green-200 bg-green-50">
@@ -89,39 +81,17 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                Your booking system is fully configured and ready to receive appointments via WhatsApp!
-              </AlertDescription>
-            </Alert>
-            
-            {/* 🔥 NUCLEAR DISCONNECT - PROMINENT EN DIRECT ZICHTBAAR */}
-            {calendarConnected && (
-              <Alert className="border-red-200 bg-red-50">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-                <AlertDescription>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-red-900">🔥 Kalender Loskoppelen</h4>
-                      <p className="text-sm text-red-700">
-                        Klik om je Google Calendar direct en definitief los te koppelen.
-                        Alle verbindingen en data worden onmiddellijk verwijderd.
-                      </p>
-                    </div>
-                    <NuclearDisconnectButton />
-                  </div>
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
+          <Alert className="border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Your booking system is fully configured and ready to receive appointments via WhatsApp!
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
     );
   }
 
-  // 🚨 Action items nog te doen
   return (
     <Card className="border-amber-200 bg-amber-50">
       <CardHeader>
@@ -163,19 +133,6 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
               </div>
             ))}
           </div>
-
-          {/* 🔥 NUCLEAR DISCONNECT OPTIE - Ook hier voor troubleshooting */}
-          {calendarConnected && (
-            <div className="pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-gray-900">Calendar Issues?</h4>
-                  <p className="text-sm text-gray-600">Force complete calendar disconnect if experiencing problems.</p>
-                </div>
-                <NuclearDisconnectButton />
-              </div>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
