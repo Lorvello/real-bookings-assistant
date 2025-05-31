@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Calendar, Clock, Target, Reset } from 'lucide-react';
+import { CheckCircle, Calendar, Clock, Target, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendarLinking } from '@/hooks/useCalendarLinking';
@@ -158,7 +158,7 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
                 >
                   {step.completed ? (
                     <>
-                      <Reset className="h-4 w-4 mr-1" />
+                      <RotateCcw className="h-4 w-4 mr-1" />
                       Reset
                     </>
                   ) : (
