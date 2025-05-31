@@ -12,8 +12,6 @@ import {
   ExternalLink,
   Download,
   Send,
-  Pause,
-  Play,
   TrendingUp,
   RefreshCw
 } from 'lucide-react';
@@ -31,11 +29,14 @@ import { CalendarManagementCard } from '@/components/dashboard/CalendarManagemen
 import { TodaysScheduleCard } from '@/components/dashboard/TodaysScheduleCard';
 import { SetupProgressCard } from '@/components/dashboard/SetupProgressCard';
 import { BusinessMetricsCard } from '@/components/dashboard/BusinessMetricsCard';
+import { ConversationHistoryCard } from '@/components/dashboard/ConversationHistoryCard';
+import { AiBotStatusCard } from '@/components/dashboard/AiBotStatusCard';
+import { ActionRequiredCard } from '@/components/dashboard/ActionRequiredCard';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
-  const [emergencyPaused, setEmergencyPaused] = useState(false);
+  const [botActive, setBotActive] = useState(true);
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
 
   const { profile, loading: profileLoading, refetch } = useProfile(user);
@@ -43,26 +44,21 @@ const Profile = () => {
   const { getPopularServices } = useServices(user);
   const { syncing, triggerSync } = useCalendarSync(user);
 
-  // Set up real-time updates
   useRealTimeUpdates({
     user,
     onAppointmentUpdate: () => {
-      console.log('[Profile] Real-time appointment update received');
       refetchAppointments();
     },
     onCalendarUpdate: () => {
-      console.log('[Profile] Real-time calendar update received');
       refetchAppointments();
     },
     onSetupProgressUpdate: () => {
-      console.log('[Profile] Real-time setup progress update received');
       refetch();
     }
   });
 
   useEffect(() => {
     if (!authLoading && !user) {
-      console.log('[Profile] No user found, redirecting to login');
       navigate('/login');
       return;
     }
@@ -91,7 +87,6 @@ const Profile = () => {
   };
 
   const handleExportData = () => {
-    // Convert appointments to CSV format
     const csvContent = "data:text/csv;charset=utf-8," 
       + "Date,Time,Client,Service,Status,Price\n"
       + appointments.map(apt => 
@@ -107,17 +102,8 @@ const Profile = () => {
     document.body.removeChild(link);
   };
 
-  const handleBroadcastMessage = () => {
-    // This would typically open a modal or navigate to a messaging interface
-    console.log('Opening broadcast message interface...');
-    // For now, just show an alert
-    alert('Broadcast message feature coming soon!');
-  };
-
-  const handleEmergencyToggle = () => {
-    setEmergencyPaused(!emergencyPaused);
-    // Here you would typically update the booking system status in the backend
-    console.log(`Booking system ${emergencyPaused ? 'resumed' : 'paused'}`);
+  const handleBotToggle = () => {
+    setBotActive(!botActive);
   };
 
   if (authLoading || profileLoading) {
@@ -138,7 +124,6 @@ const Profile = () => {
     return null;
   }
 
-  // Generate booking trends from last 14 days
   const generateBookingTrends = () => {
     const trends = [];
     const today = new Date();
@@ -165,7 +150,6 @@ const Profile = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto py-8 px-4">
-        {/* Header */}
         <div className="mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -187,17 +171,19 @@ const Profile = () => {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          {/* Main Content */}
           <div className="xl:col-span-3 space-y-6">
-            {/* Business Metrics */}
+            <ActionRequiredCard onCalendarModalOpen={() => setCalendarModalOpen(true)} />
+            
             <BusinessMetricsCard />
 
-            {/* Today's Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Today's Schedule */}
               <TodaysScheduleCard />
+              <AiBotStatusCard isActive={botActive} onToggle={handleBotToggle} />
+            </div>
 
-              {/* Booking Trends */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ConversationHistoryCard />
+              
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
@@ -228,19 +214,12 @@ const Profile = () => {
               </Card>
             </div>
 
-            {/* Calendar Events Display */}
             <CalendarEventsDisplay user={user} syncing={syncing} />
-
-            {/* Calendar Management */}
             <CalendarManagementCard />
-
-            {/* Setup Progress */}
             <SetupProgressCard onCalendarModalOpen={() => setCalendarModalOpen(true)} />
           </div>
 
-          {/* Sidebar */}
           <div className="xl:col-span-1 space-y-6">
-            {/* Account Information */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Account</CardTitle>
@@ -261,7 +240,6 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Popular Services */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Popular Services</CardTitle>
@@ -285,7 +263,6 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
@@ -326,27 +303,10 @@ const Profile = () => {
                 <Button 
                   className="w-full justify-start" 
                   variant="outline"
-                  onClick={handleBroadcastMessage}
+                  onClick={() => alert('Broadcast feature coming soon!')}
                 >
                   <Send className="h-4 w-4 mr-2" />
                   Broadcast Message
-                </Button>
-                <Button 
-                  className={`w-full justify-start ${emergencyPaused ? 'text-green-600 hover:text-green-700' : 'text-red-600 hover:text-red-700'}`}
-                  variant="outline"
-                  onClick={handleEmergencyToggle}
-                >
-                  {emergencyPaused ? (
-                    <>
-                      <Play className="h-4 w-4 mr-2" />
-                      Resume Bookings
-                    </>
-                  ) : (
-                    <>
-                      <Pause className="h-4 w-4 mr-2" />
-                      Emergency Pause
-                    </>
-                  )}
                 </Button>
                 <Button 
                   className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
@@ -358,7 +318,6 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Trial Information */}
             <Card className="border-blue-200 bg-blue-50">
               <CardHeader>
                 <CardTitle className="text-blue-800">Free Trial</CardTitle>

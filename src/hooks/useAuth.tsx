@@ -13,22 +13,14 @@ export const useAuth = () => {
   useEffect(() => {
     let mounted = true;
 
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
         
-        console.log('[Auth] Auth state change:', event, session?.user?.id);
-        
-        // Always update session and user state
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle successful login events
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('[Auth] User signed in successfully');
-          
-          // For Google users with calendar tokens, create calendar connection
           if (session.user.app_metadata?.provider === 'google' && session.provider_token) {
             setTimeout(async () => {
               if (mounted) {
@@ -42,26 +34,18 @@ export const useAuth = () => {
           }
         }
         
-        if (event === 'SIGNED_OUT') {
-          console.log('[Auth] User signed out');
-        }
-        
         setLoading(false);
       }
     );
 
-    // THEN check for existing session
     const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.error('[Auth] Session error:', error);
-        } else {
-          console.log('[Auth] Initial session check:', session?.user?.id);
-          if (mounted) {
-            setSession(session);
-            setUser(session?.user ?? null);
-          }
+        } else if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
         }
       } catch (error) {
         console.error('[Auth] Failed to get session:', error);
@@ -82,9 +66,6 @@ export const useAuth = () => {
 
   const ensureCalendarConnection = async (user: User, session: Session) => {
     try {
-      console.log('[Auth] Setting up calendar connection for user:', user.id);
-      
-      // Check if connection already exists
       const { data: existingConnection } = await supabase
         .from('calendar_connections')
         .select('*')
@@ -94,8 +75,6 @@ export const useAuth = () => {
         .maybeSingle();
 
       if (!existingConnection && session.provider_token) {
-        console.log('[Auth] Creating new calendar connection...');
-        
         const { error: connectionError } = await supabase
           .from('calendar_connections')
           .upsert({
@@ -113,9 +92,6 @@ export const useAuth = () => {
           });
 
         if (!connectionError) {
-          console.log('[Auth] Calendar connection created successfully');
-          
-          // Update setup progress
           await supabase
             .from('setup_progress')
             .upsert({
@@ -126,24 +102,17 @@ export const useAuth = () => {
               onConflict: 'user_id'
             });
 
-          // Trigger calendar sync
           setTimeout(async () => {
             try {
               await supabase.functions.invoke('sync-calendar-events', {
                 body: { user_id: user.id }
               });
-              console.log('[Auth] Calendar sync triggered');
             } catch (syncError) {
               console.warn('[Auth] Calendar sync failed:', syncError);
             }
           }, 2000);
-        } else {
-          console.error('[Auth] Failed to create calendar connection:', connectionError);
         }
       } else if (existingConnection && session.provider_token) {
-        console.log('[Auth] Updating existing calendar connection tokens');
-        
-        // Update tokens if they're different
         if (existingConnection.access_token !== session.provider_token) {
           await supabase
             .from('calendar_connections')
@@ -166,17 +135,13 @@ export const useAuth = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('[Auth] Sign out error:', error);
         toast({
           title: "Error",
           description: "Failed to sign out. Please try again.",
           variant: "destructive",
         });
-      } else {
-        console.log('[Auth] Sign out successful');
       }
     } catch (error) {
-      console.error('[Auth] Unexpected sign out error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred during sign out.",

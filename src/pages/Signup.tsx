@@ -16,15 +16,13 @@ const Signup = () => {
     name: '',
     email: '',
     password: '',
-    business: ''
+    organization: ''
   });
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        console.log('[Signup] User already logged in, redirecting to profile');
         navigate('/profile');
       }
     };
@@ -43,8 +41,6 @@ const Signup = () => {
     setGoogleLoading(true);
     
     try {
-      console.log('[Signup] Starting Google signup with calendar scopes...');
-      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -54,7 +50,6 @@ const Signup = () => {
       });
 
       if (error) {
-        console.error('[Signup] Google signup error:', error);
         toast({
           title: "Google Signup Error",
           description: error.message,
@@ -62,11 +57,7 @@ const Signup = () => {
         });
         return;
       }
-
-      console.log('[Signup] Google signup initiated successfully:', data);
-      
     } catch (error) {
-      console.error('[Signup] Unexpected Google signup error:', error);
       toast({
         title: "Error",
         description: "Something went wrong with Google signup. Please try again.",
@@ -82,23 +73,19 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      console.log('[Signup] Starting email signup for:', formData.email);
-      
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
             full_name: formData.name,
-            business_name: formData.business
+            organization_name: formData.organization
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
       if (error) {
-        console.error('[Signup] Email signup error:', error);
-        
         const errorMessages = {
           'user_already_registered': 'This email is already registered. Please try logging in instead.',
           'weak_password': 'Password is too weak. Please choose a stronger password.',
@@ -113,18 +100,14 @@ const Signup = () => {
         return;
       }
 
-      console.log('[Signup] Signup response:', data);
-
       if (data.user) {
         if (data.user.email_confirmed_at) {
-          console.log('[Signup] Email auto-confirmed, redirecting to profile');
           toast({
             title: "Welcome!",
             description: "Your account has been created successfully!",
           });
           navigate('/profile?success=email_signup');
         } else {
-          console.log('[Signup] Email confirmation required');
           toast({
             title: "Check your email!",
             description: `We've sent a confirmation link to ${formData.email}. Click the link to complete your signup.`,
@@ -132,7 +115,6 @@ const Signup = () => {
           });
         }
       } else {
-        console.log('[Signup] No user returned from signup');
         toast({
           title: "Something went wrong",
           description: "Please try again or contact support if the problem persists.",
@@ -140,7 +122,6 @@ const Signup = () => {
         });
       }
     } catch (error) {
-      console.error('[Signup] Unexpected signup error:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -159,7 +140,13 @@ const Signup = () => {
           <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-              <p className="text-gray-600">Get started with your AI booking assistant</p>
+              <p className="text-gray-600 mb-4">Get started with your AI booking assistant</p>
+              <Link 
+                to="/#pricing" 
+                className="text-sm text-green-600 hover:text-green-500 underline"
+              >
+                View Pricing Plans
+              </Link>
             </div>
             
             <div className="mb-6">
@@ -206,6 +193,21 @@ const Signup = () => {
               </div>
               
               <div>
+                <label htmlFor="organization" className="block text-sm font-medium text-gray-700 mb-2">
+                  Organization Name
+                </label>
+                <input 
+                  type="text" 
+                  id="organization" 
+                  value={formData.organization}
+                  onChange={handleInputChange}
+                  disabled={loading || googleLoading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
+                  placeholder="Enter your organization name" 
+                />
+              </div>
+              
+              <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address
                 </label>
@@ -234,21 +236,6 @@ const Signup = () => {
                   disabled={loading || googleLoading}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
                   placeholder="Create a password" 
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="business" className="block text-sm font-medium text-gray-700 mb-2">
-                  Organization Name
-                </label>
-                <input 
-                  type="text" 
-                  id="business" 
-                  value={formData.business}
-                  onChange={handleInputChange}
-                  disabled={loading || googleLoading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-                  placeholder="Enter your organization name" 
                 />
               </div>
               
