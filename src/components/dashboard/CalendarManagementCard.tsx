@@ -25,32 +25,44 @@ export const CalendarManagementCard = () => {
   } = useCalendarIntegration(user);
 
   const handleDisconnect = async (connectionId: string, providerName: string) => {
+    console.log('[CalendarManagement] Disconnecting calendar:', connectionId, providerName);
+    
     const success = await disconnectProvider(connectionId);
     if (success) {
       toast({
-        title: "Calendar Disconnected",
-        description: `${providerName} calendar has been disconnected successfully`,
+        title: "Kalender Ontkoppeld",
+        description: `${providerName} kalender is succesvol ontkoppeld`,
       });
-      refetch();
+      // Refresh the connections list
+      await refetch();
+    } else {
+      toast({
+        title: "Fout bij Ontkoppelen",
+        description: `Kon ${providerName} kalender niet ontkoppelen. Probeer het opnieuw.`,
+        variant: "destructive",
+      });
     }
   };
 
   const handleSync = async () => {
+    console.log('[CalendarManagement] Starting manual sync');
+    
     const success = await syncCalendarEvents();
     if (success) {
       toast({
-        title: "Calendar Synced",
-        description: "Your calendar events have been synchronized",
+        title: "Kalender Gesynchroniseerd",
+        description: "Je kalender events zijn gesynchroniseerd",
       });
     }
   };
 
   const handleCalendarIntegrationComplete = () => {
+    console.log('[CalendarManagement] Calendar integration completed');
     setShowCalendarModal(false);
     refetch();
     toast({
-      title: "Calendar Connected",
-      description: "Your calendar has been connected successfully",
+      title: "Kalender Verbonden",
+      description: "Je kalender is succesvol verbonden",
     });
   };
 
@@ -60,11 +72,11 @@ export const CalendarManagementCard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-green-600" />
-            Calendar Management
+            Kalender Beheer
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">Loading calendar connections...</div>
+          <div className="text-center py-4">Kalender verbindingen laden...</div>
         </CardContent>
       </Card>
     );
@@ -76,9 +88,9 @@ export const CalendarManagementCard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-green-600" />
-            Calendar Management
+            Kalender Beheer
             <Badge variant="outline" className="ml-auto">
-              {connections.length} connected
+              {connections.length} verbonden
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -87,7 +99,7 @@ export const CalendarManagementCard = () => {
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                No calendar connections found. Connect your calendar to start receiving bookings.
+                Geen kalender verbindingen gevonden. Verbind je kalender om afspraken te ontvangen.
               </AlertDescription>
             </Alert>
           ) : (
@@ -101,10 +113,10 @@ export const CalendarManagementCard = () => {
                     <CheckCircle className="h-5 w-5 text-green-600" />
                     <div>
                       <div className="font-medium text-green-900 capitalize">
-                        {connection.provider} Calendar
+                        {connection.provider} Kalender
                       </div>
                       <div className="text-sm text-green-700">
-                        Connected on {new Date(connection.created_at).toLocaleDateString()}
+                        Verbonden op {new Date(connection.created_at).toLocaleDateString('nl-NL')}
                       </div>
                     </div>
                   </div>
@@ -112,10 +124,10 @@ export const CalendarManagementCard = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => handleDisconnect(connection.id, connection.provider)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Unlink className="h-4 w-4 mr-1" />
-                    Disconnect
+                    Ontkoppelen
                   </Button>
                 </div>
               ))}
@@ -128,7 +140,7 @@ export const CalendarManagementCard = () => {
               className="flex-1"
             >
               <Calendar className="h-4 w-4 mr-2" />
-              Connect New Calendar
+              Nieuwe Kalender Verbinden
             </Button>
             {connections.length > 0 && (
               <Button
@@ -136,7 +148,7 @@ export const CalendarManagementCard = () => {
                 onClick={handleSync}
                 disabled={syncing}
               >
-                {syncing ? 'Syncing...' : 'Sync Now'}
+                {syncing ? 'Synchroniseren...' : 'Nu Synchroniseren'}
               </Button>
             )}
           </div>

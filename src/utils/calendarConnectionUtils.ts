@@ -78,17 +78,42 @@ export const disconnectCalendarProvider = async (user: User, connectionId: strin
   if (!user) return false;
 
   try {
-    const { error } = await supabase
+    console.log('[CalendarUtils] Disconnecting calendar connection:', connectionId);
+    
+    // Set the connection as inactive
+    const { error: updateError } = await supabase
       .from('calendar_connections')
-      .update({ is_active: false })
+      .update({ 
+        is_active: false,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', connectionId)
       .eq('user_id', user.id);
 
-    if (error) {
-      console.error('Error disconnecting provider:', error);
+    if (updateError) {
+      console.error('Error disconnecting provider:', updateError);
       return false;
     }
 
+    // Also update setup progress if no more active connections
+    const { data: remainingConnections } = await supabase
+      .from('calendar_connections')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('is_active', true);
+
+    if (!remainingConnections || remainingConnections.length === 0) {
+      console.log('[CalendarUtils] No more active connections, updating setup progress');
+      await supabase
+        .from('setup_progress')
+        .update({
+          calendar_linked: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+    }
+
+    console.log('[CalendarUtils] Calendar connection successfully disconnected');
     return true;
   } catch (error) {
     console.error('Unexpected error disconnecting provider:', error);
