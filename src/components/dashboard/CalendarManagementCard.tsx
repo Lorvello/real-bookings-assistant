@@ -2,17 +2,21 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Calendar, RefreshCw, Unlink, AlertTriangle } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { useAuth } from '@/hooks/useAuth';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarConnectionManager } from '@/components/calendar/CalendarConnectionManager';
+import { disconnectAllCalendarConnections } from '@/utils/calendar/connectionDisconnect';
 
 export const CalendarManagementCard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [disconnectingAll, setDisconnectingAll] = useState(false);
   
   const {
     connections,
@@ -41,6 +45,44 @@ export const CalendarManagementCard = () => {
         description: "Er ging iets mis tijdens het synchroniseren",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleDisconnectAll = async () => {
+    if (!user) return;
+    
+    setDisconnectingAll(true);
+    console.log('[CalendarManagement] Disconnecting all calendar connections');
+    
+    try {
+      const success = await disconnectAllCalendarConnections(user);
+      
+      if (success) {
+        toast({
+          title: "Alle Kalenders Ontkoppeld",
+          description: "Alle kalender verbindingen zijn succesvol verwijderd",
+        });
+        
+        // Refresh na disconnect
+        setTimeout(() => {
+          refetch();
+        }, 1000);
+      } else {
+        toast({
+          title: "Disconnect Mislukt",
+          description: "Er ging iets mis bij het ontkoppelen van de kalenders",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('[CalendarManagement] Error during disconnect all:', error);
+      toast({
+        title: "Disconnect Fout",
+        description: "Er trad een onverwachte fout op",
+        variant: "destructive",
+      });
+    } finally {
+      setDisconnectingAll(false);
     }
   };
 
@@ -101,6 +143,37 @@ export const CalendarManagementCard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Disconnect All Warning & Button */}
+          {connections.length > 0 && (
+            <Alert className="border-red-200 bg-red-50">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                <div className="flex items-center justify-between">
+                  <span>Wil je alle kalender verbindingen verwijderen?</span>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={handleDisconnectAll}
+                    disabled={disconnectingAll}
+                    className="ml-4"
+                  >
+                    {disconnectingAll ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                        Ontkoppelen...
+                      </>
+                    ) : (
+                      <>
+                        <Unlink className="h-4 w-4 mr-1" />
+                        Alle Kalenders Ontkoppelen
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <CalendarConnectionManager
             user={user}
             connections={connections}
