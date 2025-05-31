@@ -14,13 +14,14 @@ export const useCalendarLinking = (user: User | null) => {
     }
 
     try {
+      console.log('[CalendarLinking] Checking calendar connection for user:', user.id);
+      
       const { data, error } = await supabase
         .from('calendar_connections')
-        .select('id, is_active')
+        .select('id, is_active, provider')
         .eq('user_id', user.id)
-        .eq('provider', 'google')
         .eq('is_active', true)
-        .maybeSingle();
+        .neq('provider_account_id', 'pending');
 
       if (error && error.code !== 'PGRST116') {
         console.error('[CalendarLinking] Error checking connection:', error);
@@ -28,9 +29,24 @@ export const useCalendarLinking = (user: User | null) => {
         return;
       }
 
-      const connected = !!data;
-      setIsConnected(connected);
+      const hasActiveConnection = data && data.length > 0;
+      console.log('[CalendarLinking] Active connections found:', hasActiveConnection ? data.length : 0);
+      
+      setIsConnected(hasActiveConnection);
       setLoading(false);
+
+      // Update setup progress if connected
+      if (hasActiveConnection) {
+        await supabase
+          .from('setup_progress')
+          .upsert({
+            user_id: user.id,
+            calendar_linked: true,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+      }
     } catch (error) {
       console.error('[CalendarLinking] Unexpected error:', error);
       setLoading(false);
