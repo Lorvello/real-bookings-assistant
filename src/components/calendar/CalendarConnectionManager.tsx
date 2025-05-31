@@ -1,33 +1,16 @@
-
 /**
- * 📅 CALENDAR CONNECTION MANAGER COMPONENT
- * ========================================
- * 
- * 🎯 AFFABLE BOT CONTEXT:
- * Centrale component voor calendar connection management in dashboard.
- * Toont huidige verbindingen en biedt veilige disconnect functionaliteit.
- * Essentieel voor gebruikersbeheer van het autonome booking systeem.
- * 
- * 🚀 BUSINESS CRITICAL FUNCTIONS:
- * - Real-time connection status weergave
- * - Veilige disconnect met confirmation
- * - Immediate UI updates na connection changes
- * - Clear guidance naar re-connection flows
- * 
- * 🎪 SYSTEM INTEGRATION:
- * - Dashboard: Primary calendar management interface
- * - Setup Flow: Fallback naar onboarding bij disconnect
- * - Calendar Sync: Status monitoring en manual triggers
- * - Business Metrics: Connection uptime tracking
+ * 📅 CALENDAR CONNECTION MANAGER - Enhanced with Nuclear Options
+ * =============================================================
  */
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Calendar, Plus, RefreshCw } from 'lucide-react';
+import { CheckCircle, Calendar, Plus, RefreshCw, AlertTriangle } from 'lucide-react';
 import { CalendarConnection } from '@/types/calendar';
 import { DisconnectCalendarButton } from './DisconnectCalendarButton';
+import { NuclearDisconnectButton } from './NuclearDisconnectButton';
 import { User } from '@supabase/supabase-js';
 
 interface CalendarConnectionManagerProps {
@@ -39,20 +22,20 @@ interface CalendarConnectionManagerProps {
 }
 
 /**
- * 🎮 Manager component voor calendar connections overview
+ * 🎮 Manager component for calendar connections overview
  * 
  * FEATURES:
- * - Connection cards met provider details
+ * - Connection cards with provider details
  * - Integrated disconnect buttons
- * - Refresh functionality voor manual updates
+ * - Refresh functionality for manual updates
  * - Add new calendar quick action
  * - Empty state guidance
  * 
  * UX PATTERNS:
- * - Clear visual hierarchy met provider branding
+ * - Clear visual hierarchy with provider branding
  * - Consistent action placement
- * - Loading states voor smooth interactions
- * - Progressive disclosure van advanced options
+ * - Loading states for smooth interactions
+ * - Progressive disclosure of advanced options
  */
 export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps> = ({
   user,
@@ -65,8 +48,8 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
    * 🎨 Renders individual connection card
    * 
    * DESIGN:
-   * - Provider branding en naam
-   * - Connection datum voor context
+   * - Provider branding and name
+   * - Connection date for context
    * - Status indicators
    * - Integrated disconnect button
    */
@@ -205,6 +188,22 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Vernieuwen
               </Button>
+            </div>
+
+            {/* 🔥 NUCLEAR OPTION */}
+            <div className="pt-4 border-t border-red-200">
+              <div className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                  <div>
+                    <div className="font-medium text-red-900">Nuclear Disconnect</div>
+                    <div className="text-sm text-red-700">
+                      Complete calendar reset - gebruik alleen bij problemen
+                    </div>
+                  </div>
+                </div>
+                <NuclearDisconnectButton onSuccess={onRefresh} />
+              </div>
             </div>
           </div>
         )}

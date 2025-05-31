@@ -1,12 +1,19 @@
 
+/**
+ * 🚨 ACTION REQUIRED CARD - Enhanced met Nuclear Disconnect
+ * ========================================================
+ */
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Calendar, Clock, Target, Mail } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, Calendar, CheckCircle, Zap } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendarLinking } from '@/hooks/useCalendarLinking';
+import { NuclearDisconnectButton } from '@/components/calendar/NuclearDisconnectButton';
 
 interface ActionRequiredCardProps {
   onCalendarModalOpen: () => void;
@@ -16,127 +23,155 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
   onCalendarModalOpen
 }) => {
   const { user } = useAuth();
-  const { setupProgress } = useProfile(user);
-  const { isConnected: calendarConnected } = useCalendarLinking(user);
+  const { setupProgress, loading } = useProfile(user);
+  const { isConnected: calendarConnected, loading: calendarLoading } = useCalendarLinking(user);
+
+  // 🔄 Loading state
+  if (loading || calendarLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600" />
+            Action Required
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">Loading...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 📊 Check wat er nog moet gebeuren
+  const needsCalendarLink = !calendarConnected && !setupProgress?.calendar_linked;
+  const needsAvailability = !setupProgress?.availability_configured;
+  const needsBookingRules = !setupProgress?.booking_rules_set;
 
   const actionItems = [];
-
-  // Check email verification
-  if (user && !user.email_confirmed_at) {
+  
+  if (needsCalendarLink) {
     actionItems.push({
-      id: 'email_verification',
-      title: 'Verify Email Address',
-      description: 'Check your email and click the verification link',
-      icon: Mail,
-      severity: 'high',
-      action: () => {
-        // Could trigger resend verification email
-      }
+      title: 'Link Your Calendar',
+      description: 'Connect your Google Calendar to enable bookings',
+      action: 'connect-calendar'
+    });
+  }
+  
+  if (needsAvailability) {
+    actionItems.push({
+      title: 'Set Availability',
+      description: 'Configure your working hours',
+      action: 'set-availability'
+    });
+  }
+  
+  if (needsBookingRules) {
+    actionItems.push({
+      title: 'Configure Booking Rules',
+      description: 'Set up your booking policies',
+      action: 'set-rules'
     });
   }
 
-  // Check calendar connection
-  if (!calendarConnected && !setupProgress?.calendar_linked) {
-    actionItems.push({
-      id: 'calendar_connection',
-      title: 'Connect Calendar',
-      description: 'Link your calendar to start receiving bookings',
-      icon: Calendar,
-      severity: 'high',
-      action: onCalendarModalOpen
-    });
-  }
-
-  // Check availability configuration
-  if (!setupProgress?.availability_configured) {
-    actionItems.push({
-      id: 'availability_setup',
-      title: 'Configure Availability',
-      description: 'Set your working hours and time slots',
-      icon: Clock,
-      severity: 'medium',
-      action: () => {
-        // Navigate to availability settings
-      }
-    });
-  }
-
-  // Check booking rules
-  if (!setupProgress?.booking_rules_set) {
-    actionItems.push({
-      id: 'booking_rules',
-      title: 'Set Booking Rules',
-      description: 'Define your booking policies and requirements',
-      icon: Target,
-      severity: 'medium',
-      action: () => {
-        // Navigate to booking rules
-      }
-    });
-  }
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default:
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-    }
-  };
-
+  // ✅ Als alles compleet is
   if (actionItems.length === 0) {
-    return null;
+    return (
+      <Card className="border-green-200 bg-green-50">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Setup Complete
+            </span>
+            <Badge variant="outline" className="text-green-700 border-green-300">
+              Ready
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                Your booking system is fully configured and ready to receive appointments via WhatsApp!
+              </AlertDescription>
+            </Alert>
+            
+            {/* 🔥 NUCLEAR DISCONNECT OPTIE - Voor als je calendar problemen hebt */}
+            {calendarConnected && (
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900">Calendar Troubleshooting</h4>
+                    <p className="text-sm text-gray-600">Experiencing calendar sync issues? Nuclear reset available.</p>
+                  </div>
+                  <NuclearDisconnectButton />
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
+  // 🚨 Action items nog te doen
   return (
-    <Card className="border-red-200 bg-red-50">
+    <Card className="border-amber-200 bg-amber-50">
       <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-red-900">
-          <AlertTriangle className="h-5 w-5 text-red-600" />
-          Action Required
-          <Badge className="bg-red-100 text-red-800 border-red-200" variant="outline">
-            {actionItems.length} items
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600" />
+            Action Required
+          </span>
+          <Badge variant="outline" className="text-amber-700 border-amber-300">
+            {actionItems.length} item{actionItems.length > 1 ? 's' : ''}
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {actionItems.map((item) => {
-          const IconComponent = item.icon;
-          return (
-            <div
-              key={item.id}
-              className="flex items-center gap-4 p-4 bg-white rounded-lg border border-red-200"
-            >
-              <div className="p-2 rounded-full bg-red-100">
-                <IconComponent className="h-5 w-5 text-red-600" />
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium text-red-900">{item.title}</h4>
-                  <Badge 
-                    className={getSeverityColor(item.severity)} 
-                    variant="outline"
-                  >
-                    {item.severity}
-                  </Badge>
-                </div>
-                <p className="text-sm text-red-700">{item.description}</p>
-              </div>
+      <CardContent>
+        <div className="space-y-4">
+          <Alert>
+            <Zap className="h-4 w-4" />
+            <AlertDescription>
+              Complete these steps to activate your 24/7 WhatsApp booking system.
+            </AlertDescription>
+          </Alert>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={item.action}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-              >
-                Fix Now
-              </Button>
+          <div className="space-y-3">
+            {actionItems.map((item, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-gray-600" />
+                  <div>
+                    <div className="font-medium">{item.title}</div>
+                    <div className="text-sm text-gray-600">{item.description}</div>
+                  </div>
+                </div>
+                
+                {item.action === 'connect-calendar' && (
+                  <Button onClick={onCalendarModalOpen} size="sm">
+                    Connect
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* 🔥 NUCLEAR DISCONNECT OPTIE - Ook hier voor troubleshooting */}
+          {calendarConnected && (
+            <div className="pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900">Calendar Issues?</h4>
+                  <p className="text-sm text-gray-600">Force complete calendar disconnect if experiencing problems.</p>
+                </div>
+                <NuclearDisconnectButton />
+              </div>
             </div>
-          );
-        })}
+          )}
+        </div>
       </CardContent>
     </Card>
   );
