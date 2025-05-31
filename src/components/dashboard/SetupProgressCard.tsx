@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +9,8 @@ import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { useToast } from '@/hooks/use-toast';
 import { SetupProgressIndicator } from './SetupProgressIndicator';
 import { SetupStepItem } from './SetupStepItem';
+import { disconnectAllCalendarConnections } from '@/utils/calendar/connectionDisconnect';
+import { updateSetupProgress } from '@/utils/calendar/setupProgressManager';
 
 interface SetupProgressCardProps {
   onCalendarModalOpen: () => void;
@@ -20,7 +21,7 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { setupProgress, updateSetupProgress, loading } = useProfile(user);
+  const { setupProgress, updateSetupProgress: updateProfileSetupProgress, loading } = useProfile(user);
   const { isConnected: calendarConnected, loading: calendarLoading, refetchConnection } = useCalendarLinking(user);
   const { connections, disconnectProvider, refetch: refetchConnections } = useCalendarIntegration(user);
 
@@ -50,9 +51,10 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
               }
             }
             
-            // Always update setup progress regardless of individual connection results
-            console.log('[SetupProgress] Updating setup progress to calendar_linked: false');
-            await updateSetupProgress('calendar_linked', false);
+            // Use the specialized utility function to update setup progress
+            if (user) {
+              await updateSetupProgress(user, false);
+            }
             
             // Refresh connection status
             await refetchConnections();
@@ -80,7 +82,9 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
             
             // Even if there's an error, try to update the setup progress
             try {
-              await updateSetupProgress('calendar_linked', false);
+              if (user) {
+                await updateSetupProgress(user, false);
+              }
               toast({
                 title: "Kalender Status Gereset",
                 description: "De kalender status is gereset, maar er kunnen nog verbindingen actief zijn",
@@ -98,7 +102,7 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
         }
         break;
       case 'availability_configured':
-        await updateSetupProgress('availability_configured', !completed);
+        await updateProfileSetupProgress('availability_configured', !completed);
         toast({
           title: completed ? "Beschikbaarheid Reset" : "Beschikbaarheid Geconfigureerd",
           description: completed 
@@ -107,7 +111,7 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
         });
         break;
       case 'booking_rules_set':
-        await updateSetupProgress('booking_rules_set', !completed);
+        await updateProfileSetupProgress('booking_rules_set', !completed);
         toast({
           title: completed ? "Boekingsregels Reset" : "Boekingsregels Ingesteld",
           description: completed 
