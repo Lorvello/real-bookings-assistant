@@ -135,7 +135,7 @@ export const disconnectAllCalendarConnections = async (user: User): Promise<bool
       .from('setup_progress')
       .update({
         calendar_linked: false,
-        updated_at = new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('user_id', user.id);
 
