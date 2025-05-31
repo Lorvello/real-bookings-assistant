@@ -10,6 +10,7 @@ import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal'
 import { useToast } from '@/hooks/use-toast';
 import { CalendarConnectionItem } from './CalendarConnectionItem';
 import { CalendarManagementActions } from './CalendarManagementActions';
+import { disconnectCalendarProvider } from '@/utils/calendar/connectionDisconnect';
 
 export const CalendarManagementCard = () => {
   const { user } = useAuth();
@@ -20,18 +21,22 @@ export const CalendarManagementCard = () => {
   const {
     connections,
     loading,
-    disconnectProvider,
     syncCalendarEvents,
     syncing,
     refetch
   } = useCalendarIntegration(user);
 
   const handleDisconnect = async (connectionId: string, providerName: string) => {
-    console.log('[CalendarManagement] Starting disconnect for:', connectionId, providerName);
+    if (!user) {
+      console.error('[CalendarManagement] No user available for disconnect');
+      return;
+    }
+
+    console.log(`[CalendarManagement] Starting disconnect for: ${connectionId} (${providerName})`);
     setDisconnecting(connectionId);
     
     try {
-      const success = await disconnectProvider(connectionId);
+      const success = await disconnectCalendarProvider(user, connectionId);
       
       if (success) {
         toast({
@@ -39,10 +44,10 @@ export const CalendarManagementCard = () => {
           description: `${providerName} kalender is succesvol ontkoppeld`,
         });
         
+        // Refresh de connections na een korte delay
         setTimeout(async () => {
           console.log('[CalendarManagement] Refreshing connections after disconnect');
           await refetch();
-          window.location.reload();
         }, 1000);
       } else {
         toast({
@@ -94,7 +99,7 @@ export const CalendarManagementCard = () => {
         title: "Kalender Verbonden",
         description: "Je kalender is succesvol verbonden",
       });
-      window.location.reload();
+      refetch();
     }, 1000);
   };
 

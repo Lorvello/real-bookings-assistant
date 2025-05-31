@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarIntegrationState } from '@/types/calendar';
-import { fetchCalendarConnections, disconnectCalendarProvider } from '@/utils/calendarConnectionUtils';
+import { fetchCalendarConnections } from '@/utils/calendar/connectionManager';
+import { disconnectCalendarProvider } from '@/utils/calendar/connectionDisconnect';
 import { syncCalendarEvents } from '@/utils/calendarSync';
 
 export const useCalendarIntegration = (user: User | null) => {
@@ -28,9 +29,12 @@ export const useCalendarIntegration = (user: User | null) => {
     if (!user) return;
 
     try {
+      console.log('[CalendarIntegration] Fetching connections for user:', user.id);
       const connections = await fetchCalendarConnections(user);
+      console.log('[CalendarIntegration] Fetched connections:', connections.length);
       setState(prev => ({ ...prev, connections, loading: false }));
     } catch (error) {
+      console.error('[CalendarIntegration] Error fetching connections:', error);
       toast({
         title: "Error",
         description: "Failed to fetch calendar connections",
@@ -41,27 +45,25 @@ export const useCalendarIntegration = (user: User | null) => {
   };
 
   const disconnectProvider = async (connectionId: string): Promise<boolean> => {
-    if (!user) return false;
+    if (!user) {
+      console.error('[CalendarIntegration] No user for disconnect');
+      return false;
+    }
 
     try {
+      console.log('[CalendarIntegration] Disconnecting provider:', connectionId);
       const success = await disconnectCalendarProvider(user, connectionId);
       
       if (success) {
-        toast({
-          title: "Success",
-          description: "Calendar disconnected successfully",
-        });
+        console.log('[CalendarIntegration] Disconnect successful, refreshing connections');
         await fetchConnections();
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to disconnect calendar",
-          variant: "destructive",
-        });
+        console.error('[CalendarIntegration] Disconnect failed');
       }
 
       return success;
     } catch (error) {
+      console.error('[CalendarIntegration] Error in disconnectProvider:', error);
       return false;
     }
   };
@@ -72,22 +74,15 @@ export const useCalendarIntegration = (user: User | null) => {
     setState(prev => ({ ...prev, syncing: true }));
 
     try {
+      console.log('[CalendarIntegration] Starting calendar sync');
       await syncCalendarEvents(user);
       
-      toast({
-        title: "Success",
-        description: "Calendar events synced successfully",
-      });
-
+      console.log('[CalendarIntegration] Calendar sync completed successfully');
       setState(prev => ({ ...prev, syncing: false }));
       return true;
     } catch (error) {
+      console.error('[CalendarIntegration] Calendar sync failed:', error);
       setState(prev => ({ ...prev, syncing: false }));
-      toast({
-        title: "Error",
-        description: "Failed to sync calendar events",
-        variant: "destructive",
-      });
       return false;
     }
   };

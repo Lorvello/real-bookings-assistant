@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,12 +6,10 @@ import { Calendar, Clock, Target } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendarLinking } from '@/hooks/useCalendarLinking';
-import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { useToast } from '@/hooks/use-toast';
 import { SetupProgressIndicator } from './SetupProgressIndicator';
 import { SetupStepItem } from './SetupStepItem';
 import { disconnectAllCalendarConnections } from '@/utils/calendar/connectionDisconnect';
-import { updateSetupProgress } from '@/utils/calendar/setupProgressManager';
 
 interface SetupProgressCardProps {
   onCalendarModalOpen: () => void;
@@ -23,9 +22,13 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
   const { toast } = useToast();
   const { setupProgress, updateSetupProgress: updateProfileSetupProgress, loading } = useProfile(user);
   const { isConnected: calendarConnected, loading: calendarLoading, refetchConnection } = useCalendarLinking(user);
-  const { connections, disconnectProvider, refetch: refetchConnections } = useCalendarIntegration(user);
 
   const handleStepAction = async (step: string, completed: boolean) => {
+    if (!user) {
+      console.error('[SetupProgress] No user available for step action');
+      return;
+    }
+
     switch (step) {
       case 'calendar_linked':
         if (!completed) {
@@ -35,72 +38,37 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
           console.log('[SetupProgress] Resetting calendar - disconnecting all connections');
           
           try {
-            let disconnectedAny = false;
+            const success = await disconnectAllCalendarConnections(user);
             
-            // Disconnect all active calendar connections one by one
-            for (const connection of connections) {
-              if (connection.is_active) {
-                console.log(`[SetupProgress] Disconnecting connection: ${connection.id} (${connection.provider})`);
-                const success = await disconnectProvider(connection.id);
-                if (success) {
-                  disconnectedAny = true;
-                  console.log(`[SetupProgress] Successfully disconnected ${connection.provider}`);
-                } else {
-                  console.error(`[SetupProgress] Failed to disconnect ${connection.provider}`);
-                }
-              }
-            }
-            
-            // Use the specialized utility function to update setup progress
-            if (user) {
-              await updateSetupProgress(user, false);
-            }
-            
-            // Refresh connection status
-            await refetchConnections();
-            await refetchConnection();
-            
-            if (disconnectedAny) {
+            if (success) {
               toast({
                 title: "Kalender Reset",
                 description: "Alle kalender verbindingen zijn succesvol ontkoppeld",
               });
+              
+              // Refresh connection status
+              setTimeout(async () => {
+                await refetchConnection();
+                window.location.reload();
+              }, 1500);
             } else {
-              toast({
-                title: "Kalender Reset",
-                description: "Kalender status is gereset",
-              });
-            }
-            
-            // Force a page reload to ensure all states are updated
-            setTimeout(() => {
-              window.location.reload();
-            }, 1500);
-            
-          } catch (error) {
-            console.error('[SetupProgress] Error during calendar reset:', error);
-            
-            // Even if there's an error, try to update the setup progress
-            try {
-              if (user) {
-                await updateSetupProgress(user, false);
-              }
-              toast({
-                title: "Kalender Status Gereset",
-                description: "De kalender status is gereset, maar er kunnen nog verbindingen actief zijn",
-                variant: "destructive",
-              });
-            } catch (progressError) {
-              console.error('[SetupProgress] Failed to update setup progress:', progressError);
               toast({
                 title: "Reset Mislukt",
                 description: "Er ging iets mis bij het resetten van de kalender. Probeer het opnieuw.",
                 variant: "destructive",
               });
             }
+          } catch (error) {
+            console.error('[SetupProgress] Error during calendar reset:', error);
+            toast({
+              title: "Reset Fout",
+              description: "Er trad een onverwachte fout op tijdens het resetten.",
+              variant: "destructive",
+            });
           }
         }
         break;
+        
       case 'availability_configured':
         await updateProfileSetupProgress('availability_configured', !completed);
         toast({
@@ -110,6 +78,7 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
             : "Beschikbaarheid is geconfigureerd",
         });
         break;
+        
       case 'booking_rules_set':
         await updateProfileSetupProgress('booking_rules_set', !completed);
         toast({
