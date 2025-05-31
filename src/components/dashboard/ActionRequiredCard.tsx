@@ -1,7 +1,6 @@
-
 /**
- * 🚨 ACTION REQUIRED CARD - Enhanced met Nuclear Disconnect
- * ========================================================
+ * 🚨 ACTION REQUIRED CARD - Enhanced met Prominent Nuclear Disconnect
+ * ================================================================
  */
 
 import React from 'react';
@@ -74,7 +73,7 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
     });
   }
 
-  // ✅ Als alles compleet is
+  // ✅ Als alles compleet is - MET PROMINENT NUCLEAR DISCONNECT
   if (actionItems.length === 0) {
     return (
       <Card className="border-green-200 bg-green-50">
@@ -98,17 +97,23 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
               </AlertDescription>
             </Alert>
             
-            {/* 🔥 NUCLEAR DISCONNECT OPTIE - Voor als je calendar problemen hebt */}
+            {/* 🔥 NUCLEAR DISCONNECT - PROMINENT EN DIRECT ZICHTBAAR */}
             {calendarConnected && (
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Calendar Troubleshooting</h4>
-                    <p className="text-sm text-gray-600">Experiencing calendar sync issues? Nuclear reset available.</p>
+              <Alert className="border-red-200 bg-red-50">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <AlertDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-red-900">🔥 Kalender Loskoppelen</h4>
+                      <p className="text-sm text-red-700">
+                        Klik om je Google Calendar direct en definitief los te koppelen.
+                        Alle verbindingen en data worden onmiddellijk verwijderd.
+                      </p>
+                    </div>
+                    <NuclearDisconnectButton />
                   </div>
-                  <NuclearDisconnectButton />
-                </div>
-              </div>
+                </AlertDescription>
+              </Alert>
             )}
           </div>
         </CardContent>

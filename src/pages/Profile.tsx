@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -12,44 +11,19 @@ import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardMainContent } from '@/components/dashboard/DashboardMainContent';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle } from 'lucide-react';
 
 /**
- * 🎯 PROFILE/DASHBOARD PAGE - Unified Dashboard Experience
- * ========================================================
+ * 🎯 PROFILE/DASHBOARD PAGE - Het ENIGE Actieve Dashboard
+ * =======================================================
  * 
- * 🧠 AFFABLE BOT CONTEXT:
- * Dit is de HOOFDDASHBOARD pagina van het Affable Bot systeem.
- * Hier zien dienstverleners hun complete business overview en kunnen ze
- * het autonome WhatsApp booking systeem beheren.
+ * ⚠️ BELANGRIJK: Dit is het ENIGE dashboard in het systeem.
+ * Er is geen "Dashboard 1" vs "Dashboard 2" - dit is DE dashboard.
+ * Alle gebruikers, alle functies, alle kalender integraties gebruiken dit dashboard.
  * 
- * 🚨 CRITICAL: Deze component MOET consistent zijn tussen Lovable preview en deployed versie
- * 
- * 🚀 BUSINESS CRITICAL FUNCTIONS:
- * - Real-time dashboard met calendar status, appointments, en metrics
- * - Calendar connection management (connect/disconnect Google Calendar)  
- * - Setup progress tracking voor onboarding completion
- * - WhatsApp bot status en conversation monitoring
- * - Business metrics en booking trends visualization
- * 
- * 🎪 ROUTING CONSISTENCY:
- * - Toegankelijk via /profile route
- * - MOET identical zijn in Lovable preview én deployed environment
- * - Gebruikt dezelfde components en hooks als andere dashboard routes
- * 
- * 🎯 DASHBOARD SECTIONS:
- * 1. Action Required Card - Setup steps die nog moeten worden voltooid
- * 2. Business Metrics - KPIs zoals revenue, appointments, response times
- * 3. Today's Schedule - Vandaag geplande appointments  
- * 4. Calendar Management - Google Calendar connection status
- * 5. WhatsApp Bot Status - Bot activation en performance
- * 6. Recent Conversations - Laatste klant interacties
- * 7. Setup Progress - Onboarding completion tracking
- * 
- * 💡 SUCCESS METRICS TARGET:
- * - Dashboard moet load in < 3 seconden
- * - Calendar status moet real-time accurate zijn
- * - Setup completion moet leiden tot 100% system activation
- * - Booking trends moeten immediate business insights geven
+ * Route: /profile (na inloggen)
+ * Functionaliteit: Volledig business dashboard met prominente disconnect opties
  */
 
 const Profile = () => {
@@ -212,10 +186,23 @@ const Profile = () => {
   const popularServices = getPopularServices(appointments);
   const userName = profile?.full_name || user.email?.split('@')[0] || 'there';
 
-  // 🎨 MAIN DASHBOARD RENDER
+  // 🎨 MAIN DASHBOARD RENDER MET DUIDELIJKE IDENTIFICATIE
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+      
+      {/* 🎯 DASHBOARD IDENTIFICATIE BANNER */}
+      <div className="bg-green-600 text-white py-2">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-center gap-2 text-sm">
+            <CheckCircle className="h-4 w-4" />
+            <span className="font-medium">
+              Actief Dashboard - Alle kalender integraties en functies werken hier
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto py-8 px-4">
         {/* 📊 DASHBOARD HEADER */}
         <DashboardHeader 
