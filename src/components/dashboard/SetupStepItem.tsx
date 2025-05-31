@@ -20,6 +20,22 @@ export const SetupStepItem: React.FC<SetupStepItemProps> = ({
   icon: IconComponent,
   onAction
 }) => {
+  const getButtonText = () => {
+    if (completed) {
+      switch (id) {
+        case 'calendar_linked':
+          return 'Reset Calendar';
+        case 'availability_configured':
+          return 'Reset';
+        case 'booking_rules_set':
+          return 'Reset';
+        default:
+          return 'Reset';
+      }
+    }
+    return 'Complete';
+  };
+
   return (
     <div
       className={`flex items-center gap-4 p-4 rounded-lg border transition-colors ${
@@ -50,13 +66,13 @@ export const SetupStepItem: React.FC<SetupStepItemProps> = ({
       <Button
         variant={completed ? "outline" : "default"}
         size="sm"
-        className={completed ? "text-red-600 hover:text-red-700" : ""}
+        className={completed ? "text-red-600 hover:text-red-700 hover:bg-red-50" : ""}
         onClick={() => onAction(id, completed)}
       >
         {completed ? (
           <>
             <RotateCcw className="h-4 w-4 mr-1" />
-            Reset
+            {getButtonText()}
           </>
         ) : (
           'Complete'

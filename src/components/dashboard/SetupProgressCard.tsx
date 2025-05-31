@@ -31,31 +31,54 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
           console.log('[SetupProgress] Opening calendar modal');
           onCalendarModalOpen();
         } else {
-          console.log('[SetupProgress] Disconnecting all calendar connections');
+          console.log('[SetupProgress] Resetting calendar - disconnecting all connections');
           
-          let disconnectedAny = false;
-          for (const connection of connections) {
-            if (connection.is_active) {
-              const success = await disconnectProvider(connection.id);
-              if (success) {
-                disconnectedAny = true;
+          try {
+            let disconnectedAny = false;
+            
+            // Disconnect all active calendar connections
+            for (const connection of connections) {
+              if (connection.is_active) {
+                console.log(`[SetupProgress] Disconnecting connection: ${connection.id} (${connection.provider})`);
+                const success = await disconnectProvider(connection.id);
+                if (success) {
+                  disconnectedAny = true;
+                  console.log(`[SetupProgress] Successfully disconnected ${connection.provider}`);
+                } else {
+                  console.error(`[SetupProgress] Failed to disconnect ${connection.provider}`);
+                }
               }
             }
-          }
-          
-          if (disconnectedAny) {
-            await updateSetupProgress('calendar_linked', false);
-            await refetchConnections();
-            await refetchConnection();
             
+            if (disconnectedAny) {
+              // Update setup progress to reflect no calendar linked
+              await updateSetupProgress('calendar_linked', false);
+              
+              // Refresh connection status
+              await refetchConnections();
+              await refetchConnection();
+              
+              toast({
+                title: "Kalender Reset",
+                description: "Alle kalender verbindingen zijn succesvol ontkoppeld",
+              });
+              
+              // Force a page reload to ensure all states are updated
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            } else {
+              toast({
+                title: "Geen Actieve Verbindingen",
+                description: "Er zijn geen actieve kalender verbindingen om te ontkoppelen",
+                variant: "destructive",
+              });
+            }
+          } catch (error) {
+            console.error('[SetupProgress] Error during calendar reset:', error);
             toast({
-              title: "Kalender Ontkoppeld",
-              description: "Alle kalender verbindingen zijn ontkoppeld",
-            });
-          } else {
-            toast({
-              title: "Fout",
-              description: "Kon kalender niet ontkoppelen",
+              title: "Reset Mislukt",
+              description: "Er ging iets mis bij het resetten van de kalender. Probeer het opnieuw.",
               variant: "destructive",
             });
           }
