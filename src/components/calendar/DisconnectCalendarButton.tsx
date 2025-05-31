@@ -1,4 +1,3 @@
-
 /**
  * 🔌 DISCONNECT CALENDAR BUTTON COMPONENT
  * =======================================
@@ -42,6 +41,7 @@ interface DisconnectCalendarButtonProps {
   variant?: 'destructive' | 'outline' | 'ghost';
   size?: 'default' | 'sm' | 'lg';
   showConfirmation?: boolean;
+  className?: string;
 }
 
 /**
@@ -67,7 +67,8 @@ export const DisconnectCalendarButton: React.FC<DisconnectCalendarButtonProps> =
   onDisconnectSuccess,
   variant = 'outline',
   size = 'sm',
-  showConfirmation = true
+  showConfirmation = true,
+  className
 }) => {
   const [disconnecting, setDisconnecting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -212,7 +213,7 @@ export const DisconnectCalendarButton: React.FC<DisconnectCalendarButtonProps> =
       size={size}
       onClick={handleInitialClick}
       disabled={disconnecting}
-      className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
+      className={`text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50 ${className || ''}`}
     >
       {disconnecting ? (
         <>
