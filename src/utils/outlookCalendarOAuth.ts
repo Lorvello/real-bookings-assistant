@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { cleanupPendingConnections, getOAuthProvider } from './calendarConnectionUtils';
+import { getOAuthProvider } from './calendarConnectionUtils';
 
 export const connectOutlookCalendar = async (user: User): Promise<{ success: boolean; error?: string }> => {
   if (!user) return { success: false, error: 'User not authenticated' };
@@ -13,9 +13,6 @@ export const connectOutlookCalendar = async (user: User): Promise<{ success: boo
       const errorMsg = 'Microsoft OAuth not configured. Please set up OAuth credentials in settings.';
       return { success: false, error: errorMsg };
     }
-
-    // Clean up any existing pending connections for this provider
-    await cleanupPendingConnections(user, 'microsoft');
 
     // Create a new pending connection record
     const { data: connectionData, error: connectionError } = await supabase
