@@ -1,22 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { 
-  CheckCircle, 
-  Calendar, 
   Settings, 
-  Bot, 
   MessageSquare, 
-  BarChart3, 
-  AlertTriangle,
-  Clock,
-  Target,
-  Users,
   ExternalLink,
   Download,
   Send,
@@ -28,16 +20,17 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useAppointments } from '@/hooks/useAppointments';
-import { useBusinessMetrics } from '@/hooks/useBusinessMetrics';
-import { useConversations } from '@/hooks/useConversations';
 import { useServices } from '@/hooks/useServices';
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 import { useCalendarSync } from '@/hooks/useCalendarSync';
-import { useCalendarLinking } from '@/hooks/useCalendarLinking';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
 import { CalendarEventsDisplay } from '@/components/calendar/CalendarEventsDisplay';
+import { CalendarManagementCard } from '@/components/dashboard/CalendarManagementCard';
+import { TodaysScheduleCard } from '@/components/dashboard/TodaysScheduleCard';
+import { SetupProgressCard } from '@/components/dashboard/SetupProgressCard';
+import { BusinessMetricsCard } from '@/components/dashboard/BusinessMetricsCard';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -45,19 +38,10 @@ const Profile = () => {
   const [emergencyPaused, setEmergencyPaused] = useState(false);
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
 
-  const { profile, setupProgress, loading: profileLoading, updateSetupProgress, refetch } = useProfile(user);
-  const { appointments, getTodaysAppointments, refetch: refetchAppointments } = useAppointments(user);
-  const { aggregatedMetrics, loading: metricsLoading, refetch: refetchMetrics } = useBusinessMetrics(user);
-  const { conversations, refetch: refetchConversations } = useConversations(user);
-  const { services, getPopularServices, refetch: refetchServices } = useServices(user);
+  const { profile, loading: profileLoading, refetch } = useProfile(user);
+  const { appointments, refetch: refetchAppointments } = useAppointments(user);
+  const { getPopularServices } = useServices(user);
   const { syncing, triggerSync } = useCalendarSync(user);
-  
-  // Simplified calendar linking hook
-  const { 
-    isConnected: calendarConnected, 
-    loading: calendarLoading,
-    refetchConnection 
-  } = useCalendarLinking(user);
 
   // Set up real-time updates
   useRealTimeUpdates({
@@ -65,16 +49,10 @@ const Profile = () => {
     onAppointmentUpdate: () => {
       console.log('[Profile] Real-time appointment update received');
       refetchAppointments();
-      refetchMetrics();
-    },
-    onConversationUpdate: () => {
-      console.log('[Profile] Real-time conversation update received');
-      refetchConversations();
     },
     onCalendarUpdate: () => {
       console.log('[Profile] Real-time calendar update received');
       refetchAppointments();
-      refetchConnection();
     },
     onSetupProgressUpdate: () => {
       console.log('[Profile] Real-time setup progress update received');
@@ -95,28 +73,13 @@ const Profile = () => {
     navigate('/');
   };
 
-  const handleStepAction = async (step: string, completed: boolean) => {
-    switch (step) {
-      case 'calendar_linked':
-        if (!completed) {
-          // Redirect to login with Google + Calendar scopes
-          window.location.href = '/login?provider=google&scope=calendar';
-        } else {
-          await updateSetupProgress('calendar_linked', false);
-        }
-        break;
-      case 'availability_configured':
-        await updateSetupProgress('availability_configured', !completed);
-        break;
-      case 'booking_rules_set':
-        await updateSetupProgress('booking_rules_set', !completed);
-        break;
-    }
-  };
-
   const handleCalendarIntegrationComplete = async () => {
-    await updateSetupProgress('calendar_linked', true);
+    setCalendarModalOpen(false);
     await triggerSync();
+    setTimeout(() => {
+      refetch();
+      refetchAppointments();
+    }, 1000);
   };
 
   const handleManualSync = async () => {
@@ -127,7 +90,37 @@ const Profile = () => {
     }, 1000);
   };
 
-  if (authLoading || profileLoading || calendarLoading) {
+  const handleExportData = () => {
+    // Convert appointments to CSV format
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Date,Time,Client,Service,Status,Price\n"
+      + appointments.map(apt => 
+          `${apt.appointment_date},${apt.appointment_time},${apt.client_name},${apt.service_name},${apt.status},${apt.price || ''}`
+        ).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `appointments_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleBroadcastMessage = () => {
+    // This would typically open a modal or navigate to a messaging interface
+    console.log('Opening broadcast message interface...');
+    // For now, just show an alert
+    alert('Broadcast message feature coming soon!');
+  };
+
+  const handleEmergencyToggle = () => {
+    setEmergencyPaused(!emergencyPaused);
+    // Here you would typically update the booking system status in the backend
+    console.log(`Booking system ${emergencyPaused ? 'resumed' : 'paused'}`);
+  };
+
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -144,51 +137,6 @@ const Profile = () => {
   if (!user) {
     return null;
   }
-
-  const setupSteps = [
-    {
-      id: 'calendar_linked',
-      title: 'Link Your Calendar',
-      description: 'Connect your calendar to start receiving bookings',
-      completed: calendarConnected || setupProgress?.calendar_linked || false,
-      icon: Calendar,
-    },
-    {
-      id: 'availability_configured',
-      title: 'Configure Availability',
-      description: 'Set your working hours and availability preferences',
-      completed: setupProgress?.availability_configured || false,
-      icon: Clock,
-    },
-    {
-      id: 'booking_rules_set',
-      title: 'Set Up Booking Rules',
-      description: 'Define your booking policies and requirements',
-      completed: setupProgress?.booking_rules_set || false,
-      icon: Target,
-    },
-  ];
-
-  const completedSteps = setupSteps.filter(step => step.completed).length;
-  const totalSteps = setupSteps.length;
-  const incompleteSteps = setupSteps.filter(step => !step.completed);
-
-  // Real metrics data
-  const metrics = [
-    { label: 'Total Clients', value: aggregatedMetrics.totalClients.toString(), icon: Users },
-    { label: 'New This Week', value: aggregatedMetrics.newThisWeek.toString(), icon: TrendingUp },
-    { label: 'Avg Response', value: aggregatedMetrics.avgResponse, icon: MessageSquare },
-    { label: 'Success Rate', value: aggregatedMetrics.successRate, icon: CheckCircle },
-    { label: 'This Month', value: aggregatedMetrics.thisMonth.toString(), icon: Calendar },
-  ];
-
-  // Today's appointments from real data
-  const todaysAppointments = getTodaysAppointments();
-  const todaySchedule = todaysAppointments.map(apt => ({
-    time: apt.appointment_time.slice(0, 5),
-    client: apt.client_name,
-    service: apt.service_name
-  }));
 
   // Generate booking trends from last 14 days
   const generateBookingTrends = () => {
@@ -212,21 +160,6 @@ const Profile = () => {
 
   const bookingTrends = generateBookingTrends();
   const popularServices = getPopularServices(appointments);
-
-  // Show loading state for metrics
-  if (metricsLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="max-w-7xl mx-auto py-8 px-4">
-          <div className="text-center py-20">
-            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-600">Loading dashboard data...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -253,92 +186,18 @@ const Profile = () => {
           </Button>
         </div>
 
-        {/* Action Required Section */}
-        {incompleteSteps.length > 0 && (
-          <Alert className="mb-8 border-red-200 bg-red-50">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
-            <AlertDescription className="text-red-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="font-semibold text-lg">Action Required</span>
-                  <p className="mt-1">Complete {incompleteSteps.length} more setup steps to activate your booking assistant.</p>
-                </div>
-                <Badge variant="destructive">
-                  {incompleteSteps.length} pending
-                </Badge>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
-
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           {/* Main Content */}
           <div className="xl:col-span-3 space-y-6">
-            {/* Real Business Metrics */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <BarChart3 className="h-5 w-5 text-green-600" />
-                  Business Metrics
-                </CardTitle>
-                <CardDescription>
-                  Key performance indicators for your booking business
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-                  {metrics.map((metric, index) => {
-                    const IconComponent = metric.icon;
-                    return (
-                      <div key={index} className="text-center">
-                        <div className="flex justify-center mb-2">
-                          <IconComponent className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</div>
-                        <div className="text-sm text-gray-600">{metric.label}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Business Metrics */}
+            <BusinessMetricsCard />
 
             {/* Today's Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Today's Real Schedule */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-green-600" />
-                    Today's Schedule
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {todaySchedule.length > 0 ? (
-                      <>
-                        {todaySchedule.map((appointment, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                              <div className="font-medium text-gray-900">{appointment.time}</div>
-                              <div className="text-sm text-gray-600">{appointment.client}</div>
-                            </div>
-                            <div className="text-sm text-gray-700 text-right">
-                              {appointment.service}
-                            </div>
-                          </div>
-                        ))}
-                      </>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        No appointments scheduled for today
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Today's Schedule */}
+              <TodaysScheduleCard />
 
-              {/* Real Booking Trends */}
+              {/* Booking Trends */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
@@ -372,59 +231,11 @@ const Profile = () => {
             {/* Calendar Events Display */}
             <CalendarEventsDisplay user={user} syncing={syncing} />
 
+            {/* Calendar Management */}
+            <CalendarManagementCard />
+
             {/* Setup Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-3">
-                    <Bot className="h-5 w-5 text-green-600" />
-                    Setup Progress
-                  </span>
-                  <Badge variant="outline">
-                    {completedSteps}/{totalSteps} completed
-                  </Badge>
-                </CardTitle>
-                <CardDescription>
-                  Complete these steps to activate your booking assistant
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {setupSteps.map((step) => {
-                    const IconComponent = step.icon;
-                    return (
-                      <div key={step.id} className={`flex items-center gap-4 p-4 rounded-lg border ${
-                        step.completed ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
-                      }`}>
-                        <div className={`p-2 rounded-full ${
-                          step.completed ? 'bg-green-100' : 'bg-red-100'
-                        }`}>
-                          {step.completed ? (
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                          ) : (
-                            <IconComponent className="h-5 w-5 text-red-600" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className={`font-medium ${step.completed ? 'text-green-900' : 'text-red-900'}`}>
-                            {step.title}
-                          </h4>
-                          <p className="text-sm text-gray-600">{step.description}</p>
-                        </div>
-                        <Button 
-                          variant={step.completed ? "outline" : "default"}
-                          size="sm"
-                          className={step.completed ? "" : "bg-red-600 hover:bg-red-700 text-white"}
-                          onClick={() => handleStepAction(step.id, step.completed)}
-                        >
-                          {step.completed ? 'Reset' : 'Complete'}
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+            <SetupProgressCard onCalendarModalOpen={() => setCalendarModalOpen(true)} />
           </div>
 
           {/* Sidebar */}
@@ -450,7 +261,7 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Real Popular Services */}
+            {/* Popular Services */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Popular Services</CardTitle>
@@ -474,7 +285,7 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {/* Expanded Quick Actions */}
+            {/* Quick Actions */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
@@ -501,14 +312,13 @@ const Profile = () => {
                   variant="outline"
                   onClick={() => window.open('https://calendar.google.com', '_blank')}
                 >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Calendar
-                  <ExternalLink className="h-3 w-3 ml-auto" />
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open Calendar
                 </Button>
                 <Button 
                   className="w-full justify-start" 
                   variant="outline"
-                  onClick={() => console.log('Export data functionality')}
+                  onClick={handleExportData}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export Data
@@ -516,7 +326,7 @@ const Profile = () => {
                 <Button 
                   className="w-full justify-start" 
                   variant="outline"
-                  onClick={() => console.log('Broadcast message functionality')}
+                  onClick={handleBroadcastMessage}
                 >
                   <Send className="h-4 w-4 mr-2" />
                   Broadcast Message
@@ -524,7 +334,7 @@ const Profile = () => {
                 <Button 
                   className={`w-full justify-start ${emergencyPaused ? 'text-green-600 hover:text-green-700' : 'text-red-600 hover:text-red-700'}`}
                   variant="outline"
-                  onClick={() => setEmergencyPaused(!emergencyPaused)}
+                  onClick={handleEmergencyToggle}
                 >
                   {emergencyPaused ? (
                     <>
