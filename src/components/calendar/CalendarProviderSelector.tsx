@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 interface CalendarProvider {
@@ -90,7 +90,7 @@ export const CalendarProviderSelector: React.FC<CalendarProviderSelectorProps> =
             key={provider.id}
             className={`cursor-pointer transition-all duration-200 ${provider.color} ${
               provider.status === 'coming-soon' ? 'opacity-60' : ''
-            }`}
+            } ${connecting ? 'pointer-events-none' : ''}`}
             onClick={() => {
               if (provider.status === 'available' && !connecting) {
                 onProviderSelect(provider.id);
@@ -130,7 +130,8 @@ export const CalendarProviderSelector: React.FC<CalendarProviderSelectorProps> =
                     disabled={provider.status === 'coming-soon' || connecting}
                     size="sm"
                   >
-                    {provider.status === 'available' ? 'Verbinden' : 'Binnenkort'}
+                    {connecting && provider.status === 'available' ? 'Verbinden...' : 
+                     provider.status === 'available' ? 'Verbinden' : 'Binnenkort'}
                   </Button>
                 </div>
               </div>

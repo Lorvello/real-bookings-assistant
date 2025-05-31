@@ -38,9 +38,14 @@ export const CalendarManagementCard = () => {
           description: `${providerName} kalender is succesvol ontkoppeld`,
         });
         
-        // Refresh the connections list after successful disconnect
-        console.log('[CalendarManagement] Refreshing connections after disconnect');
-        await refetch();
+        // Force refresh after a short delay to ensure database updates are reflected
+        setTimeout(async () => {
+          console.log('[CalendarManagement] Refreshing connections after disconnect');
+          await refetch();
+          
+          // Trigger a page refresh to ensure all components update
+          window.location.reload();
+        }, 1000);
       } else {
         toast({
           title: "Fout bij Ontkoppelen", 
@@ -88,14 +93,19 @@ export const CalendarManagementCard = () => {
     console.log('[CalendarManagement] Calendar integration completed');
     setShowCalendarModal(false);
     
-    // Refresh connections after new integration
-    setTimeout(async () => {
-      await refetch();
+    // Refresh connections after new integration with page reload
+    setTimeout(() => {
       toast({
         title: "Kalender Verbonden",
         description: "Je kalender is succesvol verbonden",
       });
+      window.location.reload();
     }, 1000);
+  };
+
+  const handleNewCalendarConnect = () => {
+    console.log('[CalendarManagement] Opening calendar selection modal');
+    setShowCalendarModal(true);
   };
 
   if (loading) {
@@ -186,7 +196,7 @@ export const CalendarManagementCard = () => {
 
           <div className="flex gap-2 pt-4 border-t">
             <Button
-              onClick={() => setShowCalendarModal(true)}
+              onClick={handleNewCalendarConnect}
               className="flex-1"
               disabled={loading}
             >

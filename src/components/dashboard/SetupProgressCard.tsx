@@ -8,6 +8,7 @@ import { CheckCircle, Calendar, Clock, Target, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendarLinking } from '@/hooks/useCalendarLinking';
+import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { useToast } from '@/hooks/use-toast';
 
 interface SetupProgressCardProps {
@@ -20,37 +21,66 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const { setupProgress, updateSetupProgress, loading } = useProfile(user);
-  const { isConnected: calendarConnected, loading: calendarLoading } = useCalendarLinking(user);
+  const { isConnected: calendarConnected, loading: calendarLoading, refetchConnection } = useCalendarLinking(user);
+  const { connections, disconnectProvider, refetch: refetchConnections } = useCalendarIntegration(user);
 
   const handleStepAction = async (step: string, completed: boolean) => {
     switch (step) {
       case 'calendar_linked':
         if (!completed) {
+          console.log('[SetupProgress] Opening calendar modal');
           onCalendarModalOpen();
         } else {
-          await updateSetupProgress('calendar_linked', false);
-          toast({
-            title: "Calendar Disconnected",
-            description: "Calendar connection has been reset",
-          });
+          console.log('[SetupProgress] Disconnecting all calendar connections');
+          
+          // Disconnect all active calendar connections
+          let disconnectedAny = false;
+          for (const connection of connections) {
+            if (connection.is_active) {
+              const success = await disconnectProvider(connection.id);
+              if (success) {
+                disconnectedAny = true;
+              }
+            }
+          }
+          
+          if (disconnectedAny) {
+            // Update setup progress
+            await updateSetupProgress('calendar_linked', false);
+            
+            // Refresh connections
+            await refetchConnections();
+            await refetchConnection();
+            
+            toast({
+              title: "Kalender Ontkoppeld",
+              description: "Alle kalender verbindingen zijn ontkoppeld",
+            });
+          } else {
+            toast({
+              title: "Fout",
+              description: "Kon kalender niet ontkoppelen",
+              variant: "destructive",
+            });
+          }
         }
         break;
       case 'availability_configured':
         await updateSetupProgress('availability_configured', !completed);
         toast({
-          title: completed ? "Availability Reset" : "Availability Configured",
+          title: completed ? "Beschikbaarheid Reset" : "Beschikbaarheid Geconfigureerd",
           description: completed 
-            ? "Availability settings have been reset" 
-            : "Availability has been configured",
+            ? "Beschikbaarheid instellingen zijn gereset" 
+            : "Beschikbaarheid is geconfigureerd",
         });
         break;
       case 'booking_rules_set':
         await updateSetupProgress('booking_rules_set', !completed);
         toast({
-          title: completed ? "Booking Rules Reset" : "Booking Rules Set",
+          title: completed ? "Boekingsregels Reset" : "Boekingsregels Ingesteld",
           description: completed 
-            ? "Booking rules have been reset" 
-            : "Booking rules have been configured",
+            ? "Boekingsregels zijn gereset" 
+            : "Boekingsregels zijn geconfigureerd",
         });
         break;
     }
