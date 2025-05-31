@@ -36,7 +36,7 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
           try {
             let disconnectedAny = false;
             
-            // Disconnect all active calendar connections
+            // Disconnect all active calendar connections one by one
             for (const connection of connections) {
               if (connection.is_active) {
                 console.log(`[SetupProgress] Disconnecting connection: ${connection.id} (${connection.provider})`);
@@ -50,37 +50,50 @@ export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
               }
             }
             
+            // Always update setup progress regardless of individual connection results
+            console.log('[SetupProgress] Updating setup progress to calendar_linked: false');
+            await updateSetupProgress('calendar_linked', false);
+            
+            // Refresh connection status
+            await refetchConnections();
+            await refetchConnection();
+            
             if (disconnectedAny) {
-              // Update setup progress to reflect no calendar linked
-              await updateSetupProgress('calendar_linked', false);
-              
-              // Refresh connection status
-              await refetchConnections();
-              await refetchConnection();
-              
               toast({
                 title: "Kalender Reset",
                 description: "Alle kalender verbindingen zijn succesvol ontkoppeld",
               });
-              
-              // Force a page reload to ensure all states are updated
-              setTimeout(() => {
-                window.location.reload();
-              }, 1000);
             } else {
               toast({
-                title: "Geen Actieve Verbindingen",
-                description: "Er zijn geen actieve kalender verbindingen om te ontkoppelen",
+                title: "Kalender Reset",
+                description: "Kalender status is gereset",
+              });
+            }
+            
+            // Force a page reload to ensure all states are updated
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+            
+          } catch (error) {
+            console.error('[SetupProgress] Error during calendar reset:', error);
+            
+            // Even if there's an error, try to update the setup progress
+            try {
+              await updateSetupProgress('calendar_linked', false);
+              toast({
+                title: "Kalender Status Gereset",
+                description: "De kalender status is gereset, maar er kunnen nog verbindingen actief zijn",
+                variant: "destructive",
+              });
+            } catch (progressError) {
+              console.error('[SetupProgress] Failed to update setup progress:', progressError);
+              toast({
+                title: "Reset Mislukt",
+                description: "Er ging iets mis bij het resetten van de kalender. Probeer het opnieuw.",
                 variant: "destructive",
               });
             }
-          } catch (error) {
-            console.error('[SetupProgress] Error during calendar reset:', error);
-            toast({
-              title: "Reset Mislukt",
-              description: "Er ging iets mis bij het resetten van de kalender. Probeer het opnieuw.",
-              variant: "destructive",
-            });
           }
         }
         break;
