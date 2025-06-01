@@ -1,10 +1,9 @@
 
 /**
- * 🎭 CALENDAR INTEGRATION MODAL - SIMPLIFIED
+ * 🎭 CALENDAR INTEGRATION MODAL - FIXED OAUTH
  * ==========================================
  * 
- * Simplified modal that only handles calendar provider selection
- * and redirects. No longer manages multiple states or steps.
+ * Fixed modal with correct OAuth configuration for Google Calendar
  */
 
 import React, { useState } from 'react';
@@ -51,32 +50,11 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
           return;
         }
 
-        // Create a pending connection first
-        const { data: connection, error: connectionError } = await supabase
-          .from('calendar_connections')
-          .insert({
-            user_id: user.id,
-            provider: 'google',
-            provider_account_id: 'pending',
-            is_active: false
-          })
-          .select()
-          .single();
-
-        if (connectionError) {
-          console.error('[CalendarModal] Error creating pending connection:', connectionError);
-          toast({
-            title: "Fout",
-            description: "Kon geen kalender verbinding maken",
-            variant: "destructive",
-          });
-          setConnecting(false);
-          return;
-        }
-
-        // Use the connection ID as state parameter
-        const state = connection.id;
-        const redirectUri = `${window.location.origin}/auth/callback`;
+        // Create a unique state parameter using user ID and timestamp
+        const state = `${user.id}-${Date.now()}`;
+        
+        // Use the correct Supabase callback URL that matches our configuration
+        const redirectUri = 'https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback';
         const clientId = '7344737510-1846vbrgkq4ac0e1ehrjg1dlg001o56.apps.googleusercontent.com';
         
         const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
@@ -88,7 +66,12 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
           `access_type=offline&` +
           `prompt=consent`;
 
-        console.log('[CalendarModal] Redirecting to Google OAuth...');
+        console.log('[CalendarModal] Redirecting to Google OAuth with state:', state);
+        
+        // Store the state in localStorage so we can verify it on return
+        localStorage.setItem('oauth_state', state);
+        localStorage.setItem('oauth_user_id', user.id);
+        
         window.location.href = googleAuthUrl;
         
       } catch (error) {

@@ -28,29 +28,42 @@ serve(async (req) => {
 
     const { code, state, user_id } = await req.json()
 
-    console.log('Google Calendar OAuth token exchange:', { code: code?.substring(0, 10) + '...', state, user_id })
+    console.log('Google Calendar OAuth token exchange:', { 
+      code: code?.substring(0, 10) + '...', 
+      state, 
+      user_id,
+      authenticated_user: user.user.id
+    })
 
-    if (!code || !state) {
+    if (!code) {
       return new Response(
-        JSON.stringify({ error: 'Missing code or state parameter' }),
+        JSON.stringify({ error: 'Missing authorization code' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    // Verify the requesting user matches the authenticated user
+    if (user_id !== user.user.id) {
+      return new Response(
+        JSON.stringify({ error: 'User ID mismatch' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Get OAuth credentials from environment
-    const clientId = Deno.env.get('VITE_GOOGLE_CLIENT_ID')
+    const clientId = '7344737510-1846vbrgkq4ac0e1ehrjg1dlg001o56.apps.googleusercontent.com'
     const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET')
     
-    if (!clientId || !clientSecret) {
-      console.error('Missing Google OAuth credentials')
+    if (!clientSecret) {
+      console.error('Missing Google OAuth client secret')
       return new Response(
         JSON.stringify({ error: 'OAuth credentials not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Use the same redirect URI that matches your Google Cloud Console setup
-    const redirectUri = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback`
+    // Use the correct redirect URI that matches Google Console setup
+    const redirectUri = 'https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback'
 
     console.log('Using redirect URI for calendar OAuth:', redirectUri)
 
@@ -77,7 +90,10 @@ serve(async (req) => {
     if (!tokenResponse.ok) {
       console.error('Token exchange failed:', tokens)
       return new Response(
-        JSON.stringify({ error: tokens.error_description || 'Failed to exchange authorization code' }),
+        JSON.stringify({ 
+          error: tokens.error_description || 'Failed to exchange authorization code',
+          details: tokens
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -111,29 +127,43 @@ serve(async (req) => {
     // Calculate token expiry
     const expiresAt = new Date(Date.now() + (tokens.expires_in * 1000)).toISOString()
 
-    // Update the pending connection in database
-    const { error: updateError } = await supabase
+    // Store or update calendar connection
+    const { error: upsertError } = await supabase
       .from('calendar_connections')
-      .update({
+      .upsert({
+        user_id: user_id,
+        provider: 'google',
         provider_account_id: userInfo.id,
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token || null,
         expires_at: expiresAt,
         is_active: true,
+        connected_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id,provider'
       })
-      .eq('id', state)
-      .eq('user_id', user_id)
 
-    if (updateError) {
-      console.error('Database update error:', updateError)
+    if (upsertError) {
+      console.error('Database upsert error:', upsertError)
       return new Response(
         JSON.stringify({ error: 'Failed to save connection details' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log('Successfully updated calendar connection')
+    // Update setup progress
+    await supabase
+      .from('setup_progress')
+      .upsert({
+        user_id: user_id,
+        calendar_linked: true,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      })
+
+    console.log('Successfully saved calendar connection')
 
     return new Response(
       JSON.stringify({ 

@@ -14,33 +14,67 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('[AuthCallback] Processing calendar OAuth callback...');
+        console.log('[AuthCallback] Processing OAuth callback...');
         
-        // Handle calendar OAuth callback specifically
         const code = searchParams.get('code');
         const state = searchParams.get('state');
+        const error = searchParams.get('error');
+        
+        if (error) {
+          console.error('[AuthCallback] OAuth error:', error);
+          toast({
+            title: "Verbinding Mislukt",
+            description: "Er ging iets mis tijdens de autorisatie",
+            variant: "destructive",
+          });
+          navigate('/profile');
+          return;
+        }
         
         if (code && state) {
-          console.log('[AuthCallback] Calendar OAuth callback detected');
+          console.log('[AuthCallback] Processing calendar OAuth callback with state:', state);
+          
+          // Verify the state parameter
+          const storedState = localStorage.getItem('oauth_state');
+          const storedUserId = localStorage.getItem('oauth_user_id');
+          
+          if (state !== storedState) {
+            console.error('[AuthCallback] State mismatch - possible CSRF attack');
+            toast({
+              title: "Beveiligingsfout",
+              description: "Ongeldige OAuth status parameter",
+              variant: "destructive",
+            });
+            navigate('/profile');
+            return;
+          }
+          
+          // Clean up localStorage
+          localStorage.removeItem('oauth_state');
+          localStorage.removeItem('oauth_user_id');
           
           // Get current user session
           const { data: { user } } = await supabase.auth.getUser();
           
-          if (user) {
+          if (user && storedUserId === user.id) {
             try {
-              // Process the calendar OAuth callback
+              // Process the calendar OAuth callback using the google-calendar-oauth function
               const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
-                body: { code, state, user_id: user.id }
+                body: { 
+                  code, 
+                  state,
+                  user_id: user.id 
+                }
               });
               
               if (error) {
                 console.error('[AuthCallback] Calendar OAuth error:', error);
                 toast({
                   title: "Kalender Verbinding Mislukt",
-                  description: "Er ging iets mis bij het verbinden van je kalender",
+                  description: error.message || "Er ging iets mis bij het verbinden van je kalender",
                   variant: "destructive",
                 });
-              } else if (data.success) {
+              } else if (data?.success) {
                 console.log('[AuthCallback] Calendar connection successful');
                 toast({
                   title: "Kalender Verbonden",
@@ -55,6 +89,13 @@ const AuthCallback = () => {
                 variant: "destructive",
               });
             }
+          } else {
+            console.error('[AuthCallback] User verification failed');
+            toast({
+              title: "Autorisatie Mislukt",
+              description: "Kon gebruiker niet verifiëren",
+              variant: "destructive",
+            });
           }
           
           // Always return to profile dashboard after calendar OAuth
@@ -62,9 +103,9 @@ const AuthCallback = () => {
           return;
         }
         
-        // If no calendar OAuth, this shouldn't happen anymore since we removed Google login
-        console.log('[AuthCallback] No calendar OAuth parameters found');
-        navigate('/login');
+        // If no parameters, just redirect to profile
+        console.log('[AuthCallback] No OAuth parameters found, redirecting to profile');
+        navigate('/profile');
         
       } catch (error: any) {
         console.error('[AuthCallback] Unexpected error:', error);
@@ -73,7 +114,7 @@ const AuthCallback = () => {
           description: "Er ging iets mis. Probeer het opnieuw.",
           variant: "destructive",
         });
-        navigate('/login');
+        navigate('/profile');
       } finally {
         setProcessing(false);
       }
