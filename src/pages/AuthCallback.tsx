@@ -14,88 +14,69 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('[AuthCallback] Processing OAuth callback...');
+        console.log('[AuthCallback] Processing auth callback...');
         
-        const code = searchParams.get('code');
-        const state = searchParams.get('state');
-        const error = searchParams.get('error');
+        // Handle the auth callback
+        const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('[AuthCallback] OAuth error:', error);
+          console.error('[AuthCallback] Session error:', error);
+          
+          const errorMessages = {
+            'invalid_client': 'OAuth configuratie is incorrect. Controleer Google Cloud Console instellingen.',
+            'access_denied': 'Toegang geweigerd. Probeer opnieuw in te loggen.',
+            'server_error': 'Server fout. Probeer het later opnieuw.'
+          };
+          
+          const errorKey = error.message.toLowerCase();
+          const userMessage = Object.keys(errorMessages).find(key => errorKey.includes(key));
+          
           toast({
-            title: "Verbinding Mislukt",
-            description: "Er ging iets mis tijdens de autorisatie",
+            title: "Inlog Fout",
+            description: userMessage ? errorMessages[userMessage as keyof typeof errorMessages] : error.message,
             variant: "destructive",
           });
-          navigate('/profile');
+          
+          navigate('/login?error=oauth_failed');
           return;
         }
-        
-        if (code && state) {
-          console.log('[AuthCallback] Processing calendar OAuth callback with state:', state);
+
+        if (data.session?.user) {
+          console.log('[AuthCallback] User authenticated successfully:', data.session.user.id);
           
-          // Get current user session
-          const { data: { user } } = await supabase.auth.getUser();
+          // Check if this was a calendar-specific OAuth flow
+          const isCalendarFlow = searchParams.get('calendar') === 'true';
           
-          if (user) {
-            try {
-              // Process the calendar OAuth callback using the google-calendar-oauth function
-              const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
-                body: { 
-                  code, 
-                  state,
-                  user_id: user.id 
-                }
-              });
-              
-              if (error) {
-                console.error('[AuthCallback] Calendar OAuth error:', error);
-                toast({
-                  title: "Kalender Verbinding Mislukt",
-                  description: error.message || "Er ging iets mis bij het verbinden van je kalender",
-                  variant: "destructive",
-                });
-              } else if (data?.success) {
-                console.log('[AuthCallback] Calendar connection successful');
-                toast({
-                  title: "Kalender Verbonden",
-                  description: "Je Google Calendar is succesvol verbonden",
-                });
-              }
-            } catch (error) {
-              console.error('[AuthCallback] Calendar OAuth processing error:', error);
+          if (isCalendarFlow) {
+            console.log('[AuthCallback] Calendar OAuth flow detected');
+            
+            // Wait a moment for the calendar connection to be created
+            setTimeout(() => {
               toast({
-                title: "Verbinding Mislukt",
-                description: "Er ging iets mis tijdens het verwerken van de kalender verbinding",
-                variant: "destructive",
+                title: "Welkom terug!",
+                description: "Google Calendar is succesvol verbonden.",
               });
-            }
+              navigate('/profile?success=calendar_connected');
+            }, 2000);
           } else {
-            console.error('[AuthCallback] User verification failed');
             toast({
-              title: "Autorisatie Mislukt",
-              description: "Kon gebruiker niet verifiëren",
-              variant: "destructive",
+              title: "Welkom terug!",
+              description: "Je bent succesvol ingelogd.",
             });
+            navigate('/profile?success=login');
           }
-          
-          // Always return to profile dashboard after calendar OAuth
-          navigate('/profile');
-          return;
+        } else {
+          console.log('[AuthCallback] No session found, redirecting to login');
+          navigate('/login?message=please_login');
         }
-        
-        // If no parameters, just redirect to profile
-        console.log('[AuthCallback] No OAuth parameters found, redirecting to profile');
-        navigate('/profile');
-        
       } catch (error: any) {
         console.error('[AuthCallback] Unexpected error:', error);
         toast({
           title: "Fout",
-          description: "Er ging iets mis. Probeer het opnieuw.",
+          description: "Er ging iets mis tijdens het inloggen. Probeer het opnieuw.",
           variant: "destructive",
         });
-        navigate('/profile');
+        navigate('/login?error=unexpected');
       } finally {
         setProcessing(false);
       }
@@ -109,10 +90,10 @@ const AuthCallback = () => {
       <div className="text-center">
         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-green-600" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Kalender Verbinden...
+          {processing ? 'Inloggen...' : 'Verwerkt'}
         </h2>
         <p className="text-gray-600">
-          Even geduld terwijl we je kalender verbinden.
+          Even geduld terwijl we je inloggen.
         </p>
       </div>
     </div>
