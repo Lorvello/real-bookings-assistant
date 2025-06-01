@@ -51,11 +51,11 @@ serve(async (req) => {
     }
 
     // Get OAuth credentials from environment
-    const clientId = '7344737510-1846vbrgkq4ac0e1ehrjg1dlg001o56.apps.googleusercontent.com'
-    const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET')
+    const clientId = Deno.env.get('VITE_GOOGLE_CLIENT_ID')
+    const clientSecret = Deno.env.get('VITE_GOOGLE_CLIENT_SECRET')
     
-    if (!clientSecret) {
-      console.error('Missing Google OAuth client secret')
+    if (!clientId || !clientSecret) {
+      console.error('Missing Google OAuth credentials')
       return new Response(
         JSON.stringify({ error: 'OAuth credentials not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

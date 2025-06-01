@@ -50,29 +50,34 @@ export const CalendarIntegrationModal: React.FC<CalendarIntegrationModalProps> =
           return;
         }
 
-        // Create a unique state parameter using user ID and timestamp
-        const state = `${user.id}-${Date.now()}`;
-        
-        // Use the correct Supabase callback URL that matches our configuration
-        const redirectUri = 'https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/callback';
-        const clientId = '7344737510-1846vbrgkq4ac0e1ehrjg1dlg001o56.apps.googleusercontent.com';
-        
-        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-          `client_id=${clientId}&` +
-          `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-          `response_type=code&` +
-          `scope=${encodeURIComponent('https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email')}&` +
-          `state=${state}&` +
-          `access_type=offline&` +
-          `prompt=consent`;
+        // Use the Google Calendar OAuth flow
+        const { data, error } = await supabase.functions.invoke('google-calendar-connect', {
+          body: { user_id: user.id }
+        });
 
-        console.log('[CalendarModal] Redirecting to Google OAuth with state:', state);
-        
-        // Store the state in localStorage so we can verify it on return
-        localStorage.setItem('oauth_state', state);
-        localStorage.setItem('oauth_user_id', user.id);
-        
-        window.location.href = googleAuthUrl;
+        if (error) {
+          console.error('[CalendarModal] Google Calendar connect error:', error);
+          toast({
+            title: "Verbinding Mislukt",
+            description: "Kon niet verbinden met Google Calendar",
+            variant: "destructive",
+          });
+          setConnecting(false);
+          return;
+        }
+
+        if (data?.auth_url) {
+          console.log('[CalendarModal] Redirecting to Google OAuth:', data.auth_url);
+          window.location.href = data.auth_url;
+        } else {
+          console.error('[CalendarModal] No auth URL received');
+          toast({
+            title: "Verbinding Mislukt",
+            description: "Geen autorisatie URL ontvangen",
+            variant: "destructive",
+          });
+          setConnecting(false);
+        }
         
       } catch (error) {
         console.error('[CalendarModal] Error setting up Google OAuth:', error);

@@ -34,29 +34,10 @@ const AuthCallback = () => {
         if (code && state) {
           console.log('[AuthCallback] Processing calendar OAuth callback with state:', state);
           
-          // Verify the state parameter
-          const storedState = localStorage.getItem('oauth_state');
-          const storedUserId = localStorage.getItem('oauth_user_id');
-          
-          if (state !== storedState) {
-            console.error('[AuthCallback] State mismatch - possible CSRF attack');
-            toast({
-              title: "Beveiligingsfout",
-              description: "Ongeldige OAuth status parameter",
-              variant: "destructive",
-            });
-            navigate('/profile');
-            return;
-          }
-          
-          // Clean up localStorage
-          localStorage.removeItem('oauth_state');
-          localStorage.removeItem('oauth_user_id');
-          
           // Get current user session
           const { data: { user } } = await supabase.auth.getUser();
           
-          if (user && storedUserId === user.id) {
+          if (user) {
             try {
               // Process the calendar OAuth callback using the google-calendar-oauth function
               const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
