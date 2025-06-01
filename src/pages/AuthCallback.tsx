@@ -14,69 +14,66 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('[AuthCallback] Processing auth callback...');
+        console.log('[AuthCallback] Processing calendar OAuth callback...');
         
-        // Handle the auth callback
-        const { data, error } = await supabase.auth.getSession();
+        // Handle calendar OAuth callback specifically
+        const code = searchParams.get('code');
+        const state = searchParams.get('state');
         
-        if (error) {
-          console.error('[AuthCallback] Session error:', error);
+        if (code && state) {
+          console.log('[AuthCallback] Calendar OAuth callback detected');
           
-          const errorMessages = {
-            'invalid_client': 'OAuth configuratie is incorrect. Controleer Google Cloud Console instellingen.',
-            'access_denied': 'Toegang geweigerd. Probeer opnieuw in te loggen.',
-            'server_error': 'Server fout. Probeer het later opnieuw.'
-          };
+          // Get current user session
+          const { data: { user } } = await supabase.auth.getUser();
           
-          const errorKey = error.message.toLowerCase();
-          const userMessage = Object.keys(errorMessages).find(key => errorKey.includes(key));
+          if (user) {
+            try {
+              // Process the calendar OAuth callback
+              const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
+                body: { code, state, user_id: user.id }
+              });
+              
+              if (error) {
+                console.error('[AuthCallback] Calendar OAuth error:', error);
+                toast({
+                  title: "Kalender Verbinding Mislukt",
+                  description: "Er ging iets mis bij het verbinden van je kalender",
+                  variant: "destructive",
+                });
+              } else if (data.success) {
+                console.log('[AuthCallback] Calendar connection successful');
+                toast({
+                  title: "Kalender Verbonden",
+                  description: "Je Google Calendar is succesvol verbonden",
+                });
+              }
+            } catch (error) {
+              console.error('[AuthCallback] Calendar OAuth processing error:', error);
+              toast({
+                title: "Verbinding Mislukt",
+                description: "Er ging iets mis tijdens het verwerken van de kalender verbinding",
+                variant: "destructive",
+              });
+            }
+          }
           
-          toast({
-            title: "Inlog Fout",
-            description: userMessage ? errorMessages[userMessage as keyof typeof errorMessages] : error.message,
-            variant: "destructive",
-          });
-          
-          navigate('/login?error=oauth_failed');
+          // Always return to profile dashboard after calendar OAuth
+          navigate('/profile');
           return;
         }
-
-        if (data.session?.user) {
-          console.log('[AuthCallback] User authenticated successfully:', data.session.user.id);
-          
-          // Check if this was a calendar-specific OAuth flow
-          const isCalendarFlow = searchParams.get('calendar') === 'true';
-          
-          if (isCalendarFlow) {
-            console.log('[AuthCallback] Calendar OAuth flow detected');
-            
-            // Wait a moment for the calendar connection to be created
-            setTimeout(() => {
-              toast({
-                title: "Welkom terug!",
-                description: "Google Calendar is succesvol verbonden.",
-              });
-              navigate('/profile?success=calendar_connected');
-            }, 2000);
-          } else {
-            toast({
-              title: "Welkom terug!",
-              description: "Je bent succesvol ingelogd.",
-            });
-            navigate('/profile?success=login');
-          }
-        } else {
-          console.log('[AuthCallback] No session found, redirecting to login');
-          navigate('/login?message=please_login');
-        }
+        
+        // If no calendar OAuth, this shouldn't happen anymore since we removed Google login
+        console.log('[AuthCallback] No calendar OAuth parameters found');
+        navigate('/login');
+        
       } catch (error: any) {
         console.error('[AuthCallback] Unexpected error:', error);
         toast({
           title: "Fout",
-          description: "Er ging iets mis tijdens het inloggen. Probeer het opnieuw.",
+          description: "Er ging iets mis. Probeer het opnieuw.",
           variant: "destructive",
         });
-        navigate('/login?error=unexpected');
+        navigate('/login');
       } finally {
         setProcessing(false);
       }
@@ -90,10 +87,10 @@ const AuthCallback = () => {
       <div className="text-center">
         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-green-600" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          {processing ? 'Inloggen...' : 'Verwerkt'}
+          Kalender Verbinden...
         </h2>
         <p className="text-gray-600">
-          Even geduld terwijl we je inloggen.
+          Even geduld terwijl we je kalender verbinden.
         </p>
       </div>
     </div>
