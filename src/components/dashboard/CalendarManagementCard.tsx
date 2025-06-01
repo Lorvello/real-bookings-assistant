@@ -26,6 +26,15 @@ export const CalendarManagementCard = () => {
     refetch
   } = useCalendarIntegration(user);
 
+  // Debug logging to understand what's happening
+  console.log('[CalendarManagementCard] Debug Info:', {
+    user: user?.id,
+    connections: connections,
+    connectionsLength: connections?.length,
+    loading,
+    syncing
+  });
+
   const handleSync = async () => {
     console.log('[CalendarManagement] Starting manual sync');
     
@@ -110,6 +119,7 @@ export const CalendarManagementCard = () => {
   };
 
   if (loading) {
+    console.log('[CalendarManagementCard] Showing loading state');
     return (
       <Card>
         <CardHeader>
@@ -128,6 +138,8 @@ export const CalendarManagementCard = () => {
     );
   }
 
+  console.log('[CalendarManagementCard] Rendering main card with connections:', connections?.length || 0);
+
   return (
     <>
       <Card>
@@ -143,6 +155,18 @@ export const CalendarManagementCard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* DEBUG INFO - This will help us see what's happening */}
+          <Alert className="border-blue-200 bg-blue-50">
+            <AlertTriangle className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <strong>Debug Info:</strong><br />
+              Loading: {loading ? 'true' : 'false'}<br />
+              Connections: {connections?.length || 0}<br />
+              User: {user?.id ? 'logged in' : 'not logged in'}<br />
+              Syncing: {syncing ? 'true' : 'false'}
+            </AlertDescription>
+          </Alert>
+
           {/* Disconnect All Warning & Button */}
           {connections.length > 0 && (
             <Alert className="border-red-200 bg-red-50">

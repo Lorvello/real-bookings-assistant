@@ -51,7 +51,7 @@ export const useCalendarIntegration = (user: User | null) => {
   // 📊 STATE MANAGEMENT
   // Centralized state voor alle calendar integration aspecten
   const [state, setState] = useState<CalendarIntegrationState>({
-    connections: [],          // Lijst van actieve calendar connections
+    connections: [],          // Lijst van actieve connections
     loading: true,           // Initial loading state voor skeleton UI
     syncing: false,          // Active sync in progress voor loading indicators  
     connectionStatus: 'idle', // Connection establishment status
@@ -64,8 +64,10 @@ export const useCalendarIntegration = (user: User | null) => {
   // Triggert wanneer user inlogt/uitlogt of component mount
   useEffect(() => {
     if (user) {
+      console.log('[useCalendarIntegration] User detected, fetching connections for:', user.id);
       fetchConnections();
     } else {
+      console.log('[useCalendarIntegration] No user, clearing state');
       // Clear state when user logs out voor security
       setState(prev => ({ ...prev, connections: [], loading: false }));
     }
@@ -85,17 +87,29 @@ export const useCalendarIntegration = (user: User | null) => {
    * - Loading state management voor smooth UX
    */
   const fetchConnections = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('[useCalendarIntegration] fetchConnections called but no user available');
+      return;
+    }
 
     try {
-      console.log('[CalendarIntegration] Fetching connections for user:', user.id);
+      console.log('[CalendarIntegration] Starting fetch for user:', user.id);
+      setState(prev => ({ ...prev, loading: true }));
       
       // 🔍 Fetch via utility function die RLS en filters afhandelt
       const connections = await fetchCalendarConnections(user);
-      console.log('[CalendarIntegration] Fetched connections:', connections.length);
+      console.log('[CalendarIntegration] Fetched connections:', {
+        count: connections.length,
+        connections: connections.map(c => ({ id: c.id, provider: c.provider, is_active: c.is_active }))
+      });
       
       // ✅ Update state met fresh data
-      setState(prev => ({ ...prev, connections, loading: false }));
+      setState(prev => ({ 
+        ...prev, 
+        connections, 
+        loading: false,
+        errorMessage: ''
+      }));
     } catch (error) {
       console.error('[CalendarIntegration] Error fetching connections:', error);
       
@@ -107,7 +121,11 @@ export const useCalendarIntegration = (user: User | null) => {
       });
       
       // 🔄 Ensure loading state is cleared ook bij errors
-      setState(prev => ({ ...prev, loading: false }));
+      setState(prev => ({ 
+        ...prev, 
+        loading: false,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      }));
     }
   };
 
