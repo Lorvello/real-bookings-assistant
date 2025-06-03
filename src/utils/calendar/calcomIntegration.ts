@@ -1,80 +1,39 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
+import { createCalcomConnection } from './connectionManager';
 
-export interface CalcomOAuthConfig {
-  clientId: string;
-  redirectUri: string;
-  scope: string;
-}
-
-export const getCalcomOAuthConfig = async (): Promise<CalcomOAuthConfig | null> => {
+export const initiateCalcomRegistration = async (user: User): Promise<boolean> => {
   try {
-    const { data, error } = await supabase
-      .from('oauth_providers')
-      .select('*')
-      .eq('provider', 'calcom')
-      .eq('is_active', true)
-      .single();
+    console.log('[CalcomIntegration] Starting Cal.com registration for user:', user.id);
 
-    if (error || !data) {
-      console.error('Cal.com OAuth provider not configured:', error);
-      return null;
-    }
-
-    const redirectUri = `${window.location.origin}/auth/callback?provider=calcom`;
-
-    return {
-      clientId: data.client_id || '',
-      redirectUri,
-      scope: data.scope
-    };
-  } catch (error) {
-    console.error('Error fetching Cal.com OAuth config:', error);
-    return null;
-  }
-};
-
-export const initiateCalcomOAuth = async (user: User) => {
-  try {
-    console.log('[CalcomIntegration] Starting Cal.com OAuth for user:', user.id);
-
-    const config = await getCalcomOAuthConfig();
-    if (!config) {
-      throw new Error('Cal.com OAuth not configured');
-    }
-
-    // Create pending calendar connection
-    const { data: connection, error: connectionError } = await supabase
-      .from('calendar_connections')
-      .insert({
+    // Create Cal.com user via edge function
+    const { data, error } = await supabase.functions.invoke('create-calcom-user', {
+      body: { 
         user_id: user.id,
-        provider: 'calcom',
-        provider_account_id: 'pending',
-        is_active: false
-      })
-      .select()
-      .single();
+        email: user.email,
+        name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+      }
+    });
 
-    if (connectionError) {
-      throw new Error(`Failed to create Cal.com connection: ${connectionError.message}`);
+    if (error) {
+      throw new Error(`Cal.com registration failed: ${error.message}`);
     }
 
-    // Build OAuth URL
-    const oauthUrl = new URL('https://api.cal.com/v1/oauth/authorize');
-    oauthUrl.searchParams.set('client_id', config.clientId);
-    oauthUrl.searchParams.set('redirect_uri', config.redirectUri);
-    oauthUrl.searchParams.set('response_type', 'code');
-    oauthUrl.searchParams.set('scope', config.scope);
-    oauthUrl.searchParams.set('state', connection.id);
+    if (data.success && data.cal_user_id) {
+      // Create calendar connection record
+      const connection = await createCalcomConnection(user, data.cal_user_id);
+      
+      if (connection) {
+        console.log('[CalcomIntegration] Cal.com user registered successfully:', data.cal_user_id);
+        return true;
+      }
+    }
 
-    console.log('[CalcomIntegration] Redirecting to Cal.com OAuth:', oauthUrl.toString());
-
-    // Redirect to Cal.com OAuth
-    window.location.href = oauthUrl.toString();
+    throw new Error(data.error || 'Cal.com registration failed');
 
   } catch (error) {
-    console.error('[CalcomIntegration] OAuth initiation failed:', error);
+    console.error('[CalcomIntegration] Registration failed:', error);
     throw error;
   }
 };
@@ -124,7 +83,6 @@ export const disconnectCalcomProvider = async (user: User, connectionId: string)
     const { error: eventsError } = await supabase
       .from('calendar_events')
       .delete()
-      .eq('calendar_connection_id', connectionId)
       .eq('user_id', user.id);
 
     if (eventsError) {

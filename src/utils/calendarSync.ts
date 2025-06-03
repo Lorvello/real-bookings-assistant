@@ -21,32 +21,32 @@ export const syncCalendarEvents = async (user: User): Promise<boolean> => {
   }
 };
 
-export const handleCalcomOAuthCallback = async (
-  code: string, 
-  state: string, 
-  user: User
-): Promise<boolean> => {
+export const handleCalcomRegistration = async (user: User): Promise<boolean> => {
   if (!user) return false;
 
   try {
-    console.log('Handling Cal.com OAuth callback:', { code: code.substring(0, 10) + '...', state });
+    console.log('Creating Cal.com user for:', user.id);
 
-    const { data, error } = await supabase.functions.invoke('calcom-oauth', {
-      body: { code, state, user_id: user.id }
+    const { data, error } = await supabase.functions.invoke('create-calcom-user', {
+      body: { 
+        user_id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+      }
     });
 
     if (error) {
-      console.error('Cal.com OAuth error:', error);
+      console.error('Cal.com user creation error:', error);
       throw error;
     }
 
     if (data.success) {
       return true;
     } else {
-      throw new Error(data.error || 'Cal.com OAuth failed');
+      throw new Error(data.error || 'Cal.com user creation failed');
     }
   } catch (error: any) {
-    console.error('Cal.com OAuth callback error:', error);
+    console.error('Cal.com registration error:', error);
     throw error;
   }
 };

@@ -15,40 +15,46 @@ export const fetchCalendarConnections = async (user: User): Promise<CalendarConn
 
     if (error) {
       console.error('Error fetching calendar connections:', error);
-      throw error;
+      return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('Unexpected error fetching connections:', error);
-    throw error;
+    console.error('Unexpected error fetching calendar connections:', error);
+    return [];
   }
 };
 
-export const createPendingConnection = async (user: User, provider: string): Promise<string | null> => {
+export const createCalcomConnection = async (user: User, calUserId: string): Promise<CalendarConnection | null> => {
+  if (!user) return null;
+
   try {
-    console.log(`[CalendarUtils] Creating pending ${provider} connection for user:`, user.id);
-    
+    // First, deactivate any existing connections
+    await supabase
+      .from('calendar_connections')
+      .update({ is_active: false })
+      .eq('user_id', user.id);
+
+    // Create new Cal.com connection
     const { data, error } = await supabase
       .from('calendar_connections')
       .insert({
         user_id: user.id,
-        provider: provider,
-        provider_account_id: 'pending',
-        is_active: false
+        cal_user_id: calUserId,
+        is_active: true,
+        connected_at: new Date().toISOString()
       })
-      .select('id')
+      .select()
       .single();
 
     if (error) {
-      console.error('Error creating pending connection:', error);
+      console.error('Error creating Cal.com connection:', error);
       return null;
     }
 
-    console.log(`[CalendarUtils] Created pending connection with ID:`, data.id);
-    return data.id;
+    return data;
   } catch (error) {
-    console.error('Unexpected error creating pending connection:', error);
+    console.error('Unexpected error creating Cal.com connection:', error);
     return null;
   }
 };

@@ -2,13 +2,9 @@
 export interface CalendarConnection {
   id: string;
   user_id: string;
-  provider: string;
-  provider_account_id: string;
-  access_token?: string;
-  refresh_token?: string;
-  expires_at?: string;
-  connected_at?: string;
-  is_active: boolean;
+  cal_user_id: string | null;
+  connected_at: string | null;
+  is_active: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -16,29 +12,18 @@ export interface CalendarConnection {
 export interface CalendarEvent {
   id: string;
   user_id: string;
-  calendar_connection_id?: string;
-  external_event_id: string;
-  title?: string;
-  event_summary?: string;
+  cal_booking_id: string | null;
+  cal_event_type_id: string | null;
+  title: string | null;
+  event_summary: string | null;
   start_time: string;
   end_time: string;
   is_busy: boolean;
-  event_status?: string;
+  event_status: string | null;
+  attendee_name: string | null;
+  attendee_email: string | null;
   created_at: string;
   last_synced_at: string;
-}
-
-export interface OAuthProvider {
-  id: string;
-  provider: string;
-  client_id: string | null;
-  client_secret?: string | null;
-  auth_url: string;
-  token_url: string;
-  scope: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface CalendarIntegrationState {

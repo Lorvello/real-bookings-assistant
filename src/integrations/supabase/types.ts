@@ -287,50 +287,29 @@ export type Database = {
       }
       calendar_connections: {
         Row: {
-          access_token: string | null
-          api_endpoint: string | null
           cal_user_id: string | null
           connected_at: string | null
           created_at: string
-          expires_at: string | null
           id: string
           is_active: boolean | null
-          license_key: string | null
-          provider: string
-          provider_account_id: string
-          refresh_token: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          access_token?: string | null
-          api_endpoint?: string | null
           cal_user_id?: string | null
           connected_at?: string | null
           created_at?: string
-          expires_at?: string | null
           id?: string
           is_active?: boolean | null
-          license_key?: string | null
-          provider: string
-          provider_account_id: string
-          refresh_token?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          access_token?: string | null
-          api_endpoint?: string | null
           cal_user_id?: string | null
           connected_at?: string | null
           created_at?: string
-          expires_at?: string | null
           id?: string
           is_active?: boolean | null
-          license_key?: string | null
-          provider?: string
-          provider_account_id?: string
-          refresh_token?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -342,12 +321,10 @@ export type Database = {
           attendee_name: string | null
           cal_booking_id: string | null
           cal_event_type_id: string | null
-          calendar_connection_id: string | null
           created_at: string
           end_time: string
           event_status: string | null
           event_summary: string | null
-          external_event_id: string
           id: string
           is_busy: boolean
           last_synced_at: string
@@ -360,12 +337,10 @@ export type Database = {
           attendee_name?: string | null
           cal_booking_id?: string | null
           cal_event_type_id?: string | null
-          calendar_connection_id?: string | null
           created_at?: string
           end_time: string
           event_status?: string | null
           event_summary?: string | null
-          external_event_id: string
           id?: string
           is_busy?: boolean
           last_synced_at?: string
@@ -378,12 +353,10 @@ export type Database = {
           attendee_name?: string | null
           cal_booking_id?: string | null
           cal_event_type_id?: string | null
-          calendar_connection_id?: string | null
           created_at?: string
           end_time?: string
           event_status?: string | null
           event_summary?: string | null
-          external_event_id?: string
           id?: string
           is_busy?: boolean
           last_synced_at?: string
@@ -391,15 +364,7 @@ export type Database = {
           title?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "calendar_events_calendar_connection_id_fkey"
-            columns: ["calendar_connection_id"]
-            isOneToOne: false
-            referencedRelation: "calendar_connections"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       conversations: {
         Row: {
@@ -475,45 +440,6 @@ export type Database = {
           },
         ]
       }
-      oauth_providers: {
-        Row: {
-          auth_url: string
-          client_id: string | null
-          client_secret: string | null
-          created_at: string
-          id: string
-          is_active: boolean
-          provider: string
-          scope: string
-          token_url: string
-          updated_at: string
-        }
-        Insert: {
-          auth_url: string
-          client_id?: string | null
-          client_secret?: string | null
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          provider: string
-          scope: string
-          token_url: string
-          updated_at?: string
-        }
-        Update: {
-          auth_url?: string
-          client_id?: string | null
-          client_secret?: string | null
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          provider?: string
-          scope?: string
-          token_url?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -581,7 +507,6 @@ export type Database = {
         Row: {
           availability_configured: boolean | null
           booking_rules_set: boolean | null
-          cal_oauth_completed: boolean | null
           cal_user_created: boolean | null
           calendar_linked: boolean | null
           created_at: string
@@ -592,7 +517,6 @@ export type Database = {
         Insert: {
           availability_configured?: boolean | null
           booking_rules_set?: boolean | null
-          cal_oauth_completed?: boolean | null
           cal_user_created?: boolean | null
           calendar_linked?: boolean | null
           created_at?: string
@@ -603,7 +527,6 @@ export type Database = {
         Update: {
           availability_configured?: boolean | null
           booking_rules_set?: boolean | null
-          cal_oauth_completed?: boolean | null
           cal_user_created?: boolean | null
           calendar_linked?: boolean | null
           created_at?: string
