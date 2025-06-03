@@ -15,7 +15,6 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Conversations from "./pages/Conversations";
 import AuthCallback from "./pages/AuthCallback";
-import OutlookCalendarCallback from "./pages/OutlookCalendarCallback";
 import NotFound from "./pages/NotFound";
 
 /**
@@ -81,7 +80,6 @@ const AppRoutes = () => {
       
       {/* 🔗 OAUTH CALLBACK HANDLERS */}
       <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/auth/outlook/callback" element={<OutlookCalendarCallback />} />
       
       {/* 🚫 FALLBACK ROUTE - MUST BE LAST */}
       <Route path="*" element={<NotFound />} />
