@@ -5,6 +5,7 @@ import { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 
 interface SetupProgress {
+  cal_user_created: boolean;
   calendar_linked: boolean;
   availability_configured: boolean;
   booking_rules_set: boolean;
@@ -23,7 +24,7 @@ export const useSetupProgress = (user: User | null) => {
       
       const { data, error } = await supabase
         .from('setup_progress')
-        .select('calendar_linked, availability_configured, booking_rules_set')
+        .select('cal_user_created, calendar_linked, availability_configured, booking_rules_set')
         .eq('user_id', user.id)
         .maybeSingle();
 
