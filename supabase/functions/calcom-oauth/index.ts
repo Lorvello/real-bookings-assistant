@@ -18,128 +18,151 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const authHeader = req.headers.get('Authorization')!
-    const token = authHeader.replace('Bearer ', '')
-    const { data: user } = await supabase.auth.getUser(token)
-
-    if (!user.user) {
-      return new Response('Unauthorized', { status: 401, headers: corsHeaders })
-    }
-
     const { code, state, user_id } = await req.json()
 
-    console.log('Cal.com OAuth token exchange:', { code: code?.substring(0, 10) + '...', state, user_id })
-
-    if (!code || !state) {
-      return new Response(
-        JSON.stringify({ error: 'Missing code or state parameter' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Get Cal.com OAuth credentials from environment
-    const clientId = Deno.env.get('CALCOM_CLIENT_ID')
-    const clientSecret = Deno.env.get('CALCOM_CLIENT_SECRET')
-    
-    if (!clientId || !clientSecret) {
-      console.error('Missing Cal.com OAuth credentials')
-      return new Response(
-        JSON.stringify({ error: 'Cal.com OAuth credentials not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/calcom-oauth`
-
-    console.log('Using redirect URI for Cal.com OAuth:', redirectUri)
-
-    // Exchange authorization code for access token
-    const tokenResponse = await fetch('https://api.cal.com/v1/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        code: code,
-        grant_type: 'authorization_code',
-        redirect_uri: redirectUri
+    if (!code || !user_id) {
+      return new Response('Missing required parameters', { 
+        status: 400, 
+        headers: corsHeaders 
       })
-    })
+    }
 
-    const tokens = await tokenResponse.json()
-    console.log('Cal.com token response:', { 
-      access_token: tokens.access_token ? 'present' : 'missing', 
-      refresh_token: tokens.refresh_token ? 'present' : 'missing',
-      error: tokens.error || 'none'
+    console.log('[Cal.com OAuth] Processing OAuth callback for user:', user_id)
+
+    // Get Cal.com OAuth config
+    const { data: oauthConfig, error: configError } = await supabase
+      .from('oauth_providers')
+      .select('*')
+      .eq('provider', 'calcom')
+      .eq('is_active', true)
+      .single()
+
+    if (configError || !oauthConfig) {
+      console.error('[Cal.com OAuth] Config error:', configError)
+      return new Response('Cal.com OAuth not configured', { 
+        status: 500, 
+        headers: corsHeaders 
+      })
+    }
+
+    // Exchange code for tokens
+    const tokenResponse = await fetch(oauthConfig.token_url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: oauthConfig.client_id,
+        client_secret: oauthConfig.client_secret || '',
+        code: code,
+        redirect_uri: `${Deno.env.get('SUPABASE_URL')}/functions/v1/calcom-oauth`
+      }),
     })
 
     if (!tokenResponse.ok) {
-      console.error('Cal.com token exchange failed:', tokens)
-      return new Response(
-        JSON.stringify({ error: tokens.error_description || 'Failed to exchange authorization code' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      console.error('[Cal.com OAuth] Token exchange failed:', await tokenResponse.text())
+      return new Response('Token exchange failed', { 
+        status: 500, 
+        headers: corsHeaders 
+      })
     }
 
-    // Get user profile from Cal.com
-    const userResponse = await fetch('https://api.cal.com/v1/me', {
-      headers: { Authorization: `Bearer ${tokens.access_token}` }
+    const tokenData = await tokenResponse.json()
+    const accessToken = tokenData.access_token
+
+    // Get Cal.com user info
+    const userResponse = await fetch('https://cal-web-xxx.onrender.com/api/v2/me', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
     })
 
     if (!userResponse.ok) {
-      console.error('Failed to get Cal.com user info')
-      return new Response(
-        JSON.stringify({ error: 'Failed to get Cal.com user info' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      console.error('[Cal.com OAuth] User info failed:', await userResponse.text())
+      return new Response('Failed to get user info', { 
+        status: 500, 
+        headers: corsHeaders 
+      })
     }
 
-    const userInfo = await userResponse.json()
-    console.log('Cal.com user info:', { email: userInfo.email, id: userInfo.id })
+    const calUser = await userResponse.json()
 
-    // Calculate token expiry
-    const expiresAt = new Date(Date.now() + (tokens.expires_in * 1000)).toISOString()
-
-    // Update the pending connection in database
-    const { error: updateError } = await supabase
-      .from('calendar_connections')
-      .update({
-        provider_account_id: userInfo.id.toString(),
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token || null,
-        expires_at: expiresAt,
-        is_active: true,
+    // Store Cal.com user mapping
+    const { error: userError } = await supabase
+      .from('cal_users')
+      .upsert({
+        user_id: user_id,
+        cal_user_id: calUser.id.toString(),
+        cal_username: calUser.username,
+        cal_email: calUser.email,
         updated_at: new Date().toISOString()
       })
-      .eq('id', state)
-      .eq('user_id', user_id)
 
-    if (updateError) {
-      console.error('Database update error:', updateError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to save connection details' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    if (userError) {
+      console.error('[Cal.com OAuth] User mapping error:', userError)
+      return new Response('Failed to store user mapping', { 
+        status: 500, 
+        headers: corsHeaders 
+      })
     }
 
-    console.log('Successfully updated Cal.com calendar connection')
+    // Create calendar connection
+    const { error: connectionError } = await supabase
+      .from('calendar_connections')
+      .upsert({
+        user_id: user_id,
+        provider: 'calcom',
+        provider_account_id: calUser.id.toString(),
+        access_token: accessToken,
+        refresh_token: tokenData.refresh_token,
+        expires_at: tokenData.expires_in ? 
+          new Date(Date.now() + tokenData.expires_in * 1000).toISOString() : null,
+        cal_user_id: calUser.id.toString(),
+        api_endpoint: 'https://cal-web-xxx.onrender.com/api/v2',
+        connected_at: new Date().toISOString(),
+        is_active: true
+      })
 
-    return new Response(
-      JSON.stringify({ 
-        success: true,
-        calendar: {
-          name: `Cal.com (${userInfo.email})`,
-          email: userInfo.email
-        }
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    if (connectionError) {
+      console.error('[Cal.com OAuth] Connection error:', connectionError)
+      return new Response('Failed to store connection', { 
+        status: 500, 
+        headers: corsHeaders 
+      })
+    }
+
+    // Update setup progress
+    const { error: progressError } = await supabase
+      .from('setup_progress')
+      .upsert({
+        user_id: user_id,
+        cal_oauth_completed: true,
+        cal_user_created: true,
+        calendar_linked: true,
+        updated_at: new Date().toISOString()
+      })
+
+    if (progressError) {
+      console.error('[Cal.com OAuth] Setup progress error:', progressError)
+    }
+
+    console.log('[Cal.com OAuth] Successfully completed OAuth for user:', user_id)
+
+    return new Response(JSON.stringify({ 
+      success: true,
+      cal_user_id: calUser.id,
+      message: 'Cal.com OAuth completed successfully'
+    }), { 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
 
   } catch (error) {
-    console.error('Cal.com OAuth exchange error:', error)
-    return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    console.error('[Cal.com OAuth] Unexpected error:', error)
+    return new Response('Internal server error', { 
+      status: 500, 
+      headers: corsHeaders 
+    })
   }
 })

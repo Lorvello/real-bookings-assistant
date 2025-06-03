@@ -168,6 +168,60 @@ export type Database = {
         }
         Relationships: []
       }
+      cal_bookings: {
+        Row: {
+          attendee_email: string | null
+          attendee_name: string | null
+          attendee_timezone: string | null
+          cal_booking_id: string
+          cal_event_type_id: string
+          created_at: string
+          description: string | null
+          end_time: string
+          id: string
+          last_synced_at: string | null
+          start_time: string
+          status: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attendee_email?: string | null
+          attendee_name?: string | null
+          attendee_timezone?: string | null
+          cal_booking_id: string
+          cal_event_type_id: string
+          created_at?: string
+          description?: string | null
+          end_time: string
+          id?: string
+          last_synced_at?: string | null
+          start_time: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attendee_email?: string | null
+          attendee_name?: string | null
+          attendee_timezone?: string | null
+          cal_booking_id?: string
+          cal_event_type_id?: string
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          id?: string
+          last_synced_at?: string | null
+          start_time?: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cal_com_webhooks: {
         Row: {
           created_at: string
@@ -201,14 +255,47 @@ export type Database = {
         }
         Relationships: []
       }
+      cal_users: {
+        Row: {
+          cal_email: string | null
+          cal_user_id: string
+          cal_username: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cal_email?: string | null
+          cal_user_id: string
+          cal_username?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cal_email?: string | null
+          cal_user_id?: string
+          cal_username?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_connections: {
         Row: {
           access_token: string | null
+          api_endpoint: string | null
+          cal_user_id: string | null
           connected_at: string | null
           created_at: string
           expires_at: string | null
           id: string
           is_active: boolean | null
+          license_key: string | null
           provider: string
           provider_account_id: string
           refresh_token: string | null
@@ -217,11 +304,14 @@ export type Database = {
         }
         Insert: {
           access_token?: string | null
+          api_endpoint?: string | null
+          cal_user_id?: string | null
           connected_at?: string | null
           created_at?: string
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          license_key?: string | null
           provider: string
           provider_account_id: string
           refresh_token?: string | null
@@ -230,11 +320,14 @@ export type Database = {
         }
         Update: {
           access_token?: string | null
+          api_endpoint?: string | null
+          cal_user_id?: string | null
           connected_at?: string | null
           created_at?: string
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          license_key?: string | null
           provider?: string
           provider_account_id?: string
           refresh_token?: string | null
@@ -245,6 +338,10 @@ export type Database = {
       }
       calendar_events: {
         Row: {
+          attendee_email: string | null
+          attendee_name: string | null
+          cal_booking_id: string | null
+          cal_event_type_id: string | null
           calendar_connection_id: string | null
           created_at: string
           end_time: string
@@ -259,6 +356,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attendee_email?: string | null
+          attendee_name?: string | null
+          cal_booking_id?: string | null
+          cal_event_type_id?: string | null
           calendar_connection_id?: string | null
           created_at?: string
           end_time: string
@@ -273,6 +374,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attendee_email?: string | null
+          attendee_name?: string | null
+          cal_booking_id?: string | null
+          cal_event_type_id?: string | null
           calendar_connection_id?: string | null
           created_at?: string
           end_time?: string
@@ -476,6 +581,8 @@ export type Database = {
         Row: {
           availability_configured: boolean | null
           booking_rules_set: boolean | null
+          cal_oauth_completed: boolean | null
+          cal_user_created: boolean | null
           calendar_linked: boolean | null
           created_at: string
           id: string
@@ -485,6 +592,8 @@ export type Database = {
         Insert: {
           availability_configured?: boolean | null
           booking_rules_set?: boolean | null
+          cal_oauth_completed?: boolean | null
+          cal_user_created?: boolean | null
           calendar_linked?: boolean | null
           created_at?: string
           id?: string
@@ -494,6 +603,8 @@ export type Database = {
         Update: {
           availability_configured?: boolean | null
           booking_rules_set?: boolean | null
+          cal_oauth_completed?: boolean | null
+          cal_user_created?: boolean | null
           calendar_linked?: boolean | null
           created_at?: string
           id?: string
