@@ -7,7 +7,7 @@ import { useCalendarConnection } from './useCalendarConnection';
 export const useProfile = (user: User | null) => {
   const { profile, updateProfile, refetchProfile } = useProfileManager(user);
   const { setupProgress, loading, updateSetupProgress, refetchSetupProgress } = useSetupProgress(user);
-  const { checkAndCreateCalendarConnection } = useCalendarConnection(user);
+  const { checkCalcomConnection } = useCalendarConnection(user);
 
   return {
     profile,

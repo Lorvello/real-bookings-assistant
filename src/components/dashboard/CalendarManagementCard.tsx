@@ -19,7 +19,7 @@ export const CalendarManagementCard = () => {
     loading,
     syncCalendarEvents,
     refetch,
-    isProviderConnected
+    isCalcomConnected
   } = useCalendarIntegration(user);
 
   const handleSync = async () => {
@@ -66,7 +66,7 @@ export const CalendarManagementCard = () => {
     );
   }
 
-  const hasCalcomConnection = isProviderConnected('calcom');
+  const hasCalcomConnection = isCalcomConnected();
 
   return (
     <Card>
