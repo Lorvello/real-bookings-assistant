@@ -1,99 +1,93 @@
 
-import React, { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { handleCalcomOAuthCallback } from '@/utils/calendarSync';
 import { Loader2 } from 'lucide-react';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [processing, setProcessing] = useState(true);
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      try {
-        console.log('[AuthCallback] Processing auth callback...');
-        
-        // Handle the auth callback
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('[AuthCallback] Session error:', error);
-          
-          const errorMessages = {
-            'invalid_client': 'OAuth configuratie is incorrect. Controleer Google Cloud Console instellingen.',
-            'access_denied': 'Toegang geweigerd. Probeer opnieuw in te loggen.',
-            'server_error': 'Server fout. Probeer het later opnieuw.'
-          };
-          
-          const errorKey = error.message.toLowerCase();
-          const userMessage = Object.keys(errorMessages).find(key => errorKey.includes(key));
-          
-          toast({
-            title: "Inlog Fout",
-            description: userMessage ? errorMessages[userMessage as keyof typeof errorMessages] : error.message,
-            variant: "destructive",
-          });
-          
-          navigate('/login?error=oauth_failed');
-          return;
-        }
+    const handleCallback = async () => {
+      const provider = searchParams.get('provider');
+      const code = searchParams.get('code');
+      const state = searchParams.get('state');
+      const error = searchParams.get('error');
 
-        if (data.session?.user) {
-          console.log('[AuthCallback] User authenticated successfully:', data.session.user.id);
-          
-          // Check if this was a calendar-specific OAuth flow
-          const isCalendarFlow = searchParams.get('calendar') === 'true';
-          
-          if (isCalendarFlow) {
-            console.log('[AuthCallback] Calendar OAuth flow detected');
-            
-            // Wait a moment for the calendar connection to be created
-            setTimeout(() => {
-              toast({
-                title: "Welkom terug!",
-                description: "Google Calendar is succesvol verbonden.",
-              });
-              navigate('/profile?success=calendar_connected');
-            }, 2000);
-          } else {
-            toast({
-              title: "Welkom terug!",
-              description: "Je bent succesvol ingelogd.",
-            });
-            navigate('/profile?success=login');
-          }
-        } else {
-          console.log('[AuthCallback] No session found, redirecting to login');
-          navigate('/login?message=please_login');
-        }
-      } catch (error: any) {
-        console.error('[AuthCallback] Unexpected error:', error);
+      console.log('[AuthCallback] Processing callback:', { provider, code: code?.substring(0, 10), state, error });
+
+      if (error) {
+        console.error('[AuthCallback] OAuth error:', error);
         toast({
-          title: "Fout",
-          description: "Er ging iets mis tijdens het inloggen. Probeer het opnieuw.",
+          title: "Autorisatie Mislukt",
+          description: error === 'access_denied' ? 'Toegang geweigerd' : 'Er ging iets mis tijdens autorisatie',
           variant: "destructive",
         });
-        navigate('/login?error=unexpected');
+        navigate('/profile');
+        return;
+      }
+
+      if (!code || !user) {
+        console.error('[AuthCallback] Missing code or user:', { code: !!code, user: !!user });
+        toast({
+          title: "Autorisatie Onvolledig",
+          description: "Ontbrekende autorisatie gegevens",
+          variant: "destructive",
+        });
+        navigate('/profile');
+        return;
+      }
+
+      try {
+        if (provider === 'calcom') {
+          console.log('[AuthCallback] Processing Cal.com callback');
+          const success = await handleCalcomOAuthCallback(code, state || '', user);
+          
+          if (success) {
+            toast({
+              title: "Cal.com Verbonden!",
+              description: "Je Cal.com account is succesvol gekoppeld",
+            });
+          } else {
+            throw new Error('Cal.com OAuth failed');
+          }
+        } else {
+          console.error('[AuthCallback] Unknown provider:', provider);
+          toast({
+            title: "Onbekende Provider",
+            description: `Provider '${provider}' wordt niet ondersteund`,
+            variant: "destructive",
+          });
+        }
+      } catch (error: any) {
+        console.error('[AuthCallback] Callback processing failed:', error);
+        toast({
+          title: "Verbinding Mislukt",
+          description: error.message || "Er ging iets mis tijdens het verbinden",
+          variant: "destructive",
+        });
       } finally {
-        setProcessing(false);
+        navigate('/profile');
       }
     };
 
-    handleAuthCallback();
-  }, [navigate, searchParams, toast]);
+    handleCallback();
+  }, [searchParams, user, navigate, toast]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-green-600" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          {processing ? 'Inloggen...' : 'Verwerkt'}
+          Kalender Verbinding Verwerken...
         </h2>
         <p className="text-gray-600">
-          Even geduld terwijl we je inloggen.
+          Een moment geduld terwijl we je kalender verbinden
         </p>
       </div>
     </div>

@@ -1,5 +1,8 @@
-import { useLocation } from "react-router-dom";
+
+import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
+import { Home, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
   const location = useLocation();
@@ -12,13 +15,36 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center max-w-md mx-auto px-4">
+        <div className="mb-8">
+          <h1 className="text-9xl font-bold text-gray-300 mb-4">404</h1>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Pagina Niet Gevonden
+          </h2>
+          <p className="text-gray-600 mb-6">
+            De pagina die je zoekt bestaat niet of is verplaatst.
+          </p>
+          <p className="text-sm text-gray-500 mb-8">
+            Route: <code className="bg-gray-100 px-2 py-1 rounded">{location.pathname}</code>
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <Button asChild className="w-full">
+            <Link to="/">
+              <Home className="h-4 w-4 mr-2" />
+              Terug naar Home
+            </Link>
+          </Button>
+          
+          <Button variant="outline" asChild className="w-full">
+            <Link to="/profile">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Naar Dashboard
+            </Link>
+          </Button>
+        </div>
       </div>
     </div>
   );
