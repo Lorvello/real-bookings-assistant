@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Calendar, Plus, RefreshCw, Unlink } from 'lucide-react';
+import { CheckCircle, Calendar, Plus, RefreshCw } from 'lucide-react';
 import { CalendarConnection } from '@/types/calendar';
 import { DisconnectCalendarButton } from './DisconnectCalendarButton';
 import { User } from '@supabase/supabase-js';
@@ -24,50 +24,22 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
   onAddCalendar
 }) => {
   const renderConnectionCard = (connection: CalendarConnection) => {
-    const getProviderDetails = (provider: string) => {
-      switch (provider.toLowerCase()) {
-        case 'google':
-          return {
-            name: 'Google Calendar',
-            color: 'bg-green-50 border-green-200',
-            iconColor: 'text-green-600',
-            textColor: 'text-green-900'
-          };
-        case 'microsoft':
-          return {
-            name: 'Microsoft Outlook',
-            color: 'bg-blue-50 border-blue-200',
-            iconColor: 'text-blue-600',
-            textColor: 'text-blue-900'
-          };
-        default:
-          return {
-            name: `${provider} Calendar`,
-            color: 'bg-gray-50 border-gray-200',
-            iconColor: 'text-gray-600',
-            textColor: 'text-gray-900'
-          };
-      }
-    };
-
-    const providerDetails = getProviderDetails(connection.provider);
-
     return (
-      <Card key={connection.id} className={`${providerDetails.color} border-2`}>
+      <Card key={connection.id} className="bg-green-50 border-green-200 border-2">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <CheckCircle className={`h-5 w-5 ${providerDetails.iconColor}`} />
+              <CheckCircle className="h-5 w-5 text-green-600" />
               <div>
-                <div className={`font-semibold ${providerDetails.textColor}`}>
-                  {providerDetails.name}
+                <div className="font-semibold text-green-900">
+                  Cal.com Calendar
                 </div>
                 <div className="text-sm opacity-75">
                   Verbonden op {new Date(connection.created_at).toLocaleDateString('nl-NL')}
                 </div>
-                {connection.provider_account_id !== 'pending' && (
+                {connection.cal_user_id && (
                   <div className="text-xs opacity-60 mt-1">
-                    Account: {connection.provider_account_id}
+                    Cal.com User ID: {connection.cal_user_id}
                   </div>
                 )}
               </div>
@@ -83,7 +55,7 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
             <DisconnectCalendarButton
               user={user}
               connectionId={connection.id}
-              providerName={providerDetails.name}
+              providerName="Cal.com Calendar"
               onDisconnectSuccess={onRefresh}
               variant="destructive"
               size="sm"
@@ -112,12 +84,12 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
           Geen Kalender Verbindingen
         </h3>
         <p className="text-gray-600 mb-6 max-w-md mx-auto">
-          Verbind je kalender om automatische beschikbaarheidscontrole en 
+          Verbind je Cal.com account om automatische beschikbaarheidscontrole en 
           24/7 booking via WhatsApp mogelijk te maken.
         </p>
         <Button onClick={onAddCalendar} className="bg-green-600 hover:bg-green-700">
           <Plus className="h-4 w-4 mr-2" />
-          Kalender Verbinden
+          Cal.com Verbinden
         </Button>
       </div>
     );
@@ -138,7 +110,7 @@ export const CalendarConnectionManager: React.FC<CalendarConnectionManagerProps>
           className="flex-1"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Nieuwe Kalender
+          Nieuwe Verbinding
         </Button>
         <Button
           onClick={onRefresh}

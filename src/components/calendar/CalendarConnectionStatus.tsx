@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, CheckCircle, RefreshCw, Unlink } from 'lucide-react';
+import { Calendar, CheckCircle, Unlink } from 'lucide-react';
 import { CalendarConnection } from '@/types/calendar';
 
 interface CalendarProvider {
@@ -30,8 +30,14 @@ export const CalendarConnectionStatus: React.FC<CalendarConnectionStatusProps> =
       <h3 className="font-semibold text-lg mb-4">Verbonden Kalenders</h3>
       
       {connections.map((connection) => {
-        const provider = providers.find(p => p.id === connection.provider);
-        if (!provider) return null;
+        // Since we're Cal.com only now, we'll use a fixed provider
+        const provider = {
+          id: 'calcom',
+          name: 'Cal.com',
+          description: 'Cal.com Calendar Integration',
+          icon: <Calendar className="h-5 w-5" />,
+          color: 'bg-orange-500'
+        };
 
         return (
           <Card key={connection.id} className="border-green-200 bg-green-50">
@@ -50,7 +56,7 @@ export const CalendarConnectionStatus: React.FC<CalendarConnectionStatusProps> =
                       </Badge>
                     </div>
                     <div className="text-sm text-gray-600">
-                      Account: {connection.provider_account_id}
+                      Cal.com User: {connection.cal_user_id || 'Niet beschikbaar'}
                     </div>
                     <div className="text-xs text-gray-500">
                       Verbonden op: {new Date(connection.connected_at || '').toLocaleDateString('nl-NL')}

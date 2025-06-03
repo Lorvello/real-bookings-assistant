@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Calendar, CheckCircle, AlertTriangle, RefreshCw, Unlink } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { initiateCalcomOAuth, syncCalcomBookings, disconnectCalcomProvider } from '@/utils/calendar/calcomIntegration';
+import { initiateCalcomRegistration, syncCalcomBookings, disconnectCalcomProvider } from '@/utils/calendar/calcomIntegration';
 
 interface CalcomProviderCardProps {
   isConnected: boolean;
@@ -29,7 +29,16 @@ export const CalcomProviderCard: React.FC<CalcomProviderCardProps> = ({
     
     setConnecting(true);
     try {
-      await initiateCalcomOAuth(user);
+      const success = await initiateCalcomRegistration(user);
+      if (success) {
+        toast({
+          title: "Cal.com Verbonden",
+          description: "Cal.com account succesvol aangemaakt en verbonden",
+        });
+        onRefresh();
+      } else {
+        throw new Error('Cal.com registratie mislukt');
+      }
     } catch (error) {
       console.error('Cal.com connection failed:', error);
       toast({
@@ -37,6 +46,7 @@ export const CalcomProviderCard: React.FC<CalcomProviderCardProps> = ({
         description: "Kon niet verbinden met Cal.com. Probeer het opnieuw.",
         variant: "destructive",
       });
+    } finally {
       setConnecting(false);
     }
   };
