@@ -6,7 +6,7 @@ export const syncCalendarEvents = async (user: User): Promise<boolean> => {
   if (!user) return false;
 
   try {
-    const { data, error } = await supabase.functions.invoke('sync-calendar-events', {
+    const { data, error } = await supabase.functions.invoke('sync-calcom-bookings', {
       body: { user_id: user.id }
     });
 
@@ -16,61 +16,37 @@ export const syncCalendarEvents = async (user: User): Promise<boolean> => {
 
     return true;
   } catch (error) {
-    console.error('Unexpected error syncing events:', error);
+    console.error('Unexpected error syncing Cal.com bookings:', error);
     throw error;
   }
 };
 
-export const handleOAuthCallback = async (
+export const handleCalcomOAuthCallback = async (
   code: string, 
   state: string, 
-  provider: string, 
   user: User
 ): Promise<boolean> => {
   if (!user) return false;
 
   try {
-    console.log('Handling calendar OAuth callback:', { code: code.substring(0, 10) + '...', state, provider });
+    console.log('Handling Cal.com OAuth callback:', { code: code.substring(0, 10) + '...', state });
 
-    // Handle Google calendar OAuth callback using our edge function
-    if (provider === 'google') {
-      const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
-        body: { code, state, user_id: user.id }
-      });
+    const { data, error } = await supabase.functions.invoke('calcom-oauth', {
+      body: { code, state, user_id: user.id }
+    });
 
-      if (error) {
-        console.error('Google calendar OAuth error:', error);
-        throw error;
-      }
-
-      if (data.success) {
-        return true;
-      } else {
-        throw new Error(data.error || 'Google calendar OAuth failed');
-      }
+    if (error) {
+      console.error('Cal.com OAuth error:', error);
+      throw error;
     }
 
-    // Handle Microsoft callbacks
-    if (provider === 'microsoft') {
-      const { data, error } = await supabase.functions.invoke('microsoft-calendar-oauth', {
-        body: { code, state, user_id: user.id }
-      });
-
-      if (error) {
-        console.error('Microsoft calendar OAuth error:', error);
-        throw error;
-      }
-
-      if (data.success) {
-        return true;
-      } else {
-        throw new Error(data.error || 'Microsoft calendar OAuth failed');
-      }
+    if (data.success) {
+      return true;
+    } else {
+      throw new Error(data.error || 'Cal.com OAuth failed');
     }
-
-    return false;
   } catch (error: any) {
-    console.error('Calendar OAuth callback error:', error);
+    console.error('Cal.com OAuth callback error:', error);
     throw error;
   }
 };
