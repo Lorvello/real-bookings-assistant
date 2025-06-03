@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { CalendarConnection } from '@/types/calendar';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
@@ -31,50 +32,18 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
   const [step, setStep] = useState<'select' | 'connecting' | 'connected' | 'error'>('select');
   const [error, setError] = useState<string | null>(null);
 
+  // Cal.com alleen provider
   const providers: CalendarProvider[] = [
-    {
-      id: 'google',
-      name: 'Google Calendar',
-      description: 'Meest populaire keuze - werkt direct',
-      icon: (
-        <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          G
-        </div>
-      ),
-      color: 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-    },
     {
       id: 'calcom',
       name: 'Cal.com',
-      description: 'Synchroniseer je Cal.com boekingen',
+      description: 'Synchroniseer je Cal.com boekingen automatisch',
       icon: (
         <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white">
           <Calendar className="h-6 w-6" />
         </div>
       ),
       color: 'bg-orange-50 border-orange-200 hover:bg-orange-100'
-    },
-    {
-      id: 'microsoft',
-      name: 'Microsoft Outlook',
-      description: 'Outlook en Exchange kalenders',
-      icon: (
-        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          M
-        </div>
-      ),
-      color: 'bg-gray-50 border-gray-200'
-    },
-    {
-      id: 'apple',
-      name: 'Apple Calendar',
-      description: 'iCloud en Apple kalenders',
-      icon: (
-        <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          🍎
-        </div>
-      ),
-      color: 'bg-gray-50 border-gray-200'
     }
   ];
 
@@ -84,46 +53,22 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
     }
   }, [connections]);
 
-  const handleGoogleConnect = async () => {
-    setStep('connecting');
-    try {
-      const redirectUrl = `https://qzetadfdmsholqyxxfbh.supabase.co/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(window.location.origin + '/profile')}`;
-      window.location.href = redirectUrl;
-    } catch (error) {
-      console.error('Error connecting to Google:', error);
-      setError('Kon niet verbinden met Google Calendar');
-      setStep('error');
-    }
-  };
-
-  const handleCalcomConnect = async () => {
+  const handleProviderConnect = async (providerId: string) => {
     if (!user) return;
     
     setStep('connecting');
     try {
-      await initiateCalcomOAuth(user);
+      if (providerId === 'calcom') {
+        await initiateCalcomOAuth(user);
+      } else {
+        setError(`${providerId} wordt momenteel niet ondersteund`);
+        setStep('error');
+      }
     } catch (error) {
-      console.error('Error connecting to Cal.com:', error);
-      setError('Kon niet verbinden met Cal.com');
+      console.error('Error connecting to provider:', error);
+      setError(`Kon niet verbinden met ${providerId}`);
       setStep('error');
     }
-  };
-
-  const handleProviderConnect = async (providerId: string) => {
-    if (providerId === 'google') {
-      await handleGoogleConnect();
-    } else if (providerId === 'calcom') {
-      await handleCalcomConnect();
-    } else {
-      setError(`${providerId} wordt nog niet ondersteund`);
-      setStep('error');
-    }
-  };
-
-  // Create a wrapper function that matches the expected signature
-  const handleProviderConnectWrapper = () => {
-    // For now, default to Google since that's the primary provider
-    handleProviderConnect('google');
   };
 
   const isProviderConnected = (providerId: string) => {
@@ -144,26 +89,18 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
     if (!user) return;
 
     try {
-      // Find the connection for this provider
       const connection = connections.find(conn => conn.provider === provider.id && conn.is_active);
       if (!connection) {
         console.log('No connection found for provider:', provider.id);
         return;
       }
 
-      let success = false;
-      
       if (provider.id === 'calcom') {
-        success = await disconnectCalcomProvider(user, connection.id);
-      } else {
-        // For other providers, trigger refetch and assume success
-        await refetch();
-        success = true;
-      }
-
-      if (success) {
-        console.log('Successfully disconnected provider:', provider.id);
-        await refetch(); // Refresh connections list
+        const success = await disconnectCalcomProvider(user, connection.id);
+        if (success) {
+          console.log('Successfully disconnected Cal.com');
+          await refetch();
+        }
       }
     } catch (error) {
       console.error('Error disconnecting provider:', error);
@@ -188,7 +125,7 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
         providers={providers}
         error={error}
         isProviderConnected={isProviderConnected}
-        onProviderConnect={handleProviderConnectWrapper}
+        onProviderConnect={handleProviderConnect}
         onRetryConnection={handleRetryConnection}
         onResetConnections={handleResetConnections}
       />
@@ -225,8 +162,3 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
 
   return null;
 };
-
-// Keep backward compatibility exports
-export const CalendarSelectStep: React.FC<any> = () => null;
-export const CalendarConnectedStep: React.FC<any> = () => null;
-export const CalendarErrorStep: React.FC<any> = () => null;

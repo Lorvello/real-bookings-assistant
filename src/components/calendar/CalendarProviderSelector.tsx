@@ -1,18 +1,10 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar } from 'lucide-react';
-
-interface CalendarProvider {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  status: 'available' | 'coming-soon';
-  color: string;
-}
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Calendar, Loader2, Shield } from 'lucide-react';
 
 interface CalendarProviderSelectorProps {
   onProviderSelect: (providerId: string) => void;
@@ -23,128 +15,80 @@ export const CalendarProviderSelector: React.FC<CalendarProviderSelectorProps> =
   onProviderSelect,
   connecting
 }) => {
-  const providers: CalendarProvider[] = [
-    {
-      id: 'google',
-      name: 'Google Calendar',
-      description: 'Meest populaire keuze - werkt direct',
-      icon: (
-        <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          G
-        </div>
-      ),
-      status: 'available',
-      color: 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-    },
-    {
-      id: 'calcom',
-      name: 'Cal.com',
-      description: 'Synchroniseer je Cal.com boekingen',
-      icon: (
-        <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white">
-          <Calendar className="h-6 w-6" />
-        </div>
-      ),
-      status: 'available',
-      color: 'bg-orange-50 border-orange-200 hover:bg-orange-100'
-    },
-    {
-      id: 'microsoft',
-      name: 'Microsoft Outlook',
-      description: 'Outlook en Exchange kalenders',
-      icon: (
-        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          M
-        </div>
-      ),
-      status: 'coming-soon',
-      color: 'bg-gray-50 border-gray-200'
-    },
-    {
-      id: 'apple',
-      name: 'Apple Calendar',
-      description: 'iCloud en Apple kalenders',
-      icon: (
-        <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          🍎
-        </div>
-      ),
-      status: 'coming-soon',
-      color: 'bg-gray-50 border-gray-200'
-    }
-  ];
+  const handleCalcomConnect = () => {
+    onProviderSelect('calcom');
+  };
 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Kies je kalender provider
-        </h2>
-        <p className="text-gray-600">
-          Verbind je agenda om automatisch beschikbaarheid te synchroniseren
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Verbind je Cal.com Account</h2>
+        <p className="text-gray-600 mb-4">
+          Synchroniseer automatisch je Cal.com boekingen met de Affable Bot voor naadloze 24/7 WhatsApp booking
         </p>
+        <Badge variant="outline" className="text-sm">
+          Stap 1 van 2
+        </Badge>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {providers.map((provider) => (
-          <Card 
-            key={provider.id}
-            className={`cursor-pointer transition-all duration-200 ${provider.color} ${
-              provider.status === 'coming-soon' ? 'opacity-60' : ''
-            } ${connecting ? 'pointer-events-none' : ''}`}
-            onClick={() => {
-              if (provider.status === 'available' && !connecting) {
-                onProviderSelect(provider.id);
-              }
-            }}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  {provider.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate">
-                      {provider.name}
-                    </h3>
-                    {provider.status === 'coming-soon' && (
-                      <Badge variant="secondary" className="text-xs">
-                        Binnenkort
-                      </Badge>
-                    )}
-                    {provider.status === 'available' && (
-                      <Badge variant="default" className="text-xs bg-green-600">
-                        Beschikbaar
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 mb-4">
-                    {provider.description}
-                  </p>
-                  <Button 
-                    className={`w-full ${
-                      provider.status === 'available' 
-                        ? provider.id === 'calcom' 
-                          ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                    disabled={provider.status === 'coming-soon' || connecting}
-                    size="sm"
-                  >
-                    {connecting && provider.status === 'available' ? 'Verbinden...' : 
-                     provider.status === 'available' ? 'Verbinden' : 'Binnenkort'}
-                  </Button>
-                </div>
+      <Card className="border-orange-200 hover:border-orange-300 transition-colors">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white">
+              <Calendar className="h-6 w-6" />
+            </div>
+            <div className="flex-1">
+              <div className="font-semibold text-lg">Cal.com</div>
+              <div className="text-sm text-gray-600">
+                Koppel je Cal.com account voor automatische booking synchronisatie
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-orange-50 p-4 rounded-lg">
+            <h4 className="font-medium text-orange-900 mb-2">✨ Wat krijg je:</h4>
+            <ul className="text-sm text-orange-800 space-y-1">
+              <li>• Automatische synchronisatie van Cal.com boekingen</li>
+              <li>• Real-time beschikbaarheid updates</li>
+              <li>• 24/7 WhatsApp booking zonder dubbele boekingen</li>
+              <li>• Centraal dashboard voor alle afspraken</li>
+            </ul>
+          </div>
 
-      <div className="text-center text-sm text-gray-500">
-        <p>Meer agenda providers komen binnenkort beschikbaar</p>
+          <Button
+            onClick={handleCalcomConnect}
+            disabled={connecting}
+            className="w-full bg-orange-600 hover:bg-orange-700 py-3"
+            size="lg"
+          >
+            {connecting ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Verbinden met Cal.com...
+              </>
+            ) : (
+              <>
+                <Calendar className="h-5 w-5 mr-2" />
+                Verbind Cal.com Account
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Alert className="border-green-200 bg-green-50">
+        <Shield className="h-4 w-4 text-green-600" />
+        <AlertDescription className="text-green-800">
+          <strong>Veilig & Betrouwbaar:</strong> We hebben alleen toegang tot je boekingsgegevens, 
+          geen persoonlijke gegevens of wachtwoorden.
+        </AlertDescription>
+      </Alert>
+
+      <div className="text-center">
+        <p className="text-xs text-gray-500">
+          Door te verbinden ga je akkoord met onze voorwaarden voor kalender integratie
+        </p>
       </div>
     </div>
   );

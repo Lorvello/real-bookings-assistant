@@ -4,12 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, RefreshCw, Unlink, AlertTriangle } from 'lucide-react';
+import { Calendar, RefreshCw, Unlink, AlertTriangle, Plus } from 'lucide-react';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { useAuth } from '@/hooks/useAuth';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarConnectionManager } from '@/components/calendar/CalendarConnectionManager';
 import { CalcomProviderCard } from '@/components/calendar/CalcomProviderCard';
 import { disconnectAllCalendarConnections } from '@/utils/calendar/connectionDisconnect';
 
@@ -36,7 +35,7 @@ export const CalendarManagementCard = () => {
       if (success) {
         toast({
           title: "Kalender Gesynchroniseerd",
-          description: "Je kalender events zijn bijgewerkt",
+          description: "Je Cal.com events zijn bijgewerkt",
         });
         await refetch();
       }
@@ -61,18 +60,17 @@ export const CalendarManagementCard = () => {
       
       if (success) {
         toast({
-          title: "Alle Kalenders Ontkoppeld",
-          description: "Alle kalender verbindingen zijn succesvol verwijderd",
+          title: "Cal.com Ontkoppeld",
+          description: "Je Cal.com verbinding is succesvol verwijderd",
         });
         
-        // Refresh na disconnect
         setTimeout(() => {
           refetch();
         }, 1000);
       } else {
         toast({
           title: "Disconnect Mislukt",
-          description: "Er ging iets mis bij het ontkoppelen van de kalenders",
+          description: "Er ging iets mis bij het ontkoppelen van Cal.com",
           variant: "destructive",
         });
       }
@@ -94,8 +92,8 @@ export const CalendarManagementCard = () => {
     
     setTimeout(() => {
       toast({
-        title: "Kalender Verbonden",
-        description: "Je kalender is succesvol verbonden en wordt gesynchroniseerd",
+        title: "Cal.com Verbonden",
+        description: "Je Cal.com account is succesvol verbonden en wordt gesynchroniseerd",
       });
       refetch();
     }, 1000);
@@ -130,16 +128,18 @@ export const CalendarManagementCard = () => {
     );
   }
 
+  const hasCalcomConnection = isProviderConnected('calcom');
+
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-green-600" />
-            Kalender Beheer
-            {connections.length > 0 && (
-              <Badge variant="outline" className="ml-auto">
-                {connections.length} verbonden
+            Cal.com Beheer
+            {hasCalcomConnection && (
+              <Badge variant="outline" className="ml-auto bg-green-50 text-green-700">
+                Verbonden
               </Badge>
             )}
           </CardTitle>
@@ -147,17 +147,50 @@ export const CalendarManagementCard = () => {
         <CardContent className="space-y-4">
           {/* Cal.com Provider Card */}
           <CalcomProviderCard
-            isConnected={isProviderConnected('calcom')}
+            isConnected={hasCalcomConnection}
             onRefresh={handleConnectionRefresh}
           />
 
-          {/* Disconnect All Warning & Button */}
-          {connections.length > 0 && (
+          {/* Add Connection Button als er geen verbinding is */}
+          {!hasCalcomConnection && (
+            <Button
+              onClick={handleNewCalendarConnect}
+              className="w-full bg-orange-600 hover:bg-orange-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Verbind Cal.com Account
+            </Button>
+          )}
+
+          {/* Manual Sync Button */}
+          {hasCalcomConnection && (
+            <Button
+              variant="outline"
+              onClick={handleSync}
+              disabled={syncing}
+              className="w-full"
+            >
+              {syncing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Synchroniseren...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Nu Synchroniseren
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* Disconnect Warning & Button */}
+          {hasCalcomConnection && (
             <Alert className="border-red-200 bg-red-50">
               <AlertTriangle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-red-800">
                 <div className="flex items-center justify-between">
-                  <span>Wil je alle kalender verbindingen verwijderen?</span>
+                  <span>Cal.com verbinding verwijderen?</span>
                   <Button 
                     variant="destructive" 
                     size="sm"
@@ -173,7 +206,7 @@ export const CalendarManagementCard = () => {
                     ) : (
                       <>
                         <Unlink className="h-4 w-4 mr-1" />
-                        Alle Kalenders Ontkoppelen
+                        Ontkoppelen
                       </>
                     )}
                   </Button>
@@ -181,14 +214,6 @@ export const CalendarManagementCard = () => {
               </AlertDescription>
             </Alert>
           )}
-
-          <CalendarConnectionManager
-            user={user}
-            connections={connections}
-            loading={loading || syncing}
-            onRefresh={handleConnectionRefresh}
-            onAddCalendar={handleNewCalendarConnect}
-          />
         </CardContent>
       </Card>
 
