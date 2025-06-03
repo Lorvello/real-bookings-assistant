@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 export const SetupProgressCard = () => {
   const { user } = useAuth();
-  const { progress, loading, refreshProgress } = useSetupProgress(user);
+  const { setupProgress, loading, refetchSetupProgress } = useSetupProgress(user);
 
   if (loading) {
     return (
@@ -33,8 +33,8 @@ export const SetupProgressCard = () => {
   // Calculate completion percentage
   const totalSteps = 2; // Simplified: cal_user_created + calendar_linked
   const completedSteps = [
-    progress?.cal_user_created,
-    progress?.calendar_linked
+    setupProgress?.cal_user_created,
+    setupProgress?.calendar_linked
   ].filter(Boolean).length;
   
   const completionPercentage = Math.round((completedSteps / totalSteps) * 100);
@@ -45,7 +45,7 @@ export const SetupProgressCard = () => {
       id: 'cal_user',
       title: 'Cal.com Account',
       description: 'Cal.com user automatisch aangemaakt',
-      completed: progress?.cal_user_created || false,
+      completed: setupProgress?.cal_user_created || false,
       icon: Calendar,
       automated: true
     },
@@ -53,7 +53,7 @@ export const SetupProgressCard = () => {
       id: 'calendar_linked',
       title: 'Kalender Gekoppeld',
       description: 'Cal.com kalender succesvol verbonden',
-      completed: progress?.calendar_linked || false,
+      completed: setupProgress?.calendar_linked || false,
       icon: CheckCircle,
       automated: true
     }
@@ -102,7 +102,7 @@ export const SetupProgressCard = () => {
                       <CheckCircle className="h-4 w-4 text-green-500" />
                     )}
                     {step.automated && (
-                      <Badge variant="outline" size="sm" className="text-xs">
+                      <Badge variant="outline" className="text-xs">
                         Automatisch
                       </Badge>
                     )}
@@ -133,7 +133,7 @@ export const SetupProgressCard = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={refreshProgress}
+          onClick={refetchSetupProgress}
           className="w-full"
         >
           <Clock className="h-4 w-4 mr-2" />
