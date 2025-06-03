@@ -1,29 +1,23 @@
 
 /**
- * 🔗 CALENDAR INTEGRATION HOOK
- * ============================
+ * 🔗 SIMPLIFIED CALENDAR INTEGRATION HOOK
+ * =======================================
  * 
  * 🎯 AFFABLE BOT CONTEXT:
- * This hook manages Cal.com calendar integration lifecycle.
+ * Simplified hook that only manages Cal.com integration without OAuth complexity.
  */
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
-import { CalendarIntegrationState } from '@/types/calendar';
-import { fetchCalendarConnections } from '@/utils/calendar/connectionManager';
-import { disconnectCalcomProvider } from '@/utils/calendar/connectionDisconnect';
+import { CalendarConnection } from '@/types/calendar';
+import { supabase } from '@/integrations/supabase/client';
 import { syncCalendarEvents } from '@/utils/calendarSync';
 
 export const useCalendarIntegration = (user: User | null) => {
-  const [state, setState] = useState<CalendarIntegrationState>({
-    connections: [],
-    loading: true,
-    syncing: false,
-    connectionStatus: 'idle',
-    errorMessage: ''
-  });
-  
+  const [connections, setConnections] = useState<CalendarConnection[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -32,78 +26,47 @@ export const useCalendarIntegration = (user: User | null) => {
       fetchConnections();
     } else {
       console.log('[useCalendarIntegration] No user, clearing state');
-      setState(prev => ({ ...prev, connections: [], loading: false }));
+      setConnections([]);
+      setLoading(false);
     }
   }, [user]);
 
   const fetchConnections = async () => {
-    if (!user) {
-      console.log('[useCalendarIntegration] fetchConnections called but no user available');
-      return;
-    }
+    if (!user) return;
 
     try {
       console.log('[CalendarIntegration] Starting fetch for user:', user.id);
-      setState(prev => ({ ...prev, loading: true }));
+      setLoading(true);
       
-      const connections = await fetchCalendarConnections(user);
-      console.log('[CalendarIntegration] Fetched connections:', {
-        count: connections.length,
-        connections: connections.map(c => ({ id: c.id, is_active: c.is_active }))
-      });
-      
-      setState(prev => ({ 
-        ...prev, 
-        connections, 
-        loading: false,
-        errorMessage: ''
-      }));
-    } catch (error) {
-      console.error('[CalendarIntegration] Error fetching connections:', error);
-      
-      toast({
-        title: "Error",
-        description: "Failed to fetch calendar connections",
-        variant: "destructive",
-      });
-      
-      setState(prev => ({ 
-        ...prev, 
-        loading: false,
-        errorMessage: error instanceof Error ? error.message : 'Unknown error'
-      }));
-    }
-  };
+      const { data, error } = await supabase
+        .from('calendar_connections')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
 
-  const disconnectProvider = async (connectionId: string): Promise<boolean> => {
-    if (!user) {
-      console.error('[CalendarIntegration] No user for disconnect');
-      return false;
-    }
-
-    try {
-      console.log('[CalendarIntegration] Disconnecting provider:', connectionId);
-      
-      const success = await disconnectCalcomProvider(user, connectionId);
-      
-      if (success) {
-        console.log('[CalendarIntegration] Disconnect successful, refreshing connections');
-        await fetchConnections();
-      } else {
-        console.error('[CalendarIntegration] Disconnect failed');
+      if (error) {
+        console.error('[CalendarIntegration] Error fetching connections:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch calendar connections",
+          variant: "destructive",
+        });
+        return;
       }
 
-      return success;
+      console.log('[CalendarIntegration] Fetched connections:', data?.length || 0);
+      setConnections(data || []);
     } catch (error) {
-      console.error('[CalendarIntegration] Error in disconnectProvider:', error);
-      return false;
+      console.error('[CalendarIntegration] Unexpected error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSyncCalendarEvents = async (): Promise<boolean> => {
     if (!user) return false;
 
-    setState(prev => ({ ...prev, syncing: true }));
+    setSyncing(true);
 
     try {
       console.log('[CalendarIntegration] Starting calendar sync');
@@ -111,31 +74,28 @@ export const useCalendarIntegration = (user: User | null) => {
       await syncCalendarEvents(user);
       
       console.log('[CalendarIntegration] Calendar sync completed successfully');
-      setState(prev => ({ ...prev, syncing: false }));
+      setSyncing(false);
       return true;
     } catch (error) {
       console.error('[CalendarIntegration] Calendar sync failed:', error);
-      setState(prev => ({ ...prev, syncing: false }));
+      setSyncing(false);
       return false;
     }
   };
 
-  const getCalcomConnection = () => {
-    return state.connections.find(conn => conn.is_active);
+  const isCalcomConnected = () => {
+    return connections.some(conn => conn.is_active);
   };
 
-  const isCalcomConnected = () => {
-    return state.connections.some(conn => conn.is_active);
+  const getCalcomConnection = () => {
+    return connections.find(conn => conn.is_active);
   };
 
   return {
-    connections: state.connections,
-    loading: state.loading,
-    syncing: state.syncing,
-    connectionStatus: state.connectionStatus,
-    errorMessage: state.errorMessage,
+    connections,
+    loading,
+    syncing,
     
-    disconnectProvider,
     syncCalendarEvents: handleSyncCalendarEvents,
     refetch: fetchConnections,
     

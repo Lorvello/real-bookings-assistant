@@ -1,21 +1,17 @@
 
 /**
- * 🔗 CALENDAR CONNECTION AUTOMATION HOOK
- * ======================================
+ * 🔗 SIMPLIFIED CALENDAR CONNECTION HOOK
+ * =====================================
  * 
  * 🎯 AFFABLE BOT CONTEXT:
- * This hook manages Cal.com calendar connections for automatic setup.
- * Simplified to only handle Cal.com integration without OAuth complexity.
+ * Simplified hook that only handles Cal.com connection checking.
  */
 
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { useToast } from '@/hooks/use-toast';
 
 export const useCalendarConnection = (user: User | null) => {
-  const { toast } = useToast();
-
   const checkCalcomConnection = async () => {
     if (!user) return false;
 

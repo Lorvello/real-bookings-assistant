@@ -1,12 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { CalendarConnection } from '@/types/calendar';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 import { useAuth } from '@/hooks/useAuth';
 import { CalendarStepConnecting } from './CalendarStepConnecting';
 import { CalendarStepConnected } from './CalendarStepConnected';
 import { CalendarStepError } from './CalendarStepError';
-import { initiateCalcomRegistration, disconnectCalcomProvider } from '@/utils/calendar/calcomIntegration';
+import { handleCalcomRegistration } from '@/utils/calendarSync';
 import { Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +19,6 @@ interface CalendarProvider {
 }
 
 interface CalendarIntegrationStepsProps {
-  provider?: string;
   onComplete: () => void;
 }
 
@@ -56,7 +54,7 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
     
     setStep('connecting');
     try {
-      const success = await initiateCalcomRegistration(user);
+      const success = await handleCalcomRegistration(user);
       if (success) {
         await refetch();
         setStep('connected');
@@ -70,28 +68,9 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
     }
   };
 
-  const handleDisconnect = async () => {
-    if (!user || connections.length === 0) return;
-
-    try {
-      const connection = connections[0];
-      const success = await disconnectCalcomProvider(user, connection.id);
-      if (success) {
-        await refetch();
-        setStep('setup');
-      }
-    } catch (error) {
-      console.error('Error disconnecting Cal.com:', error);
-    }
-  };
-
   const handleRetryConnection = () => {
     setError(null);
     setStep('setup');
-  };
-
-  const handleTestConnection = async () => {
-    await refetch();
   };
 
   const handleContinue = () => {
@@ -134,9 +113,9 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
         connections={connections}
         providers={[calcomProvider]}
         loading={loading}
-        onDisconnect={handleDisconnect}
+        onDisconnect={() => {}}
         onChangeCalendar={() => setStep('setup')}
-        onTestConnection={handleTestConnection}
+        onTestConnection={refetch}
         onContinue={handleContinue}
       />
     );

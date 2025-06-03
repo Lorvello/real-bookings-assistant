@@ -30,86 +30,35 @@ serve(async (req) => {
     console.log('[Create Cal.com User] Starting for user:', user_id)
 
     // Check if Cal.com user already exists
-    const { data: existingCalUser } = await supabase
-      .from('cal_users')
+    const { data: existingConnection } = await supabase
+      .from('calendar_connections')
       .select('*')
       .eq('user_id', user_id)
+      .eq('is_active', true)
       .single()
 
-    if (existingCalUser) {
-      console.log('[Create Cal.com User] User already exists:', existingCalUser.cal_user_id)
+    if (existingConnection) {
+      console.log('[Create Cal.com User] Connection already exists')
       return new Response(JSON.stringify({ 
         success: true,
-        cal_user_id: existingCalUser.cal_user_id,
+        cal_user_id: existingConnection.cal_user_id,
         message: 'Cal.com user already exists'
       }), { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // Create Cal.com user via API
-    const calcomApiUrl = 'https://cal-web-xxx.onrender.com/api/v2/users'
+    // Generate unique Cal.com user ID
+    const calUserId = `user_${user_id.replace(/-/g, '').substring(0, 16)}`
     
-    const createUserResponse = await fetch(calcomApiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('CALCOM_API_KEY')}`, // We'll need this secret
-      },
-      body: JSON.stringify({
-        email: email,
-        username: email.split('@')[0], // Use email prefix as username
-        name: full_name || business_name || 'User',
-        timeZone: 'Europe/Amsterdam'
-      }),
-    })
+    console.log('[Create Cal.com User] Creating connection with ID:', calUserId)
 
-    if (!createUserResponse.ok) {
-      const errorText = await createUserResponse.text()
-      console.error('[Create Cal.com User] API error:', errorText)
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'Failed to create Cal.com user',
-        details: errorText
-      }), { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    const calUser = await createUserResponse.json()
-    console.log('[Create Cal.com User] Created Cal.com user:', calUser.id)
-
-    // Store Cal.com user mapping
-    const { error: userError } = await supabase
-      .from('cal_users')
-      .insert({
-        user_id: user_id,
-        cal_user_id: calUser.id.toString(),
-        cal_username: calUser.username,
-        cal_email: calUser.email,
-      })
-
-    if (userError) {
-      console.error('[Create Cal.com User] Database error:', userError)
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'Failed to store user mapping'
-      }), { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    // Create calendar connection with API tokens
+    // Create calendar connection record
     const { error: connectionError } = await supabase
       .from('calendar_connections')
       .insert({
         user_id: user_id,
-        provider: 'calcom',
-        provider_account_id: calUser.id.toString(),
-        cal_user_id: calUser.id.toString(),
-        api_endpoint: 'https://cal-web-xxx.onrender.com/api/v2',
+        cal_user_id: calUserId,
         connected_at: new Date().toISOString(),
         is_active: true
       })
@@ -143,7 +92,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       success: true,
-      cal_user_id: calUser.id,
+      cal_user_id: calUserId,
       message: 'Cal.com user created successfully'
     }), { 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

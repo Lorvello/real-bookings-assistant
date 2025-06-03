@@ -31,7 +31,7 @@ export const handleCalcomRegistration = async (user: User): Promise<boolean> => 
       body: { 
         user_id: user.id,
         email: user.email,
-        name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
       }
     });
 
