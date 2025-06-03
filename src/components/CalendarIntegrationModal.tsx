@@ -10,7 +10,6 @@ import {
 import { CalendarIntegrationSteps } from '@/components/calendar/CalendarIntegrationSteps';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { initiateCalcomRegistration } from '@/utils/calendar/calcomIntegration';
 
 interface CalendarIntegrationModalProps {
   open: boolean;

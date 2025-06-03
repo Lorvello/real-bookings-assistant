@@ -77,6 +77,16 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
     onComplete();
   };
 
+  // Updated to return Promise<void> to match the expected type
+  const handleDisconnect = async (provider: CalendarProvider): Promise<void> => {
+    console.log('Disconnecting provider:', provider.name);
+    // Implementation would go here
+  };
+
+  const handleChangeCalendar = async (): Promise<void> => {
+    setStep('setup');
+  };
+
   if (step === 'setup') {
     return (
       <Card className={`${calcomProvider.color} transition-colors`}>
@@ -113,8 +123,8 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
         connections={connections}
         providers={[calcomProvider]}
         loading={loading}
-        onDisconnect={() => {}}
-        onChangeCalendar={() => setStep('setup')}
+        onDisconnect={handleDisconnect}
+        onChangeCalendar={handleChangeCalendar}
         onTestConnection={refetch}
         onContinue={handleContinue}
       />

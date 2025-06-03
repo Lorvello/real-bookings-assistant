@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, Calendar, CheckCircle, Zap } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { useCalendarLinking } from '@/hooks/useCalendarLinking';
+import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 
 interface ActionRequiredCardProps {
   onCalendarModalOpen: () => void;
@@ -18,7 +18,7 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
 }) => {
   const { user } = useAuth();
   const { setupProgress, loading } = useProfile(user);
-  const { isConnected: calendarConnected, loading: calendarLoading } = useCalendarLinking(user);
+  const { isCalcomConnected, loading: calendarLoading } = useCalendarIntegration(user);
 
   if (loading || calendarLoading) {
     return (
@@ -36,7 +36,7 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
     );
   }
 
-  const needsCalendarLink = !calendarConnected && !setupProgress?.calendar_linked;
+  const needsCalendarLink = !isCalcomConnected() && !setupProgress?.calendar_linked;
   const needsAvailability = !setupProgress?.availability_configured;
   const needsBookingRules = !setupProgress?.booking_rules_set;
 
@@ -45,7 +45,7 @@ export const ActionRequiredCard: React.FC<ActionRequiredCardProps> = ({
   if (needsCalendarLink) {
     actionItems.push({
       title: 'Link Your Calendar',
-      description: 'Connect your Google Calendar to enable bookings',
+      description: 'Connect your Cal.com calendar to enable bookings',
       action: 'connect-calendar'
     });
   }

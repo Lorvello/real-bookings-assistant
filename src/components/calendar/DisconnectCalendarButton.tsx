@@ -1,18 +1,11 @@
 
-/**
- * 🔌 DISCONNECT CALENDAR BUTTON COMPONENT
- * =======================================
- * 
- * Simplified calendar disconnect button with confirmation flow.
- * Refactored for better maintainability and separation of concerns.
- */
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Unlink } from 'lucide-react';
 import { User } from '@supabase/supabase-js';
 import { DisconnectConfirmationDialog } from './DisconnectConfirmationDialog';
-import { useCalendarDisconnect } from '@/hooks/useCalendarDisconnect';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DisconnectCalendarButtonProps {
   user: User | null;
@@ -36,13 +29,45 @@ export const DisconnectCalendarButton: React.FC<DisconnectCalendarButtonProps> =
   className
 }) => {
   const [showConfirm, setShowConfirm] = useState(false);
-  
-  const { disconnecting, handleDisconnect } = useCalendarDisconnect({
-    user,
-    connectionId,
-    providerName,
-    onDisconnectSuccess
-  });
+  const [disconnecting, setDisconnecting] = useState(false);
+  const { toast } = useToast();
+
+  const handleDisconnect = async () => {
+    if (!user) return;
+
+    setDisconnecting(true);
+    try {
+      console.log(`[DisconnectButton] Disconnecting ${providerName} connection:`, connectionId);
+      
+      const { error } = await supabase
+        .from('calendar_connections')
+        .update({ is_active: false })
+        .eq('id', connectionId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      console.log(`[DisconnectButton] ${providerName} disconnected successfully`);
+      
+      toast({
+        title: "Calendar Ontkoppeld",
+        description: `${providerName} is succesvol ontkoppeld`,
+      });
+
+      onDisconnectSuccess?.();
+    } catch (error) {
+      console.error(`[DisconnectButton] Error disconnecting ${providerName}:`, error);
+      toast({
+        title: "Disconnect Mislukt",
+        description: `Kon ${providerName} niet ontkoppelen. Probeer het opnieuw.`,
+        variant: "destructive",
+      });
+    } finally {
+      setDisconnecting(false);
+    }
+  };
 
   const handleInitialClick = () => {
     if (showConfirmation) {

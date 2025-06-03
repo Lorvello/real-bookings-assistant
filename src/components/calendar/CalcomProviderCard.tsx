@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Calendar, CheckCircle, AlertTriangle, RefreshCw, Unlink } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { initiateCalcomRegistration, syncCalcomBookings, disconnectCalcomProvider } from '@/utils/calendar/calcomIntegration';
+import { handleCalcomRegistration, syncCalendarEvents } from '@/utils/calendarSync';
 
 interface CalcomProviderCardProps {
   isConnected: boolean;
@@ -29,7 +29,7 @@ export const CalcomProviderCard: React.FC<CalcomProviderCardProps> = ({
     
     setConnecting(true);
     try {
-      const success = await initiateCalcomRegistration(user);
+      const success = await handleCalcomRegistration(user);
       if (success) {
         toast({
           title: "Cal.com Verbonden",
@@ -56,7 +56,7 @@ export const CalcomProviderCard: React.FC<CalcomProviderCardProps> = ({
     
     setSyncing(true);
     try {
-      const success = await syncCalcomBookings(user);
+      const success = await syncCalendarEvents(user);
       if (success) {
         toast({
           title: "Synchronisatie Voltooid",
