@@ -1,223 +1,230 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { createCalcomUserForNewUser } from '@/utils/userOnboarding';
 
 const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     password: '',
-    organization: ''
+    confirmPassword: '',
+    fullName: '',
+    businessName: ''
   });
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        navigate('/profile');
-      }
-    };
-    
-    checkUser();
-  }, [navigate]);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.id]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Wachtwoorden komen niet overeen');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Wachtwoord moet minimaal 6 karakters zijn');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Step 1: Create Supabase user
+      console.log('[Signup] Creating Supabase user');
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
-            full_name: formData.name,
-            organization_name: formData.organization
-          },
-          emailRedirectTo: `${window.location.origin}/profile`
+            full_name: formData.fullName,
+            business_name: formData.businessName
+          }
         }
       });
 
-      if (error) {
-        const errorMessages = {
-          'user_already_registered': 'This email is already registered. Please try logging in instead.',
-          'weak_password': 'Password is too weak. Please choose a stronger password.',
-          'invalid_email': 'Please enter a valid email address.'
-        };
-        
-        toast({
-          title: "Signup Error",
-          description: errorMessages[error.message as keyof typeof errorMessages] || error.message,
-          variant: "destructive",
-        });
+      if (signUpError) {
+        setError(signUpError.message);
         return;
       }
 
-      if (data.user) {
-        if (data.user.email_confirmed_at) {
-          toast({
-            title: "Welcome!",
-            description: "Your account has been created successfully!",
-          });
-          navigate('/profile');
-        } else {
-          toast({
-            title: "Check your email!",
-            description: `We've sent a confirmation link to ${formData.email}. Click the link to complete your signup.`,
-            duration: 7000,
-          });
-        }
+      if (!data.user) {
+        setError('Account aanmaken mislukt');
+        return;
+      }
+
+      // Step 2: Create Cal.com user automatically
+      console.log('[Signup] Creating Cal.com user');
+      const calcomSuccess = await createCalcomUserForNewUser(data.user, {
+        full_name: formData.fullName,
+        business_name: formData.businessName
+      });
+
+      if (calcomSuccess) {
+        toast({
+          title: "Account Aangemaakt! 🎉",
+          description: "Je Cal.com account is automatisch gekoppeld en klaar voor gebruik",
+        });
       } else {
         toast({
-          title: "Something went wrong",
-          description: "Please try again or contact support if the problem persists.",
-          variant: "destructive",
+          title: "Account Aangemaakt",
+          description: "Account succesvol aangemaakt. Cal.com koppeling kan later worden ingesteld.",
+          variant: "default",
         });
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+
+      // Navigate to profile/dashboard
+      navigate('/profile');
+
+    } catch (error: any) {
+      console.error('[Signup] Unexpected error:', error);
+      setError('Er ging iets mis tijdens registratie');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="py-20 px-4">
-        <div className="flex justify-center">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-              <p className="text-gray-600 mb-4">Get started with your AI booking assistant</p>
-              <Link 
-                to="/#pricing" 
-                className="text-sm text-green-600 hover:text-green-500 underline"
-              >
-                View Pricing Plans
-              </Link>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Account Aanmaken</CardTitle>
+          <CardDescription className="text-center">
+            Maak je account aan en krijg automatisch Cal.com koppeling
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSignup} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Volledige Naam</Label>
+              <Input
+                id="fullName"
+                name="fullName"
+                type="text"
+                required
+                value={formData.fullName}
+                onChange={handleInputChange}
+                placeholder="Voer je volledige naam in"
+              />
             </div>
-            
-            <form onSubmit={handleSignup} className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <input 
-                  type="text" 
-                  id="name" 
-                  required 
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-                  placeholder="Enter your full name" 
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="organization" className="block text-sm font-medium text-gray-700 mb-2">
-                  Organization Name
-                </label>
-                <input 
-                  type="text" 
-                  id="organization" 
-                  value={formData.organization}
-                  onChange={handleInputChange}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-                  placeholder="Enter your organization name" 
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input 
-                  type="email" 
-                  id="email" 
-                  required 
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-                  placeholder="Enter your email" 
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <input 
-                  type="password" 
-                  id="password" 
-                  required 
+
+            <div className="space-y-2">
+              <Label htmlFor="businessName">Bedrijfsnaam</Label>
+              <Input
+                id="businessName"
+                name="businessName"
+                type="text"
+                value={formData.businessName}
+                onChange={handleInputChange}
+                placeholder="Voer je bedrijfsnaam in (optioneel)"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">E-mailadres</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="naam@voorbeeld.nl"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Wachtwoord</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
                   value={formData.password}
                   onChange={handleInputChange}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
-                  placeholder="Create a password" 
+                  placeholder="Minimaal 6 karakters"
+                  className="pr-10"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </button>
               </div>
-              
-              <div className="flex items-center">
-                <input 
-                  id="terms" 
-                  name="terms" 
-                  type="checkbox" 
-                  required 
-                  disabled={loading}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded disabled:bg-gray-100 disabled:cursor-not-allowed" 
-                />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
-                  I agree to the{' '}
-                  <a href="#" className="text-green-600 hover:text-green-500">Terms of Service</a>
-                  {' '}and{' '}
-                  <a href="#" className="text-green-600 hover:text-green-500">Privacy Policy</a>
-                </label>
-              </div>
-
-              <Button 
-                type="submit" 
-                disabled={loading}
-                className="w-full bg-green-600 hover:bg-green-700 text-lg py-3 disabled:bg-green-400 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Creating Account...' : 'Create Account'}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Already have an account?{' '}
-                <Link to="/login" className="font-medium text-green-600 hover:text-green-500">
-                  Sign in
-                </Link>
-              </p>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Bevestig Wachtwoord</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                placeholder="Herhaal je wachtwoord"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-green-600 hover:bg-green-700"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Account Aanmaken...
+                </>
+              ) : (
+                'Account Aanmaken & Cal.com Koppelen'
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Heb je al een account?{' '}
+              <Link to="/login" className="font-medium text-green-600 hover:text-green-500">
+                Inloggen
+              </Link>
+            </p>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

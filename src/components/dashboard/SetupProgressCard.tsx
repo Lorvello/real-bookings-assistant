@@ -2,167 +2,143 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Clock, Target, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { CheckCircle, Clock, Calendar, Zap } from 'lucide-react';
+import { useSetupProgress } from '@/hooks/useSetupProgress';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
-import { useCalendarLinking } from '@/hooks/useCalendarLinking';
-import { useToast } from '@/hooks/use-toast';
-import { SetupProgressIndicator } from './SetupProgressIndicator';
-import { SetupStepItem } from './SetupStepItem';
-import { disconnectAllCalendarConnections } from '@/utils/calendar/connectionDisconnect';
 
-interface SetupProgressCardProps {
-  onCalendarModalOpen: () => void;
-}
-
-export const SetupProgressCard: React.FC<SetupProgressCardProps> = ({
-  onCalendarModalOpen
-}) => {
+export const SetupProgressCard = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const { setupProgress, updateSetupProgress: updateProfileSetupProgress, loading } = useProfile(user);
-  const { isConnected: calendarConnected, loading: calendarLoading, refetchConnection } = useCalendarLinking(user);
+  const { progress, loading, refreshProgress } = useSetupProgress(user);
 
-  const handleStepAction = async (step: string, completed: boolean) => {
-    if (!user) {
-      console.error('[SetupProgress] No user available for step action');
-      return;
-    }
-
-    switch (step) {
-      case 'calendar_linked':
-        if (!completed) {
-          console.log('[SetupProgress] Opening calendar modal');
-          onCalendarModalOpen();
-        } else {
-          console.log('[SetupProgress] Resetting calendar - disconnecting all connections');
-          
-          try {
-            const success = await disconnectAllCalendarConnections(user);
-            
-            if (success) {
-              toast({
-                title: "Kalender Reset",
-                description: "Alle kalender verbindingen zijn succesvol ontkoppeld",
-              });
-              
-              setTimeout(async () => {
-                await refetchConnection();
-                window.location.reload();
-              }, 1500);
-            } else {
-              toast({
-                title: "Reset Mislukt",
-                description: "Er ging iets mis bij het resetten van de kalender. Probeer het opnieuw.",
-                variant: "destructive",
-              });
-            }
-          } catch (error) {
-            console.error('[SetupProgress] Error during calendar reset:', error);
-            toast({
-              title: "Reset Fout",
-              description: "Er trad een onverwachte fout op tijdens het resetten.",
-              variant: "destructive",
-            });
-          }
-        }
-        break;
-        
-      case 'availability_configured':
-        await updateProfileSetupProgress('availability_configured', !completed);
-        toast({
-          title: completed ? "Beschikbaarheid Reset" : "Beschikbaarheid Geconfigureerd",
-          description: completed 
-            ? "Beschikbaarheid instellingen zijn gereset" 
-            : "Beschikbaarheid is geconfigureerd",
-        });
-        break;
-        
-      case 'booking_rules_set':
-        await updateProfileSetupProgress('booking_rules_set', !completed);
-        toast({
-          title: completed ? "Boekingsregels Reset" : "Boekingsregels Ingesteld",
-          description: completed 
-            ? "Boekingsregels zijn gereset" 
-            : "Boekingsregels zijn geconfigureerd",
-        });
-        break;
-    }
-  };
-
-  const setupSteps = [
-    {
-      id: 'calendar_linked',
-      title: 'Link Your Calendar',
-      description: 'Connect your calendar to start receiving bookings',
-      completed: calendarConnected || setupProgress?.calendar_linked || false,
-      icon: Calendar,
-    },
-    {
-      id: 'availability_configured', 
-      title: 'Configure Availability',
-      description: 'Set your working hours and availability preferences',
-      completed: setupProgress?.availability_configured || false,
-      icon: Clock,
-    },
-    {
-      id: 'booking_rules_set',
-      title: 'Set Up Booking Rules', 
-      description: 'Define your booking policies and requirements',
-      completed: setupProgress?.booking_rules_set || false,
-      icon: Target,
-    },
-  ];
-
-  const completedSteps = setupSteps.filter(step => step.completed).length;
-  const totalSteps = setupSteps.length;
-
-  if (loading || calendarLoading) {
+  if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Setup Progress</CardTitle>
+          <CardTitle className="flex items-center gap-3">
+            <Zap className="h-5 w-5 text-green-600" />
+            Setup Voortgang
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">Loading setup progress...</div>
+          <div className="text-center py-4">
+            <div className="text-sm text-gray-600">Voortgang laden...</div>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
+  // Calculate completion percentage
+  const totalSteps = 2; // Simplified: cal_user_created + calendar_linked
+  const completedSteps = [
+    progress?.cal_user_created,
+    progress?.calendar_linked
+  ].filter(Boolean).length;
+  
+  const completionPercentage = Math.round((completedSteps / totalSteps) * 100);
+  const isComplete = completionPercentage === 100;
+
+  const steps = [
+    {
+      id: 'cal_user',
+      title: 'Cal.com Account',
+      description: 'Cal.com user automatisch aangemaakt',
+      completed: progress?.cal_user_created || false,
+      icon: Calendar,
+      automated: true
+    },
+    {
+      id: 'calendar_linked',
+      title: 'Kalender Gekoppeld',
+      description: 'Cal.com kalender succesvol verbonden',
+      completed: progress?.calendar_linked || false,
+      icon: CheckCircle,
+      automated: true
+    }
+  ];
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-3">
-            <Target className="h-5 w-5 text-green-600" />
-            Setup Progress
-          </span>
-          <Badge variant="outline">
-            {completedSteps}/{totalSteps} completed
-          </Badge>
+        <CardTitle className="flex items-center gap-3">
+          <Zap className="h-5 w-5 text-green-600" />
+          Setup Voortgang
+          {isComplete && (
+            <Badge variant="outline" className="bg-green-50 text-green-700">
+              Voltooid
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <SetupProgressIndicator 
-          completedSteps={completedSteps}
-          totalSteps={totalSteps}
-        />
-
-        <div className="space-y-4">
-          {setupSteps.map((step) => (
-            <SetupStepItem
-              key={step.id}
-              id={step.id}
-              title={step.title}
-              description={step.description}
-              completed={step.completed}
-              icon={step.icon}
-              onAction={handleStepAction}
-            />
-          ))}
+        {/* Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Voortgang</span>
+            <span className="font-medium">{completionPercentage}%</span>
+          </div>
+          <Progress value={completionPercentage} className="h-2" />
         </div>
+
+        {/* Steps */}
+        <div className="space-y-4">
+          {steps.map((step) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.id} className="flex items-start gap-3">
+                <div className={`p-2 rounded-full ${
+                  step.completed 
+                    ? 'bg-green-100 text-green-600' 
+                    : 'bg-gray-100 text-gray-400'
+                }`}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-gray-900">{step.title}</h4>
+                    {step.completed && (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    )}
+                    {step.automated && (
+                      <Badge variant="outline" size="sm" className="text-xs">
+                        Automatisch
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600">{step.description}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Success Message */}
+        {isComplete && (
+          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+            <div className="flex items-center gap-2 text-green-800">
+              <CheckCircle className="h-5 w-5" />
+              <div>
+                <h4 className="font-medium">Setup Voltooid! 🎉</h4>
+                <p className="text-sm">
+                  Je Cal.com account is volledig geconfigureerd en klaar voor 24/7 automatische boekingen via WhatsApp.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Refresh Button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={refreshProgress}
+          className="w-full"
+        >
+          <Clock className="h-4 w-4 mr-2" />
+          Status Vernieuwen
+        </Button>
       </CardContent>
     </Card>
   );
