@@ -7,7 +7,7 @@ import { CalendarStepSelector } from './CalendarStepSelector';
 import { CalendarStepConnecting } from './CalendarStepConnecting';
 import { CalendarStepConnected } from './CalendarStepConnected';
 import { CalendarStepError } from './CalendarStepError';
-import { initiateCalcomOAuth } from '@/utils/calendar/calcomIntegration';
+import { initiateCalcomOAuth, disconnectCalcomProvider } from '@/utils/calendar/calcomIntegration';
 import { Calendar } from 'lucide-react';
 
 interface CalendarProvider {
@@ -136,7 +136,32 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
   };
 
   const handleDisconnect = async (provider: CalendarProvider) => {
-    await refetch();
+    if (!user) return;
+
+    try {
+      // Find the connection for this provider
+      const connection = connections.find(conn => conn.provider === provider.id && conn.is_active);
+      if (!connection) {
+        console.log('No connection found for provider:', provider.id);
+        return;
+      }
+
+      let success = false;
+      
+      if (provider.id === 'calcom') {
+        success = await disconnectCalcomProvider(user, connection.id);
+      } else {
+        // For other providers, use the general disconnect method from the hook
+        success = await refetch();
+      }
+
+      if (success) {
+        console.log('Successfully disconnected provider:', provider.id);
+        await refetch(); // Refresh connections list
+      }
+    } catch (error) {
+      console.error('Error disconnecting provider:', error);
+    }
   };
 
   const handleChangeCalendar = () => {
