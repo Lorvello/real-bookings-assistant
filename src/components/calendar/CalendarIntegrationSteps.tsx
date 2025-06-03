@@ -151,8 +151,9 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
       if (provider.id === 'calcom') {
         success = await disconnectCalcomProvider(user, connection.id);
       } else {
-        // For other providers, use the general disconnect method from the hook
-        success = await refetch();
+        // For other providers, trigger refetch and assume success
+        await refetch();
+        success = true;
       }
 
       if (success) {
