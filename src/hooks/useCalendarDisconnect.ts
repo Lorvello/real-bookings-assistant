@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
-import { disconnectCalendarProvider } from '@/utils/calendar/connectionDisconnect';
+import { disconnectCalcomProvider } from '@/utils/calendar/connectionDisconnect';
 
 interface UseCalendarDisconnectProps {
   user: User | null;
@@ -42,7 +42,7 @@ export const useCalendarDisconnect = ({
     setDisconnecting(true);
     
     try {
-      const success = await disconnectCalendarProvider(user, connectionId);
+      const success = await disconnectCalcomProvider(user, connectionId);
       
       if (success) {
         toast({

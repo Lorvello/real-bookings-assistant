@@ -4,8 +4,7 @@
  * ==============================
  * 
  * 🎯 AFFABLE BOT CONTEXT:
- * Deze hook orkestreert de synchronisatie met Cal.com bookings.
- * Dit is de ruggengraat van het autonome booking systeem.
+ * This hook manages Cal.com booking synchronization.
  */
 
 import { useState, useEffect } from 'react';
@@ -77,11 +76,9 @@ export const useCalendarSync = (user: User | null) => {
       try {
         const { data: connections } = await supabase
           .from('calendar_connections')
-          .select('id, provider')
+          .select('id')
           .eq('user_id', user.id)
-          .eq('provider', 'calcom')
-          .eq('is_active', true)
-          .neq('provider_account_id', 'pending');
+          .eq('is_active', true);
 
         if (connections && connections.length > 0) {
           console.log('[CalendarSync] Found active Cal.com connections, triggering auto-sync');
