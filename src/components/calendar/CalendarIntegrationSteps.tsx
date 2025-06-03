@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { CalendarConnection } from '@/types/calendar';
 import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
@@ -6,6 +7,8 @@ import { CalendarStepSelector } from './CalendarStepSelector';
 import { CalendarStepConnecting } from './CalendarStepConnecting';
 import { CalendarStepConnected } from './CalendarStepConnected';
 import { CalendarStepError } from './CalendarStepError';
+import { initiateCalcomOAuth } from '@/utils/calendar/calcomIntegration';
+import { Calendar } from 'lucide-react';
 
 interface CalendarProvider {
   id: string;
@@ -42,6 +45,17 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
       color: 'bg-blue-50 border-blue-200 hover:bg-blue-100'
     },
     {
+      id: 'calcom',
+      name: 'Cal.com',
+      description: 'Synchroniseer je Cal.com boekingen',
+      icon: (
+        <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white">
+          <Calendar className="h-6 w-6" />
+        </div>
+      ),
+      color: 'bg-orange-50 border-orange-200 hover:bg-orange-100'
+    },
+    {
       id: 'microsoft',
       name: 'Microsoft Outlook',
       description: 'Outlook en Exchange kalenders',
@@ -62,17 +76,6 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
         </div>
       ),
       color: 'bg-gray-50 border-gray-200'
-    },
-    {
-      id: 'calendly',
-      name: 'Calendly',
-      description: 'Import je Calendly beschikbaarheid',
-      icon: (
-        <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          C
-        </div>
-      ),
-      color: 'bg-gray-50 border-gray-200'
     }
   ];
 
@@ -90,6 +93,30 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
     } catch (error) {
       console.error('Error connecting to Google:', error);
       setError('Kon niet verbinden met Google Calendar');
+      setStep('error');
+    }
+  };
+
+  const handleCalcomConnect = async () => {
+    if (!user) return;
+    
+    setStep('connecting');
+    try {
+      await initiateCalcomOAuth(user);
+    } catch (error) {
+      console.error('Error connecting to Cal.com:', error);
+      setError('Kon niet verbinden met Cal.com');
+      setStep('error');
+    }
+  };
+
+  const handleProviderConnect = async (providerId: string) => {
+    if (providerId === 'google') {
+      await handleGoogleConnect();
+    } else if (providerId === 'calcom') {
+      await handleCalcomConnect();
+    } else {
+      setError(`${providerId} wordt nog niet ondersteund`);
       setStep('error');
     }
   };
@@ -130,7 +157,7 @@ export const CalendarIntegrationSteps: React.FC<CalendarIntegrationStepsProps> =
         providers={providers}
         error={error}
         isProviderConnected={isProviderConnected}
-        onProviderConnect={handleGoogleConnect}
+        onProviderConnect={handleProviderConnect}
         onRetryConnection={handleRetryConnection}
         onResetConnections={handleResetConnections}
       />

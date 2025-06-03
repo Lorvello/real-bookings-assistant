@@ -168,6 +168,39 @@ export type Database = {
         }
         Relationships: []
       }
+      cal_com_webhooks: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          triggers: string[]
+          updated_at: string
+          user_id: string
+          webhook_id: string
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          triggers?: string[]
+          updated_at?: string
+          user_id: string
+          webhook_id: string
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          triggers?: string[]
+          updated_at?: string
+          user_id?: string
+          webhook_id?: string
+          webhook_url?: string
+        }
+        Relationships: []
+      }
       calendar_connections: {
         Row: {
           access_token: string | null

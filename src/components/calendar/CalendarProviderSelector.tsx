@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Calendar } from 'lucide-react';
 
 interface CalendarProvider {
   id: string;
@@ -36,6 +37,18 @@ export const CalendarProviderSelector: React.FC<CalendarProviderSelectorProps> =
       color: 'bg-blue-50 border-blue-200 hover:bg-blue-100'
     },
     {
+      id: 'calcom',
+      name: 'Cal.com',
+      description: 'Synchroniseer je Cal.com boekingen',
+      icon: (
+        <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white">
+          <Calendar className="h-6 w-6" />
+        </div>
+      ),
+      status: 'available',
+      color: 'bg-orange-50 border-orange-200 hover:bg-orange-100'
+    },
+    {
       id: 'microsoft',
       name: 'Microsoft Outlook',
       description: 'Outlook en Exchange kalenders',
@@ -54,18 +67,6 @@ export const CalendarProviderSelector: React.FC<CalendarProviderSelectorProps> =
       icon: (
         <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-white font-bold text-xl">
           🍎
-        </div>
-      ),
-      status: 'coming-soon',
-      color: 'bg-gray-50 border-gray-200'
-    },
-    {
-      id: 'calendly',
-      name: 'Calendly',
-      description: 'Import je Calendly beschikbaarheid',
-      icon: (
-        <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          C
         </div>
       ),
       status: 'coming-soon',
@@ -124,7 +125,9 @@ export const CalendarProviderSelector: React.FC<CalendarProviderSelectorProps> =
                   <Button 
                     className={`w-full ${
                       provider.status === 'available' 
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                        ? provider.id === 'calcom' 
+                          ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                     disabled={provider.status === 'coming-soon' || connecting}

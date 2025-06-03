@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { CalendarIntegrationModal } from '@/components/CalendarIntegrationModal';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarConnectionManager } from '@/components/calendar/CalendarConnectionManager';
+import { CalcomProviderCard } from '@/components/calendar/CalcomProviderCard';
 import { disconnectAllCalendarConnections } from '@/utils/calendar/connectionDisconnect';
 
 export const CalendarManagementCard = () => {
@@ -23,7 +24,8 @@ export const CalendarManagementCard = () => {
     loading,
     syncCalendarEvents,
     syncing,
-    refetch
+    refetch,
+    isProviderConnected
   } = useCalendarIntegration(user);
 
   const handleSync = async () => {
@@ -143,6 +145,12 @@ export const CalendarManagementCard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Cal.com Provider Card */}
+          <CalcomProviderCard
+            isConnected={isProviderConnected('calcom')}
+            onRefresh={handleConnectionRefresh}
+          />
+
           {/* Disconnect All Warning & Button */}
           {connections.length > 0 && (
             <Alert className="border-red-200 bg-red-50">
