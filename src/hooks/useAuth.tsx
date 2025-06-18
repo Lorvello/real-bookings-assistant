@@ -27,13 +27,13 @@ export const useAuth = () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error('[Auth] Session error:', error);
+          console.error('Session error:', error);
         } else if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
         }
       } catch (error) {
-        console.error('[Auth] Failed to get session:', error);
+        console.error('Failed to get session:', error);
       } finally {
         if (mounted) {
           setLoading(false);
