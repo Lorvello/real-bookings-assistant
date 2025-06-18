@@ -2,26 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface WebhookEndpoint {
-  id: string;
-  calendar_id: string;
-  webhook_url: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-interface WebhookEvent {
-  id: string;
-  calendar_id: string;
-  event_type: string;
-  payload: any;
-  status: 'pending' | 'sent' | 'failed';
-  attempts: number;
-  last_attempt_at?: string;
-  created_at: string;
-}
+import { WebhookEndpoint, WebhookEvent } from '@/types/database';
 
 export const useWebhooks = (calendarId?: string) => {
   const { toast } = useToast();
