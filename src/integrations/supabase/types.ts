@@ -318,6 +318,60 @@ export type Database = {
           },
         ]
       }
+      recurring_availability: {
+        Row: {
+          calendar_id: string | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          pattern_name: string
+          pattern_type: string | null
+          schedule_data: Json
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          calendar_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          pattern_name: string
+          pattern_type?: string | null
+          schedule_data: Json
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          calendar_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          pattern_name?: string
+          pattern_type?: string | null
+          schedule_data?: Json
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_availability_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "recurring_availability_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_types: {
         Row: {
           calendar_id: string | null
@@ -598,6 +652,18 @@ export type Database = {
           p_days?: number
         }
         Returns: Json
+      }
+      resolve_recurring_availability: {
+        Args: {
+          p_calendar_id: string
+          p_start_date: string
+          p_end_date: string
+        }
+        Returns: {
+          resolved_date: string
+          pattern_id: string
+          availability_rules: Json
+        }[]
       }
       setup_calendar_defaults: {
         Args: { p_calendar_id: string; p_business_type?: string }

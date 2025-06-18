@@ -118,3 +118,34 @@ export interface WebhookEvent {
   last_attempt_at?: string;
   created_at: string;
 }
+
+export interface RecurringAvailability {
+  id: string;
+  calendar_id: string;
+  pattern_type: 'weekly' | 'biweekly' | 'monthly' | 'seasonal';
+  pattern_name: string;
+  start_date: string;
+  end_date?: string;
+  schedule_data: {
+    // Weekly pattern
+    days?: string[];
+    time_slots?: { start: string; end: string }[];
+    availability?: { time_slots: { start: string; end: string }[] };
+    
+    // Biweekly pattern
+    week1_days?: string[];
+    week2_days?: string[];
+    week1_availability?: { time_slots: { start: string; end: string }[] };
+    week2_availability?: { time_slots: { start: string; end: string }[] };
+    
+    // Monthly pattern
+    occurrence?: 'first' | 'last';
+    
+    // Seasonal pattern
+    start_month?: number;
+    end_month?: number;
+  };
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
