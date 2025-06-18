@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      calendar_settings: {
+        Row: {
+          allow_waitlist: boolean | null
+          booking_window_days: number | null
+          buffer_time: number | null
+          calendar_id: string | null
+          confirmation_required: boolean | null
+          created_at: string | null
+          id: string
+          max_bookings_per_day: number | null
+          minimum_notice_hours: number | null
+          slot_duration: number | null
+        }
+        Insert: {
+          allow_waitlist?: boolean | null
+          booking_window_days?: number | null
+          buffer_time?: number | null
+          calendar_id?: string | null
+          confirmation_required?: boolean | null
+          created_at?: string | null
+          id?: string
+          max_bookings_per_day?: number | null
+          minimum_notice_hours?: number | null
+          slot_duration?: number | null
+        }
+        Update: {
+          allow_waitlist?: boolean | null
+          booking_window_days?: number | null
+          buffer_time?: number | null
+          calendar_id?: string | null
+          confirmation_required?: boolean | null
+          created_at?: string | null
+          id?: string
+          max_bookings_per_day?: number | null
+          minimum_notice_hours?: number | null
+          slot_duration?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendars: {
         Row: {
           created_at: string | null
@@ -43,6 +90,59 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_types: {
+        Row: {
+          calendar_id: string | null
+          cleanup_time: number | null
+          color: string | null
+          created_at: string | null
+          description: string | null
+          duration: number
+          id: string
+          is_active: boolean | null
+          max_attendees: number | null
+          name: string
+          preparation_time: number | null
+          price: number | null
+        }
+        Insert: {
+          calendar_id?: string | null
+          cleanup_time?: number | null
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration: number
+          id?: string
+          is_active?: boolean | null
+          max_attendees?: number | null
+          name: string
+          preparation_time?: number | null
+          price?: number | null
+        }
+        Update: {
+          calendar_id?: string | null
+          cleanup_time?: number | null
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: number
+          id?: string
+          is_active?: boolean | null
+          max_attendees?: number | null
+          name?: string
+          preparation_time?: number | null
+          price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
         ]
