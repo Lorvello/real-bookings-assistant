@@ -48,4 +48,33 @@ export interface ServiceType {
   created_at: string;
 }
 
+export interface AvailabilitySchedule {
+  id: string;
+  calendar_id: string;
+  name: string;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface AvailabilityRule {
+  id: string;
+  schedule_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+  created_at: string;
+}
+
+export interface AvailabilityOverride {
+  id: string;
+  calendar_id: string;
+  date: string;
+  is_available: boolean;
+  start_time?: string;
+  end_time?: string;
+  reason?: string;
+  created_at: string;
+}
+
 export type BusinessType = 'salon' | 'clinic' | 'consultant' | 'trainer' | 'other';

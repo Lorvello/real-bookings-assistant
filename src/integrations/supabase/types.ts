@@ -9,6 +9,117 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      availability_overrides: {
+        Row: {
+          calendar_id: string | null
+          created_at: string | null
+          date: string
+          end_time: string | null
+          id: string
+          is_available: boolean | null
+          reason: string | null
+          start_time: string | null
+        }
+        Insert: {
+          calendar_id?: string | null
+          created_at?: string | null
+          date: string
+          end_time?: string | null
+          id?: string
+          is_available?: boolean | null
+          reason?: string | null
+          start_time?: string | null
+        }
+        Update: {
+          calendar_id?: string | null
+          created_at?: string | null
+          date?: string
+          end_time?: string | null
+          id?: string
+          is_available?: boolean | null
+          reason?: string | null
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_overrides_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      availability_rules: {
+        Row: {
+          created_at: string | null
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean | null
+          schedule_id: string | null
+          start_time: string
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          schedule_id?: string | null
+          start_time: string
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          schedule_id?: string | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_rules_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "availability_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      availability_schedules: {
+        Row: {
+          calendar_id: string | null
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+        }
+        Insert: {
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+        }
+        Update: {
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_schedules_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_settings: {
         Row: {
           allow_waitlist: boolean | null
@@ -185,7 +296,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_availability: {
+        Args: {
+          p_calendar_id: string
+          p_datetime: string
+          p_duration_minutes?: number
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
