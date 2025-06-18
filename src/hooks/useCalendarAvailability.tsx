@@ -58,21 +58,24 @@ export const useCalendarAvailability = () => {
         return { success: false, error: error.message };
       }
 
-      if (!data?.success) {
+      // Type cast the JSON response to our expected structure
+      const result = data as CalendarAvailabilityResult;
+
+      if (!result?.success) {
         toast({
           title: "Kalender niet gevonden",
-          description: data?.error || "Kalender kon niet worden gevonden",
+          description: result?.error || "Kalender kon niet worden gevonden",
           variant: "destructive",
         });
         setLoading(false);
-        return { success: false, error: data?.error || "Kalender niet gevonden" };
+        return { success: false, error: result?.error || "Kalender niet gevonden" };
       }
 
       setLoading(false);
       return {
         success: true,
-        calendar_id: data.calendar_id,
-        availability: data.availability || []
+        calendar_id: result.calendar_id,
+        availability: result.availability || []
       };
     } catch (error) {
       console.error('Availability fetch error:', error);

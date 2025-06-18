@@ -51,14 +51,22 @@ export const usePublicBookingCreation = () => {
         return { success: false, error: error.message };
       }
 
-      if (!data?.success) {
+      // Type cast the JSON response to our expected structure
+      const result = data as BookingResult & {
+        booking_id?: string;
+        confirmation_token?: string;
+        start_time?: string;
+        end_time?: string;
+      };
+
+      if (!result?.success) {
         toast({
           title: "Booking gefaald",
-          description: data?.error || "Booking kon niet worden aangemaakt",
+          description: result?.error || "Booking kon niet worden aangemaakt",
           variant: "destructive",
         });
         setLoading(false);
-        return { success: false, error: data?.error || "Booking gefaald" };
+        return { success: false, error: result?.error || "Booking gefaald" };
       }
 
       toast({
@@ -69,10 +77,10 @@ export const usePublicBookingCreation = () => {
       setLoading(false);
       return {
         success: true,
-        bookingId: data.booking_id,
-        confirmationToken: data.confirmation_token,
-        startTime: data.start_time,
-        endTime: data.end_time
+        bookingId: result.booking_id,
+        confirmationToken: result.confirmation_token,
+        startTime: result.start_time,
+        endTime: result.end_time
       };
     } catch (error) {
       console.error('Booking creation error:', error);

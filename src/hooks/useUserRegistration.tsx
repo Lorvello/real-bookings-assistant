@@ -71,17 +71,24 @@ export const useUserRegistration = () => {
         }
       );
 
-      if (setupError || !setupResult?.success) {
+      // Type cast the JSON response to our expected structure
+      const result = setupResult as UserRegistrationResult & {
+        user_id?: string;
+        calendar_id?: string;
+        calendar_slug?: string;
+      };
+
+      if (setupError || !result?.success) {
         console.error('Setup error:', setupError);
         toast({
           title: "Setup gefaald",
-          description: setupResult?.error || setupError?.message || "Onbekende fout",
+          description: result?.error || setupError?.message || "Onbekende fout",
           variant: "destructive",
         });
         setLoading(false);
         return { 
           success: false, 
-          error: setupResult?.error || setupError?.message || "Setup gefaald" 
+          error: result?.error || setupError?.message || "Setup gefaald" 
         };
       }
 
@@ -93,9 +100,9 @@ export const useUserRegistration = () => {
       setLoading(false);
       return {
         success: true,
-        userId: setupResult.user_id,
-        calendarId: setupResult.calendar_id,
-        calendarSlug: setupResult.calendar_slug
+        userId: result.user_id,
+        calendarId: result.calendar_id,
+        calendarSlug: result.calendar_slug
       };
     } catch (error) {
       console.error('Registration error:', error);
