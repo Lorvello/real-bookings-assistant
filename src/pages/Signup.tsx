@@ -9,7 +9,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { createCalcomUserForNewUser } from '@/utils/userOnboarding';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -38,20 +37,18 @@ const Signup = () => {
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Wachtwoorden komen niet overeen');
+      setError('Passwords do not match');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Wachtwoord moet minimaal 6 karakters zijn');
+      setError('Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
 
     try {
-      // Step 1: Create Supabase user
-      console.log('[Signup] Creating Supabase user');
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -69,36 +66,20 @@ const Signup = () => {
       }
 
       if (!data.user) {
-        setError('Account aanmaken mislukt');
+        setError('Account creation failed');
         return;
       }
 
-      // Step 2: Create Cal.com user automatically
-      console.log('[Signup] Creating Cal.com user');
-      const calcomSuccess = await createCalcomUserForNewUser(data.user, {
-        full_name: formData.fullName,
-        business_name: formData.businessName
+      toast({
+        title: "Account Created! 🎉",
+        description: "Your account has been successfully created",
       });
 
-      if (calcomSuccess) {
-        toast({
-          title: "Account Aangemaakt! 🎉",
-          description: "Je Cal.com account is automatisch gekoppeld en klaar voor gebruik",
-        });
-      } else {
-        toast({
-          title: "Account Aangemaakt",
-          description: "Account succesvol aangemaakt. Cal.com koppeling kan later worden ingesteld.",
-          variant: "default",
-        });
-      }
-
-      // Navigate to profile/dashboard
       navigate('/profile');
 
     } catch (error: any) {
-      console.error('[Signup] Unexpected error:', error);
-      setError('Er ging iets mis tijdens registratie');
+      console.error('Signup error:', error);
+      setError('Something went wrong during signup');
     } finally {
       setLoading(false);
     }
@@ -108,9 +89,9 @@ const Signup = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Account Aanmaken</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
           <CardDescription className="text-center">
-            Maak je account aan en krijg automatisch Cal.com koppeling
+            Create your account to get started
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -122,7 +103,7 @@ const Signup = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="fullName">Volledige Naam</Label>
+              <Label htmlFor="fullName">Full Name</Label>
               <Input
                 id="fullName"
                 name="fullName"
@@ -130,24 +111,24 @@ const Signup = () => {
                 required
                 value={formData.fullName}
                 onChange={handleInputChange}
-                placeholder="Voer je volledige naam in"
+                placeholder="Enter your full name"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="businessName">Bedrijfsnaam</Label>
+              <Label htmlFor="businessName">Business Name</Label>
               <Input
                 id="businessName"
                 name="businessName"
                 type="text"
                 value={formData.businessName}
                 onChange={handleInputChange}
-                placeholder="Voer je bedrijfsnaam in (optioneel)"
+                placeholder="Enter your business name (optional)"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">E-mailadres</Label>
+              <Label htmlFor="email">Email Address</Label>
               <Input
                 id="email"
                 name="email"
@@ -155,12 +136,12 @@ const Signup = () => {
                 required
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="naam@voorbeeld.nl"
+                placeholder="name@example.com"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Wachtwoord</Label>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -169,7 +150,7 @@ const Signup = () => {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  placeholder="Minimaal 6 karakters"
+                  placeholder="At least 6 characters"
                   className="pr-10"
                 />
                 <button
@@ -187,7 +168,7 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Bevestig Wachtwoord</Label>
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -195,7 +176,7 @@ const Signup = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                placeholder="Herhaal je wachtwoord"
+                placeholder="Repeat your password"
               />
             </div>
 
@@ -207,19 +188,19 @@ const Signup = () => {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Account Aanmaken...
+                  Creating Account...
                 </>
               ) : (
-                'Account Aanmaken & Cal.com Koppelen'
+                'Create Account'
               )}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Heb je al een account?{' '}
+              Already have an account?{' '}
               <Link to="/login" className="font-medium text-green-600 hover:text-green-500">
-                Inloggen
+                Sign in
               </Link>
             </p>
           </div>
