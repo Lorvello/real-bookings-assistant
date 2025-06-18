@@ -1,12 +1,8 @@
 
 import React from 'react';
 import { User } from '@supabase/supabase-js';
-import { ActionRequiredCard } from './ActionRequiredCard';
-import { BusinessMetricsCard } from './BusinessMetricsCard';
 import { TodaysScheduleCard } from './TodaysScheduleCard';
-import { BookingStatusCard } from './BookingStatusCard';
 import { AiBotStatusCard } from './AiBotStatusCard';
-import { BookingTrendsChart } from './BookingTrendsChart';
 
 interface DashboardMainContentProps {
   user: User;
@@ -29,31 +25,23 @@ export const DashboardMainContent: React.FC<DashboardMainContentProps> = ({
 
   return (
     <div className="xl:col-span-3 space-y-6">
-      {/* 🚨 ACTION REQUIRED SECTION */}
-      <ActionRequiredCard 
-        onCalendarModalOpen={onCalendarModalOpen}
-      />
+      {/* Welcome Section */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Welcome to your Dashboard
+        </h2>
+        <p className="text-gray-600">
+          Your fresh Supabase project is ready to go. Start building your application!
+        </p>
+      </div>
 
-      {/* 📊 BUSINESS METRICS OVERVIEW */}
-      <BusinessMetricsCard />
-
-      {/* 📅 TODAY'S OPERATIONS */}
+      {/* Today's Operations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TodaysScheduleCard />
         <AiBotStatusCard 
           isActive={botActive}
           onToggle={onBotToggle}
         />
-      </div>
-
-      {/* 📈 ANALYTICS & STATUS SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <BookingTrendsChart 
-          bookingTrends={bookingTrends}
-        />
-        
-        {/* 📅 NEW: Simplified Booking Status Card */}
-        <BookingStatusCard />
       </div>
     </div>
   );
