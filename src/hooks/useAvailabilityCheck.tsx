@@ -62,9 +62,40 @@ export const useAvailabilityCheck = () => {
     }
   };
 
+  const getDetailedSlots = async (
+    calendarId: string,
+    serviceTypeId: string,
+    date: string,
+    timezone: string = 'Europe/Amsterdam'
+  ) => {
+    setLoading(true);
+    
+    try {
+      const { data, error } = await supabase.rpc('get_available_slots', {
+        p_calendar_id: calendarId,
+        p_service_type_id: serviceTypeId,
+        p_date: date,
+        p_timezone: timezone
+      });
+
+      if (error) {
+        console.error('Error getting detailed slots:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error getting detailed slots:', error);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     checkAvailability,
     checkMultipleSlots,
+    getDetailedSlots,
     loading
   };
 };

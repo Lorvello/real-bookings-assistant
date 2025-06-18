@@ -45,6 +45,13 @@ export type Database = {
             foreignKeyName: "availability_overrides_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "availability_overrides_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
@@ -111,6 +118,13 @@ export type Database = {
           name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "availability_schedules_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
           {
             foreignKeyName: "availability_schedules_calendar_id_fkey"
             columns: ["calendar_id"]
@@ -186,8 +200,22 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["service_type_id"]
           },
           {
             foreignKeyName: "bookings_service_type_id_fkey"
@@ -236,6 +264,13 @@ export type Database = {
           slot_duration?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "calendar_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
           {
             foreignKeyName: "calendar_settings_calendar_id_fkey"
             columns: ["calendar_id"]
@@ -331,6 +366,13 @@ export type Database = {
             foreignKeyName: "service_types_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
@@ -371,7 +413,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      available_slots_view: {
+        Row: {
+          calendar_id: string | null
+          calendar_name: string | null
+          calendar_slug: string | null
+          duration_minutes: number | null
+          is_available: boolean | null
+          service_duration: number | null
+          service_name: string | null
+          service_price: number | null
+          service_type_id: string | null
+          slot_end: string | null
+          slot_start: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_availability: {
@@ -394,6 +451,34 @@ export type Database = {
       generate_confirmation_token: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_available_slots: {
+        Args: {
+          p_calendar_id: string
+          p_service_type_id: string
+          p_date: string
+          p_timezone?: string
+        }
+        Returns: {
+          slot_start: string
+          slot_end: string
+          is_available: boolean
+        }[]
+      }
+      get_available_slots_range: {
+        Args: {
+          p_calendar_id: string
+          p_service_type_id: string
+          p_start_date: string
+          p_end_date: string
+          p_timezone?: string
+        }
+        Returns: {
+          slot_date: string
+          slot_start: string
+          slot_end: string
+          is_available: boolean
+        }[]
       }
     }
     Enums: {
