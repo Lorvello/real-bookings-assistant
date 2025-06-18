@@ -39,6 +39,17 @@ interface RecurringPatternsListProps {
 
 const DAYS_OF_WEEK = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'];
 
+// Type guard to safely access schedule_data properties
+interface ScheduleData {
+  days?: string[];
+  time_slots?: { start: string; end: string }[];
+  week1_days?: string[];
+  week2_days?: string[];
+  occurrence?: 'first' | 'last';
+  start_month?: number;
+  end_month?: number;
+}
+
 export function RecurringPatternsList({ 
   patterns, 
   onTogglePattern, 
@@ -76,26 +87,27 @@ export function RecurringPatternsList({
   };
 
   const getPatternDescription = (pattern: RecurringPattern) => {
-    const { pattern_type, schedule_data } = pattern;
+    const { pattern_type } = pattern;
+    const scheduleData = pattern.schedule_data as ScheduleData;
     
     switch (pattern_type) {
       case 'weekly':
-        return `${formatDays(schedule_data.days)} • ${formatTimeSlots(schedule_data.time_slots)}`;
+        return `${formatDays(scheduleData.days || [])} • ${formatTimeSlots(scheduleData.time_slots || [])}`;
       
       case 'biweekly':
-        const week1 = formatDays(schedule_data.week1_days);
-        const week2 = formatDays(schedule_data.week2_days);
+        const week1 = formatDays(scheduleData.week1_days || []);
+        const week2 = formatDays(scheduleData.week2_days || []);
         return `Week 1: ${week1} • Week 2: ${week2}`;
       
       case 'monthly':
-        const occurrence = schedule_data.occurrence === 'first' ? 'Eerste' : 'Laatste';
-        return `${occurrence} week • ${formatDays(schedule_data.days)}`;
+        const occurrence = scheduleData.occurrence === 'first' ? 'Eerste' : 'Laatste';
+        return `${occurrence} week • ${formatDays(scheduleData.days || [])}`;
       
       case 'seasonal':
         const months = ['', 'Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-        const startMonth = months[schedule_data.start_month];
-        const endMonth = months[schedule_data.end_month];
-        return `${startMonth} - ${endMonth} • ${formatDays(schedule_data.days)}`;
+        const startMonth = months[scheduleData.start_month || 1];
+        const endMonth = months[scheduleData.end_month || 12];
+        return `${startMonth} - ${endMonth} • ${formatDays(scheduleData.days || [])}`;
       
       default:
         return '';
