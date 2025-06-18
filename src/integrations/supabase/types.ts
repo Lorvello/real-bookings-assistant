@@ -221,6 +221,13 @@ export type Database = {
             foreignKeyName: "bookings_service_type_id_fkey"
             columns: ["service_type_id"]
             isOneToOne: false
+            referencedRelation: "service_type_stats"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "bookings_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
             referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
@@ -608,6 +615,13 @@ export type Database = {
             foreignKeyName: "waitlist_service_type_id_fkey"
             columns: ["service_type_id"]
             isOneToOne: false
+            referencedRelation: "service_type_stats"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "waitlist_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
             referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
@@ -721,6 +735,61 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_stats: {
+        Row: {
+          avg_duration_minutes: number | null
+          calendar_id: string | null
+          cancelled_bookings: number | null
+          completed_bookings: number | null
+          last_updated_month: string | null
+          no_show_bookings: number | null
+          total_bookings: number | null
+          total_revenue: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_type_stats: {
+        Row: {
+          avg_duration: number | null
+          booking_count: number | null
+          calendar_id: string | null
+          no_show_count: number | null
+          service_name: string | null
+          service_type_id: string | null
+          total_revenue: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_to_waitlist: {
@@ -817,6 +886,10 @@ export type Database = {
           p_days?: number
         }
         Returns: Json
+      }
+      refresh_analytics_views: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       resolve_recurring_availability: {
         Args: {
