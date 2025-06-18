@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +19,15 @@ export const useWaitlist = (calendarId?: string) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setWaitlistEntries(data || []);
+      
+      // Cast the data to ensure proper typing
+      const typedData = (data || []).map(entry => ({
+        ...entry,
+        flexibility: entry.flexibility as 'specific' | 'morning' | 'afternoon' | 'anytime',
+        status: entry.status as 'waiting' | 'notified' | 'converted' | 'expired'
+      }));
+      
+      setWaitlistEntries(typedData);
     } catch (error) {
       console.error('Error fetching waitlist entries:', error);
       toast({
