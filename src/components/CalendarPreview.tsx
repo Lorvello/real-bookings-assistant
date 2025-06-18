@@ -17,6 +17,7 @@ import {
 import { Calendar as CalendarIcon, Clock, User, Mail, Phone, CheckCircle } from 'lucide-react';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useAvailableSlots } from '@/hooks/useAvailableSlots';
+import { WaitlistDialog } from './WaitlistDialog';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
@@ -32,6 +33,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
   const [selectedServiceType, setSelectedServiceType] = useState<string>('');
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [availableSlots, setAvailableSlots] = useState<any[]>([]);
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
   const [customerForm, setCustomerForm] = useState({
     name: '',
     email: '',
@@ -72,6 +74,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
 
   const selectedService = serviceTypes.find(s => s.id === selectedServiceType);
   const selectedSlotData = availableSlots.find(s => s.slot_start === selectedSlot);
+  const hasAvailableSlots = availableSlots.some(slot => slot.is_available);
 
   return (
     <Card className="border-border">
@@ -156,22 +159,39 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                     <div className="w-6 h-6 bg-primary rounded-full animate-spin"></div>
                   </div>
                 ) : availableSlots.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    {availableSlots
-                      .filter(slot => slot.is_available)
-                      .map((slot) => (
-                        <Button
-                          key={slot.slot_start}
-                          variant={selectedSlot === slot.slot_start ? "default" : "outline"}
-                          onClick={() => setSelectedSlot(slot.slot_start)}
-                          className="text-sm"
+                  <>
+                    {hasAvailableSlots ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {availableSlots
+                          .filter(slot => slot.is_available)
+                          .map((slot) => (
+                            <Button
+                              key={slot.slot_start}
+                              variant={selectedSlot === slot.slot_start ? "default" : "outline"}
+                              onClick={() => setSelectedSlot(slot.slot_start)}
+                              className="text-sm"
+                            >
+                              <Clock className="h-4 w-4 mr-1" />
+                              {formatSlotTime(slot)}
+                            </Button>
+                          ))
+                        }
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Clock className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                        <p className="text-muted-foreground mb-4">Geen beschikbare tijden voor deze datum</p>
+                        <Button 
+                          onClick={() => setShowWaitlistDialog(true)}
+                          variant="outline"
+                          className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
                         >
-                          <Clock className="h-4 w-4 mr-1" />
-                          {formatSlotTime(slot)}
+                          <Clock className="h-4 w-4 mr-2" />
+                          Aan wachtlijst toevoegen
                         </Button>
-                      ))
-                    }
-                  </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <Clock className="h-12 w-12 mx-auto mb-3 opacity-20" />
@@ -292,6 +312,20 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
             )}
           </div>
         </div>
+
+        {/* Waitlist Dialog */}
+        {selectedService && selectedDate && (
+          <WaitlistDialog
+            open={showWaitlistDialog}
+            onOpenChange={setShowWaitlistDialog}
+            calendarSlug={`calendar-${calendarId}`} // This would need to come from props in real implementation
+            serviceTypeId={selectedServiceType}
+            serviceName={selectedService.name}
+            onSuccess={() => {
+              // Could refresh available slots or show success message
+            }}
+          />
+        )}
       </CardContent>
     </Card>
   );

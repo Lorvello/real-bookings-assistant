@@ -536,6 +536,83 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          calendar_id: string | null
+          created_at: string | null
+          customer_email: string
+          customer_name: string
+          expires_at: string | null
+          flexibility: string | null
+          id: string
+          notified_at: string | null
+          preferred_date: string
+          preferred_time_end: string | null
+          preferred_time_start: string | null
+          service_type_id: string | null
+          status: string | null
+        }
+        Insert: {
+          calendar_id?: string | null
+          created_at?: string | null
+          customer_email: string
+          customer_name: string
+          expires_at?: string | null
+          flexibility?: string | null
+          id?: string
+          notified_at?: string | null
+          preferred_date: string
+          preferred_time_end?: string | null
+          preferred_time_start?: string | null
+          service_type_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          calendar_id?: string | null
+          created_at?: string | null
+          customer_email?: string
+          customer_name?: string
+          expires_at?: string | null
+          flexibility?: string | null
+          id?: string
+          notified_at?: string | null
+          preferred_date?: string
+          preferred_time_end?: string | null
+          preferred_time_start?: string | null
+          service_type_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "waitlist_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "waitlist_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webhook_endpoints: {
         Row: {
           calendar_id: string | null
@@ -646,6 +723,19 @@ export type Database = {
       }
     }
     Functions: {
+      add_to_waitlist: {
+        Args: {
+          p_calendar_slug: string
+          p_service_type_id: string
+          p_customer_name: string
+          p_customer_email: string
+          p_preferred_date: string
+          p_preferred_time_start?: string
+          p_preferred_time_end?: string
+          p_flexibility?: string
+        }
+        Returns: Json
+      }
       check_availability: {
         Args: {
           p_calendar_id: string
@@ -662,6 +752,10 @@ export type Database = {
           p_exclude_booking_id?: string
         }
         Returns: boolean
+      }
+      cleanup_expired_waitlist: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       create_booking: {
         Args: {
