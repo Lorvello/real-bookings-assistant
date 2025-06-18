@@ -2,18 +2,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
 
-export interface RecurringPattern {
-  id: string;
-  calendar_id: string;
+type RecurringAvailabilityRow = Database['public']['Tables']['recurring_availability']['Row'];
+type RecurringAvailabilityInsert = Database['public']['Tables']['recurring_availability']['Insert'];
+type RecurringAvailabilityUpdate = Database['public']['Tables']['recurring_availability']['Update'];
+
+export interface RecurringPattern extends RecurringAvailabilityRow {
   pattern_type: 'weekly' | 'biweekly' | 'monthly' | 'seasonal';
-  pattern_name: string;
-  start_date: string;
-  end_date?: string;
-  schedule_data: any;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 export const useRecurringPatterns = (calendarId: string) => {
@@ -30,7 +26,7 @@ export const useRecurringPatterns = (calendarId: string) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPatterns(data || []);
+      setPatterns((data || []) as RecurringPattern[]);
     } catch (error) {
       console.error('Error fetching recurring patterns:', error);
       toast({
@@ -43,26 +39,32 @@ export const useRecurringPatterns = (calendarId: string) => {
     }
   };
 
-  const createPattern = async (pattern: Partial<RecurringPattern>) => {
+  const createPattern = async (pattern: RecurringAvailabilityInsert): Promise<RecurringPattern> => {
     try {
       const { data, error } = await supabase
         .from('recurring_availability')
-        .insert([{
+        .insert({
           calendar_id: calendarId,
-          ...pattern
-        }])
+          pattern_type: pattern.pattern_type,
+          pattern_name: pattern.pattern_name!,
+          start_date: pattern.start_date!,
+          end_date: pattern.end_date,
+          schedule_data: pattern.schedule_data!,
+          is_active: pattern.is_active ?? true
+        })
         .select()
         .single();
 
       if (error) throw error;
       
-      setPatterns(prev => [data, ...prev]);
+      const newPattern = data as RecurringPattern;
+      setPatterns(prev => [newPattern, ...prev]);
       toast({
         title: "Patroon aangemaakt",
         description: "Terugkerend beschikbaarheidspatroon succesvol aangemaakt",
       });
       
-      return data;
+      return newPattern;
     } catch (error) {
       console.error('Error creating pattern:', error);
       toast({
@@ -74,7 +76,7 @@ export const useRecurringPatterns = (calendarId: string) => {
     }
   };
 
-  const updatePattern = async (id: string, updates: Partial<RecurringPattern>) => {
+  const updatePattern = async (id: string, updates: RecurringAvailabilityUpdate): Promise<RecurringPattern> => {
     try {
       const { data, error } = await supabase
         .from('recurring_availability')
@@ -85,13 +87,14 @@ export const useRecurringPatterns = (calendarId: string) => {
 
       if (error) throw error;
       
-      setPatterns(prev => prev.map(p => p.id === id ? data : p));
+      const updatedPattern = data as RecurringPattern;
+      setPatterns(prev => prev.map(p => p.id === id ? updatedPattern : p));
       toast({
         title: "Patroon bijgewerkt",
         description: "Terugkerend patroon succesvol bijgewerkt",
       });
       
-      return data;
+      return updatedPattern;
     } catch (error) {
       console.error('Error updating pattern:', error);
       toast({

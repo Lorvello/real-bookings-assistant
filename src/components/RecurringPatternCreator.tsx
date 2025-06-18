@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,10 +29,14 @@ import {
   CalendarDays,
   Sun
 } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
+import { RecurringPattern } from '@/hooks/useRecurringPatterns';
+
+type RecurringAvailabilityInsert = Database['public']['Tables']['recurring_availability']['Insert'];
 
 interface RecurringPatternCreatorProps {
   calendarId: string;
-  onPatternCreate: (pattern: any) => Promise<void>;
+  onPatternCreate: (pattern: RecurringAvailabilityInsert) => Promise<RecurringPattern>;
 }
 
 const DAYS_OF_WEEK = [
