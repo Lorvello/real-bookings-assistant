@@ -31,13 +31,23 @@ export const useCalendarMembers = (calendarId: string) => {
         .from('calendar_members')
         .select(`
           *,
-          user:user_id(full_name, email)
+          users!calendar_members_user_id_fkey(full_name, email)
         `)
         .eq('calendar_id', calendarId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMembers((data || []) as CalendarMember[]);
+      
+      // Transform the data to match our interface
+      const transformedMembers = (data || []).map(member => ({
+        ...member,
+        user: member.users ? {
+          full_name: member.users.full_name,
+          email: member.users.email
+        } : undefined
+      }));
+      
+      setMembers(transformedMembers as CalendarMember[]);
     } catch (error) {
       console.error('Error fetching calendar members:', error);
       toast({
