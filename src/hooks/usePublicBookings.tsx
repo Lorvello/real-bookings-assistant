@@ -76,7 +76,11 @@ export const usePublicBookings = () => {
       });
 
       setLoading(false);
-      return data;
+      // Type assertion for the returned booking data
+      return {
+        ...data,
+        status: data.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
+      };
     } catch (error) {
       console.error('Error creating public booking:', error);
       toast({
@@ -110,7 +114,11 @@ export const usePublicBookings = () => {
       }
 
       setLoading(false);
-      return data;
+      // Type assertion for the returned booking data
+      return {
+        ...data,
+        status: data.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
+      };
     } catch (error) {
       console.error('Error fetching booking by token:', error);
       toast({

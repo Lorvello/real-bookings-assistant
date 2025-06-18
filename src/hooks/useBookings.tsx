@@ -35,7 +35,13 @@ export const useBookings = (calendarId?: string) => {
         return;
       }
 
-      setBookings(data || []);
+      // Type assertion to ensure status field matches our expected union type
+      const typedBookings = data?.map(booking => ({
+        ...booking,
+        status: booking.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
+      })) || [];
+
+      setBookings(typedBookings);
     } catch (error) {
       console.error('Error fetching bookings:', error);
     } finally {
