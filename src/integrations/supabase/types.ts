@@ -411,6 +411,96 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_endpoints: {
+        Row: {
+          calendar_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          webhook_url: string
+        }
+        Insert: {
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          webhook_url: string
+        }
+        Update: {
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          webhook_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_endpoints_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "webhook_endpoints_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_events: {
+        Row: {
+          attempts: number | null
+          calendar_id: string | null
+          created_at: string | null
+          event_type: string
+          id: string
+          last_attempt_at: string | null
+          payload: Json
+          status: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          calendar_id?: string | null
+          created_at?: string | null
+          event_type: string
+          id?: string
+          last_attempt_at?: string | null
+          payload: Json
+          status?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          calendar_id?: string | null
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          last_attempt_at?: string | null
+          payload?: Json
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "webhook_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       available_slots_view: {

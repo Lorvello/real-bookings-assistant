@@ -1,4 +1,3 @@
-
 export interface UserProfile {
   id: string;
   email: string;
@@ -99,3 +98,23 @@ export interface Booking {
 }
 
 export type BusinessType = 'salon' | 'clinic' | 'consultant' | 'trainer' | 'other';
+
+export interface WebhookEndpoint {
+  id: string;
+  calendar_id: string;
+  webhook_url: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WebhookEvent {
+  id: string;
+  calendar_id: string;
+  event_type: string;
+  payload: any;
+  status: 'pending' | 'sent' | 'failed';
+  attempts: number;
+  last_attempt_at?: string;
+  created_at: string;
+}
