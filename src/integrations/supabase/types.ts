@@ -120,6 +120,84 @@ export type Database = {
           },
         ]
       }
+      bookings: {
+        Row: {
+          calendar_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          confirmation_token: string | null
+          confirmed_at: string | null
+          created_at: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          end_time: string
+          id: string
+          internal_notes: string | null
+          notes: string | null
+          service_type_id: string | null
+          start_time: string
+          status: string | null
+          total_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          calendar_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          confirmation_token?: string | null
+          confirmed_at?: string | null
+          created_at?: string | null
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          end_time: string
+          id?: string
+          internal_notes?: string | null
+          notes?: string | null
+          service_type_id?: string | null
+          start_time: string
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          calendar_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          confirmation_token?: string | null
+          confirmed_at?: string | null
+          created_at?: string | null
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          end_time?: string
+          id?: string
+          internal_notes?: string | null
+          notes?: string | null
+          service_type_id?: string | null
+          start_time?: string
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_settings: {
         Row: {
           allow_waitlist: boolean | null
@@ -303,6 +381,19 @@ export type Database = {
           p_duration_minutes?: number
         }
         Returns: boolean
+      }
+      check_booking_conflicts: {
+        Args: {
+          p_calendar_id: string
+          p_start_time: string
+          p_end_time: string
+          p_exclude_booking_id?: string
+        }
+        Returns: boolean
+      }
+      generate_confirmation_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
     }
     Enums: {

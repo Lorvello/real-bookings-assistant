@@ -77,4 +77,25 @@ export interface AvailabilityOverride {
   created_at: string;
 }
 
+export interface Booking {
+  id: string;
+  calendar_id: string;
+  service_type_id?: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string;
+  start_time: string;
+  end_time: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
+  notes?: string;
+  internal_notes?: string;
+  total_price?: number;
+  confirmation_token?: string;
+  confirmed_at?: string;
+  cancelled_at?: string;
+  cancellation_reason?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type BusinessType = 'salon' | 'clinic' | 'consultant' | 'trainer' | 'other';
