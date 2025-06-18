@@ -9,7 +9,77 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      calendars: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string | null
+          slug: string | null
+          timezone: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string | null
+          slug?: string | null
+          timezone?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string | null
+          slug?: string | null
+          timezone?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendars_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          business_name: string | null
+          business_type: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

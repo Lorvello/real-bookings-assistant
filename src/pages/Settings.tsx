@@ -8,23 +8,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useProfile } from '@/hooks/useProfile';
+import { BusinessType } from '@/types/database';
 
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     business_name: '',
-    business_description: '',
-    business_phone: '',
-    business_address: '',
-    business_website: '',
+    business_type: '' as BusinessType | '',
+    phone: '',
   });
 
   useEffect(() => {
@@ -46,8 +48,26 @@ const Settings = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        business_name: profile.business_name || '',
+        business_type: (profile.business_type as BusinessType) || '',
+        phone: profile.phone || '',
+      });
+    }
+  }, [profile]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -58,16 +78,11 @@ const Settings = () => {
     if (!user) return;
     
     setSaving(true);
-    
-    toast({
-      title: "Settings Saved",
-      description: "Your settings have been updated successfully",
-    });
-    
+    await updateProfile(formData);
     setSaving(false);
   };
 
-  if (loading) {
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -128,6 +143,16 @@ const Settings = () => {
                   placeholder="Enter your full name"
                 />
               </div>
+              <div>
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="+31 6 12345678"
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -148,48 +173,22 @@ const Settings = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="business_description">Business Description</Label>
-                <Textarea
-                  id="business_description"
-                  name="business_description"
-                  value={formData.business_description}
-                  onChange={handleInputChange}
-                  placeholder="Describe your business and services"
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="business_phone">Business Phone</Label>
-                  <Input
-                    id="business_phone"
-                    name="business_phone"
-                    value={formData.business_phone}
-                    onChange={handleInputChange}
-                    placeholder="+1 555 123 4567"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="business_website">Website</Label>
-                  <Input
-                    id="business_website"
-                    name="business_website"
-                    value={formData.business_website}
-                    onChange={handleInputChange}
-                    placeholder="https://yourwebsite.com"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="business_address">Business Address</Label>
-                <Textarea
-                  id="business_address"
-                  name="business_address"
-                  value={formData.business_address}
-                  onChange={handleInputChange}
-                  placeholder="Enter your business address"
-                  rows={2}
-                />
+                <Label htmlFor="business_type">Business Type</Label>
+                <Select 
+                  value={formData.business_type} 
+                  onValueChange={(value) => handleSelectChange('business_type', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your business type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="salon">Salon</SelectItem>
+                    <SelectItem value="clinic">Clinic</SelectItem>
+                    <SelectItem value="consultant">Consultant</SelectItem>
+                    <SelectItem value="trainer">Trainer</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
