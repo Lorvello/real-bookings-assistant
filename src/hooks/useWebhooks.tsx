@@ -32,7 +32,7 @@ export const useWebhooks = (calendarId?: string) => {
         return;
       }
 
-      setEndpoints(data || []);
+      setEndpoints((data || []) as WebhookEndpoint[]);
     } catch (error) {
       console.error('Error fetching webhook endpoints:', error);
     } finally {
@@ -56,7 +56,7 @@ export const useWebhooks = (calendarId?: string) => {
         return;
       }
 
-      setEvents(data || []);
+      setEvents((data || []) as WebhookEvent[]);
     } catch (error) {
       console.error('Error fetching webhook events:', error);
     }
