@@ -31,13 +31,13 @@ export const useCalendarMembers = (calendarId: string) => {
         .from('calendar_members')
         .select(`
           *,
-          user:users(full_name, email)
+          user:user_id(full_name, email)
         `)
         .eq('calendar_id', calendarId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMembers(data || []);
+      setMembers((data || []) as CalendarMember[]);
     } catch (error) {
       console.error('Error fetching calendar members:', error);
       toast({

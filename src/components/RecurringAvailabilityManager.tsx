@@ -70,7 +70,10 @@ export default function RecurringAvailabilityManager() {
               <CardTitle>Nieuw Terugkerend Patroon</CardTitle>
             </CardHeader>
             <CardContent>
-              <RecurringPatternCreator onPatternCreate={createPattern} />
+              <RecurringPatternCreator 
+                calendarId={selectedCalendar.id}
+                onPatternCreate={createPattern} 
+              />
             </CardContent>
           </Card>
         </TabsContent>
