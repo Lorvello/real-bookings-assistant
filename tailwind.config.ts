@@ -18,40 +18,62 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Inter', 'system-ui', 'sans-serif'],
+			},
 			colors: {
-				border: 'hsl(var(--border))',
-				input: 'hsl(var(--input))',
-				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
-				foreground: 'hsl(var(--foreground))',
+				// Bookings Assistant Design System Colors
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: '#10B981', // Primary green for CTAs and highlights
+					foreground: '#FFFFFF'
 				},
 				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
+					DEFAULT: '#34D399', // Lighter green tint
+					foreground: '#FFFFFF'
 				},
-				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
+				background: {
+					DEFAULT: '#1F2937', // Dark grey-blue
+					secondary: '#111827' // Even darker for contrast
 				},
+				foreground: '#FFFFFF', // Primary text
+				
+				// Accent colors
+				whatsapp: '#25D366',
+				success: '#10B981',
+				warning: '#F59E0B',
+				destructive: '#EF4444',
+				
+				// Additional design system colors
+				card: {
+					DEFAULT: '#1F2937',
+					foreground: '#FFFFFF'
+				},
+				border: '#374151', // Subtle border for cards
+				input: '#374151',
+				ring: '#10B981',
+				
 				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
+					DEFAULT: '#374151',
+					foreground: '#9CA3AF' // Secondary text
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
+					DEFAULT: '#34D399',
+					foreground: '#FFFFFF'
 				},
 				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
+					DEFAULT: '#1F2937',
+					foreground: '#FFFFFF'
 				},
-				card: {
-					DEFAULT: 'hsl(var(--card))',
-					foreground: 'hsl(var(--card-foreground))'
+				
+				// Chat specific colors
+				chat: {
+					inbound: '#374151', // Inbound chat bubbles
+					outbound: '#10B981', // Outbound chat bubbles
+					timestamp: '#6B7280', // Message timestamps
+					online: '#10B981' // Online indicator
 				},
+				
+				// Legacy shadcn colors (keeping for compatibility)
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -64,9 +86,9 @@ export default {
 				}
 			},
 			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				lg: '0.5rem', // rounded-lg for buttons and components
+				md: 'calc(0.5rem - 2px)',
+				sm: 'calc(0.5rem - 4px)'
 			},
 			keyframes: {
 				'accordion-down': {
