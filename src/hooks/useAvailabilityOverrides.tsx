@@ -46,12 +46,26 @@ export const useAvailabilityOverrides = (calendarId?: string) => {
   const createOverride = async (overrideData: Partial<AvailabilityOverride>) => {
     if (!calendarId) return;
 
+    // Ensure required fields are present
+    if (!overrideData.date) {
+      toast({
+        title: "Error",
+        description: "Date is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('availability_overrides')
         .insert({
-          ...overrideData,
-          calendar_id: calendarId
+          calendar_id: calendarId,
+          date: overrideData.date,
+          is_available: overrideData.is_available ?? false,
+          start_time: overrideData.start_time,
+          end_time: overrideData.end_time,
+          reason: overrideData.reason
         });
 
       if (error) {

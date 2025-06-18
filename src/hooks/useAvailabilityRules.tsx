@@ -46,12 +46,25 @@ export const useAvailabilityRules = (scheduleId?: string) => {
   const createRule = async (ruleData: Partial<AvailabilityRule>) => {
     if (!scheduleId) return;
 
+    // Ensure required fields are present
+    if (!ruleData.day_of_week || !ruleData.start_time || !ruleData.end_time) {
+      toast({
+        title: "Error",
+        description: "Day of week, start time, and end time are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('availability_rules')
         .insert({
-          ...ruleData,
-          schedule_id: scheduleId
+          schedule_id: scheduleId,
+          day_of_week: ruleData.day_of_week,
+          start_time: ruleData.start_time,
+          end_time: ruleData.end_time,
+          is_available: ruleData.is_available ?? true
         });
 
       if (error) {
