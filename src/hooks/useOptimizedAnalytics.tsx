@@ -66,17 +66,19 @@ export const useOptimizedAnalytics = (calendarId?: string, period: 'week' | 'mon
     queryFn: fetchOptimizedAnalytics,
     enabled: !!calendarId,
     staleTime: 5 * 60 * 1000, // 5 minuten - data blijft fresh
-    cacheTime: 10 * 60 * 1000, // 10 minuten - cache tijd
+    gcTime: 10 * 60 * 1000, // 10 minuten - cache tijd (was cacheTime)
     refetchOnWindowFocus: false,
     refetchInterval: 10 * 60 * 1000, // Refresh elke 10 minuten
     retry: 2,
-    onError: (error: any) => {
-      console.error('Analytics fetch error:', error);
-      toast({
-        title: "Fout bij laden analytics",
-        description: "Kon geoptimaliseerde analytics niet laden",
-        variant: "destructive",
-      });
+    meta: {
+      onError: (error: any) => {
+        console.error('Analytics fetch error:', error);
+        toast({
+          title: "Fout bij laden analytics",
+          description: "Kon geoptimaliseerde analytics niet laden",
+          variant: "destructive",
+        });
+      }
     }
   });
 

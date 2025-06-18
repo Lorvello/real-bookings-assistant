@@ -5,6 +5,20 @@ import { useAuth } from '@/hooks/useAuth';
 import { Booking } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 
+interface BookingInsert {
+  calendar_id: string;
+  service_type_id?: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string;
+  start_time?: string;
+  end_time?: string;
+  status?: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
+  notes?: string;
+  internal_notes?: string;
+  total_price?: number;
+}
+
 export const useOptimizedBookings = (calendarId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -36,21 +50,30 @@ export const useOptimizedBookings = (calendarId?: string) => {
     queryFn: fetchBookings,
     enabled: !!user && !!calendarId,
     staleTime: 2 * 60 * 1000, // 2 minuten
-    cacheTime: 5 * 60 * 1000, // 5 minuten cache
+    gcTime: 5 * 60 * 1000, // 5 minuten cache (was cacheTime)
     refetchOnWindowFocus: true,
     retry: 2
   });
 
   // Optimized booking creation met optimistic updates
   const createBookingMutation = useMutation({
-    mutationFn: async (bookingData: Partial<Booking>) => {
+    mutationFn: async (bookingData: BookingInsert) => {
       if (!calendarId) throw new Error('Calendar ID required');
       
       const { data, error } = await supabase
         .from('bookings')
         .insert({
           calendar_id: calendarId,
-          ...bookingData
+          service_type_id: bookingData.service_type_id,
+          customer_name: bookingData.customer_name,
+          customer_email: bookingData.customer_email,
+          customer_phone: bookingData.customer_phone,
+          start_time: bookingData.start_time,
+          end_time: bookingData.end_time,
+          status: bookingData.status || 'confirmed',
+          notes: bookingData.notes,
+          internal_notes: bookingData.internal_notes,
+          total_price: bookingData.total_price
         })
         .select()
         .single();

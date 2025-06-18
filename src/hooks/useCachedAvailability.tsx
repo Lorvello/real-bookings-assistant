@@ -38,7 +38,7 @@ export const useCachedAvailability = (
     queryFn: fetchAvailableSlots,
     enabled: !!calendarId && !!serviceTypeId,
     staleTime: 60 * 1000, // 1 minuut - availability verandert snel
-    cacheTime: 5 * 60 * 1000, // 5 minuten cache
+    gcTime: 5 * 60 * 1000, // 5 minuten cache (was cacheTime)
     refetchOnWindowFocus: true,
     retry: 1
   });
@@ -59,12 +59,15 @@ export const useCachedAvailability = (
         nextStart.toISOString().split('T')[0],
         nextEnd.toISOString().split('T')[0]
       ],
-      queryFn: () => supabase.rpc('get_available_slots_range', {
-        p_calendar_id: calendarId,
-        p_service_type_id: serviceTypeId,
-        p_start_date: nextStart.toISOString().split('T')[0],
-        p_end_date: nextEnd.toISOString().split('T')[0]
-      }).then(({ data }) => data || []),
+      queryFn: async () => {
+        const { data } = await supabase.rpc('get_available_slots_range', {
+          p_calendar_id: calendarId,
+          p_service_type_id: serviceTypeId,
+          p_start_date: nextStart.toISOString().split('T')[0],
+          p_end_date: nextEnd.toISOString().split('T')[0]
+        });
+        return data || [];
+      },
       staleTime: 60 * 1000
     });
   };
