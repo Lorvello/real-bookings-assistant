@@ -226,6 +226,68 @@ export type Database = {
           },
         ]
       }
+      calendar_members: {
+        Row: {
+          accepted_at: string | null
+          calendar_id: string
+          created_at: string | null
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          calendar_id: string
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          calendar_id?: string
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_members_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_members_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_settings: {
         Row: {
           allow_waitlist: boolean | null
@@ -282,27 +344,36 @@ export type Database = {
       }
       calendars: {
         Row: {
+          color: string | null
           created_at: string | null
+          description: string | null
           id: string
           is_active: boolean | null
+          is_default: boolean | null
           name: string | null
           slug: string | null
           timezone: string | null
           user_id: string | null
         }
         Insert: {
+          color?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean | null
+          is_default?: boolean | null
           name?: string | null
           slug?: string | null
           timezone?: string | null
           user_id?: string | null
         }
         Update: {
+          color?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean | null
+          is_default?: boolean | null
           name?: string | null
           slug?: string | null
           timezone?: string | null

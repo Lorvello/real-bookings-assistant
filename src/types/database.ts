@@ -16,6 +16,9 @@ export interface Calendar {
   slug: string;
   timezone: string;
   is_active: boolean;
+  is_default: boolean;
+  description?: string;
+  color: string;
   created_at: string;
 }
 
@@ -148,4 +151,15 @@ export interface RecurringAvailability {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface CalendarMember {
+  id: string;
+  calendar_id: string;
+  user_id: string;
+  role: 'owner' | 'editor' | 'viewer';
+  invited_by?: string;
+  invited_at?: string;
+  accepted_at?: string;
+  created_at: string;
 }

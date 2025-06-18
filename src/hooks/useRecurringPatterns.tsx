@@ -12,12 +12,18 @@ export interface RecurringPattern extends RecurringAvailabilityRow {
   pattern_type: 'weekly' | 'biweekly' | 'monthly' | 'seasonal';
 }
 
-export const useRecurringPatterns = (calendarId: string) => {
+export const useRecurringPatterns = (calendarId?: string) => {
   const [patterns, setPatterns] = useState<RecurringPattern[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchPatterns = async () => {
+    if (!calendarId) {
+      setPatterns([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('recurring_availability')
@@ -40,6 +46,8 @@ export const useRecurringPatterns = (calendarId: string) => {
   };
 
   const createPattern = async (pattern: RecurringAvailabilityInsert): Promise<RecurringPattern> => {
+    if (!calendarId) throw new Error('No calendar selected');
+
     try {
       const { data, error } = await supabase
         .from('recurring_availability')
@@ -136,9 +144,8 @@ export const useRecurringPatterns = (calendarId: string) => {
   };
 
   useEffect(() => {
-    if (calendarId) {
-      fetchPatterns();
-    }
+    setLoading(true);
+    fetchPatterns();
   }, [calendarId]);
 
   return {
