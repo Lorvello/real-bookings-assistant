@@ -538,6 +538,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_booking: {
+        Args: {
+          p_calendar_slug: string
+          p_service_type_id: string
+          p_customer_name: string
+          p_customer_email: string
+          p_customer_phone: string
+          p_start_time: string
+          p_notes?: string
+        }
+        Returns: Json
+      }
+      create_user_with_calendar: {
+        Args: {
+          p_email: string
+          p_full_name: string
+          p_business_name?: string
+          p_business_type?: string
+        }
+        Returns: Json
+      }
       generate_confirmation_token: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -569,6 +590,18 @@ export type Database = {
           slot_end: string
           is_available: boolean
         }[]
+      }
+      get_calendar_availability: {
+        Args: {
+          p_calendar_slug: string
+          p_start_date?: string
+          p_days?: number
+        }
+        Returns: Json
+      }
+      setup_calendar_defaults: {
+        Args: { p_calendar_id: string; p_business_type?: string }
+        Returns: undefined
       }
     }
     Enums: {
