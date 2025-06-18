@@ -72,7 +72,7 @@ export const useUserRegistration = () => {
       );
 
       // Type cast the JSON response to our expected structure
-      const result = setupResult as UserRegistrationResult & {
+      const result = setupResult as unknown as UserRegistrationResult & {
         user_id?: string;
         calendar_id?: string;
         calendar_slug?: string;

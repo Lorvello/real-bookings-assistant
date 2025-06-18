@@ -52,7 +52,7 @@ export const usePublicBookingCreation = () => {
       }
 
       // Type cast the JSON response to our expected structure
-      const result = data as BookingResult & {
+      const result = data as unknown as BookingResult & {
         booking_id?: string;
         confirmation_token?: string;
         start_time?: string;

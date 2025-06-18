@@ -59,7 +59,7 @@ export const useCalendarAvailability = () => {
       }
 
       // Type cast the JSON response to our expected structure
-      const result = data as CalendarAvailabilityResult;
+      const result = data as unknown as CalendarAvailabilityResult;
 
       if (!result?.success) {
         toast({
