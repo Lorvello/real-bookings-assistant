@@ -15,7 +15,7 @@ export function useQuickReplyFlows(calendarId: string) {
         .order('flow_name');
 
       if (error) throw error;
-      return data as QuickReplyFlow[];
+      return (data as unknown) as QuickReplyFlow[];
     },
     enabled: !!calendarId,
   });
@@ -32,7 +32,7 @@ export function useQuickReplyFlow(flowId: string) {
         .single();
 
       if (error) throw error;
-      return data as QuickReplyFlow;
+      return (data as unknown) as QuickReplyFlow;
     },
     enabled: !!flowId,
   });
@@ -136,7 +136,7 @@ export function useMatchQuickReplyFlow() {
       });
 
       if (error) throw error;
-      return data as FlowMatchResult;
+      return (data as unknown) as FlowMatchResult;
     },
   });
 }

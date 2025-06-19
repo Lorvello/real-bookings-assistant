@@ -16,7 +16,7 @@ export function useWhatsAppTemplates(calendarId: string, language: string = 'nl'
         .order('template_key');
 
       if (error) throw error;
-      return data as WhatsAppTemplate[];
+      return (data as unknown) as WhatsAppTemplate[];
     },
     enabled: !!calendarId,
   });
@@ -36,7 +36,7 @@ export function useWhatsAppTemplate(calendarId: string, templateKey: TemplateKey
         .single();
 
       if (error) throw error;
-      return data as WhatsAppTemplate;
+      return (data as unknown) as WhatsAppTemplate;
     },
     enabled: !!(calendarId && templateKey),
   });
@@ -148,7 +148,7 @@ export function useRenderWhatsAppTemplate() {
       });
 
       if (error) throw error;
-      return data as TemplateRenderResult;
+      return (data as unknown) as TemplateRenderResult;
     },
   });
 }
