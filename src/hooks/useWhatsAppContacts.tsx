@@ -33,7 +33,11 @@ export function useCreateWhatsAppContact() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (contact: Partial<WhatsAppContact>) => {
+    mutationFn: async (contact: Omit<WhatsAppContact, 'id' | 'created_at' | 'updated_at'> & {
+      id?: string;
+      created_at?: string;
+      updated_at?: string;
+    }) => {
       const { data, error } = await supabase
         .from('whatsapp_contacts')
         .insert([contact])
