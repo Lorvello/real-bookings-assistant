@@ -539,6 +539,54 @@ export type Database = {
         }
         Relationships: []
       }
+      quick_reply_flows: {
+        Row: {
+          calendar_id: string | null
+          created_at: string | null
+          flow_data: Json
+          flow_name: string
+          id: string
+          is_active: boolean | null
+          trigger_keywords: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          calendar_id?: string | null
+          created_at?: string | null
+          flow_data: Json
+          flow_name: string
+          id?: string
+          is_active?: boolean | null
+          trigger_keywords?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          calendar_id?: string | null
+          created_at?: string | null
+          flow_data?: Json
+          flow_name?: string
+          id?: string
+          is_active?: boolean | null
+          trigger_keywords?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quick_reply_flows_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "quick_reply_flows_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recurring_availability: {
         Row: {
           calendar_id: string | null
@@ -1001,6 +1049,60 @@ export type Database = {
           },
         ]
       }
+      whatsapp_templates: {
+        Row: {
+          calendar_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          language: string | null
+          quick_replies: Json | null
+          template_key: string
+          updated_at: string | null
+          variables: string[] | null
+        }
+        Insert: {
+          calendar_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          quick_replies?: Json | null
+          template_key: string
+          updated_at?: string | null
+          variables?: string[] | null
+        }
+        Update: {
+          calendar_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          quick_replies?: Json | null
+          template_key?: string
+          updated_at?: string | null
+          variables?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_templates_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_templates_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       available_slots_view: {
@@ -1126,6 +1228,10 @@ export type Database = {
         }
         Returns: Json
       }
+      create_default_whatsapp_templates: {
+        Args: { p_calendar_id: string }
+        Returns: undefined
+      }
       create_user_with_calendar: {
         Args: {
           p_email: string
@@ -1189,6 +1295,10 @@ export type Database = {
         }
         Returns: string
       }
+      match_quick_reply_flow: {
+        Args: { p_calendar_id: string; p_message_text: string }
+        Returns: Json
+      }
       process_webhook_queue: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1196,6 +1306,15 @@ export type Database = {
       refresh_analytics_views: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      render_whatsapp_template: {
+        Args: {
+          p_calendar_id: string
+          p_template_key: string
+          p_variables?: Json
+          p_language?: string
+        }
+        Returns: Json
       }
       resolve_recurring_availability: {
         Args: {

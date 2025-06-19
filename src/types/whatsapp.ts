@@ -1,4 +1,3 @@
-
 export interface WhatsAppContact {
   id: string;
   phone_number: string;
@@ -68,6 +67,77 @@ export interface ConversationMemory {
   previous_bookings?: any[];
 }
 
+export interface WhatsAppTemplate {
+  id: string;
+  calendar_id: string;
+  template_key: string;
+  language: string;
+  content: string;
+  variables?: string[];
+  quick_replies?: QuickReply[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuickReply {
+  text: string;
+  payload: string;
+}
+
+export interface QuickReplyFlow {
+  id: string;
+  calendar_id: string;
+  flow_name: string;
+  trigger_keywords: string[];
+  flow_data: FlowData;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FlowData {
+  steps: FlowStep[];
+  initial_step: string;
+}
+
+export interface FlowStep {
+  id: string;
+  type: 'message' | 'question' | 'action';
+  content?: string;
+  quick_replies?: QuickReply[];
+  next_step?: string;
+  conditions?: FlowCondition[];
+  action_type?: 'create_booking_intent' | 'check_availability' | 'send_template';
+  action_params?: Record<string, any>;
+}
+
+export interface FlowCondition {
+  field: string;
+  operator: 'equals' | 'contains' | 'not_equals';
+  value: string;
+  next_step: string;
+}
+
+export interface TemplateRenderResult {
+  success: boolean;
+  content?: string;
+  quick_replies?: QuickReply[];
+  template_key?: string;
+  error?: string;
+}
+
+export interface FlowMatchResult {
+  success: boolean;
+  flow_id?: string;
+  flow_name?: string;
+  flow_data?: FlowData;
+  matched_keyword?: string;
+  message?: string;
+}
+
+export type TemplateKey = 'welcome' | 'booking_confirm' | 'reminder' | 'booking_request' | 'availability_check';
+export type FlowTriggerKeyword = string;
 export type WhatsAppMessageStatus = 'sent' | 'delivered' | 'read' | 'failed';
 export type WhatsAppMessageType = 'text' | 'image' | 'audio' | 'document' | 'location';
 export type WhatsAppConversationStatus = 'active' | 'closed' | 'archived';
