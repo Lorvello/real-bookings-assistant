@@ -1103,6 +1103,39 @@ export type Database = {
           },
         ]
       }
+      whatsapp_webhook_queue: {
+        Row: {
+          created_at: string | null
+          error: string | null
+          id: string
+          payload: Json
+          processed: boolean | null
+          processed_at: string | null
+          retry_count: number | null
+          webhook_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          error?: string | null
+          id?: string
+          payload: Json
+          processed?: boolean | null
+          processed_at?: string | null
+          retry_count?: number | null
+          webhook_type: string
+        }
+        Update: {
+          created_at?: string | null
+          error?: string | null
+          id?: string
+          payload?: Json
+          processed?: boolean | null
+          processed_at?: string | null
+          retry_count?: number | null
+          webhook_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       available_slots_view: {
@@ -1300,6 +1333,19 @@ export type Database = {
         Returns: Json
       }
       process_webhook_queue: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      process_whatsapp_message: {
+        Args: {
+          p_phone_number: string
+          p_message_id: string
+          p_message_content: string
+          p_calendar_id: string
+        }
+        Returns: Json
+      }
+      process_whatsapp_webhook_queue: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

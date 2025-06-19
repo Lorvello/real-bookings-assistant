@@ -1,3 +1,4 @@
+
 export interface WhatsAppContact {
   id: string;
   phone_number: string;
@@ -134,6 +135,33 @@ export interface FlowMatchResult {
   flow_data?: FlowData;
   matched_keyword?: string;
   message?: string;
+}
+
+// Nieuwe types voor webhook queue
+export interface WhatsAppWebhookQueue {
+  id: string;
+  webhook_type: 'message' | 'status' | 'contact_update';
+  payload: Record<string, any>;
+  processed: boolean;
+  processed_at?: string;
+  error?: string;
+  retry_count: number;
+  created_at: string;
+}
+
+export interface WhatsAppIncomingMessage {
+  phone_number: string;
+  message_id: string;
+  message_content: string;
+  message_type?: 'text' | 'image' | 'audio' | 'document';
+  media_url?: string;
+  timestamp?: string;
+}
+
+export interface WhatsAppStatusUpdate {
+  message_id: string;
+  status: 'delivered' | 'read' | 'failed';
+  timestamp: string;
 }
 
 export type TemplateKey = 'welcome' | 'booking_confirm' | 'reminder' | 'booking_request' | 'availability_check';
