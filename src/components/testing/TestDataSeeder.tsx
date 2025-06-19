@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -229,42 +228,100 @@ export function TestDataSeeder({ onTestResult }: TestDataSeederProps) {
     setCleaning(true);
 
     try {
-      // Clean up test bookings first (due to foreign key constraints)
-      const { error: bookingError } = await supabase
-        .from('bookings')
-        .delete()
-        .in('calendar_id', 
-          supabase
-            .from('calendars')
-            .select('id')
-            .eq('user_id', user.id)
-            .ilike('name', '%test%')
-        );
-
-      // Clean up service types
-      const { error: serviceError } = await supabase
-        .from('service_types')
-        .delete()
-        .in('calendar_id',
-          supabase
-            .from('calendars')  
-            .select('id')
-            .eq('user_id', user.id)
-            .ilike('name', '%test%')
-        );
-
-      // Clean up test calendars
-      const { error: calendarError } = await supabase
+      // First get the calendar IDs that match our test pattern
+      const { data: testCalendars } = await supabase
         .from('calendars')
-        .delete()
+        .select('id')
         .eq('user_id', user.id)
         .ilike('name', '%test%');
 
-      if (bookingError || serviceError || calendarError) {
+      if (!testCalendars || testCalendars.length === 0) {
+        onTestResult({
+          name: 'Cleanup Test Data',
+          status: 'passed',
+          message: 'No test data found to cleanup',
+          timestamp: new Date()
+        });
+        setCleaning(false);
+        return;
+      }
+
+      const calendarIds = testCalendars.map(cal => cal.id);
+
+      // Clean up in proper order (foreign key constraints)
+      // 1. Clean up bookings first
+      const { error: bookingError } = await supabase
+        .from('bookings')
+        .delete()
+        .in('calendar_id', calendarIds);
+
+      // 2. Clean up service types
+      const { error: serviceError } = await supabase
+        .from('service_types')
+        .delete()
+        .in('calendar_id', calendarIds);
+
+      // 3. Clean up calendar settings
+      const { error: settingsError } = await supabase
+        .from('calendar_settings')
+        .delete()
+        .in('calendar_id', calendarIds);
+
+      // 4. Clean up availability schedules and rules
+      const { data: schedules } = await supabase
+        .from('availability_schedules')
+        .select('id')
+        .in('calendar_id', calendarIds);
+
+      if (schedules && schedules.length > 0) {
+        const scheduleIds = schedules.map(s => s.id);
+        await supabase
+          .from('availability_rules')
+          .delete()
+          .in('schedule_id', scheduleIds);
+
+        await supabase
+          .from('availability_schedules')
+          .delete()
+          .in('calendar_id', calendarIds);
+      }
+
+      // 5. Clean up other related data
+      await supabase
+        .from('availability_overrides')
+        .delete()
+        .in('calendar_id', calendarIds);
+
+      await supabase
+        .from('waitlist')
+        .delete()
+        .in('calendar_id', calendarIds);
+
+      await supabase
+        .from('webhook_events')
+        .delete()
+        .in('calendar_id', calendarIds);
+
+      await supabase
+        .from('webhook_endpoints')
+        .delete()
+        .in('calendar_id', calendarIds);
+
+      // 6. Finally clean up calendars
+      const { error: calendarError } = await supabase
+        .from('calendars')
+        .delete()
+        .in('id', calendarIds);
+
+      if (bookingError || serviceError || settingsError || calendarError) {
+        const errors = [bookingError, serviceError, settingsError, calendarError]
+          .filter(Boolean)
+          .map(e => e!.message);
+        
         onTestResult({
           name: 'Cleanup Test Data',
           status: 'failed',
-          message: `Cleanup errors: ${[bookingError, serviceError, calendarError].filter(Boolean).map(e => e.message).join(', ')}`,
+          message: `Cleanup errors: ${errors.join(', ')}`,
           timestamp: new Date()
         });
       } else {
