@@ -55,6 +55,13 @@ export type Database = {
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "availability_overrides_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
         ]
       }
       availability_rules: {
@@ -131,6 +138,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_schedules_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
           },
         ]
       }
@@ -286,6 +300,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+          {
             foreignKeyName: "bookings_service_type_id_fkey"
             columns: ["service_type_id"]
             isOneToOne: false
@@ -355,6 +376,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "calendar_members_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+          {
             foreignKeyName: "calendar_members_invited_by_fkey"
             columns: ["invited_by"]
             isOneToOne: false
@@ -421,6 +449,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "calendars"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
           },
         ]
       }
@@ -585,6 +620,13 @@ export type Database = {
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "quick_reply_flows_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
         ]
       }
       recurring_availability: {
@@ -638,6 +680,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_availability_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
           },
         ]
       }
@@ -698,6 +747,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
           },
         ]
       }
@@ -796,6 +852,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "waitlist_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+          {
             foreignKeyName: "waitlist_service_type_id_fkey"
             columns: ["service_type_id"]
             isOneToOne: false
@@ -858,6 +921,13 @@ export type Database = {
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "webhook_endpoints_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
         ]
       }
       webhook_events: {
@@ -905,6 +975,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
           },
         ]
       }
@@ -992,6 +1069,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "whatsapp_conversations_contact_id_fkey"
@@ -1101,6 +1185,13 @@ export type Database = {
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "whatsapp_templates_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
         ]
       }
       whatsapp_webhook_queue: {
@@ -1180,6 +1271,13 @@ export type Database = {
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
         ]
       }
       service_type_stats: {
@@ -1206,6 +1304,95 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
+      whatsapp_analytics: {
+        Row: {
+          active_conversations: number | null
+          avg_response_time_minutes: number | null
+          booking_intent_conversion_rate: number | null
+          bookings_via_whatsapp: number | null
+          calendar_id: string | null
+          calendar_name: string | null
+          completed_booking_intents: number | null
+          conversation_to_booking_rate: number | null
+          inbound_messages: number | null
+          outbound_messages: number | null
+          total_booking_intents: number | null
+          total_contacts: number | null
+          total_conversations: number | null
+          total_messages: number | null
+        }
+        Relationships: []
+      }
+      whatsapp_conversation_topics: {
+        Row: {
+          calendar_id: string | null
+          conversation_count: number | null
+          topic_category: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
+      whatsapp_message_volume: {
+        Row: {
+          calendar_id: string | null
+          inbound_count: number | null
+          message_count: number | null
+          message_date: string | null
+          message_hour: number | null
+          outbound_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
           },
         ]
       }
