@@ -1436,6 +1436,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_old_whatsapp_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_whatsapp_data_for_calendar: {
+        Args: { p_calendar_id: string }
+        Returns: undefined
+      }
       create_booking: {
         Args: {
           p_calendar_slug: string
@@ -1459,6 +1467,10 @@ export type Database = {
           p_business_name?: string
           p_business_type?: string
         }
+        Returns: Json
+      }
+      export_whatsapp_data: {
+        Args: { p_calendar_id: string }
         Returns: Json
       }
       generate_confirmation_token: {
@@ -1504,6 +1516,10 @@ export type Database = {
       get_conversation_context: {
         Args: { p_phone_number: string; p_calendar_id: string }
         Returns: Json
+      }
+      get_whatsapp_data_retention_days: {
+        Args: { p_calendar_id: string }
+        Returns: number
       }
       log_error: {
         Args: {
