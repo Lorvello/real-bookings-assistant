@@ -7,7 +7,7 @@ interface WebhookEvent {
   id: string;
   calendar_id: string;
   event_type: string;
-  status: 'pending' | 'sent' | 'failed';
+  status: string; // Changed from union type to string to match database
   attempts: number;
   created_at: string;
   last_attempt_at?: string;
