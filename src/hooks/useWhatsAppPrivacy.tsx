@@ -96,23 +96,32 @@ export function useWhatsAppDataStats(calendarId: string) {
 
       if (archivedError) throw archivedError;
 
-      const { data: oldMessages, error: oldMessagesError } = await supabase
-        .from('whatsapp_messages')
-        .select('id', { count: 'exact', head: true })
-        .in('conversation_id', 
-          supabase
-            .from('whatsapp_conversations')
-            .select('id')
-            .eq('calendar_id', calendarId)
-        )
-        .lt('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
+      // Get old messages count using a subquery approach
+      const { data: conversationIds, error: conversationError } = await supabase
+        .from('whatsapp_conversations')
+        .select('id')
+        .eq('calendar_id', calendarId);
 
-      if (oldMessagesError) throw oldMessagesError;
+      if (conversationError) throw conversationError;
+
+      const conversationIdsList = conversationIds?.map(conv => conv.id) || [];
+      
+      let oldMessagesCount = 0;
+      if (conversationIdsList.length > 0) {
+        const { count: oldMessages, error: oldMessagesError } = await supabase
+          .from('whatsapp_messages')
+          .select('id', { count: 'exact', head: true })
+          .in('conversation_id', conversationIdsList)
+          .lt('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString());
+
+        if (oldMessagesError) throw oldMessagesError;
+        oldMessagesCount = oldMessages || 0;
+      }
 
       return {
         ...analytics,
         archived_conversations: archivedCount || 0,
-        old_messages_count: oldMessages || 0,
+        old_messages_count: oldMessagesCount,
       };
     },
     enabled: !!calendarId,

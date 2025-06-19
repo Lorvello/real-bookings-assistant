@@ -27,8 +27,8 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
     );
   }
 
-  const totalMessages = dataStats?.total_messages || 0;
-  const oldMessages = dataStats?.old_messages_count || 0;
+  const totalMessages = Number(dataStats?.total_messages || 0);
+  const oldMessages = Number(dataStats?.old_messages_count || 0);
   const retentionPercentage = totalMessages > 0 ? ((totalMessages - oldMessages) / totalMessages) * 100 : 100;
 
   return (
@@ -59,7 +59,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Gearchiveerde Gesprekken</span>
               <Badge variant="secondary">
-                {dataStats?.archived_conversations || 0}
+                {Number(dataStats?.archived_conversations || 0)}
               </Badge>
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-600">
