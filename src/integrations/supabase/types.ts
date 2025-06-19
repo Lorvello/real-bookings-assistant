@@ -134,6 +134,81 @@ export type Database = {
           },
         ]
       }
+      booking_intents: {
+        Row: {
+          booking_id: string | null
+          collected_data: Json | null
+          conversation_id: string | null
+          created_at: string | null
+          id: string
+          preferred_date: string | null
+          preferred_time_slot: string | null
+          service_type_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          collected_data?: Json | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          preferred_date?: string | null
+          preferred_time_slot?: string | null
+          service_type_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          collected_data?: Json | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          preferred_date?: string | null
+          preferred_time_slot?: string | null
+          service_type_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_intents_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_intents_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_intents_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "booking_intents_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_type_stats"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "booking_intents_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           calendar_id: string | null
@@ -392,6 +467,44 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_context: {
+        Row: {
+          context_data: Json
+          context_type: string
+          conversation_id: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          context_data: Json
+          context_type: string
+          conversation_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          context_data?: Json
+          context_type?: string
+          conversation_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_context_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -993,6 +1106,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_expired_context: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_expired_waitlist: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1056,6 +1173,10 @@ export type Database = {
           p_start_date?: string
           p_days?: number
         }
+        Returns: Json
+      }
+      get_conversation_context: {
+        Args: { p_phone_number: string; p_calendar_id: string }
         Returns: Json
       }
       log_error: {
