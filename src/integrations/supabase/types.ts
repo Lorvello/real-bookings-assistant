@@ -396,6 +396,36 @@ export type Database = {
           },
         ]
       }
+      error_logs: {
+        Row: {
+          calendar_id: string | null
+          created_at: string | null
+          error_context: Json | null
+          error_message: string
+          error_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          calendar_id?: string | null
+          created_at?: string | null
+          error_context?: Json | null
+          error_message: string
+          error_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          calendar_id?: string | null
+          created_at?: string | null
+          error_context?: Json | null
+          error_message?: string
+          error_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       recurring_availability: {
         Row: {
           calendar_id: string | null
@@ -886,6 +916,20 @@ export type Database = {
           p_days?: number
         }
         Returns: Json
+      }
+      log_error: {
+        Args: {
+          p_calendar_id: string
+          p_error_type: string
+          p_error_message: string
+          p_error_context?: Json
+          p_user_id?: string
+        }
+        Returns: string
+      }
+      process_webhook_queue: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       refresh_analytics_views: {
         Args: Record<PropertyKey, never>

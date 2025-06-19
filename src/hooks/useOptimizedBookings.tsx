@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Booking } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 interface BookingInsert {
   calendar_id: string;
@@ -22,6 +23,7 @@ interface BookingInsert {
 export const useOptimizedBookings = (calendarId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { handleError, retryWithBackoff } = useErrorHandler();
   const queryClient = useQueryClient();
 
   // Optimized booking fetch met indexen
@@ -47,12 +49,15 @@ export const useOptimizedBookings = (calendarId?: string) => {
 
   const bookingsQuery = useQuery({
     queryKey: ['bookings', calendarId],
-    queryFn: fetchBookings,
+    queryFn: () => retryWithBackoff(fetchBookings),
     enabled: !!user && !!calendarId,
     staleTime: 2 * 60 * 1000, // 2 minuten
     gcTime: 5 * 60 * 1000, // 5 minuten cache (was cacheTime)
     refetchOnWindowFocus: true,
-    retry: 2
+    retry: (failureCount, error) => {
+      const appError = handleError(error, 'Fetch bookings');
+      return appError.retryable && failureCount < 3;
+    }
   });
 
   // Optimized booking creation met optimistic updates
@@ -102,17 +107,28 @@ export const useOptimizedBookings = (calendarId?: string) => {
 
       return { previousBookings };
     },
-    onError: (err, newBooking, context) => {
+    onError: (error, newBooking, context) => {
       // Rollback optimistic update
       if (context?.previousBookings) {
         queryClient.setQueryData(['bookings', calendarId], context.previousBookings);
       }
       
-      toast({
-        title: "Fout bij aanmaken booking",
-        description: "Kon booking niet aanmaken",
-        variant: "destructive",
-      });
+      const appError = handleError(error, 'Create booking');
+      
+      // Show more specific error messages
+      if (appError.type === 'validation') {
+        toast({
+          title: "Validatie fout",
+          description: appError.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Fout bij aanmaken booking",
+          description: appError.retryable ? "Probeer het opnieuw" : "Neem contact op met ondersteuning",
+          variant: "destructive",
+        });
+      }
     },
     onSuccess: () => {
       // Invalidate related queries
@@ -146,12 +162,7 @@ export const useOptimizedBookings = (calendarId?: string) => {
         description: `${updates.length} bookings zijn bijgewerkt`,
       });
     } catch (error) {
-      console.error('Error batch updating bookings:', error);
-      toast({
-        title: "Fout bij bijwerken",
-        description: "Kon niet alle bookings bijwerken",
-        variant: "destructive",
-      });
+      handleError(error, 'Batch update bookings');
     }
   };
 
