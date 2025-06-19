@@ -112,19 +112,43 @@ export function useMarkWebhookProcessed() {
       success: boolean; 
       error?: string;
     }) => {
-      const updateData = success 
-        ? { processed: true, processed_at: new Date().toISOString(), error: null }
-        : { retry_count: supabase.rpc('retry_count + 1'), error };
+      if (success) {
+        const { data, error: updateError } = await supabase
+          .from('whatsapp_webhook_queue')
+          .update({ 
+            processed: true, 
+            processed_at: new Date().toISOString(), 
+            error: null 
+          })
+          .eq('id', webhookId)
+          .select()
+          .single();
 
-      const { data, error: updateError } = await supabase
-        .from('whatsapp_webhook_queue')
-        .update(updateData)
-        .eq('id', webhookId)
-        .select()
-        .single();
+        if (updateError) throw updateError;
+        return data;
+      } else {
+        // Get current retry count first, then increment it
+        const { data: currentData, error: fetchError } = await supabase
+          .from('whatsapp_webhook_queue')
+          .select('retry_count')
+          .eq('id', webhookId)
+          .single();
 
-      if (updateError) throw updateError;
-      return data;
+        if (fetchError) throw fetchError;
+
+        const { data, error: updateError } = await supabase
+          .from('whatsapp_webhook_queue')
+          .update({ 
+            retry_count: (currentData.retry_count || 0) + 1, 
+            error 
+          })
+          .eq('id', webhookId)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        return data;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-webhook-queue'] });
