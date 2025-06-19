@@ -45,7 +45,13 @@ export function useCreateQuickReplyFlow() {
     mutationFn: async (flow: Omit<QuickReplyFlow, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('quick_reply_flows')
-        .insert([flow])
+        .insert([{
+          calendar_id: flow.calendar_id,
+          flow_name: flow.flow_name,
+          trigger_keywords: flow.trigger_keywords,
+          flow_data: flow.flow_data as any,
+          is_active: flow.is_active
+        }])
         .select()
         .single();
 
@@ -70,9 +76,14 @@ export function useUpdateQuickReplyFlow() {
     }: { 
       id: string;
     } & Partial<QuickReplyFlow>) => {
+      const updateData: any = { ...updates };
+      if (updates.flow_data) {
+        updateData.flow_data = updates.flow_data as any;
+      }
+
       const { data, error } = await supabase
         .from('quick_reply_flows')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();

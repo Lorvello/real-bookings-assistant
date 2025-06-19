@@ -49,7 +49,15 @@ export function useCreateWhatsAppTemplate() {
     mutationFn: async (template: Omit<WhatsAppTemplate, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('whatsapp_templates')
-        .insert([template])
+        .insert([{
+          calendar_id: template.calendar_id,
+          template_key: template.template_key,
+          language: template.language,
+          content: template.content,
+          variables: template.variables,
+          quick_replies: template.quick_replies as any,
+          is_active: template.is_active
+        }])
         .select()
         .single();
 
@@ -74,9 +82,14 @@ export function useUpdateWhatsAppTemplate() {
     }: { 
       id: string;
     } & Partial<WhatsAppTemplate>) => {
+      const updateData: any = { ...updates };
+      if (updates.quick_replies) {
+        updateData.quick_replies = updates.quick_replies as any;
+      }
+
       const { data, error } = await supabase
         .from('whatsapp_templates')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
