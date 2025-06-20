@@ -27,6 +27,8 @@ export const useUserRegistration = () => {
     setLoading(true);
 
     try {
+      console.log('[UserRegistration] Starting registration for:', data.email);
+
       // Stap 1: Registreer gebruiker via Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
@@ -35,22 +37,24 @@ export const useUserRegistration = () => {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: data.fullName,
+            business_name: data.businessName,
           }
         }
       });
 
       if (authError) {
-        toast({
-          title: "Registratie gefaald",
-          description: authError.message,
-          variant: "destructive",
-        });
-        setLoading(false);
-        return { success: false, error: authError.message };
-      }
+        console.error('[UserRegistration] Auth error:', authError);
+        let errorMessage = authError.message;
+        
+        // Verbeter Nederlandse foutmeldingen
+        if (authError.message.includes('already registered')) {
+          errorMessage = 'Dit e-mailadres is al geregistreerd';
+        } else if (authError.message.includes('invalid email')) {
+          errorMessage = 'Ongeldig e-mailadres';
+        } else if (authError.message.includes('password')) {
+          errorMessage = 'Wachtwoord voldoet niet aan de eisen';
+        }
 
-      if (!authData.user) {
-        const errorMessage = "Gebruiker kon niet worden aangemaakt";
         toast({
           title: "Registratie gefaald",
           description: errorMessage,
@@ -59,6 +63,20 @@ export const useUserRegistration = () => {
         setLoading(false);
         return { success: false, error: errorMessage };
       }
+
+      if (!authData.user) {
+        const errorMessage = "Gebruiker kon niet worden aangemaakt";
+        console.error('[UserRegistration] No user returned from auth');
+        toast({
+          title: "Registratie gefaald",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return { success: false, error: errorMessage };
+      }
+
+      console.log('[UserRegistration] Auth successful, user created:', authData.user.id);
 
       // Stap 2: Roep database functie aan voor complete setup
       const { data: setupResult, error: setupError } = await supabase.rpc(
@@ -71,6 +89,22 @@ export const useUserRegistration = () => {
         }
       );
 
+      console.log('[UserRegistration] Setup result:', setupResult);
+
+      if (setupError) {
+        console.error('[UserRegistration] Setup error:', setupError);
+        toast({
+          title: "Setup gefaald",
+          description: setupError.message || "Onbekende fout tijdens setup",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return { 
+          success: false, 
+          error: setupError.message || "Setup gefaald" 
+        };
+      }
+
       // Type cast the JSON response to our expected structure
       const result = setupResult as unknown as UserRegistrationResult & {
         user_id?: string;
@@ -78,34 +112,36 @@ export const useUserRegistration = () => {
         calendar_slug?: string;
       };
 
-      if (setupError || !result?.success) {
-        console.error('Setup error:', setupError);
+      if (!result?.success) {
+        console.error('[UserRegistration] Setup function returned failure:', result);
         toast({
           title: "Setup gefaald",
-          description: result?.error || setupError?.message || "Onbekende fout",
+          description: result?.error || "Setup functie gefaald",
           variant: "destructive",
         });
         setLoading(false);
         return { 
           success: false, 
-          error: result?.error || setupError?.message || "Setup gefaald" 
+          error: result?.error || "Setup gefaald" 
         };
       }
 
+      console.log('[UserRegistration] Registration completely successful');
+      
       toast({
-        title: "Registratie succesvol!",
-        description: "Je account en kalender zijn aangemaakt. Controleer je email voor bevestiging.",
+        title: "Registratie succesvol! 🎉",
+        description: "Je account en kalender zijn aangemaakt. Je bent automatisch ingelogd.",
       });
 
       setLoading(false);
       return {
         success: true,
-        userId: result.user_id,
+        userId: result.user_id || authData.user.id,
         calendarId: result.calendar_id,
         calendarSlug: result.calendar_slug
       };
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('[UserRegistration] Unexpected error:', error);
       toast({
         title: "Registratie gefaald",
         description: "Er is een onverwachte fout opgetreden",
