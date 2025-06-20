@@ -17,6 +17,7 @@ import WhyUs from "./pages/WhyUs";
 import SeeHowItWorks from "./pages/SeeHowItWorks";
 import Testing from "./pages/Testing";
 import Conversations from "./pages/Conversations";
+import Calendar from "./pages/Calendar";
 import { Dashboard } from "./components/Dashboard";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/calendar" element={<Calendar />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/faq" element={<FAQ />} />
