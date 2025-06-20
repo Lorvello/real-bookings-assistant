@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, User, Building2 } from 'lucide-react';
-import { CalendarDashboard } from '@/components/CalendarDashboard';
 import { DashboardLayout } from '@/components/DashboardLayout';
 
 const Profile = () => {
@@ -59,16 +58,11 @@ const Profile = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="calendar" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-gray-800 border-gray-700">
-            <TabsTrigger value="calendar" className="text-gray-300 data-[state=active]:bg-green-600 data-[state=active]:text-white">Calendar</TabsTrigger>
+        <Tabs defaultValue="profile" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-800 border-gray-700">
             <TabsTrigger value="profile" className="text-gray-300 data-[state=active]:bg-green-600 data-[state=active]:text-white">Profile</TabsTrigger>
             <TabsTrigger value="settings" className="text-gray-300 data-[state=active]:bg-green-600 data-[state=active]:text-white">Settings</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="calendar" className="space-y-6">
-            <CalendarDashboard />
-          </TabsContent>
 
           <TabsContent value="profile" className="space-y-6">
             <Card className="bg-gray-800 border-gray-700">
