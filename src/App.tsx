@@ -5,27 +5,27 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CalendarProvider } from "@/contexts/CalendarContext";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
-import FAQ from "./pages/FAQ";
-import SeeHowItWorks from "./pages/SeeHowItWorks";
-import WhyUs from "./pages/WhyUs";
-import Conversations from "./pages/Conversations";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
+import FAQ from "./pages/FAQ";
+import WhyUs from "./pages/WhyUs";
+import SeeHowItWorks from "./pages/SeeHowItWorks";
 import Testing from "./pages/Testing";
+import Conversations from "./pages/Conversations";
+import { Dashboard } from "./components/Dashboard";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ErrorBoundary>
-        <CalendarProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <CalendarProvider>
+        <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -34,20 +34,21 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/hoe-het-werkt" element={<SeeHowItWorks />} />
-              <Route path="/waarom-ons" element={<WhyUs />} />
-              <Route path="/gesprekken" element={<Conversations />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/why-us" element={<WhyUs />} />
+              <Route path="/how-it-works" element={<SeeHowItWorks />} />
               <Route path="/testing" element={<Testing />} />
+              <Route path="/conversations" element={<Conversations />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </CalendarProvider>
-      </ErrorBoundary>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        </TooltipProvider>
+      </CalendarProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
