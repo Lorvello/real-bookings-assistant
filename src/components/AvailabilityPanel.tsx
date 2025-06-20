@@ -5,6 +5,7 @@ import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
 import { useAvailabilityOverrides } from '@/hooks/useAvailabilityOverrides';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, Plus, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { OverrideManager } from './availability/OverrideManager';
 
 interface AvailabilityPanelProps {
   calendarId: string;
@@ -18,7 +19,6 @@ export function AvailabilityPanel({ calendarId }: AvailabilityPanelProps) {
   const { schedules, loading: schedulesLoading } = useAvailabilitySchedules(calendarId);
   const defaultSchedule = schedules.find(s => s.is_default);
   const { rules, loading: rulesLoading } = useAvailabilityRules(defaultSchedule?.id);
-  const { overrides } = useAvailabilityOverrides(calendarId);
 
   return (
     <>
@@ -87,10 +87,11 @@ export function AvailabilityPanel({ calendarId }: AvailabilityPanelProps) {
             )}
             
             {activeTab === 'overrides' && (
-              <OverridesTab 
-                calendarId={calendarId}
-                overrides={overrides}
-              />
+              <div className="h-full overflow-y-auto">
+                <div className="p-4">
+                  <OverrideManager calendarId={calendarId} />
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -161,94 +162,6 @@ function WeeklyScheduleTab({
             );
           })}
         </div>
-      </div>
-    </div>
-  );
-}
-
-// Overrides Tab Component
-function OverridesTab({ 
-  calendarId, 
-  overrides 
-}: { 
-  calendarId: string;
-  overrides: any[];
-}) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const { createOverride } = useAvailabilityOverrides(calendarId);
-
-  const addVacation = async () => {
-    if (!selectedDate) return;
-    
-    await createOverride({
-      date: selectedDate.toISOString().split('T')[0],
-      is_available: false,
-      reason: 'Vakantie'
-    });
-  };
-
-  return (
-    <div className="h-full overflow-y-auto">
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-foreground">Uitzonderingen</h3>
-          <button className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
-            <Plus className="h-3 w-3" />
-            Nieuw
-          </button>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="space-y-2 mb-6">
-          <button className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg text-sm text-left transition-colors group">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                🏖️ Vakantie toevoegen
-              </span>
-              <Plus className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-            </div>
-          </button>
-          
-          <button className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg text-sm text-left transition-colors group">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                📅 Speciale tijden
-              </span>
-              <Plus className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-            </div>
-          </button>
-          
-          <button className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg text-sm text-left transition-colors group">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                🚫 Dag blokkeren
-              </span>
-              <Plus className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-            </div>
-          </button>
-        </div>
-
-        {/* Existing Overrides */}
-        {overrides.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-3">Geplande uitzonderingen</h4>
-            <div className="space-y-2">
-              {overrides.map((override) => (
-                <div key={override.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <div>
-                    <div className="text-sm text-foreground font-medium">{override.date}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {override.is_available ? 'Aangepaste tijden' : override.reason || 'Niet beschikbaar'}
-                    </div>
-                  </div>
-                  <div className="text-sm">
-                    {override.is_available ? '🕐' : '🚫'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
