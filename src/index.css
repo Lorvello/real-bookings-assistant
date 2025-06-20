@@ -7,67 +7,62 @@
 
 @layer base {
   :root {
-    /* Consistent Dark Theme Design System */
-    --background: 31 41 55; /* #1F2937 - Primary Background */
-    --foreground: 255 255 255; /* #FFFFFF - Primary Text */
+    /* Bookings Assistant Design System */
+    --background: 31 41 55; /* #1F2937 - Dark grey-blue */
+    --foreground: 255 255 255; /* #FFFFFF - Primary text */
 
-    --card: 17 24 39; /* #111827 - Card Background */
-    --card-foreground: 255 255 255; /* #FFFFFF - Primary Text */
+    --card: 31 41 55; /* #1F2937 - Dark background */
+    --card-foreground: 255 255 255; /* #FFFFFF */
 
-    --popover: 31 41 55; /* #1F2937 - Primary Background */
-    --popover-foreground: 255 255 255; /* #FFFFFF - Primary Text */
+    --popover: 31 41 55; /* #1F2937 */
+    --popover-foreground: 255 255 255; /* #FFFFFF */
 
-    --primary: 16 185 129; /* #10B981 - Primary Accent / CTA */
-    --primary-foreground: 255 255 255; /* #FFFFFF - Primary Text */
-    --primary-hover: 15 157 114; /* #0F9D72 - Darker hover variant */
+    --primary: 16 185 129; /* #10B981 - Primary green */
+    --primary-foreground: 255 255 255; /* #FFFFFF */
 
-    --secondary: 17 24 39; /* #111827 - Secondary Background */
-    --secondary-foreground: 255 255 255; /* #FFFFFF - Primary Text */
+    --secondary: 52 211 153; /* #34D399 - Lighter green */
+    --secondary-foreground: 255 255 255; /* #FFFFFF */
 
-    --muted: 55 65 81; /* #374151 - Subtle elements */
-    --muted-foreground: 156 163 175; /* #9CA3AF - Secondary Text */
+    --muted: 55 65 81; /* #374151 - Cards border */
+    --muted-foreground: 156 163 175; /* #9CA3AF - Secondary text */
 
-    --accent: 16 185 129; /* #10B981 - Primary Accent */
-    --accent-foreground: 255 255 255; /* #FFFFFF - Primary Text */
+    --accent: 52 211 153; /* #34D399 */
+    --accent-foreground: 255 255 255; /* #FFFFFF */
 
     --destructive: 239 68 68; /* #EF4444 - Error */
-    --destructive-foreground: 255 255 255; /* #FFFFFF - Primary Text */
+    --destructive-foreground: 255 255 255; /* #FFFFFF */
 
-    --border: 55 65 81; /* #374151 - Subtle borders */
+    --border: 55 65 81; /* #374151 - Subtle border */
     --input: 55 65 81; /* #374151 - Dark inputs */
-    --ring: 16 185 129; /* #10B981 - Primary Accent focus states */
+    --ring: 16 185 129; /* #10B981 - Green focus states */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 31 41 55; /* #1F2937 - Primary Background */
-    --sidebar-foreground: 255 255 255; /* #FFFFFF - Primary Text */
-    --sidebar-primary: 16 185 129; /* #10B981 - Primary Accent */
-    --sidebar-primary-foreground: 255 255 255; /* #FFFFFF - Primary Text */
-    --sidebar-accent: 16 185 129; /* #10B981 - Primary Accent */
-    --sidebar-accent-foreground: 255 255 255; /* #FFFFFF - Primary Text */
-    --sidebar-border: 55 65 81; /* #374151 - Subtle borders */
-    --sidebar-ring: 16 185 129; /* #10B981 - Primary Accent */
-
-    /* WhatsApp specific color */
-    --whatsapp: 37 211 102; /* #25D366 - WhatsApp Accent */
+    --sidebar-background: 31 41 55;
+    --sidebar-foreground: 255 255 255;
+    --sidebar-primary: 16 185 129;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 52 211 153;
+    --sidebar-accent-foreground: 255 255 255;
+    --sidebar-border: 55 65 81;
+    --sidebar-ring: 16 185 129;
   }
 
   .dark {
     /* Keep same values for dark mode consistency */
     --background: 31 41 55;
     --foreground: 255 255 255;
-    --card: 17 24 39;
+    --card: 31 41 55;
     --card-foreground: 255 255 255;
     --popover: 31 41 55;
     --popover-foreground: 255 255 255;
     --primary: 16 185 129;
     --primary-foreground: 255 255 255;
-    --primary-hover: 15 157 114;
-    --secondary: 17 24 39;
+    --secondary: 52 211 153;
     --secondary-foreground: 255 255 255;
     --muted: 55 65 81;
     --muted-foreground: 156 163 175;
-    --accent: 16 185 129;
+    --accent: 52 211 153;
     --accent-foreground: 255 255 255;
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
@@ -78,11 +73,10 @@
     --sidebar-foreground: 255 255 255;
     --sidebar-primary: 16 185 129;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 16 185 129;
+    --sidebar-accent: 52 211 153;
     --sidebar-accent-foreground: 255 255 255;
     --sidebar-border: 55 65 81;
     --sidebar-ring: 16 185 129;
-    --whatsapp: 37 211 102;
   }
 }
 
@@ -94,117 +88,52 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1.5em;
-    letter-spacing: 0;
   }
 
-  /* Typography System */
+  /* Headings styling */
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold text-foreground;
-    font-weight: 700;
-    line-height: 1.2em;
-    letter-spacing: -0.2px;
-  }
-
-  h1 {
-    @apply text-4xl md:text-5xl lg:text-6xl;
-  }
-
-  h2 {
-    @apply text-3xl md:text-4xl;
-  }
-
-  h3 {
-    @apply text-xl md:text-2xl;
-  }
-
-  h4 {
-    @apply text-lg md:text-xl;
   }
 
   /* Body text styling */
   p {
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1.5em;
-    letter-spacing: 0;
-    @apply text-foreground;
-  }
-
-  /* Mobile typography adjustments */
-  @media (max-width: 768px) {
-    body {
-      font-size: 14px;
-    }
-    
-    p {
-      font-size: 14px;
-    }
+    @apply text-base text-foreground;
   }
 }
 
-/* Design Token Classes */
+/* Bookings Assistant Custom Components */
 @layer components {
-  /* Button Styles */
+  /* Primary button with green gradient */
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary-hover font-medium px-6 py-3 rounded-card transition-all duration-200 shadow-card;
-  }
-
-  .btn-secondary {
-    @apply bg-transparent border border-primary text-primary hover:bg-primary/10 font-medium px-6 py-3 rounded-card transition-all duration-200;
-  }
-
-  .btn-whatsapp {
-    @apply bg-whatsapp text-white hover:bg-whatsapp/90 font-medium px-6 py-3 rounded-card transition-all duration-200 shadow-card;
-  }
-
-  /* Card Styles */
-  .card-default {
-    @apply bg-card border border-border rounded-card p-card shadow-card;
-  }
-
-  /* Section Spacing */
-  .section-spacing {
-    @apply py-section;
-  }
-
-  /* Component spacing */
-  .component-spacing {
-    @apply mb-component;
-  }
-
-  /* Grid Layouts */
-  .grid-responsive-2 {
-    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
-  }
-
-  .grid-responsive-3 {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+    @apply bg-gradient-to-r from-primary to-secondary text-primary-foreground font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:shadow-lg hover:scale-105;
   }
 
   /* Chat bubble styles */
   .chat-bubble-inbound {
-    @apply bg-card text-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
+    @apply bg-chat-inbound text-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
   }
 
   .chat-bubble-outbound {
-    @apply bg-whatsapp text-white p-3 rounded-lg max-w-[80%] shadow-sm;
+    @apply bg-chat-outbound text-primary-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
   }
 
   .chat-timestamp {
-    @apply text-xs text-muted-foreground mt-1;
+    @apply text-xs text-chat-timestamp mt-1;
   }
 
   /* Online indicator */
   .online-indicator {
-    @apply w-2 h-2 bg-primary rounded-full;
+    @apply w-2 h-2 bg-chat-online rounded-full;
   }
 
   /* Form inputs with green focus */
   .form-input {
     @apply bg-input border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition-colors;
+  }
+
+  /* Card styling */
+  .card-dark {
+    @apply bg-card border border-border rounded-lg shadow-sm;
   }
 }
 

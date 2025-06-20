@@ -36,8 +36,6 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/faq" element={<FAQ />} />
-              <Route path="/how-it-works" element={<SeeHowItWorks />} />
-              <Route path="/why-us" element={<WhyUs />} />
               <Route path="/hoe-het-werkt" element={<SeeHowItWorks />} />
               <Route path="/waarom-ons" element={<WhyUs />} />
               <Route path="/gesprekken" element={<Conversations />} />

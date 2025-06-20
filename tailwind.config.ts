@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -22,62 +21,56 @@ export default {
 			fontFamily: {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
 			},
-			fontSize: {
-				'body': ['16px', { lineHeight: '1.5em' }],
-				'body-mobile': ['14px', { lineHeight: '1.5em' }],
-			},
-			letterSpacing: {
-				'heading': '-0.2px',
-				'body': '0',
-			},
-			spacing: {
-				'section': '64px', // Updated to 64px
-				'component': '24px',
-				'card': '24px',
-			},
 			colors: {
-				// Consistent Dark Theme Design System Colors
+				// Bookings Assistant Design System Colors
 				primary: {
-					DEFAULT: '#10B981', // Primary Accent / CTA
-					foreground: '#FFFFFF', // Primary Text
-					hover: '#0F9D72' // Darker variant for hover
+					DEFAULT: '#10B981', // Primary green for CTAs and highlights
+					foreground: '#FFFFFF'
 				},
 				secondary: {
-					DEFAULT: '#111827', // Secondary Background
-					foreground: '#FFFFFF' // Primary Text
+					DEFAULT: '#34D399', // Lighter green tint
+					foreground: '#FFFFFF'
 				},
 				background: {
-					DEFAULT: '#1F2937', // Primary Background
-					secondary: '#111827' // Secondary Background
+					DEFAULT: '#1F2937', // Dark grey-blue
+					secondary: '#111827' // Even darker for contrast
 				},
-				foreground: '#FFFFFF', // Primary Text
+				foreground: '#FFFFFF', // Primary text
 				
 				// Accent colors
-				whatsapp: '#25D366', // WhatsApp Accent (only for WhatsApp)
+				whatsapp: '#25D366',
 				success: '#10B981',
 				warning: '#F59E0B',
 				destructive: '#EF4444',
 				
-				// UI component colors
+				// Additional design system colors
 				card: {
-					DEFAULT: '#111827', // Card background
-					foreground: '#FFFFFF' // Primary Text
+					DEFAULT: '#1F2937',
+					foreground: '#FFFFFF'
 				},
 				border: '#374151', // Subtle border for cards
 				input: '#374151',
-				ring: '#10B981', // Primary Accent
+				ring: '#10B981',
 				
 				muted: {
 					DEFAULT: '#374151',
-					foreground: '#9CA3AF' // Secondary Text
+					foreground: '#9CA3AF' // Secondary text
 				},
 				accent: {
-					DEFAULT: '#10B981', // Primary Accent
-					foreground: '#FFFFFF' // Primary Text
+					DEFAULT: '#34D399',
+					foreground: '#FFFFFF'
 				},
 				popover: {
-					DEFAULT: '#1F2937', // Primary Background
-					foreground: '#FFFFFF' // Primary Text
+					DEFAULT: '#1F2937',
+					foreground: '#FFFFFF'
+				},
+				
+				// Chat specific colors
+				chat: {
+					inbound: '#374151', // Inbound chat bubbles
+					outbound: '#10B981', // Outbound chat bubbles
+					timestamp: '#6B7280', // Message timestamps
+					online: '#10B981' // Online indicator
 				},
 				
 				// Legacy shadcn colors (keeping for compatibility)
@@ -93,13 +86,9 @@ export default {
 				}
 			},
 			borderRadius: {
-				'card': '12px', // Consistent card border radius
-				lg: '0.5rem',
+				lg: '0.5rem', // rounded-lg for buttons and components
 				md: 'calc(0.5rem - 2px)',
 				sm: 'calc(0.5rem - 4px)'
-			},
-			boxShadow: {
-				'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', // Subtle black shadow
 			},
 			keyframes: {
 				'accordion-down': {
