@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -246,7 +247,7 @@ const SimpleChart = ({ data, type = "bar" }: { data: any[]; type?: "bar" | "line
   );
 };
 
-// Main Dashboard Component - REMOVED SIDEBAR
+// Main Dashboard Component
 const WhatsAppBookingDashboard = () => {
   const [timeFilter, setTimeFilter] = useState("week");
   const [activeTab, setActiveTab] = useState("overview");
@@ -633,104 +634,103 @@ const WhatsAppBookingDashboard = () => {
 
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Piekuren</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">10:00 - 11:00</span>
-                      <span className="font-semibold">89 gesprekken</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">14:00 - 15:00</span>
-                      <span className="font-semibold">76 gesprekken</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">16:00 - 17:00</span>
-                      <span className="font-semibold">71 gesprekken</span>
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm">10:00 - 11:00</span>
+                    <span className="font-semibold">89 gesprekken</span>
                   </div>
-                </Card>
-              </div>
-            </TabsContent>
+                  <div className="flex justify-between">
+                    <span className="text-sm">14:00 - 15:00</span>
+                    <span className="font-semibold">76 gesprekken</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">16:00 - 17:00</span>
+                    <span className="font-semibold">71 gesprekken</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
 
-            <TabsContent value="customers" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Klantsegmentatie</h3>
-                  <SimpleChart data={customerTypeData} type="pie" />
-                </Card>
+          <TabsContent value="customers" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Klantsegmentatie</h3>
+                <SimpleChart data={customerTypeData} type="pie" />
+              </Card>
 
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Klantgedrag</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Zap className="h-5 w-5 text-green-500" />
-                        <span>Snelle Boekers</span>
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Klantgedrag</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Zap className="h-5 w-5 text-green-500" />
+                      <span>Snelle Boekers</span>
+                    </div>
+                    <span className="font-semibold">45%</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-yellow-500" />
+                      <span>Twijfelaars</span>
+                    </div>
+                    <span className="font-semibold">32%</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <UserX className="h-5 w-5 text-red-500" />
+                      <span>No-shows</span>
+                    </div>
+                    <span className="font-semibold">8%</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="performance" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Boekingen per Week</h3>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary">247</div>
+                  <div className="text-sm text-muted-foreground">boekingen</div>
+                  <div className="mt-4 flex items-center justify-center gap-2">
+                    <ArrowUp className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-green-500">+15.3%</span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">No-show Percentage</h3>
+                <div className="text-center">
+                  <Gauge value={8} showValue size="medium" colors={{ "0": "#00ac3a", "10": "#ffae00", "20": "#e2162a" }} />
+                  <p className="text-sm text-muted-foreground mt-2">Laag no-show percentage</p>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Klanttevredenheid</h3>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary">4.8</div>
+                  <div className="text-sm text-muted-foreground">van 5 sterren</div>
+                  <div className="mt-4 flex justify-center">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <div
+                        key={star}
+                        className={`w-4 h-4 ${star <= 4 ? "text-yellow-400" : "text-muted"}`}
+                      >
+                        ⭐
                       </div>
-                      <span className="font-semibold">45%</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Clock className="h-5 w-5 text-yellow-500" />
-                        <span>Twijfelaars</span>
-                      </div>
-                      <span className="font-semibold">32%</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <UserX className="h-5 w-5 text-red-500" />
-                        <span>No-shows</span>
-                      </div>
-                      <span className="font-semibold">8%</span>
-                    </div>
+                    ))}
                   </div>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="performance" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Boekingen per Week</h3>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">247</div>
-                    <div className="text-sm text-muted-foreground">boekingen</div>
-                    <div className="mt-4 flex items-center justify-center gap-2">
-                      <ArrowUp className="h-4 w-4 text-green-500" />
-                      <span className="text-sm text-green-500">+15.3%</span>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">No-show Percentage</h3>
-                  <div className="text-center">
-                    <Gauge value={8} showValue size="medium" colors={{ "0": "#00ac3a", "10": "#ffae00", "20": "#e2162a" }} />
-                    <p className="text-sm text-muted-foreground mt-2">Laag no-show percentage</p>
-                  </div>
-                </Card>
-
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Klanttevredenheid</h3>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary">4.8</div>
-                    <div className="text-sm text-muted-foreground">van 5 sterren</div>
-                    <div className="mt-4 flex justify-center">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <div
-                          key={star}
-                          className={`w-4 h-4 ${star <= 4 ? "text-yellow-400" : "text-muted"}`}
-                        >
-                          ⭐
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </main>
-      </div>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </main>
     </div>
   );
 };
