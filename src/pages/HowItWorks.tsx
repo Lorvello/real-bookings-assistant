@@ -72,13 +72,18 @@ export default function HowItWorks() {
                     <div>
                       <h4 className="font-semibold text-amber-400 mb-2">Important Note</h4>
                       <p className="text-sm text-amber-100 mb-3">
-                        Since multiple businesses share this number, customers must include your business name in their first message:
+                        Since multiple businesses share this number, new customers must include your business name in their <strong>very first message only</strong>:
                       </p>
-                      <div className="bg-gray-900 border border-gray-600 rounded-lg p-3 font-mono text-sm text-green-400">
-                        "Plan me in bij [Your Business Name]"
+                      <div className="bg-gray-900 border border-gray-600 rounded-lg p-4 mb-3">
+                        <div className="text-center">
+                          <div className="text-xs text-gray-400 mb-1">Example first message:</div>
+                          <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-3 font-medium text-green-300">
+                            "Plan me in bij [Your Business Name]"
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-xs text-amber-200 mt-2">
-                        After this, the system automatically handles everything else.
+                      <p className="text-xs text-amber-200">
+                        ✅ After this first message, the system automatically remembers the customer and handles all future conversations without needing the business name again.
                       </p>
                     </div>
                   </div>
