@@ -1,5 +1,5 @@
 
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, eachHourOfInterval, startOfDay, endOfDay } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, eachHourOfInterval, startOfDay, endOfDay, isSameDay, isToday } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
 interface Booking {
@@ -21,87 +21,142 @@ interface WeekViewProps {
   currentDate: Date;
 }
 
-export function WeekView({ bookings, currentDate }: WeekViewProps) {
+// Helper functions
+const generateTimeSlots = (startHour: number, endHour: number, intervalMinutes: number) => {
+  const slots = [];
+  for (let hour = startHour; hour <= endHour; hour++) {
+    for (let minute = 0; minute < 60; minute += intervalMinutes) {
+      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      slots.push(timeString);
+    }
+  }
+  return slots;
+};
+
+const getWeekDays = (currentDate: Date) => {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
-  const hours = eachHourOfInterval({ 
-    start: new Date(0, 0, 0, 8), // 8:00
-    end: new Date(0, 0, 0, 18)   // 18:00
-  });
+  return eachDayOfInterval({ start: weekStart, end: weekEnd });
+};
 
-  const getBookingsForDayAndHour = (day: Date, hour: Date) => {
-    return bookings.filter(booking => {
-      const bookingStart = new Date(booking.start_time);
-      const bookingHour = bookingStart.getHours();
-      const hourOfDay = hour.getHours();
-      
-      return (
-        bookingStart.toDateString() === day.toDateString() &&
-        bookingHour === hourOfDay
-      );
-    });
-  };
+const getBookingsForTimeSlot = (bookings: Booking[], day: Date, timeSlot: string) => {
+  const [hours, minutes] = timeSlot.split(':').map(Number);
+  const slotStart = new Date(day);
+  slotStart.setHours(hours, minutes, 0, 0);
+  const slotEnd = new Date(slotStart.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+  return bookings.filter(booking => {
+    const bookingStart = new Date(booking.start_time);
+    const bookingEnd = new Date(booking.end_time);
+    
+    return (
+      isSameDay(bookingStart, day) &&
+      ((bookingStart >= slotStart && bookingStart < slotEnd) ||
+       (bookingStart < slotStart && bookingEnd > slotStart))
+    );
+  });
+};
+
+const calculateTopOffset = (startTime: Date, timeSlot: string) => {
+  const [slotHours, slotMinutes] = timeSlot.split(':').map(Number);
+  const slotStart = new Date(startTime);
+  slotStart.setHours(slotHours, slotMinutes, 0, 0);
+  
+  const bookingHours = startTime.getHours();
+  const bookingMinutes = startTime.getMinutes();
+  const slotTotalMinutes = slotHours * 60 + slotMinutes;
+  const bookingTotalMinutes = bookingHours * 60 + bookingMinutes;
+  
+  const offsetMinutes = bookingTotalMinutes - slotTotalMinutes;
+  return Math.max(0, (offsetMinutes / 30) * 60); // 30 min = 60px
+};
+
+// Booking Block Component
+function BookingBlock({ booking, timeSlot }: { booking: Booking; timeSlot: string }) {
+  const startTime = new Date(booking.start_time);
+  const endTime = new Date(booking.end_time);
+  const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60); // minutes
+  const height = Math.max(30, (duration / 30) * 60); // minimum 30px, 30 min = 60px
+  const topOffset = calculateTopOffset(startTime, timeSlot);
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* Week header */}
-      <div className="grid grid-cols-8 border-b border-border">
-        <div className="p-2"></div> {/* Empty cell for time column */}
-        {days.map(day => (
-          <div key={day.toISOString()} className="p-2 text-center border-l border-border">
-            <div className="text-sm font-medium text-foreground">
-              {format(day, 'EEE', { locale: nl })}
-            </div>
-            <div className="text-lg font-semibold text-foreground">
-              {format(day, 'd')}
-            </div>
+    <div
+      className="absolute inset-x-0 mx-1 p-2 rounded cursor-pointer hover:shadow-lg transition-all z-10"
+      style={{
+        backgroundColor: booking.service_types?.color || '#10B981',
+        height: `${height}px`,
+        top: `${topOffset}px`
+      }}
+      title={`${booking.customer_name} - ${booking.service_types?.name || 'Afspraak'} (${booking.customer_phone || 'Geen telefoon'})`}
+    >
+      <div className="text-xs text-white">
+        <div className="font-semibold truncate">{booking.customer_name}</div>
+        <div className="opacity-90 truncate">{booking.service_types?.name || 'Afspraak'}</div>
+        {booking.customer_phone && (
+          <div className="opacity-75 truncate flex items-center mt-1">
+            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+            </svg>
+            {booking.customer_phone}
           </div>
-        ))}
+        )}
       </div>
+    </div>
+  );
+}
 
-      {/* Time slots grid */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="grid grid-cols-8">
-          {/* Time column */}
-          <div className="border-r border-border">
-            {hours.map(hour => (
-              <div key={hour.toISOString()} className="h-16 p-2 border-b border-border text-sm text-muted-foreground">
-                {format(hour, 'HH:mm')}
+export function WeekView({ bookings, currentDate }: WeekViewProps) {
+  const weekDays = getWeekDays(currentDate);
+  const timeSlots = generateTimeSlots(7, 22, 30); // 7:00 - 22:00, 30 min slots
+
+  return (
+    <div className="h-full overflow-auto">
+      {/* Fixed header with days */}
+      <div className="sticky top-0 z-20 bg-gray-800 border-b border-gray-700">
+        <div className="grid grid-cols-8 gap-px">
+          <div className="w-16"></div> {/* Time column */}
+          {weekDays.map((day) => (
+            <div key={day.toISOString()} className="text-center py-3 px-2">
+              <div className="text-xs text-gray-400">{format(day, 'EEE', { locale: nl })}</div>
+              <div className={`text-lg font-semibold ${isToday(day) ? 'text-green-400' : 'text-white'}`}>
+                {format(day, 'd')}
               </div>
-            ))}
-          </div>
-
-          {/* Day columns */}
-          {days.map(day => (
-            <div key={day.toISOString()} className="border-r border-border">
-              {hours.map(hour => {
-                const slotBookings = getBookingsForDayAndHour(day, hour);
-                
-                return (
-                  <div key={hour.toISOString()} className="h-16 border-b border-border p-1 relative">
-                    {slotBookings.map((booking, index) => (
-                      <div
-                        key={booking.id}
-                        className="absolute inset-1 p-1 rounded text-xs text-white overflow-hidden"
-                        style={{
-                          backgroundColor: booking.service_types?.color || '#10B981',
-                          top: `${(index * 20) + 4}px`,
-                          height: '16px'
-                        }}
-                        title={`${booking.customer_name} - ${booking.service_types?.name || 'Afspraak'} (${booking.customer_phone || 'Geen telefoon'})`}
-                      >
-                        <div className="truncate font-medium">
-                          {booking.customer_name}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Scrollable time grid */}
+      <div className="relative">
+        {/* Time slots */}
+        {timeSlots.map((timeSlot) => (
+          <div key={timeSlot} className="grid grid-cols-8 gap-px border-b border-gray-700">
+            {/* Time label */}
+            <div className="w-16 py-4 px-2 text-xs text-gray-400 text-right">
+              {timeSlot}
+            </div>
+            
+            {/* Day columns */}
+            {weekDays.map((day) => {
+              const dayBookings = getBookingsForTimeSlot(bookings, day, timeSlot);
+              
+              return (
+                <div
+                  key={`${day.toISOString()}-${timeSlot}`}
+                  className="relative bg-gray-900 hover:bg-gray-800 transition-colors min-h-[60px]"
+                >
+                  {dayBookings.map((booking) => (
+                    <BookingBlock
+                      key={booking.id}
+                      booking={booking}
+                      timeSlot={timeSlot}
+                    />
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );
