@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -23,55 +22,47 @@ export default {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
 			},
 			colors: {
-				// Dark Theme Design System Colors
+				// Consistent Dark Theme Design System Colors
 				primary: {
-					DEFAULT: '#10B981', // Green accent for CTAs
-					foreground: '#FFFFFF'
+					DEFAULT: '#10B981', // Primary Accent / CTA
+					foreground: '#FFFFFF' // Primary Text
 				},
 				secondary: {
-					DEFAULT: '#111827', // Darker background variant
-					foreground: '#FFFFFF'
+					DEFAULT: '#111827', // Secondary Background
+					foreground: '#FFFFFF' // Primary Text
 				},
 				background: {
-					DEFAULT: '#1F2937', // Primary dark background
-					secondary: '#111827' // Even darker for contrast
+					DEFAULT: '#1F2937', // Primary Background
+					secondary: '#111827' // Secondary Background
 				},
-				foreground: '#FFFFFF', // Primary text
+				foreground: '#FFFFFF', // Primary Text
 				
 				// Accent colors
-				whatsapp: '#25D366', // WhatsApp green
+				whatsapp: '#25D366', // WhatsApp Accent (only for WhatsApp)
 				success: '#10B981',
 				warning: '#F59E0B',
 				destructive: '#EF4444',
 				
-				// Additional design system colors
+				// UI component colors
 				card: {
-					DEFAULT: '#1F2937',
-					foreground: '#FFFFFF'
+					DEFAULT: '#1F2937', // Primary Background
+					foreground: '#FFFFFF' // Primary Text
 				},
 				border: '#374151', // Subtle border for cards
 				input: '#374151',
-				ring: '#10B981',
+				ring: '#10B981', // Primary Accent
 				
 				muted: {
 					DEFAULT: '#374151',
-					foreground: '#9CA3AF' // Secondary text
+					foreground: '#9CA3AF' // Secondary Text
 				},
 				accent: {
-					DEFAULT: '#10B981',
-					foreground: '#FFFFFF'
+					DEFAULT: '#10B981', // Primary Accent
+					foreground: '#FFFFFF' // Primary Text
 				},
 				popover: {
-					DEFAULT: '#1F2937',
-					foreground: '#FFFFFF'
-				},
-				
-				// Chat specific colors
-				chat: {
-					inbound: '#374151', // Inbound chat bubbles
-					outbound: '#10B981', // Outbound chat bubbles
-					timestamp: '#6B7280', // Message timestamps
-					online: '#10B981' // Online indicator
+					DEFAULT: '#1F2937', // Primary Background
+					foreground: '#FFFFFF' // Primary Text
 				},
 				
 				// Legacy shadcn colors (keeping for compatibility)
