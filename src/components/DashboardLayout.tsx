@@ -9,7 +9,8 @@ import {
   UserCircle,
   LogOut,
   Menu,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -72,7 +73,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-2 py-4">
+          <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
@@ -98,6 +99,89 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </button>
               );
             })}
+
+            {/* How it works section */}
+            {isSidebarOpen && (
+              <div className="mt-8 px-2">
+                <div className="bg-gray-750 rounded-lg p-4 border border-gray-700">
+                  <div className="flex items-center mb-3">
+                    <FileText className="h-5 w-5 text-blue-400 mr-2" />
+                    <h3 className="text-sm font-semibold text-white">
+                      How it works: 🧾 Twee Plannen – Wat krijg je precies?
+                    </h3>
+                  </div>
+                  
+                  <div className="text-xs text-gray-300 space-y-3">
+                    <p>
+                      Je kunt kiezen uit twee abonnementen. Hier leggen we uit wat het verschil is, zodat je weet wat je kunt verwachten en wat je jouw klanten moet vertellen.
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <div className="flex items-center mb-2">
+                          <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                          <span className="text-white font-medium text-xs">Plan 1 – Standaard</span>
+                        </div>
+                        <ul className="text-xs text-gray-400 space-y-1 ml-4">
+                          <li>• Je maakt een account aan bij ons</li>
+                          <li>• Je krijgt één algemeen WhatsApp-nummer dat je deelt met andere bedrijven</li>
+                          <li>• Dit nummer gebruik je om je afsprakenassistent te activeren</li>
+                        </ul>
+                        <div className="mt-2 p-2 bg-yellow-900/30 rounded border border-yellow-600/30">
+                          <p className="text-xs text-yellow-300">
+                            <strong>Let op:</strong> Omdat meerdere bedrijven ditzelfde nummer gebruiken, moet jouw klant bij het eerste bericht altijd vermelden:
+                          </p>
+                          <code className="text-xs text-yellow-200 bg-gray-800 px-2 py-1 rounded mt-1 block">
+                            "Plan me in bij [jouw bedrijfsnaam]"
+                          </code>
+                        </div>
+                        <div className="mt-2">
+                          <p className="text-xs text-green-400 mb-1">Voordeel:</p>
+                          <ul className="text-xs text-gray-400 space-y-1">
+                            <li>✅ Snel starten</li>
+                            <li>✅ Goedkoop</li>
+                            <li>✅ Geen installatie nodig</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center mb-2">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                          <span className="text-white font-medium text-xs">Plan 2 – Premium (eigen nummer & branding)</span>
+                        </div>
+                        <ul className="text-xs text-gray-400 space-y-1 ml-4">
+                          <li>• Je krijgt je eigen unieke WhatsApp-nummer</li>
+                          <li>• Dat nummer is alleen van jou, dus klanten hoeven jouw bedrijfsnaam niet te noemen</li>
+                          <li>• Je kunt ook eigen branding toevoegen (zoals naam, profielfoto, beschrijving)</li>
+                          <li>• Dit is ideaal voor een professionele uitstraling en volledige controle</li>
+                        </ul>
+                        <div className="mt-2 p-2 bg-blue-900/30 rounded border border-blue-600/30">
+                          <p className="text-xs text-blue-300 mb-1">
+                            <strong>Hoe aanvragen?</strong>
+                          </p>
+                          <p className="text-xs text-blue-200">
+                            👉 Boek een korte call met ons via: <br />
+                            <span className="text-blue-400 underline">bookingsassistentie.com/afspraak</span>
+                          </p>
+                          <p className="text-xs text-blue-200 mt-1">
+                            Tijdens het gesprek regelen we de koppeling en activeren we je persoonlijke nummer.
+                          </p>
+                        </div>
+                        <div className="mt-2">
+                          <p className="text-xs text-blue-400 mb-1">Voordeel:</p>
+                          <ul className="text-xs text-gray-400 space-y-1">
+                            <li>✅ Volledige controle</li>
+                            <li>✅ Geen verwarring voor klanten</li>
+                            <li>✅ Professionele look & feel</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </nav>
 
           {/* User Profile Section */}
