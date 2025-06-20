@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { useCalendars } from '@/hooks/useCalendars';
 import type { Calendar } from '@/types/database';
 
@@ -19,9 +19,46 @@ interface CalendarProviderProps {
 }
 
 export function CalendarProvider({ children }: CalendarProviderProps) {
-  const { user } = useAuth();
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const { calendars, loading, refetch } = useCalendars();
   const [selectedCalendar, setSelectedCalendar] = useState<Calendar | null>(null);
+
+  // Handle auth state directly without useAuth hook to avoid circular dependency
+  useEffect(() => {
+    let mounted = true;
+
+    const getSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (mounted) {
+          setUser(session?.user ?? null);
+          setAuthLoading(false);
+        }
+      } catch (error) {
+        console.error('Failed to get session:', error);
+        if (mounted) {
+          setAuthLoading(false);
+        }
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (mounted) {
+          setUser(session?.user ?? null);
+          setAuthLoading(false);
+        }
+      }
+    );
+
+    getSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Auto-select first calendar or default calendar when calendars load
   useEffect(() => {
@@ -62,7 +99,7 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     <CalendarContext.Provider value={{
       selectedCalendar,
       calendars,
-      loading,
+      loading: loading || authLoading,
       selectCalendar,
       refreshCalendars
     }}>
