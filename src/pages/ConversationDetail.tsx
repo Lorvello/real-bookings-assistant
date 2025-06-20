@@ -99,7 +99,7 @@ const ConversationDetail = () => {
             <div>
               <h1 className="text-3xl font-bold text-white">Gesprek Details</h1>
               <p className="text-gray-400 mt-1">
-                Gestart op {format(conversation.startedAt, 'PPP om HH:mm', { locale: nl })}
+                Gestart op {format(conversation.startedAt, "PPP 'om' HH:mm", { locale: nl })}
               </p>
             </div>
             <Badge 
@@ -207,7 +207,7 @@ const ConversationDetail = () => {
                     <div className="text-sm">
                       <p>Laatste activiteit:</p>
                       <p className="text-gray-400">
-                        {format(conversation.lastActivity, 'PPP om HH:mm', { locale: nl })}
+                        {format(conversation.lastActivity, "PPP 'om' HH:mm", { locale: nl })}
                       </p>
                     </div>
                   </div>
