@@ -46,9 +46,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     navigate('/');
   };
 
+  const handleNavigation = (href: string) => {
+    console.log('Navigating to:', href);
+    navigate(href);
+  };
+
   return (
-    <div className="flex h-screen bg-gray-900">
-      {/* Sidebar */}
+    <div className="flex h-screen bg-gray-900 w-full">
+      {/* Sidebar - Always visible */}
       <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} bg-gray-800 transition-all duration-300 ease-in-out flex-shrink-0`}>
         <div className="flex h-full flex-col">
           {/* Logo/Brand */}
@@ -75,7 +80,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               return (
                 <button
                   key={item.name}
-                  onClick={() => navigate(item.href)}
+                  onClick={() => handleNavigation(item.href)}
                   className={`
                     group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-colors w-full text-left
                     ${isActive 

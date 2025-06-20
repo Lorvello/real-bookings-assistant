@@ -18,7 +18,7 @@ import SeeHowItWorks from "./pages/SeeHowItWorks";
 import Testing from "./pages/Testing";
 import Conversations from "./pages/Conversations";
 import Calendar from "./pages/Calendar";
-import { Dashboard } from "./components/Dashboard";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
