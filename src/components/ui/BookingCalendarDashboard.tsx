@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   add,
   eachDayOfInterval,
@@ -29,167 +29,32 @@ import {
   Mail,
   X,
 } from "lucide-react";
-import { Slot } from "@radix-ui/react-slot";
-import { cva, type VariantProps } from "class-variance-authority";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground shadow-sm shadow-black/5 hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground shadow-sm shadow-black/5 hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background shadow-sm shadow-black/5 hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-sm shadow-black/5 hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-      },
-      size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-lg px-3 text-xs",
-        lg: "h-10 rounded-lg px-8",
-        icon: "h-9 w-9",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  },
-);
-
-interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
-}
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
-    return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
-    );
-  },
-);
-Button.displayName = "Button";
-
-const Separator = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & {
-    orientation?: "horizontal" | "vertical";
-    decorative?: boolean;
-  }
->(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "shrink-0 bg-border",
-      orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
-      className
-    )}
-    {...props}
-  />
-));
-Separator.displayName = "Separator";
-
-const Dialog = DialogPrimitive.Root;
-const DialogTrigger = DialogPrimitive.Trigger;
-const DialogPortal = DialogPrimitive.Portal;
-const DialogClose = DialogPrimitive.Close;
-
-const DialogOverlay = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    className={cn(
-      "fixed inset-0 z-[101] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      className,
-    )}
-    {...props}
-  />
-));
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
-
-const DialogContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-1/2 top-1/2 z-[101] grid max-h-[calc(100%-4rem)] w-full -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto border bg-background p-6 shadow-lg shadow-black/5 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:max-w-[600px] sm:rounded-xl",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close className="group absolute right-3 top-3 flex size-7 items-center justify-center rounded-lg outline-offset-2 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none">
-        <X
-          width={16}
-          height={16}
-          strokeWidth={2}
-          className="opacity-60 transition-opacity group-hover:opacity-100"
-        />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-));
-DialogContent.displayName = DialogPrimitive.Content.displayName;
-
-const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
-);
-DialogHeader.displayName = "DialogHeader";
-
-const DialogTitle = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title
-    ref={ref}
-    className={cn("text-lg font-semibold tracking-tight", className)}
-    {...props}
-  />
-));
-DialogTitle.displayName = DialogPrimitive.Title.displayName;
-
-const DialogDescription = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description
-    ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props}
-  />
-));
-DialogDescription.displayName = DialogPrimitive.Description.displayName;
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { useCalendars } from "@/hooks/useCalendars";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Booking {
-  id: number;
-  customerName: string;
-  service: string;
-  time: string;
-  datetime: string;
-  phone: string;
-  email: string;
-  status: "confirmed" | "pending" | "cancelled";
+  id: string;
+  start_time: string;
+  end_time: string;
+  customer_name: string;
+  customer_phone: string | null;
+  status: string;
+  service_type_id: string | null;
+  service_types?: {
+    name: string;
+    color: string;
+    duration: number;
+  } | null;
 }
 
 interface CalendarData {
@@ -198,7 +63,7 @@ interface CalendarData {
 }
 
 interface CalendarDashboardProps {
-  data?: CalendarData[];
+  calendarId?: string;
 }
 
 const colStartClasses = [
@@ -227,12 +92,14 @@ function useMediaQuery(query: string) {
   return matches;
 }
 
-function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
+function CalendarDashboard({ calendarId }: CalendarDashboardProps) {
   const today = startOfToday();
   const [selectedDay, setSelectedDay] = useState(today);
   const [currentMonth, setCurrentMonth] = useState(format(today, "MMM-yyyy"));
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date());
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -241,6 +108,88 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
     start: startOfWeek(firstDayCurrentMonth),
     end: endOfWeek(endOfMonth(firstDayCurrentMonth)),
   });
+
+  // Fetch bookings from Supabase
+  useEffect(() => {
+    if (!calendarId) return;
+
+    const fetchBookings = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select(`
+            id,
+            start_time,
+            end_time,
+            customer_name,
+            customer_phone,
+            status,
+            service_type_id,
+            service_types (
+              name,
+              color,
+              duration
+            )
+          `)
+          .eq('calendar_id', calendarId)
+          .gte('start_time', startOfWeek(firstDayCurrentMonth).toISOString())
+          .lte('end_time', endOfWeek(endOfMonth(firstDayCurrentMonth)).toISOString())
+          .neq('status', 'cancelled');
+
+        if (error) {
+          console.error('Error fetching bookings:', error);
+        } else {
+          setBookings(data || []);
+        }
+      } catch (error) {
+        console.error('Error in fetchBookings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
+
+    // Real-time subscription
+    const channel = supabase
+      .channel(`calendar_bookings_${calendarId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings',
+          filter: `calendar_id=eq.${calendarId}`,
+        },
+        () => {
+          fetchBookings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [calendarId, currentMonth]);
+
+  // Convert bookings to CalendarData format
+  const calendarData: CalendarData[] = React.useMemo(() => {
+    const dataMap = new Map<string, Booking[]>();
+    
+    bookings.forEach(booking => {
+      const day = format(new Date(booking.start_time), 'yyyy-MM-dd');
+      if (!dataMap.has(day)) {
+        dataMap.set(day, []);
+      }
+      dataMap.get(day)!.push(booking);
+    });
+
+    return Array.from(dataMap.entries()).map(([dayStr, dayBookings]) => ({
+      day: new Date(dayStr),
+      bookings: dayBookings,
+    }));
+  }, [bookings]);
 
   function previousMonth() {
     const firstDayNextMonth = add(firstDayCurrentMonth, { months: -1 });
@@ -262,7 +211,7 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
     setIsDialogOpen(true);
   };
 
-  const getStatusColor = (status: Booking["status"]) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
         return "bg-green-100 text-green-800 border-green-200";
@@ -274,6 +223,15 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen flex-1 flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="mt-2 text-muted-foreground">Loading calendar...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col">
@@ -400,10 +358,10 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                   >
                     {format(day, "d")}
                   </time>
-                  {data.filter((date) => isSameDay(date.day, day)).length >
+                  {calendarData.filter((date) => isSameDay(date.day, day)).length >
                     0 && (
                     <div>
-                      {data
+                      {calendarData
                         .filter((date) => isSameDay(date.day, day))
                         .map((date) => (
                           <div
@@ -465,7 +423,7 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                     </button>
                   </header>
                   <div className="flex-1 p-2.5 space-y-1">
-                    {data
+                    {calendarData
                       .filter((bookingDay) => isSameDay(bookingDay.day, day))
                       .map((bookingDay) => (
                         <div key={bookingDay.day.toString()} className="space-y-1">
@@ -479,14 +437,14 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                               )}
                             >
                               <div className="font-medium truncate">
-                                {booking.customerName}
+                                {booking.customer_name}
                               </div>
                               <div className="text-xs opacity-75 flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {booking.time}
+                                {format(new Date(booking.start_time), 'HH:mm')}
                               </div>
                               <div className="text-xs opacity-75 truncate">
-                                {booking.service}
+                                {booking.service_types?.name || 'Afspraak'}
                               </div>
                             </button>
                           ))}
@@ -538,9 +496,9 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                 >
                   {format(day, "d")}
                 </time>
-                {data.filter((date) => isSameDay(date.day, day)).length > 0 && (
+                {calendarData.filter((date) => isSameDay(date.day, day)).length > 0 && (
                   <div>
-                    {data
+                    {calendarData
                       .filter((date) => isSameDay(date.day, day))
                       .map((date) => (
                         <div
@@ -576,7 +534,7 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
           {selectedBooking && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">{selectedBooking.customerName}</h3>
+                <h3 className="text-lg font-semibold">{selectedBooking.customer_name}</h3>
                 <span className={cn(
                   "px-2 py-1 rounded-full text-xs font-medium border",
                   getStatusColor(selectedBooking.status)
@@ -589,24 +547,28 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{selectedBooking.time}</span>
+                    <span className="text-sm">
+                      {format(new Date(selectedBooking.start_time), 'HH:mm')} - {format(new Date(selectedBooking.end_time), 'HH:mm')}
+                    </span>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{selectedBooking.service}</span>
+                    <span className="text-sm">{selectedBooking.service_types?.name || 'Service'}</span>
                   </div>
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{selectedBooking.phone}</span>
-                  </div>
+                  {selectedBooking.customer_phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{selectedBooking.customer_phone}</span>
+                    </div>
+                  )}
                   
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{selectedBooking.email}</span>
+                    <span className="text-sm">{selectedBooking.customer_name}@email.com</span>
                   </div>
                 </div>
               </div>
@@ -630,104 +592,33 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
   );
 }
 
-// Sample data for demonstration
-const sampleBookings: CalendarData[] = [
-  {
-    day: new Date("2025-01-02"),
-    bookings: [
-      {
-        id: 1,
-        customerName: "John Smith",
-        service: "Hair Cut & Styling",
-        time: "10:00 AM",
-        datetime: "2025-01-02T10:00",
-        phone: "+1 (555) 123-4567",
-        email: "john.smith@email.com",
-        status: "confirmed",
-      },
-      {
-        id: 2,
-        customerName: "Sarah Johnson",
-        service: "Manicure",
-        time: "2:00 PM",
-        datetime: "2025-01-02T14:00",
-        phone: "+1 (555) 234-5678",
-        email: "sarah.j@email.com",
-        status: "pending",
-      },
-    ],
-  },
-  {
-    day: new Date("2025-01-07"),
-    bookings: [
-      {
-        id: 3,
-        customerName: "Mike Davis",
-        service: "Massage Therapy",
-        time: "11:00 AM",
-        datetime: "2025-01-07T11:00",
-        phone: "+1 (555) 345-6789",
-        email: "mike.davis@email.com",
-        status: "confirmed",
-      },
-      {
-        id: 4,
-        customerName: "Emily Wilson",
-        service: "Facial Treatment",
-        time: "3:30 PM",
-        datetime: "2025-01-07T15:30",
-        phone: "+1 (555) 456-7890",
-        email: "emily.w@email.com",
-        status: "cancelled",
-      },
-    ],
-  },
-  {
-    day: new Date("2025-01-10"),
-    bookings: [
-      {
-        id: 5,
-        customerName: "David Brown",
-        service: "Personal Training",
-        time: "9:00 AM",
-        datetime: "2025-01-10T09:00",
-        phone: "+1 (555) 567-8901",
-        email: "david.brown@email.com",
-        status: "confirmed",
-      },
-    ],
-  },
-  {
-    day: new Date("2025-01-15"),
-    bookings: [
-      {
-        id: 6,
-        customerName: "Lisa Anderson",
-        service: "Dental Cleaning",
-        time: "2:00 PM",
-        datetime: "2025-01-15T14:00",
-        phone: "+1 (555) 678-9012",
-        email: "lisa.anderson@email.com",
-        status: "pending",
-      },
-      {
-        id: 7,
-        customerName: "Robert Taylor",
-        service: "Consultation",
-        time: "4:00 PM",
-        datetime: "2025-01-15T16:00",
-        phone: "+1 (555) 789-0123",
-        email: "robert.t@email.com",
-        status: "confirmed",
-      },
-    ],
-  },
-];
+export default function BookingCalendarDashboard({ calendarId }: CalendarDashboardProps) {
+  const { calendars, loading } = useCalendars();
+  const defaultCalendar = calendars.find(cal => cal.is_default) || calendars[0];
+  
+  const activeCalendarId = calendarId || defaultCalendar?.id;
 
-export default function BookingCalendarDashboard() {
+  if (loading) {
+    return (
+      <div className="flex h-screen flex-1 flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="mt-2 text-muted-foreground">Loading calendars...</p>
+      </div>
+    );
+  }
+
+  if (!activeCalendarId) {
+    return (
+      <div className="flex h-screen flex-1 flex-col items-center justify-center">
+        <h3 className="text-lg font-medium text-foreground mb-2">Geen kalender gevonden</h3>
+        <p className="text-muted-foreground">Maak eerst een kalender aan om afspraken te bekijken.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen flex-1 flex-col">
-      <CalendarDashboard data={sampleBookings} />
+      <CalendarDashboard calendarId={activeCalendarId} />
     </div>
   );
 }

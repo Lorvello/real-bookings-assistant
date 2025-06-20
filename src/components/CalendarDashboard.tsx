@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { CalendarView } from './CalendarView';
-import { AvailabilityPanel } from './AvailabilityPanel';
+import BookingCalendarDashboard from '@/components/ui/BookingCalendarDashboard';
 import { useCalendars } from '@/hooks/useCalendars';
 
 export function CalendarDashboard() {
@@ -27,15 +26,5 @@ export function CalendarDashboard() {
     );
   }
 
-  return (
-    <div className="h-full relative">
-      {/* Main Calendar View - Full Width */}
-      <div className="h-full">
-        <CalendarView calendarId={defaultCalendar.id} />
-      </div>
-      
-      {/* Availability Panel - Overlay */}
-      <AvailabilityPanel calendarId={defaultCalendar.id} />
-    </div>
-  );
+  return <BookingCalendarDashboard calendarId={defaultCalendar.id} />;
 }
