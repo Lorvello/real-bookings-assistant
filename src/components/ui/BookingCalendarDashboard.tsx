@@ -44,15 +44,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm shadow-black/5 hover:bg-primary/90",
+        default: "bg-green-600 text-white shadow-sm shadow-black/5 hover:bg-green-700",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm shadow-black/5 hover:bg-destructive/90",
+          "bg-red-600 text-white shadow-sm shadow-black/5 hover:bg-red-700",
         outline:
-          "border border-input bg-background shadow-sm shadow-black/5 hover:bg-accent hover:text-accent-foreground",
+          "border border-gray-600 bg-gray-800 text-gray-300 shadow-sm shadow-black/5 hover:bg-gray-700 hover:text-white",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm shadow-black/5 hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-gray-700 text-gray-300 shadow-sm shadow-black/5 hover:bg-gray-600",
+        ghost: "hover:bg-gray-700 hover:text-white text-gray-300",
+        link: "text-green-400 underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -94,7 +94,7 @@ const Separator = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "shrink-0 bg-border",
+      "shrink-0 bg-gray-600",
       orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
       className
     )}
@@ -132,7 +132,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-[101] grid max-h-[calc(100%-4rem)] w-full -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto border bg-background p-6 shadow-lg shadow-black/5 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:max-w-[600px] sm:rounded-xl",
+        "fixed left-1/2 top-1/2 z-[101] grid max-h-[calc(100%-4rem)] w-full -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto border border-gray-600 bg-gray-800 p-6 shadow-lg shadow-black/5 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:max-w-[600px] sm:rounded-xl",
         className,
       )}
       {...props}
@@ -143,7 +143,7 @@ const DialogContent = React.forwardRef<
           width={16}
           height={16}
           strokeWidth={2}
-          className="opacity-60 transition-opacity group-hover:opacity-100"
+          className="opacity-60 transition-opacity group-hover:opacity-100 text-gray-400"
         />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
@@ -163,7 +163,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold tracking-tight", className)}
+    className={cn("text-lg font-semibold tracking-tight text-white", className)}
     {...props}
   />
 ));
@@ -175,7 +175,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-sm text-gray-400", className)}
     {...props}
   />
 ));
@@ -265,35 +265,35 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
   const getStatusColor = (status: Booking["status"]) => {
     switch (status) {
       case "confirmed":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-600/20 text-green-400 border-green-600/30";
       case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-600/20 text-yellow-400 border-yellow-600/30";
       case "cancelled":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-600/20 text-red-400 border-red-600/30";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-600/20 text-gray-400 border-gray-600/30";
     }
   };
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col bg-gray-900 text-white">
       {/* Calendar Header */}
-      <div className="flex flex-col space-y-4 p-4 md:flex-row md:items-center md:justify-between md:space-y-0 lg:flex-none">
+      <div className="flex flex-col space-y-4 p-4 md:flex-row md:items-center md:justify-between md:space-y-0 lg:flex-none bg-gray-800 border-b border-gray-700">
         <div className="flex flex-auto">
           <div className="flex items-center gap-4">
-            <div className="hidden w-20 flex-col items-center justify-center rounded-lg border bg-muted p-0.5 md:flex">
-              <h1 className="p-1 text-xs uppercase text-muted-foreground">
+            <div className="hidden w-20 flex-col items-center justify-center rounded-lg border border-gray-600 bg-gray-700 p-0.5 md:flex">
+              <h1 className="p-1 text-xs uppercase text-gray-400">
                 {format(today, "MMM")}
               </h1>
-              <div className="flex w-full items-center justify-center rounded-lg border bg-background p-0.5 text-lg font-bold">
+              <div className="flex w-full items-center justify-center rounded-lg border border-gray-600 bg-gray-800 p-0.5 text-lg font-bold text-white">
                 <span>{format(today, "d")}</span>
               </div>
             </div>
             <div className="flex flex-col">
-              <h2 className="text-lg font-semibold text-foreground">
+              <h2 className="text-lg font-semibold text-white">
                 Booking Calendar - {format(firstDayCurrentMonth, "MMMM, yyyy")}
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-400">
                 {format(firstDayCurrentMonth, "MMM d, yyyy")} -{" "}
                 {format(endOfMonth(firstDayCurrentMonth), "MMM d, yyyy")}
               </p>
@@ -323,7 +323,7 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
               className="w-full rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10 md:w-auto"
               variant="outline"
             >
-              Today
+              Vandaag
             </Button>
             <Button
               onClick={nextMonth}
@@ -344,7 +344,7 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
 
           <Button className="w-full gap-2 md:w-auto">
             <PlusCircleIcon size={16} strokeWidth={2} aria-hidden="true" />
-            <span>New Booking</span>
+            <span>Nieuwe Afspraak</span>
           </Button>
         </div>
       </div>
@@ -352,19 +352,19 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
       {/* Calendar Grid */}
       <div className="lg:flex lg:flex-auto lg:flex-col">
         {/* Week Days Header */}
-        <div className="grid grid-cols-7 border text-center text-xs font-semibold leading-6 lg:flex-none">
-          <div className="border-r py-2.5">Sun</div>
-          <div className="border-r py-2.5">Mon</div>
-          <div className="border-r py-2.5">Tue</div>
-          <div className="border-r py-2.5">Wed</div>
-          <div className="border-r py-2.5">Thu</div>
-          <div className="border-r py-2.5">Fri</div>
-          <div className="py-2.5">Sat</div>
+        <div className="grid grid-cols-7 border-b border-gray-700 text-center text-xs font-semibold leading-6 lg:flex-none bg-gray-800">
+          <div className="border-r border-gray-700 py-2.5 text-gray-300">Zon</div>
+          <div className="border-r border-gray-700 py-2.5 text-gray-300">Maa</div>
+          <div className="border-r border-gray-700 py-2.5 text-gray-300">Din</div>
+          <div className="border-r border-gray-700 py-2.5 text-gray-300">Woe</div>
+          <div className="border-r border-gray-700 py-2.5 text-gray-300">Don</div>
+          <div className="border-r border-gray-700 py-2.5 text-gray-300">Vri</div>
+          <div className="py-2.5 text-gray-300">Zat</div>
         </div>
 
         {/* Calendar Days */}
         <div className="flex text-xs leading-6 lg:flex-auto">
-          <div className="hidden w-full border-x lg:grid lg:grid-cols-7 lg:grid-rows-5">
+          <div className="hidden w-full border-l border-r border-gray-700 lg:grid lg:grid-cols-7 lg:grid-rows-5">
             {days.map((day, dayIdx) =>
               !isDesktop ? (
                 <button
@@ -372,18 +372,18 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                   key={dayIdx}
                   type="button"
                   className={cn(
-                    isEqual(day, selectedDay) && "text-primary-foreground",
+                    isEqual(day, selectedDay) && "text-white",
                     !isEqual(day, selectedDay) &&
                       !isToday(day) &&
                       isSameMonth(day, firstDayCurrentMonth) &&
-                      "text-foreground",
+                      "text-gray-300",
                     !isEqual(day, selectedDay) &&
                       !isToday(day) &&
                       !isSameMonth(day, firstDayCurrentMonth) &&
-                      "text-muted-foreground",
+                      "text-gray-500",
                     (isEqual(day, selectedDay) || isToday(day)) &&
                       "font-semibold",
-                    "flex h-14 flex-col border-b border-r px-3 py-2 hover:bg-muted focus:z-10",
+                    "flex h-14 flex-col border-b border-r border-gray-700 px-3 py-2 hover:bg-gray-800 focus:z-10",
                   )}
                 >
                   <time
@@ -392,10 +392,10 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                       "ml-auto flex size-6 items-center justify-center rounded-full",
                       isEqual(day, selectedDay) &&
                         isToday(day) &&
-                        "bg-primary text-primary-foreground",
+                        "bg-green-600 text-white",
                       isEqual(day, selectedDay) &&
                         !isToday(day) &&
-                        "bg-primary text-primary-foreground",
+                        "bg-green-600 text-white",
                     )}
                   >
                     {format(day, "d")}
@@ -413,7 +413,7 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                             {date.bookings.map((booking) => (
                               <span
                                 key={booking.id}
-                                className="mx-0.5 mt-1 h-1.5 w-1.5 rounded-full bg-primary"
+                                className="mx-0.5 mt-1 h-1.5 w-1.5 rounded-full bg-green-600"
                               />
                             ))}
                           </div>
@@ -430,33 +430,33 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                     !isEqual(day, selectedDay) &&
                       !isToday(day) &&
                       !isSameMonth(day, firstDayCurrentMonth) &&
-                      "bg-accent/50 text-muted-foreground",
-                    "relative flex flex-col border-b border-r hover:bg-muted focus:z-10 min-h-[120px]",
-                    !isEqual(day, selectedDay) && "hover:bg-accent/75",
+                      "bg-gray-800/50 text-gray-500",
+                    "relative flex flex-col border-b border-r border-gray-700 hover:bg-gray-800 focus:z-10 min-h-[120px] bg-gray-900",
+                    !isEqual(day, selectedDay) && "hover:bg-gray-800/75",
                   )}
                 >
                   <header className="flex items-center justify-between p-2.5">
                     <button
                       type="button"
                       className={cn(
-                        isEqual(day, selectedDay) && "text-primary-foreground",
+                        isEqual(day, selectedDay) && "text-white",
                         !isEqual(day, selectedDay) &&
                           !isToday(day) &&
                           isSameMonth(day, firstDayCurrentMonth) &&
-                          "text-foreground",
+                          "text-gray-300",
                         !isEqual(day, selectedDay) &&
                           !isToday(day) &&
                           !isSameMonth(day, firstDayCurrentMonth) &&
-                          "text-muted-foreground",
+                          "text-gray-500",
                         isEqual(day, selectedDay) &&
                           isToday(day) &&
-                          "border-none bg-primary",
+                          "border-none bg-green-600 text-white",
                         isEqual(day, selectedDay) &&
                           !isToday(day) &&
-                          "bg-foreground",
+                          "bg-gray-600 text-white",
                         (isEqual(day, selectedDay) || isToday(day)) &&
                           "font-semibold",
-                        "flex h-7 w-7 items-center justify-center rounded-full text-xs hover:border",
+                        "flex h-7 w-7 items-center justify-center rounded-full text-xs hover:border hover:border-gray-600",
                       )}
                     >
                       <time dateTime={format(day, "yyyy-MM-dd")}>
@@ -491,8 +491,8 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                             </button>
                           ))}
                           {bookingDay.bookings.length > 3 && (
-                            <div className="text-xs text-muted-foreground text-center py-1">
-                              + {bookingDay.bookings.length - 3} more
+                            <div className="text-xs text-gray-400 text-center py-1">
+                              + {bookingDay.bookings.length - 3} meer
                             </div>
                           )}
                         </div>
@@ -503,25 +503,25 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
             )}
           </div>
 
-          <div className="isolate grid w-full grid-cols-7 grid-rows-5 border-x lg:hidden">
+          <div className="isolate grid w-full grid-cols-7 grid-rows-5 border-l border-r border-gray-700 lg:hidden">
             {days.map((day, dayIdx) => (
               <button
                 onClick={() => setSelectedDay(day)}
                 key={dayIdx}
                 type="button"
                 className={cn(
-                  isEqual(day, selectedDay) && "text-primary-foreground",
+                  isEqual(day, selectedDay) && "text-white",
                   !isEqual(day, selectedDay) &&
                     !isToday(day) &&
                     isSameMonth(day, firstDayCurrentMonth) &&
-                    "text-foreground",
+                    "text-gray-300",
                   !isEqual(day, selectedDay) &&
                     !isToday(day) &&
                     !isSameMonth(day, firstDayCurrentMonth) &&
-                    "text-muted-foreground",
+                    "text-gray-500",
                   (isEqual(day, selectedDay) || isToday(day)) &&
                     "font-semibold",
-                  "flex h-14 flex-col border-b border-r px-3 py-2 hover:bg-muted focus:z-10",
+                  "flex h-14 flex-col border-b border-r border-gray-700 px-3 py-2 hover:bg-gray-800 focus:z-10",
                 )}
               >
                 <time
@@ -530,10 +530,10 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                     "ml-auto flex size-6 items-center justify-center rounded-full",
                     isEqual(day, selectedDay) &&
                       isToday(day) &&
-                      "bg-primary text-primary-foreground",
+                      "bg-green-600 text-white",
                     isEqual(day, selectedDay) &&
                       !isToday(day) &&
-                      "bg-primary text-primary-foreground",
+                      "bg-green-600 text-white",
                   )}
                 >
                   {format(day, "d")}
@@ -550,7 +550,7 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                           {date.bookings.map((booking) => (
                             <span
                               key={booking.id}
-                              className="mx-0.5 mt-1 h-1.5 w-1.5 rounded-full bg-primary"
+                              className="mx-0.5 mt-1 h-1.5 w-1.5 rounded-full bg-green-600"
                             />
                           ))}
                         </div>
@@ -567,59 +567,60 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Booking Details</DialogTitle>
+            <DialogTitle>Afspraak Details</DialogTitle>
             <DialogDescription>
-              View and manage customer booking information
+              Bekijk en beheer klant afspraak informatie
             </DialogDescription>
           </DialogHeader>
           
           {selectedBooking && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">{selectedBooking.customerName}</h3>
+                <h3 className="text-lg font-semibold text-white">{selectedBooking.customerName}</h3>
                 <span className={cn(
                   "px-2 py-1 rounded-full text-xs font-medium border",
                   getStatusColor(selectedBooking.status)
                 )}>
-                  {selectedBooking.status.charAt(0).toUpperCase() + selectedBooking.status.slice(1)}
+                  {selectedBooking.status === 'confirmed' ? 'Bevestigd' : 
+                   selectedBooking.status === 'pending' ? 'In afwachting' : 'Geannuleerd'}
                 </span>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{selectedBooking.time}</span>
+                    <Clock className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm text-gray-300">{selectedBooking.time}</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{selectedBooking.service}</span>
+                    <User className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm text-gray-300">{selectedBooking.service}</span>
                   </div>
                 </div>
                 
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{selectedBooking.phone}</span>
+                    <Phone className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm text-gray-300">{selectedBooking.phone}</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{selectedBooking.email}</span>
+                    <Mail className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm text-gray-300">{selectedBooking.email}</span>
                   </div>
                 </div>
               </div>
               
               <div className="flex gap-2 pt-4">
                 <Button variant="outline" className="flex-1">
-                  Reschedule
+                  Verplaatsen
                 </Button>
                 <Button variant="outline" className="flex-1">
-                  Cancel
+                  Annuleren
                 </Button>
                 <Button className="flex-1">
-                  Confirm
+                  Bevestigen
                 </Button>
               </div>
             </div>
@@ -630,104 +631,10 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
   );
 }
 
-// Sample data for demonstration
-const sampleBookings: CalendarData[] = [
-  {
-    day: new Date("2025-01-02"),
-    bookings: [
-      {
-        id: 1,
-        customerName: "John Smith",
-        service: "Hair Cut & Styling",
-        time: "10:00 AM",
-        datetime: "2025-01-02T10:00",
-        phone: "+1 (555) 123-4567",
-        email: "john.smith@email.com",
-        status: "confirmed",
-      },
-      {
-        id: 2,
-        customerName: "Sarah Johnson",
-        service: "Manicure",
-        time: "2:00 PM",
-        datetime: "2025-01-02T14:00",
-        phone: "+1 (555) 234-5678",
-        email: "sarah.j@email.com",
-        status: "pending",
-      },
-    ],
-  },
-  {
-    day: new Date("2025-01-07"),
-    bookings: [
-      {
-        id: 3,
-        customerName: "Mike Davis",
-        service: "Massage Therapy",
-        time: "11:00 AM",
-        datetime: "2025-01-07T11:00",
-        phone: "+1 (555) 345-6789",
-        email: "mike.davis@email.com",
-        status: "confirmed",
-      },
-      {
-        id: 4,
-        customerName: "Emily Wilson",
-        service: "Facial Treatment",
-        time: "3:30 PM",
-        datetime: "2025-01-07T15:30",
-        phone: "+1 (555) 456-7890",
-        email: "emily.w@email.com",
-        status: "cancelled",
-      },
-    ],
-  },
-  {
-    day: new Date("2025-01-10"),
-    bookings: [
-      {
-        id: 5,
-        customerName: "David Brown",
-        service: "Personal Training",
-        time: "9:00 AM",
-        datetime: "2025-01-10T09:00",
-        phone: "+1 (555) 567-8901",
-        email: "david.brown@email.com",
-        status: "confirmed",
-      },
-    ],
-  },
-  {
-    day: new Date("2025-01-15"),
-    bookings: [
-      {
-        id: 6,
-        customerName: "Lisa Anderson",
-        service: "Dental Cleaning",
-        time: "2:00 PM",
-        datetime: "2025-01-15T14:00",
-        phone: "+1 (555) 678-9012",
-        email: "lisa.anderson@email.com",
-        status: "pending",
-      },
-      {
-        id: 7,
-        customerName: "Robert Taylor",
-        service: "Consultation",
-        time: "4:00 PM",
-        datetime: "2025-01-15T16:00",
-        phone: "+1 (555) 789-0123",
-        email: "robert.t@email.com",
-        status: "confirmed",
-      },
-    ],
-  },
-];
-
-export default function BookingCalendarDashboard() {
+export default function BookingCalendarDashboard({ data }: CalendarDashboardProps) {
   return (
-    <div className="flex h-screen flex-1 flex-col">
-      <CalendarDashboard data={sampleBookings} />
+    <div className="flex h-full flex-1 flex-col">
+      <CalendarDashboard data={data} />
     </div>
   );
 }
