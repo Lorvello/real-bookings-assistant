@@ -16,12 +16,21 @@ import {
   Star,
   ArrowDown,
   Clock,
-  Target
+  Target,
+  Info,
+  Copy,
+  AlertCircle,
+  Calendar,
+  Bot
 } from 'lucide-react';
 
 export default function HowItWorks() {
   const handleBookCall = () => {
     window.open('https://bookingsassistentie.com/afspraak', '_blank');
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
   return (
@@ -36,80 +45,148 @@ export default function HowItWorks() {
               </div>
             </div>
             <h1 className="text-4xl font-bold text-white mb-4">
-              How Our Booking Assistant Works
+              Getting Started Guide
             </h1>
             <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-              Learn how to set up your automated WhatsApp booking assistant in just a few simple steps. 
-              No technical knowledge required!
+              Welcome! You're now part of our booking assistant family. This guide will walk you through 
+              exactly how to set up and use your new AI booking assistant.
             </p>
           </div>
 
-          {/* Step-by-Step Tutorial */}
+          {/* Quick Start Overview */}
+          <Card className="bg-blue-900/20 border-blue-500/30 mb-12">
+            <CardHeader>
+              <CardTitle className="text-2xl text-blue-400 flex items-center gap-3">
+                <Zap className="h-6 w-6" />
+                What You Get Today
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="bg-green-500/20 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <Bot className="h-8 w-8 text-green-400" />
+                  </div>
+                  <h4 className="font-semibold text-white mb-2">AI Assistant</h4>
+                  <p className="text-gray-300 text-sm">Your 24/7 booking agent that never sleeps</p>
+                </div>
+                <div className="text-center">
+                  <div className="bg-blue-500/20 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <MessageCircle className="h-8 w-8 text-blue-400" />
+                  </div>
+                  <h4 className="font-semibold text-white mb-2">WhatsApp Number</h4>
+                  <p className="text-gray-300 text-sm">Your dedicated line for customer bookings</p>
+                </div>
+                <div className="text-center">
+                  <div className="bg-purple-500/20 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <Calendar className="h-8 w-8 text-purple-400" />
+                  </div>
+                  <h4 className="font-semibold text-white mb-2">Calendar Sync</h4>
+                  <p className="text-gray-300 text-sm">Automatic booking to your calendar</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Step-by-Step Setup */}
           <div className="space-y-12 mb-16">
-            {/* Step 1: Choose Your Plan */}
+            
+            {/* Step 1: Know Your Plan */}
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
+                  <div className="bg-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg">
                     1
                   </div>
-                  <CardTitle className="text-2xl text-white">Choose Your Plan</CardTitle>
+                  <CardTitle className="text-2xl text-white">Know Your Plan & Get Your Number</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <p className="text-gray-300 text-lg leading-relaxed">
-                  We offer two different plans to match your business needs. Here's what each plan offers:
+                  First, let's understand what plan you have and how to get your WhatsApp number.
                 </p>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Standard Plan Card */}
-                  <div className="bg-gray-700 rounded-lg p-6 border border-green-500/30">
-                    <div className="flex items-center justify-between mb-4">
-                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-3 py-1">
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Standard Plan */}
+                  <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
                         STANDARD PLAN
                       </Badge>
-                      <div className="text-green-400 font-semibold">Most Popular</div>
                     </div>
-                    <h4 className="text-xl font-bold text-white mb-3">Shared WhatsApp Number</h4>
-                    <ul className="space-y-3 text-gray-300">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                        <span>Get started immediately - no setup required</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                        <span>Share one WhatsApp number with other businesses</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                        <span>Perfect for trying out the service</span>
-                      </li>
-                    </ul>
+                    <h4 className="text-xl font-bold text-white mb-4">Shared WhatsApp Number</h4>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+                        <h5 className="font-semibold text-green-400 mb-2 flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          Your Number is Ready!
+                        </h5>
+                        <p className="text-green-200 text-sm mb-3">
+                          Check your dashboard for your shared WhatsApp number. It's ready to use immediately.
+                        </p>
+                        <div className="bg-gray-800 border border-gray-600 rounded p-3">
+                          <div className="text-center">
+                            <div className="text-green-400 font-mono text-lg">+31 6 XXXX XXXX</div>
+                            <div className="text-xs text-gray-400 mt-1">Example shared number</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <Info className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <h6 className="font-semibold text-amber-400 mb-1">Important for Customers</h6>
+                            <p className="text-amber-200 text-sm">
+                              Since this number is shared, new customers must mention your business name 
+                              in their <strong>very first message only</strong>. After that, the system remembers them automatically.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Premium Plan Card */}
-                  <div className="bg-gray-700 rounded-lg p-6 border border-blue-500/30">
-                    <div className="flex items-center justify-between mb-4">
-                      <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 px-3 py-1">
+                  {/* Premium Plan */}
+                  <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
                         PREMIUM PLAN
                       </Badge>
-                      <div className="text-blue-400 font-semibold">Professional</div>
                     </div>
-                    <h4 className="text-xl font-bold text-white mb-3">Your Own WhatsApp Number</h4>
-                    <ul className="space-y-3 text-gray-300">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                        <span>Get your own dedicated WhatsApp number</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                        <span>Complete privacy - no sharing with others</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                        <span>Professional branding with your logo</span>
-                      </li>
-                    </ul>
+                    <h4 className="text-xl font-bold text-white mb-4">Your Own WhatsApp Number</h4>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                        <h5 className="font-semibold text-blue-400 mb-2 flex items-center gap-2">
+                          <Settings2 className="h-4 w-4" />
+                          Setup Required
+                        </h5>
+                        <p className="text-blue-200 text-sm mb-3">
+                          We need to create your dedicated number and configure everything for you.
+                        </p>
+                        <Button 
+                          onClick={handleBookCall}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          Book Your 15-Min Setup Call
+                        </Button>
+                      </div>
+
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <h6 className="font-semibold text-green-400 mb-1">What You Get</h6>
+                            <p className="text-green-200 text-sm">
+                              Your own dedicated WhatsApp number that customers can contact directly. 
+                              No need to mention your business name - it's all yours!
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -120,300 +197,340 @@ export default function HowItWorks() {
               <ArrowDown className="h-8 w-8 text-green-400" />
             </div>
 
-            {/* Step 2: Getting Started */}
+            {/* Step 2: Configure Your Settings */}
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
+                  <div className="bg-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg">
                     2
                   </div>
-                  <CardTitle className="text-2xl text-white">Getting Started</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-8">
-                <div className="grid md:grid-cols-2 gap-8">
-                  {/* Standard Plan Setup */}
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-green-400 flex items-center gap-2">
-                      <Zap className="h-5 w-5" />
-                      Standard Plan Setup
-                    </h4>
-                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-                      <p className="text-green-100 mb-4">
-                        <strong>Super Easy!</strong> Just create your account and you're ready to go.
-                      </p>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</div>
-                          <span className="text-green-100">Sign up for an account</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</div>
-                          <span className="text-green-100">Get your shared WhatsApp number</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</div>
-                          <span className="text-green-100">Start accepting bookings immediately!</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Premium Plan Setup */}
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-blue-400 flex items-center gap-2">
-                      <Phone className="h-5 w-5" />
-                      Premium Plan Setup
-                    </h4>
-                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                      <p className="text-blue-100 mb-4">
-                        <strong>Personal Touch!</strong> We'll set up everything for you.
-                      </p>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</div>
-                          <span className="text-blue-100">Book a 15-minute setup call</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</div>
-                          <span className="text-blue-100">We create your dedicated number</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</div>
-                          <span className="text-blue-100">We configure everything for you</span>
-                        </div>
-                      </div>
-                      <Button 
-                        onClick={handleBookCall}
-                        className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        Book Your Setup Call
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Arrow Down */}
-            <div className="flex justify-center">
-              <ArrowDown className="h-8 w-8 text-green-400" />
-            </div>
-
-            {/* Step 3: How Customers Contact You */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
-                    3
-                  </div>
-                  <CardTitle className="text-2xl text-white">How Customers Contact You</CardTitle>
+                  <CardTitle className="text-2xl text-white">Configure Your Business Settings</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <p className="text-gray-300 text-lg leading-relaxed">
-                  Once you're set up, your customers can start booking appointments by sending a WhatsApp message. 
-                  Here's what they need to know:
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-8">
-                  {/* Standard Plan Customer Instructions */}
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-green-400">Standard Plan Customers</h4>
-                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-5">
-                      <h5 className="font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                        <MessageCircle className="h-4 w-4" />
-                        Important: First Message Only
-                      </h5>
-                      <p className="text-amber-100 mb-4 text-sm leading-relaxed">
-                        Since multiple businesses share this number, <strong>new customers must mention your business name in their very first message</strong>. 
-                        After that, our system remembers them automatically.
-                      </p>
-                      
-                      <div className="bg-gray-900 border border-gray-600 rounded-lg p-4 mb-4">
-                        <div className="text-center">
-                          <div className="text-xs text-gray-400 mb-2">Example of first message:</div>
-                          <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-3">
-                            <div className="text-green-300 font-medium">
-                              "Hi, I want to book an appointment at <span className="bg-green-500/30 px-2 py-1 rounded">[Your Business Name]</span>"
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-                        <p className="text-xs text-green-200 flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                          <span>
-                            <strong>Good news:</strong> After this first message, customers can chat normally. 
-                            The system remembers who they are and which business they want to book with.
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Premium Plan Customer Instructions */}
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-blue-400">Premium Plan Customers</h4>
-                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-5">
-                      <h5 className="font-semibold text-blue-400 mb-3 flex items-center gap-2">
-                        <Shield className="h-4 w-4" />
-                        Simple & Direct
-                      </h5>
-                      <p className="text-blue-100 mb-4 text-sm leading-relaxed">
-                        Your customers can message your dedicated number directly. No need to mention your business name - 
-                        the number is yours alone!
-                      </p>
-                      
-                      <div className="bg-gray-900 border border-gray-600 rounded-lg p-4 mb-4">
-                        <div className="text-center">
-                          <div className="text-xs text-gray-400 mb-2">Example message:</div>
-                          <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3">
-                            <div className="text-blue-300 font-medium">
-                              "Hi, I'd like to book an appointment for next week"
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                        <p className="text-xs text-blue-200 flex items-start gap-2">
-                          <Star className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                          <span>
-                            <strong>Professional:</strong> Your customers always know they're talking to your business. 
-                            No confusion, no sharing.
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Arrow Down */}
-            <div className="flex justify-center">
-              <ArrowDown className="h-8 w-8 text-green-400" />
-            </div>
-
-            {/* Step 4: The Magic Happens */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
-                    4
-                  </div>
-                  <CardTitle className="text-2xl text-white">The Magic Happens Automatically</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <p className="text-gray-300 text-lg leading-relaxed">
-                  Once a customer sends their message, our AI assistant takes over and handles everything for you:
+                  Before customers start booking, make sure your AI assistant knows about your business.
                 </p>
 
                 <div className="grid gap-6">
-                  <div className="flex items-start gap-4 p-4 bg-gray-700 rounded-lg">
-                    <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                      1
+                  <div className="bg-gray-700 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <Settings2 className="h-5 w-5 text-green-400" />
+                      Essential Setup (Do This First!)
+                    </h4>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <h5 className="font-medium text-green-400">Business Information</h5>
+                        <ul className="space-y-2 text-gray-300 text-sm">
+                          <li className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                            <span>Business name and description</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                            <span>Services you offer with prices</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                            <span>Contact information and location</span>
+                          </li>
+                        </ul>
+                      </div>
+                      <div className="space-y-3">
+                        <h5 className="font-medium text-blue-400">Availability Settings</h5>
+                        <ul className="space-y-2 text-gray-300 text-sm">
+                          <li className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                            <span>Your working hours and days</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                            <span>Appointment duration for each service</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                            <span>Buffer time between appointments</span>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
-                    <div>
-                      <h5 className="font-semibold text-white mb-2">AI Greets the Customer</h5>
-                      <p className="text-gray-300">
-                        The assistant responds immediately with a friendly greeting and asks what service they need.
+                    <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                      <p className="text-blue-200 text-sm flex items-start gap-2">
+                        <Target className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                        <span>
+                          <strong>Pro Tip:</strong> Go to your Settings page right now to configure these. 
+                          Your AI assistant won't work properly until this is done!
+                        </span>
                       </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Arrow Down */}
+            <div className="flex justify-center">
+              <ArrowDown className="h-8 w-8 text-green-400" />
+            </div>
+
+            {/* Step 3: How Customers Will Contact You */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg">
+                    3
+                  </div>
+                  <CardTitle className="text-2xl text-white">How Your Customers Will Book</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                <p className="text-gray-300 text-lg leading-relaxed">
+                  Now that you're set up, here's exactly what your customers need to do to book with you:
+                </p>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Standard Plan Customer Experience */}
+                  <div className="space-y-6">
+                    <h4 className="text-xl font-semibold text-green-400 flex items-center gap-2">
+                      <MessageCircle className="h-5 w-5" />
+                      For Standard Plan Customers
+                    </h4>
+                    
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-6">
+                      <h5 className="font-bold text-amber-400 mb-4 flex items-center gap-2">
+                        <AlertCircle className="h-5 w-5" />
+                        First Message Only - Very Important!
+                      </h5>
+                      
+                      <div className="space-y-4">
+                        <p className="text-amber-200 text-sm leading-relaxed">
+                          Since multiple businesses share this WhatsApp number, <strong>new customers must mention 
+                          your business name in their very first message</strong>. This tells our AI which business they want to book with.
+                        </p>
+                        
+                        <div className="bg-gray-900 border border-gray-600 rounded-lg p-4">
+                          <div className="text-center mb-3">
+                            <div className="text-xs text-gray-400 mb-2">✅ CORRECT first message example:</div>
+                            <div className="bg-green-600/20 border border-green-500/40 rounded-lg p-4">
+                              <div className="text-green-300 text-sm">
+                                "Hi, I want to book a haircut at <span className="bg-green-500/40 px-2 py-1 rounded font-semibold">[Your Business Name]</span>"
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                          <h6 className="font-semibold text-green-400 mb-2 flex items-center gap-2">
+                            <Star className="h-4 w-4" />
+                            After The First Message
+                          </h6>
+                          <p className="text-green-200 text-sm">
+                            Great news! After that first message, customers can chat normally. 
+                            The AI remembers who they are and automatically connects them to your business for all future messages.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                      <h6 className="font-semibold text-blue-400 mb-2">Share This With Your Customers:</h6>
+                      <div className="bg-gray-800 border border-gray-600 rounded p-3">
+                        <p className="text-gray-300 text-sm font-mono">
+                          "WhatsApp ons op {"{"}nummer{"}"} en vermeld '{"{"}jouw bedrijfsnaam{"}"}' in je eerste bericht om een afspraak te maken!"
+                        </p>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="mt-2 text-blue-400 hover:text-blue-300"
+                          onClick={() => copyToClipboard("WhatsApp ons op {nummer} en vermeld '{jouw bedrijfsnaam}' in je eerste bericht om een afspraak te maken!")}
+                        >
+                          <Copy className="h-3 w-3 mr-1" />
+                          Copy Text
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-4 p-4 bg-gray-700 rounded-lg">
-                    <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                      2
-                    </div>
-                    <div>
-                      <h5 className="font-semibold text-white mb-2">Gathers Information</h5>
-                      <p className="text-gray-300">
-                        The AI asks smart questions to understand what the customer needs and when they're available.
-                      </p>
-                    </div>
-                  </div>
+                  {/* Premium Plan Customer Experience */}
+                  <div className="space-y-6">
+                    <h4 className="text-xl font-semibold text-blue-400 flex items-center gap-2">
+                      <Shield className="h-5 w-5" />
+                      For Premium Plan Customers
+                    </h4>
+                    
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-6">
+                      <h5 className="font-bold text-blue-400 mb-4 flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5" />
+                        Simple & Professional
+                      </h5>
+                      
+                      <div className="space-y-4">
+                        <p className="text-blue-200 text-sm leading-relaxed">
+                          Your customers can message your dedicated WhatsApp number directly. 
+                          <strong> No need to mention your business name</strong> - the number belongs to you alone!
+                        </p>
+                        
+                        <div className="bg-gray-900 border border-gray-600 rounded-lg p-4">
+                          <div className="text-center mb-3">
+                            <div className="text-xs text-gray-400 mb-2">✅ Example customer message:</div>
+                            <div className="bg-blue-600/20 border border-blue-500/40 rounded-lg p-4">
+                              <div className="text-blue-300 text-sm">
+                                "Hi, I'd like to book a massage for next week"
+                              </div>
+                            </div>
+                          </div>
+                        </div>
 
-                  <div className="flex items-start gap-4 p-4 bg-gray-700 rounded-lg">
-                    <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                      3
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                          <p className="text-green-200 text-sm flex items-start gap-2">
+                            <Star className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                            <span>
+                              <strong>Professional Advantage:</strong> Your customers always know they're talking 
+                              directly to your business. No confusion, no sharing with others.
+                            </span>
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h5 className="font-semibold text-white mb-2">Checks Your Calendar</h5>
-                      <p className="text-gray-300">
-                        The assistant looks at your real-time availability and suggests the best appointment times.
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex items-start gap-4 p-4 bg-gray-700 rounded-lg">
-                    <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                      4
-                    </div>
-                    <div>
-                      <h5 className="font-semibold text-white mb-2">Books the Appointment</h5>
-                      <p className="text-gray-300">
-                        Once the customer confirms, the AI books the appointment and adds it to your calendar automatically.
-                      </p>
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                      <h6 className="font-semibold text-green-400 mb-2">Share This With Your Customers:</h6>
+                      <div className="bg-gray-800 border border-gray-600 rounded p-3">
+                        <p className="text-gray-300 text-sm font-mono">
+                          "WhatsApp ons direct op {"{"}jouw nummer{"}"} om een afspraak te maken!"
+                        </p>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="mt-2 text-green-400 hover:text-green-300"
+                          onClick={() => copyToClipboard("WhatsApp ons direct op {jouw nummer} om een afspraak te maken!")}
+                        >
+                          <Copy className="h-3 w-3 mr-1" />
+                          Copy Text
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <div className="flex items-start gap-4 p-4 bg-gray-700 rounded-lg">
-                    <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                      5
-                    </div>
-                    <div>
-                      <h5 className="font-semibold text-white mb-2">Sends Confirmations</h5>
-                      <p className="text-gray-300">
-                        Both you and your customer receive confirmation messages with all the appointment details.
-                      </p>
-                    </div>
+            {/* Arrow Down */}
+            <div className="flex justify-center">
+              <ArrowDown className="h-8 w-8 text-green-400" />
+            </div>
+
+            {/* Step 4: The Booking Process */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-green-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg">
+                    4
                   </div>
+                  <CardTitle className="text-2xl text-white">What Happens During a Booking</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-gray-300 text-lg leading-relaxed">
+                  Once a customer sends their message, here's the step-by-step process your AI assistant follows:
+                </p>
+
+                <div className="space-y-4">
+                  {[
+                    {
+                      step: 1,
+                      title: "Friendly Welcome",
+                      description: "The AI greets your customer warmly and asks what service they need.",
+                      example: '"Hi! Welcome to [Your Business]. I\'m here to help you book an appointment. What service are you interested in?"'
+                    },
+                    {
+                      step: 2,
+                      title: "Service Selection",
+                      description: "The AI shows available services with prices and asks the customer to choose.",
+                      example: '"We offer: Haircut (€25), Hair + Beard (€35), Styling (€20). Which would you prefer?"'
+                    },
+                    {
+                      step: 3,
+                      title: "Date Preference",
+                      description: "The AI asks when the customer would like their appointment.",
+                      example: '"Great choice! When would you like to schedule this? Any specific day or time preference?"'
+                    },
+                    {
+                      step: 4,
+                      title: "Check Availability",
+                      description: "The AI checks your real-time calendar and suggests available time slots.",
+                      example: '"Let me check availability... I have these times free: Today 2:00 PM, Tomorrow 10:00 AM, Friday 3:30 PM. Which works best?"'
+                    },
+                    {
+                      step: 5,
+                      title: "Confirm Details",
+                      description: "The AI confirms all appointment details and gets customer information.",
+                      example: '"Perfect! So that\'s a Haircut on Friday at 3:30 PM for €25. Can I get your full name and phone number?"'
+                    },
+                    {
+                      step: 6,
+                      title: "Book & Confirm",
+                      description: "The AI books the appointment and sends confirmation to both you and the customer.",
+                      example: '"All booked! You\'ll receive a confirmation message shortly. See you Friday at 3:30 PM!"'
+                    }
+                  ].map((item) => (
+                    <div key={item.step} className="flex gap-4 p-4 bg-gray-700 rounded-lg">
+                      <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                        {item.step}
+                      </div>
+                      <div className="flex-1">
+                        <h5 className="font-semibold text-white mb-2">{item.title}</h5>
+                        <p className="text-gray-300 text-sm mb-3">{item.description}</p>
+                        <div className="bg-gray-800 border border-gray-600 rounded p-3">
+                          <p className="text-green-300 text-xs italic">"{item.example}"</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6 text-center">
                   <div className="flex items-center justify-center gap-3 mb-3">
                     <Clock className="h-6 w-6 text-green-400" />
-                    <span className="text-xl font-bold text-green-400">Average Time: Under 3 Minutes</span>
+                    <span className="text-xl font-bold text-green-400">Average Booking Time: 2-3 Minutes</span>
                   </div>
                   <p className="text-green-200">
-                    While your competitors make customers wait hours for a response, your AI assistant books them instantly!
+                    While your competitors leave customers waiting for hours, your AI books them instantly - 
+                    even at 2 AM on Sunday!
                   </p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Bottom CTA */}
+          {/* Next Steps CTA */}
           <Card className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border-green-500/30">
             <CardContent className="p-8 text-center">
               <div className="max-w-3xl mx-auto">
                 <h3 className="text-3xl font-bold text-white mb-4 flex items-center justify-center gap-3">
                   <Target className="h-8 w-8 text-green-400" />
-                  Ready to Get Started?
+                  You're Ready to Go!
                 </h3>
                 <p className="text-gray-300 text-lg leading-relaxed mb-8">
-                  Choose the plan that fits your business best. You can always upgrade later as you grow. 
-                  Both plans come with full support and a money-back guarantee.
+                  You now know exactly how your booking assistant works. If you haven't configured your 
+                  business settings yet, do that first. Then start sharing your WhatsApp number with customers!
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button 
+                    onClick={() => window.location.href = '/settings'}
                     className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3"
                   >
-                    Start with Standard Plan
+                    Configure Settings Now
                   </Button>
                   <Button 
-                    onClick={handleBookCall}
+                    onClick={() => window.location.href = '/dashboard'}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3"
                   >
-                    Book Premium Setup Call
+                    Go to Dashboard
                   </Button>
                 </div>
-                <p className="text-gray-400 text-sm mt-4">
-                  Questions? Contact us anytime - we're here to help!
+                <p className="text-gray-400 text-sm mt-6">
+                  Need help? Check your dashboard for your WhatsApp number and contact support anytime.
                 </p>
               </div>
             </CardContent>
