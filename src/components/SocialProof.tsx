@@ -22,7 +22,7 @@ const SocialProof = () => {
   ];
 
   return (
-    <section className="py-16 px-6 bg-secondary">
+    <section className="py-section px-6 bg-background">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -35,26 +35,32 @@ const SocialProof = () => {
         
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="bg-background border border-border p-6 rounded-2xl">
+            <div key={index} className="bg-secondary border border-border p-6 rounded-xl">
               <div className="flex mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
                   <span key={i} className="text-primary text-lg">⭐</span>
                 ))}
               </div>
-              <p className="text-muted-foreground mb-6 italic leading-relaxed">"{testimonial.quote}"</p>
+              <p className="text-foreground mb-6 italic leading-relaxed">"{testimonial.quote}"</p>
               <div>
-                <div className="font-semibold text-foreground">{testimonial.name}</div>
+                <div className="font-semibold text-primary">{testimonial.name}</div>
                 <div className="text-sm text-muted-foreground">{testimonial.business}</div>
               </div>
             </div>
           ))}
         </div>
         
-        <div className="bg-background border border-border p-6 rounded-2xl text-center">
+        <div className="bg-secondary border border-border p-6 rounded-xl text-center">
           <div className="flex justify-center items-center gap-4 mb-4">
-            <span className="text-2xl">🔒</span>
-            <span className="text-2xl">✅</span>
-            <span className="text-2xl">🛡️</span>
+            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+              <span className="text-primary font-bold">🔒</span>
+            </div>
+            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+              <span className="text-primary font-bold">✅</span>
+            </div>
+            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+              <span className="text-primary font-bold">🛡️</span>
+            </div>
           </div>
           <h3 className="text-xl font-semibold text-foreground mb-2">
             Enterprise-Grade Security & Compliance

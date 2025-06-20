@@ -5,7 +5,7 @@ const WhatsAppChat = () => {
   return (
     <div className="w-full max-w-xs mx-auto">
       {/* Phone mockup container */}
-      <div className="relative bg-gray-900 rounded-[2rem] p-2 shadow-2xl">
+      <div className="relative bg-muted rounded-[2rem] p-2 shadow-2xl">
         {/* Phone screen */}
         <div className="bg-background rounded-[1.5rem] overflow-hidden border border-border">
           {/* WhatsApp header */}
@@ -26,15 +26,15 @@ const WhatsAppChat = () => {
           <div className="bg-background min-h-[320px] p-2.5 space-y-2">
             {/* User message */}
             <div className="flex justify-end">
-              <div className="bg-primary text-primary-foreground p-2.5 rounded-lg max-w-[75%] shadow-sm">
+              <div className="bg-whatsapp text-white p-2.5 rounded-lg max-w-[75%] shadow-sm">
                 <p className="text-xs">Hi! I'd like to book a haircut.</p>
-                <p className="text-xs text-primary-foreground/70 mt-1">10:30</p>
+                <p className="text-xs text-white/70 mt-1">10:30</p>
               </div>
             </div>
             
             {/* AI response */}
             <div className="flex justify-start">
-              <div className="bg-muted text-foreground p-2.5 rounded-lg max-w-[75%] shadow-sm">
+              <div className="bg-secondary text-foreground p-2.5 rounded-lg max-w-[75%] shadow-sm">
                 <p className="text-xs">Sure! What day and time works best for you?</p>
                 <p className="text-xs text-muted-foreground mt-1">10:30</p>
               </div>
@@ -42,15 +42,15 @@ const WhatsAppChat = () => {
             
             {/* User provides full details */}
             <div className="flex justify-end">
-              <div className="bg-primary text-primary-foreground p-2.5 rounded-lg max-w-[75%] shadow-sm">
+              <div className="bg-whatsapp text-white p-2.5 rounded-lg max-w-[75%] shadow-sm">
                 <p className="text-xs">Tuesday May 20th at 10 a.m.</p>
-                <p className="text-xs text-primary-foreground/70 mt-1">10:31</p>
+                <p className="text-xs text-white/70 mt-1">10:31</p>
               </div>
             </div>
             
             {/* Final AI confirmation */}
             <div className="flex justify-start">
-              <div className="bg-muted text-foreground p-2.5 rounded-lg max-w-[75%] shadow-sm">
+              <div className="bg-secondary text-foreground p-2.5 rounded-lg max-w-[75%] shadow-sm">
                 <p className="text-xs">Perfect! You're booked for Tuesday, May 20th at 10:00 AM with Lisa. I'll send you a confirmation.</p>
                 <p className="text-xs text-muted-foreground mt-1">10:31</p>
               </div>
@@ -58,9 +58,9 @@ const WhatsAppChat = () => {
             
             {/* User thank you message */}
             <div className="flex justify-end">
-              <div className="bg-primary text-primary-foreground p-2.5 rounded-lg max-w-[75%] shadow-sm">
+              <div className="bg-whatsapp text-white p-2.5 rounded-lg max-w-[75%] shadow-sm">
                 <p className="text-xs">Thank you!</p>
-                <p className="text-xs text-primary-foreground/70 mt-1">10:32</p>
+                <p className="text-xs text-white/70 mt-1">10:32</p>
               </div>
             </div>
           </div>
