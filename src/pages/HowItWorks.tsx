@@ -5,17 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  FileText, 
   CheckCircle, 
   Phone, 
   MessageCircle, 
   Settings2, 
-  Zap, 
   Users, 
   Shield, 
-  Star,
-  ArrowDown,
-  Clock,
   Target,
   Info,
   Copy,
@@ -39,54 +34,10 @@ export default function HowItWorks() {
         <div className="max-w-4xl mx-auto px-6 py-8">
           {/* Header Section */}
           <div className="text-center mb-12">
-            <div className="flex items-center justify-center mb-6">
-              <div className="bg-green-500/20 p-4 rounded-2xl">
-                <FileText className="h-10 w-10 text-green-400" />
-              </div>
-            </div>
             <h1 className="text-3xl font-bold text-white mb-4">
               Getting Started Guide
             </h1>
-            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-              Welcome! You're now part of our booking assistant family. This guide will walk you through 
-              exactly how to set up and use your new AI booking assistant.
-            </p>
           </div>
-
-          {/* Quick Start Overview */}
-          <Card className="bg-gray-700 border-gray-600 mb-10">
-            <CardHeader>
-              <CardTitle className="text-xl text-green-400 flex items-center gap-3">
-                <Zap className="h-5 w-5" />
-                What You Get Today
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="bg-green-500/20 p-3 rounded-full w-14 h-14 mx-auto mb-3 flex items-center justify-center">
-                    <Bot className="h-6 w-6 text-green-400" />
-                  </div>
-                  <h4 className="font-semibold text-white mb-2">AI Assistant</h4>
-                  <p className="text-gray-300 text-sm">Your 24/7 booking agent</p>
-                </div>
-                <div className="text-center">
-                  <div className="bg-green-500/20 p-3 rounded-full w-14 h-14 mx-auto mb-3 flex items-center justify-center">
-                    <MessageCircle className="h-6 w-6 text-green-400" />
-                  </div>
-                  <h4 className="font-semibold text-white mb-2">WhatsApp Number</h4>
-                  <p className="text-gray-300 text-sm">Your dedicated booking line</p>
-                </div>
-                <div className="text-center">
-                  <div className="bg-green-500/20 p-3 rounded-full w-14 h-14 mx-auto mb-3 flex items-center justify-center">
-                    <Calendar className="h-6 w-6 text-green-400" />
-                  </div>
-                  <h4 className="font-semibold text-white mb-2">Calendar Sync</h4>
-                  <p className="text-gray-300 text-sm">Automatic booking sync</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Step-by-Step Setup */}
           <div className="space-y-8 mb-12">
@@ -108,7 +59,7 @@ export default function HowItWorks() {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Standard Plan */}
-                  <div className="bg-gray-800 border border-gray-600 rounded-lg p-5">
+                  <div className="border border-gray-600 rounded-lg p-5">
                     <div className="flex items-center gap-3 mb-4">
                       <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
                         STANDARD PLAN
@@ -117,7 +68,7 @@ export default function HowItWorks() {
                     <h4 className="text-lg font-bold text-white mb-4">Shared WhatsApp Number</h4>
                     
                     <div className="space-y-4">
-                      <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+                      <div className="border border-green-500/20 rounded-lg p-4">
                         <h5 className="font-semibold text-green-400 mb-2 flex items-center gap-2">
                           <Phone className="h-4 w-4" />
                           Your Number is Ready!
@@ -127,7 +78,7 @@ export default function HowItWorks() {
                         </p>
                       </div>
 
-                      <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                      <div className="border border-amber-500/30 rounded-lg p-4">
                         <div className="flex items-start gap-3">
                           <Info className="h-4 w-4 text-amber-400 mt-0.5 flex-shrink-0" />
                           <div>
@@ -142,7 +93,7 @@ export default function HowItWorks() {
                   </div>
 
                   {/* Premium Plan */}
-                  <div className="bg-gray-800 border border-gray-600 rounded-lg p-5">
+                  <div className="border border-gray-600 rounded-lg p-5">
                     <div className="flex items-center gap-3 mb-4">
                       <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
                         PREMIUM PLAN
@@ -151,7 +102,7 @@ export default function HowItWorks() {
                     <h4 className="text-lg font-bold text-white mb-4">Your Own WhatsApp Number</h4>
                     
                     <div className="space-y-4">
-                      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                      <div className="border border-blue-500/20 rounded-lg p-4">
                         <h5 className="font-semibold text-blue-400 mb-2 flex items-center gap-2">
                           <Settings2 className="h-4 w-4" />
                           Setup Required
@@ -167,7 +118,7 @@ export default function HowItWorks() {
                         </Button>
                       </div>
 
-                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                      <div className="border border-green-500/30 rounded-lg p-4">
                         <div className="flex items-start gap-3">
                           <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
                           <div>
@@ -199,7 +150,7 @@ export default function HowItWorks() {
                   Before customers start booking, make sure your AI assistant knows about your business.
                 </p>
 
-                <div className="bg-gray-800 rounded-lg p-5">
+                <div className="rounded-lg p-5 border border-gray-600">
                   <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <Settings2 className="h-5 w-5 text-green-400" />
                     Essential Setup (Do This First!)
@@ -267,7 +218,7 @@ export default function HowItWorks() {
                       For Standard Plan Customers
                     </h4>
                     
-                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                    <div className="border border-amber-500/30 rounded-lg p-4">
                       <h5 className="font-bold text-amber-400 mb-3 flex items-center gap-2">
                         <AlertCircle className="h-4 w-4" />
                         First Message Only!
@@ -277,16 +228,16 @@ export default function HowItWorks() {
                         New customers must mention your business name in their first message.
                       </p>
                       
-                      <div className="bg-gray-800 border border-gray-600 rounded-lg p-3">
+                      <div className="border border-gray-600 rounded-lg p-3">
                         <div className="text-green-300 text-sm">
                           "Hi, I want to book at <span className="bg-green-500/40 px-1 rounded font-semibold">[Your Business Name]</span>"
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                    <div className="border border-green-500/30 rounded-lg p-4">
                       <h6 className="font-semibold text-green-400 mb-2">Share This With Your Customers:</h6>
-                      <div className="bg-gray-800 border border-gray-600 rounded p-3">
+                      <div className="border border-gray-600 rounded p-3">
                         <p className="text-gray-300 text-sm">
                           "WhatsApp ons op {"{"}nummer{"}"} en vermeld '{"{"}bedrijfsnaam{"}"}' in je eerste bericht!"
                         </p>
@@ -310,7 +261,7 @@ export default function HowItWorks() {
                       For Premium Plan Customers
                     </h4>
                     
-                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                    <div className="border border-green-500/30 rounded-lg p-4">
                       <h5 className="font-bold text-green-400 mb-3 flex items-center gap-2">
                         <CheckCircle className="h-4 w-4" />
                         Simple & Direct
@@ -320,16 +271,16 @@ export default function HowItWorks() {
                         Customers can message directly. No need to mention your business name!
                       </p>
                       
-                      <div className="bg-gray-800 border border-gray-600 rounded-lg p-3">
+                      <div className="border border-gray-600 rounded-lg p-3">
                         <div className="text-green-300 text-sm">
                           "Hi, I'd like to book a massage for next week"
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                    <div className="border border-green-500/30 rounded-lg p-4">
                       <h6 className="font-semibold text-green-400 mb-2">Share This With Your Customers:</h6>
-                      <div className="bg-gray-800 border border-gray-600 rounded p-3">
+                      <div className="border border-gray-600 rounded p-3">
                         <p className="text-gray-300 text-sm">
                           "WhatsApp ons direct op {"{"}jouw nummer{"}"} om een afspraak te maken!"
                         </p>
@@ -356,17 +307,15 @@ export default function HowItWorks() {
                   <div className="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
                     4
                   </div>
-                  <CardTitle className="text-xl text-white">What Happens During a Booking</CardTitle>
+                  <CardTitle className="text-xl text-white">How a Booking Works</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-gray-300 leading-relaxed">
-                  Here's how a typical booking conversation works (takes about 20 seconds):
+                  Here's a typical booking conversation:
                 </p>
 
-                <div className="bg-gray-800 rounded-lg p-5">
-                  <h4 className="text-lg font-semibold text-white mb-4">Sample Booking Conversation</h4>
-                  
+                <div className="rounded-lg p-5 border border-gray-600">
                   <div className="space-y-3">
                     {/* Customer message */}
                     <div className="flex justify-end">
@@ -397,41 +346,21 @@ export default function HowItWorks() {
                     {/* AI confirmation */}
                     <div className="flex justify-start">
                       <div className="bg-gray-600 text-white p-3 rounded-lg max-w-[70%]">
-                        <p className="text-sm">"Perfect! You're booked for tomorrow at 2:00 PM for a Haircut (€25). Can I get your name and phone number?"</p>
-                      </div>
-                    </div>
-                    
-                    {/* Customer details */}
-                    <div className="flex justify-end">
-                      <div className="bg-green-500 text-white p-3 rounded-lg max-w-[70%]">
-                        <p className="text-sm">"John Smith, 06 1234 5678"</p>
-                      </div>
-                    </div>
-                    
-                    {/* Final confirmation */}
-                    <div className="flex justify-start">
-                      <div className="bg-gray-600 text-white p-3 rounded-lg max-w-[70%]">
-                        <p className="text-sm">"All set John! See you tomorrow at 2:00 PM ✅"</p>
+                        <p className="text-sm">"Perfect! I'll book you for tomorrow at 2:00 PM for a Haircut (€25). See you then! ✅"</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-center">
-                  <div className="flex items-center justify-center gap-3 mb-2">
-                    <Clock className="h-5 w-5 text-green-400" />
-                    <span className="text-lg font-bold text-green-400">Total Time: ~20 Seconds</span>
-                  </div>
-                  <p className="text-green-200 text-sm">
-                    While competitors leave customers waiting hours, your AI books them instantly!
-                  </p>
+                <div className="text-center text-gray-300">
+                  <p>Total time: ~20 seconds</p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Next Steps CTA */}
-          <Card className="bg-gradient-to-r from-green-500/20 to-green-600/20 border-green-500/30">
+          <Card className="border-green-500/30">
             <CardContent className="p-6 text-center">
               <div className="max-w-2xl mx-auto">
                 <h3 className="text-2xl font-bold text-white mb-4 flex items-center justify-center gap-3">
