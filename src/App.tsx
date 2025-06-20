@@ -17,6 +17,7 @@ import WhyUs from "./pages/WhyUs";
 import SeeHowItWorks from "./pages/SeeHowItWorks";
 import Testing from "./pages/Testing";
 import Conversations from "./pages/Conversations";
+import ConversationDetail from "./pages/ConversationDetail";
 import Calendar from "./pages/Calendar";
 import Dashboard from "./pages/Dashboard";
 import TestAIAgent from "./pages/TestAIAgent";
@@ -46,6 +47,7 @@ function App() {
               <Route path="/how-it-works" element={<SeeHowItWorks />} />
               <Route path="/testing" element={<Testing />} />
               <Route path="/conversations" element={<Conversations />} />
+              <Route path="/conversations/:id" element={<ConversationDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
