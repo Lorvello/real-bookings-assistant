@@ -13,7 +13,7 @@ const CallToAction = () => {
           Your AI appointment agent is ready to work 24/7.
         </p>
         
-        <div className="bg-secondary border border-border p-6 rounded-xl mb-6">
+        <div className="card-default mb-6">
           <div className="grid md:grid-cols-3 gap-4 mb-6">
             <div>
               <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mb-2 mx-auto">
@@ -38,7 +38,7 @@ const CallToAction = () => {
             </div>
           </div>
           
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 text-lg font-bold rounded-xl shadow-lg">
+          <Button className="px-8 py-4 text-lg font-bold rounded-card shadow-card">
             Start My Free AI Agent Now
           </Button>
           
@@ -47,7 +47,7 @@ const CallToAction = () => {
           </p>
         </div>
         
-        <div className="bg-secondary border border-border p-4 rounded-xl">
+        <div className="card-default">
           <p className="text-base font-semibold mb-2 text-foreground">
             ⏰ Limited Time: Free Setup Worth $297
           </p>
@@ -63,10 +63,10 @@ const CallToAction = () => {
           Still have questions? Our team is here to help.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button variant="outline" className="border-border text-foreground hover:bg-secondary text-sm">
+          <Button variant="secondary" className="text-sm">
             Book a Demo Call
           </Button>
-          <Button variant="outline" className="border-border text-foreground hover:bg-secondary text-sm">
+          <Button variant="secondary" className="text-sm">
             View Pricing Plans
           </Button>
         </div>

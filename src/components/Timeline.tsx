@@ -4,7 +4,7 @@ import { ArrowRight, MessageCircle, Calendar } from 'lucide-react';
 
 const Timeline = () => {
   return (
-    <section className="bg-secondary py-16 px-6">
+    <section className="bg-secondary py-section px-6">
       <div className="max-w-6xl mx-auto">
         {/* Timeline Header */}
         <div className="text-center mb-16">
@@ -27,7 +27,7 @@ const Timeline = () => {
               {/* Icon Container */}
               <div className="relative mb-6">
                 <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg shadow-primary/25 relative z-10">
-                  <MessageCircle className="w-10 h-10 text-primary-foreground" />
+                  <MessageCircle className="w-10 h-10 text-primary-foreground" strokeWidth={2} />
                 </div>
                 {/* Glow Effect */}
                 <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 to-primary/20 rounded-full blur opacity-75"></div>
@@ -48,7 +48,7 @@ const Timeline = () => {
 
             {/* Arrow */}
             <div className="flex items-center justify-center lg:mx-8">
-              <ArrowRight className="w-8 h-8 text-primary transform rotate-90 lg:rotate-0" />
+              <ArrowRight className="w-8 h-8 text-primary transform rotate-90 lg:rotate-0" strokeWidth={2} />
             </div>
 
             {/* Step 2 */}
@@ -56,7 +56,7 @@ const Timeline = () => {
               {/* Icon Container */}
               <div className="relative mb-6">
                 <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg shadow-primary/25 relative z-10">
-                  <Calendar className="w-10 h-10 text-primary-foreground" />
+                  <Calendar className="w-10 h-10 text-primary-foreground" strokeWidth={2} />
                 </div>
                 {/* Glow Effect */}
                 <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 to-primary/20 rounded-full blur opacity-75"></div>
@@ -81,7 +81,7 @@ const Timeline = () => {
         <div className="flex justify-center mt-12">
           <div className="flex flex-col items-center">
             <div className="w-px h-8 bg-gradient-to-b from-primary to-primary/80"></div>
-            <ArrowRight className="w-6 h-6 text-primary transform rotate-90" />
+            <ArrowRight className="w-6 h-6 text-primary transform rotate-90" strokeWidth={2} />
             <p className="text-sm text-muted-foreground mt-2 font-medium">See it in action</p>
           </div>
         </div>
