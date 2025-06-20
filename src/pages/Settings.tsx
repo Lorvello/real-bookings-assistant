@@ -1,16 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
-import Navbar from '@/components/Navbar';
+import { useNavigate } from 'react-router-dom';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { BusinessType } from '@/types/database';
@@ -19,8 +17,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -29,24 +26,12 @@ const Settings = () => {
     phone: '',
   });
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
-    };
-
-    getUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
+  // Redirect if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login');
+    }
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     if (profile) {
@@ -82,106 +67,101 @@ const Settings = () => {
     setSaving(false);
   };
 
-  if (loading || profileLoading) {
+  if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="flex items-center justify-center py-20">
-          <div className="text-lg text-gray-600">Loading...</div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="text-lg text-gray-300">Loading...</div>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (!user) {
-    navigate('/login');
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/profile')}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Profile
-          </Button>
-          <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
-          <p className="text-gray-600 mt-2">Manage your account information</p>
+    <DashboardLayout>
+      <div className="p-8 bg-gray-900 min-h-full">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white">Account Settings</h1>
+          <p className="text-gray-400 mt-2">Manage your account information</p>
         </div>
 
-        <div className="grid gap-6">
-          <Card>
+        <div className="grid gap-6 max-w-4xl">
+          <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>Update your personal details</CardDescription>
+              <CardTitle className="text-white">Personal Information</CardTitle>
+              <CardDescription className="text-gray-400">Update your personal details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email" className="text-gray-300">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
                   value={user.email || ''}
                   disabled
-                  className="bg-gray-100"
+                  className="bg-gray-700 border-gray-600 text-gray-300"
                 />
                 <p className="text-sm text-gray-500 mt-1">Email address cannot be changed</p>
               </div>
               <div>
-                <Label htmlFor="full_name">Full Name</Label>
+                <Label htmlFor="full_name" className="text-gray-300">Full Name</Label>
                 <Input
                   id="full_name"
                   name="full_name"
                   value={formData.full_name}
                   onChange={handleInputChange}
                   placeholder="Enter your full name"
+                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                 />
               </div>
               <div>
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone" className="text-gray-300">Phone Number</Label>
                 <Input
                   id="phone"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
                   placeholder="+31 6 12345678"
+                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
-              <CardTitle>Business Information</CardTitle>
-              <CardDescription>Configure your business details</CardDescription>
+              <CardTitle className="text-white">Business Information</CardTitle>
+              <CardDescription className="text-gray-400">Configure your business details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="business_name">Business Name</Label>
+                <Label htmlFor="business_name" className="text-gray-300">Business Name</Label>
                 <Input
                   id="business_name"
                   name="business_name"
                   value={formData.business_name}
                   onChange={handleInputChange}
                   placeholder="Enter your business name"
+                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                 />
               </div>
               <div>
-                <Label htmlFor="business_type">Business Type</Label>
+                <Label htmlFor="business_type" className="text-gray-300">Business Type</Label>
                 <Select 
                   value={formData.business_type} 
                   onValueChange={(value) => handleSelectChange('business_type', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
                     <SelectValue placeholder="Select your business type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-gray-700 border-gray-600">
                     <SelectItem value="salon">Salon</SelectItem>
                     <SelectItem value="clinic">Clinic</SelectItem>
                     <SelectItem value="consultant">Consultant</SelectItem>
@@ -197,7 +177,7 @@ const Settings = () => {
             <Button 
               onClick={handleSave}
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-green-600 hover:bg-green-700"
             >
               <Save className="h-4 w-4 mr-2" />
               {saving ? 'Saving...' : 'Save Changes'}
@@ -205,7 +185,7 @@ const Settings = () => {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

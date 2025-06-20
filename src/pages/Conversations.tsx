@@ -1,37 +1,25 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import Navbar from '@/components/Navbar';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, MessageSquare, Clock, User as UserIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { MessageSquare, Clock, User as UserIcon } from 'lucide-react';
 
 const Conversations = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
-    };
-
-    getUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
+  // Redirect if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login');
+    }
+  }, [user, authLoading, navigate]);
 
   // Mock data for conversations
   const conversations = [
@@ -73,42 +61,34 @@ const Conversations = () => {
     }
   ];
 
-  if (loading) {
+  if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="flex items-center justify-center py-20">
-          <div className="text-lg text-gray-600">Loading...</div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="text-lg text-gray-300">Loading...</div>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (!user) {
-    navigate('/login');
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="max-w-6xl mx-auto py-8 px-4">
-        <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/profile')}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <h1 className="text-3xl font-bold text-gray-900">Conversations</h1>
-          <p className="text-gray-600 mt-2">View and manage customer interactions with your booking assistant</p>
+    <DashboardLayout>
+      <div className="p-8 bg-gray-900 min-h-full">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
+          <p className="text-gray-400 mt-2">View and manage customer interactions with your booking assistant</p>
         </div>
 
         <div className="grid gap-4">
           {conversations.map((conversation) => (
-            <Card key={conversation.id} className="hover:shadow-md transition-shadow">
+            <Card key={conversation.id} className="bg-gray-800 border-gray-700 hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4 flex-1">
@@ -118,8 +98,8 @@ const Conversations = () => {
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
                         <div>
-                          <h3 className="font-semibold text-gray-900">{conversation.customer}</h3>
-                          <p className="text-sm text-gray-500">{conversation.email}</p>
+                          <h3 className="font-semibold text-white">{conversation.customer}</h3>
+                          <p className="text-sm text-gray-400">{conversation.email}</p>
                         </div>
                         <div className="text-right">
                           <Badge 
@@ -128,12 +108,13 @@ const Conversations = () => {
                               conversation.status === 'pending' ? 'destructive' : 
                               'secondary'
                             }
+                            className={conversation.status === 'active' ? 'bg-green-600' : ''}
                           >
                             {conversation.status}
                           </Badge>
                         </div>
                       </div>
-                      <p className="text-gray-700 mb-3">{conversation.message}</p>
+                      <p className="text-gray-300 mb-3">{conversation.message}</p>
                       <div className="flex items-center justify-between text-sm text-gray-500">
                         <div className="flex items-center space-x-4">
                           <span className="flex items-center">
@@ -145,7 +126,7 @@ const Conversations = () => {
                             {conversation.responses} responses
                           </span>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
                           View Details
                         </Button>
                       </div>
@@ -158,18 +139,18 @@ const Conversations = () => {
         </div>
 
         {conversations.length === 0 && (
-          <Card>
+          <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="text-center py-12">
               <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <CardTitle className="text-gray-600">No conversations yet</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-gray-300">No conversations yet</CardTitle>
+              <CardDescription className="text-gray-400">
                 Your booking assistant hasn't had any conversations yet. Once customers start interacting, they'll appear here.
               </CardDescription>
             </CardHeader>
           </Card>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

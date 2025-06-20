@@ -6,7 +6,6 @@ import {
   Home,
   Settings,
   MessageCircle,
-  BarChart3,
   UserCircle,
   LogOut,
   Menu,
@@ -26,7 +25,6 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Kalender', href: '/calendar', icon: Calendar },
   { name: 'WhatsApp', href: '/conversations', icon: MessageCircle },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Instellingen', href: '/settings', icon: Settings },
 ];
 
