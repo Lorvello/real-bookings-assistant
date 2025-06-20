@@ -11,7 +11,7 @@
     --background: 31 41 55; /* #1F2937 - Primary Background */
     --foreground: 255 255 255; /* #FFFFFF - Primary Text */
 
-    --card: 31 41 55; /* #1F2937 - Primary Background */
+    --card: 17 24 39; /* #111827 - Card Background */
     --card-foreground: 255 255 255; /* #FFFFFF - Primary Text */
 
     --popover: 31 41 55; /* #1F2937 - Primary Background */
@@ -19,6 +19,7 @@
 
     --primary: 16 185 129; /* #10B981 - Primary Accent / CTA */
     --primary-foreground: 255 255 255; /* #FFFFFF - Primary Text */
+    --primary-hover: 15 157 114; /* #0F9D72 - Darker hover variant */
 
     --secondary: 17 24 39; /* #111827 - Secondary Background */
     --secondary-foreground: 255 255 255; /* #FFFFFF - Primary Text */
@@ -55,12 +56,13 @@
     /* Keep same values for dark mode consistency */
     --background: 31 41 55;
     --foreground: 255 255 255;
-    --card: 31 41 55;
+    --card: 17 24 39;
     --card-foreground: 255 255 255;
     --popover: 31 41 55;
     --popover-foreground: 255 255 255;
     --primary: 16 185 129;
     --primary-foreground: 255 255 255;
+    --primary-hover: 15 157 114;
     --secondary: 17 24 39;
     --secondary-foreground: 255 255 255;
     --muted: 55 65 81;
@@ -143,30 +145,52 @@
   }
 }
 
-/* Consistent Spacing System */
+/* Design Token Classes */
 @layer components {
-  /* Section spacing */
+  /* Button Styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary-hover font-medium px-6 py-3 rounded-card transition-all duration-200 shadow-card;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent border border-primary text-primary hover:bg-primary/10 font-medium px-6 py-3 rounded-card transition-all duration-200;
+  }
+
+  .btn-whatsapp {
+    @apply bg-whatsapp text-white hover:bg-whatsapp/90 font-medium px-6 py-3 rounded-card transition-all duration-200 shadow-card;
+  }
+
+  /* Card Styles */
+  .card-default {
+    @apply bg-card border border-border rounded-card p-card shadow-card;
+  }
+
+  /* Section Spacing */
   .section-spacing {
-    @apply py-12;
+    @apply py-section;
   }
 
   /* Component spacing */
   .component-spacing {
-    @apply mb-6;
+    @apply mb-component;
   }
 
-  /* Primary button with green gradient */
-  .btn-primary {
-    @apply bg-primary text-primary-foreground font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105;
+  /* Grid Layouts */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
   }
 
   /* Chat bubble styles */
   .chat-bubble-inbound {
-    @apply bg-muted text-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
+    @apply bg-card text-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
   }
 
   .chat-bubble-outbound {
-    @apply bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
+    @apply bg-whatsapp text-white p-3 rounded-lg max-w-[80%] shadow-sm;
   }
 
   .chat-timestamp {
@@ -181,11 +205,6 @@
   /* Form inputs with green focus */
   .form-input {
     @apply bg-input border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition-colors;
-  }
-
-  /* Card styling */
-  .card-dark {
-    @apply bg-card border border-border rounded-lg shadow-sm;
   }
 }
 

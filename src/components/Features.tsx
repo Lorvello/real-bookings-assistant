@@ -52,10 +52,10 @@ const Features = () => {
         </div>
         
         {/* Features grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+        <div className="grid-responsive-3 mb-16">
           {features.map((feature, index) => (
-            <div key={index} className="group bg-background p-6 rounded-xl border border-border hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 hover:-translate-y-1">
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <div key={index} className="card-default group hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 hover:-translate-y-1">
+              <div className="w-12 h-12 bg-primary/10 rounded-card flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <feature.icon className="w-6 h-6 text-primary" strokeWidth={2} />
               </div>
               <h3 className="text-lg font-bold text-foreground mb-3">{feature.title}</h3>
@@ -65,7 +65,7 @@ const Features = () => {
         </div>
         
         {/* CTA Section */}
-        <div className="bg-background border border-border rounded-xl p-8 text-center relative overflow-hidden">
+        <div className="card-default text-center relative overflow-hidden">
           <div className="relative z-10">
             <h3 className="text-2xl md:text-3xl font-bold mb-4 text-foreground">
               Don't Let Revenue Sleep While You Do

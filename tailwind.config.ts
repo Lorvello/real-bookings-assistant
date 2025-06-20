@@ -31,14 +31,16 @@ export default {
 				'body': '0',
 			},
 			spacing: {
-				'section': '48px',
+				'section': '64px', // Updated to 64px
 				'component': '24px',
+				'card': '24px',
 			},
 			colors: {
 				// Consistent Dark Theme Design System Colors
 				primary: {
 					DEFAULT: '#10B981', // Primary Accent / CTA
-					foreground: '#FFFFFF' // Primary Text
+					foreground: '#FFFFFF', // Primary Text
+					hover: '#0F9D72' // Darker variant for hover
 				},
 				secondary: {
 					DEFAULT: '#111827', // Secondary Background
@@ -58,7 +60,7 @@ export default {
 				
 				// UI component colors
 				card: {
-					DEFAULT: '#1F2937', // Primary Background
+					DEFAULT: '#111827', // Card background
 					foreground: '#FFFFFF' // Primary Text
 				},
 				border: '#374151', // Subtle border for cards
@@ -91,9 +93,13 @@ export default {
 				}
 			},
 			borderRadius: {
+				'card': '12px', // Consistent card border radius
 				lg: '0.5rem',
 				md: 'calc(0.5rem - 2px)',
 				sm: 'calc(0.5rem - 4px)'
+			},
+			boxShadow: {
+				'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', // Subtle black shadow
 			},
 			keyframes: {
 				'accordion-down': {

@@ -15,7 +15,7 @@ const Hero = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(55,65,81,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(55,65,81,0.3)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
       
-      <div className="relative max-w-6xl mx-auto px-6 text-center z-10 py-20">
+      <div className="relative max-w-6xl mx-auto px-6 text-center z-10 py-section">
         {/* Floating badge */}
         <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6 animate-appear opacity-0">
           <Sparkles className="w-4 h-4 text-primary" />
@@ -43,15 +43,15 @@ const Hero = () => {
 
           {/* CTA Section */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8 animate-appear opacity-0 delay-500">
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-medium rounded-xl shadow-lg transition-all duration-300 hover:scale-105 group">
+            <Button className="px-8 py-4 text-lg font-medium rounded-card shadow-card transition-all duration-300 hover:scale-105 group">
               <MessageCircle className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
               Start Free 7-Day Trial
             </Button>
             
-            <button className="text-muted-foreground hover:text-foreground text-lg font-medium flex items-center gap-2 group transition-colors">
-              <Zap className="w-5 h-5 group-hover:text-primary transition-colors" />
+            <Button variant="secondary" className="text-lg font-medium group">
+              <Zap className="w-5 h-5 mr-2 group-hover:text-primary transition-colors" />
               See how it works
-            </button>
+            </Button>
           </div>
 
           {/* Social proof */}
