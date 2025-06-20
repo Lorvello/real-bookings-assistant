@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { BusinessType } from '@/types/database';
-import { X } from 'lucide-react';
+import { X, Lock } from 'lucide-react';
 import Select from 'react-select';
 
 // Uitgebreide lijst van bedrijfstypes
@@ -225,6 +225,26 @@ const Settings = () => {
   } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
+  const [whatsappSettings, setWhatsappSettings] = useState({
+    whatsapp_number: '',
+    business_hours_only: false,
+    welcome_message: '',
+    outside_hours_message: '',
+    service_selection_message: '',
+    date_selection_message: '',
+    time_selection_message: '',
+    confirmation_message: '',
+    ai_personality: 'professional',
+    ai_language_style: 'formal',
+    quick_replies: [],
+    service_keywords: {
+      keywords: []
+    },
+    auto_close_after_hours: 1,
+    typing_indicator: true,
+    read_receipts: true,
+    track_conversion: true
+  });
 
   // Uitgebreide profiel data
   const [profileData, setProfileData] = useState({
@@ -952,15 +972,390 @@ const Settings = () => {
 
   // Tab content voor WhatsApp
   const WhatsAppTab = () => {
-    return <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="text-xl text-gray-300 mb-4">🔒</div>
-          <h3 className="text-lg font-medium text-white mb-2">WhatsApp Integration</h3>
-          <p className="text-gray-400">Upgrade plan to unlock this</p>
+    return (
+      <div className="space-y-8">
+        {/* WhatsApp Status - Always accessible */}
+        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-white">WhatsApp Business API</h2>
+              <p className="text-sm text-gray-400 mt-1">Beheer je WhatsApp booking assistant</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-green-400">Verbonden</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              WhatsApp Business Nummer
+            </label>
+            <input
+              type="tel"
+              value={whatsappSettings.whatsapp_number}
+              onChange={(e) => setWhatsappSettings({ ...whatsappSettings, whatsapp_number: e.target.value })}
+              placeholder="+31 6 12345678"
+              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+            />
+          </div>
         </div>
-      </div>;
+
+        {/* Locked Features - Premium */}
+        <div className="relative">
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm rounded-xl z-10 flex items-center justify-center">
+            <div className="text-center bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-2xl">
+              <div className="w-16 h-16 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="h-8 w-8 text-green-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">WhatsApp Custom Branding</h3>
+              <p className="text-gray-400 mb-6 max-w-md">
+                Unlock advanced WhatsApp features including custom messages, AI responses, quick replies, and more.
+              </p>
+              <button
+                onClick={() => navigate('/#pricing')}
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+              >
+                Update Plan to Unlock This
+              </button>
+            </div>
+          </div>
+
+          {/* Locked Content - Visible but disabled */}
+          <div className="opacity-50 pointer-events-none space-y-8">
+            {/* Business Hours Setting */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <div className="flex items-center space-x-4">
+                <input
+                  type="checkbox"
+                  checked={whatsappSettings.business_hours_only}
+                  disabled
+                  className="w-4 h-4 text-green-600 bg-gray-900 border-gray-700 rounded focus:ring-green-600"
+                />
+                <label className="text-gray-300">
+                  Alleen actief tijdens openingstijden
+                </label>
+              </div>
+            </div>
+
+            {/* Welkomstberichten */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-6">Automatische Berichten</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Welkomstbericht
+                  </label>
+                  <textarea
+                    value={whatsappSettings.welcome_message}
+                    disabled
+                    rows={3}
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Variabelen: {'{business_name}'}, {'{customer_name}'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Bericht buiten openingstijden
+                  </label>
+                  <textarea
+                    value={whatsappSettings.outside_hours_message}
+                    disabled
+                    rows={3}
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Booking Flow Messages */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-6">Booking Flow Berichten</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Service selectie bericht
+                  </label>
+                  <textarea
+                    value={whatsappSettings.service_selection_message}
+                    disabled
+                    rows={2}
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Datum selectie bericht
+                  </label>
+                  <textarea
+                    value={whatsappSettings.date_selection_message}
+                    disabled
+                    rows={2}
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Tijd selectie bericht
+                  </label>
+                  <textarea
+                    value={whatsappSettings.time_selection_message}
+                    disabled
+                    rows={2}
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Bevestigingsbericht
+                  </label>
+                  <textarea
+                    value={whatsappSettings.confirmation_message}
+                    disabled
+                    rows={3}
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Variabelen: {'{service}'}, {'{date}'}, {'{time}'}, {'{customer_name}'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Settings */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-6">AI Assistant Instellingen</h2>
+              
+              <div className="space-y-6">
+                <div className="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
+                  <div>
+                    <h3 className="text-white font-medium">Intelligente Responses</h3>
+                    <p className="text-sm text-gray-400">AI begrijpt context en geeft slimme antwoorden</p>
+                  </div>
+                  <button
+                    disabled
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full bg-green-600`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-6`} />
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    AI Persoonlijkheid
+                  </label>
+                  <select
+                    value={whatsappSettings.ai_personality}
+                    disabled
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                  >
+                    <option value="professional">Professioneel</option>
+                    <option value="friendly">Vriendelijk</option>
+                    <option value="casual">Casual</option>
+                    <option value="formal">Formeel</option>
+                    <option value="enthusiastic">Enthousiast</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Taalstijl
+                  </label>
+                  <select
+                    value={whatsappSettings.ai_language_style}
+                    disabled
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                  >
+                    <option value="formal">U/Uw (Formeel)</option>
+                    <option value="informal">Je/Jouw (Informeel)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Replies */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-6">Quick Replies</h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-gray-400">Automatische antwoorden op veelgestelde vragen</p>
+                  <button 
+                    disabled
+                    className="px-3 py-1 bg-green-600 text-white rounded text-sm opacity-50 cursor-not-allowed"
+                  >
+                    + Toevoegen
+                  </button>
+                </div>
+
+                {whatsappSettings.quick_replies.map((reply, index) => (
+                  <div key={index} className="p-4 bg-gray-900 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">
+                          Trigger woord
+                        </label>
+                        <input
+                          type="text"
+                          value={reply.trigger}
+                          disabled
+                          className="w-full px-3 py-1 bg-gray-800 border border-gray-700 rounded text-white text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">
+                          Antwoord
+                        </label>
+                        <input
+                          type="text"
+                          value={reply.response}
+                          disabled
+                          className="w-full px-3 py-1 bg-gray-800 border border-gray-700 rounded text-white text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Service Keywords */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-6">Service Herkenning</h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
+                  <div>
+                    <h3 className="text-white font-medium">Automatische Service Detectie</h3>
+                    <p className="text-sm text-gray-400">Herken services op basis van keywords</p>
+                  </div>
+                  <button
+                    disabled
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full bg-green-600`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition translate-x-6`} />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-sm text-gray-400">Keywords per service</p>
+                    <button 
+                      disabled
+                      className="px-3 py-1 bg-green-600 text-white rounded text-sm opacity-50 cursor-not-allowed"
+                    >
+                      + Keyword
+                    </button>
+                  </div>
+                  {whatsappSettings.service_keywords.keywords.map((keyword, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={keyword.keyword}
+                        placeholder="Keyword"
+                        disabled
+                        className="flex-1 px-3 py-1 bg-gray-900 border border-gray-700 rounded text-white text-sm"
+                      />
+                      <span className="text-gray-400">→</span>
+                      <input
+                        type="text"
+                        value={keyword.service}
+                        placeholder="Service naam"
+                        disabled
+                        className="flex-1 px-3 py-1 bg-gray-900 border border-gray-700 rounded text-white text-sm"
+                      />
+                      <button 
+                        disabled
+                        className="text-red-400 opacity-50 cursor-not-allowed"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Conversation Settings */}
+            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+              <h2 className="text-xl font-semibold text-white mb-6">Conversatie Instellingen</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Auto-close conversaties na (uren)
+                  </label>
+                  <input
+                    type="number"
+                    value={whatsappSettings.auto_close_after_hours}
+                    disabled
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                    min="1"
+                    max="168"
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={whatsappSettings.typing_indicator}
+                      disabled
+                      className="w-4 h-4 text-green-600 bg-gray-900 border-gray-700 rounded focus:ring-green-600"
+                    />
+                    <span className="text-gray-300">Toon "aan het typen" indicator</span>
+                  </label>
+
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={whatsappSettings.read_receipts}
+                      disabled
+                      className="w-4 h-4 text-green-600 bg-gray-900 border-gray-700 rounded focus:ring-green-600"
+                    />
+                    <span className="text-gray-300">Toon leesbevestigingen</span>
+                  </label>
+
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={whatsappSettings.track_conversion}
+                      disabled
+                      className="w-4 h-4 text-green-600 bg-gray-900 border border-gray-700 rounded focus:ring-green-600"
+                    />
+                    <span className="text-gray-300">Track conversie rates</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Save Button - Also locked */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-gray-900/50 rounded-lg z-10"></div>
+          <button
+            disabled
+            className="w-full py-3 px-4 bg-gray-600 text-gray-400 font-medium rounded-lg cursor-not-allowed"
+          >
+            WhatsApp Instellingen Opslaan
+          </button>
+        </div>
+      </div>
+    );
   };
-  return <DashboardLayout>
+
+  return (
+    <DashboardLayout>
       <div className="min-h-screen bg-gray-900 p-6">
         {/* Header */}
         <div className="mb-8">
@@ -971,9 +1366,19 @@ const Settings = () => {
         {/* Tabs */}
         <div className="border-b border-gray-700 mb-8">
           <nav className="-mb-px flex space-x-8">
-            {['profile', 'business', 'calendar', 'whatsapp'].map(tab => <button key={tab} onClick={() => setActiveTab(tab)} className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${activeTab === tab ? 'border-green-600 text-green-600' : 'border-transparent text-gray-400 hover:text-white hover:border-gray-300'}`}>
-                {tab === 'whatsapp' ? 'WhatsApp' : tab === 'business' ? 'Bedrijf' : tab === 'calendar' ? 'Kalender' : 'Profiel'}
-              </button>)}
+            {['profile', 'business', 'calendar', 'whatsapp'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
+                  activeTab === tab
+                    ? 'border-green-600 text-green-600'
+                    : 'border-transparent text-gray-400 hover:text-white hover:border-gray-300'
+                }`}
+              >
+                {tab === 'whatsapp' ? 'WhatsApp Custom Branding' : tab === 'business' ? 'Bedrijf' : tab === 'calendar' ? 'Kalender' : 'Profiel'}
+              </button>
+            ))}
           </nav>
         </div>
 
@@ -985,6 +1390,8 @@ const Settings = () => {
           {activeTab === 'whatsapp' && <WhatsAppTab />}
         </div>
       </div>
-    </DashboardLayout>;
+    </DashboardLayout>
+  );
 };
+
 export default Settings;
