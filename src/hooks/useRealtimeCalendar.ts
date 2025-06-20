@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -44,15 +44,31 @@ export function useRealtimeCalendar(calendarId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // Use refs to track subscription status and prevent multiple subscriptions
+  const subscriptionsRef = useRef<{
+    bookings?: any;
+    availability?: any;
+    webhooks?: any;
+  }>({});
+  
+  const isSubscribedRef = useRef(false);
 
   useEffect(() => {
     if (!calendarId) return;
 
+    // Prevent multiple subscriptions for the same calendar
+    if (isSubscribedRef.current) {
+      cleanupSubscriptions();
+    }
+
     initializeData();
     setupRealtimeSubscriptions();
+    isSubscribedRef.current = true;
 
     return () => {
       cleanupSubscriptions();
+      isSubscribedRef.current = false;
     };
   }, [calendarId]);
 
@@ -140,9 +156,15 @@ export function useRealtimeCalendar(calendarId: string) {
   };
 
   const setupRealtimeSubscriptions = () => {
+    // Clean up any existing subscriptions first
+    cleanupSubscriptions();
+
+    // Create unique channel names to avoid conflicts
+    const channelPrefix = `${calendarId}_${Date.now()}`;
+
     // Bookings subscription
-    const bookingsChannel = supabase
-      .channel(`bookings_${calendarId}`)
+    subscriptionsRef.current.bookings = supabase
+      .channel(`bookings_${channelPrefix}`)
       .on(
         'postgres_changes',
         {
@@ -158,8 +180,8 @@ export function useRealtimeCalendar(calendarId: string) {
       .subscribe();
 
     // Availability overrides subscription
-    const overridesChannel = supabase
-      .channel(`overrides_${calendarId}`)
+    subscriptionsRef.current.availability = supabase
+      .channel(`overrides_${channelPrefix}`)
       .on(
         'postgres_changes',
         {
@@ -175,8 +197,8 @@ export function useRealtimeCalendar(calendarId: string) {
       .subscribe();
 
     // WhatsApp webhook notifications
-    const webhookChannel = supabase
-      .channel(`webhooks_${calendarId}`)
+    subscriptionsRef.current.webhooks = supabase
+      .channel(`webhooks_${channelPrefix}`)
       .on(
         'postgres_changes',
         {
@@ -193,7 +215,12 @@ export function useRealtimeCalendar(calendarId: string) {
   };
 
   const cleanupSubscriptions = () => {
-    supabase.removeAllChannels();
+    Object.values(subscriptionsRef.current).forEach(channel => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    });
+    subscriptionsRef.current = {};
   };
 
   const handleBookingChange = (payload: any) => {
