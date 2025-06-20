@@ -1,14 +1,29 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, addWeeks, subWeeks, addMonths, subMonths, addYears, subYears } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, addWeeks, subWeeks, addMonths, subMonths, addYears, subYears, eachDayOfInterval, isSameMonth, isSameDay, startOfDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { MonthView } from './calendar/MonthView';
 import { WeekView } from './calendar/WeekView';
 import { YearView } from './calendar/YearView';
-import { useRealtimeCalendar } from '@/hooks/useRealtimeCalendar';
 
 type CalendarView = 'year' | 'month' | 'week';
+
+interface Booking {
+  id: string;
+  start_time: string;
+  end_time: string;
+  customer_name: string;
+  customer_phone: string | null;
+  status: string;
+  service_type_id: string | null;
+  service_types?: {
+    name: string;
+    color: string;
+    duration: number;
+  } | null;
+}
 
 interface CalendarViewProps {
   calendarId: string;
@@ -17,9 +32,105 @@ interface CalendarViewProps {
 export function CalendarView({ calendarId }: CalendarViewProps) {
   const [currentView, setCurrentView] = useState<CalendarView>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
-  
-  // Use real-time hook instead of local state
-  const { bookings, isLoading, error, refetchData } = useRealtimeCalendar(calendarId);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!calendarId) return;
+
+    // Fetch initial bookings
+    fetchBookings();
+
+    // Subscribe to changes
+    const channel = supabase
+      .channel('bookings_channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings',
+          filter: `calendar_id=eq.${calendarId}`,
+        },
+        (payload) => {
+          console.log('Real-time booking update:', payload);
+          fetchBookings(); // Refresh bookings
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [calendarId, currentDate, currentView]);
+
+  const getStartDate = () => {
+    switch (currentView) {
+      case 'week':
+        return startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday start
+      case 'month':
+        return startOfMonth(currentDate);
+      case 'year':
+        return startOfYear(currentDate);
+      default:
+        return startOfMonth(currentDate);
+    }
+  };
+
+  const getEndDate = () => {
+    switch (currentView) {
+      case 'week':
+        return endOfWeek(currentDate, { weekStartsOn: 1 });
+      case 'month':
+        return endOfMonth(currentDate);
+      case 'year':
+        return endOfYear(currentDate);
+      default:
+        return endOfMonth(currentDate);
+    }
+  };
+
+  const fetchBookings = async () => {
+    if (!calendarId) return;
+
+    setLoading(true);
+    try {
+      const startDate = getStartDate();
+      const endDate = getEndDate();
+
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          id,
+          start_time,
+          end_time,
+          customer_name,
+          customer_phone,
+          status,
+          service_type_id,
+          service_types (
+            name,
+            color,
+            duration
+          )
+        `)
+        .eq('calendar_id', calendarId)
+        .gte('start_time', startDate.toISOString())
+        .lte('end_time', endDate.toISOString())
+        .neq('status', 'cancelled');
+
+      if (error) {
+        console.error('Error fetching bookings:', error);
+      } else {
+        setBookings(data || []);
+      }
+    } catch (error) {
+      console.error('Error in fetchBookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const navigateDate = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -51,25 +162,6 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
     }
   };
 
-  if (error) {
-    return (
-      <div className="bg-card rounded-xl border border-border h-full flex flex-col">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h3 className="text-lg font-medium text-foreground mb-2">Fout bij laden</h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <button
-              onClick={refetchData}
-              className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors"
-            >
-              Opnieuw proberen
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-card rounded-xl border border-border h-full flex flex-col">
       {/* Calendar Header */}
@@ -79,7 +171,7 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
           <button
             onClick={() => navigateDate('prev')}
             className="p-2 hover:bg-accent rounded-lg transition-colors"
-            disabled={isLoading}
+            disabled={loading}
           >
             <ChevronLeft className="w-5 h-5 text-muted-foreground" />
           </button>
@@ -91,7 +183,7 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
           <button
             onClick={() => navigateDate('next')}
             className="p-2 hover:bg-accent rounded-lg transition-colors"
-            disabled={isLoading}
+            disabled={loading}
           >
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
@@ -134,7 +226,7 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
 
       {/* Calendar Content */}
       <div className="flex-1 overflow-hidden">
-        {isLoading ? (
+        {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
