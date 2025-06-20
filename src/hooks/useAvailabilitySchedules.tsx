@@ -50,8 +50,9 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
       const { error } = await supabase
         .from('availability_schedules')
         .insert({
-          ...scheduleData,
-          calendar_id: calendarId
+          calendar_id: calendarId,
+          name: scheduleData.name || 'Nieuw Schema',
+          is_default: scheduleData.is_default ?? false
         });
 
       if (error) {
