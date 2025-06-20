@@ -21,6 +21,19 @@ interface CalendarData {
   }>;
 }
 
+interface BookingWithService {
+  id: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string;
+  start_time: string;
+  status: string;
+  service_types?: {
+    name: string;
+    color: string;
+  };
+}
+
 const Calendar = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -91,9 +104,9 @@ const Calendar = () => {
     }
   };
 
-  const transformBookingsToCalendarFormat = (bookings: any[]): CalendarData[] => {
+  const transformBookingsToCalendarFormat = (bookings: BookingWithService[]): CalendarData[] => {
     // Group bookings by day
-    const grouped = bookings.reduce((acc, booking) => {
+    const grouped = bookings.reduce((acc: Record<string, any[]>, booking) => {
       const date = new Date(booking.start_time).toDateString();
       if (!acc[date]) {
         acc[date] = [];
@@ -112,7 +125,7 @@ const Calendar = () => {
         status: booking.status as "confirmed" | "pending" | "cancelled"
       });
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {});
 
     // Convert to array format
     return Object.entries(grouped).map(([date, bookings]) => ({
