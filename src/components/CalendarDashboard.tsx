@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { CalendarView } from './CalendarView';
+import { AvailabilityPanel } from './AvailabilityPanel';
 import { useCalendars } from '@/hooks/useCalendars';
 
 export function CalendarDashboard() {
@@ -27,8 +28,16 @@ export function CalendarDashboard() {
   }
 
   return (
-    <div className="h-full">
-      <CalendarView calendarId={defaultCalendar.id} />
+    <div className="h-full flex gap-6">
+      {/* Main Calendar View */}
+      <div className="flex-1 min-w-0">
+        <CalendarView calendarId={defaultCalendar.id} />
+      </div>
+      
+      {/* Availability Panel Sidebar */}
+      <div className="w-80 flex-shrink-0">
+        <AvailabilityPanel calendarId={defaultCalendar.id} />
+      </div>
     </div>
   );
 }
