@@ -7,8 +7,8 @@
 
 @layer base {
   :root {
-    /* Bookings Assistant Design System */
-    --background: 31 41 55; /* #1F2937 - Dark grey-blue */
+    /* Updated Dark Theme Design System */
+    --background: 31 41 55; /* #1F2937 - Primary dark background */
     --foreground: 255 255 255; /* #FFFFFF - Primary text */
 
     --card: 31 41 55; /* #1F2937 - Dark background */
@@ -17,22 +17,22 @@
     --popover: 31 41 55; /* #1F2937 */
     --popover-foreground: 255 255 255; /* #FFFFFF */
 
-    --primary: 16 185 129; /* #10B981 - Primary green */
+    --primary: 16 185 129; /* #10B981 - Green accent for CTAs */
     --primary-foreground: 255 255 255; /* #FFFFFF */
 
-    --secondary: 52 211 153; /* #34D399 - Lighter green */
+    --secondary: 17 24 39; /* #111827 - Even darker background */
     --secondary-foreground: 255 255 255; /* #FFFFFF */
 
-    --muted: 55 65 81; /* #374151 - Cards border */
+    --muted: 55 65 81; /* #374151 - Subtle elements */
     --muted-foreground: 156 163 175; /* #9CA3AF - Secondary text */
 
-    --accent: 52 211 153; /* #34D399 */
+    --accent: 16 185 129; /* #10B981 - Green accents */
     --accent-foreground: 255 255 255; /* #FFFFFF */
 
     --destructive: 239 68 68; /* #EF4444 - Error */
     --destructive-foreground: 255 255 255; /* #FFFFFF */
 
-    --border: 55 65 81; /* #374151 - Subtle border */
+    --border: 55 65 81; /* #374151 - Subtle borders */
     --input: 55 65 81; /* #374151 - Dark inputs */
     --ring: 16 185 129; /* #10B981 - Green focus states */
 
@@ -42,10 +42,13 @@
     --sidebar-foreground: 255 255 255;
     --sidebar-primary: 16 185 129;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 52 211 153;
+    --sidebar-accent: 16 185 129;
     --sidebar-accent-foreground: 255 255 255;
     --sidebar-border: 55 65 81;
     --sidebar-ring: 16 185 129;
+
+    /* WhatsApp specific colors */
+    --whatsapp: 37 211 102; /* #25D366 - WhatsApp green */
   }
 
   .dark {
@@ -58,11 +61,11 @@
     --popover-foreground: 255 255 255;
     --primary: 16 185 129;
     --primary-foreground: 255 255 255;
-    --secondary: 52 211 153;
+    --secondary: 17 24 39;
     --secondary-foreground: 255 255 255;
     --muted: 55 65 81;
     --muted-foreground: 156 163 175;
-    --accent: 52 211 153;
+    --accent: 16 185 129;
     --accent-foreground: 255 255 255;
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
@@ -73,10 +76,11 @@
     --sidebar-foreground: 255 255 255;
     --sidebar-primary: 16 185 129;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 52 211 153;
+    --sidebar-accent: 16 185 129;
     --sidebar-accent-foreground: 255 255 255;
     --sidebar-border: 55 65 81;
     --sidebar-ring: 16 185 129;
+    --whatsapp: 37 211 102;
   }
 }
 
@@ -101,29 +105,29 @@
   }
 }
 
-/* Bookings Assistant Custom Components */
+/* Dark Theme Custom Components */
 @layer components {
   /* Primary button with green gradient */
   .btn-primary {
-    @apply bg-gradient-to-r from-primary to-secondary text-primary-foreground font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:shadow-lg hover:scale-105;
+    @apply bg-primary text-primary-foreground font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105;
   }
 
   /* Chat bubble styles */
   .chat-bubble-inbound {
-    @apply bg-chat-inbound text-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
+    @apply bg-muted text-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
   }
 
   .chat-bubble-outbound {
-    @apply bg-chat-outbound text-primary-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
+    @apply bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
   }
 
   .chat-timestamp {
-    @apply text-xs text-chat-timestamp mt-1;
+    @apply text-xs text-muted-foreground mt-1;
   }
 
   /* Online indicator */
   .online-indicator {
-    @apply w-2 h-2 bg-chat-online rounded-full;
+    @apply w-2 h-2 bg-primary rounded-full;
   }
 
   /* Form inputs with green focus */

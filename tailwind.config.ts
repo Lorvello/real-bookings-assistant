@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -22,23 +23,23 @@ export default {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
 			},
 			colors: {
-				// Bookings Assistant Design System Colors
+				// Dark Theme Design System Colors
 				primary: {
-					DEFAULT: '#10B981', // Primary green for CTAs and highlights
+					DEFAULT: '#10B981', // Green accent for CTAs
 					foreground: '#FFFFFF'
 				},
 				secondary: {
-					DEFAULT: '#34D399', // Lighter green tint
+					DEFAULT: '#111827', // Darker background variant
 					foreground: '#FFFFFF'
 				},
 				background: {
-					DEFAULT: '#1F2937', // Dark grey-blue
+					DEFAULT: '#1F2937', // Primary dark background
 					secondary: '#111827' // Even darker for contrast
 				},
 				foreground: '#FFFFFF', // Primary text
 				
 				// Accent colors
-				whatsapp: '#25D366',
+				whatsapp: '#25D366', // WhatsApp green
 				success: '#10B981',
 				warning: '#F59E0B',
 				destructive: '#EF4444',
@@ -57,7 +58,7 @@ export default {
 					foreground: '#9CA3AF' // Secondary text
 				},
 				accent: {
-					DEFAULT: '#34D399',
+					DEFAULT: '#10B981',
 					foreground: '#FFFFFF'
 				},
 				popover: {
@@ -86,7 +87,7 @@ export default {
 				}
 			},
 			borderRadius: {
-				lg: '0.5rem', // rounded-lg for buttons and components
+				lg: '0.5rem',
 				md: 'calc(0.5rem - 2px)',
 				sm: 'calc(0.5rem - 4px)'
 			},

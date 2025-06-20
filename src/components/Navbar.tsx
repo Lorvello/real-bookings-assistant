@@ -47,12 +47,12 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg border-b border-slate-700 sticky top-0 z-50">
+    <nav className="bg-background border-b border-border sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link to="/" className="text-2xl font-bold text-white hover:text-green-400 transition-colors">
+            <Link to="/" className="text-2xl font-bold text-foreground hover:text-primary transition-colors">
               Bookings Assistant
             </Link>
           </div>
@@ -66,8 +66,8 @@ const Navbar = () => {
                   to={item.path}
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     location.pathname === item.path
-                      ? 'text-green-400 bg-slate-700/50'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
+                      ? 'text-primary bg-muted'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >
                   {item.name}
@@ -80,8 +80,8 @@ const Navbar = () => {
           <div className="hidden md:block">
             {user ? (
               <Link to="/profile">
-                <Avatar className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-green-400 transition-all">
-                  <AvatarFallback className="bg-green-600 text-white">
+                <Avatar className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
                     <UserIcon className="h-4 w-4" />
                   </AvatarFallback>
                 </Avatar>
@@ -89,24 +89,24 @@ const Navbar = () => {
             ) : (
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <button className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors shadow-lg">
+                  <button className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-lg">
                     Get Started
                   </button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md bg-card border-border">
                   <DialogHeader>
-                    <DialogTitle className="text-center text-2xl font-bold text-gray-900">
+                    <DialogTitle className="text-center text-2xl font-bold text-card-foreground">
                       Get Started
                     </DialogTitle>
                   </DialogHeader>
                   <div className="flex flex-col gap-4 pt-4">
                     <Link to="/login" onClick={() => setIsDialogOpen(false)}>
-                      <Button variant="outline" className="w-full">
+                      <Button variant="outline" className="w-full border-border text-foreground hover:bg-muted">
                         Log In
                       </Button>
                     </Link>
                     <Link to="/signup" onClick={() => setIsDialogOpen(false)}>
-                      <Button className="w-full bg-green-600 hover:bg-green-700">
+                      <Button className="w-full bg-primary hover:bg-primary/90">
                         Sign Up
                       </Button>
                     </Link>

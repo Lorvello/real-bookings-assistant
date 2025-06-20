@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 const CallToAction = () => {
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-green-600 to-blue-600 text-white">
+    <section className="py-20 px-4 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-5xl font-bold mb-6">
           Automate Today with 1 Click
@@ -13,7 +13,7 @@ const CallToAction = () => {
           Your AI appointment agent is ready to work 24/7.
         </p>
         
-        <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl mb-8">
+        <div className="bg-background/10 backdrop-blur-sm p-8 rounded-2xl mb-8 border border-primary-foreground/10">
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div>
               <div className="text-3xl mb-2">⚡</div>
@@ -32,7 +32,7 @@ const CallToAction = () => {
             </div>
           </div>
           
-          <Button className="bg-white text-green-600 hover:bg-gray-100 px-8 py-6 text-xl font-bold rounded-xl">
+          <Button className="bg-background text-primary hover:bg-background/90 px-8 py-6 text-xl font-bold rounded-xl shadow-lg">
             Start My Free AI Agent Now
           </Button>
           
@@ -41,7 +41,7 @@ const CallToAction = () => {
           </p>
         </div>
         
-        <div className="bg-red-500/20 border border-red-300 p-6 rounded-xl">
+        <div className="bg-destructive/20 border border-destructive/30 p-6 rounded-xl">
           <p className="text-lg font-semibold mb-2">
             ⏰ Limited Time: Free Setup Worth $297
           </p>
@@ -57,10 +57,10 @@ const CallToAction = () => {
           Still have questions? Our team is here to help.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button variant="outline" className="border-white text-white hover:bg-white hover:text-green-600">
+          <Button variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
             Book a Demo Call
           </Button>
-          <Button variant="outline" className="border-white text-white hover:bg-white hover:text-green-600">
+          <Button variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
             View Pricing Plans
           </Button>
         </div>

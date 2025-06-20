@@ -11,7 +11,7 @@ import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <Hero />
       <ScrollAnimatedSection>
