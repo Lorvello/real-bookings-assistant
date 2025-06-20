@@ -15,7 +15,6 @@ import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import WhyUs from "./pages/WhyUs";
 import SeeHowItWorks from "./pages/SeeHowItWorks";
-import HowItWorks from "./pages/HowItWorks";
 import Testing from "./pages/Testing";
 import Conversations from "./pages/Conversations";
 import Calendar from "./pages/Calendar";
@@ -39,7 +38,6 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/why-us" element={<WhyUs />} />

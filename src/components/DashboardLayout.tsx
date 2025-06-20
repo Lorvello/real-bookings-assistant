@@ -9,8 +9,7 @@ import {
   UserCircle,
   LogOut,
   Menu,
-  X,
-  FileText
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,7 +25,6 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Kalender', href: '/calendar', icon: Calendar },
   { name: 'WhatsApp', href: '/conversations', icon: MessageCircle },
-  { name: 'How it works', href: '/how-it-works', icon: FileText },
   { name: 'Instellingen', href: '/settings', icon: Settings },
 ];
 
@@ -74,7 +72,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
+          <nav className="flex-1 space-y-1 px-2 py-4">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
