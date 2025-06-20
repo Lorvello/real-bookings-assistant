@@ -48,23 +48,23 @@ const Navbar = () => {
 
   return (
     <nav className="bg-background border-b border-border sticky top-0 z-50 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="flex justify-between items-center h-14">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link to="/" className="text-2xl font-bold text-foreground hover:text-primary transition-colors">
+            <Link to="/" className="text-xl font-bold text-foreground hover:text-primary transition-colors">
               Bookings Assistant
             </Link>
           </div>
           
           {/* Navigation Links */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
+            <div className="ml-8 flex items-baseline space-x-6">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-2 py-1 rounded-md text-sm font-medium transition-colors ${
                     location.pathname === item.path
                       ? 'text-primary bg-muted'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -80,33 +80,33 @@ const Navbar = () => {
           <div className="hidden md:block">
             {user ? (
               <Link to="/profile">
-                <Avatar className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
+                <Avatar className="h-7 w-7 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    <UserIcon className="h-4 w-4" />
+                    <UserIcon className="h-3.5 w-3.5" />
                   </AvatarFallback>
                 </Avatar>
               </Link>
             ) : (
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <button className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-lg">
+                  <button className="bg-primary text-primary-foreground px-5 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors shadow-lg text-sm">
                     Get Started
                   </button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md bg-card border-border">
                   <DialogHeader>
-                    <DialogTitle className="text-center text-2xl font-bold text-card-foreground">
+                    <DialogTitle className="text-center text-xl font-bold text-card-foreground">
                       Get Started
                     </DialogTitle>
                   </DialogHeader>
-                  <div className="flex flex-col gap-4 pt-4">
+                  <div className="flex flex-col gap-3 pt-3">
                     <Link to="/login" onClick={() => setIsDialogOpen(false)}>
-                      <Button variant="outline" className="w-full border-border text-foreground hover:bg-muted">
+                      <Button variant="outline" className="w-full border-border text-foreground hover:bg-muted text-sm">
                         Log In
                       </Button>
                     </Link>
                     <Link to="/signup" onClick={() => setIsDialogOpen(false)}>
-                      <Button className="w-full bg-primary hover:bg-primary/90">
+                      <Button className="w-full bg-primary hover:bg-primary/90 text-sm">
                         Sign Up
                       </Button>
                     </Link>
