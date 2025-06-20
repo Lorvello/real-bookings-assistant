@@ -4,7 +4,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, CheckCircle, Phone, MessageCircle, Settings2, Zap, Users, Shield } from 'lucide-react';
+import { FileText, CheckCircle, Phone, MessageCircle, Settings2, Zap, Users, Shield, Star } from 'lucide-react';
 
 export default function HowItWorks() {
   const handleBookCall = () => {
@@ -13,152 +13,171 @@ export default function HowItWorks() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-6">
-        <div className="border-b border-gray-200 pb-4">
-          <div className="flex items-center space-x-3">
-            <FileText className="h-8 w-8 text-blue-600" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">How it works</h1>
-              <p className="text-gray-600">🧾 Twee Plannen – Wat krijg je precies?</p>
+      <div className="min-h-screen bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Header Section */}
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center mb-6">
+              <div className="bg-green-500/20 p-4 rounded-2xl">
+                <FileText className="h-12 w-12 text-green-400" />
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8 text-center">
-            <p className="text-lg text-gray-700 leading-relaxed">
-              Je kunt kiezen uit twee abonnementen. Hier leggen we uit wat het verschil is, 
-              zodat je weet wat je kunt verwachten en wat je jouw klanten moet vertellen.
+            <h1 className="text-4xl font-bold text-white mb-4">
+              Choose Your Plan
+            </h1>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              We offer two subscription plans tailored to different business needs. 
+              Here's what you get with each plan and what to tell your customers.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Plan 1 - Standaard */}
-            <Card className="border-2 border-green-200 bg-green-50">
-              <CardHeader className="text-center pb-4">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-2xl">🟢</span>
+          {/* Plans Comparison */}
+          <div className="grid lg:grid-cols-2 gap-8 mb-12">
+            {/* Standard Plan */}
+            <Card className="bg-gray-800 border-gray-700 hover:border-green-500/50 transition-all duration-300 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
+              <CardHeader className="pb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-4 py-2 text-sm font-semibold">
+                    STANDARD
+                  </Badge>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">Plan 1</div>
+                    <div className="text-sm text-gray-400">Shared Number</div>
                   </div>
                 </div>
-                <CardTitle className="text-xl text-green-800">Plan 1 – Standaard</CardTitle>
+                <CardTitle className="text-2xl text-white">Quick Start Solution</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-gray-700">Je maakt een account aan bij ons</p>
+                    <CheckCircle className="h-5 w-5 text-green-400 mt-1 flex-shrink-0" />
+                    <p className="text-gray-300">Create your account with us instantly</p>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-gray-700">Je krijgt één algemeen WhatsApp-nummer dat je deelt met andere bedrijven</p>
+                    <MessageCircle className="h-5 w-5 text-green-400 mt-1 flex-shrink-0" />
+                    <p className="text-gray-300">Get access to our shared WhatsApp number</p>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-gray-700">Dit nummer gebruik je om je afsprakenassistent te activeren</p>
+                    <Zap className="h-5 w-5 text-green-400 mt-1 flex-shrink-0" />
+                    <p className="text-gray-300">Activate your booking assistant immediately</p>
                   </div>
                 </div>
 
-                <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-4">
-                  <div className="flex items-start space-x-2">
-                    <span className="text-yellow-600 font-semibold text-sm">⚠️ Let op:</span>
-                    <div className="text-sm text-yellow-800">
-                      <p className="mb-2">Omdat meerdere bedrijven ditzelfde nummer gebruiken, moet jouw klant bij het eerste bericht altijd vermelden:</p>
-                      <div className="bg-gray-800 text-green-400 p-3 rounded font-mono text-sm">
-                        "Plan me in bij [jouw bedrijfsnaam]"
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-amber-500/20 p-2 rounded-lg">
+                      <MessageCircle className="h-4 w-4 text-amber-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-amber-400 mb-2">Important Note</h4>
+                      <p className="text-sm text-amber-100 mb-3">
+                        Since multiple businesses share this number, customers must include your business name in their first message:
+                      </p>
+                      <div className="bg-gray-900 border border-gray-600 rounded-lg p-3 font-mono text-sm text-green-400">
+                        "Plan me in bij [Your Business Name]"
                       </div>
-                      <p className="mt-2 text-xs">➡️ Daarna weet het systeem dat dit nummer bij jouw bedrijf hoort en wordt alles automatisch geregeld.</p>
+                      <p className="text-xs text-amber-200 mt-2">
+                        After this, the system automatically handles everything else.
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="font-semibold text-green-800 mb-3 flex items-center">
-                    <Zap className="h-4 w-4 mr-2" />
-                    Voordelen:
+                <div className="pt-4">
+                  <h4 className="font-semibold text-white mb-4 flex items-center">
+                    <Star className="h-4 w-4 mr-2 text-green-400" />
+                    Key Benefits
                   </h4>
-                  <div className="space-y-2">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 flex items-center w-fit">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Snel starten
+                  <div className="grid grid-cols-1 gap-3">
+                    <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10 justify-start py-2">
+                      <Zap className="h-3 w-3 mr-2" />
+                      Instant setup
                     </Badge>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 flex items-center w-fit">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Goedkoop
+                    <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10 justify-start py-2">
+                      <CheckCircle className="h-3 w-3 mr-2" />
+                      Cost-effective
                     </Badge>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 flex items-center w-fit">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Geen installatie nodig
+                    <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10 justify-start py-2">
+                      <Settings2 className="h-3 w-3 mr-2" />
+                      No technical setup required
                     </Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Plan 2 - Premium */}
-            <Card className="border-2 border-blue-200 bg-blue-50">
-              <CardHeader className="text-center pb-4">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-2xl">🔵</span>
+            {/* Premium Plan */}
+            <Card className="bg-gray-800 border-gray-700 hover:border-blue-500/50 transition-all duration-300 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600"></div>
+              <CardHeader className="pb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 px-4 py-2 text-sm font-semibold">
+                    PREMIUM
+                  </Badge>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">Plan 2</div>
+                    <div className="text-sm text-gray-400">Dedicated Number</div>
                   </div>
                 </div>
-                <CardTitle className="text-xl text-blue-800">Plan 2 – Premium</CardTitle>
-                <p className="text-sm text-blue-600">(eigen nummer & branding)</p>
+                <CardTitle className="text-2xl text-white">Professional Branding</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
-                    <Phone className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-gray-700">Je krijgt je eigen unieke WhatsApp-nummer</p>
+                    <Phone className="h-5 w-5 text-blue-400 mt-1 flex-shrink-0" />
+                    <p className="text-gray-300">Your own unique WhatsApp business number</p>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <Users className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-gray-700">Dat nummer is alleen van jou, dus klanten hoeven jouw bedrijfsnaam niet te noemen</p>
+                    <Shield className="h-5 w-5 text-blue-400 mt-1 flex-shrink-0" />
+                    <p className="text-gray-300">Complete privacy - no sharing with other businesses</p>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <Settings2 className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-gray-700">Je kunt ook eigen branding toevoegen (zoals naam, profielfoto, beschrijving)</p>
+                    <Users className="h-5 w-5 text-blue-400 mt-1 flex-shrink-0" />
+                    <p className="text-gray-300">Custom branding with your logo and business info</p>
                   </div>
                   <div className="flex items-start space-x-3">
-                    <Shield className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-gray-700">Dit is ideaal voor een professionele uitstraling en volledige controle</p>
+                    <Settings2 className="h-5 w-5 text-blue-400 mt-1 flex-shrink-0" />
+                    <p className="text-gray-300">Full control over customer experience</p>
                   </div>
                 </div>
 
-                <div className="bg-blue-100 border border-blue-300 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-800 mb-3">🤔 Hoe aanvragen?</h4>
-                  <p className="text-sm text-blue-700 mb-3">
-                    👉 Boek een korte call met ons via:
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-400 mb-3 flex items-center">
+                    <Phone className="h-4 w-4 mr-2" />
+                    How to Get Started
+                  </h4>
+                  <p className="text-sm text-blue-100 mb-4">
+                    Book a quick consultation call with our team. We'll handle the setup and activation of your dedicated number.
                   </p>
                   <Button 
                     onClick={handleBookCall}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
                   >
-                    bookingsassistentie.com/afspraak
+                    Schedule Setup Call
                   </Button>
-                  <p className="text-xs text-blue-600">
-                    Tijdens het gesprek regelen we de koppeling en activeren we je persoonlijke nummer.
+                  <p className="text-xs text-blue-200 mt-3 text-center">
+                    bookingsassistentie.com/afspraak
                   </p>
                 </div>
 
-                <div>
-                  <h4 className="font-semibold text-blue-800 mb-3 flex items-center">
-                    <Zap className="h-4 w-4 mr-2" />
-                    Voordelen:
+                <div className="pt-4">
+                  <h4 className="font-semibold text-white mb-4 flex items-center">
+                    <Star className="h-4 w-4 mr-2 text-blue-400" />
+                    Key Benefits
                   </h4>
-                  <div className="space-y-2">
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300 flex items-center w-fit">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Volledige controle
+                  <div className="grid grid-cols-1 gap-3">
+                    <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10 justify-start py-2">
+                      <Shield className="h-3 w-3 mr-2" />
+                      Complete control
                     </Badge>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300 flex items-center w-fit">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Geen verwarring voor klanten
+                    <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10 justify-start py-2">
+                      <Users className="h-3 w-3 mr-2" />
+                      No customer confusion
                     </Badge>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300 flex items-center w-fit">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Professionele look & feel
+                    <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10 justify-start py-2">
+                      <Settings2 className="h-3 w-3 mr-2" />
+                      Professional appearance
                     </Badge>
                   </div>
                 </div>
@@ -166,19 +185,31 @@ export default function HowItWorks() {
             </Card>
           </div>
 
-          <div className="mt-12 text-center">
-            <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-dashed border-gray-300">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                  Welk plan past bij jou? 🤔
+          {/* Bottom CTA Section */}
+          <Card className="bg-gradient-to-r from-gray-800 to-gray-700 border-gray-600">
+            <CardContent className="p-8 text-center">
+              <div className="max-w-2xl mx-auto">
+                <h3 className="text-3xl font-bold text-white mb-4">
+                  Which Plan Fits Your Business?
                 </h3>
-                <p className="text-gray-600 text-lg leading-relaxed">
-                  Start met Plan 1 om snel te beginnen, of ga direct voor Plan 2 voor een volledig gepersonaliseerde ervaring. 
-                  Je kunt altijd later upgraden!
+                <p className="text-gray-300 text-lg leading-relaxed mb-6">
+                  Start with our Standard plan for immediate access, or choose Premium for a fully branded, 
+                  professional experience. You can always upgrade later as your business grows.
                 </p>
-              </CardContent>
-            </Card>
-          </div>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button variant="outline" className="border-gray-500 text-gray-300 hover:bg-gray-700">
+                    Learn More About Pricing
+                  </Button>
+                  <Button 
+                    onClick={handleBookCall}
+                    className="bg-green-600 hover:bg-green-700 text-white font-semibold"
+                  >
+                    Get Started Today
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </DashboardLayout>
