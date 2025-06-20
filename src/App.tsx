@@ -19,6 +19,7 @@ import Testing from "./pages/Testing";
 import Conversations from "./pages/Conversations";
 import Calendar from "./pages/Calendar";
 import Dashboard from "./pages/Dashboard";
+import TestAIAgent from "./pages/TestAIAgent";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/test-ai-agent" element={<TestAIAgent />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/why-us" element={<WhyUs />} />
