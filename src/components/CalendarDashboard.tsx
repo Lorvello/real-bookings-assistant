@@ -28,16 +28,14 @@ export function CalendarDashboard() {
   }
 
   return (
-    <div className="h-full flex gap-6">
-      {/* Main Calendar View */}
-      <div className="flex-1 min-w-0">
+    <div className="h-full relative">
+      {/* Main Calendar View - Full Width */}
+      <div className="h-full">
         <CalendarView calendarId={defaultCalendar.id} />
       </div>
       
-      {/* Availability Panel Sidebar */}
-      <div className="w-80 flex-shrink-0">
-        <AvailabilityPanel calendarId={defaultCalendar.id} />
-      </div>
+      {/* Availability Panel - Overlay */}
+      <AvailabilityPanel calendarId={defaultCalendar.id} />
     </div>
   );
 }

@@ -4,13 +4,14 @@ import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
 import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
 import { useAvailabilityOverrides } from '@/hooks/useAvailabilityOverrides';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, Plus, Settings } from 'lucide-react';
+import { Calendar, Clock, Plus, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AvailabilityPanelProps {
   calendarId: string;
 }
 
 export function AvailabilityPanel({ calendarId }: AvailabilityPanelProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'schedule' | 'overrides'>('schedule');
   const { toast } = useToast();
   
@@ -20,53 +21,89 @@ export function AvailabilityPanel({ calendarId }: AvailabilityPanelProps) {
   const { overrides } = useAvailabilityOverrides(calendarId);
 
   return (
-    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 h-full overflow-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Calendar className="h-5 w-5 text-green-600" />
-        <h2 className="text-xl font-semibold text-white">Beschikbaarheid</h2>
-      </div>
-      
-      {/* Tabs */}
-      <div className="flex space-x-1 mb-6 bg-gray-900 rounded-lg p-1">
-        <button
-          onClick={() => setActiveTab('schedule')}
-          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
-            activeTab === 'schedule' 
-              ? 'bg-green-600 text-white' 
-              : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          Standaard Schema
-        </button>
-        <button
-          onClick={() => setActiveTab('overrides')}
-          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
-            activeTab === 'overrides' 
-              ? 'bg-green-600 text-white' 
-              : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          Uitzonderingen
-        </button>
+    <>
+      {/* Collapse/Expand Button */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={`fixed top-1/2 -translate-y-1/2 z-20 bg-primary hover:bg-primary/90 text-white p-2 rounded-l-lg shadow-lg transition-all duration-300 ${
+          isExpanded ? 'right-80' : 'right-0'
+        }`}
+        title={isExpanded ? 'Beschikbaarheid inklappen' : 'Beschikbaarheid uitklappen'}
+      >
+        {isExpanded ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </button>
+
+      {/* Sidebar Panel */}
+      <div
+        className={`fixed top-0 right-0 h-full bg-card border-l border-border shadow-2xl transition-transform duration-300 ease-in-out z-10 ${
+          isExpanded ? 'transform translate-x-0' : 'transform translate-x-full'
+        }`}
+        style={{ width: '320px' }}
+      >
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex-shrink-0 p-4 border-b border-border bg-card">
+            <div className="flex items-center gap-3">
+              <Calendar className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">Beschikbaarheid</h2>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex-shrink-0 p-4">
+            <div className="flex space-x-1 bg-muted rounded-lg p-1">
+              <button
+                onClick={() => setActiveTab('schedule')}
+                className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                  activeTab === 'schedule' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Schema
+              </button>
+              <button
+                onClick={() => setActiveTab('overrides')}
+                className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                  activeTab === 'overrides' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Uitzonderingen
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-hidden">
+            {activeTab === 'schedule' && (
+              <WeeklyScheduleTab 
+                calendarId={calendarId}
+                scheduleId={defaultSchedule?.id}
+                rules={rules}
+                loading={rulesLoading}
+              />
+            )}
+            
+            {activeTab === 'overrides' && (
+              <OverridesTab 
+                calendarId={calendarId}
+                overrides={overrides}
+              />
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Content */}
-      {activeTab === 'schedule' && (
-        <WeeklyScheduleTab 
-          calendarId={calendarId}
-          scheduleId={defaultSchedule?.id}
-          rules={rules}
-          loading={rulesLoading}
+      {/* Backdrop */}
+      {isExpanded && (
+        <div
+          className="fixed inset-0 bg-black/20 z-0"
+          onClick={() => setIsExpanded(false)}
         />
       )}
-      
-      {activeTab === 'overrides' && (
-        <OverridesTab 
-          calendarId={calendarId}
-          overrides={overrides}
-        />
-      )}
-    </div>
+    </>
   );
 }
 
@@ -86,13 +123,13 @@ function WeeklyScheduleTab({
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="p-4 space-y-4">
         {dayNames.map((day, index) => (
           <div key={day} className="flex items-center space-x-3">
-            <div className="w-28 h-4 bg-gray-700 rounded animate-pulse"></div>
-            <div className="w-11 h-6 bg-gray-700 rounded-full animate-pulse"></div>
-            <div className="w-20 h-8 bg-gray-700 rounded animate-pulse"></div>
-            <div className="w-20 h-8 bg-gray-700 rounded animate-pulse"></div>
+            <div className="w-20 h-4 bg-muted rounded animate-pulse"></div>
+            <div className="w-8 h-5 bg-muted rounded-full animate-pulse"></div>
+            <div className="w-16 h-6 bg-muted rounded animate-pulse"></div>
+            <div className="w-16 h-6 bg-muted rounded animate-pulse"></div>
           </div>
         ))}
       </div>
@@ -100,27 +137,31 @@ function WeeklyScheduleTab({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-300">Werkschema per week</h3>
-        <button className="text-xs text-green-600 hover:text-green-500 flex items-center gap-1">
-          <Settings className="h-3 w-3" />
-          Template
-        </button>
+    <div className="h-full overflow-y-auto">
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-foreground">Werkschema</h3>
+          <button className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
+            <Settings className="h-3 w-3" />
+            Template
+          </button>
+        </div>
+        
+        <div className="space-y-3">
+          {dayNames.map((day, index) => {
+            const dayRule = rules.find(rule => rule.day_of_week === index);
+            return (
+              <DayAvailability
+                key={day}
+                day={day}
+                dayIndex={index}
+                scheduleId={scheduleId}
+                initialRule={dayRule}
+              />
+            );
+          })}
+        </div>
       </div>
-      
-      {dayNames.map((day, index) => {
-        const dayRule = rules.find(rule => rule.day_of_week === index);
-        return (
-          <DayAvailability
-            key={day}
-            day={day}
-            dayIndex={index}
-            scheduleId={scheduleId}
-            initialRule={dayRule}
-          />
-        );
-      })}
     </div>
   );
 }
@@ -147,66 +188,68 @@ function OverridesTab({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-300">Uitzonderingen & Speciale dagen</h3>
-        <button className="text-xs text-green-600 hover:text-green-500 flex items-center gap-1">
-          <Plus className="h-3 w-3" />
-          Toevoegen
-        </button>
-      </div>
+    <div className="h-full overflow-y-auto">
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-foreground">Uitzonderingen</h3>
+          <button className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
+            <Plus className="h-3 w-3" />
+            Nieuw
+          </button>
+        </div>
 
-      {/* Quick Actions */}
-      <div className="space-y-2">
-        <button className="w-full px-4 py-3 bg-gray-900 hover:bg-gray-700 text-white rounded-lg text-sm text-left transition-colors group">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              🏖️ Vakantie toevoegen
-            </span>
-            <Plus className="h-4 w-4 text-gray-400 group-hover:text-white" />
-          </div>
-        </button>
-        
-        <button className="w-full px-4 py-3 bg-gray-900 hover:bg-gray-700 text-white rounded-lg text-sm text-left transition-colors group">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              📅 Speciale openingstijden
-            </span>
-            <Plus className="h-4 w-4 text-gray-400 group-hover:text-white" />
-          </div>
-        </button>
-        
-        <button className="w-full px-4 py-3 bg-gray-900 hover:bg-gray-700 text-white rounded-lg text-sm text-left transition-colors group">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              🚫 Dag blokkeren
-            </span>
-            <Plus className="h-4 w-4 text-gray-400 group-hover:text-white" />
-          </div>
-        </button>
-      </div>
+        {/* Quick Actions */}
+        <div className="space-y-2 mb-6">
+          <button className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg text-sm text-left transition-colors group">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                🏖️ Vakantie toevoegen
+              </span>
+              <Plus className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+            </div>
+          </button>
+          
+          <button className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg text-sm text-left transition-colors group">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                📅 Speciale tijden
+              </span>
+              <Plus className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+            </div>
+          </button>
+          
+          <button className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg text-sm text-left transition-colors group">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                🚫 Dag blokkeren
+              </span>
+              <Plus className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+            </div>
+          </button>
+        </div>
 
-      {/* Existing Overrides */}
-      {overrides.length > 0 && (
-        <div className="mt-6 pt-4 border-t border-gray-700">
-          <h4 className="text-sm font-medium text-gray-300 mb-3">Geplande uitzonderingen</h4>
-          <div className="space-y-2">
-            {overrides.map((override) => (
-              <div key={override.id} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
-                <div>
-                  <div className="text-sm text-white">{override.date}</div>
-                  <div className="text-xs text-gray-400">
-                    {override.is_available ? 'Aangepaste tijden' : override.reason || 'Niet beschikbaar'}
+        {/* Existing Overrides */}
+        {overrides.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-muted-foreground mb-3">Geplande uitzonderingen</h4>
+            <div className="space-y-2">
+              {overrides.map((override) => (
+                <div key={override.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div>
+                    <div className="text-sm text-foreground font-medium">{override.date}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {override.is_available ? 'Aangepaste tijden' : override.reason || 'Niet beschikbaar'}
+                    </div>
+                  </div>
+                  <div className="text-sm">
+                    {override.is_available ? '🕐' : '🚫'}
                   </div>
                 </div>
-                <div className="text-xs text-gray-500">
-                  {override.is_available ? '🕐' : '🚫'}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -273,50 +316,50 @@ function DayAvailability({
   }, [hasChanges, isAvailable, startTime, endTime]);
 
   return (
-    <div className="flex items-center space-x-3 group">
-      <div className="w-28">
-        <span className={`text-sm transition-colors ${
-          isAvailable ? 'text-white' : 'text-gray-500'
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className={`text-sm font-medium ${
+          isAvailable ? 'text-foreground' : 'text-muted-foreground'
         }`}>
           {day}
         </span>
+        
+        <button
+          onClick={() => setIsAvailable(!isAvailable)}
+          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+            isAvailable ? 'bg-primary' : 'bg-muted'
+          }`}
+        >
+          <span
+            className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+              isAvailable ? 'translate-x-5' : 'translate-x-1'
+            }`}
+          />
+        </button>
       </div>
       
-      <button
-        onClick={() => setIsAvailable(!isAvailable)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          isAvailable ? 'bg-green-600' : 'bg-gray-700'
-        }`}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            isAvailable ? 'translate-x-6' : 'translate-x-1'
-          }`}
-        />
-      </button>
-      
       {isAvailable && (
-        <>
+        <div className="flex items-center space-x-2 text-xs">
           <input
             type="time"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="px-3 py-1 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-green-600 focus:outline-none transition-colors"
+            className="flex-1 px-2 py-1 bg-background border border-border rounded text-foreground focus:border-primary focus:outline-none"
           />
-          <span className="text-gray-400">-</span>
+          <span className="text-muted-foreground">-</span>
           <input
             type="time"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="px-3 py-1 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-green-600 focus:outline-none transition-colors"
+            className="flex-1 px-2 py-1 bg-background border border-border rounded text-foreground focus:border-primary focus:outline-none"
           />
-        </>
+        </div>
       )}
       
       {hasChanges && (
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-          <span className="text-xs text-yellow-500">Wordt opgeslagen...</span>
+        <div className="flex items-center gap-1 text-xs text-yellow-600">
+          <div className="w-1 h-1 bg-yellow-600 rounded-full animate-pulse"></div>
+          <span>Opslaan...</span>
         </div>
       )}
     </div>

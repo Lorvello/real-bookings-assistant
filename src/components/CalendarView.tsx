@@ -163,9 +163,9 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
   };
 
   return (
-    <div className="bg-card rounded-xl p-6 border border-border h-full">
+    <div className="bg-card rounded-xl border border-border h-full flex flex-col">
       {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-border">
         <div className="flex items-center space-x-4">
           {/* Navigation */}
           <button
@@ -190,7 +190,7 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
         </div>
 
         {/* View Switcher */}
-        <div className="flex bg-background-secondary rounded-lg p-1">
+        <div className="flex bg-muted rounded-lg p-1">
           <button
             onClick={() => setCurrentView('week')}
             className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
@@ -225,7 +225,7 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
       </div>
 
       {/* Calendar Content */}
-      <div className="h-[600px] overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
