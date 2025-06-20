@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -20,6 +21,18 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
+			},
+			fontSize: {
+				'body': ['16px', { lineHeight: '1.5em' }],
+				'body-mobile': ['14px', { lineHeight: '1.5em' }],
+			},
+			letterSpacing: {
+				'heading': '-0.2px',
+				'body': '0',
+			},
+			spacing: {
+				'section': '48px',
+				'component': '24px',
 			},
 			colors: {
 				// Consistent Dark Theme Design System Colors

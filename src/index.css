@@ -92,21 +92,69 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5em;
+    letter-spacing: 0;
   }
 
-  /* Headings styling */
+  /* Typography System */
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold text-foreground;
+    font-weight: 700;
+    line-height: 1.2em;
+    letter-spacing: -0.2px;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+
+  h4 {
+    @apply text-lg md:text-xl;
   }
 
   /* Body text styling */
   p {
-    @apply text-base text-foreground;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5em;
+    letter-spacing: 0;
+    @apply text-foreground;
+  }
+
+  /* Mobile typography adjustments */
+  @media (max-width: 768px) {
+    body {
+      font-size: 14px;
+    }
+    
+    p {
+      font-size: 14px;
+    }
   }
 }
 
-/* Dark Theme Custom Components */
+/* Consistent Spacing System */
 @layer components {
+  /* Section spacing */
+  .section-spacing {
+    @apply py-12;
+  }
+
+  /* Component spacing */
+  .component-spacing {
+    @apply mb-6;
+  }
+
   /* Primary button with green gradient */
   .btn-primary {
     @apply bg-primary text-primary-foreground font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:scale-105;
