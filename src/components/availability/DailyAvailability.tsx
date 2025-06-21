@@ -1,9 +1,7 @@
 
 import React, { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Copy } from 'lucide-react';
 
 interface TimeBlock {
   id: string;
@@ -54,48 +52,6 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     onChange();
   };
 
-  const addTimeBlock = (dayKey: string) => {
-    const dayAvailability = availability[dayKey];
-    const lastBlock = dayAvailability.timeBlocks[dayAvailability.timeBlocks.length - 1];
-    
-    setAvailability(prev => ({
-      ...prev,
-      [dayKey]: {
-        ...prev[dayKey],
-        timeBlocks: [
-          ...prev[dayKey].timeBlocks,
-          {
-            id: `${dayKey}-${Date.now()}`,
-            startTime: lastBlock ? lastBlock.endTime : '08:00',
-            endTime: '19:00'
-          }
-        ]
-      }
-    }));
-    onChange();
-  };
-
-  const duplicateTimeBlock = (dayKey: string, blockId: string) => {
-    const block = availability[dayKey].timeBlocks.find(b => b.id === blockId);
-    if (!block) return;
-
-    setAvailability(prev => ({
-      ...prev,
-      [dayKey]: {
-        ...prev[dayKey],
-        timeBlocks: [
-          ...prev[dayKey].timeBlocks,
-          {
-            id: `${dayKey}-${Date.now()}`,
-            startTime: block.startTime,
-            endTime: block.endTime
-          }
-        ]
-      }
-    }));
-    onChange();
-  };
-
   const updateTimeBlock = (dayKey: string, blockId: string, field: 'startTime' | 'endTime', value: string) => {
     setAvailability(prev => ({
       ...prev,
@@ -110,72 +66,51 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   };
 
   return (
-    <div className="space-y-1">
-      {DAYS.map((day, index) => {
+    <div className="space-y-6">
+      {DAYS.map((day) => {
         const dayAvailability = availability[day.key];
         const firstBlock = dayAvailability.timeBlocks[0];
         
         return (
-          <div key={day.key} className="flex items-center justify-between py-3 group">
+          <div key={day.key} className="flex items-center justify-between">
             {/* Left side - Toggle and Day name */}
-            <div className="flex items-center space-x-4 min-w-[140px]">
+            <div className="flex items-center space-x-4 min-w-[160px]">
               <Switch
                 checked={dayAvailability.enabled}
                 onCheckedChange={(enabled) => updateDayEnabled(day.key, enabled)}
-                className={`${!dayAvailability.enabled ? 'opacity-50' : ''}`}
+                className="scale-110"
               />
-              <span className={`text-sm font-medium ${
+              <span className={`text-base font-medium ${
                 dayAvailability.enabled 
-                  ? 'text-foreground' 
-                  : 'text-muted-foreground'
+                  ? 'text-white' 
+                  : 'text-gray-400'
               }`}>
                 {day.label}
               </span>
             </div>
 
-            {/* Center - Time inputs */}
-            {dayAvailability.enabled && firstBlock && (
-              <div className="flex items-center space-x-3 flex-1 max-w-[300px]">
-                <Input
-                  type="time"
-                  value={firstBlock.startTime}
-                  onChange={(e) => updateTimeBlock(day.key, firstBlock.id, 'startTime', e.target.value)}
-                  className="w-20 h-8 text-xs bg-background border-border text-center"
-                />
-                <span className="text-muted-foreground text-sm">-</span>
-                <Input
-                  type="time"
-                  value={firstBlock.endTime}
-                  onChange={(e) => updateTimeBlock(day.key, firstBlock.id, 'endTime', e.target.value)}
-                  className="w-20 h-8 text-xs bg-background border-border text-center"
-                />
-              </div>
-            )}
-
-            {/* Right side - Action buttons */}
-            {dayAvailability.enabled && (
-              <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => addTimeBlock(day.key)}
-                  className="h-7 w-7 p-0 hover:bg-muted"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => duplicateTimeBlock(day.key, firstBlock.id)}
-                  className="h-7 w-7 p-0 hover:bg-muted"
-                >
-                  <Copy className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
-
-            {/* Empty space for disabled days */}
-            {!dayAvailability.enabled && <div className="flex-1" />}
+            {/* Right side - Time inputs */}
+            <div className="flex items-center space-x-4">
+              {dayAvailability.enabled && firstBlock ? (
+                <>
+                  <Input
+                    type="time"
+                    value={firstBlock.startTime}
+                    onChange={(e) => updateTimeBlock(day.key, firstBlock.id, 'startTime', e.target.value)}
+                    className="w-24 h-10 text-sm bg-gray-800 border-gray-600 text-white text-center focus:border-teal-500 focus:ring-teal-500"
+                  />
+                  <span className="text-gray-400 text-lg">-</span>
+                  <Input
+                    type="time"
+                    value={firstBlock.endTime}
+                    onChange={(e) => updateTimeBlock(day.key, firstBlock.id, 'endTime', e.target.value)}
+                    className="w-24 h-10 text-sm bg-gray-800 border-gray-600 text-white text-center focus:border-teal-500 focus:ring-teal-500"
+                  />
+                </>
+              ) : (
+                <div className="w-48" />
+              )}
+            </div>
           </div>
         );
       })}
