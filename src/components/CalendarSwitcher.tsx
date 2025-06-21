@@ -1,6 +1,7 @@
-
 import React, { useState } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,11 +25,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, ChevronDown, Plus, Settings } from 'lucide-react';
+import { Calendar, ChevronDown, Plus, Settings, User } from 'lucide-react';
 import { useCreateCalendar } from '@/hooks/useCreateCalendar';
 
 export function CalendarSwitcher() {
   const { selectedCalendar, calendars, selectCalendar, loading } = useCalendarContext();
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newCalendar, setNewCalendar] = useState({
     name: '',
@@ -37,6 +40,17 @@ export function CalendarSwitcher() {
   });
 
   const { createCalendar, loading: creating } = useCreateCalendar();
+
+  // Generate a better default calendar name
+  const generateCalendarName = () => {
+    const userName = profile?.full_name?.split(' ')[0] || 'Mijn';
+    const businessName = profile?.business_name;
+    
+    if (businessName) {
+      return `${businessName} Kalender`;
+    }
+    return `${userName} Kalender`;
+  };
 
   const handleCreateCalendar = async () => {
     if (!newCalendar.name.trim()) return;
@@ -55,6 +69,16 @@ export function CalendarSwitcher() {
     }
   };
 
+  // Helper function to display calendar name with context
+  const getDisplayName = (calendar: any) => {
+    // If it's the default "Mijn Kalender", suggest a better name
+    if (calendar.name === 'Mijn Kalender' && profile) {
+      const betterName = generateCalendarName();
+      return `${calendar.name} (${betterName})`;
+    }
+    return calendar.name;
+  };
+
   if (loading) {
     return (
       <Card className="w-64">
@@ -70,24 +94,33 @@ export function CalendarSwitcher() {
 
   return (
     <div className="flex items-center space-x-2">
+      {/* User Context */}
+      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+        <User className="h-4 w-4" />
+        <span>{profile?.full_name || user?.email}</span>
+      </div>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="justify-between min-w-[200px]">
+          <Button variant="outline" className="justify-between min-w-[250px]">
             <div className="flex items-center space-x-2">
               <div 
                 className="w-3 h-3 rounded-full" 
                 style={{ backgroundColor: selectedCalendar?.color || '#3B82F6' }}
               />
               <span className="truncate">
-                {selectedCalendar?.name || 'Selecteer kalender'}
+                {selectedCalendar ? getDisplayName(selectedCalendar) : 'Selecteer kalender'}
               </span>
             </div>
             <ChevronDown className="w-4 h-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
         
-        <DropdownMenuContent className="w-64">
-          <DropdownMenuLabel>Mijn Kalenders</DropdownMenuLabel>
+        <DropdownMenuContent className="w-80">
+          <DropdownMenuLabel className="flex items-center space-x-2">
+            <Calendar className="h-4 w-4" />
+            <span>Mijn Kalenders</span>
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           
           {calendars.map((calendar) => (
@@ -102,7 +135,7 @@ export function CalendarSwitcher() {
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium truncate">{calendar.name}</span>
+                  <span className="font-medium truncate">{getDisplayName(calendar)}</span>
                   {calendar.is_default && (
                     <Badge variant="outline" className="text-xs">Standaard</Badge>
                   )}
@@ -115,6 +148,9 @@ export function CalendarSwitcher() {
                     {calendar.description}
                   </p>
                 )}
+                <p className="text-xs text-muted-foreground">
+                  Eigenaar: {profile?.full_name || 'Jij'}
+                </p>
               </div>
               {selectedCalendar?.id === calendar.id && (
                 <div className="w-2 h-2 bg-primary rounded-full" />
@@ -145,10 +181,13 @@ export function CalendarSwitcher() {
                   <Label htmlFor="calendar-name">Kalendernaam</Label>
                   <Input
                     id="calendar-name"
-                    placeholder="Bijv. Werk kalender"
+                    placeholder={generateCalendarName()}
                     value={newCalendar.name}
                     onChange={(e) => setNewCalendar(prev => ({ ...prev, name: e.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Suggestie: {generateCalendarName()}
+                  </p>
                 </div>
                 
                 <div>

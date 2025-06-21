@@ -1,9 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useSettingsData } from '@/hooks/useSettingsData';
+import { UserContextHeader } from '@/components/common/UserContextHeader';
+import { CalendarOwnershipIndicator } from '@/components/common/CalendarOwnershipIndicator';
+import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { DailyAvailability } from './DailyAvailability';
 import { DateOverrides } from './DateOverrides';
 import { Limits } from './Limits';
@@ -19,6 +22,7 @@ export const AvailabilityManager = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
+  const { selectedCalendar } = useCalendarContext();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [setToDefault, setSetToDefault] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
@@ -61,8 +65,38 @@ export const AvailabilityManager = () => {
     return null;
   }
 
+  if (!selectedCalendar) {
+    return (
+      <div className="min-h-screen bg-background">
+        <UserContextHeader
+          userName={profile?.full_name}
+          userEmail={user?.email}
+          businessName={profile?.business_name}
+        />
+        
+        <div className="max-w-4xl mx-auto p-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-foreground mb-4">Geen kalender geselecteerd</h1>
+            <p className="text-muted-foreground mb-6">
+              Selecteer een kalender om de beschikbaarheid te beheren.
+            </p>
+            <CalendarSwitcher />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      {/* User Context Header */}
+      <UserContextHeader
+        userName={profile?.full_name}
+        userEmail={user?.email}
+        currentCalendarName={selectedCalendar.name}
+        businessName={profile?.business_name}
+      />
+
       {/* Header */}
       <div className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -76,16 +110,26 @@ export const AvailabilityManager = () => {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div>
+              
+              <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <h1 className="text-xl font-semibold text-foreground">Working Hours</h1>
                   <Edit className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground">Mon - Fri, 08:00 - 19:00</p>
+                
+                {/* Calendar Ownership Indicator */}
+                <CalendarOwnershipIndicator
+                  isOwner={true} // Since we're using RLS, user can only see their own calendars
+                  calendarName={selectedCalendar.name}
+                  ownerName={profile?.full_name}
+                />
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* Calendar Switcher */}
+              <CalendarSwitcher />
+              
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-muted-foreground">Set to Default</span>
                 <Switch
