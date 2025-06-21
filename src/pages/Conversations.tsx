@@ -242,8 +242,8 @@ const ConversationsContent = () => {
                   <div className="bg-gray-700 p-4 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-gray-400 text-sm">Gemiddelde Reacties</p>
-                        <p className="text-2xl font-bold text-white">{metrics?.avgResponses || 0}</p>
+                        <p className="text-gray-400 text-sm">Gemiddelde Responstijd</p>
+                        <p className="text-2xl font-bold text-white">{metrics?.avgResponseTime || 0} min</p>
                       </div>
                       <Clock className="h-8 w-8 text-green-400" />
                     </div>
