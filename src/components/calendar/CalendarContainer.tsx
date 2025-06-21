@@ -13,6 +13,8 @@ interface CalendarContainerProps {
 }
 
 export function CalendarContainer({ calendarId }: CalendarContainerProps) {
+  console.log('CalendarContainer rendering with calendarId:', calendarId);
+  
   const [currentView, setCurrentView] = useState<CalendarView>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
@@ -38,6 +40,11 @@ export function CalendarContainer({ calendarId }: CalendarContainerProps) {
     refetch();
   };
 
+  const handleNewBooking = () => {
+    console.log('Opening new booking modal');
+    setIsNewBookingModalOpen(true);
+  };
+
   return (
     <div className="bg-card rounded-xl border border-border h-full flex flex-col">
       <CalendarHeader
@@ -45,7 +52,7 @@ export function CalendarContainer({ calendarId }: CalendarContainerProps) {
         currentDate={currentDate}
         onViewChange={setCurrentView}
         onNavigate={navigateDate}
-        onNewBooking={() => setIsNewBookingModalOpen(true)}
+        onNewBooking={handleNewBooking}
         loading={loading}
       />
 

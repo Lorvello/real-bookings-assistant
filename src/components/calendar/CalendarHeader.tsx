@@ -23,6 +23,8 @@ export function CalendarHeader({
   onNewBooking,
   loading = false
 }: CalendarHeaderProps) {
+  console.log('CalendarHeader rendering:', { currentView, currentDate, loading });
+  
   const formatDateHeader = () => {
     switch (currentView) {
       case 'week':
@@ -98,7 +100,10 @@ export function CalendarHeader({
 
         {/* Nieuwe Afspraak Button */}
         <Button
-          onClick={onNewBooking}
+          onClick={() => {
+            console.log('Nieuwe Afspraak button clicked');
+            onNewBooking();
+          }}
           className="bg-green-600 hover:bg-green-700 text-white shadow-sm flex items-center"
           disabled={loading}
         >
