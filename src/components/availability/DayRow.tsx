@@ -1,8 +1,6 @@
 
 import React from 'react';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { TimeBlockRow } from './TimeBlockRow';
 
 interface TimeBlock {
@@ -63,19 +61,6 @@ export const DayRow: React.FC<DayRowProps> = ({
             {day.label}
           </span>
         </div>
-
-        {/* Add new time slot button - only show when enabled */}
-        {dayAvailability.enabled && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onAddTimeBlock(day.key)}
-            className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 text-xs px-3 py-1 h-8"
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Add new time slot
-          </Button>
-        )}
       </div>
 
       {/* Time blocks */}
