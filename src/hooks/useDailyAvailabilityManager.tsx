@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
 import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
@@ -32,6 +31,17 @@ const DAYS = [
   { key: 'sunday', label: 'Sunday', isWeekend: true, dayOfWeek: 0 }
 ];
 
+// Helper function to validate and clean time blocks
+const validateAndCleanTimeBlocks = (timeBlocks: TimeBlock[]): TimeBlock[] => {
+  // Remove duplicates based on start and end time
+  const uniqueBlocks = timeBlocks.filter((block, index, self) => 
+    index === self.findIndex(b => b.startTime === block.startTime && b.endTime === block.endTime)
+  );
+  
+  // Sort by start time
+  return uniqueBlocks.sort((a, b) => a.startTime.localeCompare(b.startTime));
+};
+
 export const useDailyAvailabilityManager = (onChange: () => void) => {
   const { calendars } = useCalendars();
   const defaultCalendar = calendars.find(cal => cal.is_default) || calendars[0];
@@ -58,6 +68,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
 
   const [pendingUpdates, setPendingUpdates] = useState<Set<string>>(new Set());
   const [syncing, setSyncing] = useState<Set<string>>(new Set());
+  const [syncTimeouts, setSyncTimeouts] = useState<Map<string, NodeJS.Timeout>>(new Map());
 
   // Convert database rules to UI availability format
   const availabilityFromRules = useMemo(() => {
@@ -103,12 +114,19 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     setAvailability(availabilityFromRules);
   }, [availabilityFromRules]);
 
-  // Improved sync function with sequential operations to prevent conflicts
+  // Improved sync function with better duplicate prevention and error handling
   const syncToDatabase = async (dayKey: string, dayData: DayAvailability) => {
     if (!defaultSchedule?.id) return;
     
     const day = DAYS.find(d => d.key === dayKey);
     if (!day) return;
+
+    // Clear any existing timeout for this day
+    const existingTimeout = syncTimeouts.get(dayKey);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+      syncTimeouts.delete(dayKey);
+    }
 
     // Prevent concurrent syncs for the same day
     if (syncing.has(dayKey)) {
@@ -127,20 +145,28 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       const existingRules = rules.filter(rule => rule.day_of_week === day.dayOfWeek);
       console.log(`Found ${existingRules.length} existing rules for ${dayKey}`);
       
-      // Delete all existing rules for this day first (sequential to avoid conflicts)
+      // Delete all existing rules for this day first
       for (const rule of existingRules) {
         console.log(`Deleting rule ${rule.id} for ${dayKey}`);
         await deleteRule(rule.id);
       }
 
       // Wait a bit to ensure deletions are processed
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       if (dayData.enabled && dayData.timeBlocks.length > 0) {
-        console.log(`Creating ${dayData.timeBlocks.length} new rules for ${dayKey}`);
+        // Clean and validate time blocks before creating rules
+        const cleanedTimeBlocks = validateAndCleanTimeBlocks(dayData.timeBlocks);
+        console.log(`Creating ${cleanedTimeBlocks.length} new rules for ${dayKey}`);
         
-        // Create new rules sequentially to avoid conflicts
-        for (const timeBlock of dayData.timeBlocks) {
+        // Create new rules sequentially
+        for (const timeBlock of cleanedTimeBlocks) {
+          // Validate time block
+          if (timeBlock.startTime >= timeBlock.endTime) {
+            console.warn(`Invalid time block for ${dayKey}: ${timeBlock.startTime} - ${timeBlock.endTime}, skipping`);
+            continue;
+          }
+
           console.log(`Creating rule for ${dayKey}: ${timeBlock.startTime} - ${timeBlock.endTime}`);
           try {
             await createRule({
@@ -172,11 +198,14 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       // Enhanced error handling
       if (error instanceof Error) {
-        if (error.message.includes('duplicate key')) {
-          console.warn('Detected duplicate key error for', dayKey);
-          // Don't retry immediately, let the user try again
-        } else if (error.message.includes('violates unique constraint')) {
-          console.warn('Unique constraint violation for', dayKey);
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+          console.warn('Detected duplicate key error for', dayKey, '- retrying in 2 seconds');
+          // Retry after a longer delay
+          const timeout = setTimeout(() => {
+            console.log(`Retrying sync for ${dayKey} after duplicate key error`);
+            syncToDatabase(dayKey, dayData);
+          }, 2000);
+          setSyncTimeouts(prev => new Map(prev).set(dayKey, timeout));
         }
       }
     } finally {
@@ -192,6 +221,13 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       });
     }
   };
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      syncTimeouts.forEach(timeout => clearTimeout(timeout));
+    };
+  }, [syncTimeouts]);
 
   return {
     DAYS,

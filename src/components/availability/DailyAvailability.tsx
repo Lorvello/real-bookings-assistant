@@ -29,20 +29,33 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     
     setAvailability(newAvailability);
     
-    // Debounce to prevent rapid consecutive calls
+    // Longer debounce for day enable/disable
     setTimeout(() => {
       syncToDatabase(dayKey, newAvailability[dayKey]);
-    }, 500);
+    }, 800);
   };
 
   const updateTimeBlock = async (dayKey: string, blockId: string, field: 'startTime' | 'endTime', value: string) => {
+    const currentBlocks = availability[dayKey].timeBlocks;
+    const updatedBlocks = currentBlocks.map(block =>
+      block.id === blockId ? { ...block, [field]: value } : block
+    );
+
+    // Validate for duplicate times before updating
+    const hasDuplicates = updatedBlocks.some((block, index) => 
+      updatedBlocks.findIndex(b => b.startTime === block.startTime && b.endTime === block.endTime) !== index
+    );
+
+    if (hasDuplicates) {
+      console.warn(`Duplicate time block detected for ${dayKey}, not updating`);
+      return;
+    }
+
     const newAvailability = {
       ...availability,
       [dayKey]: {
         ...availability[dayKey],
-        timeBlocks: availability[dayKey].timeBlocks.map(block =>
-          block.id === blockId ? { ...block, [field]: value } : block
-        )
+        timeBlocks: updatedBlocks
       }
     };
     
@@ -51,26 +64,45 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     // Longer debounce for time changes to prevent excessive API calls
     setTimeout(() => {
       syncToDatabase(dayKey, newAvailability[dayKey]);
-    }, 1500);
+    }, 2000);
   };
 
   const addTimeBlock = async (dayKey: string) => {
     const currentBlocks = availability[dayKey].timeBlocks;
-    const newBlockId = `${dayKey}-${Date.now()}`; // Use timestamp for unique ID
+    const newBlockId = `${dayKey}-${Date.now()}`; 
     const lastBlock = currentBlocks[currentBlocks.length - 1];
+    
+    // Calculate next available start time
+    let newStartTime = lastBlock?.endTime || '09:00';
+    let newEndTime = '17:00';
+    
+    // If the last block ends at or after 17:00, start the new block at a reasonable time
+    if (newStartTime >= '17:00') {
+      newStartTime = '08:00';
+      newEndTime = '12:00';
+    }
+
+    const newTimeBlock = {
+      id: newBlockId,
+      startTime: newStartTime,
+      endTime: newEndTime
+    };
+
+    // Check for duplicates before adding
+    const wouldCreateDuplicate = currentBlocks.some(block => 
+      block.startTime === newTimeBlock.startTime && block.endTime === newTimeBlock.endTime
+    );
+
+    if (wouldCreateDuplicate) {
+      console.warn(`Would create duplicate time block for ${dayKey}, not adding`);
+      return;
+    }
     
     const newAvailability = {
       ...availability,
       [dayKey]: {
         ...availability[dayKey],
-        timeBlocks: [
-          ...currentBlocks,
-          {
-            id: newBlockId,
-            startTime: lastBlock?.endTime || '09:00',
-            endTime: '17:00'
-          }
-        ]
+        timeBlocks: [...currentBlocks, newTimeBlock]
       }
     };
     
