@@ -2,12 +2,13 @@
 import React from 'react';
 import { Calendar, User, Building2 } from 'lucide-react';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
-import type { Calendar as CalendarType, User as UserType } from '@/types/database';
+import type { Calendar as CalendarType } from '@/types/database';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface CalendarOwnershipHeaderProps {
   selectedCalendar: CalendarType;
   profile: any;
-  user: UserType;
+  user: Tables<'users'>;
 }
 
 export const CalendarOwnershipHeader: React.FC<CalendarOwnershipHeaderProps> = ({
