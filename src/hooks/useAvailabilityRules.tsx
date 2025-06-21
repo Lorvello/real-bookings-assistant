@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { AvailabilityRule } from '@/types/database';
@@ -10,20 +10,28 @@ export const useAvailabilityRules = (scheduleId?: string) => {
   const { toast } = useToast();
   const [rules, setRules] = useState<AvailabilityRule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [syncingRules, setSyncingRules] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user && scheduleId) {
       fetchRules();
+      setupRealtimeSubscription();
     } else {
       setRules([]);
       setLoading(false);
     }
+
+    return () => {
+      supabase.removeAllChannels();
+    };
   }, [user, scheduleId]);
 
   const fetchRules = async () => {
     if (!scheduleId) return;
 
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('availability_rules')
         .select('*')
@@ -32,32 +40,74 @@ export const useAvailabilityRules = (scheduleId?: string) => {
 
       if (error) {
         console.error('Error fetching availability rules:', error);
+        setError(error.message);
         return;
       }
 
       setRules(data || []);
     } catch (error) {
       console.error('Error fetching availability rules:', error);
+      setError('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  const createRule = async (ruleData: Partial<AvailabilityRule>) => {
+  const setupRealtimeSubscription = () => {
     if (!scheduleId) return;
 
-    // Ensure required fields are present
-    if (!ruleData.day_of_week || !ruleData.start_time || !ruleData.end_time) {
+    const channel = supabase
+      .channel(`availability_rules_${scheduleId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'availability_rules',
+          filter: `schedule_id=eq.${scheduleId}`
+        },
+        (payload) => {
+          console.log('Availability rule realtime update:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            setRules(prev => {
+              const newRule = payload.new as AvailabilityRule;
+              // Check if rule already exists to prevent duplicates
+              if (prev.some(rule => rule.id === newRule.id)) {
+                return prev;
+              }
+              return [...prev, newRule].sort((a, b) => a.day_of_week - b.day_of_week);
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            setRules(prev => prev.map(rule => 
+              rule.id === payload.new.id ? payload.new as AvailabilityRule : rule
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setRules(prev => prev.filter(rule => rule.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  };
+
+  const createRule = async (ruleData: Partial<AvailabilityRule>) => {
+    if (!scheduleId) return null;
+
+    // Validate required fields
+    if (ruleData.day_of_week === undefined || !ruleData.start_time || !ruleData.end_time) {
       toast({
         title: "Error",
         description: "Day of week, start time, and end time are required",
         variant: "destructive",
       });
-      return;
+      return null;
     }
 
     try {
-      const { error } = await supabase
+      setError(null);
+      const { data, error } = await supabase
         .from('availability_rules')
         .insert({
           schedule_id: scheduleId,
@@ -65,103 +115,167 @@ export const useAvailabilityRules = (scheduleId?: string) => {
           start_time: ruleData.start_time,
           end_time: ruleData.end_time,
           is_available: ruleData.is_available ?? true
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
+        console.error('Error creating rule:', error);
+        setError(error.message);
         toast({
           title: "Error",
-          description: "Failed to create availability rule",
+          description: `Failed to create availability rule: ${error.message}`,
           variant: "destructive",
         });
-        return;
+        return null;
       }
 
-      toast({
-        title: "Success",
-        description: "Availability rule created successfully",
-      });
-
-      await fetchRules();
+      return data;
     } catch (error) {
       console.error('Error creating availability rule:', error);
+      setError('An unexpected error occurred');
       toast({
         title: "Error",
         description: "An unexpected error occurred",
         variant: "destructive",
       });
+      return null;
     }
   };
 
   const updateRule = async (id: string, updates: Partial<AvailabilityRule>) => {
     try {
+      setError(null);
+      setSyncingRules(prev => new Set(prev).add(id));
+      
       const { error } = await supabase
         .from('availability_rules')
         .update(updates)
         .eq('id', id);
 
       if (error) {
+        console.error('Error updating rule:', error);
+        setError(error.message);
         toast({
           title: "Error",
-          description: "Failed to update availability rule",
+          description: `Failed to update availability rule: ${error.message}`,
           variant: "destructive",
         });
-        return;
+        return false;
       }
 
-      toast({
-        title: "Success",
-        description: "Availability rule updated successfully",
-      });
-
-      await fetchRules();
+      return true;
     } catch (error) {
       console.error('Error updating availability rule:', error);
+      setError('An unexpected error occurred');
       toast({
         title: "Error",
         description: "An unexpected error occurred",
         variant: "destructive",
+      });
+      return false;
+    } finally {
+      setSyncingRules(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
       });
     }
   };
 
   const deleteRule = async (id: string) => {
     try {
+      setError(null);
       const { error } = await supabase
         .from('availability_rules')
         .delete()
         .eq('id', id);
 
       if (error) {
+        console.error('Error deleting rule:', error);
+        setError(error.message);
         toast({
           title: "Error",
-          description: "Failed to delete availability rule",
+          description: `Failed to delete availability rule: ${error.message}`,
           variant: "destructive",
         });
-        return;
+        return false;
       }
 
-      toast({
-        title: "Success",
-        description: "Availability rule deleted successfully",
-      });
-
-      await fetchRules();
+      return true;
     } catch (error) {
       console.error('Error deleting availability rule:', error);
+      setError('An unexpected error occurred');
       toast({
         title: "Error",
         description: "An unexpected error occurred",
         variant: "destructive",
       });
+      return false;
     }
   };
+
+  // Intelligent sync function that only updates changed rules instead of deleting all
+  const syncRules = useCallback(async (dayRules: Array<{
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+    is_available: boolean;
+  }>) => {
+    if (!scheduleId) return false;
+
+    try {
+      setError(null);
+      
+      // Get current rules for comparison
+      const currentRules = rules.filter(rule => 
+        dayRules.some(dayRule => dayRule.day_of_week === rule.day_of_week)
+      );
+
+      // Create a map of current rules by day_of_week for easy lookup
+      const currentRulesMap = new Map(
+        currentRules.map(rule => [rule.day_of_week, rule])
+      );
+
+      const promises: Promise<any>[] = [];
+
+      for (const dayRule of dayRules) {
+        const existingRule = currentRulesMap.get(dayRule.day_of_week);
+
+        if (existingRule) {
+          // Check if update is needed
+          const needsUpdate = 
+            existingRule.start_time !== dayRule.start_time ||
+            existingRule.end_time !== dayRule.end_time ||
+            existingRule.is_available !== dayRule.is_available;
+
+          if (needsUpdate) {
+            promises.push(updateRule(existingRule.id, dayRule));
+          }
+        } else {
+          // Create new rule
+          promises.push(createRule({ ...dayRule, schedule_id: scheduleId }));
+        }
+      }
+
+      await Promise.all(promises);
+      return true;
+    } catch (error) {
+      console.error('Error syncing rules:', error);
+      setError('Failed to sync availability rules');
+      return false;
+    }
+  }, [scheduleId, rules]);
 
   return {
     rules,
     loading,
+    error,
+    syncingRules,
     createRule,
     updateRule,
     deleteRule,
+    syncRules,
     refetch: fetchRules
   };
 };

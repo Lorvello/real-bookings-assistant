@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DayRow } from './DayRow';
 import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
 import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
@@ -37,7 +37,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   const { schedules } = useAvailabilitySchedules(defaultCalendar?.id);
   const defaultSchedule = schedules.find(s => s.is_default) || schedules[0];
   
-  const { rules, createRule, updateRule, deleteRule } = useAvailabilityRules(defaultSchedule?.id);
+  const { rules, createRule, updateRule, deleteRule, syncingRules } = useAvailabilityRules(defaultSchedule?.id);
 
   const [availability, setAvailability] = useState<Record<string, DayAvailability>>(() => {
     const initial: Record<string, DayAvailability> = {};
@@ -55,65 +55,82 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   });
 
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+  const [pendingUpdates, setPendingUpdates] = useState<Set<string>>(new Set());
 
-  // Load existing rules from database when available
-  useEffect(() => {
-    if (rules.length > 0) {
-      const newAvailability: Record<string, DayAvailability> = {};
+  // Convert database rules to UI availability format
+  const availabilityFromRules = useMemo(() => {
+    const result: Record<string, DayAvailability> = {};
+    
+    DAYS.forEach(day => {
+      const dayRules = rules.filter(rule => rule.day_of_week === day.dayOfWeek);
       
-      DAYS.forEach(day => {
-        const dayRules = rules.filter(rule => rule.day_of_week === day.dayOfWeek);
+      if (dayRules.length > 0) {
+        // Group rules by availability and merge consecutive time blocks if needed
+        const availableRules = dayRules.filter(rule => rule.is_available);
         
-        if (dayRules.length > 0) {
-          // Has existing rules
-          newAvailability[day.key] = {
-            enabled: dayRules.some(rule => rule.is_available),
-            timeBlocks: dayRules.map((rule, index) => ({
-              id: `${day.key}-${index + 1}`,
-              startTime: rule.start_time,
-              endTime: rule.end_time
-            }))
-          };
-        } else {
-          // No existing rules, use defaults
-          newAvailability[day.key] = {
-            enabled: !day.isWeekend,
-            timeBlocks: [{
-              id: `${day.key}-1`,
-              startTime: '08:00',
-              endTime: '19:00'
-            }]
-          };
-        }
-      });
-      
-      setAvailability(newAvailability);
-    }
+        result[day.key] = {
+          enabled: availableRules.length > 0,
+          timeBlocks: availableRules.length > 0 
+            ? availableRules.map((rule, index) => ({
+                id: `${day.key}-${index + 1}`,
+                startTime: rule.start_time,
+                endTime: rule.end_time
+              }))
+            : [{
+                id: `${day.key}-1`,
+                startTime: '08:00',
+                endTime: '19:00'
+              }]
+        };
+      } else {
+        // Use default values
+        result[day.key] = {
+          enabled: !day.isWeekend,
+          timeBlocks: [{
+            id: `${day.key}-1`,
+            startTime: '08:00',
+            endTime: '19:00'
+          }]
+        };
+      }
+    });
+    
+    return result;
   }, [rules]);
 
+  // Update local state when rules change
+  useEffect(() => {
+    setAvailability(availabilityFromRules);
+  }, [availabilityFromRules]);
+
+  // Optimized sync function with debouncing
   const syncToDatabase = async (dayKey: string, dayData: DayAvailability) => {
     if (!defaultSchedule?.id) return;
     
     const day = DAYS.find(d => d.key === dayKey);
     if (!day) return;
 
+    const updateId = `${dayKey}-${Date.now()}`;
+    setPendingUpdates(prev => new Set(prev).add(updateId));
+
     try {
       // Delete existing rules for this day
       const existingRules = rules.filter(rule => rule.day_of_week === day.dayOfWeek);
-      for (const rule of existingRules) {
-        await deleteRule(rule.id);
-      }
+      
+      const deletePromises = existingRules.map(rule => deleteRule(rule.id));
+      await Promise.all(deletePromises);
 
       // Create new rules based on current state
       if (dayData.enabled && dayData.timeBlocks.length > 0) {
-        for (const timeBlock of dayData.timeBlocks) {
-          await createRule({
+        const createPromises = dayData.timeBlocks.map(timeBlock => 
+          createRule({
             day_of_week: day.dayOfWeek,
             start_time: timeBlock.startTime,
             end_time: timeBlock.endTime,
             is_available: true
-          });
-        }
+          })
+        );
+        await Promise.all(createPromises);
       } else {
         // Create a disabled rule to maintain the day in database
         await createRule({
@@ -127,6 +144,12 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
       onChange();
     } catch (error) {
       console.error('Error syncing to database:', error);
+    } finally {
+      setPendingUpdates(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(updateId);
+        return newSet;
+      });
     }
   };
 
@@ -153,10 +176,11 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     
     setAvailability(newAvailability);
     
-    // Debounce the database sync to avoid too many calls
+    // Debounce the database sync
+    const debounceKey = `${dayKey}-${blockId}-${field}`;
     setTimeout(() => {
       syncToDatabase(dayKey, newAvailability[dayKey]);
-    }, 500);
+    }, 1000);
   };
 
   const addTimeBlock = async (dayKey: string) => {
@@ -197,16 +221,12 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   };
 
   const toggleDropdown = (dropdownId: string) => {
-    console.log('Toggling dropdown:', dropdownId, 'Current state:', openDropdowns[dropdownId]);
     setOpenDropdowns(prev => {
-      // Close all other dropdowns when opening a new one
       const newState: Record<string, boolean> = {};
       Object.keys(prev).forEach(key => {
         newState[key] = false;
       });
-      // Toggle the clicked dropdown
       newState[dropdownId] = !prev[dropdownId];
-      console.log('New dropdown state:', newState);
       return newState;
     });
   };
@@ -231,20 +251,29 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     <div className="space-y-6">
       {DAYS.map((day) => {
         const dayAvailability = availability[day.key];
+        const dayKey = day.key;
+        const hasPendingUpdates = Array.from(pendingUpdates).some(id => id.startsWith(dayKey));
+        const hasSyncingRules = Array.from(syncingRules).some(id => 
+          rules.some(rule => rule.id === id && rule.day_of_week === day.dayOfWeek)
+        );
         
         return (
-          <DayRow
-            key={day.key}
-            day={day}
-            dayAvailability={dayAvailability}
-            openDropdowns={openDropdowns}
-            onUpdateDayEnabled={updateDayEnabled}
-            onUpdateTimeBlock={updateTimeBlock}
-            onAddTimeBlock={addTimeBlock}
-            onRemoveTimeBlock={removeTimeBlock}
-            onToggleDropdown={toggleDropdown}
-            onCloseDropdown={closeDropdown}
-          />
+          <div key={day.key} className="relative">
+            {(hasPendingUpdates || hasSyncingRules) && (
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse z-10" />
+            )}
+            <DayRow
+              day={day}
+              dayAvailability={dayAvailability}
+              openDropdowns={openDropdowns}
+              onUpdateDayEnabled={updateDayEnabled}
+              onUpdateTimeBlock={updateTimeBlock}
+              onAddTimeBlock={addTimeBlock}
+              onRemoveTimeBlock={removeTimeBlock}
+              onToggleDropdown={toggleDropdown}
+              onCloseDropdown={closeDropdown}
+            />
+          </div>
         );
       })}
     </div>
