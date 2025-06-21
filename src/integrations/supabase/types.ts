@@ -413,9 +413,11 @@ export type Database = {
           confirmation_required: boolean | null
           created_at: string | null
           id: string
+          last_bot_activity: string | null
           max_bookings_per_day: number | null
           minimum_notice_hours: number | null
           slot_duration: number | null
+          whatsapp_bot_active: boolean | null
         }
         Insert: {
           allow_waitlist?: boolean | null
@@ -425,9 +427,11 @@ export type Database = {
           confirmation_required?: boolean | null
           created_at?: string | null
           id?: string
+          last_bot_activity?: string | null
           max_bookings_per_day?: number | null
           minimum_notice_hours?: number | null
           slot_duration?: number | null
+          whatsapp_bot_active?: boolean | null
         }
         Update: {
           allow_waitlist?: boolean | null
@@ -437,9 +441,11 @@ export type Database = {
           confirmation_required?: boolean | null
           created_at?: string | null
           id?: string
+          last_bot_activity?: string | null
           max_bookings_per_day?: number | null
           minimum_notice_hours?: number | null
           slot_duration?: number | null
+          whatsapp_bot_active?: boolean | null
         }
         Relationships: [
           {
@@ -1286,6 +1292,72 @@ export type Database = {
           },
         ]
       }
+      daily_booking_stats: {
+        Row: {
+          avg_booking_value: number | null
+          booking_date: string | null
+          calendar_id: string | null
+          cancelled_bookings: number | null
+          confirmed_bookings: number | null
+          pending_bookings: number | null
+          total_bookings: number | null
+          total_revenue: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
+      service_popularity_stats: {
+        Row: {
+          booking_count: number | null
+          calendar_id: string | null
+          percentage: number | null
+          service_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
       service_type_stats: {
         Row: {
           avg_duration: number | null
@@ -1515,6 +1587,10 @@ export type Database = {
           is_available: boolean
         }[]
       }
+      get_booking_trends: {
+        Args: { p_calendar_id: string; p_days?: number }
+        Returns: Json
+      }
       get_calendar_availability: {
         Args: {
           p_calendar_slug: string
@@ -1525,6 +1601,14 @@ export type Database = {
       }
       get_conversation_context: {
         Args: { p_phone_number: string; p_calendar_id: string }
+        Returns: Json
+      }
+      get_dashboard_metrics: {
+        Args: { p_calendar_id: string }
+        Returns: Json
+      }
+      get_todays_schedule: {
+        Args: { p_calendar_id: string }
         Returns: Json
       }
       get_whatsapp_data_retention_days: {

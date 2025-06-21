@@ -13,11 +13,12 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
+import { useServicePopularity } from '@/hooks/useServicePopularity';
+import { useConversationCalendar } from '@/contexts/ConversationCalendarContext';
 
 interface DashboardSidebarProps {
   user: User;
   profile: any;
-  popularServices: Array<{ name: string; percentage: number }>;
   onSignOut: () => void;
   onExportData: () => void;
 }
@@ -25,11 +26,12 @@ interface DashboardSidebarProps {
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   user,
   profile,
-  popularServices,
   onSignOut,
   onExportData
 }) => {
   const navigate = useNavigate();
+  const { selectedCalendarId } = useConversationCalendar();
+  const { data: popularServices = [], isLoading: servicesLoading } = useServicePopularity(selectedCalendarId || undefined);
 
   return (
     <div className="xl:col-span-1 space-y-6">
@@ -58,14 +60,26 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <CardTitle className="text-lg">Popular Services</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {popularServices.length > 0 ? (
-            popularServices.map((service, index) => (
+          {servicesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                  <div className="h-2 bg-gray-200 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : popularServices.length > 0 ? (
+            popularServices.slice(0, 5).map((service, index) => (
               <div key={index}>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">{service.name}</span>
+                  <span className="text-sm font-medium text-gray-700">{service.service_name}</span>
                   <span className="text-sm text-gray-500">{service.percentage}%</span>
                 </div>
                 <Progress value={service.percentage} className="h-2" />
+                <div className="text-xs text-gray-400 mt-1">
+                  {service.booking_count} bookings
+                </div>
               </div>
             ))
           ) : (

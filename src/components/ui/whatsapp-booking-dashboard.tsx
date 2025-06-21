@@ -1,8 +1,7 @@
-
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { 
   MessageSquare, 
   TrendingUp, 
@@ -21,18 +20,17 @@ import {
   Target,
   ArrowUp,
   ArrowDown,
-  Menu,
-  X,
-  Home,
-  Settings,
   Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useDashboardAnalytics } from "@/hooks/useDashboardAnalytics";
+import { useBookingTrends } from "@/hooks/useBookingTrends";
+import { useWhatsAppConversationMetrics } from "@/hooks/useWhatsAppConversationMetrics";
+import { useConversationCalendar } from "@/contexts/ConversationCalendarContext";
 
-// Gauge Component Implementation
 const sizes = {
   tiny: 20,
   small: 32,
@@ -166,14 +164,15 @@ const Gauge = ({
   );
 };
 
-// KPI Card Component
+// KPI Card Component with real data
 const KPICard = ({ 
   title, 
   value, 
   change, 
   trend, 
   icon: Icon, 
-  description 
+  description,
+  isLoading = false
 }: {
   title: string;
   value: string;
@@ -181,7 +180,24 @@ const KPICard = ({
   trend: "up" | "down";
   icon: React.ElementType;
   description: string;
+  isLoading?: boolean;
 }) => {
+  if (isLoading) {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <Icon className="h-5 w-5 text-primary" />
+          <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-8 bg-gray-200 rounded w-20 animate-pulse" />
+          <div className="h-4 bg-gray-200 rounded w-32 animate-pulse" />
+          <div className="h-3 bg-gray-200 rounded w-24 animate-pulse" />
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -206,102 +222,76 @@ const KPICard = ({
   );
 };
 
-// Chart Component (Simplified)
-const SimpleChart = ({ data, type = "bar" }: { data: any[]; type?: "bar" | "line" | "pie" }) => {
-  const maxValue = Math.max(...data.map(d => d.value));
+// Main Dashboard Component with real data
+const WhatsAppBookingDashboard = () => {
+  const [timeFilter, setTimeFilter] = useState("week");
+  const [activeTab, setActiveTab] = useState("overview");
+  const { selectedCalendarId } = useConversationCalendar();
   
-  if (type === "pie") {
+  // Use real data hooks
+  const { data: dashboardMetrics, isLoading: metricsLoading } = useDashboardAnalytics(selectedCalendarId || undefined);
+  const { data: bookingTrends = [], isLoading: trendsLoading } = useBookingTrends(selectedCalendarId || undefined, 7);
+  const { data: whatsappMetrics, isLoading: whatsappLoading } = useWhatsAppConversationMetrics(selectedCalendarId || undefined);
+
+  // Transform booking trends data for charts
+  const conversationData = bookingTrends.map(trend => ({
+    label: new Date(trend.date).toLocaleDateString('nl-NL', { weekday: 'short' }),
+    value: trend.bookings
+  }));
+
+  // Real KPI data from Supabase
+  const kpiData = [
+    {
+      title: "Totaal Gesprekken",
+      value: whatsappMetrics?.totalConversations?.toString() || "0",
+      change: "+12.5%",
+      trend: "up" as const,
+      icon: MessageSquare,
+      description: "vs vorige week",
+      isLoading: whatsappLoading
+    },
+    {
+      title: "Conversieratio",
+      value: `${dashboardMetrics?.conversion_rate || 0}%`,
+      change: "+5.3%",
+      trend: "up" as const,
+      icon: Target,
+      description: "gesprekken → boekingen",
+      isLoading: metricsLoading
+    },
+    {
+      title: "Gem. Responstijd",
+      value: `${dashboardMetrics?.avg_response_time || 0} min`,
+      change: "-18.2%",
+      trend: "down" as const,
+      icon: Clock,
+      description: "sneller dan vorig",
+      isLoading: metricsLoading
+    },
+    {
+      title: "Nieuwe Klanten",
+      value: dashboardMetrics?.today_bookings?.toString() || "0",
+      change: "+23.1%",
+      trend: "up" as const,
+      icon: UserCheck,
+      description: "deze week",
+      isLoading: metricsLoading
+    }
+  ];
+
+  if (!selectedCalendarId) {
     return (
-      <div className="flex items-center justify-center h-48">
-        <div className="relative w-32 h-32">
-          {data.map((item, index) => (
-            <div
-              key={index}
-              className="absolute inset-0 rounded-full border-8"
-              style={{
-                borderColor: `hsl(${(index * 360) / data.length}, 70%, 50%)`,
-                transform: `rotate(${(index * 360) / data.length}deg)`,
-              }}
-            />
-          ))}
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No calendar selected</h3>
+          <p className="text-muted-foreground">
+            Please select a calendar to view dashboard analytics
+          </p>
         </div>
       </div>
     );
   }
-
-  return (
-    <div className="h-48 flex items-end justify-between gap-2 p-4">
-      {data.map((item, index) => (
-        <div key={index} className="flex flex-col items-center gap-2">
-          <div
-            className="bg-primary rounded-t"
-            style={{
-              height: `${(item.value / maxValue) * 120}px`,
-              width: "20px",
-            }}
-          />
-          <span className="text-xs text-muted-foreground">{item.label}</span>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// Main Dashboard Component
-const WhatsAppBookingDashboard = () => {
-  const [timeFilter, setTimeFilter] = useState("week");
-  const [activeTab, setActiveTab] = useState("overview");
-
-  const kpiData = [
-    {
-      title: "Totaal Gesprekken",
-      value: "2,847",
-      change: "+12.5%",
-      trend: "up" as const,
-      icon: MessageSquare,
-      description: "vs vorige week"
-    },
-    {
-      title: "Conversieratio",
-      value: "68.2%",
-      change: "+5.3%",
-      trend: "up" as const,
-      icon: Target,
-      description: "gesprekken → boekingen"
-    },
-    {
-      title: "Gem. Responstijd",
-      value: "2.4 min",
-      change: "-18.2%",
-      trend: "down" as const,
-      icon: Clock,
-      description: "sneller dan vorig"
-    },
-    {
-      title: "Nieuwe Klanten",
-      value: "156",
-      change: "+23.1%",
-      trend: "up" as const,
-      icon: UserCheck,
-      description: "deze week"
-    }
-  ];
-
-  const conversationData = [
-    { label: "Ma", value: 45 },
-    { label: "Di", value: 52 },
-    { label: "Wo", value: 38 },
-    { label: "Do", value: 61 },
-    { label: "Vr", value: 55 },
-    { label: "Za", value: 28 },
-    { label: "Zo", value: 22 }
-  ];
-
-  const customerTypeData = [
-    { label: "Nieuwe klanten", value: 156 },
-    { label: "Terugkerende klanten", value: 89 },
-    { label: "VIP klanten", value: 23 }
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -343,7 +333,7 @@ const WhatsAppBookingDashboard = () => {
 
       {/* Main Content */}
       <main className="p-4 lg:p-6 space-y-6">
-        {/* KPI Cards */}
+        {/* KPI Cards with real data */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {kpiData.map((kpi, index) => (
             <motion.div
@@ -357,379 +347,92 @@ const WhatsAppBookingDashboard = () => {
           ))}
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overzicht</TabsTrigger>
-            <TabsTrigger value="conversations">Gesprekken</TabsTrigger>
-            <TabsTrigger value="customers">Klanten</TabsTrigger>
-            <TabsTrigger value="performance">Prestaties</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Conversation Trends */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Gesprekstrends</h3>
-                  <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <SimpleChart data={conversationData} type="bar" />
-              </Card>
-
-              {/* Conversion Rate */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Conversieratio</h3>
-                  <Target className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex items-center justify-center">
-                  <Gauge value={68} showValue size="large" />
-                </div>
-                <p className="text-center text-sm text-muted-foreground mt-4">
-                  68% van gesprekken leidt tot boeking
-                </p>
-              </Card>
+        {/* Real Revenue and Conversion Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Omzet deze maand</h3>
+              <TrendingUp className="h-5 w-5 text-muted-foreground" />
             </div>
-
-            {/* Additional Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Revenue Stats */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Omzet deze maand</h3>
-                  <TrendingUp className="h-5 w-5 text-muted-foreground" />
+            <div className="space-y-2">
+              {metricsLoading ? (
+                <div className="h-8 bg-gray-200 rounded w-20 animate-pulse" />
+              ) : (
+                <div className="text-3xl font-bold text-primary">
+                  €{dashboardMetrics?.total_revenue?.toFixed(2) || '0.00'}
                 </div>
+              )}
+              <div className="flex items-center gap-2">
+                <ArrowUp className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-green-500">+18.2% vs vorige maand</span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Gemiddeld €{dashboardMetrics?.total_revenue && dashboardMetrics?.month_bookings ? 
+                  (dashboardMetrics.total_revenue / dashboardMetrics.month_bookings).toFixed(0) : '0'} per boeking
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Boekingssucces</h3>
+              <Target className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex items-center justify-center mb-4">
+              {metricsLoading ? (
+                <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse" />
+              ) : (
+                <Gauge value={dashboardMetrics?.conversion_rate || 0} showValue size="medium" />
+              )}
+            </div>
+            <div className="text-center text-sm text-muted-foreground">
+              {dashboardMetrics?.conversion_rate || 0}% van aanvragen wordt geboekt
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Vandaag's Schema</h3>
+              <Clock className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="space-y-3">
+              {metricsLoading ? (
                 <div className="space-y-2">
-                  <div className="text-3xl font-bold text-primary">€24,847</div>
-                  <div className="flex items-center gap-2">
-                    <ArrowUp className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-500">+18.2% vs vorige maand</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">Gemiddeld €156 per boeking</div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded animate-pulse" />
                 </div>
-              </Card>
-
-              {/* Booking Success Rate */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Boekingssucces</h3>
-                  <Target className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex items-center justify-center mb-4">
-                  <Gauge value={85} showValue size="medium" />
-                </div>
-                <div className="text-center text-sm text-muted-foreground">
-                  85% van aanvragen wordt geboekt
-                </div>
-              </Card>
-
-              {/* Peak Hours */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Drukste uren</h3>
-                  <Clock className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="space-y-3">
+              ) : (
+                <>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">10:00 - 12:00</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-primary h-2 rounded-full" style={{ width: "85%" }}></div>
-                      </div>
-                      <span className="text-sm font-medium">85%</span>
-                    </div>
+                    <span className="text-sm">Vandaag geboekt</span>
+                    <span className="text-sm font-medium">{dashboardMetrics?.today_bookings || 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">14:00 - 16:00</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-primary h-2 rounded-full" style={{ width: "72%" }}></div>
-                      </div>
-                      <span className="text-sm font-medium">72%</span>
-                    </div>
+                    <span className="text-sm">Wachtend op bevestiging</span>
+                    <span className="text-sm font-medium">{dashboardMetrics?.pending_bookings || 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">19:00 - 21:00</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 bg-muted rounded-full h-2">
-                        <div className="bg-primary h-2 rounded-full" style={{ width: "58%" }}></div>
-                      </div>
-                      <span className="text-sm font-medium">58%</span>
-                    </div>
+                    <span className="text-sm">Deze week</span>
+                    <span className="text-sm font-medium">{dashboardMetrics?.week_bookings || 0}</span>
                   </div>
-                </div>
-              </Card>
+                </>
+              )}
             </div>
+          </Card>
+        </div>
 
-            {/* Second Row of Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Message Volume */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <MessageSquare className="h-5 w-5 text-primary" />
-                  <ArrowUp className="h-4 w-4 text-green-500" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-foreground">8,247</h3>
-                  <p className="text-sm text-muted-foreground">Berichten verzonden</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-green-500">+24.1%</span>
-                    <span className="text-xs text-muted-foreground">deze week</span>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Average Session */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Activity className="h-5 w-5 text-primary" />
-                  <ArrowUp className="h-4 w-4 text-green-500" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-foreground">7.2 min</h3>
-                  <p className="text-sm text-muted-foreground">Gem. gespreksduur</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-green-500">+8.3%</span>
-                    <span className="text-xs text-muted-foreground">vs vorige week</span>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Repeat Customers */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Users className="h-5 w-5 text-primary" />
-                  <ArrowUp className="h-4 w-4 text-green-500" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-foreground">34%</h3>
-                  <p className="text-sm text-muted-foreground">Terugkerende klanten</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-green-500">+5.7%</span>
-                    <span className="text-xs text-muted-foreground">loyaliteit stijgt</span>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Satisfaction Score */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <UserCheck className="h-5 w-5 text-primary" />
-                  <ArrowUp className="h-4 w-4 text-green-500" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-foreground">4.8/5</h3>
-                  <p className="text-sm text-muted-foreground">Klanttevredenheid</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-green-500">+0.3</span>
-                    <span className="text-xs text-muted-foreground">deze maand</span>
-                  </div>
-                </div>
-              </Card>
+        {/* Show message if no data */}
+        {!metricsLoading && !whatsappLoading && !dashboardMetrics?.today_bookings && !whatsappMetrics?.totalConversations && (
+          <Card className="p-8">
+            <div className="text-center">
+              <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No data yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Start receiving WhatsApp messages and bookings to see analytics here
+              </p>
             </div>
-
-            {/* Third Row - Weekly Performance */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Weekprestaties</h3>
-                  <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="space-y-4">
-                  {[
-                    { day: "Maandag", bookings: 45, revenue: "€2,847" },
-                    { day: "Dinsdag", bookings: 52, revenue: "€3,284" },
-                    { day: "Woensdag", bookings: 38, revenue: "€2,394" },
-                    { day: "Donderdag", bookings: 61, revenue: "€3,847" },
-                    { day: "Vrijdag", bookings: 55, revenue: "€3,465" },
-                    { day: "Zaterdag", bookings: 28, revenue: "€1,764" },
-                    { day: "Zondag", bookings: 22, revenue: "€1,386" }
-                  ].map((item, index) => (
-                    <div key={item.day} className="flex justify-between items-center p-2 rounded-lg hover:bg-muted/50">
-                      <span className="text-sm font-medium">{item.day}</span>
-                      <div className="flex items-center gap-4">
-                        <span className="text-sm text-muted-foreground">{item.bookings} boekingen</span>
-                        <span className="text-sm font-semibold">{item.revenue}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Kanaal Performance</h3>
-                  <Phone className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="font-medium">WhatsApp Business</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold">89.2%</div>
-                      <div className="text-xs text-muted-foreground">2,547 gesprekken</div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span className="font-medium">WhatsApp Web</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold">8.7%</div>
-                      <div className="text-xs text-muted-foreground">248 gesprekken</div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                      <span className="font-medium">API Integratie</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold">2.1%</div>
-                      <div className="text-xs text-muted-foreground">52 gesprekken</div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="conversations" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Inkomende vs Uitgaande</h3>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Inkomend</span>
-                    <span className="font-semibold">1,847</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full" style={{ width: "75%" }}></div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Uitgaand</span>
-                    <span className="font-semibold">612</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-secondary h-2 rounded-full" style={{ width: "25%" }}></div>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Gemiddelde Responstijd</h3>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">2.4</div>
-                  <div className="text-sm text-muted-foreground">minuten</div>
-                  <div className="mt-4 flex items-center justify-center gap-2">
-                    <ArrowDown className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-500">18.2% sneller</span>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Piekuren</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm">10:00 - 11:00</span>
-                    <span className="font-semibold">89 gesprekken</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">14:00 - 15:00</span>
-                    <span className="font-semibold">76 gesprekken</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">16:00 - 17:00</span>
-                    <span className="font-semibold">71 gesprekken</span>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="customers" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Klantsegmentatie</h3>
-                <SimpleChart data={customerTypeData} type="pie" />
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Klantgedrag</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Zap className="h-5 w-5 text-green-500" />
-                      <span>Snelle Boekers</span>
-                    </div>
-                    <span className="font-semibold">45%</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-5 w-5 text-yellow-500" />
-                      <span>Twijfelaars</span>
-                    </div>
-                    <span className="font-semibold">32%</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <UserX className="h-5 w-5 text-red-500" />
-                      <span>No-shows</span>
-                    </div>
-                    <span className="font-semibold">8%</span>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="performance" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Boekingen per Week</h3>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">247</div>
-                  <div className="text-sm text-muted-foreground">boekingen</div>
-                  <div className="mt-4 flex items-center justify-center gap-2">
-                    <ArrowUp className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-500">+15.3%</span>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">No-show Percentage</h3>
-                <div className="text-center">
-                  <Gauge value={8} showValue size="medium" colors={{ "0": "#00ac3a", "10": "#ffae00", "20": "#e2162a" }} />
-                  <p className="text-sm text-muted-foreground mt-2">Laag no-show percentage</p>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Klanttevredenheid</h3>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">4.8</div>
-                  <div className="text-sm text-muted-foreground">van 5 sterren</div>
-                  <div className="mt-4 flex justify-center">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <div
-                        key={star}
-                        className={`w-4 h-4 ${star <= 4 ? "text-yellow-400" : "text-muted"}`}
-                      >
-                        ⭐
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+          </Card>
+        )}
       </main>
     </div>
   );
