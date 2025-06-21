@@ -7,6 +7,7 @@ import { useSettingsData } from '@/hooks/useSettingsData';
 import { DailyAvailability } from './DailyAvailability';
 import { DateOverrides } from './DateOverrides';
 import { Limits } from './Limits';
+import { Advanced } from './Advanced';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -136,6 +137,16 @@ export const AvailabilityManager = () => {
           >
             Limits
           </button>
+          <button
+            onClick={() => setActiveTab('advanced')}
+            className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'advanced'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Advanced
+          </button>
         </div>
       </div>
 
@@ -204,6 +215,12 @@ export const AvailabilityManager = () => {
         {activeTab === 'limits' && (
           <div className="max-w-4xl">
             <Limits onChange={() => setHasUnsavedChanges(true)} />
+          </div>
+        )}
+
+        {activeTab === 'advanced' && (
+          <div className="max-w-4xl">
+            <Advanced onChange={() => setHasUnsavedChanges(true)} />
           </div>
         )}
       </div>
