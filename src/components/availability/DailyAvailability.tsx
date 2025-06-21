@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Plus, Trash2 } from 'lucide-react';
 
 interface TimeBlock {
   id: string;
@@ -157,6 +157,41 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     onChange();
   };
 
+  const addTimeBlock = (dayKey: string) => {
+    setAvailability(prev => {
+      const currentBlocks = prev[dayKey].timeBlocks;
+      const newBlockId = `${dayKey}-${currentBlocks.length + 1}`;
+      const lastBlock = currentBlocks[currentBlocks.length - 1];
+      
+      return {
+        ...prev,
+        [dayKey]: {
+          ...prev[dayKey],
+          timeBlocks: [
+            ...currentBlocks,
+            {
+              id: newBlockId,
+              startTime: lastBlock?.endTime || '09:00',
+              endTime: '17:00'
+            }
+          ]
+        }
+      };
+    });
+    onChange();
+  };
+
+  const removeTimeBlock = (dayKey: string, blockId: string) => {
+    setAvailability(prev => ({
+      ...prev,
+      [dayKey]: {
+        ...prev[dayKey],
+        timeBlocks: prev[dayKey].timeBlocks.filter(block => block.id !== blockId)
+      }
+    }));
+    onChange();
+  };
+
   const toggleDropdown = (dropdownId: string) => {
     console.log('Toggling dropdown:', dropdownId, 'Current state:', openDropdowns[dropdownId]);
     setOpenDropdowns(prev => {
@@ -187,52 +222,97 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     <div className="space-y-6">
       {DAYS.map((day) => {
         const dayAvailability = availability[day.key];
-        const firstBlock = dayAvailability.timeBlocks[0];
-        const startDropdownId = `${day.key}-start`;
-        const endDropdownId = `${day.key}-end`;
         
         return (
-          <div key={day.key} className="flex items-center justify-between">
-            {/* Left side - Toggle and Day name */}
-            <div className="flex items-center space-x-4 min-w-[160px]">
-              <Switch
-                checked={dayAvailability.enabled}
-                onCheckedChange={(enabled) => updateDayEnabled(day.key, enabled)}
-                className="scale-110"
-              />
-              <span className={`text-base font-medium ${
-                dayAvailability.enabled 
-                  ? 'text-white' 
-                  : 'text-gray-400'
-              }`}>
-                {day.label}
-              </span>
-            </div>
+          <div key={day.key} className="space-y-3">
+            {/* Day header with toggle and name */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4 min-w-[160px]">
+                <Switch
+                  checked={dayAvailability.enabled}
+                  onCheckedChange={(enabled) => updateDayEnabled(day.key, enabled)}
+                  className="scale-110"
+                />
+                <span className={`text-base font-medium ${
+                  dayAvailability.enabled 
+                    ? 'text-white' 
+                    : 'text-gray-400'
+                }`}>
+                  {day.label}
+                </span>
+              </div>
 
-            {/* Right side - Time dropdowns */}
-            <div className="flex items-center space-x-4">
-              {dayAvailability.enabled && firstBlock ? (
-                <>
-                  <TimeDropdown
-                    value={firstBlock.startTime}
-                    onChange={(value) => updateTimeBlock(day.key, firstBlock.id, 'startTime', value)}
-                    isOpen={openDropdowns[startDropdownId] || false}
-                    onToggle={() => toggleDropdown(startDropdownId)}
-                    onClose={() => closeDropdown(startDropdownId)}
-                  />
-                  <span className="text-gray-400 text-lg">-</span>
-                  <TimeDropdown
-                    value={firstBlock.endTime}
-                    onChange={(value) => updateTimeBlock(day.key, firstBlock.id, 'endTime', value)}
-                    isOpen={openDropdowns[endDropdownId] || false}
-                    onToggle={() => toggleDropdown(endDropdownId)}
-                    onClose={() => closeDropdown(endDropdownId)}
-                  />
-                </>
-              ) : (
-                <div className="w-48" />
+              {/* Add new time slot button - only show when enabled */}
+              {dayAvailability.enabled && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addTimeBlock(day.key)}
+                  className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 text-xs px-3 py-1 h-8"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add new time slot
+                </Button>
               )}
             </div>
+
+            {/* Time blocks */}
+            {dayAvailability.enabled && (
+              <div className="space-y-2 ml-12">
+                {dayAvailability.timeBlocks.map((block, index) => {
+                  const startDropdownId = `${day.key}-${block.id}-start`;
+                  const endDropdownId = `${day.key}-${block.id}-end`;
+                  
+                  return (
+                    <div key={block.id} className="flex items-center space-x-4">
+                      {/* Time dropdowns */}
+                      <div className="flex items-center space-x-4">
+                        <TimeDropdown
+                          value={block.startTime}
+                          onChange={(value) => updateTimeBlock(day.key, block.id, 'startTime', value)}
+                          isOpen={openDropdowns[startDropdownId] || false}
+                          onToggle={() => toggleDropdown(startDropdownId)}
+                          onClose={() => closeDropdown(startDropdownId)}
+                        />
+                        <span className="text-gray-400 text-lg">-</span>
+                        <TimeDropdown
+                          value={block.endTime}
+                          onChange={(value) => updateTimeBlock(day.key, block.id, 'endTime', value)}
+                          isOpen={openDropdowns[endDropdownId] || false}
+                          onToggle={() => toggleDropdown(endDropdownId)}
+                          onClose={() => closeDropdown(endDropdownId)}
+                        />
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex items-center space-x-2">
+                        {/* Add button for additional time slots */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addTimeBlock(day.key)}
+                          className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 p-2 h-8 w-8"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+
+                        {/* Delete button - only show if more than one time block */}
+                        {dayAvailability.timeBlocks.length > 1 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeTimeBlock(day.key, block.id)}
+                            className="bg-gray-800 border-gray-600 text-red-400 hover:bg-red-900/20 hover:border-red-500 p-2 h-8 w-8"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
