@@ -1,18 +1,27 @@
 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { useBookingData } from '@/hooks/useBookingData';
-import { useAuth } from '@/hooks/useAuth';
 
-interface MonthViewProps {
-  currentDate: Date;
-  companyId?: string;
+interface Booking {
+  id: string;
+  start_time: string;
+  end_time: string;
+  customer_name: string;
+  customer_phone: string | null;
+  status: string;
+  service_types?: {
+    name: string;
+    color: string;
+    duration: number;
+  } | null;
 }
 
-export function MonthView({ currentDate, companyId }: MonthViewProps) {
-  const { user } = useAuth();
-  const { bookings, loading, error, getBookingsForDate, formatBookingTime } = useBookingData(companyId);
-  
+interface MonthViewProps {
+  bookings: Booking[];
+  currentDate: Date;
+}
+
+export function MonthView({ bookings, currentDate }: MonthViewProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -21,27 +30,11 @@ export function MonthView({ currentDate, companyId }: MonthViewProps) {
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
   const weekDays = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
 
-  if (loading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-lg text-gray-300">Kalender laden...</div>
-        </div>
-      </div>
+  const getBookingsForDay = (day: Date) => {
+    return bookings.filter(booking => 
+      isSameDay(new Date(booking.start_time), day)
     );
-  }
-
-  if (error) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg text-red-400 mb-2">Fout bij laden kalender</div>
-          <div className="text-sm text-gray-400">{error}</div>
-        </div>
-      </div>
-    );
-  }
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -57,7 +50,7 @@ export function MonthView({ currentDate, companyId }: MonthViewProps) {
       {/* Calendar grid */}
       <div className="grid grid-cols-7 flex-1 gap-1">
         {days.map(day => {
-          const dayBookings = getBookingsForDate(day);
+          const dayBookings = getBookingsForDay(day);
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isToday = isSameDay(day, new Date());
 
@@ -78,19 +71,14 @@ export function MonthView({ currentDate, companyId }: MonthViewProps) {
                 {dayBookings.slice(0, 3).map(booking => (
                   <div
                     key={booking.id}
-                    className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity"
+                    className="text-xs p-1 rounded truncate"
                     style={{
-                      backgroundColor: booking.appointment_types?.color || '#10B981',
+                      backgroundColor: booking.service_types?.color || '#10B981',
                       color: 'white'
                     }}
-                    title={`${formatBookingTime(booking.start_time, booking.end_time)} - ${booking.booked_by_name} (${booking.appointment_types?.name || 'Afspraak'})`}
+                    title={`${format(new Date(booking.start_time), 'HH:mm')} - ${booking.customer_name} (${booking.service_types?.name || 'Afspraak'})`}
                   >
-                    <div className="font-medium truncate">
-                      {format(new Date(booking.start_time), 'HH:mm')} {booking.booked_by_name}
-                    </div>
-                    <div className="text-xs opacity-75 truncate">
-                      {booking.appointment_types?.name || 'Afspraak'}
-                    </div>
+                    {format(new Date(booking.start_time), 'HH:mm')} {booking.customer_name}
                   </div>
                 ))}
                 {dayBookings.length > 3 && (
