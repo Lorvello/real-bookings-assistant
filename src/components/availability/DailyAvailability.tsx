@@ -28,7 +28,11 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     };
     
     setAvailability(newAvailability);
-    await syncToDatabase(dayKey, newAvailability[dayKey]);
+    
+    // Debounce to prevent rapid consecutive calls
+    setTimeout(() => {
+      syncToDatabase(dayKey, newAvailability[dayKey]);
+    }, 500);
   };
 
   const updateTimeBlock = async (dayKey: string, blockId: string, field: 'startTime' | 'endTime', value: string) => {
@@ -44,10 +48,10 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     
     setAvailability(newAvailability);
     
-    // Debounce the database sync to prevent excessive API calls
+    // Longer debounce for time changes to prevent excessive API calls
     setTimeout(() => {
       syncToDatabase(dayKey, newAvailability[dayKey]);
-    }, 1000);
+    }, 1500);
   };
 
   const addTimeBlock = async (dayKey: string) => {
@@ -71,10 +75,18 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     };
     
     setAvailability(newAvailability);
+    
+    // Immediate sync for adding blocks
     await syncToDatabase(dayKey, newAvailability[dayKey]);
   };
 
   const removeTimeBlock = async (dayKey: string, blockId: string) => {
+    // Don't allow removing the last time block
+    if (availability[dayKey].timeBlocks.length <= 1) {
+      console.log('Cannot remove the last time block');
+      return;
+    }
+    
     const newAvailability = {
       ...availability,
       [dayKey]: {
@@ -84,6 +96,8 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     };
     
     setAvailability(newAvailability);
+    
+    // Immediate sync for removing blocks
     await syncToDatabase(dayKey, newAvailability[dayKey]);
   };
 

@@ -57,6 +57,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
   });
 
   const [pendingUpdates, setPendingUpdates] = useState<Set<string>>(new Set());
+  const [syncing, setSyncing] = useState<Set<string>>(new Set());
 
   // Convert database rules to UI availability format
   const availabilityFromRules = useMemo(() => {
@@ -102,36 +103,59 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     setAvailability(availabilityFromRules);
   }, [availabilityFromRules]);
 
-  // Improved sync function with better conflict handling
+  // Improved sync function with sequential operations to prevent conflicts
   const syncToDatabase = async (dayKey: string, dayData: DayAvailability) => {
     if (!defaultSchedule?.id) return;
     
     const day = DAYS.find(d => d.key === dayKey);
     if (!day) return;
 
+    // Prevent concurrent syncs for the same day
+    if (syncing.has(dayKey)) {
+      console.log(`Sync already in progress for ${dayKey}, skipping...`);
+      return;
+    }
+
     const updateId = `${dayKey}-${Date.now()}`;
     setPendingUpdates(prev => new Set(prev).add(updateId));
+    setSyncing(prev => new Set(prev).add(dayKey));
 
     try {
+      console.log(`Starting sync for ${dayKey}:`, dayData);
+      
       // Get existing rules for this day
       const existingRules = rules.filter(rule => rule.day_of_week === day.dayOfWeek);
+      console.log(`Found ${existingRules.length} existing rules for ${dayKey}`);
       
-      // Delete all existing rules for this day first
-      const deletePromises = existingRules.map(rule => deleteRule(rule.id));
-      await Promise.all(deletePromises);
+      // Delete all existing rules for this day first (sequential to avoid conflicts)
+      for (const rule of existingRules) {
+        console.log(`Deleting rule ${rule.id} for ${dayKey}`);
+        await deleteRule(rule.id);
+      }
+
+      // Wait a bit to ensure deletions are processed
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       if (dayData.enabled && dayData.timeBlocks.length > 0) {
-        // Create new rules for each time block
-        const createPromises = dayData.timeBlocks.map(timeBlock => 
-          createRule({
-            day_of_week: day.dayOfWeek,
-            start_time: timeBlock.startTime,
-            end_time: timeBlock.endTime,
-            is_available: true
-          })
-        );
-        await Promise.all(createPromises);
+        console.log(`Creating ${dayData.timeBlocks.length} new rules for ${dayKey}`);
+        
+        // Create new rules sequentially to avoid conflicts
+        for (const timeBlock of dayData.timeBlocks) {
+          console.log(`Creating rule for ${dayKey}: ${timeBlock.startTime} - ${timeBlock.endTime}`);
+          try {
+            await createRule({
+              day_of_week: day.dayOfWeek,
+              start_time: timeBlock.startTime,
+              end_time: timeBlock.endTime,
+              is_available: true
+            });
+          } catch (createError) {
+            console.error(`Error creating rule for ${dayKey}:`, createError);
+            // Continue with other time blocks even if one fails
+          }
+        }
       } else {
+        console.log(`Creating unavailable rule for ${dayKey}`);
         // Create an unavailable rule for the day
         await createRule({
           day_of_week: day.dayOfWeek,
@@ -141,21 +165,29 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
         });
       }
       
+      console.log(`Sync completed successfully for ${dayKey}`);
       onChange();
     } catch (error) {
-      console.error('Error syncing to database:', error);
-      // Show user-friendly error message
-      if (error instanceof Error && error.message.includes('duplicate key')) {
-        console.warn('Detected duplicate key error, this might be due to concurrent updates');
-        // Retry after a short delay
-        setTimeout(() => {
-          syncToDatabase(dayKey, dayData);
-        }, 1000);
+      console.error(`Error syncing ${dayKey} to database:`, error);
+      
+      // Enhanced error handling
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate key')) {
+          console.warn('Detected duplicate key error for', dayKey);
+          // Don't retry immediately, let the user try again
+        } else if (error.message.includes('violates unique constraint')) {
+          console.warn('Unique constraint violation for', dayKey);
+        }
       }
     } finally {
       setPendingUpdates(prev => {
         const newSet = new Set(prev);
         newSet.delete(updateId);
+        return newSet;
+      });
+      setSyncing(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(dayKey);
         return newSet;
       });
     }
