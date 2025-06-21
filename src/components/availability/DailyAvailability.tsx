@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AvailabilityDayRow } from './AvailabilityDayRow';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
@@ -43,7 +44,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     
     setAvailability(newAvailability);
     
-    // Debounce the database sync
+    // Debounce the database sync to prevent excessive API calls
     setTimeout(() => {
       syncToDatabase(dayKey, newAvailability[dayKey]);
     }, 1000);
@@ -51,7 +52,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
 
   const addTimeBlock = async (dayKey: string) => {
     const currentBlocks = availability[dayKey].timeBlocks;
-    const newBlockId = `${dayKey}-${currentBlocks.length + 1}`;
+    const newBlockId = `${dayKey}-${Date.now()}`; // Use timestamp for unique ID
     const lastBlock = currentBlocks[currentBlocks.length - 1];
     
     const newAvailability = {

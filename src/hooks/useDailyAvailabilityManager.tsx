@@ -102,7 +102,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     setAvailability(availabilityFromRules);
   }, [availabilityFromRules]);
 
-  // Sync function with debouncing
+  // Improved sync function with better conflict handling
   const syncToDatabase = async (dayKey: string, dayData: DayAvailability) => {
     if (!defaultSchedule?.id) return;
     
@@ -113,12 +113,15 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     setPendingUpdates(prev => new Set(prev).add(updateId));
 
     try {
+      // Get existing rules for this day
       const existingRules = rules.filter(rule => rule.day_of_week === day.dayOfWeek);
       
+      // Delete all existing rules for this day first
       const deletePromises = existingRules.map(rule => deleteRule(rule.id));
       await Promise.all(deletePromises);
 
       if (dayData.enabled && dayData.timeBlocks.length > 0) {
+        // Create new rules for each time block
         const createPromises = dayData.timeBlocks.map(timeBlock => 
           createRule({
             day_of_week: day.dayOfWeek,
@@ -129,6 +132,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
         );
         await Promise.all(createPromises);
       } else {
+        // Create an unavailable rule for the day
         await createRule({
           day_of_week: day.dayOfWeek,
           start_time: '09:00',
@@ -140,6 +144,14 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       onChange();
     } catch (error) {
       console.error('Error syncing to database:', error);
+      // Show user-friendly error message
+      if (error instanceof Error && error.message.includes('duplicate key')) {
+        console.warn('Detected duplicate key error, this might be due to concurrent updates');
+        // Retry after a short delay
+        setTimeout(() => {
+          syncToDatabase(dayKey, dayData);
+        }, 1000);
+      }
     } finally {
       setPendingUpdates(prev => {
         const newSet = new Set(prev);
