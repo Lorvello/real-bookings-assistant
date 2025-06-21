@@ -35,7 +35,16 @@ export function useDashboardAnalytics(calendarId?: string) {
       });
 
       if (error) throw error;
-      return data as DashboardMetrics;
+      return (data as unknown as DashboardMetrics) || {
+        today_bookings: 0,
+        pending_bookings: 0,
+        week_bookings: 0,
+        month_bookings: 0,
+        total_revenue: 0,
+        conversion_rate: 0,
+        avg_response_time: 0,
+        last_updated: new Date().toISOString(),
+      };
     },
     enabled: !!calendarId,
     staleTime: 30000, // 30 seconds
