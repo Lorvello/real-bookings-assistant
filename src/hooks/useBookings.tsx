@@ -60,7 +60,13 @@ export const useBookings = (calendarId?: string) => {
           return;
         }
 
-        setBookings(data || []);
+        // Transform data to match our interface
+        const transformedBookings: BookingData[] = (data || []).map(booking => ({
+          ...booking,
+          status: booking.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
+        }));
+
+        setBookings(transformedBookings);
       } catch (err) {
         console.error('Error in fetchBookings:', err);
         setError('Er is een onverwachte fout opgetreden');
@@ -86,11 +92,19 @@ export const useBookings = (calendarId?: string) => {
           console.log('Real-time booking update:', payload);
           
           if (payload.eventType === 'INSERT') {
-            setBookings(prev => [...prev, payload.new as BookingData]);
+            const newBooking = {
+              ...payload.new,
+              status: payload.new.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
+            } as BookingData;
+            setBookings(prev => [...prev, newBooking]);
           } else if (payload.eventType === 'UPDATE') {
+            const updatedBooking = {
+              ...payload.new,
+              status: payload.new.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
+            } as BookingData;
             setBookings(prev => 
               prev.map(booking => 
-                booking.id === payload.new.id ? { ...booking, ...payload.new } : booking
+                booking.id === updatedBooking.id ? { ...booking, ...updatedBooking } : booking
               )
             );
           } else if (payload.eventType === 'DELETE') {

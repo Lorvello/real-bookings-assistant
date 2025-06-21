@@ -1,5 +1,5 @@
 
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, eachHourOfInterval, startOfDay, endOfDay, isSameDay, isToday } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
 interface Booking {
@@ -7,7 +7,7 @@ interface Booking {
   start_time: string;
   end_time: string;
   customer_name: string;
-  customer_phone: string | null;
+  customer_phone?: string;
   status: string;
   service_types?: {
     name: string;
@@ -110,15 +110,15 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
   const timeSlots = generateTimeSlots(7, 22, 30); // 7:00 - 22:00, 30 min slots
 
   return (
-    <div className="h-full overflow-auto">
+    <div className="h-full overflow-auto bg-card">
       {/* Fixed header with days */}
-      <div className="sticky top-0 z-20 bg-gray-800 border-b border-gray-700">
+      <div className="sticky top-0 z-20 bg-card border-b border-border">
         <div className="grid grid-cols-8 gap-px">
           <div className="w-16"></div> {/* Time column */}
           {weekDays.map((day) => (
             <div key={day.toISOString()} className="text-center py-3 px-2">
-              <div className="text-xs text-gray-400">{format(day, 'EEE', { locale: nl })}</div>
-              <div className={`text-lg font-semibold ${isToday(day) ? 'text-green-400' : 'text-white'}`}>
+              <div className="text-xs text-muted-foreground">{format(day, 'EEE', { locale: nl })}</div>
+              <div className={`text-lg font-semibold ${isToday(day) ? 'text-primary' : 'text-foreground'}`}>
                 {format(day, 'd')}
               </div>
             </div>
@@ -130,9 +130,9 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
       <div className="relative">
         {/* Time slots */}
         {timeSlots.map((timeSlot) => (
-          <div key={timeSlot} className="grid grid-cols-8 gap-px border-b border-gray-700">
+          <div key={timeSlot} className="grid grid-cols-8 gap-px border-b border-border">
             {/* Time label */}
-            <div className="w-16 py-4 px-2 text-xs text-gray-400 text-right">
+            <div className="w-16 py-4 px-2 text-xs text-muted-foreground text-right">
               {timeSlot}
             </div>
             
@@ -143,7 +143,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
               return (
                 <div
                   key={`${day.toISOString()}-${timeSlot}`}
-                  className="relative bg-gray-900 hover:bg-gray-800 transition-colors min-h-[60px]"
+                  className="relative bg-card hover:bg-accent transition-colors min-h-[60px]"
                 >
                   {dayBookings.map((booking) => (
                     <BookingBlock

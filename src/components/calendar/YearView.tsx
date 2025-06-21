@@ -7,7 +7,7 @@ interface Booking {
   start_time: string;
   end_time: string;
   customer_name: string;
-  customer_phone: string | null;
+  customer_phone?: string;
   status: string;
   service_types?: {
     name: string;
@@ -50,18 +50,18 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
     const weekDays = ['M', 'D', 'W', 'D', 'V', 'Z', 'Z'];
 
     return (
-      <div className="bg-gray-900 border border-gray-700 rounded-lg p-3">
-        <div className="text-sm font-medium text-white mb-2 text-center">
+      <div className="bg-card border border-border rounded-lg p-3">
+        <div className="text-sm font-medium text-foreground mb-2 text-center">
           {format(month, 'MMMM', { locale: nl })}
         </div>
-        <div className="text-xs text-gray-400 mb-1 text-center">
+        <div className="text-xs text-muted-foreground mb-1 text-center">
           {getBookingsCountForMonth(month)} afspraken
         </div>
         
         {/* Mini calendar grid */}
         <div className="grid grid-cols-7 gap-px">
           {weekDays.map(day => (
-            <div key={day} className="text-xs text-gray-500 text-center p-1">
+            <div key={day} className="text-xs text-muted-foreground text-center p-1">
               {day}
             </div>
           ))}
@@ -77,11 +77,11 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
                 className={`text-xs text-center p-1 ${
                   isCurrentMonth 
                     ? hasBookings 
-                      ? 'bg-green-600 text-white rounded' 
+                      ? 'bg-primary text-primary-foreground rounded' 
                       : isToday 
-                        ? 'bg-gray-700 text-green-400 rounded' 
-                        : 'text-gray-300'
-                    : 'text-gray-600 opacity-50'
+                        ? 'bg-accent text-primary rounded' 
+                        : 'text-foreground'
+                    : 'text-muted-foreground opacity-50'
                 }`}
                 title={hasBookings ? `${dayBookings.length} afspraak${dayBookings.length > 1 ? 'en' : ''}` : ''}
               >
@@ -95,40 +95,40 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
   };
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-2">
+    <div className="h-full overflow-y-auto bg-card p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {months.map(month => (
           <MiniMonth key={month.toISOString()} month={month} />
         ))}
       </div>
       
       {/* Year summary */}
-      <div className="mt-6 p-4 bg-gray-900 border border-gray-700 rounded-lg">
-        <h3 className="text-lg font-semibold text-white mb-2">
+      <div className="mt-6 p-4 bg-card border border-border rounded-lg">
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           Jaaroverzicht {format(currentDate, 'yyyy')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{bookings.length}</div>
-            <div className="text-gray-400">Totaal afspraken</div>
+            <div className="text-2xl font-bold text-primary">{bookings.length}</div>
+            <div className="text-muted-foreground">Totaal afspraken</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-primary">
               {bookings.filter(b => b.status === 'confirmed').length}
             </div>
-            <div className="text-gray-400">Bevestigd</div>
+            <div className="text-muted-foreground">Bevestigd</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-primary">
               {bookings.filter(b => b.status === 'completed').length}
             </div>
-            <div className="text-gray-400">Voltooid</div>
+            <div className="text-muted-foreground">Voltooid</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-primary">
               {Math.round((bookings.filter(b => b.status === 'completed').length / bookings.length) * 100) || 0}%
             </div>
-            <div className="text-gray-400">Success rate</div>
+            <div className="text-muted-foreground">Success rate</div>
           </div>
         </div>
       </div>
