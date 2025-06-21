@@ -35,6 +35,14 @@ const DAYS_OF_WEEK = [
   { key: 0, label: 'Zondag', short: 'Zo' },
 ];
 
+// Helper function to format time to HH:MM
+const formatTimeToHHMM = (timeString: string): string => {
+  if (!timeString) return '09:00';
+  if (timeString.match(/^\d{2}:\d{2}$/)) return timeString;
+  if (timeString.match(/^\d{2}:\d{2}:\d{2}$/)) return timeString.substring(0, 5);
+  return timeString;
+};
+
 export function WeekScheduleView({
   scheduleId,
   rules,
@@ -67,16 +75,20 @@ export function WeekScheduleView({
   const handleTimeUpdate = async (dayOfWeek: number, startTime: string, endTime: string) => {
     const existingRule = getRuleForDay(dayOfWeek);
     
+    // Ensure times are in HH:MM format
+    const formattedStartTime = formatTimeToHHMM(startTime);
+    const formattedEndTime = formatTimeToHHMM(endTime);
+    
     if (existingRule) {
       await onRuleUpdate(existingRule.id, { 
-        start_time: startTime, 
-        end_time: endTime 
+        start_time: formattedStartTime, 
+        end_time: formattedEndTime 
       });
     } else {
       await onRuleCreate({
         day_of_week: dayOfWeek,
-        start_time: startTime,
-        end_time: endTime,
+        start_time: formattedStartTime,
+        end_time: formattedEndTime,
         is_available: true
       });
     }
@@ -110,8 +122,8 @@ export function WeekScheduleView({
           {DAYS_OF_WEEK.map((day) => {
             const rule = getRuleForDay(day.key);
             const isAvailable = rule?.is_available || false;
-            const startTime = rule?.start_time || '09:00';
-            const endTime = rule?.end_time || '17:00';
+            const startTime = formatTimeToHHMM(rule?.start_time || '09:00');
+            const endTime = formatTimeToHHMM(rule?.end_time || '17:00');
 
             return (
               <div

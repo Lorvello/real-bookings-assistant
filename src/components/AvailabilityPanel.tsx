@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
@@ -10,6 +11,14 @@ import { OverrideManager } from './availability/OverrideManager';
 interface AvailabilityPanelProps {
   calendarId: string;
 }
+
+// Helper function to format time to HH:MM
+const formatTimeToHHMM = (timeString: string): string => {
+  if (!timeString) return '09:00';
+  if (timeString.match(/^\d{2}:\d{2}$/)) return timeString;
+  if (timeString.match(/^\d{2}:\d{2}:\d{2}$/)) return timeString.substring(0, 5);
+  return timeString;
+};
 
 export function AvailabilityPanel({ calendarId }: AvailabilityPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -180,8 +189,8 @@ function DayAvailability({
   initialRule?: any;
 }) {
   const [isAvailable, setIsAvailable] = useState(initialRule?.is_available ?? true);
-  const [startTime, setStartTime] = useState(initialRule?.start_time || '09:00');
-  const [endTime, setEndTime] = useState(initialRule?.end_time || '17:00');
+  const [startTime, setStartTime] = useState(formatTimeToHHMM(initialRule?.start_time || '09:00'));
+  const [endTime, setEndTime] = useState(formatTimeToHHMM(initialRule?.end_time || '17:00'));
   const [hasChanges, setHasChanges] = useState(false);
   
   const { updateRule, createRule } = useAvailabilityRules(scheduleId);
@@ -191,8 +200,8 @@ function DayAvailability({
   useEffect(() => {
     const changed = 
       isAvailable !== (initialRule?.is_available ?? true) ||
-      startTime !== (initialRule?.start_time || '09:00') ||
-      endTime !== (initialRule?.end_time || '17:00');
+      startTime !== formatTimeToHHMM(initialRule?.start_time || '09:00') ||
+      endTime !== formatTimeToHHMM(initialRule?.end_time || '17:00');
     setHasChanges(changed);
   }, [isAvailable, startTime, endTime, initialRule]);
 
@@ -256,14 +265,14 @@ function DayAvailability({
           <input
             type="time"
             value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
+            onChange={(e) => setStartTime(formatTimeToHHMM(e.target.value))}
             className="flex-1 px-2 py-1 bg-background border border-border rounded text-foreground focus:border-primary focus:outline-none"
           />
           <span className="text-muted-foreground">-</span>
           <input
             type="time"
             value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
+            onChange={(e) => setEndTime(formatTimeToHHMM(e.target.value))}
             className="flex-1 px-2 py-1 bg-background border border-border rounded text-foreground focus:border-primary focus:outline-none"
           />
         </div>
