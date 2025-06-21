@@ -1,22 +1,27 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, MessageCircle, Clock } from 'lucide-react';
+import { Search, MessageCircle, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { useWhatsAppRealtimeUpdates } from '@/hooks/useWhatsAppRealtimeUpdates';
 
 interface ConversationsListProps {
   calendarId: string;
+  selectedConversationId: string | null;
+  onConversationSelect: (id: string | null) => void;
 }
 
-export function ConversationsList({ calendarId }: ConversationsListProps) {
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+export function ConversationsList({ 
+  calendarId, 
+  selectedConversationId, 
+  onConversationSelect 
+}: ConversationsListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'archived'>('all');
 
@@ -60,6 +65,8 @@ export function ConversationsList({ calendarId }: ConversationsListProps) {
       if (!conversations) return {};
       
       const conversationIds = conversations.map(c => c.id);
+      if (conversationIds.length === 0) return {};
+      
       const { data, error } = await supabase
         .from('whatsapp_messages')
         .select('conversation_id, direction')
@@ -179,7 +186,7 @@ export function ConversationsList({ calendarId }: ConversationsListProps) {
                     ? 'bg-blue-50 border-blue-200' 
                     : 'bg-white hover:bg-gray-50 border-gray-200'
                 }`}
-                onClick={() => setSelectedConversationId(conversation.id)}
+                onClick={() => onConversationSelect(conversation.id)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
@@ -239,6 +246,9 @@ export function ConversationsList({ calendarId }: ConversationsListProps) {
               <p>Geen conversaties gevonden</p>
               {searchTerm && (
                 <p className="text-sm mt-1">Probeer een andere zoekterm</p>
+              )}
+              {!searchTerm && conversations?.length === 0 && (
+                <p className="text-sm mt-1">Start uw eerste WhatsApp gesprek om te beginnen</p>
               )}
             </div>
           )}

@@ -4,19 +4,17 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { User, Calendar, MessageCircle, Phone, Mail, Clock, History } from 'lucide-react';
+import { User, Phone, Clock, MessageSquare, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
 interface ContactSidebarProps {
-  conversationId?: string;
+  conversationId: string | null;
 }
 
 export function ContactSidebar({ conversationId }: ContactSidebarProps) {
   const { data: conversation } = useQuery({
-    queryKey: ['whatsapp-conversation-details', conversationId],
+    queryKey: ['whatsapp-conversation-detail', conversationId],
     queryFn: async () => {
       if (!conversationId) return null;
       
@@ -31,9 +29,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
             first_name,
             last_name,
             profile_picture_url,
-            linked_customer_email,
-            last_seen_at,
-            created_at
+            last_seen_at
           )
         `)
         .eq('id', conversationId)
@@ -45,54 +41,37 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
     enabled: !!conversationId,
   });
 
-  const { data: bookingHistory } = useQuery({
-    queryKey: ['customer-bookings', conversation?.whatsapp_contacts?.phone_number],
-    queryFn: async () => {
-      if (!conversation?.whatsapp_contacts?.phone_number) return [];
-      
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          service_types (
-            name,
-            duration,
-            price
-          )
-        `)
-        .eq('customer_phone', conversation.whatsapp_contacts.phone_number)
-        .order('created_at', { ascending: false })
-        .limit(5);
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!conversation?.whatsapp_contacts?.phone_number,
-  });
-
   const { data: messageStats } = useQuery({
-    queryKey: ['conversation-stats', conversationId],
+    queryKey: ['whatsapp-message-stats', conversationId],
     queryFn: async () => {
       if (!conversationId) return null;
       
       const { data, error } = await supabase
         .from('whatsapp_messages')
-        .select('direction, created_at')
+        .select('id, direction, created_at')
         .eq('conversation_id', conversationId);
       
       if (error) throw error;
       
-      const totalMessages = data.length;
-      const inboundMessages = data.filter(m => m.direction === 'inbound').length;
-      const outboundMessages = data.filter(m => m.direction === 'outbound').length;
-      const firstMessage = data.length > 0 ? data[data.length - 1].created_at : null;
+      const total = data?.length || 0;
+      const inbound = data?.filter(m => m.direction === 'inbound').length || 0;
+      const outbound = data?.filter(m => m.direction === 'outbound').length || 0;
       
-      return {
-        total: totalMessages,
-        inbound: inboundMessages,
-        outbound: outboundMessages,
-        firstMessage,
-      };
+      // Calculate conversation duration
+      const messages = data?.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      const firstMessage = messages?.[0];
+      const lastMessage = messages?.[messages.length - 1];
+      
+      let duration = 'Geen berichten';
+      if (firstMessage && lastMessage && messages.length > 1) {
+        const start = new Date(firstMessage.created_at);
+        const end = new Date(lastMessage.created_at);
+        const diffMs = end.getTime() - start.getTime();
+        const diffMins = Math.round(diffMs / (1000 * 60));
+        duration = diffMins > 60 ? `${Math.round(diffMins / 60)} uur` : `${diffMins} min`;
+      }
+      
+      return { total, inbound, outbound, duration };
     },
     enabled: !!conversationId,
   });
@@ -103,7 +82,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         <CardContent className="flex items-center justify-center h-full">
           <div className="text-center text-gray-500">
             <User className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>Selecteer een conversatie om contactgegevens te bekijken</p>
+            <p>Selecteer een conversatie om contact informatie te bekijken</p>
           </div>
         </CardContent>
       </Card>
@@ -113,150 +92,104 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
   const contact = conversation?.whatsapp_contacts;
 
   return (
-    <div className="space-y-6 h-full overflow-y-auto">
-      {/* Contact Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Contact Informatie
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-lg font-medium text-blue-600">
-                {contact?.display_name?.[0] || contact?.first_name?.[0] || '?'}
-              </span>
-            </div>
-            <div>
-              <h3 className="font-medium">
-                {contact?.display_name || 
-                 `${contact?.first_name || ''} ${contact?.last_name || ''}`.trim() || 
-                 'Onbekende contactpersoon'}
-              </h3>
-              <p className="text-sm text-gray-500">WhatsApp Contact</p>
-            </div>
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="text-gray-900">Contact Informatie</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <span className="text-xl font-medium text-blue-600">
+              {contact?.display_name?.[0] || contact?.first_name?.[0] || '?'}
+            </span>
           </div>
-          
-          <Separator />
-          
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-gray-900">
+            {contact?.display_name || 
+             `${contact?.first_name || ''} ${contact?.last_name || ''}`.trim() || 
+             'Onbekend contact'}
+          </h3>
+        </div>
+        
+        <div className="space-y-3">
+          {contact?.phone_number && (
+            <div className="flex items-center gap-3 text-gray-700">
               <Phone className="h-4 w-4 text-gray-400" />
-              <span className="text-sm">{contact?.phone_number}</span>
+              <span className="text-sm">{contact.phone_number}</span>
             </div>
-            
-            {contact?.linked_customer_email && (
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-gray-400" />
-                <span className="text-sm">{contact.linked_customer_email}</span>
-              </div>
-            )}
-            
-            {contact?.last_seen_at && (
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-gray-400" />
-                <span className="text-sm">
-                  Laatst gezien {formatDistanceToNow(new Date(contact.last_seen_at), { 
+          )}
+          
+          {contact?.last_seen_at && (
+            <div className="flex items-center gap-3 text-gray-700">
+              <Clock className="h-4 w-4 text-gray-400" />
+              <div className="text-sm">
+                <p>Laatst gezien:</p>
+                <p className="text-gray-500">
+                  {formatDistanceToNow(new Date(contact.last_seen_at), { 
                     addSuffix: true, 
                     locale: nl 
                   })}
-                </span>
+                </p>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Conversation Stats */}
-      {messageStats && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              Gesprek Statistieken
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-2 bg-gray-50 rounded">
-                <div className="text-lg font-bold text-blue-600">{messageStats.total}</div>
-                <div className="text-xs text-gray-500">Totaal</div>
-              </div>
-              <div className="text-center p-2 bg-gray-50 rounded">
-                <div className="text-lg font-bold text-green-600">{messageStats.inbound}</div>
-                <div className="text-xs text-gray-500">Inkomend</div>
-              </div>
-            </div>
-            
-            {messageStats.firstMessage && (
-              <div className="text-center text-sm text-gray-500">
-                Gesprek gestart {formatDistanceToNow(new Date(messageStats.firstMessage), { 
-                  addSuffix: true, 
-                  locale: nl 
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Booking History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <History className="h-5 w-5" />
-            Afspraak Geschiedenis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {bookingHistory?.length === 0 ? (
-            <div className="text-center py-4 text-gray-500">
-              <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Geen afspraken gevonden</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {bookingHistory?.map((booking) => (
-                <div key={booking.id} className="p-3 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-sm">
-                      {booking.service_types?.name || 'Afspraak'}
-                    </h4>
-                    <Badge 
-                      variant={
-                        booking.status === 'confirmed' ? 'default' :
-                        booking.status === 'cancelled' ? 'destructive' :
-                        'secondary'
-                      }
-                    >
-                      {booking.status}
-                    </Badge>
-                  </div>
-                  
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <div>{new Date(booking.start_time).toLocaleDateString('nl-NL')}</div>
-                    <div>{new Date(booking.start_time).toLocaleTimeString('nl-NL', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}</div>
-                    {booking.service_types?.price && (
-                      <div>€{booking.service_types.price}</div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              
-              {bookingHistory && bookingHistory.length >= 5 && (
-                <Button variant="outline" size="sm" className="w-full">
-                  Meer afspraken bekijken
-                </Button>
-              )}
             </div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+          
+          {conversation?.status && (
+            <div className="flex items-center gap-3 text-gray-700">
+              <MessageSquare className="h-4 w-4 text-gray-400" />
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Status:</span>
+                <Badge 
+                  variant={conversation.status === 'active' ? 'default' : 'secondary'}
+                  className="text-xs"
+                >
+                  {conversation.status}
+                </Badge>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {messageStats && (
+          <div className="pt-4 border-t border-gray-200">
+            <h4 className="font-medium text-gray-900 mb-2">Gesprek Statistieken</h4>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span>Totaal berichten:</span>
+                <span className="font-medium">{messageStats.total}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Inkomende berichten:</span>
+                <span className="font-medium">{messageStats.inbound}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Uitgaande berichten:</span>
+                <span className="font-medium">{messageStats.outbound}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Gesprek duur:</span>
+                <span className="font-medium">{messageStats.duration}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {conversation?.created_at && (
+          <div className="pt-4 border-t border-gray-200">
+            <div className="flex items-center gap-3 text-gray-700">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              <div className="text-sm">
+                <p>Gesprek gestart:</p>
+                <p className="text-gray-500">
+                  {formatDistanceToNow(new Date(conversation.created_at), { 
+                    addSuffix: true, 
+                    locale: nl 
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

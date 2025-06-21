@@ -1,8 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -11,17 +9,25 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { MessageSquare, Clock, User as UserIcon, CalendarIcon, Filter, TrendingUp } from 'lucide-react';
+import { MessageSquare, Clock, User as UserIcon, CalendarIcon, TrendingUp, AlertCircle } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { ConversationCalendarProvider, useConversationCalendar } from '@/contexts/ConversationCalendarContext';
+import { useWhatsAppConversationMetrics } from '@/hooks/useWhatsAppConversationMetrics';
+import { useWhatsAppConversationsList } from '@/hooks/useWhatsAppConversationsList';
+import { WhatsAppDashboard } from '@/components/whatsapp/WhatsAppDashboard';
 
-const Conversations = () => {
+const ConversationsContent = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { selectedCalendarId, calendars, setSelectedCalendarId } = useConversationCalendar();
+  
   const [timeFilter, setTimeFilter] = useState('week');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed' | 'archived'>('all');
 
   // Redirect if not authenticated
   React.useEffect(() => {
@@ -50,65 +56,18 @@ const Conversations = () => {
     }
   };
 
-  // Mock data for conversations with enhanced details
-  const conversations = [
-    {
-      id: 1,
-      customer: 'John Smith',
-      email: 'john@example.com',
-      message: 'Can I book a meeting for next Tuesday at 2 PM?',
-      time: '2 minutes ago',
-      status: 'resolved',
-      responses: 3,
-      lastActivity: new Date(Date.now() - 2 * 60 * 1000)
-    },
-    {
-      id: 2,
-      customer: 'Sarah Johnson',
-      email: 'sarah@example.com',
-      message: 'What are your available hours this week?',
-      time: '15 minutes ago',
-      status: 'active',
-      responses: 5,
-      lastActivity: new Date(Date.now() - 15 * 60 * 1000)
-    },
-    {
-      id: 3,
-      customer: 'Mike Wilson',
-      email: 'mike@example.com',
-      message: 'I need to reschedule my appointment from Friday',
-      time: '1 hour ago',
-      status: 'resolved',
-      responses: 2,
-      lastActivity: new Date(Date.now() - 60 * 60 * 1000)
-    },
-    {
-      id: 4,
-      customer: 'Emma Davis',
-      email: 'emma@example.com',
-      message: 'Do you offer weekend appointments?',
-      time: '2 hours ago',
-      status: 'pending',
-      responses: 1,
-      lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000)
-    }
-  ];
-
-  // Filter conversations based on date range
   const dateRange = getDateRange();
-  const filteredConversations = conversations.filter(conv => 
-    conv.lastActivity >= dateRange.start && conv.lastActivity <= dateRange.end
+  
+  // Use real data hooks
+  const { data: metrics, isLoading: metricsLoading } = useWhatsAppConversationMetrics(selectedCalendarId || undefined);
+  const { conversations, isLoading: conversationsLoading } = useWhatsAppConversationsList(
+    selectedCalendarId || '',
+    {
+      searchTerm,
+      statusFilter,
+      dateRange,
+    }
   );
-
-  // Calculate dashboard metrics
-  const totalConversations = filteredConversations.length;
-  const avgResponses = filteredConversations.length > 0 
-    ? (filteredConversations.reduce((sum, conv) => sum + conv.responses, 0) / filteredConversations.length).toFixed(1)
-    : '0';
-
-  const handleViewDetails = (conversationId: number) => {
-    navigate(`/conversations/${conversationId}`);
-  };
 
   if (authLoading) {
     return (
@@ -127,15 +86,85 @@ const Conversations = () => {
     return null;
   }
 
+  // Show no calendar selected state
+  if (!selectedCalendarId) {
+    return (
+      <DashboardLayout>
+        <div className="p-8 bg-gray-900 min-h-full">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
+            <p className="text-gray-400 mt-2">Selecteer een kalender om uw conversaties te bekijken</p>
+          </div>
+          
+          {calendars.length > 0 ? (
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="text-center py-12">
+                <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <CardTitle className="text-gray-300">Selecteer een kalender</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Kies een kalender om uw WhatsApp conversaties te bekijken
+                </CardDescription>
+                <div className="mt-6">
+                  <Select onValueChange={setSelectedCalendarId}>
+                    <SelectTrigger className="w-64 mx-auto bg-gray-700 border-gray-600 text-white">
+                      <SelectValue placeholder="Selecteer kalender" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-700 border-gray-600">
+                      {calendars.map((calendar) => (
+                        <SelectItem key={calendar.id} value={calendar.id}>
+                          {calendar.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+            </Card>
+          ) : (
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="text-center py-12">
+                <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <CardTitle className="text-gray-300">Geen kalenders gevonden</CardTitle>
+                <CardDescription className="text-gray-400">
+                  U heeft nog geen kalenders aangemaakt.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show WhatsApp dashboard if calendar is selected
   return (
     <DashboardLayout>
       <div className="p-8 bg-gray-900 min-h-full">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
-          <p className="text-gray-400 mt-2">View and manage customer interactions with your booking assistant</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
+            <p className="text-gray-400 mt-2">Beheer uw WhatsApp conversaties en berichten</p>
+          </div>
+          
+          {/* Calendar Selector */}
+          <div className="flex items-center gap-4">
+            <label className="text-gray-300 text-sm">Kalender:</label>
+            <Select value={selectedCalendarId} onValueChange={setSelectedCalendarId}>
+              <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-700 border-gray-600">
+                {calendars.map((calendar) => (
+                  <SelectItem key={calendar.id} value={calendar.id}>
+                    {calendar.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        {/* Mini Dashboard */}
+        {/* Analytics Dashboard */}
         <div className="mb-8">
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
@@ -189,114 +218,74 @@ const Conversations = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Totaal Gesprekken</p>
-                      <p className="text-2xl font-bold text-white">{totalConversations}</p>
+              {metricsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="bg-gray-700 p-4 rounded-lg animate-pulse">
+                      <div className="h-4 bg-gray-600 rounded mb-2"></div>
+                      <div className="h-8 bg-gray-600 rounded"></div>
                     </div>
-                    <MessageSquare className="h-8 w-8 text-blue-400" />
-                  </div>
+                  ))}
                 </div>
-                
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Gemiddelde Reacties</p>
-                      <p className="text-2xl font-bold text-white">{avgResponses}</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-400 text-sm">Totaal Gesprekken</p>
+                        <p className="text-2xl font-bold text-white">{metrics?.totalConversations || 0}</p>
+                      </div>
+                      <MessageSquare className="h-8 w-8 text-blue-400" />
                     </div>
-                    <Clock className="h-8 w-8 text-green-400" />
                   </div>
-                </div>
+                  
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-400 text-sm">Gemiddelde Reacties</p>
+                        <p className="text-2xl font-bold text-white">{metrics?.avgResponses || 0}</p>
+                      </div>
+                      <Clock className="h-8 w-8 text-green-400" />
+                    </div>
+                  </div>
 
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Actieve Gesprekken</p>
-                      <p className="text-2xl font-bold text-white">
-                        {filteredConversations.filter(c => c.status === 'active').length}
-                      </p>
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-400 text-sm">Actieve Gesprekken</p>
+                        <p className="text-2xl font-bold text-white">{metrics?.activeConversations || 0}</p>
+                      </div>
+                      <UserIcon className="h-8 w-8 text-yellow-400" />
                     </div>
-                    <UserIcon className="h-8 w-8 text-yellow-400" />
+                  </div>
+
+                  <div className="bg-gray-700 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-gray-400 text-sm">Totaal Berichten</p>
+                        <p className="text-2xl font-bold text-white">{metrics?.totalMessages || 0}</p>
+                      </div>
+                      <MessageSquare className="h-8 w-8 text-purple-400" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Conversations List */}
-        <div className="grid gap-4">
-          {filteredConversations.map((conversation) => (
-            <Card key={conversation.id} className="bg-gray-800 border-gray-700 hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4 flex-1">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                      <UserIcon className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <h3 className="font-semibold text-white">{conversation.customer}</h3>
-                          <p className="text-sm text-gray-400">{conversation.email}</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge 
-                            variant={
-                              conversation.status === 'active' ? 'default' : 
-                              conversation.status === 'pending' ? 'destructive' : 
-                              'secondary'
-                            }
-                            className={conversation.status === 'active' ? 'bg-green-600' : ''}
-                          >
-                            {conversation.status}
-                          </Badge>
-                        </div>
-                      </div>
-                      <p className="text-gray-300 mb-3">{conversation.message}</p>
-                      <div className="flex items-center justify-between text-sm text-gray-500">
-                        <div className="flex items-center space-x-4">
-                          <span className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1" />
-                            {conversation.time}
-                          </span>
-                          <span className="flex items-center">
-                            <MessageSquare className="h-4 w-4 mr-1" />
-                            {conversation.responses} responses
-                          </span>
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                          onClick={() => handleViewDetails(conversation.id)}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredConversations.length === 0 && (
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader className="text-center py-12">
-              <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <CardTitle className="text-gray-300">Geen gesprekken gevonden</CardTitle>
-              <CardDescription className="text-gray-400">
-                Er zijn geen gesprekken in de geselecteerde periode.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        )}
+        {/* WhatsApp Interface */}
+        <WhatsAppDashboard calendarId={selectedCalendarId} />
       </div>
     </DashboardLayout>
+  );
+};
+
+const Conversations = () => {
+  return (
+    <ConversationCalendarProvider>
+      <ConversationsContent />
+    </ConversationCalendarProvider>
   );
 };
 
