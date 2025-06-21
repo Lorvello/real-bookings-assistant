@@ -67,12 +67,13 @@ export const DayRow: React.FC<DayRowProps> = ({
       {/* Time blocks */}
       {dayAvailability.enabled && (
         <div className="space-y-2 ml-12">
-          {dayAvailability.timeBlocks.map((block) => (
+          {dayAvailability.timeBlocks.map((block, index) => (
             <TimeBlockRow
               key={block.id}
               block={block}
               dayKey={day.key}
               canDelete={dayAvailability.timeBlocks.length > 1}
+              isLastBlock={index === dayAvailability.timeBlocks.length - 1}
               openDropdowns={openDropdowns}
               onUpdateTimeBlock={onUpdateTimeBlock}
               onAddTimeBlock={onAddTimeBlock}
