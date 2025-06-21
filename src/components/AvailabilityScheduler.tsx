@@ -91,6 +91,19 @@ export function AvailabilityScheduler({ calendarId }: AvailabilitySchedulerProps
     }
   };
 
+  // Wrapper functions to convert return types for WeekScheduleView compatibility
+  const handleRuleUpdate = async (id: string, updates: Partial<AvailabilityRule>): Promise<void> => {
+    await updateRule(id, updates);
+  };
+
+  const handleRuleCreate = async (rule: Partial<AvailabilityRule>): Promise<void> => {
+    await createRule(rule);
+  };
+
+  const handleRuleDelete = async (id: string): Promise<void> => {
+    await deleteRule(id);
+  };
+
   if (schedulesLoading) {
     return (
       <Card className="border-border">
@@ -172,9 +185,9 @@ export function AvailabilityScheduler({ calendarId }: AvailabilitySchedulerProps
               calendarId={calendarId}
               scheduleId={selectedScheduleId}
               rules={rules}
-              onRuleUpdate={updateRule}
-              onRuleCreate={createRule}
-              onRuleDelete={deleteRule}
+              onRuleUpdate={handleRuleUpdate}
+              onRuleCreate={handleRuleCreate}
+              onRuleDelete={handleRuleDelete}
               loading={rulesLoading}
             />
           </TabsContent>
