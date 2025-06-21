@@ -7,7 +7,6 @@ import { useProfile } from '@/hooks/useProfile';
 import { useSettingsData } from '@/hooks/useSettingsData';
 import { ProfileTab } from './ProfileTab';
 import { BusinessTab } from './BusinessTab';
-import { CalendarTab } from './CalendarTab';
 import { WhatsAppTab } from './WhatsAppTab';
 import { BillingTab } from './BillingTab';
 
@@ -22,8 +21,6 @@ export const SettingsLayout = () => {
     setProfileData,
     businessData,
     setBusinessData,
-    calendarSettings,
-    setCalendarSettings,
     whatsappSettings,
     setWhatsappSettings,
     loading,
@@ -66,7 +63,7 @@ export const SettingsLayout = () => {
         {/* Tabs */}
         <div className="border-b border-gray-700 mb-8">
           <nav className="-mb-px flex space-x-8">
-            {['profile', 'business', 'calendar', 'whatsapp', 'billing'].map((tab) => (
+            {['profile', 'business', 'whatsapp', 'billing'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -78,7 +75,6 @@ export const SettingsLayout = () => {
               >
                 {tab === 'whatsapp' ? 'WhatsApp Custom Branding' : 
                  tab === 'business' ? 'Bedrijf' : 
-                 tab === 'calendar' ? 'Kalender' : 
                  tab === 'billing' ? 'Billing' :
                  'Profiel'}
               </button>
@@ -100,14 +96,6 @@ export const SettingsLayout = () => {
             <BusinessTab
               businessData={businessData}
               setBusinessData={setBusinessData}
-              loading={loading}
-              handleUpdateProfile={handleUpdateProfile}
-            />
-          )}
-          {activeTab === 'calendar' && (
-            <CalendarTab
-              calendarSettings={calendarSettings}
-              setCalendarSettings={setCalendarSettings}
               loading={loading}
               handleUpdateProfile={handleUpdateProfile}
             />
