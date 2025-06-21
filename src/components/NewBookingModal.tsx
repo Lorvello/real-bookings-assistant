@@ -148,9 +148,20 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
   const onSubmit = async (data: BookingFormData) => {
     try {
       setIsSubmitting(true);
-      console.log('Starting booking creation with data:', data);
+      console.log('=== BOOKING CREATION DEBUG ===');
+      console.log('Form data:', data);
+      console.log('Calendar ID:', calendarId);
 
-      // Bereken start en eind tijden
+      // Validate required fields
+      if (!calendarId) {
+        throw new Error('Calendar ID is missing');
+      }
+
+      if (!data.title) {
+        throw new Error('Title is required');
+      }
+
+      // Calculate start and end times
       let startTime: string;
       let endTime: string;
 
@@ -159,6 +170,9 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
         startTime = `${dateStr}T00:00:00+01:00`;
         endTime = `${dateStr}T23:59:59+01:00`;
       } else {
+        if (!data.startTime || !data.endTime) {
+          throw new Error('Start time and end time are required for non-all-day events');
+        }
         const dateStr = format(data.date, 'yyyy-MM-dd');
         startTime = `${dateStr}T${data.startTime}:00+01:00`;
         endTime = `${dateStr}T${data.endTime}:00+01:00`;
@@ -166,27 +180,61 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
 
       console.log('Calculated times:', { startTime, endTime });
 
+      // Build notes content
+      const notesContent = [
+        data.location && `Locatie: ${data.location}`,
+        data.description && `Beschrijving: ${data.description}`,
+        data.hasReminder && `Herinnering: ${data.reminderTiming} minuten van tevoren`,
+        'Interne afspraak - handmatig aangemaakt',
+      ].filter(Boolean).join('\n');
+
       // Create the booking data object
       const bookingData = {
         calendar_id: calendarId,
         service_type_id: data.serviceTypeId || null,
         customer_name: data.title,
-        customer_email: 'internal@calendar.app', // Special email for internal appointments
+        customer_email: 'internal@calendar.app',
         start_time: startTime,
         end_time: endTime,
         status: 'confirmed' as const,
-        notes: [
-          data.location && `Locatie: ${data.location}`,
-          data.description && `Beschrijving: ${data.description}`,
-          data.hasReminder && `Herinnering: ${data.reminderTiming} minuten van tevoren`,
-          'Interne afspraak - handmatig aangemaakt',
-        ].filter(Boolean).join('\n'),
+        notes: notesContent,
         internal_notes: 'Interne afspraak - bypass validatie',
       };
 
       console.log('Booking data to insert:', bookingData);
 
-      // Maak de booking aan met interne flag
+      // First check if calendar exists and we have access
+      const { data: calendarCheck, error: calendarError } = await supabase
+        .from('calendars')
+        .select('id, name')
+        .eq('id', calendarId)
+        .single();
+
+      if (calendarError) {
+        console.error('Calendar check error:', calendarError);
+        throw new Error(`Calendar niet gevonden: ${calendarError.message}`);
+      }
+
+      console.log('Calendar check passed:', calendarCheck);
+
+      // Check if service type exists if provided
+      if (data.serviceTypeId) {
+        const { data: serviceCheck, error: serviceError } = await supabase
+          .from('service_types')
+          .select('id, name')
+          .eq('id', data.serviceTypeId)
+          .eq('calendar_id', calendarId)
+          .single();
+
+        if (serviceError) {
+          console.error('Service type check error:', serviceError);
+          throw new Error(`Service type niet gevonden: ${serviceError.message}`);
+        }
+
+        console.log('Service type check passed:', serviceCheck);
+      }
+
+      // Insert the booking
       const { data: result, error } = await supabase
         .from('bookings')
         .insert(bookingData)
@@ -195,39 +243,33 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
       console.log('Insert result:', { result, error });
 
       if (error) {
-        console.error('Detailed booking creation error:', {
+        console.error('Database insert error:', {
           message: error.message,
           details: error.details,
           hint: error.hint,
-          code: error.code
+          code: error.code,
+          full_error: error
         });
         
-        // Verbeterde error handling met specifieke berichten
-        let errorMessage = "Er is een fout opgetreden bij het aanmaken van de afspraak.";
-        
-        if (error.message.includes('minimum_notice_hours') || error.message.includes('minimum notice')) {
-          errorMessage = "De afspraak kan niet zo kort van tevoren worden ingepland. Probeer een latere tijd.";
-        } else if (error.message.includes('booking_window_days') || error.message.includes('booking window')) {
-          errorMessage = "De afspraak ligt te ver in de toekomst. Kies een eerdere datum.";
-        } else if (error.message.includes('service_type') || error.message.includes('service type')) {
-          errorMessage = "Selecteer een geldige service voor deze afspraak.";
-        } else if (error.message.includes('email')) {
-          errorMessage = "Er is een probleem met de email validatie.";
-        } else if (error.message.includes('Calendar settings not found')) {
-          errorMessage = "Kalender instellingen niet gevonden. Neem contact op met support.";
+        // More specific error messages
+        if (error.message.includes('violates row-level security')) {
+          throw new Error('Toegang geweigerd. Controleer uw rechten voor deze kalender.');
+        } else if (error.message.includes('duplicate key')) {
+          throw new Error('Er bestaat al een afspraak met deze gegevens.');
+        } else if (error.message.includes('foreign key')) {
+          throw new Error('Ongeldige referentie naar kalender of service type.');
         } else if (error.code === '23514') {
-          errorMessage = "Validatie fout: " + (error.hint || error.message);
+          throw new Error(`Validatie fout: ${error.message}`);
+        } else {
+          throw new Error(`Database fout: ${error.message}`);
         }
-        
-        toast({
-          title: "Fout bij aanmaken afspraak",
-          description: `${errorMessage}\n\nTechnische details: ${error.message}`,
-          variant: "destructive",
-        });
-        return;
       }
 
-      console.log('Booking created successfully:', result);
+      if (!result || result.length === 0) {
+        throw new Error('Booking werd niet aangemaakt (geen data geretourneerd)');
+      }
+
+      console.log('Booking created successfully:', result[0]);
 
       toast({
         title: "Afspraak aangemaakt",
@@ -237,11 +279,16 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
       form.reset();
       onClose();
       onBookingCreated?.();
+
     } catch (error) {
-      console.error('Unexpected error creating booking:', error);
+      console.error('=== BOOKING CREATION ERROR ===');
+      console.error('Error details:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Onbekende fout opgetreden';
+      
       toast({
-        title: "Onverwachte fout",
-        description: `Er is een onverwachte fout opgetreden: ${error}`,
+        title: "Fout bij aanmaken afspraak",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
