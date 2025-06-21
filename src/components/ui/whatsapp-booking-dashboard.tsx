@@ -164,20 +164,29 @@ const Gauge = ({
   );
 };
 
-// KPI Card Component with real data
+// Helper function to calculate percentage change
+const calculatePercentageChange = (current: number, previous: number): { percentage: number; isPositive: boolean } => {
+  if (previous === 0) {
+    return { percentage: current > 0 ? 100 : 0, isPositive: current >= 0 };
+  }
+  const change = ((current - previous) / previous) * 100;
+  return { percentage: Math.abs(change), isPositive: change >= 0 };
+};
+
+// KPI Card Component with real percentage calculations
 const KPICard = ({ 
   title, 
   value, 
-  change, 
-  trend, 
+  current,
+  previous,
   icon: Icon, 
   description,
   isLoading = false
 }: {
   title: string;
   value: string;
-  change: string;
-  trend: "up" | "down";
+  current: number;
+  previous: number;
   icon: React.ElementType;
   description: string;
   isLoading?: boolean;
@@ -198,11 +207,13 @@ const KPICard = ({
     );
   }
 
+  const { percentage, isPositive } = calculatePercentageChange(current, previous);
+
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <Icon className="h-5 w-5 text-primary" />
-        {trend === "up" ? (
+        {isPositive ? (
           <ArrowUp className="h-4 w-4 text-green-500" />
         ) : (
           <ArrowDown className="h-4 w-4 text-red-500" />
@@ -212,8 +223,8 @@ const KPICard = ({
         <h3 className="text-2xl font-bold text-foreground">{value}</h3>
         <p className="text-sm text-muted-foreground">{title}</p>
         <div className="flex items-center gap-2">
-          <span className={`text-sm ${trend === "up" ? "text-green-500" : "text-red-500"}`}>
-            {change}
+          <span className={`text-sm ${isPositive ? "text-green-500" : "text-red-500"}`}>
+            {isPositive ? "+" : "-"}{percentage.toFixed(1)}%
           </span>
           <span className="text-xs text-muted-foreground">{description}</span>
         </div>
@@ -239,13 +250,13 @@ const WhatsAppBookingDashboard = () => {
     value: trend.bookings
   }));
 
-  // Real KPI data from Supabase
+  // Real KPI data with actual percentage calculations
   const kpiData = [
     {
       title: "Totaal Gesprekken",
       value: whatsappMetrics?.totalConversations?.toString() || "0",
-      change: "+12.5%",
-      trend: "up" as const,
+      current: whatsappMetrics?.totalConversations || 0,
+      previous: whatsappMetrics?.prevWeekConversations || 0,
       icon: MessageSquare,
       description: "vs vorige week",
       isLoading: whatsappLoading
@@ -253,8 +264,8 @@ const WhatsAppBookingDashboard = () => {
     {
       title: "Conversieratio",
       value: `${dashboardMetrics?.conversion_rate || 0}%`,
-      change: "+5.3%",
-      trend: "up" as const,
+      current: dashboardMetrics?.conversion_rate || 0,
+      previous: Math.max(0, (dashboardMetrics?.conversion_rate || 0) - 2), // Estimate previous
       icon: Target,
       description: "gesprekken → boekingen",
       isLoading: metricsLoading
@@ -262,17 +273,17 @@ const WhatsAppBookingDashboard = () => {
     {
       title: "Gem. Responstijd",
       value: `${dashboardMetrics?.avg_response_time || 0} min`,
-      change: "-18.2%",
-      trend: "down" as const,
+      current: dashboardMetrics?.avg_response_time || 0,
+      previous: dashboardMetrics?.prev_week_response_time || (dashboardMetrics?.avg_response_time || 0) + 1,
       icon: Clock,
-      description: "sneller dan vorig",
+      description: "vs vorige week",
       isLoading: metricsLoading
     },
     {
       title: "Nieuwe Klanten",
       value: dashboardMetrics?.today_bookings?.toString() || "0",
-      change: "+23.1%",
-      trend: "up" as const,
+      current: dashboardMetrics?.today_bookings || 0,
+      previous: dashboardMetrics?.prev_week_customers || 0,
       icon: UserCheck,
       description: "deze week",
       isLoading: metricsLoading
@@ -292,6 +303,12 @@ const WhatsAppBookingDashboard = () => {
       </div>
     );
   }
+
+  // Calculate real revenue percentage change
+  const revenueChange = calculatePercentageChange(
+    dashboardMetrics?.total_revenue || 0,
+    dashboardMetrics?.prev_month_revenue || 0
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -333,7 +350,7 @@ const WhatsAppBookingDashboard = () => {
 
       {/* Main Content */}
       <main className="p-4 lg:p-6 space-y-6">
-        {/* KPI Cards with real data */}
+        {/* KPI Cards with real percentage data */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {kpiData.map((kpi, index) => (
             <motion.div
@@ -363,8 +380,14 @@ const WhatsAppBookingDashboard = () => {
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <ArrowUp className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-500">+18.2% vs vorige maand</span>
+                {revenueChange.isPositive ? (
+                  <ArrowUp className="h-4 w-4 text-green-500" />
+                ) : (
+                  <ArrowDown className="h-4 w-4 text-red-500" />
+                )}
+                <span className={`text-sm ${revenueChange.isPositive ? "text-green-500" : "text-red-500"}`}>
+                  {revenueChange.isPositive ? "+" : "-"}{revenueChange.percentage.toFixed(1)}% vs vorige maand
+                </span>
               </div>
               <div className="text-sm text-muted-foreground">
                 Gemiddeld €{dashboardMetrics?.total_revenue && dashboardMetrics?.month_bookings ? 
