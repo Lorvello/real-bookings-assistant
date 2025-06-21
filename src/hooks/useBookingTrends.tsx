@@ -20,7 +20,7 @@ export function useBookingTrends(calendarId?: string, days: number = 7) {
       });
 
       if (error) throw error;
-      return data || [];
+      return (data as BookingTrend[]) || [];
     },
     enabled: !!calendarId,
     staleTime: 300000, // 5 minutes

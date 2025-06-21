@@ -38,10 +38,7 @@ export const DashboardMainContent: React.FC<DashboardMainContentProps> = ({
       {/* Today's Operations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TodaysScheduleCard />
-        <AiBotStatusCard 
-          isActive={botActive}
-          onToggle={onBotToggle}
-        />
+        <AiBotStatusCard />
       </div>
     </div>
   );

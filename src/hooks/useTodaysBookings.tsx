@@ -25,7 +25,7 @@ export function useTodaysBookings(calendarId?: string) {
       });
 
       if (error) throw error;
-      return data || [];
+      return (data as TodaysBooking[]) || [];
     },
     enabled: !!calendarId,
     staleTime: 60000, // 1 minute
