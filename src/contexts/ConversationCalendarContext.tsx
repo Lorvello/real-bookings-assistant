@@ -14,7 +14,7 @@ const ConversationCalendarContext = createContext<ConversationCalendarContextTyp
 
 export function ConversationCalendarProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const { data: calendars = [], isLoading } = useCalendars();
+  const { calendars, loading } = useCalendars();
   const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
 
   // Auto-select first calendar when calendars load
@@ -30,7 +30,7 @@ export function ConversationCalendarProvider({ children }: { children: React.Rea
         selectedCalendarId,
         setSelectedCalendarId,
         calendars,
-        isLoading,
+        isLoading: loading,
       }}
     >
       {children}
