@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -30,6 +30,8 @@ const bookingSchema = z.object({
   description: z.string().optional(),
   hasReminder: z.boolean().default(false),
   reminderTiming: z.string().optional(),
+  serviceTypeId: z.string().optional(),
+  isInternal: z.boolean().default(true),
 }).refine((data) => {
   if (!data.isAllDay && (!data.startTime || !data.endTime)) {
     return false;
@@ -42,6 +44,13 @@ const bookingSchema = z.object({
 
 type BookingFormData = z.infer<typeof bookingSchema>;
 
+interface ServiceType {
+  id: string;
+  name: string;
+  duration: number;
+  price: number;
+}
+
 interface NewBookingModalProps {
   open: boolean;
   onClose: () => void;
@@ -52,6 +61,7 @@ interface NewBookingModalProps {
 export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }: NewBookingModalProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -65,11 +75,73 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
       description: '',
       hasReminder: false,
       reminderTiming: '30',
+      serviceTypeId: '',
+      isInternal: true,
     },
   });
 
   const isAllDay = form.watch('isAllDay');
   const hasReminder = form.watch('hasReminder');
+  const selectedServiceType = form.watch('serviceTypeId');
+
+  // Load service types for the calendar
+  useEffect(() => {
+    const loadServiceTypes = async () => {
+      if (!calendarId) return;
+
+      const { data, error } = await supabase
+        .from('service_types')
+        .select('id, name, duration, price')
+        .eq('calendar_id', calendarId)
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Error loading service types:', error);
+        return;
+      }
+
+      setServiceTypes(data || []);
+      
+      // Auto-select first service type if available
+      if (data && data.length > 0 && !selectedServiceType) {
+        form.setValue('serviceTypeId', data[0].id);
+        
+        // Auto-set end time based on service duration
+        const startTime = form.getValues('startTime');
+        if (startTime) {
+          const [hours, minutes] = startTime.split(':').map(Number);
+          const startMinutes = hours * 60 + minutes;
+          const endMinutes = startMinutes + data[0].duration;
+          const endHours = Math.floor(endMinutes / 60);
+          const endMins = endMinutes % 60;
+          form.setValue('endTime', `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`);
+        }
+      }
+    };
+
+    if (open) {
+      loadServiceTypes();
+    }
+  }, [calendarId, open, selectedServiceType, form]);
+
+  // Update end time when service type or start time changes
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if ((name === 'serviceTypeId' || name === 'startTime') && value.serviceTypeId && value.startTime && !isAllDay) {
+        const selectedService = serviceTypes.find(s => s.id === value.serviceTypeId);
+        if (selectedService) {
+          const [hours, minutes] = value.startTime.split(':').map(Number);
+          const startMinutes = hours * 60 + minutes;
+          const endMinutes = startMinutes + selectedService.duration;
+          const endHours = Math.floor(endMinutes / 60);
+          const endMins = endMinutes % 60;
+          form.setValue('endTime', `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`);
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form, serviceTypes, isAllDay]);
 
   const onSubmit = async (data: BookingFormData) => {
     try {
@@ -89,13 +161,14 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
         endTime = `${dateStr}T${data.endTime}:00+01:00`;
       }
 
-      // Maak de booking aan
+      // Maak de booking aan met interne flag
       const { error } = await supabase
         .from('bookings')
         .insert({
           calendar_id: calendarId,
-          customer_name: data.title, // Gebruik titel als customer naam voor interne events
-          customer_email: 'internal@calendar.app', // Placeholder email voor interne events
+          service_type_id: data.serviceTypeId || null,
+          customer_name: data.title,
+          customer_email: 'internal@calendar.app', // Speciale email voor interne afspraken
           start_time: startTime,
           end_time: endTime,
           status: 'confirmed',
@@ -103,11 +176,33 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
             data.location && `Locatie: ${data.location}`,
             data.description && `Beschrijving: ${data.description}`,
             data.hasReminder && `Herinnering: ${data.reminderTiming} minuten van tevoren`,
+            'Interne afspraak - handmatig aangemaakt',
           ].filter(Boolean).join('\n'),
+          internal_notes: 'Interne afspraak - bypass validatie',
         });
 
       if (error) {
-        throw error;
+        console.error('Booking creation error:', error);
+        
+        // Verbeterde error handling met specifieke berichten
+        let errorMessage = "Er is een fout opgetreden bij het aanmaken van de afspraak.";
+        
+        if (error.message.includes('minimum_notice_hours')) {
+          errorMessage = "De afspraak kan niet zo kort van tevoren worden ingepland. Probeer een latere tijd.";
+        } else if (error.message.includes('booking_window_days')) {
+          errorMessage = "De afspraak ligt te ver in de toekomst. Kies een eerdere datum.";
+        } else if (error.message.includes('service_type')) {
+          errorMessage = "Selecteer een geldige service voor deze afspraak.";
+        } else if (error.message.includes('email')) {
+          errorMessage = "Er is een probleem met de email validatie.";
+        }
+        
+        toast({
+          title: "Fout bij aanmaken afspraak",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
       }
 
       toast({
@@ -119,10 +214,10 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
       onClose();
       onBookingCreated?.();
     } catch (error) {
-      console.error('Error creating booking:', error);
+      console.error('Unexpected error creating booking:', error);
       toast({
-        title: "Fout bij aanmaken afspraak",
-        description: "Er is een fout opgetreden bij het aanmaken van de afspraak.",
+        title: "Onverwachte fout",
+        description: "Er is een onverwachte fout opgetreden. Probeer het opnieuw.",
         variant: "destructive",
       });
     } finally {
@@ -168,6 +263,34 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
                 </FormItem>
               )}
             />
+
+            {/* Service Type Selectie */}
+            {serviceTypes.length > 0 && (
+              <FormField
+                control={form.control}
+                name="serviceTypeId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Service Type</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-background">
+                          <SelectValue placeholder="Selecteer service type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {serviceTypes.map((service) => (
+                          <SelectItem key={service.id} value={service.id}>
+                            {service.name} ({service.duration} min)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* Locatie */}
             <FormField
@@ -249,7 +372,7 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Start tijd</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="bg-background">
                             <SelectValue placeholder="Selecteer tijd" />
@@ -274,7 +397,7 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Eind tijd</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="bg-background">
                             <SelectValue placeholder="Selecteer tijd" />
