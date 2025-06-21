@@ -18,6 +18,7 @@ interface Day {
   key: string;
   label: string;
   isWeekend: boolean;
+  dayOfWeek: number;
 }
 
 interface DayRowProps {
