@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -119,7 +118,7 @@ export const AvailabilityManager = () => {
                 <Calendar className="h-6 w-6 text-primary" />
                 <div>
                   <div className="text-lg font-semibold text-foreground">
-                    {getCalendarDisplayName(selectedCalendar)}
+                    {selectedCalendar.name}
                   </div>
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <User className="h-3 w-3" />

@@ -53,16 +53,6 @@ export function CalendarSwitcher() {
     return `${userName} Kalender`;
   };
 
-  // Helper function to display calendar name with better context
-  const getDisplayName = (calendar: any) => {
-    // If it's the generic "Mijn Kalender", show a better name
-    if (calendar.name === 'Mijn Kalender') {
-      const betterName = generateCalendarName();
-      return betterName;
-    }
-    return calendar.name;
-  };
-
   const handleCreateCalendar = async () => {
     if (!newCalendar.name.trim()) return;
 
@@ -119,7 +109,7 @@ export function CalendarSwitcher() {
                 style={{ backgroundColor: selectedCalendar?.color || '#3B82F6' }}
               />
               <span className="truncate">
-                {selectedCalendar ? getDisplayName(selectedCalendar) : 'Selecteer kalender'}
+                {selectedCalendar ? selectedCalendar.name : 'Selecteer kalender'}
               </span>
             </div>
             <ChevronDown className="w-4 h-4 opacity-50" />
@@ -145,7 +135,7 @@ export function CalendarSwitcher() {
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium truncate">{getDisplayName(calendar)}</span>
+                  <span className="font-medium truncate">{calendar.name}</span>
                   {calendar.is_default && (
                     <Badge variant="outline" className="text-xs">Standaard</Badge>
                   )}
