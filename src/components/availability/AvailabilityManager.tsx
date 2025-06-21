@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -5,17 +6,19 @@ import { useProfile } from '@/hooks/useProfile';
 import { useSettingsData } from '@/hooks/useSettingsData';
 import { DailyAvailability } from './DailyAvailability';
 import { DateOverrides } from './DateOverrides';
-import { AdvancedSettings } from './AdvancedSettings';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Save, Calendar, Settings } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Save, ArrowLeft, Edit, Trash2, Info } from 'lucide-react';
 
 export const AvailabilityManager = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [setToDefault, setSetToDefault] = useState(false);
 
   const {
     calendarSettings,
@@ -56,83 +59,116 @@ export const AvailabilityManager = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              <Calendar className="h-8 w-8 text-primary" />
-              Beschikbaarheid
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Configureer je persoonlijke beschikbaarheid voor afspraken
-            </p>
+      <div className="border-b border-border bg-card">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/dashboard')}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h1 className="text-xl font-semibold text-foreground">Working Hours</h1>
+                  <Edit className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">Mon - Fri, 08:00 - 19:00</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">Set to Default</span>
+                <Switch
+                  checked={setToDefault}
+                  onCheckedChange={setSetToDefault}
+                />
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                onClick={handleSave}
+                disabled={!hasUnsavedChanges || loading}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {loading ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
           </div>
-          
-          <Button 
-            onClick={handleSave}
-            disabled={!hasUnsavedChanges || loading}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {loading ? 'Opslaan...' : 'Opslaan'}
-          </Button>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Daily Availability Section */}
-        <Card className="border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-foreground flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
-              Dagelijkse Beschikbaarheid
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <DailyAvailability 
-              onChange={() => setHasUnsavedChanges(true)}
-            />
-            
-            <Separator className="bg-border" />
-            
-            <DateOverrides 
-              onChange={() => setHasUnsavedChanges(true)}
-            />
-          </CardContent>
-        </Card>
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Content - Left Side */}
+          <div className="lg:col-span-3 space-y-8">
+            {/* Daily Availability */}
+            <div className="bg-card border border-border rounded-lg p-6">
+              <DailyAvailability 
+                onChange={() => setHasUnsavedChanges(true)}
+              />
+            </div>
 
-        {/* Advanced Settings Section */}
-        <Card className="border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-foreground flex items-center gap-2">
-              <Settings className="h-5 w-5 text-primary" />
-              Geavanceerde Instellingen
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AdvancedSettings 
-              settings={calendarSettings}
-              onChange={(settings) => {
-                setCalendarSettings(settings);
-                setHasUnsavedChanges(true);
-              }}
-            />
-          </CardContent>
-        </Card>
+            {/* Date Overrides */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+                  Date overrides
+                </h3>
+                <Info className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Add dates when your availability changes from your daily hours.
+              </p>
+              
+              <DateOverrides 
+                onChange={() => setHasUnsavedChanges(true)}
+              />
+            </div>
+          </div>
 
-        {/* Bottom Save Button */}
-        <div className="flex justify-center pt-4">
-          <Button 
-            onClick={handleSave}
-            disabled={!hasUnsavedChanges || loading}
-            size="lg"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[200px]"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {loading ? 'Opslaan...' : 'Wijzigingen Opslaan'}
-          </Button>
+          {/* Sidebar - Right Side */}
+          <div className="space-y-6">
+            {/* Timezone */}
+            <div className="bg-card border border-border rounded-lg p-4">
+              <h3 className="text-sm font-medium text-foreground mb-3">Timezone</h3>
+              <Select defaultValue="europe-amsterdam">
+                <SelectTrigger className="w-full bg-background border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="europe-amsterdam">Europe/Amsterdam</SelectItem>
+                  <SelectItem value="europe-london">Europe/London</SelectItem>
+                  <SelectItem value="america-new-york">America/New_York</SelectItem>
+                  <SelectItem value="asia-tokyo">Asia/Tokyo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Troubleshooter */}
+            <div className="bg-card border border-border rounded-lg p-4">
+              <h3 className="text-sm font-medium text-foreground mb-3">Something doesn't look right?</h3>
+              <Button
+                variant="outline"
+                className="w-full bg-background border-border hover:bg-muted"
+              >
+                Launch troubleshooter
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

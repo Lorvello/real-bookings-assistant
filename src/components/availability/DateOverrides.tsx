@@ -77,28 +77,23 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
     });
   };
 
+  const handleAddOverride = () => {
+    setShowAddForm(true);
+    onChange();
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-primary" />
-            Datum Uitzonderingen
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Stel afwijkende beschikbaarheid in voor specifieke dagen
-          </p>
-        </div>
-        
+      {overrides.length === 0 && !showAddForm && (
         <Button
           variant="outline"
-          onClick={() => setShowAddForm(true)}
-          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+          onClick={handleAddOverride}
+          className="bg-background border-border hover:bg-muted text-muted-foreground"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Uitzondering Toevoegen
+          Add an override
         </Button>
-      </div>
+      )}
 
       {/* Add New Override Form */}
       {showAddForm && (
@@ -244,18 +239,15 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
         </div>
       )}
 
-      {overrides.length === 0 && !showAddForm && (
-        <Card className="border-dashed border-border bg-card/30">
-          <CardContent className="p-8 text-center">
-            <CalendarDays className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">
-              Geen datum uitzonderingen ingesteld
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Voeg uitzonderingen toe voor vakanties, feestdagen of speciale uren
-            </p>
-          </CardContent>
-        </Card>
+      {overrides.length > 0 && !showAddForm && (
+        <Button
+          variant="outline"
+          onClick={handleAddOverride}
+          className="bg-background border-border hover:bg-muted text-muted-foreground"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add an override
+        </Button>
       )}
     </div>
   );

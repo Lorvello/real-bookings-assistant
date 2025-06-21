@@ -1,12 +1,9 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Trash2, Plus, Copy } from 'lucide-react';
+import { Plus, Copy } from 'lucide-react';
 
 interface TimeBlock {
   id: string;
@@ -24,13 +21,13 @@ interface DailyAvailabilityProps {
 }
 
 const DAYS = [
-  { key: 'monday', label: 'Maandag', short: 'Ma' },
-  { key: 'tuesday', label: 'Dinsdag', short: 'Di' },
-  { key: 'wednesday', label: 'Woensdag', short: 'Wo' },
-  { key: 'thursday', label: 'Donderdag', short: 'Do' },
-  { key: 'friday', label: 'Vrijdag', short: 'Vr' },
-  { key: 'saturday', label: 'Zaterdag', short: 'Za' },
-  { key: 'sunday', label: 'Zondag', short: 'Zo' }
+  { key: 'monday', label: 'Monday', isWeekend: false },
+  { key: 'tuesday', label: 'Tuesday', isWeekend: false },
+  { key: 'wednesday', label: 'Wednesday', isWeekend: false },
+  { key: 'thursday', label: 'Thursday', isWeekend: false },
+  { key: 'friday', label: 'Friday', isWeekend: false },
+  { key: 'saturday', label: 'Saturday', isWeekend: true },
+  { key: 'sunday', label: 'Sunday', isWeekend: true }
 ];
 
 export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }) => {
@@ -38,11 +35,11 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     const initial: Record<string, DayAvailability> = {};
     DAYS.forEach(day => {
       initial[day.key] = {
-        enabled: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'].includes(day.key),
+        enabled: !day.isWeekend,
         timeBlocks: [{
           id: `${day.key}-1`,
-          startTime: '09:00',
-          endTime: '17:00'
+          startTime: '08:00',
+          endTime: '19:00'
         }]
       };
     });
@@ -69,8 +66,8 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
           ...prev[dayKey].timeBlocks,
           {
             id: `${dayKey}-${Date.now()}`,
-            startTime: lastBlock ? lastBlock.endTime : '09:00',
-            endTime: '17:00'
+            startTime: lastBlock ? lastBlock.endTime : '08:00',
+            endTime: '19:00'
           }
         ]
       }
@@ -99,17 +96,6 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     onChange();
   };
 
-  const removeTimeBlock = (dayKey: string, blockId: string) => {
-    setAvailability(prev => ({
-      ...prev,
-      [dayKey]: {
-        ...prev[dayKey],
-        timeBlocks: prev[dayKey].timeBlocks.filter(block => block.id !== blockId)
-      }
-    }));
-    onChange();
-  };
-
   const updateTimeBlock = (dayKey: string, blockId: string, field: 'startTime' | 'endTime', value: string) => {
     setAvailability(prev => ({
       ...prev,
@@ -124,86 +110,73 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   };
 
   return (
-    <div className="space-y-4">
-      {DAYS.map((day) => {
+    <div className="space-y-1">
+      {DAYS.map((day, index) => {
         const dayAvailability = availability[day.key];
+        const firstBlock = dayAvailability.timeBlocks[0];
         
         return (
-          <Card key={day.key} className="border-border bg-card/50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <Badge variant="outline" className="min-w-[40px] text-center">
-                    {day.short}
-                  </Badge>
-                  <Label className="text-foreground font-medium">
-                    {day.label}
-                  </Label>
-                </div>
-                
-                <Switch
-                  checked={dayAvailability.enabled}
-                  onCheckedChange={(enabled) => updateDayEnabled(day.key, enabled)}
+          <div key={day.key} className="flex items-center justify-between py-3 group">
+            {/* Left side - Toggle and Day name */}
+            <div className="flex items-center space-x-4 min-w-[140px]">
+              <Switch
+                checked={dayAvailability.enabled}
+                onCheckedChange={(enabled) => updateDayEnabled(day.key, enabled)}
+                className={`${!dayAvailability.enabled ? 'opacity-50' : ''}`}
+              />
+              <span className={`text-sm font-medium ${
+                dayAvailability.enabled 
+                  ? 'text-foreground' 
+                  : 'text-muted-foreground'
+              }`}>
+                {day.label}
+              </span>
+            </div>
+
+            {/* Center - Time inputs */}
+            {dayAvailability.enabled && firstBlock && (
+              <div className="flex items-center space-x-3 flex-1 max-w-[300px]">
+                <Input
+                  type="time"
+                  value={firstBlock.startTime}
+                  onChange={(e) => updateTimeBlock(day.key, firstBlock.id, 'startTime', e.target.value)}
+                  className="w-20 h-8 text-xs bg-background border-border text-center"
+                />
+                <span className="text-muted-foreground text-sm">-</span>
+                <Input
+                  type="time"
+                  value={firstBlock.endTime}
+                  onChange={(e) => updateTimeBlock(day.key, firstBlock.id, 'endTime', e.target.value)}
+                  className="w-20 h-8 text-xs bg-background border-border text-center"
                 />
               </div>
+            )}
 
-              {dayAvailability.enabled && (
-                <div className="space-y-3">
-                  {dayAvailability.timeBlocks.map((block, index) => (
-                    <div key={block.id} className="flex items-center space-x-3 p-3 bg-background/50 rounded-lg border border-border">
-                      <div className="flex items-center space-x-2 flex-1">
-                        <Input
-                          type="time"
-                          value={block.startTime}
-                          onChange={(e) => updateTimeBlock(day.key, block.id, 'startTime', e.target.value)}
-                          className="w-32 bg-background border-border"
-                        />
-                        <span className="text-muted-foreground">tot</span>
-                        <Input
-                          type="time"
-                          value={block.endTime}
-                          onChange={(e) => updateTimeBlock(day.key, block.id, 'endTime', e.target.value)}
-                          className="w-32 bg-background border-border"
-                        />
-                      </div>
-                      
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => duplicateTimeBlock(day.key, block.id)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                        
-                        {dayAvailability.timeBlocks.length > 1 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeTimeBlock(day.key, block.id)}
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => addTimeBlock(day.key)}
-                    className="w-full border-dashed"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Tijdsblok Toevoegen
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            {/* Right side - Action buttons */}
+            {dayAvailability.enabled && (
+              <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => addTimeBlock(day.key)}
+                  className="h-7 w-7 p-0 hover:bg-muted"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => duplicateTimeBlock(day.key, firstBlock.id)}
+                  className="h-7 w-7 p-0 hover:bg-muted"
+                >
+                  <Copy className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+
+            {/* Empty space for disabled days */}
+            {!dayAvailability.enabled && <div className="flex-1" />}
+          </div>
         );
       })}
     </div>
