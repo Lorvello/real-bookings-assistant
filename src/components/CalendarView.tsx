@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addMonths, subMonths, addYears, subYears, addWeeks, subWeeks } from 'date-fns';
@@ -120,7 +119,7 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
 
       {/* Calendar Content */}
       <div className="flex-1 overflow-hidden p-4">
-        {currentView === 'month' && <MonthView currentDate={currentDate} companyId={companyId} />}
+        {currentView === 'month' && <MonthView currentDate={currentDate} calendarId={calendarId} />}
         {currentView === 'week' && <WeekView bookings={[]} currentDate={currentDate} />}
         {currentView === 'year' && <YearView bookings={[]} currentDate={currentDate} />}
       </div>
