@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -107,6 +106,17 @@ export const useAvailabilityRules = (scheduleId?: string) => {
 
     try {
       setError(null);
+      
+      // First cleanup any potential duplicates
+      try {
+        await supabase.rpc('cleanup_duplicate_availability_rules', {
+          p_schedule_id: scheduleId,
+          p_day_of_week: ruleData.day_of_week
+        });
+      } catch (cleanupError) {
+        console.warn('Cleanup function not available or failed:', cleanupError);
+      }
+
       const { data, error } = await supabase
         .from('availability_rules')
         .insert({
@@ -122,23 +132,30 @@ export const useAvailabilityRules = (scheduleId?: string) => {
       if (error) {
         console.error('Error creating rule:', error);
         setError(error.message);
-        toast({
-          title: "Error",
-          description: `Failed to create availability rule: ${error.message}`,
-          variant: "destructive",
-        });
+        
+        // Don't show toast for duplicate key errors as they're handled automatically
+        if (!error.message.includes('duplicate key')) {
+          toast({
+            title: "Error",
+            description: `Failed to create availability rule: ${error.message}`,
+            variant: "destructive",
+          });
+        }
         return null;
       }
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating availability rule:', error);
       setError('An unexpected error occurred');
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+      
+      if (!error.message?.includes('duplicate key')) {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
+      }
       return null;
     }
   };

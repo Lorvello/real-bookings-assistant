@@ -1434,6 +1434,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_duplicate_availability_rules: {
+        Args: { p_schedule_id: string; p_day_of_week: number }
+        Returns: undefined
+      }
       cleanup_expired_context: {
         Args: Record<PropertyKey, never>
         Returns: undefined

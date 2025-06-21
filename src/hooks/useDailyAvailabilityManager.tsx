@@ -1,7 +1,9 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
 import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
 import { useCalendars } from '@/hooks/useCalendars';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TimeBlock {
   id: string;
@@ -114,7 +116,19 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     setAvailability(availabilityFromRules);
   }, [availabilityFromRules]);
 
-  // Improved sync function with better duplicate prevention and error handling
+  // Cleanup function voor duplicaten
+  const cleanupDuplicates = async (scheduleId: string, dayOfWeek: number) => {
+    try {
+      await supabase.rpc('cleanup_duplicate_availability_rules', {
+        p_schedule_id: scheduleId,
+        p_day_of_week: dayOfWeek
+      });
+    } catch (error) {
+      console.error('Error cleaning up duplicates:', error);
+    }
+  };
+
+  // Verbeterde sync function met duplicate cleanup
   const syncToDatabase = async (dayKey: string, dayData: DayAvailability) => {
     if (!defaultSchedule?.id) return;
     
@@ -141,25 +155,28 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     try {
       console.log(`Starting sync for ${dayKey}:`, dayData);
       
+      // Ruim eerst duplicaten op
+      await cleanupDuplicates(defaultSchedule.id, day.dayOfWeek);
+      
       // Get existing rules for this day
       const existingRules = rules.filter(rule => rule.day_of_week === day.dayOfWeek);
       console.log(`Found ${existingRules.length} existing rules for ${dayKey}`);
       
-      // Delete all existing rules for this day first
+      // Delete all existing rules for this day
       for (const rule of existingRules) {
         console.log(`Deleting rule ${rule.id} for ${dayKey}`);
         await deleteRule(rule.id);
       }
 
-      // Wait a bit to ensure deletions are processed
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Wait to ensure deletions are processed
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       if (dayData.enabled && dayData.timeBlocks.length > 0) {
         // Clean and validate time blocks before creating rules
         const cleanedTimeBlocks = validateAndCleanTimeBlocks(dayData.timeBlocks);
         console.log(`Creating ${cleanedTimeBlocks.length} new rules for ${dayKey}`);
         
-        // Create new rules sequentially
+        // Create new rules with improved error handling
         for (const timeBlock of cleanedTimeBlocks) {
           // Validate time block
           if (timeBlock.startTime >= timeBlock.endTime) {
@@ -175,39 +192,53 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
               end_time: timeBlock.endTime,
               is_available: true
             });
-          } catch (createError) {
+            
+            // Small delay between creates to prevent conflicts
+            await new Promise(resolve => setTimeout(resolve, 100));
+          } catch (createError: any) {
             console.error(`Error creating rule for ${dayKey}:`, createError);
-            // Continue with other time blocks even if one fails
+            
+            // Als het nog steeds een duplicate error is, probeer cleanup en retry
+            if (createError.message?.includes('duplicate key')) {
+              console.log(`Duplicate detected, cleaning up and retrying for ${dayKey}`);
+              await cleanupDuplicates(defaultSchedule.id, day.dayOfWeek);
+              await new Promise(resolve => setTimeout(resolve, 200));
+              
+              // Retry once
+              try {
+                await createRule({
+                  day_of_week: day.dayOfWeek,
+                  start_time: timeBlock.startTime,
+                  end_time: timeBlock.endTime,
+                  is_available: true
+                });
+              } catch (retryError) {
+                console.error(`Retry failed for ${dayKey}:`, retryError);
+              }
+            }
           }
         }
       } else {
         console.log(`Creating unavailable rule for ${dayKey}`);
         // Create an unavailable rule for the day
-        await createRule({
-          day_of_week: day.dayOfWeek,
-          start_time: '09:00',
-          end_time: '17:00',
-          is_available: false
-        });
+        try {
+          await createRule({
+            day_of_week: day.dayOfWeek,
+            start_time: '09:00',
+            end_time: '17:00',
+            is_available: false
+          });
+        } catch (error: any) {
+          if (error.message?.includes('duplicate key')) {
+            await cleanupDuplicates(defaultSchedule.id, day.dayOfWeek);
+          }
+        }
       }
       
       console.log(`Sync completed successfully for ${dayKey}`);
       onChange();
     } catch (error) {
       console.error(`Error syncing ${dayKey} to database:`, error);
-      
-      // Enhanced error handling
-      if (error instanceof Error) {
-        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
-          console.warn('Detected duplicate key error for', dayKey, '- retrying in 2 seconds');
-          // Retry after a longer delay
-          const timeout = setTimeout(() => {
-            console.log(`Retrying sync for ${dayKey} after duplicate key error`);
-            syncToDatabase(dayKey, dayData);
-          }, 2000);
-          setSyncTimeouts(prev => new Map(prev).set(dayKey, timeout));
-        }
-      }
     } finally {
       setPendingUpdates(prev => {
         const newSet = new Set(prev);
