@@ -6,6 +6,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useSettingsData } from '@/hooks/useSettingsData';
 import { DailyAvailability } from './DailyAvailability';
 import { DateOverrides } from './DateOverrides';
+import { Limits } from './Limits';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -19,6 +20,7 @@ export const AvailabilityManager = () => {
   const { profile, loading: profileLoading } = useProfile();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [setToDefault, setSetToDefault] = useState(false);
+  const [activeTab, setActiveTab] = useState('schedule');
 
   const {
     calendarSettings,
@@ -111,65 +113,99 @@ export const AvailabilityManager = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Main Content - Left Side */}
-          <div className="lg:col-span-3 space-y-8">
-            {/* Daily Availability */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <DailyAvailability 
-                onChange={() => setHasUnsavedChanges(true)}
-              />
-            </div>
-
-            {/* Date Overrides */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
-                  Date overrides
-                </h3>
-                <Info className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Add dates when your availability changes from your daily hours.
-              </p>
-              
-              <DateOverrides 
-                onChange={() => setHasUnsavedChanges(true)}
-              />
-            </div>
-          </div>
-
-          {/* Sidebar - Right Side */}
-          <div className="space-y-6">
-            {/* Timezone */}
-            <div className="bg-card border border-border rounded-lg p-4">
-              <h3 className="text-sm font-medium text-foreground mb-3">Timezone</h3>
-              <Select defaultValue="europe-amsterdam">
-                <SelectTrigger className="w-full bg-background border-border">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border">
-                  <SelectItem value="europe-amsterdam">Europe/Amsterdam</SelectItem>
-                  <SelectItem value="europe-london">Europe/London</SelectItem>
-                  <SelectItem value="america-new-york">America/New_York</SelectItem>
-                  <SelectItem value="asia-tokyo">Asia/Tokyo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Troubleshooter */}
-            <div className="bg-card border border-border rounded-lg p-4">
-              <h3 className="text-sm font-medium text-foreground mb-3">Something doesn't look right?</h3>
-              <Button
-                variant="outline"
-                className="w-full bg-background border-border hover:bg-muted"
-              >
-                Launch troubleshooter
-              </Button>
-            </div>
-          </div>
+      {/* Navigation Tabs */}
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex space-x-6">
+          <button
+            onClick={() => setActiveTab('schedule')}
+            className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'schedule'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Schedule
+          </button>
+          <button
+            onClick={() => setActiveTab('limits')}
+            className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'limits'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Limits
+          </button>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto p-6">
+        {activeTab === 'schedule' && (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Main Content - Left Side */}
+            <div className="lg:col-span-3 space-y-8">
+              {/* Daily Availability */}
+              <div className="bg-card border border-border rounded-lg p-6">
+                <DailyAvailability 
+                  onChange={() => setHasUnsavedChanges(true)}
+                />
+              </div>
+
+              {/* Date Overrides */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+                    Date overrides
+                  </h3>
+                  <Info className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Add dates when your availability changes from your daily hours.
+                </p>
+                
+                <DateOverrides 
+                  onChange={() => setHasUnsavedChanges(true)}
+                />
+              </div>
+            </div>
+
+            {/* Sidebar - Right Side */}
+            <div className="space-y-6">
+              {/* Timezone */}
+              <div className="bg-card border border-border rounded-lg p-4">
+                <h3 className="text-sm font-medium text-foreground mb-3">Timezone</h3>
+                <Select defaultValue="europe-amsterdam">
+                  <SelectTrigger className="w-full bg-background border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border">
+                    <SelectItem value="europe-amsterdam">Europe/Amsterdam</SelectItem>
+                    <SelectItem value="europe-london">Europe/London</SelectItem>
+                    <SelectItem value="america-new-york">America/New_York</SelectItem>
+                    <SelectItem value="asia-tokyo">Asia/Tokyo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Troubleshooter */}
+              <div className="bg-card border border-border rounded-lg p-4">
+                <h3 className="text-sm font-medium text-foreground mb-3">Something doesn't look right?</h3>
+                <Button
+                  variant="outline"
+                  className="w-full bg-background border-border hover:bg-muted"
+                >
+                  Launch troubleshooter
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'limits' && (
+          <div className="max-w-4xl">
+            <Limits onChange={() => setHasUnsavedChanges(true)} />
+          </div>
+        )}
       </div>
     </div>
   );
