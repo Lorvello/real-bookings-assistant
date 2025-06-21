@@ -50,7 +50,7 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
   };
 
   const renderCurrentView = () => {
-    console.log('Current view:', currentView);
+    console.log('Rendering view:', currentView, 'with bookings:', bookings.length);
     
     if (loading) {
       return (
