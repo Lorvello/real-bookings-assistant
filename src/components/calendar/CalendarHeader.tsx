@@ -98,13 +98,13 @@ export function CalendarHeader({
           </button>
         </div>
 
-        {/* Nieuwe Afspraak Button */}
+        {/* Nieuwe Afspraak Button - Made more prominent */}
         <Button
           onClick={() => {
             console.log('Nieuwe Afspraak button clicked');
             onNewBooking();
           }}
-          className="bg-green-600 hover:bg-green-700 text-white shadow-sm flex items-center"
+          className="bg-green-600 hover:bg-green-700 text-white shadow-sm flex items-center whitespace-nowrap"
           disabled={loading}
         >
           <Plus className="w-4 h-4 mr-2" />
