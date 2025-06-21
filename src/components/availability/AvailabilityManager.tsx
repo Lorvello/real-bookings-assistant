@@ -58,12 +58,12 @@ export const AvailabilityManager = () => {
     );
   }
 
-  if (!user) {
+  if (!user || !profile) {
     return null;
   }
 
   if (!selectedCalendar) {
-    return <NoCalendarSelected profile={profile} user={user} />;
+    return <NoCalendarSelected profile={profile} user={profile} />;
   }
 
   return (
@@ -71,7 +71,7 @@ export const AvailabilityManager = () => {
       <CalendarOwnershipHeader 
         selectedCalendar={selectedCalendar} 
         profile={profile} 
-        user={user} 
+        user={profile} 
       />
       
       <AvailabilityHeader

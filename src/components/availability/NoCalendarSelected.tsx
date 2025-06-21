@@ -2,10 +2,11 @@
 import React from 'react';
 import { User } from 'lucide-react';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface NoCalendarSelectedProps {
-  profile: any;
-  user: any;
+  profile: Tables<'users'>;
+  user: Tables<'users'>;
 }
 
 export const NoCalendarSelected: React.FC<NoCalendarSelectedProps> = ({
