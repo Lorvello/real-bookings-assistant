@@ -1327,6 +1327,40 @@ export type Database = {
           },
         ]
       }
+      dashboard_metrics_mv: {
+        Row: {
+          calendar_id: string | null
+          last_updated: string | null
+          month_bookings: number | null
+          month_revenue: number | null
+          pending_bookings: number | null
+          today_bookings: number | null
+          week_bookings: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
       service_popularity_stats: {
         Row: {
           booking_count: number | null
@@ -1647,6 +1681,10 @@ export type Database = {
         Returns: undefined
       }
       refresh_analytics_views: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_dashboard_metrics: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

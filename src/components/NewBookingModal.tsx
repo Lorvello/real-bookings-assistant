@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useOptimisticBookings } from '@/hooks/useOptimisticBookings';
 
 const bookingSchema = z.object({
   title: z.string().min(1, 'Titel is verplicht'),
@@ -59,8 +60,8 @@ interface NewBookingModalProps {
 
 export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }: NewBookingModalProps) {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
+  const { createBooking, isCreating } = useOptimisticBookings(calendarId);
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -147,19 +148,9 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
 
   const onSubmit = async (data: BookingFormData) => {
     try {
-      setIsSubmitting(true);
-      console.log('=== BOOKING CREATION DEBUG ===');
+      console.log('=== OPTIMISTIC BOOKING CREATION ===');
       console.log('Form data:', data);
       console.log('Calendar ID:', calendarId);
-
-      // Validate required fields
-      if (!calendarId) {
-        throw new Error('Calendar ID is missing');
-      }
-
-      if (!data.title) {
-        throw new Error('Title is required');
-      }
 
       // Calculate start and end times
       let startTime: string;
@@ -178,8 +169,6 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
         endTime = `${dateStr}T${data.endTime}:00+01:00`;
       }
 
-      console.log('Calculated times:', { startTime, endTime });
-
       // Build notes content
       const notesContent = [
         data.location && `Locatie: ${data.location}`,
@@ -191,7 +180,7 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
       // Create the booking data object
       const bookingData = {
         calendar_id: calendarId,
-        service_type_id: data.serviceTypeId || null,
+        service_type_id: data.serviceTypeId || undefined,
         customer_name: data.title,
         customer_email: 'internal@calendar.app',
         start_time: startTime,
@@ -201,81 +190,12 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
         internal_notes: 'Interne afspraak - bypass validatie',
       };
 
-      console.log('Booking data to insert:', bookingData);
+      console.log('Creating booking with optimistic updates:', bookingData);
 
-      // First check if calendar exists and we have access
-      const { data: calendarCheck, error: calendarError } = await supabase
-        .from('calendars')
-        .select('id, name')
-        .eq('id', calendarId)
-        .single();
+      // Use optimistic booking creation
+      createBooking(bookingData);
 
-      if (calendarError) {
-        console.error('Calendar check error:', calendarError);
-        throw new Error(`Calendar niet gevonden: ${calendarError.message}`);
-      }
-
-      console.log('Calendar check passed:', calendarCheck);
-
-      // Check if service type exists if provided
-      if (data.serviceTypeId) {
-        const { data: serviceCheck, error: serviceError } = await supabase
-          .from('service_types')
-          .select('id, name')
-          .eq('id', data.serviceTypeId)
-          .eq('calendar_id', calendarId)
-          .single();
-
-        if (serviceError) {
-          console.error('Service type check error:', serviceError);
-          throw new Error(`Service type niet gevonden: ${serviceError.message}`);
-        }
-
-        console.log('Service type check passed:', serviceCheck);
-      }
-
-      // Insert the booking
-      const { data: result, error } = await supabase
-        .from('bookings')
-        .insert(bookingData)
-        .select();
-
-      console.log('Insert result:', { result, error });
-
-      if (error) {
-        console.error('Database insert error:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-          full_error: error
-        });
-        
-        // More specific error messages
-        if (error.message.includes('violates row-level security')) {
-          throw new Error('Toegang geweigerd. Controleer uw rechten voor deze kalender.');
-        } else if (error.message.includes('duplicate key')) {
-          throw new Error('Er bestaat al een afspraak met deze gegevens.');
-        } else if (error.message.includes('foreign key')) {
-          throw new Error('Ongeldige referentie naar kalender of service type.');
-        } else if (error.code === '23514') {
-          throw new Error(`Validatie fout: ${error.message}`);
-        } else {
-          throw new Error(`Database fout: ${error.message}`);
-        }
-      }
-
-      if (!result || result.length === 0) {
-        throw new Error('Booking werd niet aangemaakt (geen data geretourneerd)');
-      }
-
-      console.log('Booking created successfully:', result[0]);
-
-      toast({
-        title: "Afspraak aangemaakt",
-        description: "De nieuwe afspraak is succesvol toegevoegd aan uw kalender.",
-      });
-
+      // Close modal and reset form immediately (optimistic UX)
       form.reset();
       onClose();
       onBookingCreated?.();
@@ -291,8 +211,6 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
         description: errorMessage,
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -557,8 +475,8 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
               <Button type="button" variant="outline" onClick={onClose}>
                 Annuleren
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Bezig...' : 'Opslaan'}
+              <Button type="submit" disabled={isCreating}>
+                {isCreating ? 'Bezig...' : 'Opslaan'}
               </Button>
             </div>
           </form>
