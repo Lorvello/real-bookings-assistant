@@ -6,12 +6,12 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface MonthViewProps {
   currentDate: Date;
-  calendarId?: string;
+  companyId?: string;
 }
 
-export function MonthView({ currentDate, calendarId }: MonthViewProps) {
+export function MonthView({ currentDate, companyId }: MonthViewProps) {
   const { user } = useAuth();
-  const { bookings, loading, error, getBookingsForDate, formatBookingTime } = useBookingData(calendarId);
+  const { bookings, loading, error, getBookingsForDate, formatBookingTime } = useBookingData(companyId);
   
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -80,16 +80,16 @@ export function MonthView({ currentDate, calendarId }: MonthViewProps) {
                     key={booking.id}
                     className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
-                      backgroundColor: booking.service_types?.color || '#10B981',
+                      backgroundColor: booking.appointment_types?.color || '#10B981',
                       color: 'white'
                     }}
-                    title={`${formatBookingTime(booking.start_time, booking.end_time)} - ${booking.customer_name} (${booking.service_types?.name || 'Afspraak'})`}
+                    title={`${formatBookingTime(booking.start_time, booking.end_time)} - ${booking.booked_by_name} (${booking.appointment_types?.name || 'Afspraak'})`}
                   >
                     <div className="font-medium truncate">
-                      {format(new Date(booking.start_time), 'HH:mm')} {booking.customer_name}
+                      {format(new Date(booking.start_time), 'HH:mm')} {booking.booked_by_name}
                     </div>
                     <div className="text-xs opacity-75 truncate">
-                      {booking.service_types?.name || 'Afspraak'}
+                      {booking.appointment_types?.name || 'Afspraak'}
                     </div>
                   </div>
                 ))}
