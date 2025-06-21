@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,7 +33,7 @@ export const AvailabilityManager = () => {
 
   const handleSave = async () => {
     try {
-      await handleUpdateProfile(calendarSettings);
+      await handleUpdateProfile();
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving availability:', error);
