@@ -40,8 +40,11 @@ export function useRealtimeDashboard(calendarId?: string) {
       .channel('dashboard-notifications')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, 
         async (payload) => {
+          // Properly type check the payload
+          const newRecord = payload.new as any;
+          
           // Refresh materialized view when we get notification
-          if (payload.new?.calendar_id === calendarId) {
+          if (newRecord && newRecord.calendar_id === calendarId) {
             try {
               await supabase.rpc('refresh_dashboard_metrics');
               console.log('✅ Dashboard metrics refreshed');
