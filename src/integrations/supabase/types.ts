@@ -225,6 +225,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          booking_duration: number | null
           calendar_id: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
@@ -238,6 +239,7 @@ export type Database = {
           id: string
           internal_notes: string | null
           notes: string | null
+          service_name: string | null
           service_type_id: string | null
           start_time: string
           status: string | null
@@ -245,6 +247,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          booking_duration?: number | null
           calendar_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -258,6 +261,7 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           notes?: string | null
+          service_name?: string | null
           service_type_id?: string | null
           start_time: string
           status?: string | null
@@ -265,6 +269,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          booking_duration?: number | null
           calendar_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -278,6 +283,7 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           notes?: string | null
+          service_name?: string | null
           service_type_id?: string | null
           start_time?: string
           status?: string | null

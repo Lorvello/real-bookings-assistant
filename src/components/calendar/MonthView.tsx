@@ -9,6 +9,7 @@ interface Booking {
   customer_name: string;
   customer_phone: string | null;
   status: string;
+  service_name?: string;
   service_types?: {
     name: string;
     color: string;
@@ -37,7 +38,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col p-4">
       {/* Week day headers */}
       <div className="grid grid-cols-7 border-b border-gray-700 mb-2">
         {weekDays.map(day => (
@@ -71,18 +72,23 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                 {dayBookings.slice(0, 3).map(booking => (
                   <div
                     key={booking.id}
-                    className="text-xs p-1 rounded truncate"
+                    className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                       backgroundColor: booking.service_types?.color || '#10B981',
                       color: 'white'
                     }}
-                    title={`${format(new Date(booking.start_time), 'HH:mm')} - ${booking.customer_name} (${booking.service_types?.name || 'Afspraak'})`}
+                    title={`${format(new Date(booking.start_time), 'HH:mm')} - ${booking.customer_name} (${booking.service_types?.name || booking.service_name || 'Afspraak'})`}
                   >
-                    {format(new Date(booking.start_time), 'HH:mm')} {booking.customer_name}
+                    <div className="font-medium">
+                      {format(new Date(booking.start_time), 'HH:mm')}
+                    </div>
+                    <div className="truncate">
+                      {booking.customer_name}
+                    </div>
                   </div>
                 ))}
                 {dayBookings.length > 3 && (
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-gray-400 text-center py-1">
                     +{dayBookings.length - 3} meer
                   </div>
                 )}
