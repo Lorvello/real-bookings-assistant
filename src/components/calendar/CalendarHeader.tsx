@@ -37,7 +37,7 @@ export function CalendarHeader({
   };
 
   return (
-    <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-border">
+    <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-border bg-card">
       <div className="flex items-center space-x-4">
         {/* Navigation */}
         <button
@@ -99,7 +99,8 @@ export function CalendarHeader({
         {/* Nieuwe Afspraak Button */}
         <Button
           onClick={onNewBooking}
-          className="bg-green-600 hover:bg-green-700 text-white shadow-sm"
+          className="bg-green-600 hover:bg-green-700 text-white shadow-sm flex items-center"
+          disabled={loading}
         >
           <Plus className="w-4 h-4 mr-2" />
           Nieuwe Afspraak
