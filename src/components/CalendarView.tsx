@@ -8,7 +8,7 @@ import { WeekView } from './calendar/WeekView';
 import { YearView } from './calendar/YearView';
 import { useBookings } from '@/hooks/useBookings';
 
-type CalendarView = 'year' | 'month' | 'week';
+type CalendarView = 'month' | 'week' | 'year';
 
 interface CalendarViewProps {
   calendarId: string;
@@ -46,6 +46,32 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
         return format(currentDate, 'yyyy', { locale: nl });
       default:
         return format(currentDate, 'MMMM yyyy', { locale: nl });
+    }
+  };
+
+  const renderCurrentView = () => {
+    console.log('Current view:', currentView);
+    
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-muted-foreground">Boekingen laden...</p>
+          </div>
+        </div>
+      );
+    }
+
+    switch (currentView) {
+      case 'month':
+        return <MonthView bookings={bookings} currentDate={currentDate} />;
+      case 'week':
+        return <WeekView bookings={bookings} currentDate={currentDate} />;
+      case 'year':
+        return <YearView bookings={bookings} currentDate={currentDate} />;
+      default:
+        return <MonthView bookings={bookings} currentDate={currentDate} />;
     }
   };
 
@@ -91,31 +117,40 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
         {/* View Switcher */}
         <div className="flex bg-muted rounded-lg p-1">
           <button
-            onClick={() => setCurrentView('week')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-              currentView === 'week'
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Week
-          </button>
-          <button
-            onClick={() => setCurrentView('month')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+            onClick={() => {
+              console.log('Switching to month view');
+              setCurrentView('month');
+            }}
+            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
               currentView === 'month'
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             }`}
           >
             Maand
           </button>
           <button
-            onClick={() => setCurrentView('year')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+            onClick={() => {
+              console.log('Switching to week view');
+              setCurrentView('week');
+            }}
+            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+              currentView === 'week'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+            }`}
+          >
+            Week
+          </button>
+          <button
+            onClick={() => {
+              console.log('Switching to year view');
+              setCurrentView('year');
+            }}
+            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
               currentView === 'year'
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             }`}
           >
             Jaar
@@ -125,20 +160,7 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
 
       {/* Calendar Content */}
       <div className="flex-1 overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-              <p className="text-muted-foreground">Boekingen laden...</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {currentView === 'month' && <MonthView bookings={bookings} currentDate={currentDate} />}
-            {currentView === 'week' && <WeekView bookings={bookings} currentDate={currentDate} />}
-            {currentView === 'year' && <YearView bookings={bookings} currentDate={currentDate} />}
-          </>
-        )}
+        {renderCurrentView()}
       </div>
     </div>
   );
