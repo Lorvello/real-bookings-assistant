@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,7 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, ChevronDown, Plus, Settings, User } from 'lucide-react';
+import { Calendar, ChevronDown, Plus, User } from 'lucide-react';
 import { useCreateCalendar } from '@/hooks/useCreateCalendar';
 
 export function CalendarSwitcher() {
@@ -43,13 +44,11 @@ export function CalendarSwitcher() {
 
   // Generate a better default calendar name
   const generateCalendarName = () => {
-    const userName = profile?.full_name?.split(' ')[0] || 'Mijn';
-    const businessName = profile?.business_name;
-    
-    if (businessName) {
-      return `${businessName} Kalender`;
+    if (profile?.business_name) {
+      return `${profile.business_name} Planning`;
     }
-    return `${userName} Kalender`;
+    const userName = profile?.full_name?.split(' ')[0] || 'Jouw';
+    return `${userName} Planning`;
   };
 
   const handleCreateCalendar = async () => {
@@ -69,12 +68,15 @@ export function CalendarSwitcher() {
     }
   };
 
-  // Helper function to display calendar name with context
+  // Helper function to display calendar name with better naming
   const getDisplayName = (calendar: any) => {
     // If it's the default "Mijn Kalender", suggest a better name
     if (calendar.name === 'Mijn Kalender' && profile) {
-      const betterName = generateCalendarName();
-      return `${calendar.name} (${betterName})`;
+      if (profile.business_name) {
+        return `${profile.business_name} Planning`;
+      }
+      const firstName = profile.full_name?.split(' ')[0] || 'Jouw';
+      return `${firstName} Planning`;
     }
     return calendar.name;
   };
@@ -93,16 +95,16 @@ export function CalendarSwitcher() {
   }
 
   return (
-    <div className="flex items-center space-x-2">
-      {/* User Context */}
-      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+    <div className="flex items-center space-x-3">
+      {/* User Context - Simplified */}
+      <div className="flex items-center space-x-2 text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
         <User className="h-4 w-4" />
         <span>{profile?.full_name || user?.email}</span>
       </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="justify-between min-w-[250px]">
+          <Button variant="outline" className="justify-between min-w-[200px] bg-white border-gray-300">
             <div className="flex items-center space-x-2">
               <div 
                 className="w-3 h-3 rounded-full" 
@@ -116,10 +118,10 @@ export function CalendarSwitcher() {
           </Button>
         </DropdownMenuTrigger>
         
-        <DropdownMenuContent className="w-80">
-          <DropdownMenuLabel className="flex items-center space-x-2">
+        <DropdownMenuContent className="w-80 bg-white border-gray-200">
+          <DropdownMenuLabel className="flex items-center space-x-2 text-gray-700">
             <Calendar className="h-4 w-4" />
-            <span>Mijn Kalenders</span>
+            <span>Jouw Kalenders</span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           
@@ -127,7 +129,7 @@ export function CalendarSwitcher() {
             <DropdownMenuItem
               key={calendar.id}
               onClick={() => selectCalendar(calendar)}
-              className="flex items-center space-x-3 p-3"
+              className="flex items-center space-x-3 p-3 hover:bg-gray-50"
             >
               <div 
                 className="w-3 h-3 rounded-full flex-shrink-0" 
@@ -135,25 +137,23 @@ export function CalendarSwitcher() {
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium truncate">{getDisplayName(calendar)}</span>
+                  <span className="font-medium truncate text-gray-900">
+                    {getDisplayName(calendar)}
+                  </span>
                   {calendar.is_default && (
-                    <Badge variant="outline" className="text-xs">Standaard</Badge>
-                  )}
-                  {!calendar.is_active && (
-                    <Badge variant="secondary" className="text-xs">Inactief</Badge>
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                      Hoofdkalender
+                    </Badge>
                   )}
                 </div>
                 {calendar.description && (
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="text-xs text-gray-500 truncate mt-1">
                     {calendar.description}
                   </p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Eigenaar: {profile?.full_name || 'Jij'}
-                </p>
               </div>
               {selectedCalendar?.id === calendar.id && (
-                <div className="w-2 h-2 bg-primary rounded-full" />
+                <div className="w-2 h-2 bg-blue-600 rounded-full" />
               )}
             </DropdownMenuItem>
           ))}
@@ -162,13 +162,13 @@ export function CalendarSwitcher() {
           
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-blue-600 hover:bg-blue-50">
                 <Plus className="w-4 h-4 mr-2" />
                 Nieuwe kalender
               </DropdownMenuItem>
             </DialogTrigger>
             
-            <DialogContent>
+            <DialogContent className="bg-white">
               <DialogHeader>
                 <DialogTitle>Nieuwe kalender aanmaken</DialogTitle>
                 <DialogDescription>
@@ -184,8 +184,9 @@ export function CalendarSwitcher() {
                     placeholder={generateCalendarName()}
                     value={newCalendar.name}
                     onChange={(e) => setNewCalendar(prev => ({ ...prev, name: e.target.value }))}
+                    className="bg-white border-gray-300"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-gray-500 mt-1">
                     Suggestie: {generateCalendarName()}
                   </p>
                 </div>
@@ -197,6 +198,7 @@ export function CalendarSwitcher() {
                     placeholder="Beschrijf waar deze kalender voor is..."
                     value={newCalendar.description}
                     onChange={(e) => setNewCalendar(prev => ({ ...prev, description: e.target.value }))}
+                    className="bg-white border-gray-300"
                   />
                 </div>
                 
@@ -208,9 +210,9 @@ export function CalendarSwitcher() {
                       id="calendar-color"
                       value={newCalendar.color}
                       onChange={(e) => setNewCalendar(prev => ({ ...prev, color: e.target.value }))}
-                      className="w-8 h-8 rounded border"
+                      className="w-8 h-8 rounded border border-gray-300"
                     />
-                    <span className="text-sm text-muted-foreground">{newCalendar.color}</span>
+                    <span className="text-sm text-gray-600">{newCalendar.color}</span>
                   </div>
                 </div>
               </div>
@@ -222,6 +224,7 @@ export function CalendarSwitcher() {
                 <Button 
                   onClick={handleCreateCalendar}
                   disabled={!newCalendar.name.trim() || creating}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   {creating ? 'Aanmaken...' : 'Kalender aanmaken'}
                 </Button>
