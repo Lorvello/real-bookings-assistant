@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,7 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, ChevronDown, Plus, Settings, User } from 'lucide-react';
+import { Calendar, ChevronDown, Plus, User } from 'lucide-react';
 import { useCreateCalendar } from '@/hooks/useCreateCalendar';
 
 export function CalendarSwitcher() {
@@ -52,6 +53,16 @@ export function CalendarSwitcher() {
     return `${userName} Kalender`;
   };
 
+  // Helper function to display calendar name with better context
+  const getDisplayName = (calendar: any) => {
+    // If it's the generic "Mijn Kalender", show a better name
+    if (calendar.name === 'Mijn Kalender') {
+      const betterName = generateCalendarName();
+      return betterName;
+    }
+    return calendar.name;
+  };
+
   const handleCreateCalendar = async () => {
     if (!newCalendar.name.trim()) return;
 
@@ -69,16 +80,6 @@ export function CalendarSwitcher() {
     }
   };
 
-  // Helper function to display calendar name with context
-  const getDisplayName = (calendar: any) => {
-    // If it's the default "Mijn Kalender", suggest a better name
-    if (calendar.name === 'Mijn Kalender' && profile) {
-      const betterName = generateCalendarName();
-      return `${calendar.name} (${betterName})`;
-    }
-    return calendar.name;
-  };
-
   if (loading) {
     return (
       <Card className="w-64">
@@ -93,11 +94,20 @@ export function CalendarSwitcher() {
   }
 
   return (
-    <div className="flex items-center space-x-2">
-      {/* User Context */}
-      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-        <User className="h-4 w-4" />
-        <span>{profile?.full_name || user?.email}</span>
+    <div className="flex items-center space-x-3">
+      {/* Clear User Context - who is logged in */}
+      <div className="flex items-center space-x-2 px-3 py-2 bg-muted/50 rounded-lg border">
+        <User className="h-4 w-4 text-muted-foreground" />
+        <div className="text-sm">
+          <div className="font-medium text-foreground">
+            {profile?.business_name || profile?.full_name || user?.email}
+          </div>
+          {profile?.business_name && (
+            <div className="text-xs text-muted-foreground">
+              {profile?.full_name}
+            </div>
+          )}
+        </div>
       </div>
 
       <DropdownMenu>
@@ -119,7 +129,7 @@ export function CalendarSwitcher() {
         <DropdownMenuContent className="w-80">
           <DropdownMenuLabel className="flex items-center space-x-2">
             <Calendar className="h-4 w-4" />
-            <span>Mijn Kalenders</span>
+            <span>Jouw Kalenders</span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           
@@ -139,9 +149,6 @@ export function CalendarSwitcher() {
                   {calendar.is_default && (
                     <Badge variant="outline" className="text-xs">Standaard</Badge>
                   )}
-                  {!calendar.is_active && (
-                    <Badge variant="secondary" className="text-xs">Inactief</Badge>
-                  )}
                 </div>
                 {calendar.description && (
                   <p className="text-xs text-muted-foreground truncate">
@@ -149,7 +156,7 @@ export function CalendarSwitcher() {
                   </p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Eigenaar: {profile?.full_name || 'Jij'}
+                  Eigenaar: Jij
                 </p>
               </div>
               {selectedCalendar?.id === calendar.id && (
