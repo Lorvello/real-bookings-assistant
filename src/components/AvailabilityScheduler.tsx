@@ -1,48 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { 
-  Plus, 
-  Copy, 
-  Trash2, 
-  Calendar,
-  Clock,
-  Save,
-  MoreVertical,
-  GripVertical,
-  Edit
-} from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
 import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
 import { AvailabilityRule } from '@/types/database';
 import { WeekScheduleView } from './WeekScheduleView';
 import { ScheduleTemplates } from './ScheduleTemplates';
-import { TimeBlockEditor } from './TimeBlockEditor';
+import { ScheduleSelector } from './availability/ScheduleSelector';
+import { WeekActions } from './availability/WeekActions';
+import { BulkActions } from './availability/BulkActions';
 
 interface AvailabilitySchedulerProps {
   calendarId: string;
 }
-
-const DAYS_OF_WEEK = [
-  { key: 1, label: 'Maandag', short: 'Ma' },
-  { key: 2, label: 'Dinsdag', short: 'Di' },
-  { key: 3, label: 'Woensdag', short: 'Wo' },
-  { key: 4, label: 'Donderdag', short: 'Do' },
-  { key: 5, label: 'Vrijdag', short: 'Vr' },
-  { key: 6, label: 'Zaterdag', short: 'Za' },
-  { key: 0, label: 'Zondag', short: 'Zo' },
-];
 
 export function AvailabilityScheduler({ calendarId }: AvailabilitySchedulerProps) {
   const { schedules, loading: schedulesLoading, createSchedule } = useAvailabilitySchedules(calendarId);
@@ -124,50 +96,17 @@ export function AvailabilityScheduler({ calendarId }: AvailabilitySchedulerProps
           </CardTitle>
           
           <div className="flex items-center space-x-2">
-            {/* Schedule Selector */}
-            <Select value={selectedScheduleId} onValueChange={setSelectedScheduleId}>
-              <SelectTrigger className="w-48 bg-input border-border">
-                <SelectValue placeholder="Selecteer schema" />
-              </SelectTrigger>
-              <SelectContent className="bg-card border-border">
-                {schedules.map((schedule) => (
-                  <SelectItem key={schedule.id} value={schedule.id}>
-                    <div className="flex items-center">
-                      {schedule.name}
-                      {schedule.is_default && (
-                        <Badge variant="secondary" className="ml-2 text-xs">
-                          Standaard
-                        </Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ScheduleSelector
+              schedules={schedules}
+              selectedScheduleId={selectedScheduleId}
+              onScheduleChange={setSelectedScheduleId}
+            />
 
-            {/* Week Actions */}
-            <div className="flex items-center space-x-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyWeek}
-                className="border-border"
-              >
-                <Copy className="h-4 w-4 mr-1" />
-                Kopieer Week
-              </Button>
-              
-              {copiedWeek.length > 0 && (
-                <Button
-                  variant="outline" 
-                  size="sm"
-                  onClick={handlePasteWeek}
-                  className="border-border"
-                >
-                  Plak Week
-                </Button>
-              )}
-            </div>
+            <WeekActions
+              onCopyWeek={handleCopyWeek}
+              onPasteWeek={handlePasteWeek}
+              hasCopiedWeek={copiedWeek.length > 0}
+            />
           </div>
         </div>
       </CardHeader>
@@ -202,51 +141,7 @@ export function AvailabilityScheduler({ calendarId }: AvailabilitySchedulerProps
           </TabsContent>
 
           <TabsContent value="bulk" className="space-y-6">
-            <div className="bg-background-secondary rounded-lg p-6 border border-border">
-              <h3 className="text-lg font-medium text-foreground mb-4">
-                Bulk Bewerkingen
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button
-                  variant="outline"
-                  onClick={() => handleBulkUpdate({ is_available: true })}
-                  className="border-border"
-                >
-                  Alle dagen beschikbaar maken
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => handleBulkUpdate({ is_available: false })}
-                  className="border-border"
-                >
-                  Alle dagen niet beschikbaar maken
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => handleBulkUpdate({ 
-                    start_time: '09:00', 
-                    end_time: '17:00' 
-                  })}
-                  className="border-border"
-                >
-                  Standaard werkuren (9:00-17:00)
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => handleBulkUpdate({ 
-                    start_time: '08:00', 
-                    end_time: '18:00' 
-                  })}
-                  className="border-border"
-                >
-                  Lange werkuren (8:00-18:00)
-                </Button>
-              </div>
-            </div>
+            <BulkActions onBulkUpdate={handleBulkUpdate} />
           </TabsContent>
         </Tabs>
       </CardContent>
