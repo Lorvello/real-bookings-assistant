@@ -1,11 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { format, addMonths, subMonths, addWeeks, subWeeks, addYears, subYears } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { Button } from '@/components/ui/button';
 import { MonthView } from './calendar/MonthView';
 import { WeekView } from './calendar/WeekView';
 import { YearView } from './calendar/YearView';
+import { NewBookingModal } from './NewBookingModal';
 import { useBookings } from '@/hooks/useBookings';
 
 type CalendarView = 'month' | 'week' | 'year';
@@ -17,9 +20,10 @@ interface CalendarViewProps {
 export function CalendarView({ calendarId }: CalendarViewProps) {
   const [currentView, setCurrentView] = useState<CalendarView>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   
   // Use the new useBookings hook
-  const { bookings, loading, error } = useBookings(calendarId);
+  const { bookings, loading, error, refetch } = useBookings(calendarId);
 
   const navigateDate = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -75,6 +79,10 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
     }
   };
 
+  const handleBookingCreated = () => {
+    refetch();
+  };
+
   if (error) {
     return (
       <div className="bg-card rounded-xl border border-border h-full flex items-center justify-center">
@@ -101,7 +109,7 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
             <ChevronLeft className="w-5 h-5 text-muted-foreground" />
           </button>
           
-          <h2 className="text-xl font-semibold text-foreground capitalize">
+          <h2 className="text-xl font-semibold text-fore ground capitalize">
             {formatDateHeader()}
           </h2>
           
@@ -114,47 +122,58 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
           </button>
         </div>
 
-        {/* View Switcher */}
-        <div className="flex bg-muted rounded-lg p-1">
-          <button
-            onClick={() => {
-              console.log('Switching to month view');
-              setCurrentView('month');
-            }}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              currentView === 'month'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-            }`}
+        <div className="flex items-center space-x-4">
+          {/* View Switcher */}
+          <div className="flex bg-muted rounded-lg p-1">
+            <button
+              onClick={() => {
+                console.log('Switching to month view');
+                setCurrentView('month');
+              }}
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                currentView === 'month'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+              }`}
+            >
+              Maand
+            </button>
+            <button
+              onClick={() => {
+                console.log('Switching to week view');
+                setCurrentView('week');
+              }}
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                currentView === 'week'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+              }`}
+            >
+              Week
+            </button>
+            <button
+              onClick={() => {
+                console.log('Switching to year view');
+                setCurrentView('year');
+              }}
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                currentView === 'year'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+              }`}
+            >
+              Jaar
+            </button>
+          </div>
+
+          {/* Nieuwe Afspraak Button */}
+          <Button
+            onClick={() => setIsNewBookingModalOpen(true)}
+            className="bg-green-600 hover:bg-green-700 text-white shadow-sm"
           >
-            Maand
-          </button>
-          <button
-            onClick={() => {
-              console.log('Switching to week view');
-              setCurrentView('week');
-            }}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              currentView === 'week'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-            }`}
-          >
-            Week
-          </button>
-          <button
-            onClick={() => {
-              console.log('Switching to year view');
-              setCurrentView('year');
-            }}
-            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-              currentView === 'year'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-            }`}
-          >
-            Jaar
-          </button>
+            <Plus className="w-4 h-4 mr-2" />
+            Nieuwe Afspraak
+          </Button>
         </div>
       </div>
 
@@ -162,6 +181,14 @@ export function CalendarView({ calendarId }: CalendarViewProps) {
       <div className="flex-1 overflow-hidden">
         {renderCurrentView()}
       </div>
+
+      {/* New Booking Modal */}
+      <NewBookingModal
+        open={isNewBookingModalOpen}
+        onClose={() => setIsNewBookingModalOpen(false)}
+        calendarId={calendarId}
+        onBookingCreated={handleBookingCreated}
+      />
     </div>
   );
 }
