@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AvailabilityDayRow } from './AvailabilityDayRow';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
@@ -20,6 +19,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   } = useDailyAvailabilityManager(onChange);
 
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+  const [debounceTimeouts, setDebounceTimeouts] = useState<Map<string, NodeJS.Timeout>>(new Map());
 
   const updateDayEnabled = async (dayKey: string, enabled: boolean) => {
     const newAvailability = {
@@ -29,10 +29,23 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     
     setAvailability(newAvailability);
     
-    // Longer debounce for day enable/disable
-    setTimeout(() => {
+    // Clear any existing timeout for this day
+    const existingTimeout = debounceTimeouts.get(dayKey);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+    }
+    
+    // Set new timeout
+    const timeout = setTimeout(() => {
       syncToDatabase(dayKey, newAvailability[dayKey]);
+      setDebounceTimeouts(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(dayKey);
+        return newMap;
+      });
     }, 800);
+    
+    setDebounceTimeouts(prev => new Map(prev).set(dayKey, timeout));
   };
 
   const updateTimeBlock = async (dayKey: string, blockId: string, field: 'startTime' | 'endTime', value: string) => {
@@ -61,13 +74,29 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     
     setAvailability(newAvailability);
     
-    // Longer debounce for time changes to prevent excessive API calls
-    setTimeout(() => {
+    // Clear any existing timeout for this specific update
+    const timeoutKey = `${dayKey}-${blockId}-${field}`;
+    const existingTimeout = debounceTimeouts.get(timeoutKey);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+    }
+    
+    // Set new timeout with longer delay for time changes
+    const timeout = setTimeout(() => {
       syncToDatabase(dayKey, newAvailability[dayKey]);
-    }, 2000);
+      setDebounceTimeouts(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(timeoutKey);
+        return newMap;
+      });
+    }, 1500);
+    
+    setDebounceTimeouts(prev => new Map(prev).set(timeoutKey, timeout));
   };
 
   const addTimeBlock = async (dayKey: string) => {
+    console.log(`Adding time block for ${dayKey}`);
+    
     const currentBlocks = availability[dayKey].timeBlocks;
     const newBlockId = `${dayKey}-${Date.now()}`; 
     const lastBlock = currentBlocks[currentBlocks.length - 1];
