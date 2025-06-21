@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { CalendarView } from '@/components/CalendarView';
@@ -13,7 +13,6 @@ const Calendar = () => {
 
   const defaultCalendar = calendars.find(cal => cal.is_default) || calendars[0];
 
-  // Redirect if not authenticated
   React.useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login');
