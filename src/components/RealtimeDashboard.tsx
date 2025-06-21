@@ -16,7 +16,9 @@ export function RealtimeDashboard({ calendarId }: RealtimeDashboardProps) {
   useRealtimeBookings(calendarId);
   useRealtimeDashboard(calendarId);
   
-  const { data: analytics, isLoading } = useDashboardAnalytics(calendarId);
+  const { data: analytics, isLoading, error } = useDashboardAnalytics(calendarId);
+
+  console.log('🎯 RealtimeDashboard render:', { calendarId, analytics, isLoading, error });
 
   if (isLoading) {
     return (
@@ -29,6 +31,20 @@ export function RealtimeDashboard({ calendarId }: RealtimeDashboardProps) {
           </Card>
         ))}
       </div>
+    );
+  }
+
+  if (error) {
+    console.error('Dashboard analytics error:', error);
+    return (
+      <Card className="col-span-full">
+        <CardContent className="p-6">
+          <div className="text-center text-red-600">
+            <p>Error loading dashboard data</p>
+            <p className="text-sm text-gray-500">{error.message}</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -53,7 +69,26 @@ export function RealtimeDashboard({ calendarId }: RealtimeDashboardProps) {
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
         <span>Live data - updates in real-time</span>
+        {analytics?.last_updated && (
+          <span className="ml-2">
+            (laatste update: {new Date(analytics.last_updated).toLocaleTimeString('nl-NL')})
+          </span>
+        )}
       </div>
+
+      {/* Debug info tijdens development */}
+      {process.env.NODE_ENV === 'development' && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="p-4">
+            <p className="text-sm text-yellow-800">
+              Debug: Calendar ID: {calendarId} | 
+              Vandaag: {analytics?.today_bookings} | 
+              Deze week: {analytics?.week_bookings} | 
+              Deze maand: {analytics?.month_bookings}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -102,6 +137,19 @@ export function RealtimeDashboard({ calendarId }: RealtimeDashboardProps) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm font-medium text-muted-foreground">Deze Maand</p>
+                <p className="text-2xl font-bold">{analytics?.month_bookings || 0}</p>
+                <p className="text-xs text-muted-foreground">afspraken</p>
+              </div>
+              <Calendar className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-muted-foreground">Omzet (maand)</p>
                 <p className="text-2xl font-bold">€{(analytics?.total_revenue || 0).toFixed(2)}</p>
                 <div className="flex items-center gap-1">
@@ -119,24 +167,7 @@ export function RealtimeDashboard({ calendarId }: RealtimeDashboardProps) {
                   </span>
                 </div>
               </div>
-              <Euro className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Reactietijd</p>
-                <p className="text-2xl font-bold">
-                  {(analytics?.avg_response_time || 0).toFixed(1)}min
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  WhatsApp gemiddeld
-                </p>
-              </div>
-              <Clock className="h-8 w-8 text-orange-600" />
+              <Euro className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>

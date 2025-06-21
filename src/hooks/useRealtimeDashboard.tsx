@@ -22,44 +22,31 @@ export function useRealtimeDashboard(calendarId?: string) {
           table: 'bookings',
           filter: `calendar_id=eq.${calendarId}`,
         },
-        (payload) => {
+        async (payload) => {
           console.log('📈 Dashboard trigger from booking change:', payload);
           
-          // Debounce dashboard refreshes to avoid too many updates
-          setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ['dashboard-analytics', calendarId] });
-            queryClient.invalidateQueries({ queryKey: ['optimized-analytics', calendarId] });
-            queryClient.invalidateQueries({ queryKey: ['booking-trends', calendarId] });
-          }, 500);
-        }
-      )
-      .subscribe();
-
-    // Listen to database notifications from our trigger
-    const notificationChannel = supabase
-      .channel('dashboard-notifications')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, 
-        async (payload) => {
-          // Properly type check the payload
-          const newRecord = payload.new as any;
+          // Invalidate queries immediately
+          queryClient.invalidateQueries({ queryKey: ['dashboard-analytics', calendarId] });
+          queryClient.invalidateQueries({ queryKey: ['optimized-analytics', calendarId] });
+          queryClient.invalidateQueries({ queryKey: ['booking-trends', calendarId] });
+          queryClient.invalidateQueries({ queryKey: ['todays-bookings', calendarId] });
           
-          // Refresh materialized view when we get notification
-          if (newRecord && newRecord.calendar_id === calendarId) {
-            try {
-              await supabase.rpc('refresh_dashboard_metrics');
-              console.log('✅ Dashboard metrics refreshed');
-            } catch (error) {
-              console.error('❌ Error refreshing dashboard metrics:', error);
-            }
+          // Probeer de materialized view te refreshen
+          try {
+            await supabase.rpc('refresh_dashboard_metrics');
+            console.log('✅ Dashboard metrics refreshed');
+          } catch (error) {
+            console.error('❌ Error refreshing dashboard metrics:', error);
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Dashboard subscription status:', status);
+      });
 
     return () => {
       console.log('🔌 Cleaning up dashboard subscriptions');
       supabase.removeChannel(dashboardChannel);
-      supabase.removeChannel(notificationChannel);
     };
   }, [calendarId, queryClient]);
 }
