@@ -71,11 +71,18 @@ const TimeDropdown: React.FC<TimeDropdownProps> = ({ value, onChange, isOpen, on
     };
   }, [isOpen, onClose]);
 
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onToggle();
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <Button
         variant="outline"
-        onClick={onToggle}
+        onClick={handleButtonClick}
+        type="button"
         className="w-20 h-12 text-sm bg-gray-800 border-gray-600 text-white hover:bg-gray-700 focus:border-teal-500 focus:ring-teal-500 flex items-center justify-between px-3"
       >
         <span>{value}</span>
@@ -92,10 +99,13 @@ const TimeDropdown: React.FC<TimeDropdownProps> = ({ value, onChange, isOpen, on
         {TIME_OPTIONS.map((time) => (
           <button
             key={time}
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               onChange(time);
               onClose();
             }}
+            type="button"
             className={`w-full px-3 py-1.5 text-sm text-left hover:bg-gray-700 transition-colors duration-150 ${
               time === value ? 'bg-gray-700 text-teal-400' : 'text-white'
             }`}
@@ -148,12 +158,16 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   };
 
   const toggleDropdown = (dropdownId: string) => {
+    console.log('Toggling dropdown:', dropdownId, 'Current state:', openDropdowns[dropdownId]);
     setOpenDropdowns(prev => {
       // Close all other dropdowns when opening a new one
       const newState: Record<string, boolean> = {};
       Object.keys(prev).forEach(key => {
-        newState[key] = key === dropdownId ? !prev[dropdownId] : false;
+        newState[key] = false;
       });
+      // Toggle the clicked dropdown
+      newState[dropdownId] = !prev[dropdownId];
+      console.log('New dropdown state:', newState);
       return newState;
     });
   };
