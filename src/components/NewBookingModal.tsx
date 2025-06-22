@@ -46,7 +46,6 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
       title: '',
       location: '',
       date: new Date(),
-      isAllDay: false,
       startTime: '13:00',
       endTime: '14:00',
       description: '',
@@ -57,7 +56,6 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
     },
   });
 
-  const isAllDay = form.watch('isAllDay');
   const hasReminder = form.watch('hasReminder');
   const selectedServiceType = form.watch('serviceTypeId');
   const startTime = form.watch('startTime');
@@ -109,7 +107,7 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
     if (!autoUpdateEndTime) return;
 
     const subscription = form.watch((value, { name }) => {
-      if ((name === 'serviceTypeId' || name === 'startTime') && value.serviceTypeId && value.startTime && !isAllDay) {
+      if ((name === 'serviceTypeId' || name === 'startTime') && value.serviceTypeId && value.startTime) {
         const selectedService = serviceTypes.find(s => s.id === value.serviceTypeId);
         if (selectedService) {
           const endTime = calculateEndTimeFromService(value.startTime, selectedService.duration);
@@ -119,7 +117,7 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
     });
 
     return () => subscription.unsubscribe();
-  }, [form, serviceTypes, isAllDay, autoUpdateEndTime]);
+  }, [form, serviceTypes, autoUpdateEndTime]);
 
   const handleTimeChange = (field: 'startTime' | 'endTime', value: string) => {
     form.setValue(field, value);
@@ -224,7 +222,6 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
 
                 <BookingDateTimeFields 
                   form={form}
-                  isAllDay={isAllDay}
                   startTime={startTime}
                   endTime={endTime}
                   autoUpdateEndTime={autoUpdateEndTime}

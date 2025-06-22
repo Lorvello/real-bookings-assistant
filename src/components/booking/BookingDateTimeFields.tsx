@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils';
 
 interface BookingDateTimeFieldsProps {
   form: UseFormReturn<BookingFormData>;
-  isAllDay: boolean;
   startTime: string;
   endTime: string;
   autoUpdateEndTime: boolean;
@@ -32,7 +31,6 @@ const timeOptions = Array.from({ length: 48 }, (_, i) => {
 
 export function BookingDateTimeFields({ 
   form, 
-  isAllDay, 
   startTime, 
   endTime, 
   autoUpdateEndTime, 
@@ -102,95 +100,79 @@ export function BookingDateTimeFields({
         )}
       />
 
-      {/* Hele dag toggle */}
-      <FormField
-        control={form.control}
-        name="isAllDay"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-            <FormControl>
-              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-            </FormControl>
-            <FormLabel className="text-sm font-normal">Hele dag</FormLabel>
-          </FormItem>
-        )}
-      />
+      {/* Tijd selectie - nu altijd zichtbaar */}
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="startTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Start tijd *</FormLabel>
+                <Select onValueChange={(value) => onTimeChange('startTime', value)} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Selecteer tijd" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {timeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-      {/* Tijd selectie */}
-      {!isAllDay && (
-        <div className="space-y-4 animate-in fade-in slide-in-from-top-1 duration-300">
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="startTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Start tijd</FormLabel>
-                  <Select onValueChange={(value) => onTimeChange('startTime', value)} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="bg-background">
-                        <SelectValue placeholder="Selecteer tijd" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {timeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="endTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Eind tijd</FormLabel>
-                  <Select onValueChange={(value) => onTimeChange('endTime', value)} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="bg-background">
-                        <SelectValue placeholder="Selecteer tijd" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {timeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Duration indicator */}
-          {startTime && endTime && (
-            <div className="text-sm text-muted-foreground animate-in fade-in duration-500">
-              Duur: {calculateDuration()} minuten ({(calculateDuration() / 60).toFixed(1)} uur)
-            </div>
-          )}
-
-          {/* Auto-update toggle */}
-          <div className="flex items-center space-x-2 animate-in fade-in duration-700">
-            <Checkbox 
-              id="auto-update" 
-              checked={autoUpdateEndTime} 
-              onCheckedChange={(checked) => onAutoUpdateChange(checked === true)} 
-            />
-            <label htmlFor="auto-update" className="text-sm text-muted-foreground">
-              Automatisch eindtijd berekenen op basis van service type
-            </label>
-          </div>
+          <FormField
+            control={form.control}
+            name="endTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Eind tijd *</FormLabel>
+                <Select onValueChange={(value) => onTimeChange('endTime', value)} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Selecteer tijd" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {timeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-      )}
+
+        {/* Duration indicator */}
+        {startTime && endTime && (
+          <div className="text-sm text-muted-foreground animate-in fade-in duration-500">
+            Duur: {calculateDuration()} minuten ({(calculateDuration() / 60).toFixed(1)} uur)
+          </div>
+        )}
+
+        {/* Auto-update toggle */}
+        <div className="flex items-center space-x-2 animate-in fade-in duration-700">
+          <Checkbox 
+            id="auto-update" 
+            checked={autoUpdateEndTime} 
+            onCheckedChange={(checked) => onAutoUpdateChange(checked === true)} 
+          />
+          <label htmlFor="auto-update" className="text-sm text-muted-foreground">
+            Automatisch eindtijd berekenen op basis van service type
+          </label>
+        </div>
+      </div>
     </div>
   );
 }
