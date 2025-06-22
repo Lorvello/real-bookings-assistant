@@ -207,48 +207,50 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] bg-card border-border max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
+      <DialogContent className="sm:max-w-[500px] bg-card border-border h-[90vh] max-h-[700px] flex flex-col p-0">
+        <DialogHeader className="flex-shrink-0 p-6 pb-0">
           <DialogTitle className="text-foreground">Nieuwe Afspraak</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <BookingBasicFields 
-                form={form} 
-                serviceTypes={serviceTypes} 
-                onServiceTypeChange={handleServiceTypeChange}
-              />
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full px-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6">
+                <BookingBasicFields 
+                  form={form} 
+                  serviceTypes={serviceTypes} 
+                  onServiceTypeChange={handleServiceTypeChange}
+                />
 
-              <BookingDateTimeFields 
-                form={form}
-                isAllDay={isAllDay}
-                startTime={startTime}
-                endTime={endTime}
-                autoUpdateEndTime={autoUpdateEndTime}
-                onAutoUpdateChange={setAutoUpdateEndTime}
-                onTimeChange={handleTimeChange}
-                calculateDuration={getDuration}
-              />
+                <BookingDateTimeFields 
+                  form={form}
+                  isAllDay={isAllDay}
+                  startTime={startTime}
+                  endTime={endTime}
+                  autoUpdateEndTime={autoUpdateEndTime}
+                  onAutoUpdateChange={setAutoUpdateEndTime}
+                  onTimeChange={handleTimeChange}
+                  calculateDuration={getDuration}
+                />
 
-              <BookingReminderFields 
-                form={form} 
-                hasReminder={hasReminder} 
-              />
+                <BookingReminderFields 
+                  form={form} 
+                  hasReminder={hasReminder} 
+                />
 
-              {/* Buttons */}
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Annuleren
-                </Button>
-                <Button type="submit" disabled={isCreating}>
-                  {isCreating ? 'Bezig...' : 'Opslaan'}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </ScrollArea>
+                {/* Buttons - Inside form to ensure they are visible */}
+                <div className="flex justify-end space-x-2 pt-4 border-t border-border">
+                  <Button type="button" variant="outline" onClick={onClose}>
+                    Annuleren
+                  </Button>
+                  <Button type="submit" disabled={isCreating}>
+                    {isCreating ? 'Bezig...' : 'Opslaan'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
