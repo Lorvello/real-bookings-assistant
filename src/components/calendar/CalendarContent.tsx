@@ -36,7 +36,7 @@ export function CalendarContent({
 }: CalendarContentProps) {
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
           <p className="text-muted-foreground">Boekingen laden...</p>
@@ -47,7 +47,7 @@ export function CalendarContent({
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="text-center">
           <div className="text-red-500 mb-2">⚠️</div>
           <p className="text-red-500 font-medium">Fout bij laden van boekingen</p>

@@ -46,7 +46,7 @@ export function CalendarContainer({ calendarId }: CalendarContainerProps) {
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border h-full flex flex-col">
+    <div className="bg-card rounded-xl border border-border h-full flex flex-col overflow-hidden">
       <CalendarHeader
         currentView={currentView}
         currentDate={currentDate}
@@ -56,7 +56,7 @@ export function CalendarContainer({ calendarId }: CalendarContainerProps) {
         loading={loading}
       />
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <CalendarContent
           currentView={currentView}
           bookings={bookings}
