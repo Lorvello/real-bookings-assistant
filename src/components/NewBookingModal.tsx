@@ -481,7 +481,7 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
                   <Checkbox 
                     id="auto-update" 
                     checked={autoUpdateEndTime} 
-                    onCheckedChange={setAutoUpdateEndTime} 
+                    onCheckedChange={(checked) => setAutoUpdateEndTime(checked === true)} 
                   />
                   <label htmlFor="auto-update" className="text-sm text-muted-foreground">
                     Automatisch eindtijd berekenen op basis van service type
