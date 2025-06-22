@@ -118,7 +118,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                     {format(day, 'd')}
                   </div>
                   {dayBookings.length > 0 && (
-                    <div className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full font-medium">
+                    <div className="text-xs bg-blue-500/20 text-blue-600 px-2 py-1 rounded-full font-medium">
                       {dayBookings.length}
                     </div>
                   )}
@@ -137,8 +137,8 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                     <div
                       className="group/booking p-2.5 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
                       style={{
-                        backgroundColor: dayBookings[0].service_types?.color || '#10B981',
-                        backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#10B981'}, ${dayBookings[0].service_types?.color || '#10B981'}dd)`
+                        backgroundColor: dayBookings[0].service_types?.color || '#3B82F6',
+                        backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`
                       }}
                       title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name} (${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Afspraak'})`}
                       onClick={(e) => {
@@ -166,11 +166,11 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                   )}
                   
                   {dayBookings.length > 1 && (
-                    <div className="text-center py-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border border-primary/20 hover:from-primary/15 hover:to-primary/10 hover:border-primary/30 transition-all duration-200 cursor-pointer group-hover:scale-105">
-                      <div className="text-primary font-semibold text-sm mb-1">
+                    <div className="text-center py-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20 hover:from-blue-500/15 hover:to-blue-500/10 hover:border-blue-500/30 transition-all duration-200 cursor-pointer group-hover:scale-105">
+                      <div className="text-blue-600 font-semibold text-sm mb-1">
                         {dayBookings.length} afspraken
                       </div>
-                      <div className="text-xs text-primary/70">
+                      <div className="text-xs text-blue-600/70">
                         Klik voor details
                       </div>
                     </div>

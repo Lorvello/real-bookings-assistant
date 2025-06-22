@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -91,10 +90,10 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
     <div
       className="absolute inset-x-0 mx-2 p-3 rounded-xl cursor-pointer hover:shadow-xl transition-all duration-200 z-10 group hover:scale-105 border border-white/20"
       style={{
-        background: `linear-gradient(135deg, ${booking.service_types?.color || '#10B981'}, ${booking.service_types?.color || '#10B981'}dd)`,
+        background: `linear-gradient(135deg, ${booking.service_types?.color || '#3B82F6'}, ${booking.service_types?.color || '#3B82F6'}dd)`,
         height: `${height}px`,
         top: `${topOffset}px`,
-        boxShadow: `0 4px 20px ${booking.service_types?.color || '#10B981'}40`
+        boxShadow: `0 4px 20px ${booking.service_types?.color || '#3B82F6'}40`
       }}
       title={`${booking.customer_name} - ${booking.service_types?.name || 'Afspraak'} (${booking.customer_phone || 'Geen telefoon'})`}
       onClick={() => onBookingClick(booking)}

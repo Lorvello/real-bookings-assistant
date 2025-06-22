@@ -73,7 +73,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, onBookingClick
                       <div
                         className="w-3 h-3 rounded-full flex-shrink-0"
                         style={{
-                          backgroundColor: booking.service_types?.color || '#10B981'
+                          backgroundColor: booking.service_types?.color || '#3B82F6'
                         }}
                       />
                       <h3 className="font-semibold text-foreground">
