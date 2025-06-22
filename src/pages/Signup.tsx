@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserRegistration } from '@/hooks/useUserRegistration';
+import Select from 'react-select';
+import { businessTypes } from '@/constants/settingsOptions';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -30,6 +32,14 @@ const Signup = () => {
       [name]: value
     }));
     // Clear error when user starts typing
+    if (error) setError('');
+  };
+
+  const handleBusinessTypeChange = (selectedOption: any) => {
+    setFormData(prev => ({
+      ...prev,
+      businessType: selectedOption?.value || ''
+    }));
     if (error) setError('');
   };
 
@@ -124,15 +134,39 @@ const Signup = () => {
 
             <div className="space-y-2">
               <Label htmlFor="businessType">Type Bedrijf *</Label>
-              <Input
-                id="businessType"
-                name="businessType"
-                type="text"
+              <Select
+                value={businessTypes.find(type => type.value === formData.businessType)}
+                onChange={handleBusinessTypeChange}
+                options={businessTypes}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                placeholder="Selecteer type bedrijf..."
+                isSearchable
+                isDisabled={loading}
                 required
-                value={formData.businessType}
-                onChange={handleInputChange}
-                placeholder="bijv. kapper, restaurant, tandarts, fitness, schoonheidssalon..."
-                disabled={loading}
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: 'white',
+                    borderColor: '#d1d5db',
+                    '&:hover': {
+                      borderColor: '#16a34a'
+                    }
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: 'white'
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isSelected
+                      ? '#16a34a'
+                      : state.isFocused
+                      ? '#f3f4f6'
+                      : 'white',
+                    color: state.isSelected ? 'white' : 'black'
+                  })
+                }}
               />
             </div>
 
