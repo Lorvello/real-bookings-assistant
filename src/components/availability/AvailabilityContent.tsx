@@ -10,11 +10,13 @@ import { Advanced } from './Advanced';
 
 interface AvailabilityContentProps {
   activeTab: string;
+  calendarId: string;
   onUnsavedChanges: () => void;
 }
 
 export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   activeTab,
+  calendarId,
   onUnsavedChanges
 }) => {
   if (activeTab === 'schedule') {
@@ -46,7 +48,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
                 </div>
                 
                 <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
-                  <DateOverrides onChange={onUnsavedChanges} />
+                  <DateOverrides calendarId={calendarId} onChange={onUnsavedChanges} />
                 </div>
               </div>
             </div>
