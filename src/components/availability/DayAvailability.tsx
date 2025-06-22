@@ -1,121 +1,89 @@
 
-import React, { useState, useEffect } from 'react';
-import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
+import React, { useState } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Plus, Trash2 } from 'lucide-react';
 
-interface DayAvailabilityProps {
-  day: string;
-  dayIndex: number;
-  scheduleId?: string;
-  initialRule?: any;
+interface TimeSlot {
+  start: string;
+  end: string;
 }
 
-// Helper function to format time to HH:MM
-const formatTimeToHHMM = (timeString: string): string => {
-  if (!timeString) return '09:00';
-  if (timeString.match(/^\d{2}:\d{2}$/)) return timeString;
-  if (timeString.match(/^\d{2}:\d{2}:\d{2}$/)) return timeString.substring(0, 5);
-  return timeString;
-};
+interface DayAvailabilityProps {
+  day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+  label: string;
+  calendarId: string;
+}
 
-export function DayAvailability({ 
-  day, 
-  dayIndex, 
-  scheduleId, 
-  initialRule 
-}: DayAvailabilityProps) {
-  const [isAvailable, setIsAvailable] = useState(initialRule?.is_available ?? true);
-  const [startTime, setStartTime] = useState(formatTimeToHHMM(initialRule?.start_time || '09:00'));
-  const [endTime, setEndTime] = useState(formatTimeToHHMM(initialRule?.end_time || '17:00'));
-  const [hasChanges, setHasChanges] = useState(false);
-  
-  const { updateRule, createRule } = useAvailabilityRules(scheduleId);
+export function DayAvailability({ day, label, calendarId }: DayAvailabilityProps) {
+  const [isEnabled, setIsEnabled] = useState(true);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
+    { start: '09:00', end: '17:00' }
+  ]);
 
-  // Track changes
-  useEffect(() => {
-    const changed = 
-      isAvailable !== (initialRule?.is_available ?? true) ||
-      startTime !== formatTimeToHHMM(initialRule?.start_time || '09:00') ||
-      endTime !== formatTimeToHHMM(initialRule?.end_time || '17:00');
-    setHasChanges(changed);
-  }, [isAvailable, startTime, endTime, initialRule]);
-
-  const saveChanges = async () => {
-    if (!scheduleId) return;
-
-    try {
-      if (initialRule) {
-        await updateRule(initialRule.id, {
-          is_available: isAvailable,
-          start_time: startTime,
-          end_time: endTime
-        });
-      } else {
-        await createRule({
-          day_of_week: dayIndex,
-          start_time: startTime,
-          end_time: endTime,
-          is_available: isAvailable
-        });
-      }
-      setHasChanges(false);
-    } catch (error) {
-      console.error('Error saving availability:', error);
-    }
+  const addTimeSlot = () => {
+    setTimeSlots([...timeSlots, { start: '09:00', end: '17:00' }]);
   };
 
-  // Auto-save after 1 second of no changes
-  useEffect(() => {
-    if (hasChanges) {
-      const timeout = setTimeout(saveChanges, 1000);
-      return () => clearTimeout(timeout);
-    }
-  }, [hasChanges, isAvailable, startTime, endTime]);
+  const removeTimeSlot = (index: number) => {
+    setTimeSlots(timeSlots.filter((_, i) => i !== index));
+  };
+
+  const updateTimeSlot = (index: number, field: 'start' | 'end', value: string) => {
+    const updated = [...timeSlots];
+    updated[index][field] = value;
+    setTimeSlots(updated);
+  };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className={`text-sm font-medium ${
-          isAvailable ? 'text-foreground' : 'text-muted-foreground'
-        }`}>
-          {day}
-        </span>
-        
-        <button
-          onClick={() => setIsAvailable(!isAvailable)}
-          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-            isAvailable ? 'bg-primary' : 'bg-muted'
-          }`}
-        >
-          <span
-            className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-              isAvailable ? 'translate-x-5' : 'translate-x-1'
-            }`}
-          />
-        </button>
+    <div className="p-4 bg-card/60 backdrop-blur-sm border border-border/40 rounded-2xl">
+      <div className="flex items-center justify-between mb-3">
+        <span className="font-medium text-foreground">{label}</span>
+        <Switch 
+          checked={isEnabled} 
+          onCheckedChange={setIsEnabled}
+        />
       </div>
       
-      {isAvailable && (
-        <div className="flex items-center space-x-2 text-xs">
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(formatTimeToHHMM(e.target.value))}
-            className="flex-1 px-2 py-1 bg-background border border-border rounded text-foreground focus:border-primary focus:outline-none"
-          />
-          <span className="text-muted-foreground">-</span>
-          <input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(formatTimeToHHMM(e.target.value))}
-            className="flex-1 px-2 py-1 bg-background border border-border rounded text-foreground focus:border-primary focus:outline-none"
-          />
-        </div>
-      )}
-      
-      {hasChanges && (
-        <div className="flex items-center gap-1 text-xs text-yellow-600">
-          <div className="w-1 h-1 bg-yellow-600 rounded-full animate-pulse"></div>
-          <span>Opslaan...</span>
+      {isEnabled && (
+        <div className="space-y-3">
+          {timeSlots.map((slot, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <input
+                type="time"
+                value={slot.start}
+                onChange={(e) => updateTimeSlot(index, 'start', e.target.value)}
+                className="px-2 py-1 text-sm border border-border/60 rounded-xl bg-background/50"
+              />
+              <span className="text-muted-foreground">tot</span>
+              <input
+                type="time"
+                value={slot.end}
+                onChange={(e) => updateTimeSlot(index, 'end', e.target.value)}
+                className="px-2 py-1 text-sm border border-border/60 rounded-xl bg-background/50"
+              />
+              {timeSlots.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeTimeSlot(index)}
+                  className="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          ))}
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={addTimeSlot}
+            className="w-full bg-background/50 border-border/60 hover:bg-accent/50"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Tijdslot toevoegen
+          </Button>
         </div>
       )}
     </div>
