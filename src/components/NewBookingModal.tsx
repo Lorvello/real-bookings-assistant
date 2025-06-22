@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -283,265 +283,51 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] bg-card border-border">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] bg-card border-border max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-foreground">Nieuwe Afspraak</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Titel */}
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Titel *</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Voer een titel in" className="bg-background" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Service Type Selectie */}
-            {serviceTypes.length > 0 && (
+        <ScrollArea className="flex-1 pr-4">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Titel */}
               <FormField
                 control={form.control}
-                name="serviceTypeId"
+                name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Service Type</FormLabel>
-                    <Select onValueChange={(value) => {
-                      field.onChange(value);
-                      // Disable auto-update when user manually selects a service type
-                      setAutoUpdateEndTime(false);
-                    }} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-background">
-                          <SelectValue placeholder="Selecteer service type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {serviceTypes.map((service) => (
-                          <SelectItem key={service.id} value={service.id}>
-                            {service.name} ({service.duration} min)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Titel *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Voer een titel in" className="bg-background" />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
 
-            {/* Locatie */}
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Locatie</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Voer een locatie in" className="bg-background" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Datum */}
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Datum *</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full pl-3 text-left font-normal bg-background",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Selecteer een datum</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date("1900-01-01")}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Hele dag toggle */}
-            <FormField
-              control={form.control}
-              name="isAllDay"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="text-sm font-normal">Hele dag</FormLabel>
-                </FormItem>
-              )}
-            />
-
-            {/* Tijd selectie */}
-            {!isAllDay && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="startTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start tijd</FormLabel>
-                        <Select onValueChange={(value) => {
-                          field.onChange(value);
-                          setAutoUpdateEndTime(false); // User manually changed time
-                        }} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-background">
-                              <SelectValue placeholder="Selecteer tijd" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {timeOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="endTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Eind tijd</FormLabel>
-                        <Select onValueChange={(value) => {
-                          field.onChange(value);
-                          setAutoUpdateEndTime(false); // User manually changed time
-                        }} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-background">
-                              <SelectValue placeholder="Selecteer tijd" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {timeOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Duration indicator */}
-                {startTime && endTime && (
-                  <div className="text-sm text-muted-foreground">
-                    Duur: {calculateDuration()} minuten ({(calculateDuration() / 60).toFixed(1)} uur)
-                  </div>
-                )}
-
-                {/* Auto-update toggle */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="auto-update" 
-                    checked={autoUpdateEndTime} 
-                    onCheckedChange={(checked) => setAutoUpdateEndTime(checked === true)} 
-                  />
-                  <label htmlFor="auto-update" className="text-sm text-muted-foreground">
-                    Automatisch eindtijd berekenen op basis van service type
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {/* Beschrijving */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Beschrijving</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      {...field} 
-                      placeholder="Voer een beschrijving in" 
-                      className="bg-background"
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Herinnering sectie */}
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="hasReminder"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <FormLabel className="text-sm font-normal">Herinnering instellen</FormLabel>
-                  </FormItem>
-                )}
-              />
-
-              {hasReminder && (
+              {/* Service Type Selectie */}
+              {serviceTypes.length > 0 && (
                 <FormField
                   control={form.control}
-                  name="reminderTiming"
+                  name="serviceTypeId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Herinnering timing</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormLabel>Service Type</FormLabel>
+                      <Select onValueChange={(value) => {
+                        field.onChange(value);
+                        // Disable auto-update when user manually selects a service type
+                        setAutoUpdateEndTime(false);
+                      }} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="bg-background">
-                            <SelectValue placeholder="Selecteer timing" />
+                            <SelectValue placeholder="Selecteer service type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {reminderOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
+                          {serviceTypes.map((service) => (
+                            <SelectItem key={service.id} value={service.id}>
+                              {service.name} ({service.duration} min)
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -551,19 +337,235 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
                   )}
                 />
               )}
-            </div>
 
-            {/* Buttons */}
-            <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Annuleren
-              </Button>
-              <Button type="submit" disabled={isCreating}>
-                {isCreating ? 'Bezig...' : 'Opslaan'}
-              </Button>
-            </div>
-          </form>
-        </Form>
+              {/* Locatie */}
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Locatie</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Voer een locatie in" className="bg-background" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Datum */}
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Datum *</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal bg-background",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Selecteer een datum</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date < new Date("1900-01-01")}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Hele dag toggle */}
+              <FormField
+                control={form.control}
+                name="isAllDay"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <FormLabel className="text-sm font-normal">Hele dag</FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              {/* Tijd selectie */}
+              {!isAllDay && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="startTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start tijd</FormLabel>
+                          <Select onValueChange={(value) => {
+                            field.onChange(value);
+                            setAutoUpdateEndTime(false); // User manually changed time
+                          }} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="bg-background">
+                                <SelectValue placeholder="Selecteer tijd" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {timeOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="endTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Eind tijd</FormLabel>
+                          <Select onValueChange={(value) => {
+                            field.onChange(value);
+                            setAutoUpdateEndTime(false); // User manually changed time
+                          }} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="bg-background">
+                                <SelectValue placeholder="Selecteer tijd" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {timeOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Duration indicator */}
+                  {startTime && endTime && (
+                    <div className="text-sm text-muted-foreground">
+                      Duur: {calculateDuration()} minuten ({(calculateDuration() / 60).toFixed(1)} uur)
+                    </div>
+                  )}
+
+                  {/* Auto-update toggle */}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="auto-update" 
+                      checked={autoUpdateEndTime} 
+                      onCheckedChange={(checked) => setAutoUpdateEndTime(checked === true)} 
+                    />
+                    <label htmlFor="auto-update" className="text-sm text-muted-foreground">
+                      Automatisch eindtijd berekenen op basis van service type
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Beschrijving */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Beschrijving</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        placeholder="Voer een beschrijving in" 
+                        className="bg-background"
+                        rows={3}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Herinnering sectie */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="hasReminder"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <FormLabel className="text-sm font-normal">Herinnering instellen</FormLabel>
+                    </FormItem>
+                  )}
+                />
+
+                {hasReminder && (
+                  <FormField
+                    control={form.control}
+                    name="reminderTiming"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Herinnering timing</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-background">
+                              <SelectValue placeholder="Selecteer timing" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {reminderOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Annuleren
+                </Button>
+                <Button type="submit" disabled={isCreating}>
+                  {isCreating ? 'Bezig...' : 'Opslaan'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
