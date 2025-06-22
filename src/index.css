@@ -1,82 +1,79 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Bookings Assistant Design System */
-    --background: 31 41 55; /* #1F2937 - Dark grey-blue */
-    --foreground: 255 255 255; /* #FFFFFF - Primary text */
-
-    --card: 31 41 55; /* #1F2937 - Dark background */
-    --card-foreground: 255 255 255; /* #FFFFFF */
-
-    --popover: 31 41 55; /* #1F2937 */
-    --popover-foreground: 255 255 255; /* #FFFFFF */
-
-    --primary: 16 185 129; /* #10B981 - Primary green */
-    --primary-foreground: 255 255 255; /* #FFFFFF */
-
-    --secondary: 52 211 153; /* #34D399 - Lighter green */
-    --secondary-foreground: 255 255 255; /* #FFFFFF */
-
-    --muted: 55 65 81; /* #374151 - Cards border */
-    --muted-foreground: 156 163 175; /* #9CA3AF - Secondary text */
-
-    --accent: 52 211 153; /* #34D399 */
-    --accent-foreground: 255 255 255; /* #FFFFFF */
-
-    --destructive: 239 68 68; /* #EF4444 - Error */
-    --destructive-foreground: 255 255 255; /* #FFFFFF */
-
-    --border: 55 65 81; /* #374151 - Subtle border */
-    --input: 55 65 81; /* #374151 - Dark inputs */
-    --ring: 16 185 129; /* #10B981 - Green focus states */
-
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 142 69% 58%;
+    --primary-foreground: 355 7% 97%;
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 98%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 98%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 142 69% 58%;
     --radius: 0.5rem;
-
-    --sidebar-background: 31 41 55;
-    --sidebar-foreground: 255 255 255;
-    --sidebar-primary: 16 185 129;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 52 211 153;
-    --sidebar-accent-foreground: 255 255 255;
-    --sidebar-border: 55 65 81;
-    --sidebar-ring: 16 185 129;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 10.6% 64.9%;
   }
 
   .dark {
-    /* Keep same values for dark mode consistency */
-    --background: 31 41 55;
-    --foreground: 255 255 255;
-    --card: 31 41 55;
-    --card-foreground: 255 255 255;
-    --popover: 31 41 55;
-    --popover-foreground: 255 255 255;
-    --primary: 16 185 129;
-    --primary-foreground: 255 255 255;
-    --secondary: 52 211 153;
-    --secondary-foreground: 255 255 255;
-    --muted: 55 65 81;
-    --muted-foreground: 156 163 175;
-    --accent: 52 211 153;
-    --accent-foreground: 255 255 255;
-    --destructive: 239 68 68;
-    --destructive-foreground: 255 255 255;
-    --border: 55 65 81;
-    --input: 55 65 81;
-    --ring: 16 185 129;
-    --sidebar-background: 31 41 55;
-    --sidebar-foreground: 255 255 255;
-    --sidebar-primary: 16 185 129;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 52 211 153;
-    --sidebar-accent-foreground: 255 255 255;
-    --sidebar-border: 55 65 81;
-    --sidebar-ring: 16 185 129;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 142 69% 58%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 142 69% 58%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 94.1%;
+    --sidebar-primary-foreground: 240 5.9% 10%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 10.6% 64.9%;
   }
 }
 
@@ -84,113 +81,45 @@
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground font-sans;
-    font-family: 'Inter', system-ui, sans-serif;
-  }
-
-  /* Headings styling */
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-bold text-foreground;
-  }
-
-  /* Body text styling */
-  p {
-    @apply text-base text-foreground;
+    @apply bg-background text-foreground;
   }
 }
 
-/* Bookings Assistant Custom Components */
-@layer components {
-  /* Primary button with green gradient */
-  .btn-primary {
-    @apply bg-gradient-to-r from-primary to-secondary text-primary-foreground font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:shadow-lg hover:scale-105;
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
-
-  /* Chat bubble styles */
-  .chat-bubble-inbound {
-    @apply bg-chat-inbound text-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
-  }
-
-  .chat-bubble-outbound {
-    @apply bg-chat-outbound text-primary-foreground p-3 rounded-lg max-w-[80%] shadow-sm;
-  }
-
-  .chat-timestamp {
-    @apply text-xs text-chat-timestamp mt-1;
-  }
-
-  /* Online indicator */
-  .online-indicator {
-    @apply w-2 h-2 bg-chat-online rounded-full;
-  }
-
-  /* Form inputs with green focus */
-  .form-input {
-    @apply bg-input border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition-colors;
-  }
-
-  /* Card styling */
-  .card-dark {
-    @apply bg-card border border-border rounded-lg shadow-sm;
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 
-/* Keep existing animations */
-@keyframes appear {
-  0% {
+/* Custom animations */
+@keyframes fadeIn {
+  from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(20px) scale(0.95);
   }
-  100% {
+  to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-@keyframes scrollFadeUp {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
+  33% {
+    transform: translateY(-20px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(10px) rotate(-1deg);
   }
 }
 
-.animate-appear {
-  animation: appear 0.6s cubic-bezier(0.2, 0.85, 0.45, 1) forwards;
-}
-
-.animate-scroll-fade-up {
-  animation: scrollFadeUp 0.8s cubic-bezier(0.2, 0.85, 0.45, 1) forwards;
-}
-
-.scroll-animate {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s cubic-bezier(0.2, 0.85, 0.45, 1), transform 0.8s cubic-bezier(0.2, 0.85, 0.45, 1);
-}
-
-.scroll-animate.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.delay-100 {
-  animation-delay: 100ms;
-}
-
-.delay-300 {
-  animation-delay: 300ms;
-}
-
-.delay-500 {
-  animation-delay: 500ms;
-}
-
-.delay-700 {
-  animation-delay: 700ms;
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
