@@ -19,6 +19,8 @@ export function DashboardContent({ calendarIds, calendarName }: DashboardContent
   // Set up realtime updates for the primary calendar
   useRealtimeDashboard(primaryCalendarId);
 
+  console.log('DashboardContent render:', { calendarIds, analytics, isLoading });
+
   if (calendarIds.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -53,15 +55,21 @@ export function DashboardContent({ calendarIds, calendarName }: DashboardContent
         </p>
       </div>
 
-      {/* Metrics Cards */}
-      <DashboardMetrics 
-        analytics={analytics} 
-        isLoading={isLoading}
-        showMultiCalendarNote={calendarIds.length > 1}
-      />
+      {/* Metrics Cards - Always show, even when loading */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-white mb-4">Statistieken</h2>
+        <DashboardMetrics 
+          analytics={analytics} 
+          isLoading={isLoading}
+          showMultiCalendarNote={calendarIds.length > 1}
+        />
+      </div>
 
       {/* Calendar View */}
-      <CalendarDashboard calendarIds={calendarIds} />
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-white mb-4">Kalender</h2>
+        <CalendarDashboard calendarIds={calendarIds} />
+      </div>
     </div>
   );
 }
