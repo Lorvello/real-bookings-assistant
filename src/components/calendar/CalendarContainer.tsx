@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { addMonths, subMonths, addWeeks, subWeeks, addYears, subYears } from 'date-fns';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarContent } from './CalendarContent';
 import { NewBookingModal } from '../NewBookingModal';
 import { useMultipleCalendarBookings } from '@/hooks/useMultipleCalendarBookings';
+import { useRealtimeBookings } from '@/hooks/useRealtimeBookings';
 
 type CalendarView = 'month' | 'week' | 'year';
 
@@ -20,6 +20,11 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   
   const { bookings, loading, error, refetch } = useMultipleCalendarBookings(calendarIds);
+
+  // Enable real-time updates voor alle kalenders
+  calendarIds.forEach(calendarId => {
+    useRealtimeBookings(calendarId);
+  });
 
   const navigateDate = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -37,12 +42,18 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
   };
 
   const handleBookingCreated = () => {
+    console.log('📅 Booking created, refreshing calendar data');
     refetch();
+    setIsNewBookingModalOpen(false);
   };
 
   const handleNewBooking = () => {
     console.log('Opening new booking modal');
     setIsNewBookingModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsNewBookingModalOpen(false);
   };
 
   return (
@@ -68,7 +79,7 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
 
       <NewBookingModal
         open={isNewBookingModalOpen}
-        onClose={() => setIsNewBookingModalOpen(false)}
+        onClose={handleModalClose}
         calendarId={calendarIds[0] || ''} // Use first calendar for new bookings
         onBookingCreated={handleBookingCreated}
       />

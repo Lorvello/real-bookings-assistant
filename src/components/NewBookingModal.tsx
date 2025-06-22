@@ -17,6 +17,12 @@ interface NewBookingModalProps {
 }
 
 export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }: NewBookingModalProps) {
+  const handleBookingSuccess = () => {
+    console.log('🎉 Booking created successfully, calling callbacks');
+    onBookingCreated?.();
+    onClose();
+  };
+
   const {
     form,
     serviceTypes,
@@ -30,7 +36,11 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
     handleServiceTypeChange,
     getDuration,
     onSubmit,
-  } = useBookingForm({ calendarId, onBookingCreated, onClose });
+  } = useBookingForm({ 
+    calendarId, 
+    onBookingCreated: handleBookingSuccess, 
+    onClose 
+  });
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
