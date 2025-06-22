@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -46,7 +47,8 @@ const getWeekDays = (currentDate: Date) => {
   return eachDayOfInterval({ start: weekStart, end: weekEnd });
 };
 
-const getBookingsForTimeSlot = (bookings: Booking[], day: Date, timeSlot: string) => {
+// Fixed function to get bookings that START in a specific time slot
+const getBookingsStartingInTimeSlot = (bookings: Booking[], day: Date, timeSlot: string) => {
   const [hours, minutes] = timeSlot.split(':').map(Number);
   const slotStart = new Date(day);
   slotStart.setHours(hours, minutes, 0, 0);
@@ -54,37 +56,43 @@ const getBookingsForTimeSlot = (bookings: Booking[], day: Date, timeSlot: string
 
   return bookings.filter(booking => {
     const bookingStart = new Date(booking.start_time);
-    const bookingEnd = new Date(booking.end_time);
     
     return (
       isSameDay(bookingStart, day) &&
-      ((bookingStart >= slotStart && bookingStart < slotEnd) ||
-       (bookingStart < slotStart && bookingEnd > slotStart))
+      bookingStart >= slotStart && 
+      bookingStart < slotEnd
     );
   });
 };
 
-const calculateTopOffset = (startTime: Date, timeSlot: string) => {
-  const [slotHours, slotMinutes] = timeSlot.split(':').map(Number);
-  const slotStart = new Date(startTime);
-  slotStart.setHours(slotHours, slotMinutes, 0, 0);
+// Fixed positioning calculation
+const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
+  const startTime = new Date(booking.start_time);
+  const endTime = new Date(booking.end_time);
+  const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60); // minutes
+  
+  // Calculate top offset from the base time slot
+  const [baseHours, baseMinutes] = baseTimeSlot.split(':').map(Number);
+  const baseSlotMinutes = baseHours * 60 + baseMinutes;
   
   const bookingHours = startTime.getHours();
   const bookingMinutes = startTime.getMinutes();
-  const slotTotalMinutes = slotHours * 60 + slotMinutes;
   const bookingTotalMinutes = bookingHours * 60 + bookingMinutes;
   
-  const offsetMinutes = bookingTotalMinutes - slotTotalMinutes;
-  return Math.max(0, (offsetMinutes / 30) * 80); // 30 min = 80px (verhoogd van 60px)
+  const offsetMinutes = bookingTotalMinutes - baseSlotMinutes;
+  const topOffset = Math.max(0, (offsetMinutes / 30) * 80); // 30 min = 80px
+  
+  // Calculate height based on duration
+  const height = Math.max(40, (duration / 30) * 80); // minimum 40px, 30 min = 80px
+  
+  return { topOffset, height };
 };
 
 // Booking Block Component
 function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking; timeSlot: string; onBookingClick: (booking: Booking) => void }) {
+  const { topOffset, height } = calculateBookingPosition(booking, timeSlot);
   const startTime = new Date(booking.start_time);
   const endTime = new Date(booking.end_time);
-  const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60); // minutes
-  const height = Math.max(40, (duration / 30) * 80); // minimum 40px, 30 min = 80px
-  const topOffset = calculateTopOffset(startTime, timeSlot);
 
   return (
     <div
@@ -187,7 +195,8 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
             
             {/* Day columns */}
             {weekDays.map((day) => {
-              const dayBookings = getBookingsForTimeSlot(bookings, day, timeSlot);
+              // Only get bookings that START in this time slot to avoid duplicates
+              const dayBookings = getBookingsStartingInTimeSlot(bookings, day, timeSlot);
               
               return (
                 <div
