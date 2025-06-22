@@ -1,9 +1,6 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, AlertTriangle, XCircle, Lightbulb } from 'lucide-react';
+import { Clock, AlertTriangle, Calendar, TrendingUp, Target, Users } from 'lucide-react';
 
 interface PerformanceInsightsProps {
   avgResponseTime?: number;
@@ -12,137 +9,92 @@ interface PerformanceInsightsProps {
   calendarUtilization?: number;
 }
 
-export function PerformanceInsights({
-  avgResponseTime = 0,
-  noShowRate = 0,
-  cancellationRate = 0,
-  calendarUtilization = 0
+export function PerformanceInsights({ 
+  avgResponseTime, 
+  noShowRate, 
+  cancellationRate, 
+  calendarUtilization 
 }: PerformanceInsightsProps) {
-  const getResponseTimeStatus = () => {
-    if (avgResponseTime < 15) return { status: 'excellent', icon: CheckCircle, color: 'green' };
-    if (avgResponseTime < 60) return { status: 'good', icon: AlertTriangle, color: 'yellow' };
-    return { status: 'poor', icon: XCircle, color: 'red' };
+  const getResponseTimeInsight = () => {
+    if (!avgResponseTime) return "Nog geen reactietijd data beschikbaar.";
+    if (avgResponseTime < 5) return "Uitstekende reactietijd! Klanten krijgen snel antwoord.";
+    if (avgResponseTime < 15) return "Goede reactietijd, maar er is ruimte voor verbetering.";
+    return "Reactietijd kan verbeterd worden voor betere klanttevredenheid.";
   };
 
-  const getUtilizationStatus = () => {
-    if (calendarUtilization > 70) return { status: 'excellent', icon: CheckCircle, color: 'green' };
-    if (calendarUtilization > 40) return { status: 'good', icon: AlertTriangle, color: 'yellow' };
-    return { status: 'poor', icon: XCircle, color: 'red' };
+  const getNoShowInsight = () => {
+    if (noShowRate === undefined) return "Nog geen no-show data beschikbaar.";
+    if (noShowRate < 5) return "Lage no-show rate toont goede klantbetrokkenheid.";
+    if (noShowRate < 15) return "Gemiddelde no-show rate, overweeg herinneringen te versturen.";
+    return "Hoge no-show rate - versterk je reminder systeem.";
   };
 
-  const responseStatus = getResponseTimeStatus();
-  const utilizationStatus = getUtilizationStatus();
+  const getCancellationInsight = () => {
+    if (cancellationRate === undefined) return "Nog geen annulering data beschikbaar.";
+    if (cancellationRate < 10) return "Lage annuleringsrate toont tevreden klanten.";
+    if (cancellationRate < 25) return "Gemiddelde annuleringsrate, monitor trends.";
+    return "Hoge annuleringsrate - analyseer mogelijke oorzaken.";
+  };
+
+  const getUtilizationInsight = () => {
+    if (calendarUtilization === undefined) return "Nog geen bezettingsdata beschikbaar.";
+    if (calendarUtilization > 80) return "Hoge kalender bezetting - overweeg extra capaciteit.";
+    if (calendarUtilization > 60) return "Goede kalender bezetting met ruimte voor groei.";
+    return "Kalender bezetting kan verbeterd worden met marketing.";
+  };
 
   const insights = [
     {
-      title: 'Reactietijd Status',
-      description: avgResponseTime < 15 
-        ? '✅ Uitstekende reactietijd - klanten reageren positief op snelle responses'
-        : avgResponseTime < 60
-        ? '⚠️ Reactietijd kan beter - probeer binnen 15 minuten te reageren'
-        : '❌ Langzame reactietijd - dit kan klanten afschrikken',
-      status: responseStatus.status,
-      color: responseStatus.color
+      title: "Reactietijd Optimalisatie",
+      insight: getResponseTimeInsight(),
+      icon: Clock,
+      variant: "blue" as const
     },
     {
-      title: 'Kalender Efficiency',
-      description: calendarUtilization > 70 
-        ? '✅ Goede bezettingsgraad - kalender wordt efficiënt benut'
-        : calendarUtilization > 40
-        ? '⚠️ Gemiddelde bezetting - er is ruimte voor meer boekingen'
-        : '❌ Lage bezetting - overweeg marketing of andere tijdslots',
-      status: utilizationStatus.status,
-      color: utilizationStatus.color
+      title: "No-show Preventie",
+      insight: getNoShowInsight(),
+      icon: AlertTriangle,
+      variant: "blue" as const
+    },
+    {
+      title: "Annulering Management",
+      insight: getCancellationInsight(),
+      icon: Users,
+      variant: "blue" as const
+    },
+    {
+      title: "Capaciteit Optimalisatie",
+      insight: getUtilizationInsight(),
+      icon: Target,
+      variant: "green" as const
     }
   ];
 
-  const recommendations = [
-    {
-      condition: avgResponseTime > 30,
-      text: 'Stel automatische antwoorden in voor snellere eerste reactie'
-    },
-    {
-      condition: noShowRate > 10,
-      text: 'Implementeer herinnerings-SMS\'jes om no-shows te verminderen'
-    },
-    {
-      condition: cancellationRate > 15,
-      text: 'Analyseer annuleringsredenen en verbeter het boekingsproces'
-    },
-    {
-      condition: calendarUtilization < 50,
-      text: 'Overweeg flexibelere tijdslots of promotiepakketten'
-    }
-  ].filter(rec => rec.condition);
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-      className="space-y-6"
-    >
-      {/* Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {insights.map((insight, index) => (
-          <motion.div
-            key={insight.title}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className={`border-${insight.color}-200 bg-${insight.color}-50/50`}>
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 bg-${insight.color}-100 rounded-full flex items-center justify-center flex-shrink-0`}>
-                    <responseStatus.icon className={`h-4 w-4 text-${insight.color}-600`} />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className={`font-medium text-${insight.color}-800`}>{insight.title}</h4>
-                    <p className={`text-sm text-${insight.color}-700`}>{insight.description}</p>
-                    <Badge 
-                      variant={insight.status === 'excellent' ? 'default' : insight.status === 'good' ? 'secondary' : 'destructive'}
-                      className="text-xs"
-                    >
-                      {insight.status === 'excellent' ? 'Uitstekend' : insight.status === 'good' ? 'Goed' : 'Verbetering Nodig'}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Recommendations */}
-      {recommendations.length > 0 && (
-        <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-800">
-              <Lightbulb className="h-5 w-5" />
-              Aanbevelingen voor Verbetering
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recommendations.map((rec, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + index * 0.1 }}
-                  className="flex items-start gap-3 p-3 bg-blue-100/50 rounded-lg"
-                >
-                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-white text-xs font-bold">{index + 1}</span>
-                  </div>
-                  <p className="text-sm text-blue-700 font-medium">{rec.text}</p>
-                </motion.div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </motion.div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {insights.map((item, index) => (
+        <div
+          key={item.title}
+          className={`p-6 bg-gradient-to-br ${
+            item.variant === 'green' 
+              ? 'from-green-500/10 via-green-500/5 to-transparent border-green-500/20' 
+              : 'from-blue-500/10 via-blue-500/5 to-transparent border-blue-500/20'
+          } border rounded-xl backdrop-blur-sm`}
+          style={{
+            animation: `fadeIn 0.6s ease-out ${index * 0.1}s both`
+          }}
+        >
+          <h4 className={`font-bold mb-3 flex items-center gap-2 ${
+            item.variant === 'green' ? 'text-green-300' : 'text-blue-300'
+          }`}>
+            <item.icon className="h-5 w-5" />
+            {item.title}
+          </h4>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            {item.insight}
+          </p>
+        </div>
+      ))}
+    </div>
   );
 }

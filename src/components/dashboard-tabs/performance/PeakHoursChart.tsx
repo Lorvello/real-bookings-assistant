@@ -1,20 +1,12 @@
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock } from 'lucide-react';
-import { PeakHoursStats } from './PeakHoursStats';
-import { PeakHoursBarChart } from './PeakHoursBarChart';
-import { PeakHoursInsights } from './PeakHoursInsights';
-import { PeakHoursRecommendations } from './PeakHoursRecommendations';
+import React from 'react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { Activity } from 'lucide-react';
 
 interface PeakHoursData {
   hour: number;
-  count: number;
-  revenue?: number;
-  avg_booking_value?: number;
-  popular_service?: string;
+  bookings: number;
+  hour_label: string;
 }
 
 interface PeakHoursChartProps {
@@ -22,112 +14,68 @@ interface PeakHoursChartProps {
   isLoading?: boolean;
 }
 
-export function PeakHoursChart({ data = [], isLoading }: PeakHoursChartProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('week');
-
-  // Generate complete 24-hour data with defaults
-  const completeHourData = React.useMemo(() => {
-    const hourMap = new Map(data.map(item => [item.hour, item]));
-    return Array.from({ length: 24 }, (_, hour) => ({
-      hour,
-      count: hourMap.get(hour)?.count || 0,
-      revenue: hourMap.get(hour)?.revenue || 0,
-      avg_booking_value: hourMap.get(hour)?.avg_booking_value || 0,
-      popular_service: hourMap.get(hour)?.popular_service || null,
-    }));
-  }, [data]);
-
-  const maxCount = Math.max(...completeHourData.map(d => d.count));
-  const totalBookings = completeHourData.reduce((sum, d) => sum + d.count, 0);
-  const totalRevenue = completeHourData.reduce((sum, d) => sum + (d.revenue || 0), 0);
-  
-  // Find peak hours (top 3)
-  const peakHours = completeHourData
-    .filter(d => d.count > 0)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 3);
-
-  // Find quiet hours (bottom 3 with bookings)
-  const quietHours = completeHourData
-    .filter(d => d.count > 0)
-    .sort((a, b) => a.count - b.count)
-    .slice(0, 3);
-
+export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
   if (isLoading) {
     return (
-      <Card className="border-slate-700/50 bg-slate-900/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-100">
-            <Clock className="h-5 w-5" />
-            Piekuren Analyse
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-slate-700 rounded w-1/3"></div>
-            <div className="h-64 bg-slate-700 rounded"></div>
-            <div className="grid grid-cols-3 gap-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 bg-slate-700 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="h-80 bg-gradient-to-br from-slate-700/30 to-slate-800/40 rounded-xl animate-pulse border border-slate-600/20"></div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl flex items-center justify-center border border-slate-600/30">
+          <Activity className="h-10 w-10 text-slate-400" />
+        </div>
+        <p className="text-slate-300 font-medium mb-2">Geen piekuren data beschikbaar</p>
+        <p className="text-sm text-slate-400">Meer historische data nodig voor analyse</p>
+      </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Card className="border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-800/60 backdrop-blur-sm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-slate-100">
-              <div className="w-8 h-8 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center">
-                <Clock className="h-4 w-4 text-slate-200" />
-              </div>
-              Piekuren Analyse
-            </CardTitle>
-            <Tabs value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v as any)}>
-              <TabsList className="grid w-full grid-cols-3 bg-slate-800/80">
-                <TabsTrigger value="today" className="text-slate-300 data-[state=active]:text-slate-100 data-[state=active]:bg-slate-700">Vandaag</TabsTrigger>
-                <TabsTrigger value="week" className="text-slate-300 data-[state=active]:text-slate-100 data-[state=active]:bg-slate-700">Deze Week</TabsTrigger>
-                <TabsTrigger value="month" className="text-slate-300 data-[state=active]:text-slate-100 data-[state=active]:bg-slate-700">Deze Maand</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Quick Stats */}
-          <PeakHoursStats 
-            totalBookings={totalBookings}
-            totalRevenue={totalRevenue}
-            topPeakHour={peakHours[0]?.hour || null}
+    <div className="h-80">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+          <XAxis 
+            dataKey="hour_label" 
+            stroke="#94A3B8"
+            fontSize={12}
+            tick={{ fill: '#94A3B8' }}
           />
-
-          {/* Chart */}
-          <PeakHoursBarChart 
-            data={completeHourData}
-            maxCount={maxCount}
+          <YAxis 
+            stroke="#94A3B8" 
+            fontSize={12}
+            tick={{ fill: '#94A3B8' }}
           />
-
-          {/* Insights */}
-          <PeakHoursInsights 
-            peakHours={peakHours}
-            quietHours={quietHours}
+          <Tooltip 
+            formatter={(value, name) => [value, 'Boekingen']}
+            labelFormatter={(label) => `${label}`}
+            contentStyle={{
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              border: '1px solid rgba(34, 197, 94, 0.3)',
+              borderRadius: '12px',
+              color: '#F1F5F9',
+              backdropFilter: 'blur(8px)'
+            }}
+            cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
           />
-
-          {/* Recommendations */}
-          <PeakHoursRecommendations 
-            peakHours={peakHours}
-            quietHours={quietHours}
+          <Bar 
+            dataKey="bookings" 
+            fill="url(#greenGradient)"
+            radius={[4, 4, 0, 0]}
+            stroke="rgba(34, 197, 94, 0.5)"
+            strokeWidth={1}
           />
-        </CardContent>
-      </Card>
-    </motion.div>
+          <defs>
+            <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#22C55E" stopOpacity="0.8"/>
+              <stop offset="100%" stopColor="#16A34A" stopOpacity="0.6"/>
+            </linearGradient>
+          </defs>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
