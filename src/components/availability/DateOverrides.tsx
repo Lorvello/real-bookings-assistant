@@ -5,9 +5,10 @@ import { Calendar, Plus } from 'lucide-react';
 
 interface DateOverridesProps {
   calendarId: string;
+  onChange?: () => void;
 }
 
-export function DateOverrides({ calendarId }: DateOverridesProps) {
+export function DateOverrides({ calendarId, onChange }: DateOverridesProps) {
   const [overrides, setOverrides] = useState<any[]>([]);
 
   return (
@@ -24,6 +25,10 @@ export function DateOverrides({ calendarId }: DateOverridesProps) {
           variant="outline"
           size="sm"
           className="bg-background/50 border-border/60 hover:bg-accent/50"
+          onClick={() => {
+            // TODO: Implement add override functionality
+            onChange?.();
+          }}
         >
           <Plus className="h-3 w-3 mr-1" />
           Uitzondering toevoegen
