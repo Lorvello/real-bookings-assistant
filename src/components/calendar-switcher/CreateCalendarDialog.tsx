@@ -23,9 +23,14 @@ import { useCreateCalendar } from '@/hooks/useCreateCalendar';
 interface CreateCalendarDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  trigger?: 'dropdown' | 'button';
 }
 
-export function CreateCalendarDialog({ open, onOpenChange }: CreateCalendarDialogProps) {
+export function CreateCalendarDialog({ 
+  open, 
+  onOpenChange, 
+  trigger = 'dropdown' 
+}: CreateCalendarDialogProps) {
   const { profile } = useProfile();
   const [newCalendar, setNewCalendar] = useState({
     name: '',
@@ -63,26 +68,30 @@ export function CreateCalendarDialog({ open, onOpenChange }: CreateCalendarDialo
     }
   };
 
+  const TriggerComponent = trigger === 'dropdown' ? (
+    <DialogTrigger asChild>
+      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+        <Plus className="w-4 h-4 mr-2" />
+        Nieuwe kalender
+      </DropdownMenuItem>
+    </DialogTrigger>
+  ) : null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nieuwe kalender
-        </DropdownMenuItem>
-      </DialogTrigger>
+      {TriggerComponent}
       
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nieuwe kalender aanmaken</DialogTitle>
           <DialogDescription>
-            Maak een nieuwe kalender om je afspraken te organiseren.
+            Maak een nieuwe kalender aan voor jezelf of een medewerker. Je kunt later altijd de instellingen aanpassen.
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor="calendar-name">Kalendernaam</Label>
+            <Label htmlFor="calendar-name">Kalendernaam *</Label>
             <Input
               id="calendar-name"
               placeholder={generateCalendarName()}
@@ -90,7 +99,7 @@ export function CreateCalendarDialog({ open, onOpenChange }: CreateCalendarDialo
               onChange={(e) => setNewCalendar(prev => ({ ...prev, name: e.target.value }))}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Suggestie: {generateCalendarName()}
+              Bijv: {generateCalendarName()}, "Medewerker John", "Behandelkamer 2"
             </p>
           </div>
           
@@ -98,7 +107,7 @@ export function CreateCalendarDialog({ open, onOpenChange }: CreateCalendarDialo
             <Label htmlFor="calendar-description">Beschrijving (optioneel)</Label>
             <Textarea
               id="calendar-description"
-              placeholder="Beschrijf waar deze kalender voor is..."
+              placeholder="Voor welke medewerker of locatie is deze kalender?"
               value={newCalendar.description}
               onChange={(e) => setNewCalendar(prev => ({ ...prev, description: e.target.value }))}
             />
@@ -115,6 +124,7 @@ export function CreateCalendarDialog({ open, onOpenChange }: CreateCalendarDialo
                 className="w-8 h-8 rounded border"
               />
               <span className="text-sm text-muted-foreground">{newCalendar.color}</span>
+              <span className="text-xs text-muted-foreground">Kies een kleur om de kalender te onderscheiden</span>
             </div>
           </div>
         </div>

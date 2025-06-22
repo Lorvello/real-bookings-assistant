@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } = '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -16,14 +18,10 @@ export function CalendarSwitcher() {
 
   if (loading) {
     return (
-      <Card className="w-64">
-        <CardContent className="p-3">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-gray-300 rounded animate-pulse"></div>
-            <div className="w-32 h-4 bg-gray-300 rounded animate-pulse"></div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center space-x-3">
+        <div className="w-32 h-10 bg-gray-300 rounded animate-pulse"></div>
+        <div className="w-40 h-10 bg-gray-300 rounded animate-pulse"></div>
+      </div>
     );
   }
 
@@ -31,19 +29,33 @@ export function CalendarSwitcher() {
     <div className="flex items-center space-x-3">
       <UserContextDisplay />
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <CalendarDropdownTrigger selectedCalendar={selectedCalendar} />
-        </DropdownMenuTrigger>
-        
-        <CalendarDropdownContent
-          calendars={calendars}
-          selectedCalendar={selectedCalendar}
-          onSelectCalendar={selectCalendar}
-          showCreateDialog={showCreateDialog}
-          onShowCreateDialogChange={setShowCreateDialog}
-        />
-      </DropdownMenu>
+      <div className="flex items-center space-x-2">
+        {/* Kalender Switcher Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <CalendarDropdownTrigger selectedCalendar={selectedCalendar} />
+          </DropdownMenuTrigger>
+          
+          <CalendarDropdownContent
+            calendars={calendars}
+            selectedCalendar={selectedCalendar}
+            onSelectCalendar={selectCalendar}
+            showCreateDialog={showCreateDialog}
+            onShowCreateDialogChange={setShowCreateDialog}
+          />
+        </DropdownMenu>
+
+        {/* Prominente "Nieuwe Kalender" knop */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowCreateDialog(true)}
+          className="flex items-center gap-2 border-dashed border-2 hover:border-solid hover:bg-accent"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Nieuwe kalender</span>
+        </Button>
+      </div>
     </div>
   );
 }
