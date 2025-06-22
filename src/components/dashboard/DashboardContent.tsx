@@ -1,65 +1,67 @@
 
 import React from 'react';
-import { DashboardTabs } from '@/components/DashboardTabs';
-import { DashboardHeader } from './DashboardHeader';
+import { useDashboardAnalytics } from '@/hooks/useDashboardAnalytics';
+import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
+import { CalendarDashboard } from '@/components/CalendarDashboard';
+import { DashboardMetrics } from './DashboardMetrics';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface DashboardContentProps {
-  calendarId: string;
+  calendarIds: string[];
   calendarName: string;
 }
 
-export function DashboardContent({ calendarId, calendarName }: DashboardContentProps) {
+export function DashboardContent({ calendarIds, calendarName }: DashboardContentProps) {
+  // For now, use the first calendar for analytics (we can extend this later for multi-calendar analytics)
+  const primaryCalendarId = calendarIds[0];
+  const { data: analytics, isLoading } = useDashboardAnalytics(primaryCalendarId);
+  
+  // Set up realtime updates for the primary calendar
+  useRealtimeDashboard(primaryCalendarId);
+
+  if (calendarIds.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Card>
+          <CardContent className="p-8">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-foreground mb-2">
+                Geen kalenders geselecteerd
+              </h3>
+              <p className="text-muted-foreground">
+                Selecteer een kalender om je dashboard te bekijken
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Liquid Background Layer */}
-      <div className="absolute inset-0">
-        {/* Primary Organic Shape */}
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-gradient-to-br from-primary/15 via-primary/8 to-transparent blur-3xl"
-             style={{
-               borderRadius: '40% 60% 70% 30% / 30% 40% 60% 70%',
-               animation: 'float 20s ease-in-out infinite'
-             }}></div>
-        
-        {/* Secondary Organic Shape */}
-        <div className="absolute top-1/3 -right-32 w-80 h-80 bg-gradient-to-tl from-purple-500/12 via-blue-500/8 to-transparent blur-2xl"
-             style={{
-               borderRadius: '60% 40% 30% 70% / 70% 30% 40% 60%',
-               animation: 'float 25s ease-in-out infinite reverse'
-             }}></div>
-        
-        {/* Tertiary Organic Shape */}
-        <div className="absolute bottom-20 left-1/4 w-72 h-72 bg-gradient-to-tr from-green-500/10 via-primary/6 to-transparent blur-xl"
-             style={{
-               borderRadius: '50% 70% 40% 60% / 60% 50% 70% 40%',
-               animation: 'float 30s ease-in-out infinite'
-             }}></div>
-        
-        {/* Flowing Grid Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="w-full h-full"
-               style={{
-                 backgroundImage: `radial-gradient(circle at 25% 25%, rgba(16,185,129,0.3) 1px, transparent 1px),
-                                 radial-gradient(circle at 75% 75%, rgba(16,185,129,0.2) 1px, transparent 1px)`,
-                 backgroundSize: '60px 60px, 40px 40px'
-               }}></div>
-        </div>
+    <div className="space-y-8 p-8">
+      {/* Dashboard Header */}
+      <div className="text-center">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-green-100 to-green-200 bg-clip-text text-transparent mb-4">
+          Dashboard - {calendarName}
+        </h1>
+        <p className="text-gray-400 text-lg">
+          {calendarIds.length > 1 
+            ? `Overzicht van ${calendarIds.length} kalenders`
+            : 'Overzicht van je boekingen en prestaties'
+          }
+        </p>
       </div>
 
-      <div className="relative z-10 p-8 space-y-12">
-        {/* Organic Header */}
-        <DashboardHeader calendarName={calendarName} />
+      {/* Metrics Cards */}
+      <DashboardMetrics 
+        analytics={analytics} 
+        isLoading={isLoading}
+        showMultiCalendarNote={calendarIds.length > 1}
+      />
 
-        {/* Organic Dashboard Tabs */}
-        <div className="relative">
-          <div className="absolute -inset-6 bg-gradient-to-br from-primary/15 via-transparent to-purple-500/15 blur-3xl"
-               style={{
-                 borderRadius: '50% 80% 30% 70% / 40% 60% 80% 20%'
-               }}></div>
-          <div className="relative">
-            <DashboardTabs calendarId={calendarId} />
-          </div>
-        </div>
-      </div>
+      {/* Calendar View */}
+      <CalendarDashboard calendarIds={calendarIds} />
     </div>
   );
 }

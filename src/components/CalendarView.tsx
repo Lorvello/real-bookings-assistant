@@ -2,9 +2,9 @@
 import { CalendarContainer } from './calendar/CalendarContainer';
 
 interface CalendarViewProps {
-  calendarId: string;
+  calendarIds: string[];
 }
 
-export function CalendarView({ calendarId }: CalendarViewProps) {
-  return <CalendarContainer calendarId={calendarId} />;
+export function CalendarView({ calendarIds }: CalendarViewProps) {
+  return <CalendarContainer calendarIds={calendarIds} />;
 }

@@ -8,8 +8,11 @@ interface CalendarContextType {
   selectedCalendar: Calendar | null;
   calendars: Calendar[];
   loading: boolean;
+  viewingAllCalendars: boolean;
   selectCalendar: (calendar: Calendar) => void;
+  selectAllCalendars: () => void;
   refreshCalendars: () => void;
+  getActiveCalendarIds: () => string[];
 }
 
 const CalendarContext = createContext<CalendarContextType | undefined>(undefined);
@@ -23,6 +26,7 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
   const [authLoading, setAuthLoading] = useState(true);
   const { calendars, loading, refetch } = useCalendars();
   const [selectedCalendar, setSelectedCalendar] = useState<Calendar | null>(null);
+  const [viewingAllCalendars, setViewingAllCalendars] = useState(false);
 
   // Handle auth state directly without useAuth hook to avoid circular dependency
   useEffect(() => {
@@ -62,35 +66,58 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
 
   // Auto-select first calendar or default calendar when calendars load
   useEffect(() => {
-    if (calendars.length > 0 && !selectedCalendar) {
+    if (calendars.length > 0 && !selectedCalendar && !viewingAllCalendars) {
       const defaultCalendar = calendars.find(cal => cal.is_default) || calendars[0];
       setSelectedCalendar(defaultCalendar);
     }
-  }, [calendars, selectedCalendar]);
+  }, [calendars, selectedCalendar, viewingAllCalendars]);
 
   // Reset selected calendar when user changes
   useEffect(() => {
     if (!user) {
       setSelectedCalendar(null);
+      setViewingAllCalendars(false);
     }
   }, [user]);
 
   const selectCalendar = (calendar: Calendar) => {
     setSelectedCalendar(calendar);
+    setViewingAllCalendars(false);
     localStorage.setItem('selectedCalendarId', calendar.id);
+    localStorage.removeItem('viewingAllCalendars');
+  };
+
+  const selectAllCalendars = () => {
+    setViewingAllCalendars(true);
+    setSelectedCalendar(null);
+    localStorage.setItem('viewingAllCalendars', 'true');
+    localStorage.removeItem('selectedCalendarId');
   };
 
   const refreshCalendars = () => {
     refetch();
   };
 
+  const getActiveCalendarIds = () => {
+    if (viewingAllCalendars) {
+      return calendars.map(cal => cal.id);
+    }
+    return selectedCalendar ? [selectedCalendar.id] : [];
+  };
+
   // Restore selected calendar from localStorage
   useEffect(() => {
+    const savedViewingAll = localStorage.getItem('viewingAllCalendars');
     const savedCalendarId = localStorage.getItem('selectedCalendarId');
-    if (savedCalendarId && calendars.length > 0) {
+    
+    if (savedViewingAll === 'true') {
+      setViewingAllCalendars(true);
+      setSelectedCalendar(null);
+    } else if (savedCalendarId && calendars.length > 0) {
       const savedCalendar = calendars.find(cal => cal.id === savedCalendarId);
       if (savedCalendar) {
         setSelectedCalendar(savedCalendar);
+        setViewingAllCalendars(false);
       }
     }
   }, [calendars]);
@@ -100,8 +127,11 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
       selectedCalendar,
       calendars,
       loading: loading || authLoading,
+      viewingAllCalendars,
       selectCalendar,
-      refreshCalendars
+      selectAllCalendars,
+      refreshCalendars,
+      getActiveCalendarIds
     }}>
       {children}
     </CalendarContext.Provider>

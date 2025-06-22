@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
-import { useCalendars } from '@/hooks/useCalendars';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 import { DashboardBackground } from '@/components/dashboard/DashboardBackground';
 import { DashboardLoadingScreen } from '@/components/dashboard/DashboardLoadingScreen';
 import { DashboardEmptyState } from '@/components/dashboard/DashboardEmptyState';
@@ -12,7 +12,7 @@ import { DashboardContent } from '@/components/dashboard/DashboardContent';
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { calendars, loading: calendarsLoading } = useCalendars();
+  const { calendars, selectedCalendar, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
 
   // Redirect if not authenticated
   React.useEffect(() => {
@@ -35,9 +35,7 @@ const Dashboard = () => {
     return null;
   }
 
-  const activeCalendar = calendars.find(cal => cal.is_active) || calendars[0];
-
-  if (!activeCalendar) {
+  if (calendars.length === 0) {
     return (
       <DashboardLayout>
         <DashboardBackground>
@@ -47,12 +45,17 @@ const Dashboard = () => {
     );
   }
 
+  const activeCalendarIds = getActiveCalendarIds();
+  const displayCalendarName = viewingAllCalendars 
+    ? 'Alle kalenders' 
+    : selectedCalendar?.name || 'Kalender';
+
   return (
     <DashboardLayout>
       <DashboardBackground>
         <DashboardContent 
-          calendarId={activeCalendar.id} 
-          calendarName={activeCalendar.name} 
+          calendarIds={activeCalendarIds}
+          calendarName={displayCalendarName} 
         />
       </DashboardBackground>
     </DashboardLayout>

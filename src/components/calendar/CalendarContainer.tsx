@@ -4,22 +4,22 @@ import { addMonths, subMonths, addWeeks, subWeeks, addYears, subYears } from 'da
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarContent } from './CalendarContent';
 import { NewBookingModal } from '../NewBookingModal';
-import { useBookings } from '@/hooks/useBookings';
+import { useMultipleCalendarBookings } from '@/hooks/useMultipleCalendarBookings';
 
 type CalendarView = 'month' | 'week' | 'year';
 
 interface CalendarContainerProps {
-  calendarId: string;
+  calendarIds: string[];
 }
 
-export function CalendarContainer({ calendarId }: CalendarContainerProps) {
-  console.log('CalendarContainer rendering with calendarId:', calendarId);
+export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
+  console.log('CalendarContainer rendering with calendarIds:', calendarIds);
   
   const [currentView, setCurrentView] = useState<CalendarView>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   
-  const { bookings, loading, error, refetch } = useBookings(calendarId);
+  const { bookings, loading, error, refetch } = useMultipleCalendarBookings(calendarIds);
 
   const navigateDate = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -69,7 +69,7 @@ export function CalendarContainer({ calendarId }: CalendarContainerProps) {
       <NewBookingModal
         open={isNewBookingModalOpen}
         onClose={() => setIsNewBookingModalOpen(false)}
-        calendarId={calendarId}
+        calendarId={calendarIds[0] || ''} // Use first calendar for new bookings
         onBookingCreated={handleBookingCreated}
       />
     </div>

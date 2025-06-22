@@ -2,26 +2,18 @@
 import React from 'react';
 import { CalendarView } from './CalendarView';
 import { AvailabilityPanel } from './AvailabilityPanel';
-import { useCalendars } from '@/hooks/useCalendars';
 
-export function CalendarDashboard() {
-  const { calendars, loading } = useCalendars();
-  const defaultCalendar = calendars.find(cal => cal.is_default) || calendars[0];
+interface CalendarDashboardProps {
+  calendarIds: string[];
+}
 
-  if (loading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!defaultCalendar) {
+export function CalendarDashboard({ calendarIds }: CalendarDashboardProps) {
+  if (calendarIds.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center">
-          <h3 className="text-lg font-medium text-foreground mb-2">Geen kalender gevonden</h3>
-          <p className="text-muted-foreground">Maak eerst een kalender aan om afspraken te bekijken.</p>
+          <h3 className="text-lg font-medium text-foreground mb-2">Geen kalenders geselecteerd</h3>
+          <p className="text-muted-foreground">Selecteer een kalender om afspraken te bekijken.</p>
         </div>
       </div>
     );
@@ -31,11 +23,13 @@ export function CalendarDashboard() {
     <div className="h-full relative">
       {/* Main Calendar View - Full Width */}
       <div className="h-full">
-        <CalendarView calendarId={defaultCalendar.id} />
+        <CalendarView calendarIds={calendarIds} />
       </div>
       
-      {/* Availability Panel - Overlay */}
-      <AvailabilityPanel calendarId={defaultCalendar.id} />
+      {/* Availability Panel - Only show for single calendar */}
+      {calendarIds.length === 1 && (
+        <AvailabilityPanel calendarId={calendarIds[0]} />
+      )}
     </div>
   );
 }

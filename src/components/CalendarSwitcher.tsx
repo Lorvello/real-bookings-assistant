@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronDown, Calendar } from 'lucide-react';
+import { Plus, ChevronDown, Calendar, Grid3X3 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -17,7 +17,7 @@ import { UserContextDisplay } from './calendar-switcher/UserContextDisplay';
 import { CreateCalendarDialog } from './calendar-switcher/CreateCalendarDialog';
 
 export function CalendarSwitcher() {
-  const { selectedCalendar, calendars, selectCalendar, loading } = useCalendarContext();
+  const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading } = useCalendarContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   if (loading) {
@@ -40,13 +40,22 @@ export function CalendarSwitcher() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="justify-between min-w-[250px]">
                 <div className="flex items-center space-x-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: selectedCalendar?.color || '#3B82F6' }}
-                  />
-                  <span className="truncate">
-                    {selectedCalendar ? selectedCalendar.name : 'Selecteer kalender'}
-                  </span>
+                  {viewingAllCalendars ? (
+                    <>
+                      <Grid3X3 className="w-3 h-3 text-primary" />
+                      <span className="truncate">Alle kalenders</span>
+                    </>
+                  ) : (
+                    <>
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: selectedCalendar?.color || '#3B82F6' }}
+                      />
+                      <span className="truncate">
+                        {selectedCalendar ? selectedCalendar.name : 'Selecteer kalender'}
+                      </span>
+                    </>
+                  )}
                 </div>
                 <ChevronDown className="w-4 h-4 opacity-50" />
               </Button>
@@ -55,8 +64,30 @@ export function CalendarSwitcher() {
             <DropdownMenuContent className="w-80">
               <DropdownMenuLabel className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4" />
-                <span>Jouw Kalenders</span>
+                <span>Kalender Weergave</span>
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              {/* Alle kalenders optie */}
+              <DropdownMenuItem
+                onClick={() => selectAllCalendars()}
+                className="flex items-center space-x-3 p-3"
+              >
+                <Grid3X3 className="w-3 h-3 text-primary" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">Alle kalenders</span>
+                    <Badge variant="outline" className="text-xs">Gemengd</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Bekijk alle afspraken samen
+                  </p>
+                </div>
+                {viewingAllCalendars && (
+                  <div className="w-2 h-2 bg-primary rounded-full" />
+                )}
+              </DropdownMenuItem>
+              
               <DropdownMenuSeparator />
               
               {calendars.map((calendar) => (
@@ -85,7 +116,7 @@ export function CalendarSwitcher() {
                       Eigenaar: Jij
                     </p>
                   </div>
-                  {selectedCalendar?.id === calendar.id && (
+                  {!viewingAllCalendars && selectedCalendar?.id === calendar.id && (
                     <div className="w-2 h-2 bg-primary rounded-full" />
                   )}
                 </DropdownMenuItem>

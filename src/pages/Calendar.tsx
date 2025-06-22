@@ -5,14 +5,12 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { CalendarView } from '@/components/CalendarView';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { useAuth } from '@/hooks/useAuth';
-import { useCalendars } from '@/hooks/useCalendars';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 
 const Calendar = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { calendars, loading: calendarsLoading } = useCalendars();
-
-  const defaultCalendar = calendars.find(cal => cal.is_default) || calendars[0];
+  const { selectedCalendar, calendars, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
 
   React.useEffect(() => {
     if (!authLoading && !user) {
@@ -37,7 +35,7 @@ const Calendar = () => {
     return null;
   }
 
-  if (!defaultCalendar) {
+  if (calendars.length === 0) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
@@ -49,6 +47,11 @@ const Calendar = () => {
     );
   }
 
+  const activeCalendarIds = getActiveCalendarIds();
+  const displayTitle = viewingAllCalendars 
+    ? 'Alle kalenders' 
+    : selectedCalendar?.name || 'Kalender';
+
   return (
     <DashboardLayout>
       <div className="h-full flex flex-col">
@@ -56,9 +59,12 @@ const Calendar = () => {
         <div className="flex-shrink-0 p-4 border-b border-border bg-card/50">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-foreground mb-1">Kalender</h1>
+              <h1 className="text-2xl font-semibold text-foreground mb-1">{displayTitle}</h1>
               <p className="text-sm text-muted-foreground">
-                Beheer je afspraken en beschikbaarheid
+                {viewingAllCalendars 
+                  ? `Beheer afspraken van ${calendars.length} kalenders`
+                  : 'Beheer je afspraken en beschikbaarheid'
+                }
               </p>
             </div>
             
@@ -69,7 +75,7 @@ const Calendar = () => {
 
         {/* Calendar Content */}
         <div className="flex-1 p-6 min-h-0">
-          <CalendarView calendarId={defaultCalendar.id} />
+          <CalendarView calendarIds={activeCalendarIds} />
         </div>
       </div>
     </DashboardLayout>
