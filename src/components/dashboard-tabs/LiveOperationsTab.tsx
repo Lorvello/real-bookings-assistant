@@ -41,40 +41,40 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
       value: liveOps?.today_bookings || 0,
       subtitle: `${liveOps?.today_confirmed || 0} bevestigd, ${liveOps?.today_pending || 0} wachtend`,
       icon: Calendar,
-      gradient: "from-emerald-500/20 via-emerald-400/10 to-transparent",
-      iconColor: "text-emerald-400",
-      borderColor: "border-emerald-500/30",
-      glowColor: "shadow-emerald-500/25"
+      gradient: "from-green-500/20 via-green-400/10 to-transparent",
+      iconColor: "text-green-400",
+      borderColor: "border-green-500/30",
+      glowColor: "shadow-green-500/25"
     },
     {
       title: "Nu Actief",
       value: liveOps?.currently_active_bookings || 0,
       subtitle: "lopende afspraken",
       icon: Users,
-      gradient: "from-cyan-500/20 via-cyan-400/10 to-transparent",
-      iconColor: "text-cyan-400",
-      borderColor: "border-cyan-500/30",
-      glowColor: "shadow-cyan-500/25"
+      gradient: "from-green-500/20 via-green-400/10 to-transparent",
+      iconColor: "text-green-400",
+      borderColor: "border-green-500/30",
+      glowColor: "shadow-green-500/25"
     },
     {
       title: "WhatsApp",
       value: liveOps?.whatsapp_messages_last_hour || 0,
       subtitle: "berichten laatste uur",
       icon: MessageCircle,
-      gradient: "from-purple-500/20 via-purple-400/10 to-transparent",
-      iconColor: "text-purple-400",
-      borderColor: "border-purple-500/30",
-      glowColor: "shadow-purple-500/25"
+      gradient: "from-blue-500/20 via-blue-400/10 to-transparent",
+      iconColor: "text-blue-400",
+      borderColor: "border-blue-500/30",
+      glowColor: "shadow-blue-500/25"
     },
     {
       title: "Volgende",
       value: timeUntilNext !== null ? `${timeUntilNext}m` : "Geen",
       subtitle: timeUntilNext !== null ? "tot volgende afspraak" : "geplande afspraken",
       icon: Clock,
-      gradient: "from-amber-500/20 via-amber-400/10 to-transparent",
-      iconColor: "text-amber-400",
-      borderColor: "border-amber-500/30",
-      glowColor: "shadow-amber-500/25"
+      gradient: "from-blue-500/20 via-blue-400/10 to-transparent",
+      iconColor: "text-blue-400",
+      borderColor: "border-blue-500/30",
+      glowColor: "shadow-blue-500/25"
     }
   ];
 
@@ -84,8 +84,8 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-4 h-4 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-500/50"></div>
-            <div className="absolute inset-0 w-4 h-4 bg-emerald-400 rounded-full animate-ping opacity-75"></div>
+            <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
+            <div className="absolute inset-0 w-4 h-4 bg-green-400 rounded-full animate-ping opacity-75"></div>
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-100">Live Operations Center</h3>
@@ -131,9 +131,9 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
               
               {/* Status indicator for critical metrics */}
               {metric.title === "Vandaag" && liveOps?.today_pending && liveOps.today_pending > 0 && (
-                <div className="flex items-center gap-2 mt-3 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                  <AlertCircle className="h-3 w-3 text-amber-400" />
-                  <span className="text-xs text-amber-200">{liveOps.today_pending} wachten op bevestiging</span>
+                <div className="flex items-center gap-2 mt-3 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                  <AlertCircle className="h-3 w-3 text-blue-400" />
+                  <span className="text-xs text-blue-200">{liveOps.today_pending} wachten op bevestiging</span>
                 </div>
               )}
             </div>
@@ -145,12 +145,12 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Enhanced Status Dashboard */}
         <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/30 via-cyan-500/20 to-purple-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-green-500/30 via-blue-500/20 to-green-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
           <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-xl">
-                  <Activity className="h-5 w-5 text-emerald-400" />
+                <div className="p-2 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-xl">
+                  <Activity className="h-5 w-5 text-green-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-100">System Status</h3>
               </div>
@@ -158,30 +158,30 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30">
                   <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-sm shadow-emerald-400/50"></div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm shadow-green-400/50"></div>
                     <span className="text-sm font-medium text-slate-200">Kalender Status</span>
                   </div>
-                  <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
+                  <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
                     Online
                   </Badge>
                 </div>
                 
                 <div className="flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30">
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="h-4 w-4 text-cyan-400" />
+                    <CheckCircle className="h-4 w-4 text-blue-400" />
                     <span className="text-sm font-medium text-slate-200">WhatsApp Bot</span>
                   </div>
-                  <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 bg-cyan-500/10">
+                  <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10">
                     Actief
                   </Badge>
                 </div>
                 
                 <div className="flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30">
                   <div className="flex items-center gap-3">
-                    <Zap className="h-4 w-4 text-purple-400" />
+                    <Zap className="h-4 w-4 text-green-400" />
                     <span className="text-sm font-medium text-slate-200">Real-time Sync</span>
                   </div>
-                  <Badge variant="outline" className="border-purple-500/30 text-purple-400 bg-purple-500/10">
+                  <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
                     Live
                   </Badge>
                 </div>
@@ -192,19 +192,19 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
 
         {/* Enhanced Today's Planning */}
         <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/30 via-orange-500/20 to-red-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-green-500/20 to-blue-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
           <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl">
-                  <Calendar className="h-5 w-5 text-amber-400" />
+                <div className="p-2 bg-gradient-to-br from-blue-500/20 to-green-500/20 rounded-xl">
+                  <Calendar className="h-5 w-5 text-blue-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-100">Vandaag's Planning</h3>
               </div>
               
               {nextAppointmentTime ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 rounded-xl">
+                  <div className="p-4 bg-gradient-to-r from-blue-500/10 via-green-500/5 to-transparent border border-blue-500/20 rounded-xl">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold text-slate-100 mb-1">Volgende Afspraak</p>
@@ -220,8 +220,8 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                           variant={timeUntilNext && timeUntilNext < 30 ? "destructive" : "secondary"}
                           className={`${
                             timeUntilNext && timeUntilNext < 30 
-                              ? "bg-red-500/20 text-red-400 border-red-500/30" 
-                              : "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                              ? "bg-blue-500/20 text-blue-400 border-blue-500/30" 
+                              : "bg-green-500/20 text-green-400 border-green-500/30"
                           }`}
                         >
                           {timeUntilNext && timeUntilNext < 60 
