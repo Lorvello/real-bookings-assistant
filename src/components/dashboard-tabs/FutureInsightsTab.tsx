@@ -5,6 +5,7 @@ import { useOptimizedFutureInsights } from '@/hooks/dashboard/useOptimizedFuture
 import { useRealtimeWebSocket } from '@/hooks/dashboard/useRealtimeWebSocket';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { TrendingUp, Users, Calendar, Clock } from 'lucide-react';
+import { MetricCard } from './business-intelligence/MetricCard';
 
 interface FutureInsightsTabProps {
   calendarId: string;
@@ -15,173 +16,231 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
   useRealtimeWebSocket(calendarId);
 
   if (isLoading) {
-    return <div className="animate-pulse">Loading future insights...</div>;
+    return (
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-40 bg-muted rounded-lg"></div>
+            </div>
+          ))}
+        </div>
+        <div className="h-96 bg-muted rounded-lg animate-pulse"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Key Future Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-800">Wachtlijst</p>
-                <p className="text-2xl font-bold text-blue-900">
-                  {insights?.waitlist_size || 0}
-                </p>
-                <p className="text-xs text-blue-600">wachtende klanten</p>
-              </div>
-              <Clock className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-12">
+      {/* Enhanced Future Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <MetricCard
+          title="Wachtlijst"
+          value={String(insights?.waitlist_size || 0)}
+          subtitle="wachtende klanten"
+          icon={Clock}
+          variant="blue"
+          delay={0.1}
+        />
 
-        <Card className="border-green-200 bg-green-50/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-800">Terugkerende Klanten</p>
-                <p className="text-2xl font-bold text-green-900">
-                  {insights?.returning_customers_month || 0}
-                </p>
-                <p className="text-xs text-green-600">deze maand</p>
-              </div>
-              <Users className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
+        <MetricCard
+          title="Terugkerende Klanten"
+          value={String(insights?.returning_customers_month || 0)}
+          subtitle="deze maand"
+          icon={Users}
+          variant="green"
+          delay={0.2}
+        />
 
-        <Card className="border-purple-200 bg-purple-50/50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-800">Trend Analyse</p>
-                <div className="flex items-center gap-1">
-                  <TrendingUp className="h-5 w-5 text-purple-900" />
-                  <span className="text-lg font-bold text-purple-900">Stabiel</span>
-                </div>
-                <p className="text-xs text-purple-600">komende weken</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
+        <MetricCard
+          title="Trend Analyse"
+          value="Stabiel"
+          subtitle="komende weken"
+          icon={TrendingUp}
+          variant="blue"
+          delay={0.3}
+        />
       </div>
 
-      {/* Demand Forecast Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Vraag Voorspelling (Komende Weken)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {insights?.demand_forecast && insights.demand_forecast.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={insights.demand_forecast}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="week_number" 
-                  tickFormatter={(week) => `Week ${week}`}
-                />
-                <YAxis />
-                <Tooltip 
-                  labelFormatter={(week) => `Week ${week}`}
-                  formatter={(value) => [value, 'Verwachte Boekingen']}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="bookings" 
-                  stroke="#8B5CF6" 
-                  strokeWidth={2}
-                  dot={{ fill: '#8B5CF6' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>Nog geen trend data beschikbaar - meer historische data nodig</p>
+      {/* Enhanced Demand Forecast Chart */}
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-green-500/30 via-blue-500/20 to-green-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
+          <div className="p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-xl">
+                <TrendingUp className="h-6 w-6 text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-100">Vraag Voorspelling (Komende Weken)</h3>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            
+            {insights?.demand_forecast && insights.demand_forecast.length > 0 ? (
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={insights.demand_forecast}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                    <XAxis 
+                      dataKey="week_number" 
+                      tickFormatter={(week) => `Week ${week}`}
+                      stroke="#94A3B8"
+                      fontSize={12}
+                    />
+                    <YAxis stroke="#94A3B8" fontSize={12} />
+                    <Tooltip 
+                      labelFormatter={(week) => `Week ${week}`}
+                      formatter={(value) => [value, 'Verwachte Boekingen']}
+                      contentStyle={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        border: '1px solid rgba(34, 197, 94, 0.3)',
+                        borderRadius: '12px',
+                        color: '#F1F5F9'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="bookings" 
+                      stroke="#22C55E" 
+                      strokeWidth={3}
+                      dot={{ fill: '#22C55E', strokeWidth: 2, r: 6 }}
+                      activeDot={{ r: 8, stroke: '#22C55E', strokeWidth: 2, fill: '#1F2937' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl flex items-center justify-center border border-slate-600/30">
+                  <TrendingUp className="h-10 w-10 text-slate-400" />
+                </div>
+                <p className="text-slate-300 font-medium mb-2">Nog geen trend data beschikbaar</p>
+                <p className="text-sm text-slate-400">Meer historische data nodig voor voorspellingen</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-      {/* Seasonal Patterns */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Seizoenspatronen
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {insights?.seasonal_patterns && insights.seasonal_patterns.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={insights.seasonal_patterns}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month_name" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value) => [Math.round(Number(value)), 'Gem. Boekingen']}
-                />
-                <Bar dataKey="avg_bookings" fill="#10B981" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>Nog geen seizoensdata beschikbaar - een vol jaar data nodig</p>
+      {/* Enhanced Seasonal Patterns */}
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-green-500/20 to-blue-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
+          <div className="p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gradient-to-br from-blue-500/20 to-green-500/20 rounded-xl">
+                <Calendar className="h-6 w-6 text-blue-400" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-100">Seizoenspatronen</h3>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            
+            {insights?.seasonal_patterns && insights.seasonal_patterns.length > 0 ? (
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={insights.seasonal_patterns}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                    <XAxis 
+                      dataKey="month_name" 
+                      stroke="#94A3B8"
+                      fontSize={12}
+                    />
+                    <YAxis stroke="#94A3B8" fontSize={12} />
+                    <Tooltip 
+                      formatter={(value) => [Math.round(Number(value)), 'Gem. Boekingen']}
+                      contentStyle={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        borderRadius: '12px',
+                        color: '#F1F5F9'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="avg_bookings" 
+                      fill="url(#blueGradient)"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <defs>
+                      <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.8"/>
+                        <stop offset="100%" stopColor="#1E40AF" stopOpacity="0.6"/>
+                      </linearGradient>
+                    </defs>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl flex items-center justify-center border border-slate-600/30">
+                  <Calendar className="h-10 w-10 text-slate-400" />
+                </div>
+                <p className="text-slate-300 font-medium mb-2">Nog geen seizoensdata beschikbaar</p>
+                <p className="text-sm text-slate-400">Een vol jaar data nodig voor patronen</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-      {/* Insights and Recommendations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Aanbevelingen & Inzichten</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="font-medium mb-2 text-blue-800">Wachtlijst Optimalisatie</h4>
-              <p className="text-blue-700">
-                {insights?.waitlist_size && insights.waitlist_size > 0 
-                  ? `Je hebt ${insights.waitlist_size} mensen op de wachtlijst. Overweeg extra tijdslots of prioriteer annuleringen.`
-                  : 'Geen wachtlijst op dit moment. Goed teken voor beschikbaarheid!'
-                }
-              </p>
+      {/* Enhanced Insights and Recommendations */}
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-blue-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
+          <div className="p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-xl">
+                <TrendingUp className="h-6 w-6 text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-100">Aanbevelingen & Inzichten</h3>
             </div>
             
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="font-medium mb-2 text-green-800">Klant Retentie</h4>
-              <p className="text-green-700">
-                {insights?.returning_customers_month && insights.returning_customers_month > 0
-                  ? `${insights.returning_customers_month} terugkerende klanten deze maand toont goede klanttevredenheid.`
-                  : 'Focus op klanttevredenheid om meer terugkerende klanten te krijgen.'
-                }
-              </p>
-            </div>
-            
-            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-              <h4 className="font-medium mb-2 text-purple-800">Capaciteit Planning</h4>
-              <p className="text-purple-700">
-                Analyseer piekperiodes om je schema optimaal in te delen en wachttijden te minimaliseren.
-              </p>
-            </div>
-            
-            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-              <h4 className="font-medium mb-2 text-orange-800">Marketing Timing</h4>
-              <p className="text-orange-700">
-                Gebruik seizoenspatronen om je marketing inspanningen op de juiste momenten in te zetten.
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-6 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border border-blue-500/20 rounded-xl">
+                <h4 className="font-bold mb-3 text-blue-300 flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Wachtlijst Optimalisatie
+                </h4>
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  {insights?.waitlist_size && insights.waitlist_size > 0 
+                    ? `Je hebt ${insights.waitlist_size} mensen op de wachtlijst. Overweeg extra tijdslots of prioriteer annuleringen.`
+                    : 'Geen wachtlijst op dit moment. Goed teken voor beschikbaarheid!'
+                  }
+                </p>
+              </div>
+              
+              <div className="p-6 bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent border border-green-500/20 rounded-xl">
+                <h4 className="font-bold mb-3 text-green-300 flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Klant Retentie
+                </h4>
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  {insights?.returning_customers_month && insights.returning_customers_month > 0
+                    ? `${insights.returning_customers_month} terugkerende klanten deze maand toont goede klanttevredenheid.`
+                    : 'Focus op klanttevredenheid om meer terugkerende klanten te krijgen.'
+                  }
+                </p>
+              </div>
+              
+              <div className="p-6 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border border-blue-500/20 rounded-xl">
+                <h4 className="font-bold mb-3 text-blue-300 flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Capaciteit Planning
+                </h4>
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  Analyseer piekperiodes om je schema optimaal in te delen en wachttijden te minimaliseren.
+                </p>
+              </div>
+              
+              <div className="p-6 bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent border border-green-500/20 rounded-xl">
+                <h4 className="font-bold mb-3 text-green-300 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Marketing Timing
+                </h4>
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  Gebruik seizoenspatronen om je marketing inspanningen op de juiste momenten in te zetten.
+                </p>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
