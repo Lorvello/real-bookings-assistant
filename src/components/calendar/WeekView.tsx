@@ -88,7 +88,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
 
   return (
     <div
-      className="absolute inset-x-0 mx-2 p-3 rounded-xl cursor-pointer hover:shadow-xl transition-all duration-200 z-10 group hover:scale-105 border border-white/20"
+      className="absolute inset-x-0 mx-2 p-3 rounded-2xl cursor-pointer hover:shadow-xl transition-all duration-200 z-10 group hover:scale-105 border border-white/20"
       style={{
         background: `linear-gradient(135deg, ${booking.service_types?.color || '#3B82F6'}, ${booking.service_types?.color || '#3B82F6'}dd)`,
         height: `${height}px`,
@@ -152,7 +152,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
             <div className="text-xs font-semibold text-muted-foreground">Tijd</div>
           </div>
           {weekDays.map((day) => (
-            <div key={day.toISOString()} className={`text-center py-4 px-2 rounded-lg mx-1 transition-all duration-200 ${
+            <div key={day.toISOString()} className={`text-center py-4 px-2 rounded-2xl mx-1 transition-all duration-200 ${
               isToday(day) 
                 ? 'bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30' 
                 : 'hover:bg-accent/50'

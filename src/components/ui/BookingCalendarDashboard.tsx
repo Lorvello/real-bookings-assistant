@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -40,7 +39,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-2xl text-sm font-medium transition-colors outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -56,8 +55,8 @@ const buttonVariants = cva(
       },
       size: {
         default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-lg px-3 text-xs",
-        lg: "h-10 rounded-lg px-8",
+        sm: "h-8 rounded-xl px-3 text-xs",
+        lg: "h-10 rounded-2xl px-8",
         icon: "h-9 w-9",
       },
     },
@@ -132,13 +131,13 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-[101] grid max-h-[calc(100%-4rem)] w-full -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto border border-gray-600 bg-gray-800 p-6 shadow-lg shadow-black/5 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:max-w-[600px] sm:rounded-xl",
+        "fixed left-1/2 top-1/2 z-[101] grid max-h-[calc(100%-4rem)] w-full -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto border border-gray-600 bg-gray-800 p-6 shadow-lg shadow-black/5 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:max-w-[600px] sm:rounded-3xl",
         className,
       )}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="group absolute right-3 top-3 flex size-7 items-center justify-center rounded-lg outline-offset-2 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none">
+      <DialogPrimitive.Close className="group absolute right-3 top-3 flex size-7 items-center justify-center rounded-2xl outline-offset-2 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none">
         <X
           width={16}
           height={16}
@@ -281,11 +280,11 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
       <div className="flex flex-col space-y-4 p-4 md:flex-row md:items-center md:justify-between md:space-y-0 lg:flex-none bg-gray-800 border-b border-gray-700">
         <div className="flex flex-auto">
           <div className="flex items-center gap-4">
-            <div className="hidden w-20 flex-col items-center justify-center rounded-lg border border-gray-600 bg-gray-700 p-0.5 md:flex">
+            <div className="hidden w-20 flex-col items-center justify-center rounded-2xl border border-gray-600 bg-gray-700 p-0.5 md:flex">
               <h1 className="p-1 text-xs uppercase text-gray-400">
                 {format(today, "MMM")}
               </h1>
-              <div className="flex w-full items-center justify-center rounded-lg border border-gray-600 bg-gray-800 p-0.5 text-lg font-bold text-white">
+              <div className="flex w-full items-center justify-center rounded-xl border border-gray-600 bg-gray-800 p-0.5 text-lg font-bold text-white">
                 <span>{format(today, "d")}</span>
               </div>
             </div>
@@ -308,10 +307,10 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
 
           <Separator orientation="vertical" className="hidden h-6 lg:block" />
 
-          <div className="inline-flex w-full -space-x-px rounded-lg shadow-sm shadow-black/5 md:w-auto rtl:space-x-reverse">
+          <div className="inline-flex w-full -space-x-px rounded-2xl shadow-sm shadow-black/5 md:w-auto rtl:space-x-reverse">
             <Button
               onClick={previousMonth}
-              className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+              className="rounded-none shadow-none first:rounded-s-2xl last:rounded-e-2xl focus-visible:z-10"
               variant="outline"
               size="icon"
               aria-label="Navigate to previous month"
@@ -320,14 +319,14 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
             </Button>
             <Button
               onClick={goToToday}
-              className="w-full rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10 md:w-auto"
+              className="w-full rounded-none shadow-none first:rounded-s-2xl last:rounded-e-2xl focus-visible:z-10 md:w-auto"
               variant="outline"
             >
               Vandaag
             </Button>
             <Button
               onClick={nextMonth}
-              className="rounded-none shadow-none first:rounded-s-lg last:rounded-e-lg focus-visible:z-10"
+              className="rounded-none shadow-none first:rounded-s-2xl last:rounded-e-2xl focus-visible:z-10"
               variant="outline"
               size="icon"
               aria-label="Navigate to next month"
@@ -474,7 +473,7 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
                               key={booking.id}
                               onClick={() => handleBookingClick(booking)}
                               className={cn(
-                                "w-full text-left rounded-md border p-2 text-xs leading-tight transition-colors hover:opacity-80",
+                                "w-full text-left rounded-xl border p-2 text-xs leading-tight transition-colors hover:opacity-80",
                                 getStatusColor(booking.status)
                               )}
                             >

@@ -52,7 +52,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
     const monthBookings = getBookingsCountForMonth(month);
 
     return (
-      <div className="group bg-card/80 backdrop-blur-sm border border-border/60 rounded-xl p-4 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200 hover:border-primary/30">
+      <div className="group bg-card/80 backdrop-blur-sm border border-border/60 rounded-3xl p-4 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200 hover:border-primary/30">
         <div className="text-center mb-4">
           <div className="text-lg font-bold text-foreground mb-1">
             {format(month, 'MMMM', { locale: nl })}
@@ -87,7 +87,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
               return (
                 <div
                   key={day.toISOString()}
-                  className={`text-xs text-center p-1.5 rounded-md transition-all duration-150 ${
+                  className={`text-xs text-center p-1.5 rounded-xl transition-all duration-150 ${
                     isCurrentMonth 
                       ? hasBookings 
                         ? 'bg-primary text-primary-foreground font-bold shadow-sm hover:shadow-md transform hover:scale-110' 
@@ -117,9 +117,9 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
       </div>
       
       {/* Year summary */}
-      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-8 shadow-lg">
+      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-primary/20 rounded-xl">
+          <div className="p-3 bg-primary/20 rounded-2xl">
             <TrendingUp className="h-6 w-6 text-primary" />
           </div>
           <div>
@@ -131,7 +131,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/20">
+          <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl border border-primary/20">
             <div className="flex items-center justify-center mb-2">
               <Calendar className="h-5 w-5 text-primary mr-2" />
             </div>
@@ -139,7 +139,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
             <div className="text-sm text-muted-foreground font-medium">Totaal afspraken</div>
           </div>
           
-          <div className="text-center p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-xl border border-green-500/20">
+          <div className="text-center p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-2xl border border-green-500/20">
             <div className="flex items-center justify-center mb-2">
               <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
             </div>
@@ -149,7 +149,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
             <div className="text-sm text-muted-foreground font-medium">Bevestigd</div>
           </div>
           
-          <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-xl border border-blue-500/20">
+          <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-2xl border border-blue-500/20">
             <div className="flex items-center justify-center mb-2">
               <Clock className="h-5 w-5 text-blue-600 mr-2" />
             </div>
@@ -159,7 +159,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
             <div className="text-sm text-muted-foreground font-medium">Voltooid</div>
           </div>
           
-          <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-xl border border-purple-500/20">
+          <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-2xl border border-purple-500/20">
             <div className="flex items-center justify-center mb-2">
               <TrendingUp className="h-5 w-5 text-purple-600 mr-2" />
             </div>
