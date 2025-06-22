@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,10 +37,18 @@ const bookingSchema = z.object({
   if (!data.isAllDay && (!data.startTime || !data.endTime)) {
     return false;
   }
+  // Valideer dat eind tijd na start tijd is
+  if (!data.isAllDay && data.startTime && data.endTime) {
+    const [startH, startM] = data.startTime.split(':').map(Number);
+    const [endH, endM] = data.endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    return endMinutes > startMinutes;
+  }
   return true;
 }, {
-  message: "Start tijd en eind tijd zijn verplicht als het geen hele dag event is",
-  path: ["startTime"],
+  message: "Eindtijd moet na starttijd zijn",
+  path: ["endTime"],
 });
 
 type BookingFormData = z.infer<typeof bookingSchema>;
@@ -61,6 +70,7 @@ interface NewBookingModalProps {
 export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }: NewBookingModalProps) {
   const { toast } = useToast();
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
+  const [autoUpdateEndTime, setAutoUpdateEndTime] = useState(true);
   const { createBooking, isCreating } = useOptimisticBookings(calendarId);
 
   const form = useForm<BookingFormData>({
@@ -83,6 +93,8 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
   const isAllDay = form.watch('isAllDay');
   const hasReminder = form.watch('hasReminder');
   const selectedServiceType = form.watch('serviceTypeId');
+  const startTime = form.watch('startTime');
+  const endTime = form.watch('endTime');
 
   // Load service types for the calendar
   useEffect(() => {
@@ -109,15 +121,17 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
       if (data && data.length > 0 && !selectedServiceType) {
         form.setValue('serviceTypeId', data[0].id);
         
-        // Auto-set end time based on service duration
-        const startTime = form.getValues('startTime');
-        if (startTime) {
-          const [hours, minutes] = startTime.split(':').map(Number);
-          const startMinutes = hours * 60 + minutes;
-          const endMinutes = startMinutes + data[0].duration;
-          const endHours = Math.floor(endMinutes / 60);
-          const endMins = endMinutes % 60;
-          form.setValue('endTime', `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`);
+        // Auto-set end time based on service duration only if auto-update is enabled
+        if (autoUpdateEndTime) {
+          const startTime = form.getValues('startTime');
+          if (startTime) {
+            const [hours, minutes] = startTime.split(':').map(Number);
+            const startMinutes = hours * 60 + minutes;
+            const endMinutes = startMinutes + data[0].duration;
+            const endHours = Math.floor(endMinutes / 60);
+            const endMins = endMinutes % 60;
+            form.setValue('endTime', `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`);
+          }
         }
       }
     };
@@ -125,10 +139,12 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
     if (open) {
       loadServiceTypes();
     }
-  }, [calendarId, open, selectedServiceType, form]);
+  }, [calendarId, open, selectedServiceType, form, autoUpdateEndTime]);
 
-  // Update end time when service type or start time changes
+  // Update end time when service type or start time changes (only if auto-update is enabled)
   useEffect(() => {
+    if (!autoUpdateEndTime) return;
+
     const subscription = form.watch((value, { name }) => {
       if ((name === 'serviceTypeId' || name === 'startTime') && value.serviceTypeId && value.startTime && !isAllDay) {
         const selectedService = serviceTypes.find(s => s.id === value.serviceTypeId);
@@ -144,13 +160,44 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
     });
 
     return () => subscription.unsubscribe();
-  }, [form, serviceTypes, isAllDay]);
+  }, [form, serviceTypes, isAllDay, autoUpdateEndTime]);
+
+  // Calculate duration for display
+  const calculateDuration = () => {
+    if (!startTime || !endTime) return 0;
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    return Math.max(0, endMinutes - startMinutes);
+  };
 
   const onSubmit = async (data: BookingFormData) => {
     try {
-      console.log('=== OPTIMISTIC BOOKING CREATION ===');
+      console.log('=== BOOKING CREATION DEBUG ===');
       console.log('Form data:', data);
       console.log('Calendar ID:', calendarId);
+      console.log('Duration calculated:', calculateDuration(), 'minutes');
+
+      // Validate duration
+      const duration = calculateDuration();
+      if (duration <= 0) {
+        toast({
+          title: "Ongeldige tijden",
+          description: "Eindtijd moet na starttijd zijn",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (duration > 480) { // 8 hours max
+        toast({
+          title: "Te lange afspraak",
+          description: "Afspraken kunnen maximaal 8 uur duren",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Calculate start and end times
       let startTime: string;
@@ -169,12 +216,15 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
         endTime = `${dateStr}T${data.endTime}:00+01:00`;
       }
 
+      console.log('Calculated times:', { startTime, endTime });
+
       // Build notes content
       const notesContent = [
         data.location && `Locatie: ${data.location}`,
         data.description && `Beschrijving: ${data.description}`,
         data.hasReminder && `Herinnering: ${data.reminderTiming} minuten van tevoren`,
         'Interne afspraak - handmatig aangemaakt',
+        `Duur: ${duration} minuten`
       ].filter(Boolean).join('\n');
 
       // Create the booking data object
@@ -187,10 +237,10 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
         end_time: endTime,
         status: 'confirmed' as const,
         notes: notesContent,
-        internal_notes: 'Interne afspraak - bypass validatie',
+        internal_notes: `Interne afspraak - handmatig aangemaakt - ${duration} minuten`,
       };
 
-      console.log('Creating booking with optimistic updates:', bookingData);
+      console.log('Creating booking with data:', bookingData);
 
       // Use optimistic booking creation
       createBooking(bookingData);
@@ -203,6 +253,8 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
     } catch (error) {
       console.error('=== BOOKING CREATION ERROR ===');
       console.error('Error details:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
       
       const errorMessage = error instanceof Error ? error.message : 'Onbekende fout opgetreden';
       
@@ -261,7 +313,11 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Service Type</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      // Disable auto-update when user manually selects a service type
+                      setAutoUpdateEndTime(false);
+                    }} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="bg-background">
                           <SelectValue placeholder="Selecteer service type" />
@@ -354,56 +410,83 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
 
             {/* Tijd selectie */}
             {!isAllDay && (
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="startTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start tijd</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="bg-background">
-                            <SelectValue placeholder="Selecteer tijd" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {timeOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start tijd</FormLabel>
+                        <Select onValueChange={(value) => {
+                          field.onChange(value);
+                          setAutoUpdateEndTime(false); // User manually changed time
+                        }} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-background">
+                              <SelectValue placeholder="Selecteer tijd" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {timeOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="endTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Eind tijd</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="bg-background">
-                            <SelectValue placeholder="Selecteer tijd" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {timeOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="endTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Eind tijd</FormLabel>
+                        <Select onValueChange={(value) => {
+                          field.onChange(value);
+                          setAutoUpdateEndTime(false); // User manually changed time
+                        }} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-background">
+                              <SelectValue placeholder="Selecteer tijd" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {timeOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Duration indicator */}
+                {startTime && endTime && (
+                  <div className="text-sm text-muted-foreground">
+                    Duur: {calculateDuration()} minuten ({(calculateDuration() / 60).toFixed(1)} uur)
+                  </div>
+                )}
+
+                {/* Auto-update toggle */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="auto-update" 
+                    checked={autoUpdateEndTime} 
+                    onCheckedChange={setAutoUpdateEndTime} 
+                  />
+                  <label htmlFor="auto-update" className="text-sm text-muted-foreground">
+                    Automatisch eindtijd berekenen op basis van service type
+                  </label>
+                </div>
               </div>
             )}
 
