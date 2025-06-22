@@ -53,7 +53,7 @@ export default function WhatsAppBookingDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-card">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overzicht
