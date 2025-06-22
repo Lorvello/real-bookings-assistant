@@ -64,7 +64,7 @@ export function useOptimizedBusinessIntelligence(calendarId?: string) {
         new Date(b.start_time) >= startOfThisMonth
       ) || [];
 
-      const lastMonthBook­ings = bookingsData?.filter(b => 
+      const lastMonthBookings = bookingsData?.filter(b => 
         new Date(b.start_time) >= startOfLastMonth && 
         new Date(b.start_time) <= endOfLastMonth
       ) || [];
@@ -111,9 +111,9 @@ export function useOptimizedBusinessIntelligence(calendarId?: string) {
       };
     },
     enabled: !!calendarId,
-    staleTime: 300000, // 5 minutes (increased from 2 minutes)
-    gcTime: 900000, // 15 minutes (increased from 10 minutes)
-    refetchInterval: 600000, // 10 minutes (increased from 5 minutes)
+    staleTime: 300000, // 5 minutes
+    gcTime: 900000, // 15 minutes
+    refetchInterval: 600000, // 10 minutes
     refetchIntervalInBackground: true,
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15000),
