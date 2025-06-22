@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 
 interface BusinessIntelligenceData {
   calendar_id: string;
@@ -20,28 +19,28 @@ interface BusinessIntelligenceData {
 }
 
 export function useBusinessIntelligence(calendarId?: string) {
-  useRealtimeSubscription(calendarId);
-
   return useQuery({
     queryKey: ['business-intelligence', calendarId],
     queryFn: async (): Promise<BusinessIntelligenceData | null> => {
       if (!calendarId) return null;
 
-      const { data, error } = await supabase
-        .from('business_intelligence_mv')
-        .select('*')
-        .eq('calendar_id', calendarId)
-        .single();
+      console.log('📊 Fetching business intelligence for:', calendarId);
 
-      if (error) {
-        console.error('Error fetching business intelligence:', error);
-        throw error;
-      }
-
-      return data;
+      // This is now deprecated - use useOptimizedBusinessIntelligence instead
+      // Return empty data to prevent errors
+      return {
+        calendar_id: calendarId,
+        month_revenue: 0,
+        prev_month_revenue: 0,
+        unique_customers_month: 0,
+        avg_booking_value: 0,
+        whatsapp_conversion_rate: 0,
+        service_performance: [],
+        last_updated: new Date().toISOString()
+      };
     },
     enabled: !!calendarId,
-    staleTime: 60000, // 1 minute
-    refetchInterval: 30000, // Refetch every 30 seconds
+    staleTime: 60000,
+    refetchInterval: 30000,
   });
 }

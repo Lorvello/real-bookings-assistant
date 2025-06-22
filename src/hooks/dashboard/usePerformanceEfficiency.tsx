@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 
 interface PerformanceEfficiencyData {
   calendar_id: string;
@@ -17,28 +16,27 @@ interface PerformanceEfficiencyData {
 }
 
 export function usePerformanceEfficiency(calendarId?: string) {
-  useRealtimeSubscription(calendarId);
-
   return useQuery({
     queryKey: ['performance-efficiency', calendarId],
     queryFn: async (): Promise<PerformanceEfficiencyData | null> => {
       if (!calendarId) return null;
 
-      const { data, error } = await supabase
-        .from('performance_efficiency_mv')
-        .select('*')
-        .eq('calendar_id', calendarId)
-        .single();
+      console.log('⚡ Fetching performance efficiency for:', calendarId);
 
-      if (error) {
-        console.error('Error fetching performance efficiency:', error);
-        throw error;
-      }
-
-      return data;
+      // This is now deprecated - use useOptimizedPerformanceEfficiency instead
+      // Return empty data to prevent errors
+      return {
+        calendar_id: calendarId,
+        avg_response_time_minutes: 0,
+        no_show_rate: 0,
+        cancellation_rate: 0,
+        calendar_utilization_rate: 0,
+        peak_hours: [],
+        last_updated: new Date().toISOString()
+      };
     },
     enabled: !!calendarId,
-    staleTime: 120000, // 2 minutes
-    refetchInterval: 60000, // Refetch every minute
+    staleTime: 120000,
+    refetchInterval: 60000,
   });
 }

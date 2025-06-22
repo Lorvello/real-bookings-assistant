@@ -19,45 +19,47 @@ export function useRealtimeSubscription(calendarId?: string) {
         {
           event: '*',
           schema: 'public',
-          table: 'business_events',
+          table: 'bookings',
           filter: `calendar_id=eq.${calendarId}`,
         },
         (payload) => {
           console.log('📈 Real-time dashboard event:', payload);
           
           // Invalidate all dashboard queries immediately
-          queryClient.invalidateQueries({ queryKey: ['live-operations', calendarId] });
-          queryClient.invalidateQueries({ queryKey: ['business-intelligence', calendarId] });
-          queryClient.invalidateQueries({ queryKey: ['performance-efficiency', calendarId] });
-          queryClient.invalidateQueries({ queryKey: ['future-insights', calendarId] });
-          
-          // Refresh materialized views
-          supabase.rpc('refresh_all_dashboard_views').catch(console.error);
+          queryClient.invalidateQueries({ queryKey: ['optimized-live-operations', calendarId] });
+          queryClient.invalidateQueries({ queryKey: ['optimized-business-intelligence', calendarId] });
+          queryClient.invalidateQueries({ queryKey: ['optimized-performance-efficiency', calendarId] });
+          queryClient.invalidateQueries({ queryKey: ['optimized-future-insights', calendarId] });
         }
       )
       .subscribe((status) => {
         console.log('📡 Real-time dashboard subscription status:', status);
       });
 
-    // Also listen to NOTIFY events from database triggers
-    const notifyChannel = supabase
-      .channel('realtime-notifications')
-      .on('broadcast', { event: 'realtime_dashboard_update' }, (payload) => {
-        console.log('📢 Dashboard notification:', payload);
-        if (payload.payload.calendar_id === calendarId) {
-          // Invalidate queries for this specific calendar
-          queryClient.invalidateQueries({ queryKey: ['live-operations', calendarId] });
-          queryClient.invalidateQueries({ queryKey: ['business-intelligence', calendarId] });
-          queryClient.invalidateQueries({ queryKey: ['performance-efficiency', calendarId] });
-          queryClient.invalidateQueries({ queryKey: ['future-insights', calendarId] });
+    // Also listen to WhatsApp messages changes
+    const whatsappChannel = supabase
+      .channel(`whatsapp-updates-${calendarId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'whatsapp_messages',
+        },
+        (payload) => {
+          console.log('💬 WhatsApp real-time event:', payload);
+          
+          // Invalidate relevant queries
+          queryClient.invalidateQueries({ queryKey: ['optimized-live-operations', calendarId] });
+          queryClient.invalidateQueries({ queryKey: ['optimized-business-intelligence', calendarId] });
         }
-      })
+      )
       .subscribe();
 
     return () => {
       console.log('🔌 Cleaning up real-time dashboard subscriptions');
       supabase.removeChannel(realtimeChannel);
-      supabase.removeChannel(notifyChannel);
+      supabase.removeChannel(whatsappChannel);
     };
   }, [calendarId, queryClient]);
 }

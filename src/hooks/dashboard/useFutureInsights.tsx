@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 
 interface FutureInsightsData {
   calendar_id: string;
@@ -20,28 +19,26 @@ interface FutureInsightsData {
 }
 
 export function useFutureInsights(calendarId?: string) {
-  useRealtimeSubscription(calendarId);
-
   return useQuery({
     queryKey: ['future-insights', calendarId],
     queryFn: async (): Promise<FutureInsightsData | null> => {
       if (!calendarId) return null;
 
-      const { data, error } = await supabase
-        .from('future_insights_mv')
-        .select('*')
-        .eq('calendar_id', calendarId)
-        .single();
+      console.log('🔮 Fetching future insights for:', calendarId);
 
-      if (error) {
-        console.error('Error fetching future insights:', error);
-        throw error;
-      }
-
-      return data;
+      // This is now deprecated - use useOptimizedFutureInsights instead
+      // Return empty data to prevent errors
+      return {
+        calendar_id: calendarId,
+        demand_forecast: [],
+        waitlist_size: 0,
+        returning_customers_month: 0,
+        seasonal_patterns: [],
+        last_updated: new Date().toISOString()
+      };
     },
     enabled: !!calendarId,
-    staleTime: 300000, // 5 minutes
-    refetchInterval: 120000, // Refetch every 2 minutes
+    staleTime: 300000,
+    refetchInterval: 120000,
   });
 }

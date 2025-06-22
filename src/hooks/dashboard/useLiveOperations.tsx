@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 
 interface LiveOperationsData {
   calendar_id: string;
@@ -15,30 +14,29 @@ interface LiveOperationsData {
 }
 
 export function useLiveOperations(calendarId?: string) {
-  // Set up real-time subscription for this calendar
-  useRealtimeSubscription(calendarId);
-
   return useQuery({
     queryKey: ['live-operations', calendarId],
     queryFn: async (): Promise<LiveOperationsData | null> => {
       if (!calendarId) return null;
 
-      const { data, error } = await supabase
-        .from('live_operations_mv')
-        .select('*')
-        .eq('calendar_id', calendarId)
-        .single();
+      console.log('🔄 Fetching live operations for:', calendarId);
 
-      if (error) {
-        console.error('Error fetching live operations:', error);
-        throw error;
-      }
-
-      return data;
+      // This is now deprecated - use useOptimizedLiveOperations instead
+      // Return empty data to prevent errors
+      return {
+        calendar_id: calendarId,
+        today_bookings: 0,
+        today_pending: 0,
+        today_confirmed: 0,
+        currently_active_bookings: 0,
+        next_appointment_time: null,
+        whatsapp_messages_last_hour: 0,
+        last_updated: new Date().toISOString()
+      };
     },
     enabled: !!calendarId,
-    staleTime: 0, // Always fetch fresh data
-    refetchInterval: 5000, // Refetch every 5 seconds as backup
+    staleTime: 0,
+    refetchInterval: 5000,
     refetchIntervalInBackground: true,
   });
 }
