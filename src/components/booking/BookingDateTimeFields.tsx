@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -40,6 +40,16 @@ export function BookingDateTimeFields({
   onTimeChange, 
   calculateDuration 
 }: BookingDateTimeFieldsProps) {
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const handleDateSelect = (date: Date | undefined, onChange: (date: Date | undefined) => void) => {
+    onChange(date);
+    // Sluit de kalender met een kleine vertraging voor een mooie animatie
+    setTimeout(() => {
+      setIsCalendarOpen(false);
+    }, 150);
+  };
+
   return (
     <div className="space-y-6">
       {/* Datum */}
@@ -49,30 +59,38 @@ export function BookingDateTimeFields({
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Datum *</FormLabel>
-            <Popover>
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full pl-3 text-left font-normal bg-background",
-                      !field.value && "text-muted-foreground"
+                      "w-full pl-3 text-left font-normal bg-background transition-all duration-200",
+                      !field.value && "text-muted-foreground",
+                      isCalendarOpen && "ring-2 ring-primary/50"
                     )}
+                    onClick={() => setIsCalendarOpen(true)}
                   >
                     {field.value ? (
                       format(field.value, "PPP")
                     ) : (
                       <span>Selecteer een datum</span>
                     )}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    <CalendarIcon className={cn(
+                      "ml-auto h-4 w-4 opacity-50 transition-transform duration-200",
+                      isCalendarOpen && "rotate-180"
+                    )} />
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent 
+                className="w-auto p-0 animate-in fade-in slide-in-from-top-2 duration-200" 
+                align="start"
+              >
                 <Calendar
                   mode="single"
                   selected={field.value}
-                  onSelect={field.onChange}
+                  onSelect={(date) => handleDateSelect(date, field.onChange)}
                   disabled={(date) => date < new Date("1900-01-01")}
                   initialFocus
                   className="pointer-events-auto"
@@ -100,7 +118,7 @@ export function BookingDateTimeFields({
 
       {/* Tijd selectie */}
       {!isAllDay && (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-in fade-in slide-in-from-top-1 duration-300">
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -155,13 +173,13 @@ export function BookingDateTimeFields({
 
           {/* Duration indicator */}
           {startTime && endTime && (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground animate-in fade-in duration-500">
               Duur: {calculateDuration()} minuten ({(calculateDuration() / 60).toFixed(1)} uur)
             </div>
           )}
 
           {/* Auto-update toggle */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 animate-in fade-in duration-700">
             <Checkbox 
               id="auto-update" 
               checked={autoUpdateEndTime} 
