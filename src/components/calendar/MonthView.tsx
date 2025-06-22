@@ -74,13 +74,12 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-background via-card to-background/95">
-      {/* Fixed Week day headers - compacter */}
+      {/* Fixed Week day headers - simplified without extra text */}
       <div className="flex-shrink-0 bg-card/90 backdrop-blur-sm rounded-2xl mx-3 mt-3 p-2 shadow-sm border border-border/40 sticky top-0 z-20">
         <div className="grid grid-cols-7">
           {weekDays.map(day => (
-            <div key={day} className="text-center py-1.5">
-              <div className="text-xs font-semibold text-foreground">{day.slice(0, 2).toUpperCase()}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{day.slice(2)}</div>
+            <div key={day} className="text-center py-2">
+              <div className="text-sm font-semibold text-foreground">{day.slice(0, 2).toUpperCase()}</div>
             </div>
           ))}
         </div>
