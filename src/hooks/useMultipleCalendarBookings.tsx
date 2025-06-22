@@ -33,83 +33,92 @@ export const useMultipleCalendarBookings = (calendarIds: string[]) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchBookings = async () => {
     if (!user || !calendarIds.length) {
       setBookings([]);
       setLoading(false);
       return;
     }
 
-    const fetchBookings = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    try {
+      setLoading(true);
+      setError(null);
 
-        const { data, error: fetchError } = await supabase
-          .from('bookings')
-          .select(`
-            *,
-            service_types (
-              name,
-              color,
-              duration
-            ),
-            calendars!inner (
-              name,
-              color
-            )
-          `)
-          .in('calendar_id', calendarIds)
-          .order('start_time', { ascending: true });
+      const { data, error: fetchError } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          service_types (
+            name,
+            color,
+            duration
+          ),
+          calendars!inner (
+            name,
+            color
+          )
+        `)
+        .in('calendar_id', calendarIds)
+        .order('start_time', { ascending: true });
 
-        if (fetchError) {
-          console.error('Error fetching bookings:', fetchError);
-          setError('Er is een fout opgetreden bij het ophalen van boekingen');
-          return;
-        }
-
-        // Transform data to match our interface
-        const transformedBookings: BookingData[] = (data || []).map(booking => ({
-          ...booking,
-          status: booking.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show',
-          calendar: booking.calendars
-        }));
-
-        setBookings(transformedBookings);
-      } catch (err) {
-        console.error('Error in fetchBookings:', err);
-        setError('Er is een onverwachte fout opgetreden');
-      } finally {
-        setLoading(false);
+      if (fetchError) {
+        console.error('Error fetching bookings:', fetchError);
+        setError('Er is een fout opgetreden bij het ophalen van boekingen');
+        return;
       }
-    };
 
+      // Transform data to match our interface
+      const transformedBookings: BookingData[] = (data || []).map(booking => ({
+        ...booking,
+        status: booking.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show',
+        calendar: booking.calendars
+      }));
+
+      setBookings(transformedBookings);
+    } catch (err) {
+      console.error('Error in fetchBookings:', err);
+      setError('Er is een onverwachte fout opgetreden');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchBookings();
+  }, [user, calendarIds.join(',')]);
 
-    // Set up real-time subscription for all calendars
-    const channels = calendarIds.map(calendarId => {
-      return supabase
-        .channel(`bookings_${calendarId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'bookings',
-            filter: `calendar_id=eq.${calendarId}`,
-          },
-          (payload) => {
-            console.log('Real-time booking update:', payload);
-            fetchBookings(); // Refetch all bookings when any changes
+  useEffect(() => {
+    if (!user || !calendarIds.length) return;
+
+    // Create a single channel for all calendar IDs to avoid duplicate subscriptions
+    const channelName = `bookings_multiple_${calendarIds.sort().join('_')}`;
+    console.log('Setting up realtime subscription for calendars:', calendarIds);
+    
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings',
+          filter: calendarIds.length === 1 ? `calendar_id=eq.${calendarIds[0]}` : undefined,
+        },
+        (payload) => {
+          console.log('Real-time booking update:', payload);
+          // Only refetch if the booking belongs to one of our calendars
+          if (calendarIds.includes(payload.new?.calendar_id || payload.old?.calendar_id)) {
+            fetchBookings();
           }
-        )
-        .subscribe();
-    });
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
     return () => {
-      channels.forEach(channel => {
-        supabase.removeChannel(channel);
-      });
+      console.log('Cleaning up subscription for:', channelName);
+      supabase.removeChannel(channel);
     };
   }, [user, calendarIds.join(',')]);
 
@@ -117,11 +126,6 @@ export const useMultipleCalendarBookings = (calendarIds: string[]) => {
     bookings,
     loading,
     error,
-    refetch: () => {
-      if (user && calendarIds.length) {
-        setLoading(true);
-        // Trigger re-fetch by updating the effect dependency
-      }
-    }
+    refetch: fetchBookings
   };
 };

@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { CalendarView } from './CalendarView';
-import { AvailabilityPanel } from './AvailabilityPanel';
 
 interface CalendarDashboardProps {
   calendarIds: string[];
@@ -20,16 +19,8 @@ export function CalendarDashboard({ calendarIds }: CalendarDashboardProps) {
   }
 
   return (
-    <div className="h-full relative">
-      {/* Main Calendar View - Full Width */}
-      <div className="h-full">
-        <CalendarView calendarIds={calendarIds} />
-      </div>
-      
-      {/* Availability Panel - Only show for single calendar */}
-      {calendarIds.length === 1 && (
-        <AvailabilityPanel calendarId={calendarIds[0]} />
-      )}
+    <div className="h-full">
+      <CalendarView calendarIds={calendarIds} />
     </div>
   );
 }

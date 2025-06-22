@@ -12,8 +12,8 @@ interface DashboardContentProps {
 }
 
 export function DashboardContent({ calendarIds, calendarName }: DashboardContentProps) {
-  // For now, use the first calendar for analytics (we can extend this later for multi-calendar analytics)
-  const primaryCalendarId = calendarIds[0];
+  // For analytics, use the first calendar or undefined if no calendars
+  const primaryCalendarId = calendarIds.length > 0 ? calendarIds[0] : undefined;
   const { data: analytics, isLoading } = useDashboardAnalytics(primaryCalendarId);
   
   // Set up realtime updates for the primary calendar
