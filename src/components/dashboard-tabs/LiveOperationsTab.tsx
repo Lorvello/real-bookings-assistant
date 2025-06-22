@@ -2,7 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useLiveOperations } from '@/hooks/dashboard/useLiveOperations';
+import { useOptimizedLiveOperations } from '@/hooks/dashboard/useOptimizedLiveOperations';
+import { useRealtimeWebSocket } from '@/hooks/dashboard/useRealtimeWebSocket';
 import { Calendar, Clock, MessageCircle, Users, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface LiveOperationsTabProps {
@@ -10,7 +11,9 @@ interface LiveOperationsTabProps {
 }
 
 export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
-  const { data: liveOps, isLoading } = useLiveOperations(calendarId);
+  // Use optimized hook and real-time WebSocket
+  const { data: liveOps, isLoading } = useOptimizedLiveOperations(calendarId);
+  useRealtimeWebSocket(calendarId);
 
   if (isLoading) {
     return <div className="animate-pulse">Loading live operations...</div>;
