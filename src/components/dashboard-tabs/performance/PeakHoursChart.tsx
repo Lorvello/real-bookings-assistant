@@ -27,29 +27,29 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <motion.div 
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-gradient-to-br from-card/98 via-card/95 to-card/90 backdrop-blur-3xl border border-primary/30 shadow-2xl p-4 rounded-2xl"
+        className="bg-gradient-to-br from-slate-900/98 via-slate-800/95 to-slate-900/90 backdrop-blur-3xl border border-slate-600/30 shadow-2xl p-4 rounded-2xl"
       >
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-primary" />
-            <span className="font-semibold">{label}:00 - {(parseInt(label) + 1)}:00</span>
+            <Clock className="h-4 w-4 text-slate-300" />
+            <span className="font-semibold text-slate-100">{label}:00 - {(parseInt(label) + 1)}:00</span>
           </div>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span>{data.count} boekingen</span>
+              <div className="w-3 h-3 bg-slate-400 rounded-full"></div>
+              <span className="text-slate-200">{data.count} boekingen</span>
             </div>
             {data.revenue && (
               <div className="flex items-center gap-2">
-                <Euro className="h-3 w-3 text-green-500" />
-                <span>€{data.revenue.toFixed(2)}</span>
+                <Euro className="h-3 w-3 text-emerald-400" />
+                <span className="text-slate-200">€{data.revenue.toFixed(2)}</span>
               </div>
             )}
           </div>
           {data.popular_service && (
-            <div className="pt-2 border-t border-border/50">
-              <span className="text-xs text-muted-foreground">Populairste service:</span>
-              <p className="font-medium text-xs">{data.popular_service}</p>
+            <div className="pt-2 border-t border-slate-600/50">
+              <span className="text-xs text-slate-400">Populairste service:</span>
+              <p className="font-medium text-xs text-slate-200">{data.popular_service}</p>
             </div>
           )}
         </div>
@@ -61,10 +61,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 const getBarColor = (count: number, maxCount: number) => {
   const intensity = count / maxCount;
-  if (intensity > 0.8) return '#ef4444'; // Red for very busy
-  if (intensity > 0.6) return '#f97316'; // Orange for busy
-  if (intensity > 0.4) return '#eab308'; // Yellow for moderate
-  if (intensity > 0.2) return '#22c55e'; // Green for quiet
+  if (intensity > 0.8) return '#dc2626'; // Red for very busy
+  if (intensity > 0.6) return '#ea580c'; // Orange for busy
+  if (intensity > 0.4) return '#ca8a04'; // Yellow for moderate
+  if (intensity > 0.2) return '#16a34a'; // Green for quiet
   return '#64748b'; // Gray for very quiet
 };
 
@@ -101,20 +101,20 @@ export function PeakHoursChart({ data = [], isLoading }: PeakHoursChartProps) {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="border-slate-700/50 bg-slate-900/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-slate-100">
             <Clock className="h-5 w-5" />
             Piekuren Analyse
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="h-64 bg-muted rounded"></div>
+            <div className="h-8 bg-slate-700 rounded w-1/3"></div>
+            <div className="h-64 bg-slate-700 rounded"></div>
             <div className="grid grid-cols-3 gap-4">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 bg-muted rounded"></div>
+                <div key={i} className="h-16 bg-slate-700 rounded"></div>
               ))}
             </div>
           </div>
@@ -129,20 +129,20 @@ export function PeakHoursChart({ data = [], isLoading }: PeakHoursChartProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="border-orange-200/30 bg-gradient-to-br from-orange-50/50 to-yellow-50/30">
+      <Card className="border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-800/60 backdrop-blur-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center">
-                <Clock className="h-4 w-4 text-white" />
+            <CardTitle className="flex items-center gap-2 text-slate-100">
+              <div className="w-8 h-8 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center">
+                <Clock className="h-4 w-4 text-slate-200" />
               </div>
               Piekuren Analyse
             </CardTitle>
             <Tabs value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v as any)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="today">Vandaag</TabsTrigger>
-                <TabsTrigger value="week">Deze Week</TabsTrigger>
-                <TabsTrigger value="month">Deze Maand</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 bg-slate-800/80">
+                <TabsTrigger value="today" className="text-slate-300 data-[state=active]:text-slate-100 data-[state=active]:bg-slate-700">Vandaag</TabsTrigger>
+                <TabsTrigger value="week" className="text-slate-300 data-[state=active]:text-slate-100 data-[state=active]:bg-slate-700">Deze Week</TabsTrigger>
+                <TabsTrigger value="month" className="text-slate-300 data-[state=active]:text-slate-100 data-[state=active]:bg-slate-700">Deze Maand</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -150,32 +150,32 @@ export function PeakHoursChart({ data = [], isLoading }: PeakHoursChartProps) {
         <CardContent className="space-y-6">
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-4">
+            <div className="bg-gradient-to-br from-slate-800/70 to-slate-700/50 rounded-xl p-4 border border-slate-600/30">
               <div className="flex items-center gap-3">
-                <Calendar className="h-8 w-8 text-blue-600" />
+                <Calendar className="h-8 w-8 text-slate-300" />
                 <div>
-                  <p className="text-sm font-medium text-blue-800">Totaal Boekingen</p>
-                  <p className="text-2xl font-bold text-blue-900">{totalBookings}</p>
+                  <p className="text-sm font-medium text-slate-400">Totaal Boekingen</p>
+                  <p className="text-2xl font-bold text-slate-100">{totalBookings}</p>
                 </div>
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-green-50 to-emerald-100/50 rounded-xl p-4">
+            <div className="bg-gradient-to-br from-emerald-900/40 to-emerald-800/30 rounded-xl p-4 border border-emerald-700/30">
               <div className="flex items-center gap-3">
-                <Euro className="h-8 w-8 text-green-600" />
+                <Euro className="h-8 w-8 text-emerald-400" />
                 <div>
-                  <p className="text-sm font-medium text-green-800">Omzet</p>
-                  <p className="text-2xl font-bold text-green-900">€{totalRevenue.toFixed(2)}</p>
+                  <p className="text-sm font-medium text-emerald-300">Omzet</p>
+                  <p className="text-2xl font-bold text-emerald-100">€{totalRevenue.toFixed(2)}</p>
                 </div>
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4">
+            <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/30 rounded-xl p-4 border border-blue-700/30">
               <div className="flex items-center gap-3">
-                <TrendingUp className="h-8 w-8 text-purple-600" />
+                <TrendingUp className="h-8 w-8 text-blue-400" />
                 <div>
-                  <p className="text-sm font-medium text-purple-800">Piek Moment</p>
-                  <p className="text-2xl font-bold text-purple-900">
+                  <p className="text-sm font-medium text-blue-300">Piek Moment</p>
+                  <p className="text-2xl font-bold text-blue-100">
                     {peakHours[0] ? `${peakHours[0].hour}:00` : 'N/A'}
                   </p>
                 </div>
@@ -184,17 +184,17 @@ export function PeakHoursChart({ data = [], isLoading }: PeakHoursChartProps) {
           </div>
 
           {/* Chart */}
-          <div className="bg-white/50 rounded-xl p-4">
+          <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={completeHourData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                 <XAxis 
                   dataKey="hour" 
                   tickFormatter={(hour) => `${hour}:00`}
                   fontSize={12}
-                  stroke="#64748b"
+                  stroke="#94a3b8"
                 />
-                <YAxis fontSize={12} stroke="#64748b" />
+                <YAxis fontSize={12} stroke="#94a3b8" />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                   {completeHourData.map((entry, index) => (
@@ -212,7 +212,7 @@ export function PeakHoursChart({ data = [], isLoading }: PeakHoursChartProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Peak Hours */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-orange-800 flex items-center gap-2">
+              <h4 className="font-semibold text-slate-200 flex items-center gap-2">
                 🔥 Drukste Uren
               </h4>
               <div className="space-y-2">
@@ -222,18 +222,18 @@ export function PeakHoursChart({ data = [], isLoading }: PeakHoursChartProps) {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100"
+                    className="flex items-center justify-between p-3 bg-red-900/30 rounded-lg border border-red-800/40"
                   >
                     <div className="flex items-center gap-3">
-                      <Badge variant="destructive" className="text-xs">
+                      <Badge variant="destructive" className="text-xs bg-red-700/80">
                         #{index + 1}
                       </Badge>
-                      <span className="font-medium">{hour.hour}:00 - {hour.hour + 1}:00</span>
+                      <span className="font-medium text-slate-200">{hour.hour}:00 - {hour.hour + 1}:00</span>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-red-700">{hour.count} boekingen</p>
+                      <p className="font-bold text-red-300">{hour.count} boekingen</p>
                       {hour.revenue && hour.revenue > 0 && (
-                        <p className="text-xs text-red-600">€{hour.revenue.toFixed(2)}</p>
+                        <p className="text-xs text-red-400">€{hour.revenue.toFixed(2)}</p>
                       )}
                     </div>
                   </motion.div>
@@ -243,7 +243,7 @@ export function PeakHoursChart({ data = [], isLoading }: PeakHoursChartProps) {
 
             {/* Quiet Hours */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-green-800 flex items-center gap-2">
+              <h4 className="font-semibold text-slate-200 flex items-center gap-2">
                 😌 Rustige Uren
               </h4>
               <div className="space-y-2">
@@ -253,18 +253,18 @@ export function PeakHoursChart({ data = [], isLoading }: PeakHoursChartProps) {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100"
+                    className="flex items-center justify-between p-3 bg-green-900/30 rounded-lg border border-green-800/40"
                   >
                     <div className="flex items-center gap-3">
-                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                      <Badge variant="secondary" className="text-xs bg-green-800/50 text-green-300 border-green-700/50">
                         #{index + 1}
                       </Badge>
-                      <span className="font-medium">{hour.hour}:00 - {hour.hour + 1}:00</span>
+                      <span className="font-medium text-slate-200">{hour.hour}:00 - {hour.hour + 1}:00</span>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-green-700">{hour.count} boekingen</p>
+                      <p className="font-bold text-green-300">{hour.count} boekingen</p>
                       {hour.revenue && hour.revenue > 0 && (
-                        <p className="text-xs text-green-600">€{hour.revenue.toFixed(2)}</p>
+                        <p className="text-xs text-green-400">€{hour.revenue.toFixed(2)}</p>
                       )}
                     </div>
                   </motion.div>
@@ -274,11 +274,11 @@ export function PeakHoursChart({ data = [], isLoading }: PeakHoursChartProps) {
           </div>
 
           {/* Recommendations */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
-            <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+          <div className="bg-gradient-to-r from-slate-800/60 to-slate-700/50 rounded-xl p-4 border border-slate-600/40">
+            <h4 className="font-semibold text-slate-200 mb-3 flex items-center gap-2">
               💡 Aanbevelingen
             </h4>
-            <div className="space-y-2 text-sm text-blue-700">
+            <div className="space-y-2 text-sm text-slate-300">
               {peakHours[0] && (
                 <p>• Overweeg extra personeel in te zetten tijdens piekuur ({peakHours[0].hour}:00-{peakHours[0].hour + 1}:00)</p>
               )}
