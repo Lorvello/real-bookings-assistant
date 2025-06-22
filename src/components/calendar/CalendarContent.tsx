@@ -4,6 +4,7 @@ import { MonthView } from './MonthView';
 import { WeekView } from './WeekView';
 import { YearView } from './YearView';
 import { ViewType } from './CalendarContainer';
+import { useBookings } from '@/hooks/useBookings';
 
 interface CalendarContentProps {
   currentView: ViewType;
@@ -12,19 +13,21 @@ interface CalendarContentProps {
 }
 
 export function CalendarContent({ currentView, currentDate, calendarId }: CalendarContentProps) {
+  const { data: bookings = [] } = useBookings(calendarId);
+
   return (
     <div className="h-full bg-gradient-to-br from-background/30 via-card/20 to-background/30 rounded-b-3xl overflow-hidden">
       <div className="h-full bg-card/60 backdrop-blur-sm border-t border-border/40">
         {currentView === 'month' && (
-          <MonthView currentDate={currentDate} calendarId={calendarId} />
+          <MonthView currentDate={currentDate} bookings={bookings} />
         )}
         
         {currentView === 'week' && (
-          <WeekView currentDate={currentDate} calendarId={calendarId} />
+          <WeekView currentDate={currentDate} bookings={bookings} />
         )}
         
         {currentView === 'year' && (
-          <YearView currentDate={currentDate} calendarId={calendarId} />
+          <YearView currentDate={currentDate} bookings={bookings} />
         )}
       </div>
     </div>
