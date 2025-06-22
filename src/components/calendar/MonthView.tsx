@@ -1,6 +1,8 @@
 
+import { useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { DayBookingsModal } from './DayBookingsModal';
 
 interface Booking {
   id: string;
@@ -8,6 +10,7 @@ interface Booking {
   end_time: string;
   customer_name: string;
   customer_phone?: string;
+  customer_email?: string;
   status: string;
   service_name?: string;
   service_types?: {
@@ -23,6 +26,9 @@ interface MonthViewProps {
 }
 
 export function MonthView({ bookings, currentDate }: MonthViewProps) {
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -35,6 +41,18 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
     return bookings.filter(booking => 
       isSameDay(new Date(booking.start_time), day)
     );
+  };
+
+  const handleDayClick = (day: Date, dayBookings: Booking[]) => {
+    if (dayBookings.length > 1) {
+      setSelectedDate(day);
+      setModalOpen(true);
+    }
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setSelectedDate(null);
   };
 
   return (
@@ -56,17 +74,21 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
             const dayBookings = getBookingsForDay(day);
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isToday = isSameDay(day, new Date());
+            const hasMultipleBookings = dayBookings.length > 1;
 
             return (
               <div
                 key={day.toISOString()}
-                className={`group rounded-xl p-4 min-h-[140px] transition-all duration-200 hover:shadow-lg cursor-pointer ${
+                className={`group rounded-xl p-4 min-h-[140px] transition-all duration-200 hover:shadow-lg ${
+                  hasMultipleBookings ? 'cursor-pointer' : ''
+                } ${
                   isCurrentMonth 
                     ? isToday
                       ? 'bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 border-2 border-primary/40 shadow-lg shadow-primary/10'
                       : 'bg-card/90 backdrop-blur-sm border border-border/60 hover:border-primary/30 hover:bg-card/95'
                     : 'bg-muted/30 border border-border/30 opacity-60'
                 }`}
+                onClick={() => handleDayClick(day, dayBookings)}
               >
                 <div className={`flex items-center justify-between mb-3 ${
                   isToday ? 'text-primary font-bold' : 'text-foreground'
@@ -86,43 +108,50 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                 </div>
                 
                 <div className="space-y-2">
-                  {dayBookings.slice(0, 3).map(booking => (
-                    <div
-                      key={booking.id}
-                      className="group/booking p-2.5 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
-                      style={{
-                        backgroundColor: booking.service_types?.color || '#10B981',
-                        backgroundImage: `linear-gradient(135deg, ${booking.service_types?.color || '#10B981'}, ${booking.service_types?.color || '#10B981'}dd)`
-                      }}
-                      title={`${format(new Date(booking.start_time), 'HH:mm')} - ${booking.customer_name} (${booking.service_types?.name || booking.service_name || 'Afspraak'})`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="text-white text-xs font-semibold">
-                          {format(new Date(booking.start_time), 'HH:mm')}
-                        </div>
-                        <div className={`w-2 h-2 rounded-full ${
-                          booking.status === 'confirmed' ? 'bg-white/90' :
-                          booking.status === 'pending' ? 'bg-yellow-300/90' :
-                          'bg-red-300/90'
-                        }`} />
-                      </div>
-                      <div className="text-white/95 text-xs font-medium truncate mt-1">
-                        {booking.customer_name}
-                      </div>
-                      <div className="text-white/80 text-xs truncate">
-                        {booking.service_types?.name || booking.service_name || 'Afspraak'}
-                      </div>
-                    </div>
-                  ))}
-                  {dayBookings.length > 3 && (
-                    <div className="text-xs text-muted-foreground text-center py-2 bg-muted/50 rounded-lg border border-dashed border-border/60 group-hover:bg-muted/70 transition-colors">
-                      +{dayBookings.length - 3} meer afspraken
-                    </div>
-                  )}
+                  {/* Toon afspraken anders afhankelijk van het aantal */}
                   {dayBookings.length === 0 && isCurrentMonth && (
                     <div className="text-center py-4 opacity-0 group-hover:opacity-100 transition-opacity">
                       <div className="text-xs text-muted-foreground mb-1">Geen afspraken</div>
                       <div className="w-6 h-px bg-border mx-auto"></div>
+                    </div>
+                  )}
+                  
+                  {dayBookings.length === 1 && (
+                    <div
+                      className="group/booking p-2.5 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
+                      style={{
+                        backgroundColor: dayBookings[0].service_types?.color || '#10B981',
+                        backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#10B981'}, ${dayBookings[0].service_types?.color || '#10B981'}dd)`
+                      }}
+                      title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name} (${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Afspraak'})`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-white text-xs font-semibold">
+                          {format(new Date(dayBookings[0].start_time), 'HH:mm')}
+                        </div>
+                        <div className={`w-2 h-2 rounded-full ${
+                          dayBookings[0].status === 'confirmed' ? 'bg-white/90' :
+                          dayBookings[0].status === 'pending' ? 'bg-yellow-300/90' :
+                          'bg-red-300/90'
+                        }`} />
+                      </div>
+                      <div className="text-white/95 text-xs font-medium truncate mt-1">
+                        {dayBookings[0].customer_name}
+                      </div>
+                      <div className="text-white/80 text-xs truncate">
+                        {dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Afspraak'}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {dayBookings.length > 1 && (
+                    <div className="text-center py-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border border-primary/20 hover:from-primary/15 hover:to-primary/10 hover:border-primary/30 transition-all duration-200 cursor-pointer group-hover:scale-105">
+                      <div className="text-primary font-semibold text-sm mb-1">
+                        {dayBookings.length} afspraken
+                      </div>
+                      <div className="text-xs text-primary/70">
+                        Klik voor details
+                      </div>
                     </div>
                   )}
                 </div>
@@ -131,6 +160,13 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
           })}
         </div>
       </div>
+
+      <DayBookingsModal
+        open={modalOpen}
+        onClose={closeModal}
+        date={selectedDate}
+        bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
+      />
     </div>
   );
 }
