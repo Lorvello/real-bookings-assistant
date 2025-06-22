@@ -1,40 +1,38 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
 
 export function ChartTooltip({ active, payload, label }: any) {
   if (active && payload && payload.length) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-gradient-to-br from-card/98 via-card/95 to-card/90 backdrop-blur-3xl border border-primary/30 shadow-2xl p-6"
-        style={{
-          borderRadius: '1rem 2rem 1rem 2rem / 1.5rem 1rem 1.5rem 1rem'
-        }}
-      >
+      <div className="bg-gradient-to-br from-slate-800/98 via-slate-900/95 to-slate-800/90 backdrop-blur-xl border border-slate-700/50 shadow-2xl p-4 rounded-xl">
         <div className="space-y-3">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <p className="text-sm font-semibold text-slate-200 border-b border-slate-700/30 pb-2">
+            {label}
+          </p>
           {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center gap-3">
-              <div 
-                className="w-4 h-4 shadow-lg"
-                style={{ 
-                  backgroundColor: entry.color, 
-                  boxShadow: `0 0 15px ${entry.color}`,
-                  borderRadius: '50% 80% 50% 80%'
-                }}
-              ></div>
-              <span className="text-sm font-semibold">
-                {entry.dataKey === 'revenue' ? `€${Number(entry.value).toFixed(2)}` : entry.value}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {entry.dataKey === 'booking_count' ? 'Boekingen' : 'Omzet'}
+            <div key={index} className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-3 h-3 rounded shadow-lg"
+                  style={{ 
+                    backgroundColor: entry.color,
+                    boxShadow: `0 0 10px ${entry.color}40`
+                  }}
+                ></div>
+                <span className="text-sm text-slate-300">
+                  {entry.name === 'booking_count' ? 'Boekingen' : 
+                   entry.name === 'revenue' ? 'Omzet' : entry.name}
+                </span>
+              </div>
+              <span className="text-sm font-bold text-slate-100">
+                {entry.name === 'revenue' || entry.dataKey === 'revenue' 
+                  ? `€${Number(entry.value).toFixed(2)}` 
+                  : entry.value}
               </span>
             </div>
           ))}
         </div>
-      </motion.div>
+      </div>
     );
   }
   return null;
