@@ -18,9 +18,28 @@ const Dashboard = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Define keyframes for animations using CSS-in-JS
+  const floatKeyframes = `
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) rotate(0deg) scale(1);
+      }
+      25% {
+        transform: translateY(-20px) rotate(2deg) scale(1.02);
+      }
+      50% {
+        transform: translateY(-10px) rotate(-1deg) scale(0.98);
+      }
+      75% {
+        transform: translateY(-15px) rotate(1deg) scale(1.01);
+      }
+    }
+  `;
+
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
+        <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
         <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
           {/* Organic Loading Background */}
           <div className="absolute inset-0">
@@ -61,6 +80,7 @@ const Dashboard = () => {
   if (!activeCalendar) {
     return (
       <DashboardLayout>
+        <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
         <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
           {/* Organic Background Shapes */}
           <div className="absolute inset-0">
@@ -98,6 +118,7 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
+      <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
       <div className="min-h-screen relative overflow-hidden">
         {/* Liquid Background Layer */}
         <div className="absolute inset-0">
@@ -191,24 +212,6 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-
-        {/* CSS for custom animations */}
-        <style jsx>{`
-          @keyframes float {
-            0%, 100% {
-              transform: translateY(0px) rotate(0deg) scale(1);
-            }
-            25% {
-              transform: translateY(-20px) rotate(2deg) scale(1.02);
-            }
-            50% {
-              transform: translateY(-10px) rotate(-1deg) scale(0.98);
-            }
-            75% {
-              transform: translateY(-15px) rotate(1deg) scale(1.01);
-            }
-          }
-        `}</style>
       </div>
     </DashboardLayout>
   );
