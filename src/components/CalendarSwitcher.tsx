@@ -11,6 +11,7 @@ import {
 import { UserContextDisplay } from './calendar-switcher/UserContextDisplay';
 import { CalendarDropdownTrigger } from './calendar-switcher/CalendarDropdownTrigger';
 import { CalendarDropdownContent } from './calendar-switcher/CalendarDropdownContent';
+import { CreateCalendarDialog } from './calendar-switcher/CreateCalendarDialog';
 
 export function CalendarSwitcher() {
   const { selectedCalendar, calendars, selectCalendar, loading } = useCalendarContext();
@@ -26,36 +27,45 @@ export function CalendarSwitcher() {
   }
 
   return (
-    <div className="flex items-center space-x-3">
-      <UserContextDisplay />
+    <>
+      <div className="flex items-center space-x-3">
+        <UserContextDisplay />
 
-      <div className="flex items-center space-x-2">
-        {/* Kalender Switcher Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <CalendarDropdownTrigger selectedCalendar={selectedCalendar} />
-          </DropdownMenuTrigger>
-          
-          <CalendarDropdownContent
-            calendars={calendars}
-            selectedCalendar={selectedCalendar}
-            onSelectCalendar={selectCalendar}
-            showCreateDialog={showCreateDialog}
-            onShowCreateDialogChange={setShowCreateDialog}
-          />
-        </DropdownMenu>
+        <div className="flex items-center space-x-2">
+          {/* Kalender Switcher Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <CalendarDropdownTrigger selectedCalendar={selectedCalendar} />
+            </DropdownMenuTrigger>
+            
+            <CalendarDropdownContent
+              calendars={calendars}
+              selectedCalendar={selectedCalendar}
+              onSelectCalendar={selectCalendar}
+              showCreateDialog={showCreateDialog}
+              onShowCreateDialogChange={setShowCreateDialog}
+            />
+          </DropdownMenu>
 
-        {/* Prominente "Nieuwe Kalender" knop */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowCreateDialog(true)}
-          className="flex items-center gap-2 border-dashed border-2 hover:border-solid hover:bg-accent"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Nieuwe kalender</span>
-        </Button>
+          {/* Prominente "Nieuwe Kalender" knop */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCreateDialog(true)}
+            className="flex items-center gap-2 border-dashed border-2 hover:border-solid hover:bg-accent"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Nieuwe kalender</span>
+          </Button>
+        </div>
       </div>
-    </div>
+
+      {/* Standalone CreateCalendarDialog voor de button */}
+      <CreateCalendarDialog 
+        open={showCreateDialog} 
+        onOpenChange={setShowCreateDialog}
+        trigger="button"
+      />
+    </>
   );
 }
