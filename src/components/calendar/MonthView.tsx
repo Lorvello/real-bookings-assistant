@@ -74,22 +74,22 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-background via-card to-background/95">
-      {/* Fixed Week day headers */}
-      <div className="flex-shrink-0 bg-card/90 backdrop-blur-sm rounded-2xl mx-4 mt-4 p-3 shadow-sm border border-border/40 sticky top-0 z-20">
+      {/* Fixed Week day headers - compacter */}
+      <div className="flex-shrink-0 bg-card/90 backdrop-blur-sm rounded-2xl mx-3 mt-3 p-2 shadow-sm border border-border/40 sticky top-0 z-20">
         <div className="grid grid-cols-7">
           {weekDays.map(day => (
-            <div key={day} className="text-center py-2">
-              <div className="text-sm font-semibold text-foreground">{day.slice(0, 2).toUpperCase()}</div>
+            <div key={day} className="text-center py-1.5">
+              <div className="text-xs font-semibold text-foreground">{day.slice(0, 2).toUpperCase()}</div>
               <div className="text-xs text-muted-foreground mt-0.5">{day.slice(2)}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Scrollable Calendar grid */}
+      {/* Scrollable Calendar grid - veel compacter */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 pt-2">
-          <div className="grid grid-cols-7 gap-2">
+        <div className="p-3 pt-1">
+          <div className="grid grid-cols-7 gap-1">
             {days.map(day => {
               const dayBookings = getBookingsForDay(day);
               const isCurrentMonth = isSameMonth(day, currentDate);
@@ -99,7 +99,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
               return (
                 <div
                   key={day.toISOString()}
-                  className={`group rounded-2xl p-2 min-h-[100px] transition-all duration-200 hover:shadow-lg ${
+                  className={`group rounded-xl p-1.5 min-h-[80px] transition-all duration-200 hover:shadow-lg ${
                     hasMultipleBookings ? 'cursor-pointer' : ''
                   } ${
                     isCurrentMonth 
@@ -110,35 +110,35 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                   }`}
                   onClick={() => handleDayClick(day, dayBookings)}
                 >
-                  <div className={`flex items-center justify-between mb-2 ${
+                  <div className={`flex items-center justify-between mb-1 ${
                     isToday ? 'text-primary font-bold' : 'text-foreground'
                   }`}>
-                    <div className={`text-base font-bold ${
+                    <div className={`text-sm font-bold ${
                       isToday 
-                        ? 'bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs shadow-lg' 
+                        ? 'bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-xs shadow-lg' 
                         : ''
                     }`}>
                       {format(day, 'd')}
                     </div>
                     {dayBookings.length > 0 && (
-                      <div className="text-xs bg-blue-500/20 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">
+                      <div className="text-xs bg-blue-500/20 text-blue-600 px-1 py-0.5 rounded-full font-medium">
                         {dayBookings.length}
                       </div>
                     )}
                   </div>
                   
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     {/* Toon afspraken anders afhankelijk van het aantal */}
                     {dayBookings.length === 0 && isCurrentMonth && (
-                      <div className="text-center py-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="text-xs text-muted-foreground mb-1">Geen afspraken</div>
-                        <div className="w-4 h-px bg-border mx-auto"></div>
+                      <div className="text-center py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="text-xs text-muted-foreground mb-0.5">Geen afspraken</div>
+                        <div className="w-3 h-px bg-border mx-auto"></div>
                       </div>
                     )}
                     
                     {dayBookings.length === 1 && (
                       <div
-                        className="group/booking p-1.5 rounded-xl cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="group/booking p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
                         style={{
                           backgroundColor: dayBookings[0].service_types?.color || '#3B82F6',
                           backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`
@@ -153,7 +153,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                           <div className="text-white text-xs font-semibold">
                             {format(new Date(dayBookings[0].start_time), 'HH:mm')}
                           </div>
-                          <div className={`w-1.5 h-1.5 rounded-full ${
+                          <div className={`w-1 h-1 rounded-full ${
                             dayBookings[0].status === 'confirmed' ? 'bg-white/90' :
                             dayBookings[0].status === 'pending' ? 'bg-yellow-300/90' :
                             'bg-red-300/90'
@@ -169,8 +169,8 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                     )}
                     
                     {dayBookings.length > 1 && (
-                      <div className="text-center py-3 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-xl border border-blue-500/20 hover:from-blue-500/15 hover:to-blue-500/10 hover:border-blue-500/30 transition-all duration-200 cursor-pointer group-hover:scale-105">
-                        <div className="text-blue-600 font-semibold text-sm mb-0.5">
+                      <div className="text-center py-2 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20 hover:from-blue-500/15 hover:to-blue-500/10 hover:border-blue-500/30 transition-all duration-200 cursor-pointer group-hover:scale-105">
+                        <div className="text-blue-600 font-semibold text-xs mb-0.5">
                           {dayBookings.length} afspraken
                         </div>
                         <div className="text-xs text-blue-600/70">
