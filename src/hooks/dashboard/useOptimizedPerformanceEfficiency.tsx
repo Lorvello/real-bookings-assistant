@@ -9,7 +9,8 @@ interface PerformanceEfficiencyData {
   calendar_utilization_rate: number;
   peak_hours: Array<{
     hour: number;
-    count: number;
+    bookings: number;
+    hour_label: string;
   }>;
   last_updated: string;
 }
@@ -67,9 +68,13 @@ export function useOptimizedPerformanceEfficiency(calendarId?: string) {
       });
 
       const peakHours = Array.from(hourCounts.entries())
-        .map(([hour, count]) => ({ hour: Number(hour), count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
+        .map(([hour, bookings]) => ({ 
+          hour: Number(hour), 
+          bookings,
+          hour_label: `${String(hour).padStart(2, '0')}:00`
+        }))
+        .sort((a, b) => b.bookings - a.bookings)
+        .slice(0, 24); // Show all hours for better visualization
 
       // Calculate response time (simplified - average between inbound and outbound messages)
       let totalResponseTime = 0;
