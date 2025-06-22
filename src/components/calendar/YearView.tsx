@@ -1,6 +1,7 @@
 
 import { format, startOfYear, endOfYear, eachMonthOfInterval, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { Calendar, TrendingUp, CheckCircle, Clock } from 'lucide-react';
 
 interface Booking {
   id: string;
@@ -48,87 +49,124 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
     const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
     const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
     const weekDays = ['M', 'D', 'W', 'D', 'V', 'Z', 'Z'];
+    const monthBookings = getBookingsCountForMonth(month);
 
     return (
-      <div className="bg-card border border-border rounded-lg p-3">
-        <div className="text-sm font-medium text-foreground mb-2 text-center">
-          {format(month, 'MMMM', { locale: nl })}
-        </div>
-        <div className="text-xs text-muted-foreground mb-1 text-center">
-          {getBookingsCountForMonth(month)} afspraken
+      <div className="group bg-card/80 backdrop-blur-sm border border-border/60 rounded-xl p-4 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200 hover:border-primary/30">
+        <div className="text-center mb-4">
+          <div className="text-lg font-bold text-foreground mb-1">
+            {format(month, 'MMMM', { locale: nl })}
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <Calendar className="h-3 w-3 text-primary" />
+            <span className="text-sm text-muted-foreground font-medium">
+              {monthBookings} afspraken
+            </span>
+          </div>
         </div>
         
         {/* Mini calendar grid */}
-        <div className="grid grid-cols-7 gap-px">
-          {weekDays.map(day => (
-            <div key={day} className="text-xs text-muted-foreground text-center p-1">
-              {day}
-            </div>
-          ))}
-          {days.map(day => {
-            const dayBookings = getBookingsForDay(day);
-            const isCurrentMonth = isSameMonth(day, month);
-            const isToday = isSameDay(day, new Date());
-            const hasBookings = dayBookings.length > 0;
-
-            return (
-              <div
-                key={day.toISOString()}
-                className={`text-xs text-center p-1 ${
-                  isCurrentMonth 
-                    ? hasBookings 
-                      ? 'bg-primary text-primary-foreground rounded' 
-                      : isToday 
-                        ? 'bg-accent text-primary rounded' 
-                        : 'text-foreground'
-                    : 'text-muted-foreground opacity-50'
-                }`}
-                title={hasBookings ? `${dayBookings.length} afspraak${dayBookings.length > 1 ? 'en' : ''}` : ''}
-              >
-                {format(day, 'd')}
+        <div className="space-y-1">
+          {/* Week day headers */}
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {weekDays.map(day => (
+              <div key={day} className="text-xs text-muted-foreground text-center font-medium p-1">
+                {day}
               </div>
-            );
-          })}
+            ))}
+          </div>
+          
+          {/* Calendar days */}
+          <div className="grid grid-cols-7 gap-1">
+            {days.map(day => {
+              const dayBookings = getBookingsForDay(day);
+              const isCurrentMonth = isSameMonth(day, month);
+              const isToday = isSameDay(day, new Date());
+              const hasBookings = dayBookings.length > 0;
+
+              return (
+                <div
+                  key={day.toISOString()}
+                  className={`text-xs text-center p-1.5 rounded-md transition-all duration-150 ${
+                    isCurrentMonth 
+                      ? hasBookings 
+                        ? 'bg-primary text-primary-foreground font-bold shadow-sm hover:shadow-md transform hover:scale-110' 
+                        : isToday 
+                          ? 'bg-accent text-primary font-bold border-2 border-primary/50' 
+                          : 'text-foreground hover:bg-accent/50'
+                      : 'text-muted-foreground/50'
+                  }`}
+                  title={hasBookings ? `${dayBookings.length} afspraak${dayBookings.length > 1 ? 'en' : ''}` : ''}
+                >
+                  {format(day, 'd')}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-card p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="h-full overflow-y-auto bg-gradient-to-br from-background via-card to-background/95 p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
         {months.map(month => (
           <MiniMonth key={month.toISOString()} month={month} />
         ))}
       </div>
       
       {/* Year summary */}
-      <div className="mt-6 p-4 bg-card border border-border rounded-lg">
-        <h3 className="text-lg font-semibold text-foreground mb-2">
-          Jaaroverzicht {format(currentDate, 'yyyy')}
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">{bookings.length}</div>
-            <div className="text-muted-foreground">Totaal afspraken</div>
+      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-8 shadow-lg">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-primary/20 rounded-xl">
+            <TrendingUp className="h-6 w-6 text-primary" />
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
+          <div>
+            <h3 className="text-2xl font-bold text-foreground">
+              Jaaroverzicht {format(currentDate, 'yyyy')}
+            </h3>
+            <p className="text-muted-foreground">Complete statistieken en prestaties</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/20">
+            <div className="flex items-center justify-center mb-2">
+              <Calendar className="h-5 w-5 text-primary mr-2" />
+            </div>
+            <div className="text-3xl font-bold text-primary mb-1">{bookings.length}</div>
+            <div className="text-sm text-muted-foreground font-medium">Totaal afspraken</div>
+          </div>
+          
+          <div className="text-center p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-xl border border-green-500/20">
+            <div className="flex items-center justify-center mb-2">
+              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+            </div>
+            <div className="text-3xl font-bold text-green-600 mb-1">
               {bookings.filter(b => b.status === 'confirmed').length}
             </div>
-            <div className="text-muted-foreground">Bevestigd</div>
+            <div className="text-sm text-muted-foreground font-medium">Bevestigd</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
+          
+          <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-xl border border-blue-500/20">
+            <div className="flex items-center justify-center mb-2">
+              <Clock className="h-5 w-5 text-blue-600 mr-2" />
+            </div>
+            <div className="text-3xl font-bold text-blue-600 mb-1">
               {bookings.filter(b => b.status === 'completed').length}
             </div>
-            <div className="text-muted-foreground">Voltooid</div>
+            <div className="text-sm text-muted-foreground font-medium">Voltooid</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
+          
+          <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-xl border border-purple-500/20">
+            <div className="flex items-center justify-center mb-2">
+              <TrendingUp className="h-5 w-5 text-purple-600 mr-2" />
+            </div>
+            <div className="text-3xl font-bold text-purple-600 mb-1">
               {Math.round((bookings.filter(b => b.status === 'completed').length / bookings.length) * 100) || 0}%
             </div>
-            <div className="text-muted-foreground">Success rate</div>
+            <div className="text-sm text-muted-foreground font-medium">Success rate</div>
           </div>
         </div>
       </div>

@@ -29,7 +29,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  const weekDays = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+  const weekDays = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'];
 
   const getBookingsForDay = (day: Date) => {
     return bookings.filter(booking => 
@@ -38,18 +38,19 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
   };
 
   return (
-    <div className="h-full flex flex-col p-4">
+    <div className="h-full flex flex-col p-6 bg-gradient-to-br from-background via-card to-background/95">
       {/* Week day headers */}
-      <div className="grid grid-cols-7 border-b border-border mb-2">
+      <div className="grid grid-cols-7 mb-4 bg-card/80 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-border/40">
         {weekDays.map(day => (
-          <div key={day} className="p-2 text-sm font-medium text-muted-foreground text-center">
-            {day}
+          <div key={day} className="text-center py-3">
+            <div className="text-sm font-semibold text-foreground">{day.slice(0, 2).toUpperCase()}</div>
+            <div className="text-xs text-muted-foreground mt-1">{day.slice(2)}</div>
           </div>
         ))}
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 flex-1 gap-1">
+      <div className="grid grid-cols-7 flex-1 gap-3">
         {days.map(day => {
           const dayBookings = getBookingsForDay(day);
           const isCurrentMonth = isSameMonth(day, currentDate);
@@ -58,38 +59,69 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
           return (
             <div
               key={day.toISOString()}
-              className={`border border-border rounded-lg p-2 min-h-[100px] ${
-                isCurrentMonth ? 'bg-card' : 'bg-muted opacity-50'
-              } ${isToday ? 'ring-2 ring-primary' : ''}`}
+              className={`group rounded-xl p-4 min-h-[140px] transition-all duration-200 hover:shadow-lg cursor-pointer ${
+                isCurrentMonth 
+                  ? isToday
+                    ? 'bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 border-2 border-primary/40 shadow-lg shadow-primary/10'
+                    : 'bg-card/90 backdrop-blur-sm border border-border/60 hover:border-primary/30 hover:bg-card/95'
+                  : 'bg-muted/30 border border-border/30 opacity-60'
+              }`}
             >
-              <div className={`text-sm font-medium mb-2 ${
-                isToday ? 'text-primary' : 'text-foreground'
+              <div className={`flex items-center justify-between mb-3 ${
+                isToday ? 'text-primary font-bold' : 'text-foreground'
               }`}>
-                {format(day, 'd')}
+                <div className={`text-lg font-bold ${
+                  isToday 
+                    ? 'bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-lg' 
+                    : ''
+                }`}>
+                  {format(day, 'd')}
+                </div>
+                {dayBookings.length > 0 && (
+                  <div className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full font-medium">
+                    {dayBookings.length}
+                  </div>
+                )}
               </div>
               
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {dayBookings.slice(0, 3).map(booking => (
                   <div
                     key={booking.id}
-                    className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 transition-opacity"
+                    className="group/booking p-2.5 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
                     style={{
                       backgroundColor: booking.service_types?.color || '#10B981',
-                      color: 'white'
+                      backgroundImage: `linear-gradient(135deg, ${booking.service_types?.color || '#10B981'}, ${booking.service_types?.color || '#10B981'}dd)`
                     }}
                     title={`${format(new Date(booking.start_time), 'HH:mm')} - ${booking.customer_name} (${booking.service_types?.name || booking.service_name || 'Afspraak'})`}
                   >
-                    <div className="font-medium">
-                      {format(new Date(booking.start_time), 'HH:mm')}
+                    <div className="flex items-center justify-between">
+                      <div className="text-white text-xs font-semibold">
+                        {format(new Date(booking.start_time), 'HH:mm')}
+                      </div>
+                      <div className={`w-2 h-2 rounded-full ${
+                        booking.status === 'confirmed' ? 'bg-white/90' :
+                        booking.status === 'pending' ? 'bg-yellow-300/90' :
+                        'bg-red-300/90'
+                      }`} />
                     </div>
-                    <div className="truncate">
+                    <div className="text-white/95 text-xs font-medium truncate mt-1">
                       {booking.customer_name}
+                    </div>
+                    <div className="text-white/80 text-xs truncate">
+                      {booking.service_types?.name || booking.service_name || 'Afspraak'}
                     </div>
                   </div>
                 ))}
                 {dayBookings.length > 3 && (
-                  <div className="text-xs text-muted-foreground text-center py-1">
-                    +{dayBookings.length - 3} meer
+                  <div className="text-xs text-muted-foreground text-center py-2 bg-muted/50 rounded-lg border border-dashed border-border/60 group-hover:bg-muted/70 transition-colors">
+                    +{dayBookings.length - 3} meer afspraken
+                  </div>
+                )}
+                {dayBookings.length === 0 && isCurrentMonth && (
+                  <div className="text-center py-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="text-xs text-muted-foreground mb-1">Geen afspraken</div>
+                    <div className="w-6 h-px bg-border mx-auto"></div>
                   </div>
                 )}
               </div>
