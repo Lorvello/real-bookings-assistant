@@ -46,10 +46,12 @@ export function TimeBlockList({
         })}
 
         {blocks.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            <Clock className="h-12 w-12 mx-auto mb-3 opacity-20" />
-            <p>Geen tijdblokken gedefinieerd</p>
-            <p className="text-sm">Voeg een tijdblok toe om te beginnen</p>
+          <div className="text-center py-12 bg-card/50 rounded-3xl border border-border/40">
+            <div className="p-4 bg-primary/10 rounded-2xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <Clock className="h-8 w-8 text-primary opacity-50" />
+            </div>
+            <p className="text-foreground font-medium mb-2">Geen tijdblokken gedefinieerd</p>
+            <p className="text-sm text-muted-foreground">Voeg een tijdblok toe om te beginnen</p>
           </div>
         )}
       </div>
@@ -58,7 +60,7 @@ export function TimeBlockList({
       <Button
         variant="outline"
         onClick={onAddBlock}
-        className="w-full border-border border-dashed"
+        className="w-full border-border/60 border-dashed rounded-2xl hover:bg-accent/50 transition-all duration-200"
       >
         <Plus className="h-4 w-4 mr-2" />
         Tijdblok Toevoegen

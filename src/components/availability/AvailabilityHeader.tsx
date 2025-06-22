@@ -23,7 +23,7 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
   const navigate = useNavigate();
 
   return (
-    <div className="border-b border-border bg-card">
+    <div className="border-b border-border bg-card/90 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -31,7 +31,7 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => navigate('/dashboard')}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground rounded-2xl"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -40,7 +40,7 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 bg-background/50 px-4 py-2 rounded-2xl border border-border/60">
               <span className="text-sm text-muted-foreground">Instellen als standaard</span>
               <Switch
                 checked={setToDefault}
@@ -51,7 +51,7 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
             <Button 
               onClick={onSave}
               disabled={!hasUnsavedChanges || loading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg shadow-primary/20"
             >
               {loading ? 'Opslaan...' : 'Opslaan'}
             </Button>

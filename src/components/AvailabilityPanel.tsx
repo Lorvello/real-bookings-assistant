@@ -30,30 +30,36 @@ export function AvailabilityPanel({ calendarId }: AvailabilityPanelProps) {
 
       {/* Sidebar Panel */}
       <div
-        className={`fixed top-0 right-0 h-full bg-card border-l border-border shadow-2xl transition-transform duration-300 ease-in-out z-10 ${
+        className={`fixed top-0 right-0 h-full bg-card/95 backdrop-blur-sm border-l border-border/60 shadow-2xl transition-transform duration-300 ease-in-out z-10 ${
           isExpanded ? 'transform translate-x-0' : 'transform translate-x-full'
         }`}
         style={{ width: '320px' }}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full rounded-3xl m-2 bg-card/90 border border-border/40 overflow-hidden">
           {/* Header */}
-          <AvailabilityPanelHeader />
+          <div className="p-4 border-b border-border/40 bg-background/50">
+            <AvailabilityPanelHeader />
+          </div>
 
           {/* Tabs */}
-          <AvailabilityPanelTabs 
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
+          <div className="p-4 border-b border-border/40 bg-background/30">
+            <AvailabilityPanelTabs 
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          </div>
 
           {/* Content */}
           <div className="flex-1 overflow-hidden">
             {activeTab === 'schedule' && (
-              <WeeklyScheduleTab 
-                calendarId={calendarId}
-                scheduleId={defaultSchedule?.id}
-                rules={rules}
-                loading={rulesLoading}
-              />
+              <div className="h-full p-4">
+                <WeeklyScheduleTab 
+                  calendarId={calendarId}
+                  scheduleId={defaultSchedule?.id}
+                  rules={rules}
+                  loading={rulesLoading}
+                />
+              </div>
             )}
             
             {activeTab === 'overrides' && (
@@ -70,7 +76,7 @@ export function AvailabilityPanel({ calendarId }: AvailabilityPanelProps) {
       {/* Backdrop */}
       {isExpanded && (
         <div
-          className="fixed inset-0 bg-black/20 z-0"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-0"
           onClick={() => setIsExpanded(false)}
         />
       )}

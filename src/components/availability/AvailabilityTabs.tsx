@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Clock, Calendar, Settings, Zap } from 'lucide-react';
 
 interface AvailabilityTabsProps {
   activeTab: string;
@@ -10,28 +12,34 @@ export const AvailabilityTabs: React.FC<AvailabilityTabsProps> = ({
   activeTab,
   onTabChange
 }) => {
-  const tabs = [
-    { id: 'schedule', label: 'Schema' },
-    { id: 'limits', label: 'Limieten' },
-    { id: 'advanced', label: 'Geavanceerd' }
-  ];
-
   return (
-    <div className="max-w-7xl mx-auto px-6 py-4">
-      <div className="flex space-x-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === tab.id
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+    <div className="border-b border-border bg-card/50 backdrop-blur-sm">
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <Tabs value={activeTab} onValueChange={onTabChange}>
+          <TabsList className="bg-background/80 backdrop-blur-sm border border-border/60 rounded-3xl p-1">
+            <TabsTrigger 
+              value="schedule"
+              className="flex items-center space-x-2 px-6 py-3 rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+            >
+              <Clock className="h-4 w-4" />
+              <span>Schema</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="limits"
+              className="flex items-center space-x-2 px-6 py-3 rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+            >
+              <Settings className="h-4 w-4" />
+              <span>Limieten</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="advanced"
+              className="flex items-center space-x-2 px-6 py-3 rounded-2xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200"
+            >
+              <Zap className="h-4 w-4" />
+              <span>Geavanceerd</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
     </div>
   );
