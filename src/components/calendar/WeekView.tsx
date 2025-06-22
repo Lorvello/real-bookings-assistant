@@ -1,6 +1,8 @@
 
+import { useState } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { BookingDetailModal } from './BookingDetailModal';
 
 interface Booking {
   id: string;
@@ -8,11 +10,17 @@ interface Booking {
   end_time: string;
   customer_name: string;
   customer_phone?: string;
+  customer_email?: string;
   status: string;
+  service_name?: string;
+  notes?: string;
+  internal_notes?: string;
+  total_price?: number;
   service_types?: {
     name: string;
     color: string;
     duration: number;
+    description?: string;
   } | null;
 }
 
@@ -72,7 +80,7 @@ const calculateTopOffset = (startTime: Date, timeSlot: string) => {
 };
 
 // Booking Block Component
-function BookingBlock({ booking, timeSlot }: { booking: Booking; timeSlot: string }) {
+function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking; timeSlot: string; onBookingClick: (booking: Booking) => void }) {
   const startTime = new Date(booking.start_time);
   const endTime = new Date(booking.end_time);
   const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60); // minutes
@@ -89,6 +97,7 @@ function BookingBlock({ booking, timeSlot }: { booking: Booking; timeSlot: strin
         boxShadow: `0 4px 20px ${booking.service_types?.color || '#10B981'}40`
       }}
       title={`${booking.customer_name} - ${booking.service_types?.name || 'Afspraak'} (${booking.customer_phone || 'Geen telefoon'})`}
+      onClick={() => onBookingClick(booking)}
     >
       <div className="text-white">
         <div className="flex items-center justify-between mb-2">
@@ -119,8 +128,21 @@ function BookingBlock({ booking, timeSlot }: { booking: Booking; timeSlot: strin
 }
 
 export function WeekView({ bookings, currentDate }: WeekViewProps) {
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
+  
   const weekDays = getWeekDays(currentDate);
   const timeSlots = generateTimeSlots(7, 22, 30); // 7:00 - 22:00, 30 min slots
+
+  const handleBookingClick = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setBookingDetailOpen(true);
+  };
+
+  const closeBookingDetail = () => {
+    setBookingDetailOpen(false);
+    setSelectedBooking(null);
+  };
 
   return (
     <div className="h-full overflow-auto bg-gradient-to-br from-background via-card to-background/95">
@@ -182,6 +204,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
                       key={booking.id}
                       booking={booking}
                       timeSlot={timeSlot}
+                      onBookingClick={handleBookingClick}
                     />
                   ))}
                 </div>
@@ -190,6 +213,12 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
           </div>
         ))}
       </div>
+
+      <BookingDetailModal
+        open={bookingDetailOpen}
+        onClose={closeBookingDetail}
+        booking={selectedBooking}
+      />
     </div>
   );
 }

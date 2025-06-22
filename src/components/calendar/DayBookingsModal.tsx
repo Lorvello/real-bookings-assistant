@@ -1,7 +1,7 @@
 
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { X, Clock, User, Phone, Mail } from 'lucide-react';
+import { Clock, User, Phone, Mail } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Booking {
@@ -13,10 +13,14 @@ interface Booking {
   customer_email?: string;
   status: string;
   service_name?: string;
+  notes?: string;
+  internal_notes?: string;
+  total_price?: number;
   service_types?: {
     name: string;
     color: string;
     duration: number;
+    description?: string;
   } | null;
 }
 
@@ -25,14 +29,22 @@ interface DayBookingsModalProps {
   onClose: () => void;
   date: Date | null;
   bookings: Booking[];
+  onBookingClick?: (booking: Booking) => void;
 }
 
-export function DayBookingsModal({ open, onClose, date, bookings }: DayBookingsModalProps) {
+export function DayBookingsModal({ open, onClose, date, bookings, onBookingClick }: DayBookingsModalProps) {
   if (!date) return null;
 
   const sortedBookings = [...bookings].sort(
     (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
   );
+
+  const handleBookingClick = (booking: Booking) => {
+    if (onBookingClick) {
+      onBookingClick(booking);
+      onClose(); // Close this modal when opening booking detail
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -52,7 +64,8 @@ export function DayBookingsModal({ open, onClose, date, bookings }: DayBookingsM
             sortedBookings.map((booking) => (
               <div
                 key={booking.id}
-                className="p-4 rounded-lg border border-border/60 bg-card/50 hover:bg-card/80 transition-colors"
+                className="p-4 rounded-lg border border-border/60 bg-card/50 hover:bg-card/80 transition-colors cursor-pointer hover:shadow-md"
+                onClick={() => handleBookingClick(booking)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -106,6 +119,10 @@ export function DayBookingsModal({ open, onClose, date, bookings }: DayBookingsM
                       )}
                     </div>
                   </div>
+                </div>
+                
+                <div className="mt-3 text-xs text-muted-foreground text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  Klik voor meer details
                 </div>
               </div>
             ))

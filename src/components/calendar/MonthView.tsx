@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { DayBookingsModal } from './DayBookingsModal';
+import { BookingDetailModal } from './BookingDetailModal';
 
 interface Booking {
   id: string;
@@ -13,10 +14,14 @@ interface Booking {
   customer_email?: string;
   status: string;
   service_name?: string;
+  notes?: string;
+  internal_notes?: string;
+  total_price?: number;
   service_types?: {
     name: string;
     color: string;
     duration: number;
+    description?: string;
   } | null;
 }
 
@@ -28,6 +33,8 @@ interface MonthViewProps {
 export function MonthView({ bookings, currentDate }: MonthViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -50,9 +57,19 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
     }
   };
 
+  const handleBookingClick = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setBookingDetailOpen(true);
+  };
+
   const closeModal = () => {
     setModalOpen(false);
     setSelectedDate(null);
+  };
+
+  const closeBookingDetail = () => {
+    setBookingDetailOpen(false);
+    setSelectedBooking(null);
   };
 
   return (
@@ -124,6 +141,10 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                         backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#10B981'}, ${dayBookings[0].service_types?.color || '#10B981'}dd)`
                       }}
                       title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name} (${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Afspraak'})`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBookingClick(dayBookings[0]);
+                      }}
                     >
                       <div className="flex items-center justify-between">
                         <div className="text-white text-xs font-semibold">
@@ -166,6 +187,13 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
         onClose={closeModal}
         date={selectedDate}
         bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
+        onBookingClick={handleBookingClick}
+      />
+
+      <BookingDetailModal
+        open={bookingDetailOpen}
+        onClose={closeBookingDetail}
+        booking={selectedBooking}
       />
     </div>
   );
