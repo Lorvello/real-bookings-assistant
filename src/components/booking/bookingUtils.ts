@@ -12,21 +12,13 @@ export const calculateDuration = (startTime: string, endTime: string): number =>
 };
 
 export const calculateBookingTimes = (data: BookingFormData) => {
-  let startTime: string;
-  let endTime: string;
-
-  if (data.isAllDay) {
-    const dateStr = format(data.date, 'yyyy-MM-dd');
-    startTime = `${dateStr}T00:00:00+01:00`;
-    endTime = `${dateStr}T23:59:59+01:00`;
-  } else {
-    if (!data.startTime || !data.endTime) {
-      throw new Error('Start time and end time are required for non-all-day events');
-    }
-    const dateStr = format(data.date, 'yyyy-MM-dd');
-    startTime = `${dateStr}T${data.startTime}:00+01:00`;
-    endTime = `${dateStr}T${data.endTime}:00+01:00`;
+  if (!data.startTime || !data.endTime) {
+    throw new Error('Start time and end time are required');
   }
+  
+  const dateStr = format(data.date, 'yyyy-MM-dd');
+  const startTime = `${dateStr}T${data.startTime}:00+01:00`;
+  const endTime = `${dateStr}T${data.endTime}:00+01:00`;
 
   return { startTime, endTime };
 };
