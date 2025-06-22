@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useOptimizedLiveOperations } from '@/hooks/dashboard/useOptimizedLiveOperations';
-import { useRealtimeWebSocket } from '@/hooks/dashboard/useRealtimeWebSocket';
+import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { Calendar, Clock, MessageCircle, Users, AlertCircle, CheckCircle, Activity, Zap } from 'lucide-react';
 
 interface LiveOperationsTabProps {
@@ -11,9 +10,9 @@ interface LiveOperationsTabProps {
 }
 
 export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
-  // Use optimized hook and real-time WebSocket
+  // Use optimized hook and real-time subscription
   const { data: liveOps, isLoading } = useOptimizedLiveOperations(calendarId);
-  useRealtimeWebSocket(calendarId);
+  useRealtimeSubscription(calendarId);
 
   if (isLoading) {
     return (
