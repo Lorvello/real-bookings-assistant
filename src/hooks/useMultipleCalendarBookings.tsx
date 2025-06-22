@@ -106,8 +106,18 @@ export const useMultipleCalendarBookings = (calendarIds: string[]) => {
         },
         (payload) => {
           console.log('Real-time booking update:', payload);
+          
+          // Add proper type checking for payload
+          const newCalendarId = payload.new && typeof payload.new === 'object' && 'calendar_id' in payload.new 
+            ? (payload.new as any).calendar_id 
+            : null;
+          const oldCalendarId = payload.old && typeof payload.old === 'object' && 'calendar_id' in payload.old 
+            ? (payload.old as any).calendar_id 
+            : null;
+          
           // Only refetch if the booking belongs to one of our calendars
-          if (calendarIds.includes(payload.new?.calendar_id || payload.old?.calendar_id)) {
+          if ((newCalendarId && calendarIds.includes(newCalendarId)) || 
+              (oldCalendarId && calendarIds.includes(oldCalendarId))) {
             fetchBookings();
           }
         }
