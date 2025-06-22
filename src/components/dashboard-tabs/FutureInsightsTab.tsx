@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOptimizedFutureInsights } from '@/hooks/dashboard/useOptimizedFutureInsights';
-import { useRealtimeWebSocket } from '@/hooks/dashboard/useRealtimeWebSocket';
+import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { TrendingUp, Users, Calendar, Clock } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
@@ -12,8 +12,8 @@ interface FutureInsightsTabProps {
 }
 
 export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
-  const { data: insights, isLoading } = useOptimizedFutureInsights(calendarId);
-  useRealtimeWebSocket(calendarId);
+  const { data: insights, isLoading, error } = useOptimizedFutureInsights(calendarId);
+  useRealtimeSubscription(calendarId);
 
   if (isLoading) {
     return (
@@ -26,6 +26,15 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
           ))}
         </div>
         <div className="h-96 bg-muted rounded-lg animate-pulse"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-red-400 mb-2">Error loading future insights data</p>
+        <p className="text-sm text-slate-400">Please try refreshing the page</p>
       </div>
     );
   }

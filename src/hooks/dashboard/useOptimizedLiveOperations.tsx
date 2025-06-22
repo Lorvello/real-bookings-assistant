@@ -66,11 +66,11 @@ export function useOptimizedLiveOperations(calendarId?: string) {
       };
     },
     enabled: !!calendarId,
-    staleTime: 30000, // Data is fresh for 30 seconds
+    staleTime: 60000, // Data is fresh for 1 minute
     gcTime: 300000, // Keep in cache for 5 minutes
-    refetchInterval: 60000, // Background refetch every minute
-    refetchIntervalInBackground: true, // Keep updating even when tab not active
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    refetchInterval: 120000, // Background refetch every 2 minutes (reduced from 1 minute)
+    refetchIntervalInBackground: true,
+    retry: 2, // Reduced retry attempts
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15000), // Reduced max delay
   });
 }

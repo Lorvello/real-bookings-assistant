@@ -64,7 +64,7 @@ export function useOptimizedBusinessIntelligence(calendarId?: string) {
         new Date(b.start_time) >= startOfThisMonth
       ) || [];
 
-      const lastMonthBookings = bookingsData?.filter(b => 
+      const lastMonthBook­ings = bookingsData?.filter(b => 
         new Date(b.start_time) >= startOfLastMonth && 
         new Date(b.start_time) <= endOfLastMonth
       ) || [];
@@ -111,11 +111,11 @@ export function useOptimizedBusinessIntelligence(calendarId?: string) {
       };
     },
     enabled: !!calendarId,
-    staleTime: 120000, // 2 minutes
-    gcTime: 600000, // 10 minutes
-    refetchInterval: 300000, // 5 minutes
+    staleTime: 300000, // 5 minutes (increased from 2 minutes)
+    gcTime: 900000, // 15 minutes (increased from 10 minutes)
+    refetchInterval: 600000, // 10 minutes (increased from 5 minutes)
     refetchIntervalInBackground: true,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15000),
   });
 }

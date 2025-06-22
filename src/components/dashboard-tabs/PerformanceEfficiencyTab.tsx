@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
-import { useRealtimeWebSocket } from '@/hooks/dashboard/useRealtimeWebSocket';
+import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { Clock, AlertTriangle, Calendar, TrendingUp, Activity } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
@@ -12,8 +12,8 @@ interface PerformanceEfficiencyTabProps {
 }
 
 export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTabProps) {
-  const { data: performance, isLoading } = useOptimizedPerformanceEfficiency(calendarId);
-  useRealtimeWebSocket(calendarId);
+  const { data: performance, isLoading, error } = useOptimizedPerformanceEfficiency(calendarId);
+  useRealtimeSubscription(calendarId);
 
   if (isLoading) {
     return (
@@ -27,6 +27,15 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
           ))}
         </div>
         <div className="h-96 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-red-400 mb-2">Error loading performance data</p>
+        <p className="text-sm text-slate-400">Please try refreshing the page</p>
       </div>
     );
   }

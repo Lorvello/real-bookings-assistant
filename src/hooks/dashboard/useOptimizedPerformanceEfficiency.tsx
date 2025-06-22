@@ -125,11 +125,11 @@ export function useOptimizedPerformanceEfficiency(calendarId?: string) {
       };
     },
     enabled: !!calendarId,
-    staleTime: 300000, // 5 minutes
-    gcTime: 600000, // 10 minutes
-    refetchInterval: 600000, // 10 minutes
+    staleTime: 600000, // 10 minutes (increased from 5 minutes)
+    gcTime: 1200000, // 20 minutes (increased from 10 minutes)
+    refetchInterval: 900000, // 15 minutes (increased from 10 minutes)
     refetchIntervalInBackground: true,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15000),
   });
 }

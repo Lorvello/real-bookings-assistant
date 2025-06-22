@@ -116,11 +116,11 @@ export function useOptimizedFutureInsights(calendarId?: string) {
       };
     },
     enabled: !!calendarId,
-    staleTime: 600000, // 10 minutes
-    gcTime: 1200000, // 20 minutes
-    refetchInterval: 900000, // 15 minutes
+    staleTime: 900000, // 15 minutes (increased from 10 minutes)
+    gcTime: 1800000, // 30 minutes (increased from 20 minutes)
+    refetchInterval: 1200000, // 20 minutes (increased from 15 minutes)
     refetchIntervalInBackground: true,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15000),
   });
 }

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
-import { useRealtimeWebSocket } from '@/hooks/dashboard/useRealtimeWebSocket';
+import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { TrendingUp, Euro, Users, MessageSquare } from 'lucide-react';
 import { BusinessIntelligenceLoading } from './business-intelligence/BusinessIntelligenceLoading';
 import { MetricCard } from './business-intelligence/MetricCard';
@@ -12,11 +12,20 @@ interface BusinessIntelligenceTabProps {
 }
 
 export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabProps) {
-  const { data: businessIntel, isLoading } = useOptimizedBusinessIntelligence(calendarId);
-  useRealtimeWebSocket(calendarId);
+  const { data: businessIntel, isLoading, error } = useOptimizedBusinessIntelligence(calendarId);
+  useRealtimeSubscription(calendarId);
 
   if (isLoading) {
     return <BusinessIntelligenceLoading />;
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-red-400 mb-2">Error loading business intelligence data</p>
+        <p className="text-sm text-slate-400">Please try refreshing the page</p>
+      </div>
+    );
   }
 
   const revenueChange = businessIntel && businessIntel.prev_month_revenue > 0 
