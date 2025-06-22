@@ -28,7 +28,7 @@ export function ServicePerformanceChart({ data }: ServicePerformanceChartProps) 
       <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="p-8 border-b border-slate-700/30">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl backdrop-blur-sm border border-blue-500/20">
                 <TrendingUp className="h-6 w-6 text-blue-400" />
@@ -40,14 +40,15 @@ export function ServicePerformanceChart({ data }: ServicePerformanceChartProps) 
             </div>
             
             {hasData && (
-              <div className="flex items-center gap-6">
-                <div className="text-right">
-                  <p className="text-sm text-slate-400">Totale Services</p>
-                  <p className="text-xl font-bold text-slate-200">{data.length}</p>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-sm border border-slate-600/30 rounded-xl p-4 min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Totale Services</p>
+                  <p className="text-2xl font-bold text-slate-100 leading-tight">{data.length}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-slate-400">Totale Omzet</p>
-                  <p className="text-xl font-bold text-emerald-400">
+                
+                <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/20 backdrop-blur-sm border border-emerald-500/30 rounded-xl p-4 min-h-[80px] flex flex-col justify-center">
+                  <p className="text-xs font-medium text-emerald-300 mb-1 uppercase tracking-wider">Totale Omzet</p>
+                  <p className="text-2xl font-bold text-emerald-400 leading-tight">
                     €{data.reduce((sum, item) => sum + item.revenue, 0).toFixed(2)}
                   </p>
                 </div>
