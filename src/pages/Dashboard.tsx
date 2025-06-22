@@ -7,7 +7,7 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { DashboardBackground } from '@/components/dashboard/DashboardBackground';
 import { DashboardLoadingScreen } from '@/components/dashboard/DashboardLoadingScreen';
 import { DashboardEmptyState } from '@/components/dashboard/DashboardEmptyState';
-import { DashboardContent } from '@/components/dashboard/DashboardContent';
+import { DashboardTabs } from '@/components/DashboardTabs';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -46,17 +46,36 @@ const Dashboard = () => {
   }
 
   const activeCalendarIds = getActiveCalendarIds();
-  const displayCalendarName = viewingAllCalendars 
-    ? 'Alle kalenders' 
-    : selectedCalendar?.name || 'Kalender';
+  const primaryCalendarId = activeCalendarIds.length > 0 ? activeCalendarIds[0] : undefined;
 
   return (
     <DashboardLayout>
       <DashboardBackground>
-        <DashboardContent 
-          calendarIds={activeCalendarIds}
-          calendarName={displayCalendarName} 
-        />
+        <div className="space-y-8 p-8">
+          {/* Dashboard Header */}
+          <div className="text-center">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-green-100 to-green-200 bg-clip-text text-transparent mb-4">
+              Dashboard
+              {viewingAllCalendars 
+                ? ' - Alle kalenders'
+                : selectedCalendar 
+                  ? ` - ${selectedCalendar.name}`
+                  : ''
+              }
+            </h1>
+            <p className="text-gray-400 text-lg">
+              {viewingAllCalendars
+                ? `Overzicht van ${activeCalendarIds.length} kalenders`
+                : 'Overzicht van je boekingen en prestaties'
+              }
+            </p>
+          </div>
+
+          {/* Dashboard Tabs */}
+          {primaryCalendarId && (
+            <DashboardTabs calendarId={primaryCalendarId} />
+          )}
+        </div>
       </DashboardBackground>
     </DashboardLayout>
   );
