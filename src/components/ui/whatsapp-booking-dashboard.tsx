@@ -53,20 +53,20 @@ export default function WhatsAppBookingDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-4 bg-transparent border-0 p-0 h-auto gap-2">
+          <TabsTrigger value="overview" className="flex items-center gap-2 bg-muted/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <BarChart3 className="h-4 w-4" />
             Overzicht
           </TabsTrigger>
-          <TabsTrigger value="calendar" className="flex items-center gap-2">
+          <TabsTrigger value="calendar" className="flex items-center gap-2 bg-muted/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Calendar className="h-4 w-4" />
             Kalender
           </TabsTrigger>
-          <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+          <TabsTrigger value="whatsapp" className="flex items-center gap-2 bg-muted/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <MessageCircle className="h-4 w-4" />
             WhatsApp
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
+          <TabsTrigger value="analytics" className="flex items-center gap-2 bg-muted/50 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <BarChart3 className="h-4 w-4" />
             Analytics
           </TabsTrigger>
