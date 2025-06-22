@@ -20,7 +20,7 @@ const days = [
 ];
 
 export const AvailabilityStep: React.FC<AvailabilityStepProps> = ({ data, updateData }) => {
-  const updateAvailability = (day: string, field: string, value: string | null) => {
+  const updateAvailability = (day: string, field: string, value: string | boolean | null) => {
     updateData({
       availability: {
         ...data.availability,
