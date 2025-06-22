@@ -7,16 +7,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useCreateCalendar } from '@/hooks/useCreateCalendar';
 
@@ -68,19 +63,8 @@ export function CreateCalendarDialog({
     }
   };
 
-  const TriggerComponent = trigger === 'dropdown' ? (
-    <DialogTrigger asChild>
-      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-        <Plus className="w-4 h-4 mr-2" />
-        Nieuwe kalender
-      </DropdownMenuItem>
-    </DialogTrigger>
-  ) : null;
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {TriggerComponent}
-      
+    <Dialog open={open} onOpenChange={onOpenChange}>      
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nieuwe kalender aanmaken</DialogTitle>

@@ -3,14 +3,17 @@ import React, { useState } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronDown, Calendar } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 import { UserContextDisplay } from './calendar-switcher/UserContextDisplay';
-import { CalendarDropdownTrigger } from './calendar-switcher/CalendarDropdownTrigger';
-import { CalendarDropdownContent } from './calendar-switcher/CalendarDropdownContent';
 import { CreateCalendarDialog } from './calendar-switcher/CreateCalendarDialog';
 
 export function CalendarSwitcher() {
@@ -35,16 +38,69 @@ export function CalendarSwitcher() {
           {/* Kalender Switcher Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <CalendarDropdownTrigger selectedCalendar={selectedCalendar} />
+              <Button variant="outline" className="justify-between min-w-[250px]">
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: selectedCalendar?.color || '#3B82F6' }}
+                  />
+                  <span className="truncate">
+                    {selectedCalendar ? selectedCalendar.name : 'Selecteer kalender'}
+                  </span>
+                </div>
+                <ChevronDown className="w-4 h-4 opacity-50" />
+              </Button>
             </DropdownMenuTrigger>
             
-            <CalendarDropdownContent
-              calendars={calendars}
-              selectedCalendar={selectedCalendar}
-              onSelectCalendar={selectCalendar}
-              showCreateDialog={showCreateDialog}
-              onShowCreateDialogChange={setShowCreateDialog}
-            />
+            <DropdownMenuContent className="w-80">
+              <DropdownMenuLabel className="flex items-center space-x-2">
+                <Calendar className="h-4 w-4" />
+                <span>Jouw Kalenders</span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              {calendars.map((calendar) => (
+                <DropdownMenuItem
+                  key={calendar.id}
+                  onClick={() => selectCalendar(calendar)}
+                  className="flex items-center space-x-3 p-3"
+                >
+                  <div 
+                    className="w-3 h-3 rounded-full flex-shrink-0" 
+                    style={{ backgroundColor: calendar.color || '#3B82F6' }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium truncate">{calendar.name}</span>
+                      {calendar.is_default && (
+                        <Badge variant="outline" className="text-xs">Standaard</Badge>
+                      )}
+                    </div>
+                    {calendar.description && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {calendar.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Eigenaar: Jij
+                    </p>
+                  </div>
+                  {selectedCalendar?.id === calendar.id && (
+                    <div className="w-2 h-2 bg-primary rounded-full" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem onSelect={(e) => {
+                e.preventDefault();
+                setShowCreateDialog(true);
+              }}>
+                <Plus className="w-4 h-4 mr-2" />
+                Nieuwe kalender
+              </DropdownMenuItem>
+            </DropdownMenuContent>
           </DropdownMenu>
 
           {/* Prominente "Nieuwe Kalender" knop */}
