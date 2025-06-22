@@ -89,7 +89,6 @@ export const AvailabilityManager = () => {
 
       <AvailabilityContent
         activeTab={activeTab}
-        calendarId={selectedCalendar.id}
         onUnsavedChanges={handleUnsavedChanges}
       />
     </div>

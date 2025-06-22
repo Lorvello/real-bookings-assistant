@@ -22,10 +22,10 @@ const Calendar = () => {
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full min-h-screen bg-gradient-to-br from-background via-card to-background/95">
-          <div className="text-center bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
-            <div className="w-8 h-8 bg-primary rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-foreground">Kalender laden...</div>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="text-lg text-gray-300">Kalender laden...</div>
           </div>
         </div>
       </DashboardLayout>
@@ -39,9 +39,9 @@ const Calendar = () => {
   if (!defaultCalendar) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full min-h-screen bg-gradient-to-br from-background via-card to-background/95">
-          <div className="text-center bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
-            <div className="text-lg text-foreground">Geen kalender gevonden</div>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="text-lg text-gray-300">Geen kalender gevonden</div>
           </div>
         </div>
       </DashboardLayout>
@@ -50,10 +50,8 @@ const Calendar = () => {
 
   return (
     <DashboardLayout>
-      <div className="h-full bg-gradient-to-br from-background via-card to-background/95">
-        <div className="h-full bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl m-6 shadow-lg shadow-black/5 overflow-hidden">
-          <CalendarView calendarId={defaultCalendar.id} />
-        </div>
+      <div className="h-full p-6">
+        <CalendarView calendarId={defaultCalendar.id} />
       </div>
     </DashboardLayout>
   );

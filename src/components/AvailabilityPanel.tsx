@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
-import { AvailabilityPanelHeader } from './availability/AvailabilityPanelHeader';
-import { AvailabilityPanelToggle } from './availability/AvailabilityPanelToggle';
-import { AvailabilityPanelTabs } from './availability/AvailabilityPanelTabs';
+import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
+import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
+import { OverrideManager } from './availability/OverrideManager';
 import { WeeklyScheduleTab } from './availability/WeeklyScheduleTab';
-import { DateOverrides } from './availability/DateOverrides';
+import { AvailabilityPanelHeader } from './availability/AvailabilityPanelHeader';
+import { AvailabilityPanelTabs } from './availability/AvailabilityPanelTabs';
+import { AvailabilityPanelToggle } from './availability/AvailabilityPanelToggle';
 
 interface AvailabilityPanelProps {
   calendarId: string;
@@ -13,46 +15,68 @@ interface AvailabilityPanelProps {
 export function AvailabilityPanel({ calendarId }: AvailabilityPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'schedule' | 'overrides'>('schedule');
+  
+  const { schedules, loading: schedulesLoading } = useAvailabilitySchedules(calendarId);
+  const defaultSchedule = schedules.find(s => s.is_default);
+  const { rules, loading: rulesLoading } = useAvailabilityRules(defaultSchedule?.id);
 
   return (
     <>
-      {/* Toggle Button */}
+      {/* Collapse/Expand Button */}
       <AvailabilityPanelToggle 
-        isExpanded={isExpanded} 
-        onToggle={() => setIsExpanded(!isExpanded)} 
+        isExpanded={isExpanded}
+        onToggle={() => setIsExpanded(!isExpanded)}
       />
-      
-      {/* Panel */}
-      <div className={`fixed top-0 right-0 h-full w-80 bg-card/95 backdrop-blur-sm border-l border-border/60 shadow-2xl transform transition-transform duration-300 ease-in-out z-10 ${
-        isExpanded ? 'translate-x-0' : 'translate-x-full'
-      }`}>
-        <div className="h-full flex flex-col overflow-hidden rounded-l-3xl">
+
+      {/* Sidebar Panel */}
+      <div
+        className={`fixed top-0 right-0 h-full bg-card/95 backdrop-blur-sm border-l border-border/60 shadow-2xl transition-transform duration-300 ease-in-out z-10 ${
+          isExpanded ? 'transform translate-x-0' : 'transform translate-x-full'
+        }`}
+        style={{ width: '320px' }}
+      >
+        <div className="flex flex-col h-full rounded-3xl m-2 bg-card/90 border border-border/40 overflow-hidden">
           {/* Header */}
-          <AvailabilityPanelHeader />
-          
+          <div className="p-4 border-b border-border/40 bg-background/50">
+            <AvailabilityPanelHeader />
+          </div>
+
           {/* Tabs */}
-          <AvailabilityPanelTabs 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
-          />
-          
+          <div className="p-4 border-b border-border/40 bg-background/30">
+            <AvailabilityPanelTabs 
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          </div>
+
           {/* Content */}
-          <div className="flex-1 overflow-y-auto bg-gradient-to-b from-background/20 to-card/40">
+          <div className="flex-1 overflow-hidden">
             {activeTab === 'schedule' && (
-              <WeeklyScheduleTab calendarId={calendarId} />
+              <div className="h-full p-4">
+                <WeeklyScheduleTab 
+                  calendarId={calendarId}
+                  scheduleId={defaultSchedule?.id}
+                  rules={rules}
+                  loading={rulesLoading}
+                />
+              </div>
             )}
             
             {activeTab === 'overrides' && (
-              <DateOverrides calendarId={calendarId} />
+              <div className="h-full overflow-y-auto">
+                <div className="p-4">
+                  <OverrideManager calendarId={calendarId} />
+                </div>
+              </div>
             )}
           </div>
         </div>
       </div>
-      
+
       {/* Backdrop */}
       {isExpanded && (
-        <div 
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-5 transition-opacity duration-300"
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-0"
           onClick={() => setIsExpanded(false)}
         />
       )}

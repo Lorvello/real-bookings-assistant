@@ -8,24 +8,24 @@ interface AvailabilityPanelTabsProps {
 
 export function AvailabilityPanelTabs({ activeTab, onTabChange }: AvailabilityPanelTabsProps) {
   return (
-    <div className="p-4 bg-background/30 border-b border-border/40">
-      <div className="flex space-x-1 bg-muted/50 rounded-2xl p-1 border border-border/40">
+    <div className="flex-shrink-0 p-4">
+      <div className="flex space-x-1 bg-muted rounded-lg p-1">
         <button
           onClick={() => onTabChange('schedule')}
-          className={`flex-1 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
             activeTab === 'schedule' 
-              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' 
-              : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+              ? 'bg-primary text-primary-foreground' 
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Schema
         </button>
         <button
           onClick={() => onTabChange('overrides')}
-          className={`flex-1 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+          className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
             activeTab === 'overrides' 
-              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' 
-              : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+              ? 'bg-primary text-primary-foreground' 
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Uitzonderingen
