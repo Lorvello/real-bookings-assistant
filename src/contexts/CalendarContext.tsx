@@ -24,11 +24,12 @@ interface CalendarProviderProps {
 export function CalendarProvider({ children }: CalendarProviderProps) {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const { calendars, loading, refetch } = useCalendars();
   const [selectedCalendar, setSelectedCalendar] = useState<Calendar | null>(null);
   const [viewingAllCalendars, setViewingAllCalendars] = useState(false);
+  
+  const { calendars, loading, refetch } = useCalendars();
 
-  // Handle auth state directly without useAuth hook to avoid circular dependency
+  // Handle auth state
   useEffect(() => {
     let mounted = true;
 
