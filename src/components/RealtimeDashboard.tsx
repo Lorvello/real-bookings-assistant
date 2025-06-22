@@ -3,7 +3,7 @@ import React from 'react';
 import { useDashboardAnalytics } from '@/hooks/useDashboardAnalytics';
 import { useRealtimeBookings } from '@/hooks/useRealtimeBookings';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
-import { DashboardMetricsCards } from '@/components/dashboard/DashboardMetricsCards';
+import { EnhancedMetricsCards } from '@/components/EnhancedMetricsCards';
 import { DashboardStatusIndicator } from '@/components/dashboard/DashboardStatusIndicator';
 import { DashboardDebugInfo } from '@/components/dashboard/DashboardDebugInfo';
 import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingState';
@@ -43,14 +43,14 @@ export function RealtimeDashboard({ calendarId }: RealtimeDashboardProps) {
         )}
       </div>
 
-      {/* Debug info tijdens development */}
-      <DashboardDebugInfo calendarId={calendarId} analytics={analytics!} />
-
-      {/* Metrics Cards */}
-      <DashboardMetricsCards analytics={analytics!} />
+      {/* Enhanced Metrics Cards */}
+      <EnhancedMetricsCards analytics={analytics!} />
 
       {/* Status indicators */}
       <DashboardStatusIndicator />
+
+      {/* Debug info tijdens development */}
+      <DashboardDebugInfo calendarId={calendarId} analytics={analytics!} />
     </div>
   );
 }
