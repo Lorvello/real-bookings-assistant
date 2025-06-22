@@ -39,12 +39,7 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
           value={`${performance?.avg_response_time_minutes?.toFixed(1) || '0.0'}m`}
           subtitle="gemiddeld WhatsApp"
           icon={Clock}
-          gradientFrom="from-blue-500/40"
-          gradientTo="to-cyan-500/30"
-          borderColor="border-blue-200/30"
-          iconBgFrom="from-blue-500/20"
-          iconBgTo="to-cyan-500/20"
-          iconColor="blue"
+          variant="blue"
           delay={0.1}
         />
 
@@ -53,12 +48,7 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
           value={`${performance?.no_show_rate?.toFixed(1) || '0.0'}%`}
           subtitle="laatste 30 dagen"
           icon={AlertTriangle}
-          gradientFrom="from-red-500/40"
-          gradientTo="to-orange-500/30"
-          borderColor="border-red-200/30"
-          iconBgFrom="from-red-500/20"
-          iconBgTo="to-orange-500/20"
-          iconColor="red"
+          variant="blue"
           delay={0.2}
         />
 
@@ -67,12 +57,7 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
           value={`${performance?.cancellation_rate?.toFixed(1) || '0.0'}%`}
           subtitle="laatste 30 dagen"
           icon={AlertTriangle}
-          gradientFrom="from-orange-500/40"
-          gradientTo="to-yellow-500/30"
-          borderColor="border-orange-200/30"
-          iconBgFrom="from-orange-500/20"
-          iconBgTo="to-yellow-500/20"
-          iconColor="orange"
+          variant="blue"
           delay={0.3}
         />
 
@@ -81,12 +66,7 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
           value={`${performance?.calendar_utilization_rate?.toFixed(1) || '0.0'}%`}
           subtitle="deze week"
           icon={Calendar}
-          gradientFrom="from-green-500/40"
-          gradientTo="to-emerald-500/30"
-          borderColor="border-green-200/30"
-          iconBgFrom="from-green-500/20"
-          iconBgTo="to-emerald-500/20"
-          iconColor="green"
+          variant="green"
           delay={0.4}
         />
       </div>

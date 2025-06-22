@@ -8,12 +8,7 @@ interface MetricCardProps {
   value: string;
   subtitle: string;
   icon: LucideIcon;
-  gradientFrom: string;
-  gradientTo: string;
-  borderColor: string;
-  iconBgFrom: string;
-  iconBgTo: string;
-  iconColor: string;
+  variant: 'blue' | 'green';
   delay: number;
   change?: {
     value: number;
@@ -27,15 +22,31 @@ export function MetricCard({
   value,
   subtitle,
   icon: Icon,
-  gradientFrom,
-  gradientTo,
-  borderColor,
-  iconBgFrom,
-  iconBgTo,
-  iconColor,
+  variant,
   delay,
   change
 }: MetricCardProps) {
+  const colorSchemes = {
+    blue: {
+      gradientFrom: 'from-blue-500/40',
+      gradientTo: 'to-cyan-500/30',
+      borderColor: 'border-blue-500/30',
+      iconBgFrom: 'from-blue-500/20',
+      iconBgTo: 'to-cyan-500/20',
+      iconColor: 'text-blue-400'
+    },
+    green: {
+      gradientFrom: 'from-emerald-500/40',
+      gradientTo: 'to-teal-500/30',
+      borderColor: 'border-emerald-500/30',
+      iconBgFrom: 'from-emerald-500/20',
+      iconBgTo: 'to-teal-500/20',
+      iconColor: 'text-emerald-400'
+    }
+  };
+
+  const colors = colorSchemes[variant];
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 30 }}
@@ -44,18 +55,18 @@ export function MetricCard({
       className="relative group"
     >
       {/* Background glow effect */}
-      <div className={`absolute -inset-2 bg-gradient-to-br ${gradientFrom} ${gradientTo} blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300`}></div>
+      <div className={`absolute -inset-2 bg-gradient-to-br ${colors.gradientFrom} ${colors.gradientTo} blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300`}></div>
       
       {/* Card container with fixed height */}
-      <div className={`relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border ${borderColor} rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-40 flex flex-col justify-between p-6`}>
+      <div className={`relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border ${colors.borderColor} rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-40 flex flex-col justify-between p-6`}>
         
         {/* Header with title and icon */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
             <p className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-1">{title}</p>
           </div>
-          <div className={`w-12 h-12 bg-gradient-to-br ${iconBgFrom} ${iconBgTo} rounded-xl flex items-center justify-center shadow-lg`}>
-            <Icon className={`h-6 w-6 text-${iconColor}-400`} />
+          <div className={`w-12 h-12 bg-gradient-to-br ${colors.iconBgFrom} ${colors.iconBgTo} rounded-xl flex items-center justify-center shadow-lg`}>
+            <Icon className={`h-6 w-6 ${colors.iconColor}`} />
           </div>
         </div>
 

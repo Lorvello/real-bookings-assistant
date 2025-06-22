@@ -34,12 +34,7 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
           value={`€${businessIntel?.month_revenue?.toFixed(2) || '0.00'}`}
           subtitle=""
           icon={Euro}
-          gradientFrom="from-blue-500/40"
-          gradientTo="to-cyan-500/30"
-          borderColor="border-blue-200/30"
-          iconBgFrom="from-blue-500/20"
-          iconBgTo="to-cyan-500/20"
-          iconColor="blue"
+          variant="green"
           delay={0.1}
           change={{
             value: revenueChange,
@@ -53,12 +48,7 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
           value={String(businessIntel?.unique_customers_month || 0)}
           subtitle="deze maand"
           icon={Users}
-          gradientFrom="from-emerald-500/40"
-          gradientTo="to-teal-500/30"
-          borderColor="border-emerald-200/30"
-          iconBgFrom="from-emerald-500/20"
-          iconBgTo="to-teal-500/20"
-          iconColor="emerald"
+          variant="blue"
           delay={0.2}
         />
 
@@ -67,12 +57,7 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
           value={`€${businessIntel?.avg_booking_value?.toFixed(2) || '0.00'}`}
           subtitle="per afspraak"
           icon={Euro}
-          gradientFrom="from-purple-500/40"
-          gradientTo="to-fuchsia-500/30"
-          borderColor="border-purple-200/30"
-          iconBgFrom="from-purple-500/20"
-          iconBgTo="to-fuchsia-500/20"
-          iconColor="purple"
+          variant="green"
           delay={0.3}
         />
 
@@ -81,12 +66,7 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
           value={`${businessIntel?.whatsapp_conversion_rate?.toFixed(1) || '0.0'}%`}
           subtitle="WhatsApp → Boeking"
           icon={MessageSquare}
-          gradientFrom="from-orange-500/40"
-          gradientTo="to-yellow-500/30"
-          borderColor="border-orange-200/30"
-          iconBgFrom="from-orange-500/20"
-          iconBgTo="to-yellow-500/20"
-          iconColor="orange"
+          variant="blue"
           delay={0.4}
         />
       </div>
