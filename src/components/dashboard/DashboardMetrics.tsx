@@ -1,11 +1,22 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Euro, TrendingUp, Info } from 'lucide-react';
+import { Calendar, Users, Euro, TrendingUp, Info, Clock } from 'lucide-react';
+
+interface DashboardAnalytics {
+  today_bookings: number;
+  pending_bookings: number;
+  week_bookings: number;
+  month_bookings: number;
+  total_revenue: number;
+  conversion_rate?: number;
+  avg_response_time?: number;
+  last_updated: string;
+}
 
 interface DashboardMetricsProps {
-  analytics: any;
+  analytics: DashboardAnalytics;
   isLoading: boolean;
   showMultiCalendarNote?: boolean;
 }
@@ -20,22 +31,14 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
           <Card key={i} className="animate-pulse bg-card/50 border-border">
             <CardContent className="p-6">
               <div className="h-4 bg-gray-600 rounded w-1/2 mb-2"></div>
-              <div className="h-8 bg-gray-600 rounded w-3/4"></div>
+              <div className="h-8 bg-gray-600 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-600 rounded w-1/3"></div>
             </CardContent>
           </Card>
         ))}
       </div>
     );
   }
-
-  // Show default values if no analytics data
-  const displayAnalytics = analytics || {
-    today_bookings: 0,
-    pending_bookings: 0,
-    week_bookings: 0,
-    month_bookings: 0,
-    total_revenue: 0
-  };
 
   return (
     <div className="space-y-4">
@@ -54,66 +57,99 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
       )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Today's Bookings */}
         <Card className="bg-card/50 border-border hover:bg-card/70 transition-colors">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Vandaag</p>
-                <p className="text-2xl font-bold text-foreground">{displayAnalytics.today_bookings}</p>
-                <p className="text-xs text-muted-foreground">afspraken</p>
-              </div>
-              <Calendar className="h-8 w-8 text-green-400" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Vandaag
+            </CardTitle>
+            <Calendar className="h-4 w-4 text-green-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              {analytics.today_bookings}
             </div>
+            <p className="text-xs text-muted-foreground">
+              afspraken
+            </p>
           </CardContent>
         </Card>
 
+        {/* Pending Bookings */}
         <Card className="bg-card/50 border-border hover:bg-card/70 transition-colors">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">In behandeling</p>
-                <p className="text-2xl font-bold text-foreground">{displayAnalytics.pending_bookings}</p>
-                <p className="text-xs text-muted-foreground">wachtend op bevestiging</p>
-              </div>
-              <Users className="h-8 w-8 text-yellow-400" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              In behandeling
+            </CardTitle>
+            <Clock className="h-4 w-4 text-yellow-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              {analytics.pending_bookings}
             </div>
+            <p className="text-xs text-muted-foreground">
+              wachtend op bevestiging
+            </p>
           </CardContent>
         </Card>
 
+        {/* Week Bookings */}
         <Card className="bg-card/50 border-border hover:bg-card/70 transition-colors">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Deze week</p>
-                <p className="text-2xl font-bold text-foreground">{displayAnalytics.week_bookings}</p>
-                <p className="text-xs text-muted-foreground">afspraken</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-blue-400" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Deze week
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              {analytics.week_bookings}
             </div>
+            <p className="text-xs text-muted-foreground">
+              afspraken
+            </p>
           </CardContent>
         </Card>
 
+        {/* Monthly Revenue */}
         <Card className="bg-card/50 border-border hover:bg-card/70 transition-colors">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Omzet (maand)</p>
-                <p className="text-2xl font-bold text-foreground">€{(displayAnalytics.total_revenue || 0).toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">deze maand</p>
-              </div>
-              <Euro className="h-8 w-8 text-green-400" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Omzet (maand)
+            </CardTitle>
+            <Euro className="h-4 w-4 text-green-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              €{analytics.total_revenue.toFixed(2)}
             </div>
+            <p className="text-xs text-muted-foreground">
+              deze maand
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Debug info */}
+      {/* Real-time indicator */}
+      <div className="flex items-center justify-between text-xs text-muted-foreground mt-4">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span>Live data</span>
+        </div>
+        {analytics.last_updated && (
+          <span>
+            Laatste update: {new Date(analytics.last_updated).toLocaleTimeString('nl-NL')}
+          </span>
+        )}
+      </div>
+
+      {/* Debug info in development */}
       {process.env.NODE_ENV === 'development' && (
-        <Card className="bg-gray-900/50 border-gray-700">
+        <Card className="bg-gray-900/50 border-gray-700 mt-4">
           <CardContent className="p-4">
             <h4 className="text-sm font-medium text-gray-300 mb-2">Debug Info:</h4>
             <pre className="text-xs text-gray-400 overflow-auto">
-              {JSON.stringify({ analytics: displayAnalytics, isLoading }, null, 2)}
+              {JSON.stringify(analytics, null, 2)}
             </pre>
           </CardContent>
         </Card>

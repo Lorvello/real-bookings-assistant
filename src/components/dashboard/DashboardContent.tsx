@@ -55,17 +55,26 @@ export function DashboardContent({ calendarIds, calendarName }: DashboardContent
         </p>
       </div>
 
-      {/* Metrics Cards - Always show, even when loading */}
+      {/* Metrics Cards Section */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-white mb-4">Statistieken</h2>
         <DashboardMetrics 
-          analytics={analytics} 
+          analytics={analytics || {
+            today_bookings: 0,
+            pending_bookings: 0,
+            week_bookings: 0,
+            month_bookings: 0,
+            total_revenue: 0,
+            conversion_rate: 0,
+            avg_response_time: 0,
+            last_updated: new Date().toISOString()
+          }} 
           isLoading={isLoading}
           showMultiCalendarNote={calendarIds.length > 1}
         />
       </div>
 
-      {/* Calendar View */}
+      {/* Calendar View Section */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-white mb-4">Kalender</h2>
         <CalendarDashboard calendarIds={calendarIds} />
