@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserRegistration } from '@/hooks/useUserRegistration';
+import Select from 'react-select';
+import { businessTypes } from '@/constants/settingsOptions';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -17,7 +19,8 @@ const Signup = () => {
     password: '',
     confirmPassword: '',
     fullName: '',
-    businessName: ''
+    businessName: '',
+    businessType: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -29,6 +32,14 @@ const Signup = () => {
       [name]: value
     }));
     // Clear error when user starts typing
+    if (error) setError('');
+  };
+
+  const handleBusinessTypeChange = (selectedOption: any) => {
+    setFormData(prev => ({
+      ...prev,
+      businessType: selectedOption?.value || ''
+    }));
     if (error) setError('');
   };
 
@@ -47,8 +58,8 @@ const Signup = () => {
       return;
     }
 
-    if (!formData.email || !formData.fullName) {
-      setError('Email en naam zijn verplicht');
+    if (!formData.email || !formData.fullName || !formData.businessName || !formData.businessType) {
+      setError('Alle velden zijn verplicht');
       return;
     }
 
@@ -59,7 +70,8 @@ const Signup = () => {
         email: formData.email,
         password: formData.password,
         fullName: formData.fullName,
-        businessName: formData.businessName || undefined
+        businessName: formData.businessName,
+        businessType: formData.businessType
       });
 
       if (result.success) {
@@ -107,15 +119,54 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="businessName">Bedrijfsnaam (optioneel)</Label>
+              <Label htmlFor="businessName">Bedrijfsnaam *</Label>
               <Input
                 id="businessName"
                 name="businessName"
                 type="text"
+                required
                 value={formData.businessName}
                 onChange={handleInputChange}
                 placeholder="Voer je bedrijfsnaam in"
                 disabled={loading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="businessType">Type Bedrijf *</Label>
+              <Select
+                value={businessTypes.find(type => type.value === formData.businessType)}
+                onChange={handleBusinessTypeChange}
+                options={businessTypes}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                placeholder="Selecteer type bedrijf..."
+                isSearchable
+                isDisabled={loading}
+                required
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: 'white',
+                    borderColor: '#d1d5db',
+                    '&:hover': {
+                      borderColor: '#16a34a'
+                    }
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: 'white'
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isSelected
+                      ? '#16a34a'
+                      : state.isFocused
+                      ? '#f3f4f6'
+                      : 'white',
+                    color: state.isSelected ? 'white' : 'black'
+                  })
+                }}
               />
             </div>
 
