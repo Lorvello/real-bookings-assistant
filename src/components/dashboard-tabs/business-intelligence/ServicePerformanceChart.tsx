@@ -107,7 +107,14 @@ export function ServicePerformanceChart({ data }: ServicePerformanceChartProps) 
                       tickLine={{ stroke: '#10b981', opacity: 0.5 }}
                     />
                     
-                    <Tooltip content={<ChartTooltip />} />
+                    <Tooltip 
+                      content={<ChartTooltip />}
+                      cursor={{ 
+                        fill: 'rgba(148, 163, 184, 0.1)',
+                        stroke: 'rgba(148, 163, 184, 0.3)',
+                        strokeWidth: 1
+                      }}
+                    />
                     
                     <Bar 
                       yAxisId="bookings"

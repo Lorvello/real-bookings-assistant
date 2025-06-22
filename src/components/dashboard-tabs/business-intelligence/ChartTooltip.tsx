@@ -4,7 +4,7 @@ import React from 'react';
 export function ChartTooltip({ active, payload, label }: any) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-gradient-to-br from-slate-800/98 via-slate-900/95 to-slate-800/90 backdrop-blur-xl border border-slate-700/50 shadow-2xl p-4 rounded-xl">
+      <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl p-4 rounded-xl">
         <div className="space-y-3">
           <p className="text-sm font-semibold text-slate-200 border-b border-slate-700/30 pb-2">
             {label}
