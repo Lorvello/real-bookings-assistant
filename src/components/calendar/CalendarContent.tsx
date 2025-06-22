@@ -13,7 +13,7 @@ interface CalendarContentProps {
 }
 
 export function CalendarContent({ currentView, currentDate, calendarId }: CalendarContentProps) {
-  const { data: bookings = [] } = useBookings(calendarId);
+  const { bookings = [] } = useBookings(calendarId);
 
   return (
     <div className="h-full bg-gradient-to-br from-background/30 via-card/20 to-background/30 rounded-b-3xl overflow-hidden">
