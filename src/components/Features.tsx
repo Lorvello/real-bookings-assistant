@@ -87,7 +87,7 @@ const Features = () => {
         </div>
         
         {/* Clean features grid - no blocky containers */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-32">
           {features.map((feature, index) => (
             <div 
               key={index} 
@@ -116,17 +116,17 @@ const Features = () => {
           ))}
         </div>
         
-        {/* Clean CTA Section */}
-        <div className="text-center relative overflow-hidden">
+        {/* Clean CTA Section with more spacing */}
+        <div className="text-center relative overflow-hidden pt-16 pb-20">
           {/* Background decoration for CTA */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
           
           <div className="relative z-10">
-            <h3 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+            <h3 className="text-3xl md:text-4xl font-bold mb-8 text-white">
               Laat Omzet Niet Slapen Terwijl Jij Dat Wel Doet
             </h3>
-            <p className="text-xl text-slate-300 mb-12 max-w-2xl mx-auto">
+            <p className="text-xl text-slate-300 mb-16 max-w-2xl mx-auto">
               Terwijl jij bezig bent met klanten, is je AI agent bezig met het boeken van nieuwe. 
               Start je gratis proefperiode en zie het verschil dat automatisering maakt.
             </p>
