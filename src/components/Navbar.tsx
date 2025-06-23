@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,8 +23,7 @@ const Navbar = () => {
     { name: 'How it Works', path: '/how-it-works' },
     { name: 'Why Us', path: '/why-us' },
     { name: 'Pricing', path: '/#pricing' },
-    { name: 'FAQ', path: '/faq' },
-    { name: 'Profile', path: '/profile' }
+    { name: 'FAQ', path: '/faq' }
   ];
 
   useEffect(() => {
