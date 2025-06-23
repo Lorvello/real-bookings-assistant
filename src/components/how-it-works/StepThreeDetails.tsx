@@ -22,7 +22,7 @@ const StepThreeDetails = () => {
           </div>
           
           <div className="space-y-8">
-            <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-8">
+            <div>
               <p className="text-xl text-slate-300 leading-relaxed mb-8">
                 Klaar voor actie. Vanaf nu kunnen je klanten via WhatsApp:
               </p>
@@ -40,7 +40,7 @@ const StepThreeDetails = () => {
                 ))}
               </div>
               
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6">
+              <div className="border-l-4 border-emerald-400 pl-6">
                 <div className="flex items-center gap-4 mb-3">
                   <Sparkles className="w-6 h-6 text-emerald-400" />
                   <span className="text-emerald-400 font-bold text-lg">Volledig geautomatiseerd</span>
@@ -81,7 +81,7 @@ const StepThreeDetails = () => {
               const Icon = card.icon;
               
               return (
-                <div key={index} className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6">
+                <div key={index} className="border border-slate-600 rounded-2xl p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <Icon className="w-6 h-6 text-emerald-400" />
                     <h5 className="font-bold text-white">{card.title}</h5>
@@ -95,7 +95,7 @@ const StepThreeDetails = () => {
           </div>
           
           {/* Status indicator */}
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-3xl p-8 text-center shadow-xl">
+          <div className="border border-emerald-500/30 rounded-3xl p-8 text-center">
             <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg">
               <div className="w-3 h-3 bg-white rounded-full"></div>
             </div>

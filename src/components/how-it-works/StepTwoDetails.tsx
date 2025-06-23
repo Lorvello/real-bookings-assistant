@@ -22,13 +22,13 @@ const StepTwoDetails = () => {
           </div>
           
           <div className="space-y-8">
-            <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-8">
+            <div>
               <p className="text-xl text-slate-300 leading-relaxed mb-6">
                 Je hebt twee opties om te starten. Wij zorgen ervoor dat alles naadloos werkt, 
                 zonder dat jij iets technisch hoeft te doen.
               </p>
               
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6">
+              <div className="border-l-4 border-emerald-400 pl-6">
                 <div className="flex items-center gap-4 mb-3">
                   <Shield className="w-6 h-6 text-emerald-400" />
                   <span className="text-emerald-400 font-bold text-lg">100% veilig en GDPR-compliant</span>
@@ -52,7 +52,7 @@ const StepTwoDetails = () => {
               </div>
             </div>
             
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-3xl p-8 shadow-xl">
+            <div className="border border-emerald-500/30 rounded-3xl p-8">
               <h4 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
                 <MessageSquare className="w-5 h-5 text-emerald-400" />
                 Wij regelen een nummer voor je
@@ -66,13 +66,13 @@ const StepTwoDetails = () => {
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-4">
                     <CheckCircle className="w-5 h-5 text-emerald-400" />
-                    <span className="text-emerald-200">{item}</span>
+                    <span className="text-slate-200">{item}</span>
                   </div>
                 ))}
               </div>
               
-              <div className="bg-emerald-400/10 border border-emerald-400/20 rounded-xl p-4">
-                <p className="text-sm text-emerald-300">
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
+                <p className="text-sm text-slate-300">
                   <strong className="text-white">Perfect voor:</strong> Bedrijven die snel willen starten zonder gedoe.
                 </p>
               </div>
@@ -80,7 +80,7 @@ const StepTwoDetails = () => {
           </div>
           
           {/* Second option */}
-          <div className="bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl">
+          <div className="border border-slate-600 rounded-3xl p-8">
             <h4 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
               <MessageSquare className="w-5 h-5 text-slate-400" />
               Je eigen nummer gebruiken
@@ -99,7 +99,7 @@ const StepTwoDetails = () => {
               ))}
             </div>
             
-            <div className="bg-slate-700/30 border border-slate-600/30 rounded-xl p-4">
+            <div className="bg-slate-700/20 border border-slate-600/30 rounded-xl p-4">
               <p className="text-sm text-slate-400">
                 <strong className="text-slate-200">Perfect voor:</strong> Gevestigde bedrijven met een bekend WhatsApp nummer.
               </p>

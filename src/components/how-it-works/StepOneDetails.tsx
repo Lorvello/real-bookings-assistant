@@ -22,7 +22,7 @@ const StepOneDetails = () => {
           </div>
           
           <div className="space-y-8">
-            <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-8">
+            <div>
               <h4 className="text-xl font-semibold text-emerald-400 mb-6 flex items-center gap-3">
                 <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                 Wat heb je nodig?
@@ -42,7 +42,7 @@ const StepOneDetails = () => {
               </div>
             </div>
             
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6">
+            <div className="border-l-4 border-emerald-400 pl-6">
               <div className="flex items-center gap-4 mb-3">
                 <Clock className="w-6 h-6 text-emerald-400" />
                 <span className="text-emerald-400 font-bold text-lg">Tijd nodig: 2 minuten</span>
@@ -56,8 +56,8 @@ const StepOneDetails = () => {
         
         {/* Right side - Visual */}
         <div className="relative">
-          <div className="relative bg-slate-800/60 border border-slate-700 rounded-3xl p-8 shadow-xl">
-            <h4 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+          <div className="space-y-8">
+            <h4 className="text-2xl font-bold text-white flex items-center gap-3">
               <Calendar className="w-6 h-6 text-emerald-400" />
               Kalender verbinden
             </h4>
@@ -65,14 +65,14 @@ const StepOneDetails = () => {
             <div className="space-y-6">
               {/* Recommended option */}
               <div className="relative group">
-                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-6">
+                <div className="border border-emerald-500/30 rounded-2xl p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <Calendar className="w-5 h-5 text-emerald-400" />
                       <span className="font-bold text-white">Optie 1: Gebruik onze kalender</span>
                     </div>
-                    <div className="px-3 py-1 bg-emerald-400/20 rounded-full">
-                      <span className="text-emerald-400 text-xs font-bold">AANBEVOLEN</span>
+                    <div className="px-3 py-1 bg-emerald-500 text-white rounded-full">
+                      <span className="text-xs font-bold">AANBEVOLEN</span>
                     </div>
                   </div>
                   <p className="text-slate-300 text-sm mb-3">Direct klaar om te gebruiken. Geen setup nodig.</p>
@@ -84,7 +84,7 @@ const StepOneDetails = () => {
               </div>
               
               {/* Second option */}
-              <div className="bg-slate-700/50 border border-slate-600 rounded-2xl p-6">
+              <div className="border border-slate-600 rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Settings className="w-5 h-5 text-slate-400" />
                   <span className="font-bold text-white">Optie 2: Verbind je eigen kalender</span>
