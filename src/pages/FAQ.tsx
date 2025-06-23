@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import Navbar from '@/components/Navbar';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import {
@@ -8,9 +7,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { MessageCircle, Zap, Shield, Star, CheckCircle, HelpCircle, Phone, Mail } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { MessageCircle, Zap, Shield, Star, CheckCircle, HelpCircle, Phone, Mail, Search } from 'lucide-react';
 
 const FAQ = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+
   const faqSections = [
     {
       title: "Algemene Vragen",
@@ -265,6 +267,19 @@ const FAQ = () => {
     { number: "24/7", label: "Automatische boekingen", icon: Shield }
   ];
 
+  // Filter FAQ sections based on search term
+  const filteredSections = useMemo(() => {
+    if (!searchTerm) return faqSections;
+
+    return faqSections.map(section => ({
+      ...section,
+      items: section.items.filter(item =>
+        item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.answer.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    })).filter(section => section.items.length > 0);
+  }, [searchTerm]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
       <Navbar />
@@ -291,6 +306,27 @@ const FAQ = () => {
             </p>
           </ScrollAnimatedSection>
 
+          {/* Search Bar */}
+          <ScrollAnimatedSection delay={100}>
+            <div className="relative max-w-2xl mx-auto mb-16">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Input
+                  type="text"
+                  placeholder="Zoek in veelgestelde vragen..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-12 pr-4 py-4 h-14 text-lg bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
+                />
+              </div>
+              {searchTerm && (
+                <div className="mt-4 text-sm text-slate-400">
+                  {filteredSections.reduce((total, section) => total + section.items.length, 0)} resultaten gevonden
+                </div>
+              )}
+            </div>
+          </ScrollAnimatedSection>
+
           {/* Quick Stats */}
           <ScrollAnimatedSection delay={200}>
             <div className="grid md:grid-cols-4 gap-6 mb-16">
@@ -311,44 +347,62 @@ const FAQ = () => {
       {/* FAQ Sections */}
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="space-y-12">
-            {faqSections.map((section, sectionIndex) => (
-              <ScrollAnimatedSection 
-                key={sectionIndex} 
-                className={`bg-gradient-to-r ${section.color} backdrop-blur-sm rounded-2xl p-8 border ${section.borderColor} hover:border-opacity-40 transition-all duration-300`}
-                delay={sectionIndex * 100}
-              >
-                {/* Section Header */}
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center">
-                    <section.icon className="w-8 h-8 text-emerald-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-white mb-2">{section.title}</h2>
-                    <div className="h-1 w-20 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full"></div>
-                  </div>
+          {filteredSections.length === 0 ? (
+            <ScrollAnimatedSection>
+              <div className="text-center py-16">
+                <div className="w-24 h-24 bg-slate-800/50 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                  <Search className="w-12 h-12 text-slate-400" />
                 </div>
+                <h3 className="text-2xl font-bold text-white mb-4">Geen resultaten gevonden</h3>
+                <p className="text-slate-400 mb-6">Probeer een andere zoekterm of bekijk alle FAQ's hieronder.</p>
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="bg-emerald-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-600 transition-colors"
+                >
+                  Toon alle FAQ's
+                </button>
+              </div>
+            </ScrollAnimatedSection>
+          ) : (
+            <div className="space-y-12">
+              {filteredSections.map((section, sectionIndex) => (
+                <ScrollAnimatedSection 
+                  key={sectionIndex} 
+                  className={`bg-gradient-to-r ${section.color} backdrop-blur-sm rounded-2xl p-8 border ${section.borderColor} hover:border-opacity-40 transition-all duration-300`}
+                  delay={sectionIndex * 100}
+                >
+                  {/* Section Header */}
+                  <div className="flex items-center space-x-4 mb-8">
+                    <div className="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center">
+                      <section.icon className="w-8 h-8 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold text-white mb-2">{section.title}</h2>
+                      <div className="h-1 w-20 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full"></div>
+                    </div>
+                  </div>
 
-                {/* FAQ Items */}
-                <Accordion type="single" collapsible className="w-full space-y-4">
-                  {section.items.map((item, itemIndex) => (
-                    <AccordionItem 
-                      key={itemIndex} 
-                      value={`${sectionIndex}-${itemIndex}`}
-                      className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50 px-6 hover:bg-slate-800/50 transition-all duration-300"
-                    >
-                      <AccordionTrigger className="text-left hover:no-underline hover:text-emerald-400 transition-colors py-6">
-                        <span className="font-semibold text-white text-lg">{item.question}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="text-slate-300 leading-relaxed pb-6 text-base">
-                        {item.answer}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </ScrollAnimatedSection>
-            ))}
-          </div>
+                  {/* FAQ Items */}
+                  <Accordion type="single" collapsible className="w-full space-y-4">
+                    {section.items.map((item, itemIndex) => (
+                      <AccordionItem 
+                        key={itemIndex} 
+                        value={`${sectionIndex}-${itemIndex}`}
+                        className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50 px-6 hover:bg-slate-800/50 transition-all duration-300"
+                      >
+                        <AccordionTrigger className="text-left hover:no-underline hover:text-emerald-400 transition-colors py-6">
+                          <span className="font-semibold text-white text-lg">{item.question}</span>
+                        </AccordionTrigger>
+                        <AccordionContent className="text-slate-300 leading-relaxed pb-6 text-base">
+                          {item.answer}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </ScrollAnimatedSection>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
