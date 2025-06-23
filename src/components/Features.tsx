@@ -7,49 +7,49 @@ const Features = () => {
       icon: Zap,
       title: "100% Automatische Boekingen",
       description: "Geen handmatige tussenkomst nodig. Boekt, bevestigt en plant automatisch om",
-      color: "from-yellow-400 to-orange-500"
+      color: "from-emerald-500 to-emerald-600"
     },
     {
       icon: Settings,
       title: "Volledig Gepersonaliseerd",
       description: "Pas de AI Agent aan je diensten, FAQ's en boekingslogica aan — van aangepaste kapseltypes tot bedrijfsspecifieke vragen",
-      color: "from-purple-400 to-pink-500"
+      color: "from-slate-500 to-slate-600"
     },
     {
       icon: Calendar,
       title: "Geavanceerd Dashboard & Eigen Kalender",
       description: "Krijg je eigen professionele kalender met een zeer geavanceerd dashboard voor complete controle over je boekingen",
-      color: "from-blue-400 to-indigo-500"
+      color: "from-emerald-400 to-emerald-500"
     },
     {
       icon: Link,
       title: "Koppel Je Bestaande Kalender",
       description: "Integreer naadloos met Google Calendar, Outlook, Calendly en meer - behoud je huidige workflow",
-      color: "from-emerald-400 to-teal-500"
+      color: "from-slate-400 to-slate-500"
     },
     {
       icon: Bell,
       title: "Automatische Herinneringen",
       description: "Stuurt bevestigings- en herinneringsberichten om no-shows te verminderen",
-      color: "from-green-400 to-emerald-500"
+      color: "from-emerald-600 to-green-600"
     },
     {
       icon: BarChart3,
       title: "Gedetailleerde Analytics",
       description: "Volg boekingspercentages, populaire tijden en gegenereerde omzet in je persoonlijke dashboard",
-      color: "from-cyan-400 to-blue-500"
+      color: "from-slate-600 to-gray-600"
     },
     {
       icon: Globe,
       title: "Meertalige Ondersteuning",
       description: "Communiceert automatisch in de voorkeurstaal van je klanten",
-      color: "from-rose-400 to-red-500"
+      color: "from-emerald-500 to-green-500"
     },
     {
       icon: Monitor,
       title: "Realtime Dashboard Monitoring",
       description: "Bekijk live boekingen, prestaties en klantinteracties in je geavanceerde controlepaneel",
-      color: "from-indigo-400 to-purple-500"
+      color: "from-slate-500 to-gray-500"
     }
   ];
 
@@ -58,7 +58,7 @@ const Features = () => {
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
       </div>
       
       {/* Grid pattern overlay */}
@@ -112,7 +112,7 @@ const Features = () => {
         <div className="text-center relative overflow-hidden">
           {/* Background decoration for CTA */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-green-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
           
           <div className="relative z-10">
             <h3 className="text-3xl md:text-4xl font-bold mb-6 text-white">
