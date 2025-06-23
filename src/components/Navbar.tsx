@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,7 +47,7 @@ const Navbar = () => {
   }, []);
 
   const handleNavClick = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
     setIsMobileMenuOpen(false);
   };
 
