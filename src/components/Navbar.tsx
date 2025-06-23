@@ -47,6 +47,11 @@ const Navbar = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const handleNavClick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setIsMobileMenuOpen(false);
+  };
+
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
@@ -57,7 +62,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link to="/" className="text-xl sm:text-2xl font-bold text-white hover:text-green-400 transition-colors">
+            <Link to="/" onClick={handleNavClick} className="text-xl sm:text-2xl font-bold text-white hover:text-green-400 transition-colors">
               Bookings Assistant
             </Link>
           </div>
@@ -69,6 +74,7 @@ const Navbar = () => {
                 <Link
                   key={item.name}
                   to={item.path}
+                  onClick={handleNavClick}
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     location.pathname === item.path
                       ? 'text-green-400 bg-slate-700/50'
@@ -176,7 +182,7 @@ const Navbar = () => {
                 <Link
                   key={item.name}
                   to={item.path}
-                  onClick={closeMobileMenu}
+                  onClick={handleNavClick}
                   className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
                     location.pathname === item.path
                       ? 'text-green-400 bg-slate-700/50'
