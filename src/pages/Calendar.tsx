@@ -21,7 +21,7 @@ const Calendar = () => {
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-full bg-gray-900">
           <div className="text-center">
             <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
             <div className="text-lg text-gray-300">Kalender laden...</div>
@@ -38,7 +38,7 @@ const Calendar = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-full bg-gray-900">
           <div className="text-center">
             <div className="text-lg text-gray-300">Geen kalender gevonden</div>
           </div>
@@ -54,27 +54,25 @@ const Calendar = () => {
 
   return (
     <DashboardLayout>
-      <div className="h-full flex flex-col">
-        {/* Calendar Header met Switcher */}
-        <div className="flex-shrink-0 p-4 border-b border-border bg-card/50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-foreground mb-1">{displayTitle}</h1>
-              <p className="text-sm text-muted-foreground">
-                {viewingAllCalendars 
-                  ? `Beheer afspraken van ${calendars.length} kalenders`
-                  : 'Beheer je afspraken en beschikbaarheid'
-                }
-              </p>
-            </div>
-            
-            {/* Calendar Switcher - nu prominent zichtbaar */}
-            <CalendarSwitcher />
+      <div className="bg-gray-900 min-h-full p-8">
+        {/* Calendar Header */}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white">{displayTitle}</h1>
+            <p className="text-gray-400 mt-1">
+              {viewingAllCalendars 
+                ? `Beheer afspraken van ${calendars.length} kalenders`
+                : 'Beheer je afspraken en beschikbaarheid'
+              }
+            </p>
           </div>
+          
+          {/* Calendar Switcher */}
+          <CalendarSwitcher />
         </div>
 
         {/* Calendar Content */}
-        <div className="flex-1 p-6 min-h-0">
+        <div className="bg-gray-800 rounded-lg p-6">
           <CalendarView calendarIds={activeCalendarIds} />
         </div>
       </div>

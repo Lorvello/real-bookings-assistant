@@ -4,9 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { DashboardBackground } from '@/components/dashboard/DashboardBackground';
-import { DashboardLoadingScreen } from '@/components/dashboard/DashboardLoadingScreen';
-import { DashboardEmptyState } from '@/components/dashboard/DashboardEmptyState';
 import { DashboardTabs } from '@/components/DashboardTabs';
 
 const Dashboard = () => {
@@ -24,9 +21,12 @@ const Dashboard = () => {
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
-        <DashboardBackground>
-          <DashboardLoadingScreen />
-        </DashboardBackground>
+        <div className="flex items-center justify-center h-full bg-gray-900">
+          <div className="text-center">
+            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="text-lg text-gray-300">Dashboard laden...</div>
+          </div>
+        </div>
       </DashboardLayout>
     );
   }
@@ -38,9 +38,11 @@ const Dashboard = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <DashboardBackground>
-          <DashboardEmptyState />
-        </DashboardBackground>
+        <div className="flex items-center justify-center h-full bg-gray-900">
+          <div className="text-center">
+            <div className="text-lg text-gray-300">Geen kalender gevonden</div>
+          </div>
+        </div>
       </DashboardLayout>
     );
   }
@@ -50,33 +52,31 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <DashboardBackground>
-        <div className="space-y-8 p-8">
-          {/* Dashboard Header */}
-          <div className="text-center">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-green-100 to-green-200 bg-clip-text text-transparent mb-4">
-              Dashboard
-              {viewingAllCalendars 
-                ? ' - Alle kalenders'
-                : selectedCalendar 
-                  ? ` - ${selectedCalendar.name}`
-                  : ''
-              }
-            </h1>
-            <p className="text-gray-400 text-lg">
-              {viewingAllCalendars
-                ? `Overzicht van ${activeCalendarIds.length} kalenders`
-                : 'Overzicht van je boekingen en prestaties'
-              }
-            </p>
-          </div>
-
-          {/* Dashboard Tabs */}
-          {primaryCalendarId && (
-            <DashboardTabs calendarId={primaryCalendarId} />
-          )}
+      <div className="bg-gray-900 min-h-full p-8">
+        {/* Dashboard Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white">
+            Dashboard
+            {viewingAllCalendars 
+              ? ' - Alle kalenders'
+              : selectedCalendar 
+                ? ` - ${selectedCalendar.name}`
+                : ''
+            }
+          </h1>
+          <p className="text-gray-400 mt-1">
+            {viewingAllCalendars
+              ? `Overzicht van ${activeCalendarIds.length} kalenders`
+              : 'Overzicht van je boekingen en prestaties'
+            }
+          </p>
         </div>
-      </DashboardBackground>
+
+        {/* Dashboard Tabs */}
+        {primaryCalendarId && (
+          <DashboardTabs calendarId={primaryCalendarId} />
+        )}
+      </div>
     </DashboardLayout>
   );
 };
