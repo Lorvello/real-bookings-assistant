@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,7 +65,7 @@ export const Pricing: React.FC<PricingProps> = ({
   };
 
   return (
-    <section className={`py-20 px-4 ${showAsSelection ? 'bg-white' : 'bg-gradient-to-b from-slate-800 via-gray-900 to-gray-900'}`}>
+    <section className={`py-20 px-4 ${showAsSelection ? 'bg-white' : 'bg-gray-900'}`}>
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className={`text-4xl font-bold mb-6 ${showAsSelection ? 'text-gray-900' : 'text-white'}`}>

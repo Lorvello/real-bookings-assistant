@@ -1,3 +1,4 @@
+
 import React from 'react';
 import WhatsAppChat from './WhatsAppChat';
 import CalendarMockup from './CalendarMockup';
@@ -5,7 +6,7 @@ import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 
 const ProcessSection = () => {
   return (
-    <section className="bg-gradient-to-b from-slate-800 via-slate-900 to-gray-900 py-16 sm:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-16 sm:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
