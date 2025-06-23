@@ -37,11 +37,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           onChange={onChange}
           disabled={disabled}
           autoComplete={autoComplete}
-          style={{ 
-            fontFamily: showPassword ? 'inherit' : 'text-security-disc, -webkit-text-security-disc, monospace',
-            WebkitTextSecurity: showPassword ? 'none' : 'disc'
-          } as React.CSSProperties}
-          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
+          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-900" 
           placeholder={placeholder}
         />
         <button

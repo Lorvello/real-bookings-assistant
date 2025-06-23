@@ -90,7 +90,7 @@ export const LoginForm: React.FC = () => {
             onChange={handleInputChange}
             disabled={loading}
             autoComplete="email"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed" 
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-900" 
             placeholder="Enter your email" 
           />
         </div>
