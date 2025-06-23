@@ -78,7 +78,7 @@ export const Pricing: React.FC<PricingProps> = ({
           <div className="flex justify-center mb-8">
             <div className="relative">
               {billingPeriod === "yearly" && (
-                <div className="absolute -top-4 right-4 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">
+                <div className="absolute -top-4 right-4 bg-black text-green-500 px-2 py-1 rounded text-xs font-bold">
                   20% OFF
                 </div>
               )}
