@@ -3,6 +3,8 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import ProcessHighlights from '@/components/how-it-works/ProcessHighlights';
 import AITestSection from '@/components/how-it-works/AITestSection';
+import { PricingBasic } from '@/components/PricingBasic';
+import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 const SeeHowItWorks = () => {
   return (
@@ -35,6 +37,13 @@ const SeeHowItWorks = () => {
 
       {/* AI Test Section */}
       <AITestSection />
+
+      {/* Pricing Section */}
+      <ScrollAnimatedSection>
+        <div id="pricing">
+          <PricingBasic />
+        </div>
+      </ScrollAnimatedSection>
     </div>
   );
 };
