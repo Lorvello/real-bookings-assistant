@@ -71,8 +71,8 @@ const CalendarMockup = () => {
                   {format(day, 'd')}
                 </div>
 
-                {/* Booking Content - Direct under day number */}
-                <div className="flex-1 flex flex-col justify-start mt-0.5">
+                {/* Booking Content - Direct under day number with NO margin */}
+                <div className="flex-1 flex flex-col justify-start">
                   {dayBookings.length === 1 && (
                     <div className="w-full p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30 relative">
                       {/* Indicator dot INSIDE the booking card */}
