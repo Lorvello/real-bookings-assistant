@@ -15,6 +15,9 @@ import Conversations from './pages/Conversations';
 import TestAIAgent from './pages/TestAIAgent';
 import Availability from './pages/Availability';
 import Profile from './pages/Profile';
+import FAQ from './pages/FAQ';
+import SeeHowItWorks from './pages/SeeHowItWorks';
+import WhyUs from './pages/WhyUs';
 
 const queryClient = new QueryClient();
 
@@ -28,6 +31,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
                 <Route path="/register" element={<Signup />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/calendar" element={<Calendar />} />
@@ -36,6 +40,9 @@ function App() {
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/conversations" element={<Conversations />} />
                 <Route path="/test-ai-agent" element={<TestAIAgent />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/how-it-works" element={<SeeHowItWorks />} />
+                <Route path="/why-us" element={<WhyUs />} />
               </Routes>
             </div>
             <Toaster />
