@@ -14,7 +14,7 @@ import Settings from './pages/Settings';
 import Conversations from './pages/Conversations';
 import TestAIAgent from './pages/TestAIAgent';
 import Availability from './pages/Availability';
-import Profile from './pages/Profile';
+import { ProfileDashboard } from './components/ProfileDashboard';
 import FAQ from './pages/FAQ';
 import SeeHowItWorks from './pages/SeeHowItWorks';
 import WhyUs from './pages/WhyUs';
@@ -36,7 +36,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/availability" element={<Availability />} />
-                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile" element={<ProfileDashboard />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/conversations" element={<Conversations />} />
                 <Route path="/test-ai-agent" element={<TestAIAgent />} />
