@@ -62,7 +62,7 @@ const CalendarMockup = () => {
                     : 'bg-muted/20 border border-border/10 opacity-50'
                 }`}
               >
-                {/* Day Number - Top Left */}
+                {/* Day Number */}
                 <div className={`text-xs font-medium ${
                   isDayToday 
                     ? 'bg-primary text-primary-foreground w-4 h-4 rounded-md flex items-center justify-center text-[10px]' 
@@ -71,19 +71,16 @@ const CalendarMockup = () => {
                   {format(day, 'd')}
                 </div>
 
-                {/* Indicator Dot - Absolute positioned for single appointments only */}
-                {dayBookings.length === 1 && (
-                  <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                )}
-                
-                {/* Booking Content - Direct under day number with no gap */}
-                <div className="flex-1 flex flex-col justify-start">
+                {/* Booking Content - Direct under day number */}
+                <div className="flex-1 flex flex-col justify-start mt-0.5">
                   {dayBookings.length === 1 && (
-                    <div className="w-full p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
-                      <div className="text-[10px] text-slate-200 font-medium truncate text-left">
+                    <div className="w-full p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30 relative">
+                      {/* Indicator dot INSIDE the booking card */}
+                      <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                      <div className="text-[10px] text-slate-200 font-medium truncate text-left pr-3">
                         {format(new Date(dayBookings[0].start_time), 'HH:mm')}
                       </div>
-                      <div className="text-[9px] text-slate-300/80 truncate text-left">
+                      <div className="text-[9px] text-slate-300/80 truncate text-left pr-3">
                         {dayBookings[0].customer_name}
                       </div>
                     </div>
