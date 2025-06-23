@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -12,7 +13,7 @@ import {
   Bot,
   ArrowLeft,
   Clock,
-  User
+  Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,7 +29,7 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Kalender', href: '/calendar', icon: Calendar },
   { name: 'Availability', href: '/availability', icon: Clock },
-  { name: 'Profile', href: '/profile', icon: User },
+  { name: 'Overview', href: '/profile', icon: Eye },
   { name: 'WhatsApp', href: '/conversations', icon: MessageCircle },
   { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot },
   { name: 'Instellingen', href: '/settings', icon: Settings },

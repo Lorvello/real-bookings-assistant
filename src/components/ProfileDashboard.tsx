@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Calendar, MessageCircle, BarChart3, Wrench } from 'lucide-react';
+import { Calendar, Wrench } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,20 +9,12 @@ import { useProfile } from '@/hooks/useProfile';
 import { ServiceTypesManager } from '@/components/ServiceTypesManager';
 import { CalendarOverviewCards } from '@/components/dashboard/CalendarOverviewCards';
 import { CalendarManagement } from '@/components/dashboard/CalendarManagement';
-import { WhatsAppConfiguration } from '@/components/dashboard/WhatsAppConfiguration';
-import { AnalyticsPlaceholder } from '@/components/dashboard/AnalyticsPlaceholder';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import type { WhatsAppStatus } from '@/types/calendar';
 
 export function ProfileDashboard() {
   const { user } = useAuth();
   const { calendars, loading: calendarsLoading } = useCalendars();
   const { profile, loading: profileLoading } = useProfile();
-  const [whatsappStatus] = useState<WhatsAppStatus>({
-    isConnected: true, // Mock data - replace with actual WhatsApp status
-    lastSeen: new Date(),
-    phoneNumber: '+31 6 12345678'
-  });
 
   // Get the first active calendar for service types
   const activeCalendar = calendars.find(cal => cal.is_active) || calendars[0];
@@ -51,45 +43,22 @@ export function ProfileDashboard() {
           <p className="text-gray-400 mt-1">
             Beheer je WhatsApp Booking Assistant
           </p>
-          
-          {/* WhatsApp Status */}
-          <div className="flex items-center mt-4 space-x-3">
-            <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${whatsappStatus.isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-              <span className={`text-sm font-medium ${whatsappStatus.isConnected ? 'text-green-400' : 'text-red-400'}`}>
-                {whatsappStatus.isConnected ? 'WhatsApp Actief' : 'WhatsApp Offline'}
-              </span>
-            </div>
-            {whatsappStatus.phoneNumber && (
-              <span className="text-sm text-gray-400 bg-gray-800 px-2 py-1 rounded">
-                {whatsappStatus.phoneNumber}
-              </span>
-            )}
-          </div>
         </div>
 
         {/* Main Dashboard Content */}
-        <Tabs defaultValue="calendar" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-gray-800">
-            <TabsTrigger value="calendar" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600">
+        <Tabs defaultValue="overzicht" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+            <TabsTrigger value="overzicht" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600">
               <Calendar className="h-4 w-4" />
-              Kalender
+              Overzicht
             </TabsTrigger>
             <TabsTrigger value="services" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600">
               <Wrench className="h-4 w-4" />
               Service Types
             </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600">
-              <MessageCircle className="h-4 w-4" />
-              WhatsApp
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="calendar" className="space-y-6">
+          <TabsContent value="overzicht" className="space-y-6">
             <CalendarOverviewCards calendars={calendars} />
             <CalendarManagement calendars={calendars} />
           </TabsContent>
@@ -110,14 +79,6 @@ export function ProfileDashboard() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-
-          <TabsContent value="whatsapp" className="space-y-6">
-            <WhatsAppConfiguration whatsappStatus={whatsappStatus} />
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-6">
-            <AnalyticsPlaceholder />
           </TabsContent>
         </Tabs>
       </div>
