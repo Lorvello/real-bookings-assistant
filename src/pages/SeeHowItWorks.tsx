@@ -3,9 +3,6 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import ProcessHighlights from '@/components/how-it-works/ProcessHighlights';
 import AITestSection from '@/components/how-it-works/AITestSection';
-import StepSection from '@/components/how-it-works/StepSection';
-import BonusSection from '@/components/how-it-works/BonusSection';
-import CTASection from '@/components/how-it-works/CTASection';
 
 const SeeHowItWorks = () => {
   return (
@@ -38,9 +35,6 @@ const SeeHowItWorks = () => {
 
       {/* AI Test Section */}
       <AITestSection />
-      <StepSection />
-      <BonusSection />
-      <CTASection />
     </div>
   );
 };
