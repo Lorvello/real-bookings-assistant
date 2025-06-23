@@ -14,20 +14,20 @@ const Index = () => {
   const painPoints = [
     {
       icon: Clock,
-      title: "Uren verspild aan heen-en-weer appen",
-      description: "Elke dag verlies je kostbare tijd aan het plannen van afspraken via WhatsApp. Klanten stellen vragen op onmogelijke tijden en je mist opportunities.",
+      title: "Hours wasted on back-and-forth messaging",
+      description: "Every day you lose valuable time scheduling appointments via WhatsApp. Customers ask questions at impossible times and you miss opportunities.",
       color: "from-red-500 to-red-600"
     },
     {
       icon: PhoneOff,
-      title: "Gemiste calls = gemiste inkomsten", 
-      description: "Wanneer je niet beschikbaar bent, gaan potentiële klanten naar de concurrent. Elke gemiste call is direct verlies van omzet.",
+      title: "Missed calls = missed revenue", 
+      description: "When you're not available, potential customers go to competitors. Every missed call is direct revenue loss.",
       color: "from-orange-500 to-red-500"
     },
     {
       icon: MessageSquareX,
-      title: "Frustratie bij klanten door trage reacties",
-      description: "Klanten verwachten snelle antwoorden. Vertraagde reacties leiden tot ontevredenheid en negatieve reviews die je reputatie schaden.",
+      title: "Customer frustration from slow responses",
+      description: "Customers expect quick answers. Delayed responses lead to dissatisfaction and negative reviews that damage your reputation.",
       color: "from-red-600 to-red-700"
     }
   ];
@@ -41,10 +41,10 @@ const Index = () => {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12 sm:mb-16">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6">
-                Herken je dit <span className="text-red-400">probleem</span>?
+                Do you recognize this <span className="text-red-400">problem</span>?
               </h2>
               <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto px-4 sm:px-0">
-                Deze dagelijkse frustraties kosten je tijd, geld en klanten. Het wordt tijd voor een oplossing.
+                These daily frustrations cost you time, money and customers. It's time for a solution.
               </p>
             </div>
             

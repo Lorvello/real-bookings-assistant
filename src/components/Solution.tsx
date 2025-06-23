@@ -19,18 +19,18 @@ const Solution = () => {
         <div className="text-center mb-16 sm:mb-20">
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 backdrop-blur-sm">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <span className="text-emerald-300 text-xs sm:text-sm font-medium">De Oplossing</span>
+            <span className="text-emerald-300 text-xs sm:text-sm font-medium">The Solution</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight px-4 sm:px-0">
-            Ontmoet Je <span className="text-emerald-400">24/7</span><br />
+            Meet Your <span className="text-emerald-400">24/7</span><br />
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-              Boekings Assistent
+              Booking Assistant
             </span>
           </h2>
           <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
-            De AI die nooit slaapt, nooit een lead mist, en afspraken boekt 
-            sneller dan welke mens dan ook.
+            The AI that never sleeps, never misses a lead, and books appointments 
+            faster than any human could.
           </p>
         </div>
         
@@ -45,15 +45,15 @@ const Solution = () => {
               <div className="absolute inset-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
             </div>
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 leading-tight group-hover:text-emerald-300 transition-colors duration-300">
-              Directe WhatsApp Antwoorden
+              Instant WhatsApp Responses
             </h3>
             <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-200 transition-colors duration-300 mb-4 sm:mb-6">
-              Reageert binnen seconden op elk bericht, 24/7. Je klanten krijgen direct antwoord 
-              op hun vragen en beschikbare tijdslots.
+              Responds within seconds to every message, 24/7. Your customers get immediate answers 
+              to their questions and available time slots.
             </p>
             <div className="flex items-center justify-center text-emerald-400 font-semibold text-sm sm:text-base">
               <Clock className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              <span>Gemiddelde reactie: 3 seconden</span>
+              <span>Average response: 3 seconds</span>
             </div>
           </div>
 
@@ -66,15 +66,15 @@ const Solution = () => {
               <div className="absolute inset-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
             </div>
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 leading-tight group-hover:text-blue-300 transition-colors duration-300">
-              Slimme Gespreksvoering
+              Smart Conversations
             </h3>
             <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-200 transition-colors duration-300 mb-4 sm:mb-6">
-              Begrijpt context, stelt de juiste vragen, en begeleidt klanten 
-              naar het perfecte afspraaktijdstip dat voor iedereen werkt.
+              Understands context, asks the right questions, and guides customers 
+              to the perfect appointment time that works for everyone.
             </p>
             <div className="flex items-center justify-center text-blue-400 font-semibold text-sm sm:text-base">
               <Users className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              <span>98% klanttevredenheid</span>
+              <span>98% customer satisfaction</span>
             </div>
           </div>
 
@@ -87,15 +87,15 @@ const Solution = () => {
               <div className="absolute inset-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
             </div>
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 leading-tight group-hover:text-purple-300 transition-colors duration-300">
-              Perfect Voor Elk Bedrijf
+              Perfect For Every Business
             </h3>
             <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-200 transition-colors duration-300 mb-4 sm:mb-6">
-              Salons, klinieken, fitnessstudio's, consultants - als je afspraken boekt, 
-              past onze AI zich aan je specifieke bedrijfsbehoeften aan.
+              Salons, clinics, gyms, consultants - if you book appointments, 
+              our AI adapts to your specific business needs.
             </p>
             <div className="flex items-center justify-center text-purple-400 font-semibold text-sm sm:text-base">
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              <span>300% meer boekingen gem.</span>
+              <span>300% more bookings avg.</span>
             </div>
           </div>
         </div>
