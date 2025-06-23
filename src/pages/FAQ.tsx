@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
@@ -7,294 +8,381 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { MessageCircle, Zap, Shield, Star, CheckCircle, HelpCircle, Phone, Mail } from 'lucide-react';
 
 const FAQ = () => {
   const faqSections = [
     {
-      title: "General Questions",
+      title: "Algemene Vragen",
+      icon: HelpCircle,
+      color: "from-blue-500/10 to-purple-500/10",
+      borderColor: "border-blue-500/20",
       items: [
         {
-          question: "What is your WhatsApp booking platform?",
-          answer: "Our platform is an AI-powered WhatsApp assistant that automatically books, confirms, and manages appointments for service-based businesses. Customers can make appointments 24/7 via WhatsApp without any manual intervention from you."
+          question: "Wat is jullie WhatsApp boekingsplatform?",
+          answer: "Ons platform is een AI-powered WhatsApp assistent die automatisch afspraken boekt, bevestigt en beheert voor servicegerichte bedrijven. Klanten kunnen 24/7 afspraken maken via WhatsApp zonder enige handmatige interventie van jou."
         },
         {
-          question: "How does it work exactly?",
-          answer: "Customers send a WhatsApp message to your business number. Our AI understands their request, checks your availability, automatically books the appointment, and sends confirmations to both parties. Everything syncs with your calendar."
+          question: "Hoe werkt het precies?",
+          answer: "Klanten sturen een WhatsApp bericht naar jouw bedrijfsnummer. Onze AI begrijpt hun verzoek, checkt jouw beschikbaarheid, boekt automatisch de afspraak en stuurt bevestigingen naar beide partijen. Alles synchroniseert met jouw agenda."
         },
         {
-          question: "What types of businesses is this suitable for?",
-          answer: "Perfect for hair salons, dentists, physiotherapists, beauty salons, fitness studios, consultants, lawyers, massage therapists, nail studios, barbershops, and all other service providers who make appointments."
+          question: "Voor welke types bedrijven is dit geschikt?",
+          answer: "Perfect voor kappers, tandartsen, fysiotherapeuten, schoonheidssalons, fitness studio's, consultants, advocaten, massagetherapeuten, nagelstudio's, barbershops en alle andere dienstverleners die met afspraken werken."
         },
         {
-          question: "How much time does this save me?",
-          answer: "On average, our clients save 10-15 hours per week on phone answering and appointment scheduling. You can focus completely on your clients instead of administration."
+          question: "Hoeveel tijd bespaart dit mij?",
+          answer: "Gemiddeld besparen onze klanten 10-15 uur per week aan telefoon opnemen en afspraken inplannen. Je kunt je volledig focussen op je klanten in plaats van administratie."
         },
         {
-          question: "Is it difficult to set up?",
-          answer: "No! Setup usually takes 5-10 minutes. You connect your WhatsApp number, import your calendar, and the AI automatically learns your services and prices."
+          question: "Is het moeilijk op te zetten?",
+          answer: "Nee! Setup duurt meestal 5-10 minuten. Je verbindt je WhatsApp nummer, importeert je agenda en de AI leert automatisch je diensten en prijzen."
         }
       ]
     },
     {
-      title: "Technical Questions",
+      title: "Technische Vragen",
+      icon: Zap,
+      color: "from-green-500/10 to-emerald-500/10",
+      borderColor: "border-green-500/20",
       items: [
         {
-          question: "Do I need a business WhatsApp number?",
-          answer: "It's recommended. You use our business WhatsApp number that we will give you, but you can also use your own if needed."
+          question: "Heb ik een business WhatsApp nummer nodig?",
+          answer: "Het wordt aangeraden. Je gebruikt ons business WhatsApp nummer dat we je geven, maar je kunt ook je eigen gebruiken indien nodig."
         },
         {
-          question: "Which calendars does it integrate with?",
-          answer: "Google Calendar, Outlook, Apple Calendar, Calendly, and most popular calendar applications. Also CRM systems like Notion, Airtable, and HubSpot."
+          question: "Met welke agenda's integreert het?",
+          answer: "Google Agenda, Outlook, Apple Agenda, Calendly en de meeste populaire agenda applicaties. Ook CRM systemen zoals Notion, Airtable en HubSpot."
         },
         {
-          question: "Does it work in multiple languages?",
-          answer: "Yes! Our AI speaks fluent English, Dutch, Spanish, French, German, and 20+ other languages. You can adjust the tone and style to match your business."
+          question: "Werkt het in meerdere talen?",
+          answer: "Ja! Onze AI spreekt vloeiend Nederlands, Engels, Spaans, Frans, Duits en 20+ andere talen. Je kunt de toon en stijl aanpassen aan jouw bedrijf."
         },
         {
-          question: "What happens if our AI makes a mistake?",
-          answer: "The AI does not make mistakes. You always get notifications of booked appointments and can cancel or modify them within 5 minutes."
+          question: "Wat gebeurt er als de AI een fout maakt?",
+          answer: "De AI maakt geen fouten. Je krijgt altijd notificaties van geboekte afspraken en kunt ze binnen 5 minuten annuleren of wijzigen."
         },
         {
-          question: "Is my data secure?",
-          answer: "Absolutely. We are GDPR compliant, use end-to-end encryption, and have SOC 2 certification. Your customer data is never shared."
+          question: "Zijn mijn gegevens veilig?",
+          answer: "Absoluut. We zijn GDPR compliant, gebruiken end-to-end encryptie en hebben SOC 2 certificering. Jouw klantgegevens worden nooit gedeeld."
         },
         {
-          question: "Can I customize the chatbot?",
-          answer: "Yes! You can fully customize the personality, responses, services, prices, and availability. It feels like your personal assistant."
+          question: "Kan ik de chatbot aanpassen?",
+          answer: "Ja! Je kunt de persoonlijkheid, antwoorden, diensten, prijzen en beschikbaarheid volledig aanpassen. Het voelt als jouw persoonlijke assistent."
         }
       ]
     },
     {
-      title: "Pricing & Plans",
+      title: "Prijzen & Plannen",
+      icon: Star,
+      color: "from-yellow-500/10 to-orange-500/10",
+      borderColor: "border-yellow-500/20",
       items: [
         {
-          question: "What does it cost?",
-          answer: "Starter starts at €20/month, Professional €48/month, and Enterprise custom pricing. Starter and Professional plans have a free 7-day trial. Enterprise does not have a free trial."
+          question: "Wat kost het?",
+          answer: "Starter begint bij €20/maand, Professional €48/maand en Enterprise custom pricing. Starter en Professional plannen hebben een gratis 7-dagen proefperiode. Enterprise heeft geen gratis proefperiode."
         },
         {
-          question: "Are there setup costs?",
-          answer: "No setup costs. You only pay the monthly subscription."
+          question: "Zijn er setup kosten?",
+          answer: "Geen setup kosten. Je betaalt alleen het maandelijkse abonnement."
         },
         {
-          question: "Can I upgrade or downgrade?",
-          answer: "Yes, you can always switch between plans. Changes take effect from the next billing period."
+          question: "Kan ik upgraden of downgraden?",
+          answer: "Ja, je kunt altijd wisselen tussen plannen. Wijzigingen gaan in vanaf de volgende factureringsperiode."
         },
         {
-          question: "What happens if I cancel?",
-          answer: "You can always export your data. We retain your data for 30 days after cancellation in case you want to return."
+          question: "Wat gebeurt er als ik stop?",
+          answer: "Je kunt altijd je data exporteren. We bewaren je gegevens 30 dagen na opzegging voor het geval je terug wilt komen."
         },
         {
-          question: "Is there a long-term contract?",
-          answer: "No, you can cancel monthly. However, you get 20% discount with annual payment."
+          question: "Is er een lange termijn contract?",
+          answer: "Nee, je kunt maandelijks opzeggen. Je krijgt echter 20% korting bij jaarlijkse betaling."
         }
       ]
     },
     {
-      title: "Features",
+      title: "Functies",
+      icon: CheckCircle,
+      color: "from-emerald-500/10 to-green-500/10",
+      borderColor: "border-emerald-500/20",
       items: [
         {
-          question: "Can it reschedule and cancel appointments?",
-          answer: "Yes! Customers can modify their appointments themselves via WhatsApp. The system automatically checks new availability."
+          question: "Kan het afspraken verzetten en annuleren?",
+          answer: "Ja! Klanten kunnen hun afspraken zelf wijzigen via WhatsApp. Het systeem checkt automatisch nieuwe beschikbaarheid."
         },
         {
-          question: "Does it send reminders?",
-          answer: "Yes, automatic reminders 24 hours and 2 hours before the appointment. You can set frequency and timing yourself."
+          question: "Stuurt het herinneringen?",
+          answer: "Ja, automatische herinneringen 24 uur en 2 uur voor de afspraak. Je kunt frequentie en timing zelf instellen."
         },
         {
-          question: "Can it process payments?",
-          answer: "Not directly at the moment, but we can send payment links via WhatsApp. Full payment integration is coming soon."
+          question: "Kan het betalingen verwerken?",
+          answer: "Niet direct op dit moment, maar we kunnen betaallinks versturen via WhatsApp. Volledige betaalintegratie komt binnenkort."
         },
         {
-          question: "Does it handle no-shows?",
-          answer: "Yes! The system detects no-shows and can automatically send follow-up messages or offer replacement appointments."
+          question: "Handelt het no-shows af?",
+          answer: "Ja! Het systeem detecteert no-shows en kan automatisch follow-up berichten sturen of vervangingsafspraken aanbieden."
         },
         {
-          question: "Can I offer multiple services?",
-          answer: "Absolutely. You can set up different services, prices, and durations. The AI understands what customers want."
+          question: "Kan ik meerdere diensten aanbieden?",
+          answer: "Absoluut. Je kunt verschillende diensten, prijzen en duur instellen. De AI begrijpt wat klanten willen."
         },
         {
-          question: "Does it work for group appointments?",
-          answer: "Yes, you can set up group classes, workshops, or events with maximum number of participants."
+          question: "Werkt het voor groepsafspraken?",
+          answer: "Ja, je kunt groepslessen, workshops of events instellen met maximum aantal deelnemers."
         }
       ]
     },
     {
       title: "Support",
+      icon: Shield,
+      color: "from-purple-500/10 to-pink-500/10",
+      borderColor: "border-purple-500/20",
       items: [
         {
-          question: "What type of support can I get?",
-          answer: "Starter: dedicated support. Professional: priority support. Enterprise: dedicated priority support."
+          question: "Welk type support kan ik krijgen?",
+          answer: "Starter: toegewijde support. Professional: priority support. Enterprise: toegewijde priority support."
         },
         {
-          question: "How quickly do I get a response?",
-          answer: "Dedicated support: within 24 hours. Priority support: within 4 hours. Dedicated priority support: within 1 hour."
+          question: "Hoe snel krijg ik een reactie?",
+          answer: "Toegewijde support: binnen 24 uur. Priority support: binnen 4 uur. Toegewijde priority support: binnen 1 uur."
         },
         {
-          question: "Is training available?",
-          answer: "Yes! We offer free onboarding sessions, video tutorials, and for Enterprise customers, personalized training."
+          question: "Is training beschikbaar?",
+          answer: "Ja! We bieden gratis onboarding sessies, video tutorials en voor Enterprise klanten gepersonaliseerde training."
         },
         {
-          question: "Can your team set it up for me?",
-          answer: "For Enterprise customers we do \"done-for-you\" setup. For other plans we have detailed guides and support."
+          question: "Kan jullie team het voor mij opzetten?",
+          answer: "Voor Enterprise klanten doen we \"done-for-you\" setup. Voor andere plannen hebben we gedetailleerde handleidingen en support."
         }
       ]
     },
     {
-      title: "Integrations",
+      title: "Integraties",
+      icon: Zap,
+      color: "from-cyan-500/10 to-blue-500/10",
+      borderColor: "border-cyan-500/20",
       items: [
         {
-          question: "Which CRM systems are supported?",
-          answer: "Notion, Airtable, HubSpot, Salesforce, Pipedrive, and many others via API connections."
+          question: "Welke CRM systemen worden ondersteund?",
+          answer: "Notion, Airtable, HubSpot, Salesforce, Pipedrive en vele anderen via API connecties."
         },
         {
-          question: "Does it work with my website?",
-          answer: "Yes! You can place a WhatsApp widget on your website that directly links to the booking bot."
+          question: "Werkt het met mijn website?",
+          answer: "Ja! Je kunt een WhatsApp widget op je website plaatsen die direct linkt naar de booking bot."
         },
         {
-          question: "Can it create social media posts?",
-          answer: "Enterprise customers get automatic social media content creation and posting (Instagram, Facebook, LinkedIn)."
+          question: "Kan het social media posts maken?",
+          answer: "Enterprise klanten krijgen automatische social media content creatie en posting (Instagram, Facebook, LinkedIn)."
         },
         {
-          question: "Does it integrate with email marketing?",
-          answer: "Yes, we can automatically add customers to your Mailchimp, Klaviyo, or other email lists."
+          question: "Integreert het met email marketing?",
+          answer: "Ja, we kunnen automatisch klanten toevoegen aan je Mailchimp, Klaviyo of andere email lijsten."
         }
       ]
     },
     {
-      title: "Advanced Features",
+      title: "Geavanceerde Functies",
+      icon: Star,
+      color: "from-indigo-500/10 to-purple-500/10",
+      borderColor: "border-indigo-500/20",
       items: [
         {
-          question: "Can it manage multiple locations?",
-          answer: "Enterprise customers can manage unlimited locations and numbers from one dashboard."
+          question: "Kan het meerdere locaties beheren?",
+          answer: "Enterprise klanten kunnen onbeperkte locaties en nummers beheren vanuit één dashboard."
         },
         {
-          question: "Are analytics available?",
-          answer: "Yes! Detailed reports on booking rates, popular times, no-show percentages, and revenue tracking."
+          question: "Zijn analytics beschikbaar?",
+          answer: "Ja! Gedetailleerde rapporten over boekingspercentages, populaire tijden, no-show percentages en omzet tracking."
         },
         {
-          question: "Can it screen customers?",
-          answer: "Yes, you can set up pre-booking questions to qualify new customers before they book."
+          question: "Kan het klanten screenen?",
+          answer: "Ja, je kunt pre-booking vragen instellen om nieuwe klanten te kwalificeren voordat ze boeken."
         },
         {
-          question: "Does it work with waitlists?",
-          answer: "Yes! When you're fully booked, customers can join the waitlist and automatically get notified of cancellations."
+          question: "Werkt het met wachtlijsten?",
+          answer: "Ja! Wanneer je volgeboekt bent, kunnen klanten zich op de wachtlijst zetten en automatisch worden genotificeerd bij annuleringen."
         },
         {
-          question: "Can it upsell?",
-          answer: "Absolutely. The AI can suggest additional services, products, or longer sessions during the booking process."
+          question: "Kan het upsellen?",
+          answer: "Absoluut. De AI kan extra diensten, producten of langere sessies voorstellen tijdens het boekingsproces."
         }
       ]
     },
     {
-      title: "Troubleshooting",
+      title: "Probleemoplossing",
+      icon: MessageCircle,
+      color: "from-red-500/10 to-pink-500/10",
+      borderColor: "border-red-500/20",
       items: [
         {
-          question: "What if WhatsApp is down?",
-          answer: "We have backup systems and can temporarily switch to SMS or email notifications."
+          question: "Wat als WhatsApp down is?",
+          answer: "We hebben backup systemen en kunnen tijdelijk overschakelen naar SMS of email notificaties."
         },
         {
-          question: "My customers aren't tech-savvy, will this work?",
-          answer: "Yes! WhatsApp is familiar to most people. The AI uses simple language and guides customers step by step."
+          question: "Mijn klanten zijn niet tech-savvy, werkt dit?",
+          answer: "Ja! WhatsApp is bekend bij de meeste mensen. De AI gebruikt eenvoudige taal en begeleidt klanten stap voor stap."
         },
         {
-          question: "Can I turn it off during holidays?",
-          answer: "Yes, you can activate vacation mode that informs customers about your absence and when you'll return."
+          question: "Kan ik het uitzetten tijdens vakanties?",
+          answer: "Ja, je kunt vakantiemodus activeren die klanten informeert over je afwezigheid en wanneer je terugkomt."
         },
         {
-          question: "What if I lose my phone?",
-          answer: "Your WhatsApp Business account is linked to our platform, not your phone. You can always log in via the web interface."
+          question: "Wat als ik mijn telefoon kwijtraak?",
+          answer: "Je WhatsApp Business account is gekoppeld aan ons platform, niet aan je telefoon. Je kunt altijd inloggen via de web interface."
         },
         {
-          question: "How do I cancel my subscription?",
-          answer: "You can cancel anytime from your dashboard or by contacting support. No cancellation fees."
+          question: "Hoe zeg ik mijn abonnement op?",
+          answer: "Je kunt altijd opzeggen vanuit je dashboard of door contact op te nemen met support. Geen opzegkosten."
         },
         {
-          question: "Do you offer refunds?",
-          answer: "We offer a 7-day free trial, so you can test everything risk-free. After that, no refunds but you can cancel anytime."
+          question: "Bieden jullie refunds aan?",
+          answer: "We bieden een 7-dagen gratis proefperiode, dus je kunt alles risico-vrij testen. Daarna geen refunds maar je kunt altijd opzeggen."
         },
         {
-          question: "Can I pause my subscription?",
-          answer: "Enterprise customers can pause their subscription. Other plans need to cancel and restart when ready."
+          question: "Kan ik mijn abonnement pauzeren?",
+          answer: "Enterprise klanten kunnen hun abonnement pauzeren. Andere plannen moeten opzeggen en opnieuw starten wanneer klaar."
         },
         {
-          question: "What countries do you support?",
-          answer: "We support businesses worldwide, with local phone number support in 50+ countries."
+          question: "Welke landen ondersteunen jullie?",
+          answer: "We ondersteunen bedrijven wereldwijd, met lokale telefoonnummer support in 50+ landen."
         },
         {
-          question: "Is there an app?",
-          answer: "Yes! We have mobile apps for iOS and Android to manage your bookings on the go."
+          question: "Is er een app?",
+          answer: "Ja! We hebben mobiele apps voor iOS en Android om je boekingen onderweg te beheren."
         },
         {
-          question: "Can multiple team members access the dashboard?",
-          answer: "Professional and Enterprise plans support multiple team member access with different permission levels."
+          question: "Kunnen meerdere teamleden toegang krijgen?",
+          answer: "Professional en Enterprise plannen ondersteunen meerdere teamleden toegang met verschillende permissieniveaus."
         }
       ]
     }
   ];
 
+  const quickStats = [
+    { number: "95%", label: "Berichten gelezen binnen 5 min", icon: MessageCircle },
+    { number: "50%", label: "Minder no-shows", icon: CheckCircle },
+    { number: "18x", label: "Snellere reacties", icon: Zap },
+    { number: "24/7", label: "Automatische boekingen", icon: Shield }
+  ];
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
       <Navbar />
-      <div className="max-w-4xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <ScrollAnimatedSection className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Frequently Asked Questions
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Everything you need to know about our AI-powered WhatsApp booking platform. 
-            Can't find what you're looking for? Contact our support team.
-          </p>
-        </ScrollAnimatedSection>
-
-        {/* FAQ Sections */}
-        <div className="space-y-8">
-          {faqSections.map((section, sectionIndex) => (
-            <ScrollAnimatedSection 
-              key={sectionIndex} 
-              className="bg-gray-50 rounded-xl p-6"
-              delay={sectionIndex * 100}
-            >
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b border-gray-200 pb-3">
-                {section.title}
-              </h2>
-              <Accordion type="single" collapsible className="w-full">
-                {section.items.map((item, itemIndex) => (
-                  <AccordionItem 
-                    key={itemIndex} 
-                    value={`${sectionIndex}-${itemIndex}`}
-                    className="border-gray-200"
-                  >
-                    <AccordionTrigger className="text-left hover:no-underline hover:text-green-600 transition-colors">
-                      <span className="font-medium text-gray-900">{item.question}</span>
-                    </AccordionTrigger>
-                    <AccordionContent className="text-gray-600 leading-relaxed">
-                      {item.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </ScrollAnimatedSection>
-          ))}
+      
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-24 px-4 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
         </div>
+        
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
+        
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <ScrollAnimatedSection>
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+              Veelgestelde <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Vragen</span>
+            </h1>
+            <p className="text-xl text-slate-300 max-w-4xl mx-auto mb-16">
+              Alles wat je moet weten over ons AI-powered WhatsApp boekingsplatform. 
+              Kan je niet vinden wat je zoekt? <strong className="text-emerald-400">Neem contact op met ons support team</strong>.
+            </p>
+          </ScrollAnimatedSection>
 
-        {/* Contact CTA */}
-        <ScrollAnimatedSection 
-          className="mt-16 text-center bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-8"
-          delay={800}
-        >
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            Still have questions?
-          </h3>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Our support team is here to help you get started with AI-powered booking automation. 
-            Get in touch and we'll answer any questions you have.
-          </p>
-          <button className="bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors shadow-lg">
-            Contact Support
-          </button>
-        </ScrollAnimatedSection>
-      </div>
+          {/* Quick Stats */}
+          <ScrollAnimatedSection delay={200}>
+            <div className="grid md:grid-cols-4 gap-6 mb-16">
+              {quickStats.map((stat, index) => (
+                <div key={index} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:bg-slate-800/70 transition-all duration-300">
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                    <stat.icon className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div className="text-3xl font-bold text-white mb-2">{stat.number}</div>
+                  <div className="text-slate-400 text-sm">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </ScrollAnimatedSection>
+        </div>
+      </section>
+
+      {/* FAQ Sections */}
+      <section className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="space-y-12">
+            {faqSections.map((section, sectionIndex) => (
+              <ScrollAnimatedSection 
+                key={sectionIndex} 
+                className={`bg-gradient-to-r ${section.color} backdrop-blur-sm rounded-2xl p-8 border ${section.borderColor} hover:border-opacity-40 transition-all duration-300`}
+                delay={sectionIndex * 100}
+              >
+                {/* Section Header */}
+                <div className="flex items-center space-x-4 mb-8">
+                  <div className="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center">
+                    <section.icon className="w-8 h-8 text-emerald-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-white mb-2">{section.title}</h2>
+                    <div className="h-1 w-20 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full"></div>
+                  </div>
+                </div>
+
+                {/* FAQ Items */}
+                <Accordion type="single" collapsible className="w-full space-y-4">
+                  {section.items.map((item, itemIndex) => (
+                    <AccordionItem 
+                      key={itemIndex} 
+                      value={`${sectionIndex}-${itemIndex}`}
+                      className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50 px-6 hover:bg-slate-800/50 transition-all duration-300"
+                    >
+                      <AccordionTrigger className="text-left hover:no-underline hover:text-emerald-400 transition-colors py-6">
+                        <span className="font-semibold text-white text-lg">{item.question}</span>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-slate-300 leading-relaxed pb-6 text-base">
+                        {item.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </ScrollAnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact CTA */}
+      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-slate-800/20">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 backdrop-blur-sm rounded-2xl p-12 border border-emerald-500/20">
+            <h3 className="text-3xl font-bold text-white mb-6">
+              Nog steeds vragen?
+            </h3>
+            <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+              Ons support team staat klaar om je te helpen met AI-powered booking automatisering. 
+              Neem contact op en we beantwoorden alle vragen die je hebt.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-emerald-600 hover:to-green-600 transition-all duration-300 shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center space-x-2">
+                <MessageCircle className="w-5 h-5" />
+                <span>Start WhatsApp Chat</span>
+              </button>
+              
+              <button className="bg-slate-800/50 backdrop-blur-sm text-white px-8 py-4 rounded-xl font-semibold hover:bg-slate-800/70 transition-all duration-300 border border-slate-700/50 hover:border-slate-600/50 flex items-center justify-center space-x-2">
+                <Mail className="w-5 h-5" />
+                <span>Email Ondersteuning</span>
+              </button>
+            </div>
+
+            <div className="mt-8 text-slate-400 text-sm">
+              <p>📞 <strong>Telefonische support:</strong> Ma-Vr 9:00-18:00</p>
+              <p>💬 <strong>Live chat:</strong> 24/7 beschikbaar</p>
+            </div>
+          </div>
+        </div>
+      </ScrollAnimatedSection>
     </div>
   );
 };
