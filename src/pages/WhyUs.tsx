@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
@@ -148,37 +149,47 @@ const WhyUs = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
       <Navbar />
       
       {/* Hero Section - Why Choose Us */}
-      <ScrollAnimatedSection as="section" className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-20 px-4 text-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Why 10,000+ Businesses Choose <span className="text-green-400">Us Over Everyone Else</span>
-            </h1>
-            <p className="text-2xl text-slate-300 max-w-4xl mx-auto mb-8">
-              While our competitors promise, we <strong className="text-green-400">deliver proven results</strong>. 
-              Here's exactly why smart businesses choose us over the alternatives.
-            </p>
-            <div className="bg-green-500/20 border border-green-400 p-6 rounded-xl max-w-2xl mx-auto">
-              <p className="text-xl font-semibold text-green-300">
-                ✅ 4+ years of proven results • 300% better than competitors • Enterprise-grade for everyone
-              </p>
-            </div>
-          </div>
+      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-24 px-4 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
+        </div>
+        
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
+        
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+            Why 10,000+ Businesses Choose <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Us Over Everyone Else</span>
+          </h1>
+          <p className="text-xl text-slate-300 max-w-4xl mx-auto mb-16">
+            While our competitors promise, we <strong className="text-emerald-400">deliver proven results</strong>. 
+            Here's exactly why smart businesses choose us over the alternatives.
+          </p>
           
-          {/* Social Proof Stats */}
+          <div className="border border-emerald-500/20 rounded-2xl p-8 max-w-2xl mx-auto">
+            <p className="text-xl font-semibold text-emerald-300">
+              ✅ 4+ years of proven results • 300% better than competitors • Enterprise-grade for everyone
+            </p>
+          </div>
+        </div>
+        
+        {/* Social Proof Stats */}
+        <div className="max-w-7xl mx-auto mt-20 relative z-10">
           <div className="grid md:grid-cols-4 gap-8">
             {proofPoints.map((stat, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 text-center"
+                className="text-center"
                 delay={index * 100}
               >
-                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                  <stat.icon className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                  <stat.icon className="w-6 h-6 text-emerald-400" />
                 </div>
                 <div className="text-3xl font-bold text-white mb-2">{stat.number}</div>
                 <div className="text-slate-400">{stat.label}</div>
@@ -186,16 +197,16 @@ const WhyUs = () => {
             ))}
           </div>
         </div>
-      </ScrollAnimatedSection>
+      </section>
 
       {/* Competitive Advantages Section */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-slate-50">
+      <ScrollAnimatedSection as="section" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl font-bold text-white mb-6">
               What Makes Us Different From Everyone Else
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
               We didn't just build another booking tool. We built the most advanced AI assistant that actually understands your business.
             </p>
           </div>
@@ -204,15 +215,15 @@ const WhyUs = () => {
             {competitiveAdvantages.map((advantage, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="bg-white p-8 rounded-2xl border border-slate-200 shadow-lg hover:shadow-xl transition-all"
+                className="border border-slate-700/30 rounded-2xl p-8 hover:border-emerald-500/30 transition-all duration-300"
                 delay={index * 150}
               >
-                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mb-6">
-                  <advantage.icon className="w-8 h-8 text-green-600" />
+                <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6">
+                  <advantage.icon className="w-8 h-8 text-emerald-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{advantage.title}</h3>
-                <p className="text-gray-600 mb-4">{advantage.description}</p>
-                <div className="text-green-600 font-bold text-sm bg-green-50 px-3 py-2 rounded-lg inline-block">
+                <h3 className="text-xl font-bold text-white mb-4">{advantage.title}</h3>
+                <p className="text-slate-300 mb-4">{advantage.description}</p>
+                <div className="text-emerald-400 font-bold text-sm">
                   {advantage.proof}
                 </div>
               </ScrollAnimatedSection>
@@ -225,10 +236,10 @@ const WhyUs = () => {
       <ScrollAnimatedSection as="section" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              The <span className="text-green-600">Only Platform</span> That Delivers On Every Promise
+            <h2 className="text-4xl font-bold text-white mb-6">
+              The <span className="text-emerald-400">Only Platform</span> That Delivers On Every Promise
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
               Stop settling for "good enough" solutions. Get the industry-leading platform that actually works as advertised.
             </p>
           </div>
@@ -237,15 +248,15 @@ const WhyUs = () => {
             {whyChooseUs.map((feature, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="bg-gradient-to-br from-green-50 to-green-100/50 p-8 rounded-2xl border border-green-200 hover:border-green-300 transition-all"
+                className="border border-emerald-500/20 rounded-2xl p-8 hover:border-emerald-500/40 transition-all duration-300"
                 delay={index * 150}
               >
-                <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mb-6">
-                  <feature.icon className="w-8 h-8 text-green-600" />
+                <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6">
+                  <feature.icon className="w-8 h-8 text-emerald-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{feature.title}</h3>
-                <p className="text-gray-600 mb-4">{feature.description}</p>
-                <div className="text-green-700 font-bold text-lg">{feature.benefit}</div>
+                <h3 className="text-xl font-bold text-white mb-4">{feature.title}</h3>
+                <p className="text-slate-300 mb-4">{feature.description}</p>
+                <div className="text-emerald-400 font-bold text-lg">{feature.benefit}</div>
               </ScrollAnimatedSection>
             ))}
           </div>
@@ -253,41 +264,41 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Us vs Traditional */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-gray-50">
+      <ScrollAnimatedSection as="section" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl font-bold text-white mb-6">
               Us vs Traditional Booking Methods
             </h2>
-            <p className="text-xl text-gray-600">See why smart businesses are switching</p>
+            <p className="text-xl text-slate-300">See why smart businesses are switching</p>
           </div>
           
-          <ScrollAnimatedSection className="bg-white rounded-2xl p-8 shadow-lg" delay={200}>
+          <ScrollAnimatedSection className="border border-slate-700/30 rounded-2xl p-8" delay={200}>
             <div className="grid md:grid-cols-3 gap-8 text-center mb-8">
               <div></div>
-              <div className="bg-green-100 p-4 rounded-xl">
-                <h3 className="text-xl font-bold text-green-800">Bookings Assistant AI</h3>
+              <div className="border border-emerald-500/30 rounded-xl p-4">
+                <h3 className="text-xl font-bold text-emerald-400">Bookings Assistant AI</h3>
               </div>
-              <div className="bg-red-100 p-4 rounded-xl">
-                <h3 className="text-xl font-bold text-red-800">Traditional Methods</h3>
+              <div className="border border-red-500/30 rounded-xl p-4">
+                <h3 className="text-xl font-bold text-red-400">Traditional Methods</h3>
               </div>
             </div>
             
             {competitorComparison.map((item, index) => (
-              <div key={index} className="grid md:grid-cols-3 gap-8 py-4 border-b border-gray-200 items-center">
-                <div className="font-medium text-gray-900">{item.feature}</div>
+              <div key={index} className="grid md:grid-cols-3 gap-8 py-4 border-b border-slate-700/30 items-center">
+                <div className="font-medium text-white">{item.feature}</div>
                 <div className="text-center">
                   {item.us ? (
-                    <CheckCircle className="w-8 h-8 text-green-600 mx-auto" />
+                    <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto" />
                   ) : (
-                    <div className="w-8 h-8 text-red-600 mx-auto">❌</div>
+                    <div className="w-8 h-8 text-red-400 mx-auto">❌</div>
                   )}
                 </div>
                 <div className="text-center">
                   {item.traditional ? (
-                    <CheckCircle className="w-8 h-8 text-green-600 mx-auto" />
+                    <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto" />
                   ) : (
-                    <div className="w-8 h-8 text-red-600 mx-auto">❌</div>
+                    <div className="w-8 h-8 text-red-400 mx-auto">❌</div>
                   )}
                 </div>
               </div>
@@ -300,10 +311,10 @@ const WhyUs = () => {
       <ScrollAnimatedSection as="section" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl font-bold text-white mb-6">
               Why Businesses Switch To Us From Competitors
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-slate-300">
               Real stories from businesses who tried others first, then found us
             </p>
           </div>
@@ -312,7 +323,7 @@ const WhyUs = () => {
             {testimonials.map((testimonial, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100"
+                className="border border-slate-700/30 rounded-2xl p-8 hover:border-emerald-500/30 transition-all duration-300"
                 delay={index * 150}
               >
                 <div className="flex gap-1 mb-4">
@@ -320,13 +331,13 @@ const WhyUs = () => {
                     <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                   ))}
                 </div>
-                <p className="text-gray-700 mb-6 italic font-medium">"{testimonial.quote}"</p>
+                <p className="text-slate-300 mb-6 italic font-medium">"{testimonial.quote}"</p>
                 <div className="flex justify-between items-end">
                   <div>
-                    <div className="font-bold text-gray-900">{testimonial.author}</div>
-                    <div className="text-gray-600 text-sm">{testimonial.role}</div>
+                    <div className="font-bold text-white">{testimonial.author}</div>
+                    <div className="text-slate-400 text-sm">{testimonial.role}</div>
                   </div>
-                  <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">
+                  <div className="bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full text-sm font-bold border border-emerald-500/20">
                     {testimonial.result}
                   </div>
                 </div>
