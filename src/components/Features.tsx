@@ -1,3 +1,4 @@
+
 import { Check, Calendar, Globe, BarChart3, Bell, Settings, Zap, Monitor, Link } from "lucide-react";
 
 const Features = () => {
@@ -6,49 +7,57 @@ const Features = () => {
       icon: Zap,
       title: "100% Automatische Boekingen",
       description: "Geen handmatige tussenkomst nodig. Boekt, bevestigt en plant automatisch om",
-      color: "from-emerald-500 to-emerald-600"
+      color: "from-emerald-500 to-emerald-600",
+      hoverTextColor: "group-hover:text-emerald-300"
     },
     {
       icon: Settings,
       title: "Volledig Gepersonaliseerd",
       description: "Pas de AI Agent aan je diensten, FAQ's en boekingslogica aan — van aangepaste kapseltypes tot bedrijfsspecifieke vragen",
-      color: "from-blue-500 to-blue-600"
+      color: "from-blue-500 to-blue-600",
+      hoverTextColor: "group-hover:text-blue-300"
     },
     {
       icon: Calendar,
       title: "Geavanceerd Dashboard & Eigen Kalender",
       description: "Krijg je eigen professionele kalender met een zeer geavanceerd dashboard voor complete controle over je boekingen",
-      color: "from-green-400 to-green-500"
+      color: "from-green-400 to-green-500",
+      hoverTextColor: "group-hover:text-green-300"
     },
     {
       icon: Link,
       title: "Koppel Je Bestaande Kalender",
       description: "Integreer naadloos met Google Calendar, Outlook, Calendly en meer - behoud je huidige workflow",
-      color: "from-blue-400 to-blue-500"
+      color: "from-blue-400 to-blue-500",
+      hoverTextColor: "group-hover:text-blue-300"
     },
     {
       icon: Bell,
       title: "Automatische Herinneringen",
       description: "Stuurt bevestigings- en herinneringsberichten om no-shows te verminderen",
-      color: "from-emerald-600 to-green-600"
+      color: "from-emerald-600 to-green-600",
+      hoverTextColor: "group-hover:text-emerald-300"
     },
     {
       icon: BarChart3,
       title: "Gedetailleerde Analytics",
       description: "Volg boekingspercentages, populaire tijden en gegenereerde omzet in je persoonlijke dashboard",
-      color: "from-blue-600 to-indigo-600"
+      color: "from-blue-600 to-indigo-600",
+      hoverTextColor: "group-hover:text-blue-300"
     },
     {
       icon: Globe,
       title: "Meertalige Ondersteuning",
       description: "Communiceert automatisch in de voorkeurstaal van je klanten",
-      color: "from-green-500 to-emerald-500"
+      color: "from-green-500 to-emerald-500",
+      hoverTextColor: "group-hover:text-green-300"
     },
     {
       icon: Monitor,
       title: "Realtime Dashboard Monitoring",
       description: "Bekijk live boekingen, prestaties en klantinteracties in je geavanceerde controlepaneel",
-      color: "from-blue-500 to-indigo-500"
+      color: "from-blue-500 to-indigo-500",
+      hoverTextColor: "group-hover:text-blue-300"
     }
   ];
 
@@ -95,7 +104,7 @@ const Features = () => {
               </div>
               
               {/* Clean typography */}
-              <h3 className="text-xl font-bold text-white mb-4 leading-tight group-hover:text-emerald-300 transition-colors duration-300">
+              <h3 className={`text-xl font-bold text-white mb-4 leading-tight ${feature.hoverTextColor} transition-colors duration-300`}>
                 {feature.title}
               </h3>
               
