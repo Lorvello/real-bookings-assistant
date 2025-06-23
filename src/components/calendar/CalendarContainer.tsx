@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { addMonths, subMonths, addWeeks, subWeeks, addYears, subYears } from 'date-fns';
 import { CalendarHeader } from './CalendarHeader';
@@ -22,10 +21,8 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
   
   const { bookings, loading, error, refetch } = useMultipleCalendarBookings(calendarIds);
 
-  // Enable real-time updates voor alle kalenders
-  calendarIds.forEach(calendarId => {
-    useRealtimeBookings(calendarId);
-  });
+  // Enable real-time updates voor alle kalenders - nu als één hook call
+  useRealtimeBookings(calendarIds);
 
   const navigateDate = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
