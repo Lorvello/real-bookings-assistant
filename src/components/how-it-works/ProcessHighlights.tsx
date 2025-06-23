@@ -11,18 +11,15 @@ const ProcessHighlights = () => {
   return (
     <ScrollAnimatedSection>
       <div className="max-w-7xl mx-auto mt-20">
-        {/* Main Title Section */}
-        <StepIndicator />
-        
-        {/* Steps Container with Clear Separation */}
-        <div className="mt-24 space-y-32">
-          <StepOneDetails />
-          <StepTwoDetails />
-          <StepThreeDetails />
-        </div>
-        
-        {/* Result Section */}
-        <div className="mt-32">
+        <div className="space-y-16">
+          <StepIndicator />
+          
+          <div className="space-y-16">
+            <StepOneDetails />
+            <StepTwoDetails />
+            <StepThreeDetails />
+          </div>
+          
           <ResultSummary />
         </div>
       </div>
