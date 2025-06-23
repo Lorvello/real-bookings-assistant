@@ -1,4 +1,3 @@
-
 import { Check, Calendar, Globe, BarChart3, Bell, Settings, Zap, Monitor, Link } from "lucide-react";
 
 const Features = () => {
@@ -13,19 +12,19 @@ const Features = () => {
       icon: Settings,
       title: "Volledig Gepersonaliseerd",
       description: "Pas de AI Agent aan je diensten, FAQ's en boekingslogica aan — van aangepaste kapseltypes tot bedrijfsspecifieke vragen",
-      color: "from-slate-500 to-slate-600"
+      color: "from-blue-500 to-blue-600"
     },
     {
       icon: Calendar,
       title: "Geavanceerd Dashboard & Eigen Kalender",
       description: "Krijg je eigen professionele kalender met een zeer geavanceerd dashboard voor complete controle over je boekingen",
-      color: "from-emerald-400 to-emerald-500"
+      color: "from-green-400 to-green-500"
     },
     {
       icon: Link,
       title: "Koppel Je Bestaande Kalender",
       description: "Integreer naadloos met Google Calendar, Outlook, Calendly en meer - behoud je huidige workflow",
-      color: "from-slate-400 to-slate-500"
+      color: "from-blue-400 to-blue-500"
     },
     {
       icon: Bell,
@@ -37,19 +36,19 @@ const Features = () => {
       icon: BarChart3,
       title: "Gedetailleerde Analytics",
       description: "Volg boekingspercentages, populaire tijden en gegenereerde omzet in je persoonlijke dashboard",
-      color: "from-slate-600 to-gray-600"
+      color: "from-blue-600 to-indigo-600"
     },
     {
       icon: Globe,
       title: "Meertalige Ondersteuning",
       description: "Communiceert automatisch in de voorkeurstaal van je klanten",
-      color: "from-emerald-500 to-green-500"
+      color: "from-green-500 to-emerald-500"
     },
     {
       icon: Monitor,
       title: "Realtime Dashboard Monitoring",
       description: "Bekijk live boekingen, prestaties en klantinteracties in je geavanceerde controlepaneel",
-      color: "from-slate-500 to-gray-500"
+      color: "from-blue-500 to-indigo-500"
     }
   ];
 
