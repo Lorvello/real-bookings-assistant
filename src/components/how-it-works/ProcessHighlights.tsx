@@ -16,11 +16,11 @@ const ProcessHighlights = () => {
                 <span className="text-white text-xl font-bold">1</span>
               </div>
               <ArrowRight className="w-6 h-6 text-slate-400" />
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-green-600 rounded-full flex items-center justify-center shadow-lg">
                 <span className="text-white text-xl font-bold">2</span>
               </div>
               <ArrowRight className="w-6 h-6 text-slate-400" />
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-700 to-green-700 rounded-full flex items-center justify-center shadow-lg">
                 <span className="text-white text-xl font-bold">3</span>
               </div>
             </div>
@@ -75,7 +75,7 @@ const ProcessHighlights = () => {
                   
                   <div className="bg-slate-800/50 border border-slate-600/50 rounded-xl p-4">
                     <div className="flex items-center gap-3 mb-2">
-                      <Settings className="w-5 h-5 text-blue-400" />
+                      <Settings className="w-5 h-5 text-slate-400" />
                       <span className="font-semibold text-white">Optie 2: Verbind je eigen kalender</span>
                     </div>
                     <p className="text-sm text-slate-300">Google Calendar, Outlook, Apple Calendar - alles wordt gesynchroniseerd.</p>
@@ -96,9 +96,9 @@ const ProcessHighlights = () => {
           </div>
 
           {/* Detailed Step 2 */}
-          <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-3xl p-12 backdrop-blur-sm">
+          <div className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-600/30 rounded-3xl p-12 backdrop-blur-sm">
             <div className="flex items-center gap-6 mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-600 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <span className="text-white text-2xl font-bold">2</span>
               </div>
               <h4 className="text-3xl font-bold text-white">Kies je WhatsApp strategie</h4>
@@ -134,15 +134,15 @@ const ProcessHighlights = () => {
                   <h5 className="text-xl font-semibold text-white mb-3">Je eigen nummer gebruiken</h5>
                   <ul className="space-y-2 text-slate-300 mb-4">
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-blue-400" />
+                      <CheckCircle className="w-4 h-4 text-slate-400" />
                       <span>Behoud je huidige nummer</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-blue-400" />
+                      <CheckCircle className="w-4 h-4 text-slate-400" />
                       <span>Klanten kennen het al</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-blue-400" />
+                      <CheckCircle className="w-4 h-4 text-slate-400" />
                       <span>Stap-voor-stap begeleiding</span>
                     </li>
                   </ul>
@@ -153,10 +153,10 @@ const ProcessHighlights = () => {
               </div>
               
               <div>
-                <h5 className="text-xl font-semibold text-blue-300 mb-6">Hoe werkt de integratie?</h5>
+                <h5 className="text-xl font-semibold text-slate-300 mb-6">Hoe werkt de integratie?</h5>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                       1
                     </div>
                     <div>
@@ -166,7 +166,7 @@ const ProcessHighlights = () => {
                   </div>
                   
                   <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                       2
                     </div>
                     <div>
@@ -176,7 +176,7 @@ const ProcessHighlights = () => {
                   </div>
                   
                   <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                       3
                     </div>
                     <div>
@@ -188,29 +188,29 @@ const ProcessHighlights = () => {
               </div>
             </div>
             
-            <div className="bg-blue-500/20 border border-blue-400/30 rounded-2xl p-6">
+            <div className="bg-slate-700/30 border border-slate-600/30 rounded-2xl p-6">
               <div className="flex items-center gap-3 mb-3">
-                <Shield className="w-6 h-6 text-blue-400" />
-                <span className="text-blue-300 font-semibold text-lg">Tijd nodig: 2-3 minuten</span>
+                <Shield className="w-6 h-6 text-slate-400" />
+                <span className="text-slate-300 font-semibold text-lg">Tijd nodig: 2-3 minuten</span>
               </div>
-              <p className="text-blue-200">
+              <p className="text-slate-300">
                 <strong className="text-white">100% veilig en GDPR-compliant.</strong> Je WhatsApp gegevens blijven volledig privé.
               </p>
             </div>
           </div>
 
           {/* Detailed Step 3 */}
-          <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-3xl p-12 backdrop-blur-sm">
+          <div className="bg-gradient-to-r from-emerald-500/5 to-green-500/5 border border-emerald-500/15 rounded-3xl p-12 backdrop-blur-sm">
             <div className="flex items-center gap-6 mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-700 to-green-700 rounded-2xl flex items-center justify-center shadow-lg">
                 <span className="text-white text-2xl font-bold">3</span>
               </div>
               <h4 className="text-3xl font-bold text-white">Je assistent gaat live</h4>
             </div>
             
             <div className="grid md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-6">
-                <MessageCircle className="w-10 h-10 text-purple-400 mb-4" />
+              <div className="bg-slate-800/50 border border-emerald-500/20 rounded-xl p-6">
+                <MessageCircle className="w-10 h-10 text-emerald-400 mb-4" />
                 <h5 className="text-lg font-semibold text-white mb-3">Intelligente gesprekken</h5>
                 <p className="text-sm text-slate-300 mb-4">
                   Je AI assistent voert natuurlijke gesprekken en begrijpt context, vragen en wensen van klanten.
@@ -222,8 +222,8 @@ const ProcessHighlights = () => {
                 </ul>
               </div>
               
-              <div className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-6">
-                <Calendar className="w-10 h-10 text-purple-400 mb-4" />
+              <div className="bg-slate-800/50 border border-emerald-500/20 rounded-xl p-6">
+                <Calendar className="w-10 h-10 text-emerald-400 mb-4" />
                 <h5 className="text-lg font-semibold text-white mb-3">Slimme planning</h5>
                 <p className="text-sm text-slate-300 mb-4">
                   Automatische beschikbaarheid check, dubbele boekingen voorkomen, en optimale tijdslots voorstellen.
@@ -235,8 +235,8 @@ const ProcessHighlights = () => {
                 </ul>
               </div>
               
-              <div className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-6">
-                <Users className="w-10 h-10 text-purple-400 mb-4" />
+              <div className="bg-slate-800/50 border border-emerald-500/20 rounded-xl p-6">
+                <Users className="w-10 h-10 text-emerald-400 mb-4" />
                 <h5 className="text-lg font-semibold text-white mb-3">Persoonlijke service</h5>
                 <p className="text-sm text-slate-300 mb-4">
                   Elke klant krijgt gepersonaliseerde aandacht, zelfs van je AI assistent.
@@ -249,20 +249,20 @@ const ProcessHighlights = () => {
               </div>
             </div>
             
-            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-2xl p-8 text-center">
+            <div className="bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-400/30 rounded-2xl p-8 text-center">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <Zap className="w-8 h-8 text-purple-400" />
+                <Zap className="w-8 h-8 text-emerald-400" />
                 <span className="text-2xl font-bold text-white">Vanaf nu draait alles automatisch</span>
               </div>
-              <p className="text-xl text-purple-200 leading-relaxed max-w-3xl mx-auto mb-6">
+              <p className="text-xl text-slate-200 leading-relaxed max-w-3xl mx-auto mb-6">
                 <strong className="text-white">24/7 beschikbaar.</strong> Je klanten kunnen altijd afspraken maken, 
                 vragen stellen, of bestaande afspraken wijzigen. <strong className="text-white">Zonder dat jij er bent.</strong>
               </p>
               
               <div className="grid md:grid-cols-2 gap-4 mt-6">
-                <div className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-4">
+                <div className="bg-slate-800/50 border border-emerald-500/30 rounded-xl p-4">
                   <h6 className="font-semibold text-white mb-2">Wat gebeurt er automatisch?</h6>
-                  <ul className="text-sm text-purple-200 space-y-1">
+                  <ul className="text-sm text-slate-300 space-y-1">
                     <li>✓ Afspraken boeken en bevestigen</li>
                     <li>✓ Herinneringen versturen</li>
                     <li>✓ Wijzigingen verwerken</li>
@@ -270,9 +270,9 @@ const ProcessHighlights = () => {
                   </ul>
                 </div>
                 
-                <div className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-4">
+                <div className="bg-slate-800/50 border border-emerald-500/30 rounded-xl p-4">
                   <h6 className="font-semibold text-white mb-2">Wanneer word je ingeschakeld?</h6>
-                  <ul className="text-sm text-purple-200 space-y-1">
+                  <ul className="text-sm text-slate-300 space-y-1">
                     <li>• Complexe vragen</li>
                     <li>• Speciale verzoeken</li>
                     <li>• Klachten of problemen</li>
@@ -289,7 +289,7 @@ const ProcessHighlights = () => {
               <CheckCircle className="w-12 h-12 text-emerald-400" />
               <span className="text-3xl font-bold text-white">Het resultaat:</span>
             </div>
-            <p className="text-2xl text-emerald-100 leading-relaxed max-w-4xl mx-auto mb-8">
+            <p className="text-2xl text-slate-200 leading-relaxed max-w-4xl mx-auto mb-8">
               Vanaf nu hoef jij <strong className="text-white">nooit meer</strong> tijd te verspillen aan het heen-en-weer appen over afspraken. 
               Je krijgt <strong className="text-white">meer boekingen</strong>, <strong className="text-white">tevredener klanten</strong>, 
               en <strong className="text-white">meer tijd</strong> voor wat echt belangrijk is.

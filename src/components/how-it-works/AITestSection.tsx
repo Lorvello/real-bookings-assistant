@@ -6,11 +6,11 @@ import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 const AITestSection = () => {
   return (
     <ScrollAnimatedSection>
-      <section className="py-32 px-4 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+      <section className="py-32 px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
         </div>
         
         {/* Grid pattern overlay */}
@@ -18,8 +18,8 @@ const AITestSection = () => {
         
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-20">
-            <div className="inline-flex items-center bg-purple-500/10 border border-purple-500/20 rounded-full px-6 py-3 mb-8">
-              <span className="text-purple-400 font-semibold text-lg">✨ Try It Now</span>
+            <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-6 py-3 mb-8">
+              <span className="text-emerald-400 font-semibold text-lg">✨ Try It Now</span>
             </div>
             <h2 className="text-5xl md:text-6xl font-bold text-white mb-8">
               Test Our AI Assistant

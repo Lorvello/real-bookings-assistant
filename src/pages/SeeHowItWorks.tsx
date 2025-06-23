@@ -13,11 +13,11 @@ const SeeHowItWorks = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-emerald-900 py-24 px-4 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-24 px-4 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
         </div>
         
         {/* Grid pattern overlay */}
@@ -36,7 +36,7 @@ const SeeHowItWorks = () => {
         </div>
       </section>
 
-      {/* AI Test Section - Direct na hero section */}
+      {/* AI Test Section */}
       <AITestSection />
       <StepSection />
       <BonusSection />
