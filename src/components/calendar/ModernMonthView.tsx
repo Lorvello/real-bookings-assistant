@@ -74,14 +74,14 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
   };
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-background via-background/95 to-card/50">
+    <div className="h-full flex flex-col bg-card">
       {/* Enhanced Week Headers */}
       <CalendarWeekHeader weekDays={weekDays} />
 
-      {/* Modern Calendar Grid - compacter met minder gaps */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-2 pt-1">
-          <div className="grid grid-cols-7 gap-1.5">
+      {/* Optimized Calendar Grid - verbeterde scroll performance */}
+      <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
+        <div className="p-2">
+          <div className="grid grid-cols-7 gap-1">
             {days.map(day => {
               const dayBookings = getBookingsForDay(day);
 
