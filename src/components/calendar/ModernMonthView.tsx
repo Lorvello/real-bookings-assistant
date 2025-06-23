@@ -78,10 +78,10 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
       {/* Enhanced Week Headers */}
       <CalendarWeekHeader weekDays={weekDays} />
 
-      {/* Modern Calendar Grid */}
+      {/* Modern Calendar Grid - compacter met minder gaps */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 pt-2">
-          <div className="grid grid-cols-7 gap-3">
+        <div className="p-2 pt-1">
+          <div className="grid grid-cols-7 gap-1.5">
             {days.map(day => {
               const dayBookings = getBookingsForDay(day);
 
