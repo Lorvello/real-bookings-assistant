@@ -2,19 +2,19 @@
 const SocialProof = () => {
   const testimonials = [
     {
-      quote: "This AI agent has transformed my business. I book 15 more clients per week without lifting a finger.",
+      quote: "Deze AI agent heeft mijn bedrijf getransformeerd. Ik boek 15 meer klanten per week zonder een vinger uit te steken.",
       name: "Mike Rodriguez",
       business: "Elite Fitness Studio",
       rating: 5
     },
     {
-      quote: "The setup was incredibly easy. Within 5 minutes, I was getting automated bookings through WhatsApp.",
+      quote: "De setup was ongelooflijk eenvoudig. Binnen 5 minuten kreeg ik geautomatiseerde boekingen via WhatsApp.",
       name: "Dr. Amanda Chen",
-      business: "Wellness Clinic",
+      business: "Wellness Kliniek",
       rating: 5
     },
     {
-      quote: "My clients love how quick and easy it is to book. No more phone tag or waiting for callbacks.",
+      quote: "Mijn klanten houden van hoe snel en gemakkelijk het is om te boeken. Geen telefoontag meer of wachten op terugbellen.",
       name: "Jessica Taylor",
       business: "Beauty Spa",
       rating: 5
@@ -22,43 +22,55 @@ const SocialProof = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-white">
-      <div className="max-w-6xl mx-auto">
+    <section className="py-20 px-4 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+      </div>
+      
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
+      
+      <div className="max-w-6xl mx-auto relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
-            Trusted by <span className="text-green-600">1000+ Businesses</span>
+          <h2 className="text-4xl font-bold text-white mb-6">
+            Vertrouwd door <span className="text-emerald-400">1000+ Bedrijven</span>
           </h2>
-          <p className="text-xl text-gray-600">Join successful businesses already automating their bookings</p>
+          <p className="text-xl text-slate-300">Sluit je aan bij succesvolle bedrijven die hun boekingen al automatiseren</p>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="bg-gray-50 p-8 rounded-2xl">
+            <div 
+              key={index} 
+              className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-300"
+            >
               <div className="flex mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
                   <span key={i} className="text-yellow-400 text-xl">⭐</span>
                 ))}
               </div>
-              <p className="text-gray-700 mb-6 italic">"{testimonial.quote}"</p>
+              <p className="text-slate-300 mb-6 italic">"{testimonial.quote}"</p>
               <div>
-                <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                <div className="text-sm text-gray-600">{testimonial.business}</div>
+                <div className="font-semibold text-white">{testimonial.name}</div>
+                <div className="text-sm text-slate-400">{testimonial.business}</div>
               </div>
             </div>
           ))}
         </div>
         
-        <div className="bg-green-50 p-8 rounded-2xl text-center">
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 text-center">
           <div className="flex justify-center items-center gap-4 mb-4">
             <span className="text-3xl">🔒</span>
             <span className="text-3xl">✅</span>
             <span className="text-3xl">🛡️</span>
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Enterprise-Grade Security & Compliance
+          <h3 className="text-xl font-semibold text-white mb-2">
+            Enterprise-Grade Beveiliging & Compliance
           </h3>
-          <p className="text-gray-600">
-            GDPR compliant • End-to-end encryption • SOC 2 certified • 99.9% uptime guarantee
+          <p className="text-slate-300">
+            GDPR compliant • End-to-end encryptie • SOC 2 gecertificeerd • 99.9% uptime garantie
           </p>
         </div>
       </div>

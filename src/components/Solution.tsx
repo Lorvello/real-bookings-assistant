@@ -4,108 +4,114 @@ import { MessageCircle, Brain, Target, Clock, Users, TrendingUp } from "lucide-r
 
 const Solution = () => {
   return (
-    <section className="py-24 px-4 bg-white relative overflow-hidden">
+    <section className="py-24 px-4 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-emerald-200 to-transparent"></div>
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/10 rounded-full blur-3xl"></div>
+      </div>
       
-      <div className="max-w-7xl mx-auto">
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
+      
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-2 mb-6">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-            <span className="text-emerald-700 text-sm font-medium">The Solution</span>
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-6 py-3 mb-8 backdrop-blur-sm">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            <span className="text-emerald-300 text-sm font-medium">De Oplossing</span>
           </div>
           
-          <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Meet Your <span className="text-emerald-600">24/7</span><br />
-            <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-              Booking Assistant
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+            Ontmoet Je <span className="text-emerald-400">24/7</span><br />
+            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+              Boekings Assistent
             </span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            The AI that never sleeps, never misses a lead, and books appointments 
-            faster than any human ever could.
+          <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            De AI die nooit slaapt, nooit een lead mist, en afspraken boekt 
+            sneller dan welke mens dan ook.
           </p>
         </div>
         
         {/* Main features grid */}
         <div className="grid lg:grid-cols-3 gap-8 mb-20">
           {/* Feature 1 */}
-          <div className="group bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-100 rounded-3xl p-8 hover:shadow-xl hover:shadow-emerald-100 transition-all duration-500 hover:-translate-y-2">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+          <div className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-500 hover:-translate-y-2">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
               <MessageCircle className="w-8 h-8 text-white" strokeWidth={2} />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Instant WhatsApp Replies
+            <h3 className="text-2xl font-bold text-white mb-4">
+              Directe WhatsApp Antwoorden
             </h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              Responds to every message within seconds, 24/7. Your customers get immediate answers 
-              to their questions and available booking slots.
+            <p className="text-slate-300 leading-relaxed mb-6">
+              Reageert binnen seconden op elk bericht, 24/7. Je klanten krijgen direct antwoord 
+              op hun vragen en beschikbare tijdslots.
             </p>
-            <div className="flex items-center text-emerald-600 font-semibold">
+            <div className="flex items-center text-emerald-400 font-semibold">
               <Clock className="w-5 h-5 mr-2" />
-              <span>Average response: 3 seconds</span>
+              <span>Gemiddelde reactie: 3 seconden</span>
             </div>
           </div>
 
           {/* Feature 2 */}
-          <div className="group bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-3xl p-8 hover:shadow-xl hover:shadow-blue-100 transition-all duration-500 hover:-translate-y-2">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+          <div className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-500 hover:-translate-y-2">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
               <Brain className="w-8 h-8 text-white" strokeWidth={2} />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Smart Conversation Flow
+            <h3 className="text-2xl font-bold text-white mb-4">
+              Slimme Gespreksvoering
             </h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              Understands context, asks the right questions, and guides customers 
-              to the perfect appointment time that works for everyone.
+            <p className="text-slate-300 leading-relaxed mb-6">
+              Begrijpt context, stelt de juiste vragen, en begeleidt klanten 
+              naar het perfecte afspraaktijdstip dat voor iedereen werkt.
             </p>
-            <div className="flex items-center text-blue-600 font-semibold">
+            <div className="flex items-center text-blue-400 font-semibold">
               <Users className="w-5 h-5 mr-2" />
-              <span>98% customer satisfaction</span>
+              <span>98% klanttevredenheid</span>
             </div>
           </div>
 
           {/* Feature 3 */}
-          <div className="group bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 rounded-3xl p-8 hover:shadow-xl hover:shadow-purple-100 transition-all duration-500 hover:-translate-y-2">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+          <div className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-500 hover:-translate-y-2">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
               <Target className="w-8 h-8 text-white" strokeWidth={2} />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Perfect for Any Business
+            <h3 className="text-2xl font-bold text-white mb-4">
+              Perfect Voor Elk Bedrijf
             </h3>
-            <p className="text-gray-600 leading-relaxed mb-6">
-              Salons, clinics, fitness studios, consultants - if you book appointments, 
-              our AI adapts to your specific business needs and terminology.
+            <p className="text-slate-300 leading-relaxed mb-6">
+              Salons, klinieken, fitnessstudio's, consultants - als je afspraken boekt, 
+              past onze AI zich aan je specifieke bedrijfsbehoeften aan.
             </p>
-            <div className="flex items-center text-purple-600 font-semibold">
+            <div className="flex items-center text-purple-400 font-semibold">
               <TrendingUp className="w-5 h-5 mr-2" />
-              <span>300% booking increase avg.</span>
+              <span>300% meer boekingen gem.</span>
             </div>
           </div>
         </div>
 
         {/* Stats section */}
-        <div className="bg-gradient-to-r from-gray-900 to-slate-800 rounded-3xl p-12 text-center">
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
           <h3 className="text-3xl font-bold text-white mb-8">
-            The Numbers Don't Lie
+            De Cijfers Liegen Niet
           </h3>
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="text-4xl font-bold text-emerald-400 mb-2">24/7</div>
-              <div className="text-gray-300">Always Available</div>
+              <div className="text-slate-300">Altijd Beschikbaar</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-emerald-400 mb-2">3s</div>
-              <div className="text-gray-300">Average Response</div>
+              <div className="text-slate-300">Gemiddelde Reactie</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-emerald-400 mb-2">300%</div>
-              <div className="text-gray-300">More Bookings</div>
+              <div className="text-slate-300">Meer Boekingen</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-emerald-400 mb-2">0%</div>
-              <div className="text-gray-300">Human Error</div>
+              <div className="text-slate-300">Menselijke Fouten</div>
             </div>
           </div>
         </div>
