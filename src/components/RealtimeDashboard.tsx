@@ -14,8 +14,8 @@ interface RealtimeDashboardProps {
 }
 
 export function RealtimeDashboard({ calendarId }: RealtimeDashboardProps) {
-  // Enable real-time subscriptions
-  useRealtimeBookings(calendarId);
+  // Enable real-time subscriptions - pass calendarId as array
+  useRealtimeBookings([calendarId]);
   useRealtimeDashboard(calendarId);
   
   const { data: analytics, isLoading, error } = useDashboardAnalytics(calendarId);
