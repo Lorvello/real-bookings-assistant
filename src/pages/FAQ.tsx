@@ -13,6 +13,14 @@ import { MessageCircle, Zap, Shield, Star, CheckCircle, HelpCircle, Phone, Mail,
 const FAQ = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
+  const recommendedQuestions = [
+    "Wat kost het?",
+    "Hoe werkt het precies?",
+    "Voor welke types bedrijven is dit geschikt?",
+    "Is het moeilijk op te zetten?",
+    "Welke agenda's worden ondersteund?"
+  ];
+
   const faqSections = [
     {
       title: "Algemene Vragen",
@@ -280,6 +288,10 @@ const FAQ = () => {
     })).filter(section => section.items.length > 0);
   }, [searchTerm]);
 
+  const handleRecommendedClick = (question: string) => {
+    setSearchTerm(question);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
       <Navbar />
@@ -306,27 +318,6 @@ const FAQ = () => {
             </p>
           </ScrollAnimatedSection>
 
-          {/* Search Bar */}
-          <ScrollAnimatedSection delay={100}>
-            <div className="relative max-w-2xl mx-auto mb-16">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <Input
-                  type="text"
-                  placeholder="Zoek in veelgestelde vragen..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 pr-4 py-4 h-14 text-lg bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
-                />
-              </div>
-              {searchTerm && (
-                <div className="mt-4 text-sm text-slate-400">
-                  {filteredSections.reduce((total, section) => total + section.items.length, 0)} resultaten gevonden
-                </div>
-              )}
-            </div>
-          </ScrollAnimatedSection>
-
           {/* Quick Stats */}
           <ScrollAnimatedSection delay={200}>
             <div className="grid md:grid-cols-4 gap-6 mb-16">
@@ -340,6 +331,50 @@ const FAQ = () => {
                 </div>
               ))}
             </div>
+          </ScrollAnimatedSection>
+        </div>
+      </section>
+
+      {/* Search Section */}
+      <section className="py-12 px-4 bg-slate-800/20">
+        <div className="max-w-4xl mx-auto">
+          <ScrollAnimatedSection>
+            {/* Search Bar */}
+            <div className="relative mb-8">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Input
+                  type="text"
+                  placeholder="Zoek in veelgestelde vragen..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-12 pr-4 py-4 h-14 text-lg bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
+                />
+              </div>
+              {searchTerm && (
+                <div className="mt-4 text-sm text-slate-400 text-center">
+                  {filteredSections.reduce((total, section) => total + section.items.length, 0)} resultaten gevonden
+                </div>
+              )}
+            </div>
+
+            {/* Recommended Questions */}
+            {!searchTerm && (
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-white mb-4">Populaire vragen:</h3>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {recommendedQuestions.map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleRecommendedClick(question)}
+                      className="bg-slate-700/50 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400 px-4 py-2 rounded-xl text-sm transition-all duration-300 border border-slate-600/50 hover:border-emerald-500/50"
+                    >
+                      {question}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </ScrollAnimatedSection>
         </div>
       </section>
