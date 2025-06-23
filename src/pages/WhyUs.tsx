@@ -2,110 +2,10 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
-import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown, Mail, BarChart3, Timer, UserCheck } from 'lucide-react';
+import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown, Mail, BarChart3, Timer, UserCheck, Heart, Brain, Smartphone, Gauge } from 'lucide-react';
 import { PricingBasic } from '@/components/PricingBasic';
 
 const WhyUs = () => {
-  const competitiveAdvantages = [
-    {
-      icon: Crown,
-      title: "Market Leader Since 2020",
-      description: "While others are catching up, we've already perfected AI booking automation with 4+ years of experience.",
-      proof: "10,000+ businesses trust us"
-    },
-    {
-      icon: Rocket,
-      title: "5-Minute Setup vs 5-Week Implementation",
-      description: "Our competitors need weeks of setup and training. We get you live in minutes with zero technical knowledge required.",
-      proof: "Average setup: 4.7 minutes"
-    },
-    {
-      icon: Target,
-      title: "300% Better Results Than Competitors",
-      description: "Independent studies show our AI converts 3x more inquiries to bookings compared to other booking systems.",
-      proof: "Verified by 1,000+ case studies"
-    }
-  ];
-
-  const whyChooseUs = [
-    {
-      icon: Bot,
-      title: "Most Advanced AI in the Industry",
-      description: "Our proprietary AI understands context, handles complex requests, and learns your business patterns - something generic chatbots simply can't do.",
-      benefit: "97% customer satisfaction"
-    },
-    {
-      icon: Shield,
-      title: "Enterprise Security, Startup Price",
-      description: "Bank-level encryption and GDPR compliance that usually costs €500+/month, included in every plan starting at €25.",
-      benefit: "Enterprise features for everyone"
-    },
-    {
-      icon: Zap,
-      title: "Only Provider with True WhatsApp Integration",
-      description: "Direct integration with WhatsApp Business API - not just web widgets. Your customers book where they already are.",
-      benefit: "Native WhatsApp experience"
-    }
-  ];
-
-  const whatsappStats = [
-    {
-      metric: "Open Rate",
-      whatsapp: "95-99%",
-      email: "~20%",
-      icon: MessageCircle,
-      improvement: "5x hoger"
-    },
-    {
-      metric: "Reactietijd",
-      whatsapp: "< 5 minuten",
-      email: "~90 minuten",
-      icon: Timer,
-      improvement: "18x sneller"
-    },
-    {
-      metric: "Responsrate",
-      whatsapp: "40-45%",
-      email: "~6%",
-      icon: UserCheck,
-      improvement: "7x meer reacties"
-    },
-    {
-      metric: "No-show Rate",
-      whatsapp: "< 20%",
-      email: "~35%",
-      icon: Calendar,
-      improvement: "50% minder"
-    }
-  ];
-
-  const sectorCases = [
-    {
-      sector: "Zorg",
-      icon: Shield,
-      results: ["80% snellere afspraakplanning", "40% minder no-shows", "95% berichten gelezen"],
-      description: "Gynecologiekliniek in Londen zag dramatische verbetering na WhatsApp implementatie."
-    },
-    {
-      sector: "Beauty & Wellness",
-      icon: Star,
-      results: ["30% meer boekingen", "50% minder no-shows", "Meer repeat bookings"],
-      description: "Nederlandse salons via Aimy platform boekten spectaculaire groei."
-    },
-    {
-      sector: "Recruitment",
-      icon: Users,
-      results: ["10x hogere responsratio", "5-10x snellere reacties", "98% open rate"],
-      description: "HR-bureaus versnellen hun wervingsproces drastisch met WhatsApp."
-    },
-    {
-      sector: "Horeca",
-      icon: Award,
-      results: ["95% berichten gelezen", "Minder no-shows", "Hogere gasttevredenheid"],
-      description: "Restaurants houden tafels vol met persoonlijke WhatsApp-herinneringen."
-    }
-  ];
-
   const proofPoints = [
     {
       number: "10,000+",
@@ -129,80 +29,200 @@ const WhyUs = () => {
     }
   ];
 
-  const testimonials = [
+  const whatsappVsEmailStats = [
     {
-      quote: "We tried 3 other booking systems before this one. None even came close. This is the only one that actually understands our business.",
-      author: "Sarah Chen",
-      role: "Owner, Wellness Spa",
-      result: "+400% bookings",
-      rating: 5
+      metric: "Open Rate",
+      email: "~20%",
+      whatsapp: "95-99%",
+      improvement: "5x hoger",
+      icon: MessageCircle
     },
     {
-      quote: "Switched from Calendly and another AI tool. The difference is night and day - this actually works like having a real receptionist.",
-      author: "Mike Rodriguez", 
-      role: "Manager, Auto Repair Shop",
-      result: "+250% revenue",
-      rating: 5
+      metric: "Tijd tot gelezen",
+      email: "Vaak pas na uren",
+      whatsapp: "80% binnen 5 minuten",
+      improvement: "18x sneller",
+      icon: Timer
     },
     {
-      quote: "Tried the 'big names' first. Wasted months. Should have started here. Best ROI of any business tool I've ever bought.",
-      author: "Emma Thompson",
-      role: "Director, Medical Clinic", 
-      result: "+180% efficiency",
-      rating: 5
+      metric: "Gemiddelde responstijd",
+      email: "~90 minuten",
+      whatsapp: "Binnen enkele minuten",
+      improvement: "18x sneller",
+      icon: Clock
+    },
+    {
+      metric: "Responsrate",
+      email: "~6%",
+      whatsapp: "40-45%",
+      improvement: "7x meer reacties",
+      icon: UserCheck
+    },
+    {
+      metric: "No-show percentage",
+      email: "~35%",
+      whatsapp: "<20%",
+      improvement: "50% minder",
+      icon: Calendar
     }
   ];
 
-  const competitorComparison = [
+  const psychologicalBenefits = [
     {
-      feature: "5-Minute Setup",
-      us: true,
-      traditional: false
+      icon: Heart,
+      title: "Persoonlijke Touch",
+      description: "85% van consumenten berichten liever een bedrijf dan mailen. WhatsApp voelt persoonlijk en vertrouwd aan.",
+      stat: "85% prefereert berichten"
     },
     {
-      feature: "True WhatsApp Integration",
-      us: true,
-      traditional: false
+      icon: Brain,
+      title: "Lagere Drempel",
+      description: "53% van klanten neemt eerder iets af bij bedrijven die via chat benaderbaar zijn. Het voelt minder formeel dan e-mail.",
+      stat: "53% hoger conversie"
     },
     {
-      feature: "24/7 Automated Availability",
-      us: true,
-      traditional: false
+      icon: Smartphone,
+      title: "Mobile-First Gedrag",
+      description: "Mensen checken hun telefoon 96 keer per dag. WhatsApp past in hun natuurlijke gedrag.",
+      stat: "96x per dag gecheckt"
     },
     {
-      feature: "Smart Context Understanding",
-      us: true,
-      traditional: false
+      icon: Zap,
+      title: "Realtime Interactie",
+      description: "Tweewegcommunicatie in één conversatie. Klanten kunnen direct vragen, bevestigen of wijzigen.",
+      stat: "Directe interactie"
+    }
+  ];
+
+  const sectorCaseStudies = [
+    {
+      sector: "Zorg & Gezondheidszorg",
+      icon: Shield,
+      headerStats: ["80% snellere planning", "40% minder no-shows", "95% berichten gelezen"],
+      caseTitle: "Gynecologiekliniek Londen",
+      caseBefore: "Afspraken inplannen kostte gemiddeld 5 minuten per telefoon/mail heen-en-weer. No-show rate was hoog door gemiste e-mailherinneringen.",
+      caseAfter: "Na implementatie WhatsApp-chatbot: afspraak inplannen in <1 minuut, 40% minder no-shows door effectieve herinneringen.",
+      implementation: [
+        "Geautomatiseerde WhatsApp-chatbot voor boekingen",
+        "Persoonlijke herinneringen 24u vooraf",
+        "Eenvoudig bevestigen/verzetten via chat",
+        "95% van berichten binnen minuten gelezen"
+      ],
+      results: [
+        "80% tijdsbesparing bij afspraakplanning",
+        "40% reductie in no-shows",
+        "Vrijwel 100% bereik van herinneringen",
+        "Hogere patiënttevredenheid door persoonlijke benadering"
+      ],
+      quote: "Van 5 minuten telefonisch pingpongen naar minder dan 1 minuut via de chatbot. Patiënten vergeten geen afspraken meer."
     },
     {
-      feature: "Automated Reminders & Follow-ups",
-      us: true,
-      traditional: false
+      sector: "Beauty & Wellness",
+      icon: Star,
+      headerStats: ["30% meer boekingen", "50% minder no-shows", "Meer repeat bookings"],
+      caseTitle: "Nederlandse Salons via Aimy Platform",
+      caseBefore: "Veel heen-en-weer mailen/bellen voor afspraken. E-mailherinneringen werden vaak gemist (30% open rate).",
+      caseAfter: "WhatsApp-integratie leidde tot spectaculaire groei in boekingen en dramatische daling no-shows.",
+      implementation: [
+        "WhatsApp-berichten voor afspraakbevestiging",
+        "Automatische herinneringen per WhatsApp",
+        "Follow-up berichten voor repeat bookings",
+        "Persoonlijke service-tips en voorbereiding"
+      ],
+      results: [
+        "30% stijging totaal aantal boekingen",
+        "50% minder no-shows vs e-mailherinneringen",
+        "95% leespercentage vs 30% bij e-mail",
+        "Significante stijging repeat bookings"
+      ],
+      quote: "E-mailherinneringen worden slechts 30% van de tijd geopend, WhatsApp-berichten hebben 95% leespercentage. Het verschil is dag en nacht."
     },
     {
-      feature: "Multi-Language Support",
-      us: true,
-      traditional: false
+      sector: "Recruitment & HR",
+      icon: Users,
+      headerStats: ["10x hogere responsratio", "5-10x snellere reacties", "98% open rate"],
+      caseTitle: "HR-bureaus en Recruiters",
+      caseBefore: "Kandidaten reageerden traag op e-mailuitnodigingen. Veel gesprekken moesten uitgesteld worden door late reacties.",
+      caseAfter: "WhatsApp-uitnodigingen leiden tot 10x hogere respons en drastisch versneld wervingsproces.",
+      implementation: [
+        "WhatsApp-uitnodigingen voor gesprekken",
+        "Snelle bevestiging van afspraken",
+        "Updates over wervingsproces via chat",
+        "Laagdrempelige communicatie met kandidaten"
+      ],
+      results: [
+        "10x hogere responsratio van kandidaten",
+        "5-10x snellere reactietijd",
+        "98% open rate voor berichten",
+        "Dramatisch versneld wervingsproces"
+      ],
+      quote: "Kandidaten reageren binnen minuten in plaats van dagen. Ons wervingsproces is razendsnel geworden."
     },
     {
-      feature: "CRM Integrations (HubSpot, Notion, etc.)",
-      us: true,
-      traditional: false
+      sector: "Horeca & Restaurants",
+      icon: Award,
+      headerStats: ["95% berichten gelezen", "Minder no-shows", "Hogere gasttevredenheid"],
+      caseTitle: "3-Stappen WhatsApp Funnel",
+      caseBefore: "Reserveringsbevestigingen per e-mail werden vaak gemist. Last-minute annuleringen kwamen niet door, lege tafels.",
+      caseAfter: "Persoonlijke WhatsApp-herinneringen houden tafels vol en gasten geïnformeerd.",
+      implementation: [
+        "Stap 1: Directe bevestiging via WhatsApp met extra info",
+        "Stap 2: Herinnering 4u vooraf met annuleringslink",
+        "Stap 3: Follow-up na bezoek voor reviews",
+        "95% van berichten wordt binnen minuten gelezen"
+      ],
+      results: [
+        "Significant minder no-shows",
+        "Hogere tafelbezetting door tijdige communicatie",
+        "Meer 5-sterren reviews door follow-up",
+        "Lagere stress voor personeel"
+      ],
+      quote: "Gasten vergeten niet meer. Een WhatsApp-herinnering voorkomt dat tafels 'vergeten' worden en geeft gasten makkelijk de optie om te annuleren."
+    }
+  ];
+
+  const competitiveAdvantages = [
+    {
+      icon: Crown,
+      title: "4+ Jaar Bewezen Resultaten",
+      description: "Terwijl anderen nog aan het inhalen zijn, hebben wij al 4+ jaar ervaring met AI-gestuurde afspraakautomatisering.",
+      proof: "10,000+ tevreden bedrijven"
     },
     {
-      feature: "Advanced Analytics & Insights",
-      us: true,
-      traditional: false
+      icon: Rocket,
+      title: "5 Minuten vs 5 Weken Setup",
+      description: "Onze concurrenten hebben weken van setup nodig. Wij krijgen je live in minuten, zonder technische kennis.",
+      proof: "Gemiddelde setup: 4.7 minuten"
     },
     {
-      feature: "Enterprise Security Included",
-      us: true,
-      traditional: false
+      icon: Target,
+      title: "300% Betere Resultaten",
+      description: "Onafhankelijke studies tonen aan dat onze AI 3x meer inquiries omzet naar boekingen dan andere systemen.",
+      proof: "Geverifieerd door 1,000+ case studies"
+    }
+  ];
+
+  const testimonials = [
+    {
+      quote: "We hebben 3 andere boekingssystemen geprobeerd voordat we deze vonden. Geen kwam zelfs maar in de buurt. Dit is de enige die daadwerkelijk ons bedrijf begrijpt.",
+      author: "Sarah Chen",
+      role: "Eigenaar, Wellness Spa",
+      result: "+400% boekingen",
+      rating: 5
     },
     {
-      feature: "Unlimited Monthly Bookings",
-      us: true,
-      traditional: false
+      quote: "Overgestapt van Calendly en een andere AI-tool. Het verschil is dag en nacht - dit werkt echt als een echte receptioniste.",
+      author: "Mike Rodriguez", 
+      role: "Manager, Auto Reparatie",
+      result: "+250% omzet",
+      rating: 5
+    },
+    {
+      quote: "Eerst de 'grote namen' geprobeerd. Maanden verspild. Had hier moeten beginnen. Beste ROI van elke business tool die ik ooit gekocht heb.",
+      author: "Emma Thompson",
+      role: "Directeur, Medische Kliniek", 
+      result: "+180% efficiëntie",
+      rating: 5
     }
   ];
 
@@ -210,7 +230,7 @@ const WhyUs = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
       <Navbar />
       
-      {/* Hero Section - Why Choose Us */}
+      {/* Hero Section */}
       <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-24 px-4 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0">
@@ -223,16 +243,16 @@ const WhyUs = () => {
         
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            Why 10,000+ Businesses Choose <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Us Over Everyone Else</span>
+            Waarom 10,000+ Bedrijven <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">WhatsApp Kiezen Boven E-mail</span>
           </h1>
           <p className="text-xl text-slate-300 max-w-4xl mx-auto mb-16">
-            While our competitors promise, we <strong className="text-emerald-400">deliver proven results</strong>. 
-            Here's exactly why smart businesses choose us over the alternatives.
+            Wetenschappelijk bewezen resultaten: <strong className="text-emerald-400">95% hogere open rates, 18x snellere reacties, 50% minder no-shows</strong>. 
+            Ontdek waarom slimme bedrijven massaal overstappen.
           </p>
           
-          <div className="border border-emerald-500/20 rounded-2xl p-8 max-w-2xl mx-auto">
+          <div className="border border-emerald-500/20 rounded-2xl p-8 max-w-3xl mx-auto">
             <p className="text-xl font-semibold text-emerald-300">
-              ✅ 4+ years of proven results • 300% better than competitors • Enterprise-grade for everyone
+              ✅ Bewezen door 1000+ case studies • 85% van klanten prefereert berichten • Resultaten binnen 24 uur
             </p>
           </div>
         </div>
@@ -257,105 +277,93 @@ const WhyUs = () => {
         </div>
       </section>
 
-      {/* WhatsApp vs Email Statistics Section */}
+      {/* Complete WhatsApp vs Email Statistics */}
       <ScrollAnimatedSection as="section" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-6">
-              Waarom <span className="text-green-400">WhatsApp</span> E-mail Verslaat in Afspraakbeheer
+              De <span className="text-green-400">Wetenschappelijke Feiten</span>: WhatsApp vs E-mail
             </h2>
             <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-              Wetenschappelijk bewezen resultaten van duizenden bedrijven wereldwijd
+              Gebaseerd op uitgebreid onderzoek bij duizenden bedrijven wereldwijd
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {whatsappStats.map((stat, index) => (
-              <ScrollAnimatedSection 
-                key={index} 
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:bg-slate-800/70 transition-all duration-300"
-                delay={index * 100}
-              >
-                <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center mb-4">
-                  <stat.icon className="w-6 h-6 text-green-400" />
-                </div>
-                <h3 className="text-lg font-bold text-white mb-3">{stat.metric}</h3>
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-green-400 font-bold">WhatsApp:</span>
-                    <span className="text-white font-semibold">{stat.whatsapp}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-red-400">E-mail:</span>
-                    <span className="text-slate-300">{stat.email}</span>
-                  </div>
-                </div>
-                <div className="bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-sm font-bold text-center border border-green-500/20">
-                  {stat.improvement}
-                </div>
-              </ScrollAnimatedSection>
-            ))}
-          </div>
-
-          {/* Detailed Comparison Table */}
-          <ScrollAnimatedSection className="border border-slate-700/30 rounded-2xl p-8 mb-16" delay={200}>
-            <h3 className="text-2xl font-bold text-white mb-8 text-center">Gedetailleerde Vergelijking</h3>
+          <ScrollAnimatedSection className="border border-slate-700/30 rounded-2xl p-8 mb-12" delay={200}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-700/50">
-                    <th className="text-left py-4 px-6 text-slate-300">Kengetal</th>
-                    <th className="text-center py-4 px-6 text-green-400">WhatsApp</th>
-                    <th className="text-center py-4 px-6 text-red-400">E-mail</th>
+                    <th className="text-left py-6 px-6 text-slate-300 text-lg">Kengetal</th>
+                    <th className="text-center py-6 px-6 text-red-400 text-lg">E-mail</th>
+                    <th className="text-center py-6 px-6 text-green-400 text-lg">WhatsApp</th>
+                    <th className="text-center py-6 px-6 text-emerald-400 text-lg">Verbetering</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-b border-slate-700/30">
                     <td className="py-4 px-6 text-white font-medium">Gemiddelde open rate</td>
+                    <td className="py-4 px-6 text-center text-red-300">~20%</td>
                     <td className="py-4 px-6 text-center text-green-400 font-bold">95-99%</td>
-                    <td className="py-4 px-6 text-center text-slate-300">~20%</td>
+                    <td className="py-4 px-6 text-center text-emerald-400 font-bold">5x hoger</td>
                   </tr>
                   <tr className="border-b border-slate-700/30">
                     <td className="py-4 px-6 text-white font-medium">Tijd tot bericht gelezen</td>
+                    <td className="py-4 px-6 text-center text-red-300">Vaak pas na uren</td>
                     <td className="py-4 px-6 text-center text-green-400 font-bold">80% binnen 5 min</td>
-                    <td className="py-4 px-6 text-center text-slate-300">Vaak pas na uren</td>
+                    <td className="py-4 px-6 text-center text-emerald-400 font-bold">18x sneller</td>
                   </tr>
                   <tr className="border-b border-slate-700/30">
                     <td className="py-4 px-6 text-white font-medium">Gemiddelde responstijd</td>
+                    <td className="py-4 px-6 text-center text-red-300">~90 minuten</td>
                     <td className="py-4 px-6 text-center text-green-400 font-bold">Binnen enkele minuten</td>
-                    <td className="py-4 px-6 text-center text-slate-300">~90 minuten</td>
+                    <td className="py-4 px-6 text-center text-emerald-400 font-bold">18x sneller</td>
                   </tr>
                   <tr className="border-b border-slate-700/30">
                     <td className="py-4 px-6 text-white font-medium">Responsrate</td>
+                    <td className="py-4 px-6 text-center text-red-300">~6%</td>
                     <td className="py-4 px-6 text-center text-green-400 font-bold">40-45%</td>
-                    <td className="py-4 px-6 text-center text-slate-300">~6%</td>
+                    <td className="py-4 px-6 text-center text-emerald-400 font-bold">7x meer reacties</td>
                   </tr>
                   <tr>
                     <td className="py-4 px-6 text-white font-medium">No-show percentage</td>
+                    <td className="py-4 px-6 text-center text-red-300">~35%</td>
                     <td className="py-4 px-6 text-center text-green-400 font-bold">&lt;20%</td>
-                    <td className="py-4 px-6 text-center text-slate-300">~35%</td>
+                    <td className="py-4 px-6 text-center text-emerald-400 font-bold">50% minder</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </ScrollAnimatedSection>
+
+          {/* Key Insight Box */}
+          <ScrollAnimatedSection className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-2xl p-8 text-center" delay={300}>
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <Gauge className="w-8 h-8 text-green-400" />
+              <h3 className="text-2xl font-bold text-white">Belangrijkste Bevinding</h3>
+              <Gauge className="w-8 h-8 text-green-400" />
+            </div>
+            <p className="text-xl text-green-300 max-w-4xl mx-auto leading-relaxed">
+              "85% van consumenten berichten liever een bedrijf dan mailen • 53% van klanten neemt eerder iets af bij bedrijven die via chat benaderbaar zijn"
+            </p>
+          </ScrollAnimatedSection>
         </div>
       </ScrollAnimatedSection>
 
-      {/* Sector Case Studies */}
+      {/* Psychological Benefits Section */}
       <ScrollAnimatedSection as="section" className="py-20 px-4 bg-slate-800/20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-6">
-              Bewezen Resultaten Across <span className="text-green-400">Alle Sectoren</span>
+              Waarom WhatsApp <span className="text-green-400">Psychologisch</span> Beter Werkt
             </h2>
             <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-              Van zorg tot horeca - bedrijven in elke sector zien dramatische verbeteringen
+              Het gaat niet alleen om cijfers - het gaat om hoe mensen zich voelen en gedragen
             </p>
           </div>
           
           <div className="grid lg:grid-cols-2 gap-8">
-            {sectorCases.map((sector, index) => (
+            {psychologicalBenefits.map((benefit, index) => (
               <ScrollAnimatedSection 
                 key={index} 
                 className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 transition-all duration-300"
@@ -363,46 +371,120 @@ const WhyUs = () => {
               >
                 <div className="flex items-start space-x-6">
                   <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center flex-shrink-0">
-                    <sector.icon className="w-8 h-8 text-green-400" />
+                    <benefit.icon className="w-8 h-8 text-green-400" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-white mb-3">{sector.sector}</h3>
-                    <p className="text-slate-300 mb-4 text-sm">{sector.description}</p>
-                    <div className="space-y-2">
-                      {sector.results.map((result, idx) => (
-                        <div key={idx} className="flex items-center space-x-2">
-                          <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
-                          <span className="text-green-300 text-sm font-medium">{result}</span>
-                        </div>
-                      ))}
+                    <h3 className="text-xl font-bold text-white mb-3">{benefit.title}</h3>
+                    <p className="text-slate-300 mb-4">{benefit.description}</p>
+                    <div className="bg-green-500/10 text-green-400 px-4 py-2 rounded-full text-sm font-bold inline-block border border-green-500/20">
+                      {benefit.stat}
                     </div>
                   </div>
                 </div>
               </ScrollAnimatedSection>
             ))}
           </div>
-
-          {/* Key Insights Box */}
-          <ScrollAnimatedSection className="mt-16" delay={300}>
-            <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-2xl p-8 text-center">
-              <h3 className="text-2xl font-bold text-white mb-4">Belangrijkste Bevinding</h3>
-              <p className="text-xl text-green-300 max-w-4xl mx-auto">
-                "85% van consumenten berichten liever een bedrijf dan mailen • 53% van klanten neemt eerder iets af bij bedrijven die via chat benaderbaar zijn"
-              </p>
-            </div>
-          </ScrollAnimatedSection>
         </div>
       </ScrollAnimatedSection>
 
-      {/* Competitive Advantages Section */}
+      {/* Detailed Sector Case Studies */}
       <ScrollAnimatedSection as="section" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-6">
-              What Makes Us Different From Everyone Else
+              <span className="text-green-400">Bewezen Resultaten</span> Across Alle Sectoren
             </h2>
             <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-              We didn't just build another booking tool. We built the most advanced AI assistant that actually understands your business.
+              Diepgaande case studies van echte bedrijven die dramatische verbeteringen zagen
+            </p>
+          </div>
+          
+          <div className="space-y-12">
+            {sectorCaseStudies.map((study, index) => (
+              <ScrollAnimatedSection 
+                key={index} 
+                className="border border-slate-700/30 rounded-2xl p-8 hover:border-green-500/30 transition-all duration-300"
+                delay={index * 200}
+              >
+                <div className="grid lg:grid-cols-3 gap-8">
+                  {/* Header */}
+                  <div className="lg:col-span-3">
+                    <div className="flex items-center space-x-4 mb-6">
+                      <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center">
+                        <study.icon className="w-8 h-8 text-green-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-white">{study.sector}</h3>
+                        <div className="flex gap-4 mt-2">
+                          {study.headerStats.map((stat, idx) => (
+                            <span key={idx} className="text-green-400 font-semibold text-sm">{stat}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Case Study Details */}
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-lg font-bold text-white mb-3">{study.caseTitle}</h4>
+                      <div className="space-y-4">
+                        <div>
+                          <span className="text-red-400 font-semibold">Voor:</span>
+                          <p className="text-slate-300 text-sm mt-1">{study.caseBefore}</p>
+                        </div>
+                        <div>
+                          <span className="text-green-400 font-semibold">Na:</span>
+                          <p className="text-slate-300 text-sm mt-1">{study.caseAfter}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Implementation */}
+                  <div>
+                    <h4 className="text-lg font-bold text-white mb-3">Implementatie</h4>
+                    <div className="space-y-2">
+                      {study.implementation.map((item, idx) => (
+                        <div key={idx} className="flex items-start space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-slate-300 text-sm">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Results */}
+                  <div>
+                    <h4 className="text-lg font-bold text-white mb-3">Resultaten</h4>
+                    <div className="space-y-2 mb-4">
+                      {study.results.map((result, idx) => (
+                        <div key={idx} className="flex items-start space-x-2">
+                          <TrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-emerald-300 text-sm font-medium">{result}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-slate-800/50 rounded-xl p-4 border-l-4 border-green-400">
+                      <p className="text-slate-300 italic text-sm">"{study.quote}"</p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollAnimatedSection>
+            ))}
+          </div>
+        </div>
+      </ScrollAnimatedSection>
+
+      {/* Competitive Advantages */}
+      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-slate-800/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-6">
+              Waarom Wij Anders Zijn Dan <span className="text-emerald-400">Alle Anderen</span>
+            </h2>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              We bouwden niet zomaar een boekingstool. We bouwden de meest geavanceerde AI-assistent die écht je bedrijf begrijpt.
             </p>
           </div>
           
@@ -427,90 +509,15 @@ const WhyUs = () => {
         </div>
       </ScrollAnimatedSection>
 
-      {/* Why Choose Us Features */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-6">
-              The <span className="text-emerald-400">Only Platform</span> That Delivers On Every Promise
-            </h2>
-            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-              Stop settling for "good enough" solutions. Get the industry-leading platform that actually works as advertised.
-            </p>
-          </div>
-          
-          <div className="grid lg:grid-cols-3 gap-8">
-            {whyChooseUs.map((feature, index) => (
-              <ScrollAnimatedSection 
-                key={index} 
-                className="border border-emerald-500/20 rounded-2xl p-8 hover:border-emerald-500/40 transition-all duration-300"
-                delay={index * 150}
-              >
-                <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6">
-                  <feature.icon className="w-8 h-8 text-emerald-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-4">{feature.title}</h3>
-                <p className="text-slate-300 mb-4">{feature.description}</p>
-                <div className="text-emerald-400 font-bold text-lg">{feature.benefit}</div>
-              </ScrollAnimatedSection>
-            ))}
-          </div>
-        </div>
-      </ScrollAnimatedSection>
-
-      {/* Us vs Traditional */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-6">
-              Us vs Traditional Booking Methods
-            </h2>
-            <p className="text-xl text-slate-300">See why smart businesses are switching</p>
-          </div>
-          
-          <ScrollAnimatedSection className="border border-slate-700/30 rounded-2xl p-8" delay={200}>
-            <div className="grid md:grid-cols-3 gap-8 text-center mb-8">
-              <div></div>
-              <div className="border border-emerald-500/30 rounded-xl p-4">
-                <h3 className="text-xl font-bold text-emerald-400">Bookings Assistant AI</h3>
-              </div>
-              <div className="border border-red-500/30 rounded-xl p-4">
-                <h3 className="text-xl font-bold text-red-400">Traditional Methods</h3>
-              </div>
-            </div>
-            
-            {competitorComparison.map((item, index) => (
-              <div key={index} className="grid md:grid-cols-3 gap-8 py-4 border-b border-slate-700/30 items-center">
-                <div className="font-medium text-white">{item.feature}</div>
-                <div className="text-center">
-                  {item.us ? (
-                    <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto" />
-                  ) : (
-                    <div className="w-8 h-8 text-red-400 mx-auto">❌</div>
-                  )}
-                </div>
-                <div className="text-center">
-                  {item.traditional ? (
-                    <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto" />
-                  ) : (
-                    <div className="w-8 h-8 text-red-400 mx-auto">❌</div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </ScrollAnimatedSection>
-        </div>
-      </ScrollAnimatedSection>
-
       {/* Social Proof - Testimonials */}
       <ScrollAnimatedSection as="section" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-6">
-              Why Businesses Switch To Us From Competitors
+              Waarom Bedrijven Overstappen Van Concurrenten Naar Ons
             </h2>
             <p className="text-xl text-slate-300">
-              Real stories from businesses who tried others first, then found us
+              Echte verhalen van bedrijven die anderen eerst probeerden, en toen ons vonden
             </p>
           </div>
           
@@ -538,6 +545,57 @@ const WhyUs = () => {
                 </div>
               </ScrollAnimatedSection>
             ))}
+          </div>
+        </div>
+      </ScrollAnimatedSection>
+
+      {/* Digital Transformation Conclusion */}
+      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-6">
+              De Toekomst is <span className="text-green-400">Mobile-First</span>
+            </h2>
+            <p className="text-xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
+              De verschuiving van e-mail naar WhatsApp is niet tijdelijk - het is onderdeel van een bredere digitale transformatie. 
+              Consumenten verwachten snelheid, gemak en persoonlijke communicatie. Bedrijven die dit omarmen, 
+              <strong className="text-emerald-400"> winnen meer klanten, behouden ze langer en groeien sneller</strong>.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Smartphone className="w-8 h-8 text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Mobile-First Gedrag</h3>
+              <p className="text-slate-300">96x per dag checken mensen hun telefoon. WhatsApp past in hun natuurlijke gedrag.</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-8 h-8 text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Verwachting van Snelheid</h3>
+              <p className="text-slate-300">Klanten verwachten directe reacties. WhatsApp levert dit, e-mail niet meer.</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Heart className="w-8 h-8 text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Persoonlijke Connectie</h3>
+              <p className="text-slate-300">85% prefereert berichten boven e-mails. Het voelt persoonlijker en vertrouwder.</p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-green-500/20 rounded-2xl p-8 max-w-4xl mx-auto">
+              <h3 className="text-2xl font-bold text-white mb-4">Conclusie in Één Zin</h3>
+              <p className="text-xl text-green-300 leading-relaxed">
+                Voor het plannen en managen van klantafspraken is WhatsApp in 2025 een <strong>bewezen superieur kanaal</strong> 
+                ten opzichte van e-mail – het zorgt voor snellere bevestiging, hogere opkomst en een soepelere klantervaring, 
+                wat uiteindelijk leidt tot <strong>betere bedrijfsresultaten</strong>.
+              </p>
+            </div>
           </div>
         </div>
       </ScrollAnimatedSection>
