@@ -22,9 +22,9 @@ const Hero = () => {
           <span className="text-emerald-300 text-sm font-medium">AI-Powered Booking Revolution</span>
         </div>
 
-        {/* Main headline */}
+        {/* Main headline - RESTORED */}
         <div className="space-y-8">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white leading-[0.9] tracking-tight animate-appear opacity-0 delay-100">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white leading-[0.9] tracking-tight animate-appear opacity-100">
             <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
               Bookings
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
@@ -34,7 +34,7 @@ const Hero = () => {
             via WhatsApp
           </h1>
 
-          <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-0 delay-300">
+          <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300">
             Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-semibold">24/7 automation</span>,{" "}
             <span className="text-emerald-400 font-semibold">instant responses</span>,{" "}
@@ -42,7 +42,7 @@ const Hero = () => {
           </p>
 
           {/* CTA Section */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8 animate-appear opacity-0 delay-500">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8 animate-appear opacity-100 delay-500">
             <Button className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group">
               <MessageCircle className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
               Start Free 7-Day Trial
@@ -55,7 +55,7 @@ const Hero = () => {
           </div>
 
           {/* Social proof */}
-          <div className="flex items-center justify-center gap-8 pt-4 animate-appear opacity-0 delay-700">
+          <div className="flex items-center justify-center gap-8 pt-4 animate-appear opacity-100 delay-700">
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
                 {/* Hair salon/beauty - Scissors */}
