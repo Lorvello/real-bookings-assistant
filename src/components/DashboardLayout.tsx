@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -57,6 +56,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const handleBackToWebsite = () => {
+    console.log('Navigating back to website homepage');
     navigate('/');
   };
 
