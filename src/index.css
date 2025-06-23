@@ -96,6 +96,64 @@
   }
 }
 
+/* WhatsApp Chat Specific Styles */
+@layer components {
+  .whatsapp-chat-bg {
+    background-color: #ece5dd;
+    background-image: linear-gradient(45deg, transparent 35%, rgba(255, 255, 255, 0.1) 35%, rgba(255, 255, 255, 0.1) 65%, transparent 65%), 
+                      linear-gradient(-45deg, transparent 35%, rgba(0, 0, 0, 0.05) 35%, rgba(0, 0, 0, 0.05) 65%, transparent 65%);
+    background-size: 20px 20px;
+  }
+
+  .whatsapp-bubble-user {
+    @apply bg-green-500 text-white px-3 py-2 rounded-lg rounded-br-sm shadow-sm relative;
+  }
+
+  .whatsapp-bubble-user::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: -8px;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    border-left: 8px solid #22c55e;
+    border-bottom: 0;
+    transform: rotate(-45deg);
+  }
+
+  .whatsapp-bubble-ai {
+    @apply bg-white text-gray-800 px-3 py-2 rounded-lg rounded-bl-sm shadow-sm relative border border-gray-200;
+  }
+
+  .whatsapp-bubble-ai::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    border-right: 8px solid white;
+    border-bottom: 0;
+    transform: rotate(45deg);
+  }
+
+  .whatsapp-bubble-ai::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -9px;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    border-right: 8px solid #e5e7eb;
+    border-bottom: 0;
+    transform: rotate(45deg);
+    z-index: -1;
+  }
+}
+
 /* Custom animations */
 @keyframes fadeIn {
   from {
