@@ -1,5 +1,5 @@
 
-import { MonthView } from './MonthView';
+import { ModernMonthView } from './ModernMonthView';
 import { WeekView } from './WeekView';
 import { YearView } from './YearView';
 
@@ -38,8 +38,12 @@ export function CalendarContent({
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p className="text-muted-foreground">Boekingen laden...</p>
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="absolute inset-0 w-12 h-12 border-4 border-primary/10 rounded-full mx-auto"></div>
+          </div>
+          <p className="text-muted-foreground font-medium">Boekingen laden...</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">Een moment geduld</p>
         </div>
       </div>
     );
@@ -48,9 +52,11 @@ export function CalendarContent({
   if (error) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
-        <div className="text-center">
-          <div className="text-red-500 mb-2">⚠️</div>
-          <p className="text-red-500 font-medium">Fout bij laden van boekingen</p>
+        <div className="text-center bg-gradient-to-br from-red-500/10 to-red-500/5 rounded-3xl p-8 border border-red-500/20">
+          <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-500 text-xl">⚠️</span>
+          </div>
+          <p className="text-red-500 font-semibold mb-2">Fout bij laden van boekingen</p>
           <p className="text-muted-foreground text-sm">{error}</p>
         </div>
       </div>
@@ -59,12 +65,12 @@ export function CalendarContent({
 
   switch (currentView) {
     case 'month':
-      return <MonthView bookings={bookings} currentDate={currentDate} />;
+      return <ModernMonthView bookings={bookings} currentDate={currentDate} />;
     case 'week':
       return <WeekView bookings={bookings} currentDate={currentDate} />;
     case 'year':
       return <YearView bookings={bookings} currentDate={currentDate} />;
     default:
-      return <MonthView bookings={bookings} currentDate={currentDate} />;
+      return <ModernMonthView bookings={bookings} currentDate={currentDate} />;
   }
 }

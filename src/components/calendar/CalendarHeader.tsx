@@ -1,7 +1,7 @@
 
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight, Plus, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type CalendarView = 'month' | 'week' | 'year';
@@ -23,107 +23,122 @@ export function CalendarHeader({
   onNewBooking,
   loading = false
 }: CalendarHeaderProps) {
-  console.log('CalendarHeader rendering:', { currentView, currentDate, loading });
-  console.log('CalendarHeader: onNewBooking function exists:', typeof onNewBooking === 'function');
-  
-  const formatDateHeader = () => {
+  const formatTitle = () => {
     switch (currentView) {
       case 'week':
-        return format(currentDate, 'wo \'week van\' yyyy', { locale: nl });
-      case 'month':
-        return format(currentDate, 'MMMM yyyy', { locale: nl });
+        return format(currentDate, "'Week van' d MMMM yyyy", { locale: nl });
       case 'year':
-        return format(currentDate, 'yyyy', { locale: nl });
+        return format(currentDate, 'yyyy');
       default:
         return format(currentDate, 'MMMM yyyy', { locale: nl });
     }
   };
 
   return (
-    <div className="flex-shrink-0 border-b border-border/60 bg-gradient-to-r from-card via-card to-card/95 shadow-sm">
-      <div className="flex items-center justify-between p-8 min-h-[100px]">
-        {/* Left side - Navigation */}
-        <div className="flex items-center space-x-6 min-w-0 flex-1">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => onNavigate('prev')}
-              className="group p-3 hover:bg-accent/80 rounded-xl transition-all duration-200 flex-shrink-0 shadow-sm hover:shadow-md border border-border/40"
-              disabled={loading}
-            >
-              <ChevronLeft className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </button>
+    <div className="bg-gradient-to-r from-card/95 via-card to-card/95 backdrop-blur-xl border-b border-border/40 px-6 py-4 rounded-t-3xl shadow-lg shadow-black/5">
+      <div className="flex items-center justify-between">
+        {/* Left Section - Title & Navigation */}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 rounded-2xl border border-primary/20 shadow-sm">
+              <Calendar className="h-6 w-6 text-primary" />
+            </div>
             
-            <button
-              onClick={() => onNavigate('next')}
-              className="group p-3 hover:bg-accent/80 rounded-xl transition-all duration-200 flex-shrink-0 shadow-sm hover:shadow-md border border-border/40"
+            <div>
+              <h1 className="text-2xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+                {formatTitle()}
+              </h1>
+              <p className="text-sm text-muted-foreground font-medium">
+                Beheer je afspraken en beschikbaarheid
+              </p>
+            </div>
+          </div>
+
+          {/* Navigation Controls */}
+          <div className="flex items-center gap-2 bg-muted/50 rounded-2xl p-1.5 border border-border/60 shadow-sm">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onNavigate('prev')}
+              className="h-10 w-10 rounded-xl hover:bg-accent/80 transition-colors duration-200"
               disabled={loading}
             >
-              <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </button>
-          </div>
-          
-          <div className="border-l border-border/60 pl-6">
-            <h2 className="text-2xl font-bold text-foreground capitalize truncate bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text">
-              {formatDateHeader()}
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              {currentView === 'month' && 'Maandoverzicht van al je afspraken'}
-              {currentView === 'week' && 'Weekplanning in detail'}
-              {currentView === 'year' && 'Jaaroverzicht en statistieken'}
-            </p>
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => onNavigate('prev')}
+              className="px-4 py-2 h-10 rounded-xl border-border/60 bg-background/80 hover:bg-accent/80 transition-all duration-200 font-medium"
+              disabled={loading}
+            >
+              Vandaag
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onNavigate('next')}
+              className="h-10 w-10 rounded-xl hover:bg-accent/80 transition-colors duration-200"
+              disabled={loading}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
           </div>
         </div>
 
-        {/* Right side - View Switcher and New Booking Button */}
-        <div className="flex items-center space-x-6 flex-shrink-0">
+        {/* Right Section - View Controls & Actions */}
+        <div className="flex items-center gap-4">
           {/* View Switcher */}
-          <div className="flex bg-muted/60 backdrop-blur-sm rounded-xl p-1.5 shadow-inner border border-border/40">
-            <button
-              onClick={() => onViewChange('month')}
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 min-w-[80px] ${
-                currentView === 'month'
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 transform scale-105'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-              }`}
-            >
-              Maand
-            </button>
-            <button
-              onClick={() => onViewChange('week')}
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 min-w-[80px] ${
-                currentView === 'week'
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 transform scale-105'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-              }`}
-            >
-              Week
-            </button>
-            <button
-              onClick={() => onViewChange('year')}
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 min-w-[80px] ${
-                currentView === 'year'
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 transform scale-105'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-              }`}
-            >
-              Jaar
-            </button>
+          <div className="flex items-center bg-muted/50 rounded-2xl p-1.5 border border-border/60 shadow-sm">
+            {(['month', 'week', 'year'] as const).map((view) => (
+              <Button
+                key={view}
+                variant={currentView === view ? "default" : "ghost"}
+                size="sm"
+                onClick={() => onViewChange(view)}
+                className={`px-4 py-2 h-9 rounded-xl font-medium transition-all duration-200 ${
+                  currentView === view 
+                    ? 'bg-primary text-primary-foreground shadow-md' 
+                    : 'hover:bg-accent/80'
+                }`}
+              >
+                {view === 'month' ? 'Maand' : view === 'week' ? 'Week' : 'Jaar'}
+              </Button>
+            ))}
           </div>
 
-          {/* Nieuwe Afspraak Button */}
-          <Button
-            onClick={() => {
-              console.log('🚀 Nieuwe Afspraak button clicked - this should be visible!');
-              onNewBooking();
-            }}
-            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-0 px-6 py-3 h-12 flex-shrink-0 rounded-xl font-semibold"
-            disabled={loading}
-          >
-            <Plus className="w-5 h-5 mr-2 flex-shrink-0" />
-            <span className="whitespace-nowrap">Nieuwe Afspraak</span>
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-11 w-11 rounded-2xl border-border/60 bg-background/80 hover:bg-accent/80 transition-all duration-200 shadow-sm"
+            >
+              <Users className="h-5 w-5" />
+            </Button>
+            
+            <Button
+              onClick={onNewBooking}
+              disabled={loading}
+              className="h-11 px-6 rounded-2xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/25 transition-all duration-200 hover:shadow-xl hover:shadow-primary/30 hover:scale-105"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Nieuwe Afspraak
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="absolute inset-0 bg-card/80 backdrop-blur-sm rounded-t-3xl flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <span className="text-sm font-medium text-muted-foreground">Laden...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

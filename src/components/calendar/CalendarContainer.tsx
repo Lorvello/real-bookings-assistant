@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { addMonths, subMonths, addWeeks, subWeeks, addYears, subYears } from 'date-fns';
 import { CalendarHeader } from './CalendarHeader';
@@ -57,7 +58,7 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border h-full flex flex-col overflow-hidden">
+    <div className="bg-gradient-to-br from-card via-card/98 to-card/95 rounded-3xl border border-border/40 h-full flex flex-col overflow-hidden shadow-2xl shadow-black/10 backdrop-blur-xl">
       <CalendarHeader
         currentView={currentView}
         currentDate={currentDate}
@@ -67,14 +68,19 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
         loading={loading}
       />
 
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <CalendarContent
-          currentView={currentView}
-          bookings={bookings}
-          currentDate={currentDate}
-          loading={loading}
-          error={error}
-        />
+      <div className="flex-1 overflow-hidden min-h-0 relative">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/[0.02] to-transparent pointer-events-none"></div>
+        
+        <div className="relative z-10 h-full">
+          <CalendarContent
+            currentView={currentView}
+            bookings={bookings}
+            currentDate={currentDate}
+            loading={loading}
+            error={error}
+          />
+        </div>
       </div>
 
       <NewBookingModal
