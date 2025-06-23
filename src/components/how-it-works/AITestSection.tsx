@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
-import AIAgentTestPage from '@/components/ui/component';
+import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 
 const AITestSection = () => {
   return (
@@ -28,7 +28,7 @@ const AITestSection = () => {
           </div>
           
           <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 shadow-xl">
-            <AIAgentTestPage />
+            <AIAgentTestChat />
           </div>
         </div>
       </section>

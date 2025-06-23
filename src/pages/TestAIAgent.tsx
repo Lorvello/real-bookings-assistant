@@ -1,12 +1,12 @@
 
 import React from 'react';
-import AIAgentTestPage from '@/components/ui/component';
+import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 import { DashboardLayout } from '@/components/DashboardLayout';
 
 export default function TestAIAgent() {
   return (
     <DashboardLayout>
-      <AIAgentTestPage />
+      <AIAgentTestChat />
     </DashboardLayout>
   );
 }

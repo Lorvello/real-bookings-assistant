@@ -1,8 +1,7 @@
-
 import React from 'react';
 import WhatsAppChat from './WhatsAppChat';
 import CalendarMockup from './CalendarMockup';
-import AIAgentTestPage from '@/components/ui/component';
+import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 
 const ProcessSection = () => {
   return (
@@ -94,7 +93,7 @@ const ProcessSection = () => {
           </div>
           
           <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8">
-            <AIAgentTestPage />
+            <AIAgentTestChat />
           </div>
         </div>
       </div>
