@@ -78,33 +78,23 @@ const CalendarMockup = () => {
                   )}
                 </div>
                 
-                {/* Booking Content - Fixed Height */}
-                <div className="flex-1 flex items-center justify-center">
-                  {dayBookings.length === 0 && isCurrentMonth && (
-                    <div className="text-center opacity-0">
-                      <div className="text-[9px] text-muted-foreground">-</div>
-                    </div>
-                  )}
-                  
+                {/* Booking Content - Top Aligned */}
+                <div className="flex-1">
                   {dayBookings.length === 1 && (
-                    <div className="w-full">
-                      <div className="p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
-                        <div className="text-[10px] text-slate-200 font-medium truncate text-center">
-                          {format(new Date(dayBookings[0].start_time), 'HH:mm')}
-                        </div>
-                        <div className="text-[9px] text-slate-300/80 truncate text-center">
-                          {dayBookings[0].customer_name}
-                        </div>
+                    <div className="p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
+                      <div className="text-[10px] text-slate-200 font-medium truncate">
+                        {format(new Date(dayBookings[0].start_time), 'HH:mm')}
+                      </div>
+                      <div className="text-[9px] text-slate-300/80 truncate">
+                        {dayBookings[0].customer_name}
                       </div>
                     </div>
                   )}
                   
                   {dayBookings.length > 1 && (
-                    <div className="w-full">
-                      <div className="p-1.5 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
-                        <div className="text-[10px] text-slate-200 font-medium text-center">
-                          {dayBookings.length} afspraken
-                        </div>
+                    <div className="p-1.5 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
+                      <div className="text-[10px] text-slate-200 font-medium">
+                        {dayBookings.length} afspraken
                       </div>
                     </div>
                   )}
