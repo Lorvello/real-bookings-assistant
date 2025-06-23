@@ -15,16 +15,16 @@ const Hero = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.4)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.4)_1px,transparent_1px)] bg-[size:64px_64px] opacity-30"></div>
       
-      <div className="relative max-w-7xl mx-auto px-4 text-center z-10">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
         {/* Floating badge */}
-        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-6 py-3 mb-8 animate-appear opacity-0">
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 animate-appear opacity-0">
           <Sparkles className="w-4 h-4 text-emerald-400" />
-          <span className="text-emerald-300 text-sm font-medium">AI-Powered Booking Revolution</span>
+          <span className="text-emerald-300 text-xs sm:text-sm font-medium">AI-Powered Booking Revolution</span>
         </div>
 
         {/* Main headline */}
-        <div className="space-y-8">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white leading-[0.9] tracking-tight animate-appear opacity-100">
+        <div className="space-y-6 sm:space-y-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl font-extrabold text-white leading-[0.95] tracking-tight animate-appear opacity-100">
             <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
               Bookings
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
@@ -34,7 +34,7 @@ const Hero = () => {
             via WhatsApp
           </h1>
 
-          <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300">
+          <p className="text-lg sm:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 sm:px-0">
             Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-semibold">24/7 automation</span>,{" "}
             <span className="text-emerald-400 font-semibold">instant responses</span>,{" "}
@@ -42,36 +42,33 @@ const Hero = () => {
           </p>
 
           {/* CTA Section */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8 animate-appear opacity-100 delay-500">
-            <Button className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 pt-6 sm:pt-8 animate-appear opacity-100 delay-500 px-4 sm:px-0">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[44px]">
               <MessageCircle className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
               Start Free 7-Day Trial
             </Button>
             
-            <button className="text-slate-300 hover:text-white text-lg font-medium flex items-center gap-2 group transition-colors">
+            <button className="text-slate-300 hover:text-white text-base sm:text-lg font-medium flex items-center gap-2 group transition-colors min-h-[44px] px-4">
               <Zap className="w-5 h-5 group-hover:text-emerald-400 transition-colors" />
               See how it works
             </button>
           </div>
 
           {/* Social proof */}
-          <div className="flex items-center justify-center gap-8 pt-4 animate-appear opacity-100 delay-700">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8 pt-4 animate-appear opacity-100 delay-700 px-4 sm:px-0">
+            <div className="flex items-center gap-3">
               <div className="flex -space-x-2">
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <Scissors className="w-4 h-4 text-slate-700" />
                 </div>
-                
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <div className="w-4 h-4 bg-slate-700 rounded-t-full" style={{
                     clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)"
                   }}></div>
                 </div>
-                
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <Dumbbell className="w-4 h-4 text-slate-700" />
                 </div>
-                
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <Stethoscope className="w-4 h-4 text-slate-700" />
                 </div>
