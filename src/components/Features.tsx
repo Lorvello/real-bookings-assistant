@@ -1,5 +1,5 @@
 
-import { Check, Calendar, Globe, BarChart3, Bell, Settings, Zap } from "lucide-react";
+import { Check, Calendar, Globe, BarChart3, Bell, Settings, Zap, Monitor, Link } from "lucide-react";
 
 const Features = () => {
   const features = [
@@ -17,9 +17,15 @@ const Features = () => {
     },
     {
       icon: Calendar,
-      title: "Agenda Synchronisatie",
-      description: "Integreert met Google Calendar, Outlook, Calendly en meer",
+      title: "Geavanceerd Dashboard & Eigen Kalender",
+      description: "Krijg je eigen professionele kalender met een zeer geavanceerd dashboard voor complete controle over je boekingen",
       color: "from-blue-400 to-indigo-500"
+    },
+    {
+      icon: Link,
+      title: "Koppel Je Bestaande Kalender",
+      description: "Integreer naadloos met Google Calendar, Outlook, Calendly en meer - behoud je huidige workflow",
+      color: "from-emerald-400 to-teal-500"
     },
     {
       icon: Bell,
@@ -30,7 +36,7 @@ const Features = () => {
     {
       icon: BarChart3,
       title: "Gedetailleerde Analytics",
-      description: "Volg boekingspercentages, populaire tijden en gegenereerde omzet",
+      description: "Volg boekingspercentages, populaire tijden en gegenereerde omzet in je persoonlijke dashboard",
       color: "from-cyan-400 to-blue-500"
     },
     {
@@ -38,6 +44,12 @@ const Features = () => {
       title: "Meertalige Ondersteuning",
       description: "Communiceert automatisch in de voorkeurstaal van je klanten",
       color: "from-rose-400 to-red-500"
+    },
+    {
+      icon: Monitor,
+      title: "Realtime Dashboard Monitoring",
+      description: "Bekijk live boekingen, prestaties en klantinteracties in je geavanceerde controlepaneel",
+      color: "from-indigo-400 to-purple-500"
     }
   ];
 
@@ -66,25 +78,39 @@ const Features = () => {
           </p>
         </div>
         
-        {/* Features grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+        {/* Clean features grid - no blocky containers */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-500 hover:-translate-y-2"
+              className="group text-center hover:transform hover:scale-105 transition-all duration-300 cursor-pointer"
             >
-              <div className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                <feature.icon className="w-7 h-7 text-white" strokeWidth={2} />
+              {/* Clean, minimal icon */}
+              <div className="relative mb-8 flex justify-center">
+                <div className={`w-20 h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+                  <feature.icon className="w-10 h-10 text-white" strokeWidth={1.5} />
+                </div>
+                
+                {/* Subtle glow effect */}
+                <div className={`absolute inset-0 w-20 h-20 bg-gradient-to-br ${feature.color} rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300`}></div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
-              <p className="text-slate-300 leading-relaxed">{feature.description}</p>
+              
+              {/* Clean typography */}
+              <h3 className="text-xl font-bold text-white mb-4 leading-tight group-hover:text-emerald-300 transition-colors duration-300">
+                {feature.title}
+              </h3>
+              
+              {/* Simple description */}
+              <p className="text-slate-300 text-base leading-relaxed group-hover:text-slate-200 transition-colors duration-300">
+                {feature.description}
+              </p>
             </div>
           ))}
         </div>
         
-        {/* CTA Section */}
-        <div className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 backdrop-blur-sm border border-slate-600/50 rounded-2xl p-12 text-center relative overflow-hidden">
-          {/* Background decoration */}
+        {/* Clean CTA Section */}
+        <div className="text-center relative overflow-hidden">
+          {/* Background decoration for CTA */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-green-500/5 rounded-full blur-3xl"></div>
           
@@ -92,23 +118,24 @@ const Features = () => {
             <h3 className="text-3xl md:text-4xl font-bold mb-6 text-white">
               Laat Omzet Niet Slapen Terwijl Jij Dat Wel Doet
             </h3>
-            <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-slate-300 mb-12 max-w-2xl mx-auto">
               Terwijl jij bezig bent met klanten, is je AI agent bezig met het boeken van nieuwe. 
               Start je gratis proefperiode en zie het verschil dat automatisering maakt.
             </p>
             
-            <div className="flex flex-wrap justify-center gap-12">
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-2 text-emerald-400">24/7</div>
-                <div className="text-slate-400 text-sm uppercase tracking-wider">Altijd Werkend</div>
+            {/* Clean stats section */}
+            <div className="flex flex-wrap justify-center gap-16">
+              <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
+                <div className="text-4xl font-bold mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">24/7</div>
+                <div className="text-slate-400 text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Altijd Werkend</div>
               </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-2 text-emerald-400">∞</div>
-                <div className="text-slate-400 text-sm uppercase tracking-wider">Onbeperkte Capaciteit</div>
+              <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
+                <div className="text-4xl font-bold mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">∞</div>
+                <div className="text-slate-400 text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Onbeperkte Capaciteit</div>
               </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-2 text-emerald-400">0%</div>
-                <div className="text-slate-400 text-sm uppercase tracking-wider">Menselijke Fouten</div>
+              <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
+                <div className="text-4xl font-bold mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">0%</div>
+                <div className="text-slate-400 text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Menselijke Fouten</div>
               </div>
             </div>
           </div>
