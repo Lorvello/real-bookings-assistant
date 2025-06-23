@@ -20,11 +20,11 @@ const ProcessSection = () => {
         {/* Section header */}
         <div className="text-center mb-12 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 px-4 sm:px-0">
-            See How It Works
+            Zie Hoe Het Werkt
           </h2>
           <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
-            From first message to confirmed appointment in less than 30 seconds. 
-            Watch how our AI handles the entire booking process automatically.
+            Van eerste bericht tot bevestigde afspraak in minder dan 30 seconden. 
+            Kijk hoe onze AI het hele boekingsproces automatisch afhandelt.
           </p>
         </div>
 
@@ -37,15 +37,15 @@ const ProcessSection = () => {
                 <div className="w-10 h-10 sm:w-12 sm:h-12 text-white rounded-full flex items-center justify-center font-bold text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   1
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white">Customer Starts WhatsApp Chat</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-white">Klant Start WhatsApp Chat</h3>
               </div>
               <p className="text-base sm:text-lg text-slate-300 leading-relaxed px-4 lg:px-0">
-                Your customer sends a simple message expressing their needs. Our AI agent 
-                responds immediately with intelligent questions to understand their preferences 
-                and find the perfect appointment time.
+                Je klant stuurt een eenvoudig bericht waarin ze hun behoefte uiten. Onze AI agent 
+                reageert direct met intelligente vragen om hun voorkeuren te begrijpen 
+                en de perfecte afspraaktijd te vinden.
               </p>
               <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 backdrop-blur-sm mx-4 lg:mx-0">
-                <p className="font-medium text-emerald-400 text-sm sm:text-base">✨ No apps to download, no complex forms to fill out</p>
+                <p className="font-medium text-emerald-400 text-sm sm:text-base">✨ Geen apps om te downloaden, geen complexe formulieren om in te vullen</p>
               </div>
             </div>
             
@@ -61,14 +61,14 @@ const ProcessSection = () => {
                 <div className="w-10 h-10 sm:w-12 sm:h-12 text-white rounded-full flex items-center justify-center font-bold text-lg bg-gradient-to-br from-blue-500 to-indigo-500">
                   2
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white">Appointment Automatically Booked</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-white">Afspraak Automatisch Geboekt</h3>
               </div>
               <p className="text-base sm:text-lg text-slate-300 leading-relaxed px-4 lg:px-0">
-                The AI confirms the appointment details and adds it directly to your calendar. 
-                Both you and your customer receive confirmation messages with all the details.
+                De AI bevestigt de afspraakdetails en voegt deze direct toe aan je agenda. 
+                Zowel jij als je klant ontvangen bevestigingsberichten met alle details.
               </p>
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 backdrop-blur-sm mx-4 lg:mx-0">
-                <p className="font-medium text-blue-400 text-sm sm:text-base">📅 Syncs with Google Calendar, Outlook and more</p>
+                <p className="font-medium text-blue-400 text-sm sm:text-base">📅 Synchroniseert met Google Calendar, Outlook en meer</p>
               </div>
             </div>
             
@@ -85,11 +85,11 @@ const ProcessSection = () => {
               <div className="w-10 h-10 sm:w-12 sm:h-12 text-white rounded-full flex items-center justify-center font-bold text-lg bg-gradient-to-br from-purple-500 to-pink-500">
                 3
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white">Test The AI Agent Yourself</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-white">Test De AI Agent Zelf</h3>
             </div>
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-6 sm:mb-8 px-4 sm:px-0">
-              Try it yourself! Chat with our AI agent and experience how fast and natural 
-              the booking process is. No registration required.
+              Probeer het zelf uit! Chat met onze AI agent en ervaar hoe snel en natuurlijk 
+              het boekingsproces verloopt. Geen registratie nodig.
             </p>
           </div>
           

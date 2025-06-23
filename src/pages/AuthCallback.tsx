@@ -12,8 +12,8 @@ const AuthCallback = () => {
     // Since we've removed OAuth, this callback is no longer needed
     // Redirect to profile page with a message
     toast({
-      title: "Redirecting",
-      description: "OAuth has been replaced with direct Cal.com integration",
+      title: "Omleiden",
+      description: "OAuth is vervangen door directe Cal.com integratie",
     });
     
     navigate('/profile');
@@ -24,10 +24,10 @@ const AuthCallback = () => {
       <div className="text-center">
         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-green-600" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Redirecting...
+          Omleiden...
         </h2>
         <p className="text-gray-600">
-          You're being redirected to your profile
+          Je wordt doorgestuurd naar je profiel
         </p>
       </div>
     </div>

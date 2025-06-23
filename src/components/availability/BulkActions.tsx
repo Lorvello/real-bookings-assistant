@@ -11,7 +11,7 @@ export function BulkActions({ onBulkUpdate }: BulkActionsProps) {
   return (
     <div className="bg-background-secondary rounded-lg p-6 border border-border">
       <h3 className="text-lg font-medium text-foreground mb-4">
-        Bulk Actions
+        Bulk Bewerkingen
       </h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -20,7 +20,7 @@ export function BulkActions({ onBulkUpdate }: BulkActionsProps) {
           onClick={() => onBulkUpdate({ is_available: true })}
           className="border-border"
         >
-          Make all days available
+          Alle dagen beschikbaar maken
         </Button>
         
         <Button
@@ -28,7 +28,7 @@ export function BulkActions({ onBulkUpdate }: BulkActionsProps) {
           onClick={() => onBulkUpdate({ is_available: false })}
           className="border-border"
         >
-          Make all days unavailable
+          Alle dagen niet beschikbaar maken
         </Button>
         
         <Button
@@ -39,7 +39,7 @@ export function BulkActions({ onBulkUpdate }: BulkActionsProps) {
           })}
           className="border-border"
         >
-          Standard hours (9:00-17:00)
+          Standaard werkuren (9:00-17:00)
         </Button>
         
         <Button
@@ -50,7 +50,7 @@ export function BulkActions({ onBulkUpdate }: BulkActionsProps) {
           })}
           className="border-border"
         >
-          Extended hours (8:00-18:00)
+          Lange werkuren (8:00-18:00)
         </Button>
       </div>
     </div>

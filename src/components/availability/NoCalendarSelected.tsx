@@ -24,7 +24,7 @@ export const NoCalendarSelected: React.FC<NoCalendarSelectedProps> = ({
               <div className="font-medium text-foreground">
                 {profile?.business_name || profile?.full_name || user?.email}
               </div>
-              <div className="text-sm text-muted-foreground">Logged in as owner</div>
+              <div className="text-sm text-muted-foreground">Ingelogd als eigenaar</div>
             </div>
           </div>
         </div>
@@ -32,9 +32,9 @@ export const NoCalendarSelected: React.FC<NoCalendarSelectedProps> = ({
       
       <div className="max-w-4xl mx-auto p-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-4">No calendar selected</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-4">Geen kalender geselecteerd</h1>
           <p className="text-muted-foreground mb-6">
-            Select a calendar to manage availability.
+            Selecteer een kalender om de beschikbaarheid te beheren.
           </p>
           <CalendarSwitcher />
         </div>

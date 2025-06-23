@@ -19,10 +19,10 @@ export default function RecurringAvailabilityManager() {
           <div className="text-center">
             <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h3 className="text-lg font-medium text-foreground mb-2">
-              No calendar selected
+              Geen kalender geselecteerd
             </h3>
             <p className="text-muted-foreground">
-              Select a calendar to manage recurring availability
+              Selecteer een kalender om terugkerende beschikbaarheid te beheren
             </p>
           </div>
         </CardContent>
@@ -33,9 +33,9 @@ export default function RecurringAvailabilityManager() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Recurring Availability</h1>
+        <h1 className="text-3xl font-bold text-foreground">Terugkerende Beschikbaarheid</h1>
         <p className="text-muted-foreground mt-2">
-          Manage recurring availability patterns for <strong>{selectedCalendar.name}</strong>
+          Beheer terugkerende beschikbaarheidspatronen voor <strong>{selectedCalendar.name}</strong>
         </p>
       </div>
 
@@ -43,15 +43,15 @@ export default function RecurringAvailabilityManager() {
         <TabsList>
           <TabsTrigger value="list" className="flex items-center space-x-2">
             <Clock className="h-4 w-4" />
-            <span>Existing Patterns</span>
+            <span>Bestaande Patronen</span>
           </TabsTrigger>
-          <TabsTrigger value="create">New Pattern</TabsTrigger>
+          <TabsTrigger value="create">Nieuw Patroon</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list">
           <Card>
             <CardHeader>
-              <CardTitle>Recurring Patterns</CardTitle>
+              <CardTitle>Terugkerende Patronen</CardTitle>
             </CardHeader>
             <CardContent>
               <RecurringPatternsList
@@ -67,7 +67,7 @@ export default function RecurringAvailabilityManager() {
         <TabsContent value="create">
           <Card>
             <CardHeader>
-              <CardTitle>New Recurring Pattern</CardTitle>
+              <CardTitle>Nieuw Terugkerend Patroon</CardTitle>
             </CardHeader>
             <CardContent>
               <RecurringPatternCreator 

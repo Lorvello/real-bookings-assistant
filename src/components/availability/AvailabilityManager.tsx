@@ -23,12 +23,12 @@ export const AvailabilityManager = () => {
   const [setToDefault, setSetToDefault] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
 
-  // For availability we always use a specific calendar
-  // If user has selected "All calendars", we take the first available calendar
+  // Voor availability gebruiken we altijd een specifieke kalender
+  // Als gebruiker "Alle kalenders" heeft geselecteerd, nemen we de eerste beschikbare kalender
   const availabilityCalendar: Calendar | null = React.useMemo(() => {
     if (!calendars.length) return null;
     
-    // If there's a specific calendar selected and not "All calendars", use that
+    // Als er een specifieke kalender geselecteerd is en niet "Alle kalenders", gebruik die
     if (selectedCalendar && !viewingAllCalendars) {
       return selectedCalendar;
     }

@@ -57,7 +57,7 @@ const Dashboard = () => {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-green-100 to-green-200 bg-clip-text text-transparent mb-4">
               Dashboard
               {viewingAllCalendars 
-                ? ' - All calendars'
+                ? ' - Alle kalenders'
                 : selectedCalendar 
                   ? ` - ${selectedCalendar.name}`
                   : ''
@@ -65,8 +65,8 @@ const Dashboard = () => {
             </h1>
             <p className="text-gray-400 text-lg">
               {viewingAllCalendars
-                ? `Overview of ${activeCalendarIds.length} calendars`
-                : 'Overview of your bookings and performance'
+                ? `Overzicht van ${activeCalendarIds.length} kalenders`
+                : 'Overzicht van je boekingen en prestaties'
               }
             </p>
           </div>
