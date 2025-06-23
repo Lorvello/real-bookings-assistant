@@ -36,7 +36,7 @@ const SeeHowItWorks = () => {
         </div>
       </section>
 
-      {/* AI Test Section - This should be the first interactive section */}
+      {/* AI Test Section - Direct na hero section */}
       <AITestSection />
       <StepSection />
       <BonusSection />
