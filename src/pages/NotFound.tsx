@@ -20,10 +20,10 @@ const NotFound = () => {
         <div className="mb-8">
           <h1 className="text-9xl font-bold text-gray-300 mb-4">404</h1>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Pagina Niet Gevonden
+            Page Not Found
           </h2>
           <p className="text-gray-600 mb-6">
-            De pagina die je zoekt bestaat niet of is verplaatst.
+            The page you're looking for doesn't exist or has been moved.
           </p>
           <p className="text-sm text-gray-500 mb-8">
             Route: <code className="bg-gray-100 px-2 py-1 rounded">{location.pathname}</code>
@@ -34,14 +34,14 @@ const NotFound = () => {
           <Button asChild className="w-full">
             <Link to="/">
               <Home className="h-4 w-4 mr-2" />
-              Terug naar Home
+              Back to Home
             </Link>
           </Button>
           
           <Button variant="outline" asChild className="w-full">
             <Link to="/profile">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Naar Dashboard
+              Go to Dashboard
             </Link>
           </Button>
         </div>

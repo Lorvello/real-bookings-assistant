@@ -16,47 +16,47 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({ data, up
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          Persoonlijke Gegevens
+          Personal Details
         </h3>
         <p className="text-gray-600">
-          Deze gegevens worden gebruikt voor je persoonlijke account
+          This information will be used for your personal account
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="md:col-span-2 space-y-2">
-          <Label htmlFor="fullName">Volledige Naam *</Label>
+          <Label htmlFor="fullName">Full Name *</Label>
           <Input
             id="fullName"
             type="text"
             value={data.fullName}
             onChange={(e) => updateData({ fullName: e.target.value })}
-            placeholder="Voer je volledige naam in"
+            placeholder="Enter your full name"
             className="h-12"
           />
         </div>
 
         <div className="md:col-span-2 space-y-2">
-          <Label htmlFor="email">E-mailadres *</Label>
+          <Label htmlFor="email">Email Address *</Label>
           <Input
             id="email"
             type="email"
             value={data.email}
             onChange={(e) => updateData({ email: e.target.value })}
-            placeholder="naam@voorbeeld.com"
+            placeholder="name@example.com"
             className="h-12"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Wachtwoord *</Label>
+          <Label htmlFor="password">Password *</Label>
           <div className="relative">
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
               value={data.password}
               onChange={(e) => updateData({ password: e.target.value })}
-              placeholder="Minimaal 6 karakters"
+              placeholder="Minimum 6 characters"
               className="h-12 pr-10"
             />
             <button
@@ -74,13 +74,13 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({ data, up
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Bevestig Wachtwoord *</Label>
+          <Label htmlFor="confirmPassword">Confirm Password *</Label>
           <Input
             id="confirmPassword"
             type="password"
             value={data.confirmPassword}
             onChange={(e) => updateData({ confirmPassword: e.target.value })}
-            placeholder="Herhaal je wachtwoord"
+            placeholder="Repeat your password"
             className="h-12"
           />
         </div>

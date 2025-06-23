@@ -9,7 +9,7 @@ export const LoginLink: React.FC = () => {
         to="/login" 
         className="text-sm text-gray-600 hover:text-gray-800 underline"
       >
-        Heb je al een account? Inloggen
+        Already have an account? Log in
       </Link>
     </div>
   );

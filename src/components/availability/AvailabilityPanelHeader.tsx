@@ -7,7 +7,7 @@ export function AvailabilityPanelHeader() {
     <div className="flex-shrink-0 p-4 border-b border-border bg-card">
       <div className="flex items-center gap-3">
         <Calendar className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-semibold text-foreground">Beschikbaarheid</h2>
+        <h2 className="text-lg font-semibold text-foreground">Availability</h2>
       </div>
     </div>
   );

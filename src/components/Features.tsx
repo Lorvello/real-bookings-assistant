@@ -5,57 +5,57 @@ const Features = () => {
   const features = [
     {
       icon: Zap,
-      title: "100% Automatische Boekingen",
-      description: "Geen handmatige tussenkomst nodig. Boekt, bevestigt en plant automatisch om",
+      title: "100% Automatic Bookings",
+      description: "No manual intervention needed. Books, confirms and reschedules automatically",
       color: "from-emerald-500 to-emerald-600",
       hoverTextColor: "group-hover:text-emerald-300"
     },
     {
       icon: Settings,
-      title: "Volledig Gepersonaliseerd",
-      description: "Pas de AI Agent aan je diensten, FAQ's en boekingslogica aan — van aangepaste kapseltypes tot bedrijfsspecifieke vragen",
+      title: "Fully Personalized",
+      description: "Customize the AI Agent to your services, FAQs and booking logic — from custom hair types to business-specific questions",
       color: "from-blue-500 to-blue-600",
       hoverTextColor: "group-hover:text-blue-300"
     },
     {
       icon: Calendar,
-      title: "Geavanceerd Dashboard & Eigen Kalender",
-      description: "Krijg je eigen professionele kalender met een zeer geavanceerd dashboard voor complete controle over je boekingen",
+      title: "Advanced Dashboard & Own Calendar",
+      description: "Get your own professional calendar with a very advanced dashboard for complete control over your bookings",
       color: "from-green-400 to-green-500",
       hoverTextColor: "group-hover:text-green-300"
     },
     {
       icon: Link,
-      title: "Koppel Je Bestaande Kalender",
-      description: "Integreer naadloos met Google Calendar, Outlook, Calendly en meer - behoud je huidige workflow",
+      title: "Connect Your Existing Calendar",
+      description: "Integrate seamlessly with Google Calendar, Outlook, Calendly and more - keep your current workflow",
       color: "from-blue-400 to-blue-500",
       hoverTextColor: "group-hover:text-blue-300"
     },
     {
       icon: Bell,
-      title: "Automatische Herinneringen",
-      description: "Stuurt bevestigings- en herinneringsberichten om no-shows te verminderen",
+      title: "Automatic Reminders",
+      description: "Sends confirmation and reminder messages to reduce no-shows",
       color: "from-emerald-600 to-green-600",
       hoverTextColor: "group-hover:text-emerald-300"
     },
     {
       icon: BarChart3,
-      title: "Gedetailleerde Analytics",
-      description: "Volg boekingspercentages, populaire tijden en gegenereerde omzet in je persoonlijke dashboard",
+      title: "Detailed Analytics",
+      description: "Track booking rates, popular times and generated revenue in your personal dashboard",
       color: "from-blue-600 to-indigo-600",
       hoverTextColor: "group-hover:text-blue-300"
     },
     {
       icon: Globe,
-      title: "Meertalige Ondersteuning",
-      description: "Communiceert automatisch in de voorkeurstaal van je klanten",
+      title: "Multi-language Support",
+      description: "Automatically communicates in your customers' preferred language",
       color: "from-green-500 to-emerald-500",
       hoverTextColor: "group-hover:text-green-300"
     },
     {
       icon: Monitor,
-      title: "Realtime Dashboard Monitoring",
-      description: "Bekijk live boekingen, prestaties en klantinteracties in je geavanceerde controlepaneel",
+      title: "Real-time Dashboard Monitoring",
+      description: "View live bookings, performance and customer interactions in your advanced control panel",
       color: "from-blue-500 to-indigo-500",
       hoverTextColor: "group-hover:text-blue-300"
     }
@@ -76,13 +76,13 @@ const Features = () => {
         {/* Header */}
         <div className="text-center mb-20">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Alles Wat Je Nodig Hebt Om{" "}
+            Everything You Need To{" "}
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-              Boekingen Te Automatiseren
+              Automate Bookings
             </span>
           </h2>
           <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-            Krachtige functies die naadloos samenwerken om je boekingen en omzet te maximaliseren
+            Powerful features that work seamlessly together to maximize your bookings and revenue
           </p>
         </div>
         
@@ -124,26 +124,26 @@ const Features = () => {
           
           <div className="relative z-10">
             <h3 className="text-3xl md:text-4xl font-bold mb-8 text-white">
-              Laat Omzet Niet Slapen Terwijl Jij Dat Wel Doet
+              Don't Let Revenue Sleep While You Do
             </h3>
             <p className="text-xl text-slate-300 mb-16 max-w-2xl mx-auto">
-              Terwijl jij bezig bent met klanten, is je AI agent bezig met het boeken van nieuwe. 
-              Start je gratis proefperiode en zie het verschil dat automatisering maakt.
+              While you're busy with customers, your AI agent is busy booking new ones. 
+              Start your free trial and see the difference automation makes.
             </p>
             
             {/* Clean stats section */}
             <div className="flex flex-wrap justify-center gap-16">
               <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
                 <div className="text-4xl font-bold mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">24/7</div>
-                <div className="text-slate-400 text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Altijd Werkend</div>
+                <div className="text-slate-400 text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Always Working</div>
               </div>
               <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
                 <div className="text-4xl font-bold mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">∞</div>
-                <div className="text-slate-400 text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Onbeperkte Capaciteit</div>
+                <div className="text-slate-400 text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Unlimited Capacity</div>
               </div>
               <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
                 <div className="text-4xl font-bold mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">0%</div>
-                <div className="text-slate-400 text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Menselijke Fouten</div>
+                <div className="text-slate-400 text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Human Errors</div>
               </div>
             </div>
           </div>

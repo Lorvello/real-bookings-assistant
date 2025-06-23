@@ -28,10 +28,10 @@ export function DashboardContent({ calendarIds, calendarName }: DashboardContent
           <CardContent className="p-8">
             <div className="text-center">
               <h3 className="text-lg font-medium text-foreground mb-2">
-                Geen kalenders geselecteerd
+                No calendars selected
               </h3>
               <p className="text-muted-foreground">
-                Selecteer een kalender om je dashboard te bekijken
+                Select a calendar to view your dashboard
               </p>
             </div>
           </CardContent>
@@ -49,15 +49,15 @@ export function DashboardContent({ calendarIds, calendarName }: DashboardContent
         </h1>
         <p className="text-gray-400 text-lg">
           {calendarIds.length > 1 
-            ? `Overzicht van ${calendarIds.length} kalenders`
-            : 'Overzicht van je boekingen en prestaties'
+            ? `Overview of ${calendarIds.length} calendars`
+            : 'Overview of your bookings and performance'
           }
         </p>
       </div>
 
       {/* Metrics Cards Section */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-white mb-4">Statistieken</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">Statistics</h2>
         <DashboardMetrics 
           analytics={analytics || {
             today_bookings: 0,
@@ -76,7 +76,7 @@ export function DashboardContent({ calendarIds, calendarName }: DashboardContent
 
       {/* Calendar View Section */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-white mb-4">Kalender</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">Calendar</h2>
         <CalendarDashboard calendarIds={calendarIds} />
       </div>
     </div>

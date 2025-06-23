@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -35,7 +34,7 @@ const ConversationDetail = () => {
       type: 'bot' as const,
       content: 'Hello! I\'d be happy to help you book a meeting. Let me check our availability for Tuesday at 2 PM.',
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000 + 30 * 1000),
-      status: 'delivered' as const
+      status: 'read' as const
     },
     {
       id: 3,
@@ -74,39 +73,21 @@ const ConversationDetail = () => {
     }
   ];
 
-  const handleBack = () => {
-    navigate('/conversations');
-  };
-
   return (
     <DashboardLayout>
-      <div className="p-8 bg-gray-900 min-h-full">
-        <ConversationHeader
-          startedAt={conversation.startedAt}
-          status={conversation.status}
-          onBack={handleBack}
+      <div className="h-full flex flex-col">
+        <ConversationHeader 
+          conversation={conversation}
+          onBack={() => navigate('/conversations')}
         />
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Chat History */}
-          <div className="lg:col-span-3">
-            <ChatHistory
-              customer={conversation.customer}
-              messages={messages}
-            />
+        
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1">
+            <ChatHistory messages={messages} />
           </div>
-
-          {/* Customer Info Sidebar */}
-          <div className="lg:col-span-1">
-            <CustomerInfoSidebar
-              customerInfo={{
-                customer: conversation.customer,
-                email: conversation.email,
-                phone: conversation.phone,
-                lastActivity: conversation.lastActivity
-              }}
-              messages={messages}
-            />
+          
+          <div className="w-80 border-l border-border">
+            <CustomerInfoSidebar conversation={conversation} />
           </div>
         </div>
       </div>

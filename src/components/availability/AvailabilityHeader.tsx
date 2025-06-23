@@ -36,12 +36,12 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
               <ArrowLeft className="h-4 w-4" />
             </Button>
             
-            <h1 className="text-xl font-semibold text-foreground">Beschikbaarheid Beheren</h1>
+            <h1 className="text-xl font-semibold text-foreground">Manage Availability</h1>
           </div>
           
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 bg-background/50 px-4 py-2 rounded-2xl border border-border/60">
-              <span className="text-sm text-muted-foreground">Instellen als standaard</span>
+              <span className="text-sm text-muted-foreground">Set as default</span>
               <Switch
                 checked={setToDefault}
                 onCheckedChange={onSetToDefaultChange}
@@ -53,7 +53,7 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
               disabled={!hasUnsavedChanges || loading}
               className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg shadow-primary/20"
             >
-              {loading ? 'Opslaan...' : 'Opslaan'}
+              {loading ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </div>

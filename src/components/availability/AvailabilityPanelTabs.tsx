@@ -18,7 +18,7 @@ export function AvailabilityPanelTabs({ activeTab, onTabChange }: AvailabilityPa
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          Schema
+          Schedule
         </button>
         <button
           onClick={() => onTabChange('overrides')}
@@ -28,7 +28,7 @@ export function AvailabilityPanelTabs({ activeTab, onTabChange }: AvailabilityPa
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          Uitzonderingen
+          Exceptions
         </button>
       </div>
     </div>

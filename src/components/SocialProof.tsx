@@ -2,19 +2,19 @@
 const SocialProof = () => {
   const testimonials = [
     {
-      quote: "Deze AI agent heeft mijn bedrijf getransformeerd. Ik boek 15 meer klanten per week zonder een vinger uit te steken.",
+      quote: "This AI agent has transformed my business. I'm booking 15 more customers per week without lifting a finger.",
       name: "Mike Rodriguez",
       business: "Elite Fitness Studio",
       rating: 5
     },
     {
-      quote: "De setup was ongelooflijk eenvoudig. Binnen 5 minuten kreeg ik geautomatiseerde boekingen via WhatsApp.",
+      quote: "The setup was incredibly simple. Within 5 minutes I was getting automated bookings via WhatsApp.",
       name: "Dr. Amanda Chen",
-      business: "Wellness Kliniek",
+      business: "Wellness Clinic",
       rating: 5
     },
     {
-      quote: "Mijn klanten houden van hoe snel en gemakkelijk het is om te boeken. Geen telefoontag meer of wachten op terugbellen.",
+      quote: "My customers love how fast and easy it is to book. No more phone tag or waiting for callbacks.",
       name: "Jessica Taylor",
       business: "Beauty Spa",
       rating: 5
@@ -35,9 +35,9 @@ const SocialProof = () => {
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Vertrouwd door <span className="text-emerald-400">1000+ Bedrijven</span>
+            Trusted by <span className="text-emerald-400">1000+ Businesses</span>
           </h2>
-          <p className="text-xl text-slate-300">Sluit je aan bij succesvolle bedrijven die hun boekingen al automatiseren</p>
+          <p className="text-xl text-slate-300">Join successful businesses that are already automating their bookings</p>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8 mb-16">
@@ -67,10 +67,10 @@ const SocialProof = () => {
             <span className="text-3xl">🛡️</span>
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">
-            Enterprise-Grade Beveiliging & Compliance
+            Enterprise-Grade Security & Compliance
           </h3>
           <p className="text-slate-300">
-            GDPR compliant • End-to-end encryptie • SOC 2 gecertificeerd • 99.9% uptime garantie
+            GDPR compliant • End-to-end encryption • SOC 2 certified • 99.9% uptime guarantee
           </p>
         </div>
       </div>
