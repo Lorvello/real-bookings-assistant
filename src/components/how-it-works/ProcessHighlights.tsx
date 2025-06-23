@@ -10,12 +10,16 @@ import ResultSummary from './ResultSummary';
 const ProcessHighlights = () => {
   return (
     <ScrollAnimatedSection>
-      <div className="max-w-4xl mx-auto mt-20">
-        <div className="space-y-12">
+      <div className="max-w-7xl mx-auto mt-20">
+        <div className="space-y-20">
           <StepIndicator />
-          <StepOneDetails />
-          <StepTwoDetails />
-          <StepThreeDetails />
+          
+          <div className="space-y-24">
+            <StepOneDetails />
+            <StepTwoDetails />
+            <StepThreeDetails />
+          </div>
+          
           <ResultSummary />
         </div>
       </div>
