@@ -22,7 +22,7 @@ const Hero = () => {
           <span className="text-emerald-300 text-sm font-medium">AI-Powered Booking Revolution</span>
         </div>
 
-        {/* Main headline - RESTORED */}
+        {/* Main headline */}
         <div className="space-y-8">
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white leading-[0.9] tracking-tight animate-appear opacity-100">
             <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
@@ -58,24 +58,20 @@ const Hero = () => {
           <div className="flex items-center justify-center gap-8 pt-4 animate-appear opacity-100 delay-700">
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
-                {/* Hair salon/beauty - Scissors */}
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <Scissors className="w-4 h-4 text-slate-700" />
                 </div>
                 
-                {/* Dental clinic - Custom tooth shape */}
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <div className="w-4 h-4 bg-slate-700 rounded-t-full" style={{
                     clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)"
                   }}></div>
                 </div>
                 
-                {/* Fitness/gym - Dumbbell */}
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <Dumbbell className="w-4 h-4 text-slate-700" />
                 </div>
                 
-                {/* Medical/healthcare - Stethoscope */}
                 <div className="w-8 h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <Stethoscope className="w-4 h-4 text-slate-700" />
                 </div>
