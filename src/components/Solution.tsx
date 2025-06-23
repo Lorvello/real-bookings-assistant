@@ -34,84 +34,93 @@ const Solution = () => {
           </p>
         </div>
         
-        {/* Main features grid */}
-        <div className="grid lg:grid-cols-3 gap-8 mb-20">
-          {/* Feature 1 */}
-          <div className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-500 hover:-translate-y-2">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-              <MessageCircle className="w-8 h-8 text-white" strokeWidth={2} />
+        {/* Clean features grid - no more blocky containers */}
+        <div className="grid lg:grid-cols-3 gap-16 mb-20">
+          {/* Feature 1 - Clean design */}
+          <div className="group text-center hover:transform hover:scale-105 transition-all duration-300 cursor-pointer">
+            <div className="relative mb-8 flex justify-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <MessageCircle className="w-10 h-10 text-white" strokeWidth={1.5} />
+              </div>
+              <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">
+            <h3 className="text-2xl font-bold text-white mb-4 leading-tight group-hover:text-emerald-300 transition-colors duration-300">
               Directe WhatsApp Antwoorden
             </h3>
-            <p className="text-slate-300 leading-relaxed mb-6">
+            <p className="text-slate-300 text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-200 transition-colors duration-300 mb-6">
               Reageert binnen seconden op elk bericht, 24/7. Je klanten krijgen direct antwoord 
               op hun vragen en beschikbare tijdslots.
             </p>
-            <div className="flex items-center text-emerald-400 font-semibold">
+            <div className="flex items-center justify-center text-emerald-400 font-semibold">
               <Clock className="w-5 h-5 mr-2" />
               <span>Gemiddelde reactie: 3 seconden</span>
             </div>
           </div>
 
-          {/* Feature 2 */}
-          <div className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-500 hover:-translate-y-2">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-              <Brain className="w-8 h-8 text-white" strokeWidth={2} />
+          {/* Feature 2 - Clean design */}
+          <div className="group text-center hover:transform hover:scale-105 transition-all duration-300 cursor-pointer">
+            <div className="relative mb-8 flex justify-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <Brain className="w-10 h-10 text-white" strokeWidth={1.5} />
+              </div>
+              <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">
+            <h3 className="text-2xl font-bold text-white mb-4 leading-tight group-hover:text-blue-300 transition-colors duration-300">
               Slimme Gespreksvoering
             </h3>
-            <p className="text-slate-300 leading-relaxed mb-6">
+            <p className="text-slate-300 text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-200 transition-colors duration-300 mb-6">
               Begrijpt context, stelt de juiste vragen, en begeleidt klanten 
               naar het perfecte afspraaktijdstip dat voor iedereen werkt.
             </p>
-            <div className="flex items-center text-blue-400 font-semibold">
+            <div className="flex items-center justify-center text-blue-400 font-semibold">
               <Users className="w-5 h-5 mr-2" />
               <span>98% klanttevredenheid</span>
             </div>
           </div>
 
-          {/* Feature 3 */}
-          <div className="group bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-500 hover:-translate-y-2">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-              <Target className="w-8 h-8 text-white" strokeWidth={2} />
+          {/* Feature 3 - Clean design */}
+          <div className="group text-center hover:transform hover:scale-105 transition-all duration-300 cursor-pointer">
+            <div className="relative mb-8 flex justify-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <Target className="w-10 h-10 text-white" strokeWidth={1.5} />
+              </div>
+              <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">
+            <h3 className="text-2xl font-bold text-white mb-4 leading-tight group-hover:text-purple-300 transition-colors duration-300">
               Perfect Voor Elk Bedrijf
             </h3>
-            <p className="text-slate-300 leading-relaxed mb-6">
+            <p className="text-slate-300 text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-200 transition-colors duration-300 mb-6">
               Salons, klinieken, fitnessstudio's, consultants - als je afspraken boekt, 
               past onze AI zich aan je specifieke bedrijfsbehoeften aan.
             </p>
-            <div className="flex items-center text-purple-400 font-semibold">
+            <div className="flex items-center justify-center text-purple-400 font-semibold">
               <TrendingUp className="w-5 h-5 mr-2" />
               <span>300% meer boekingen gem.</span>
             </div>
           </div>
         </div>
 
-        {/* Stats section */}
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-12 text-center">
-          <h3 className="text-3xl font-bold text-white mb-8">
+        {/* Clean stats section - simplified design */}
+        <div className="text-center">
+          <h3 className="text-3xl font-bold text-white mb-12">
             De Cijfers Liegen Niet
           </h3>
           <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="text-4xl font-bold text-emerald-400 mb-2">24/7</div>
-              <div className="text-slate-300">Altijd Beschikbaar</div>
+            <div className="group hover:transform hover:scale-105 transition-all duration-300">
+              <div className="text-4xl font-bold text-emerald-400 mb-2 group-hover:text-emerald-300 transition-colors">24/7</div>
+              <div className="text-slate-300 group-hover:text-slate-200 transition-colors">Altijd Beschikbaar</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-emerald-400 mb-2">3s</div>
-              <div className="text-slate-300">Gemiddelde Reactie</div>
+            <div className="group hover:transform hover:scale-105 transition-all duration-300">
+              <div className="text-4xl font-bold text-emerald-400 mb-2 group-hover:text-emerald-300 transition-colors">3s</div>
+              <div className="text-slate-300 group-hover:text-slate-200 transition-colors">Gemiddelde Reactie</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-emerald-400 mb-2">300%</div>
-              <div className="text-slate-300">Meer Boekingen</div>
+            <div className="group hover:transform hover:scale-105 transition-all duration-300">
+              <div className="text-4xl font-bold text-emerald-400 mb-2 group-hover:text-emerald-300 transition-colors">300%</div>
+              <div className="text-slate-300 group-hover:text-slate-200 transition-colors">Meer Boekingen</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-emerald-400 mb-2">0%</div>
-              <div className="text-slate-300">Menselijke Fouten</div>
+            <div className="group hover:transform hover:scale-105 transition-all duration-300">
+              <div className="text-4xl font-bold text-emerald-400 mb-2 group-hover:text-emerald-300 transition-colors">0%</div>
+              <div className="text-slate-300 group-hover:text-slate-200 transition-colors">Menselijke Fouten</div>
             </div>
           </div>
         </div>
