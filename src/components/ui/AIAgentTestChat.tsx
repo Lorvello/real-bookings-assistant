@@ -337,8 +337,8 @@ export default function AIAgentTestPage() {
               </div>
             </div>
 
-            {/* Messages */}
-            <div className="h-64 sm:h-96 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-[#111827]/30 to-[#1F2937]/30">
+            {/* Messages - Compactere hoogte voor mobiel */}
+            <div className="h-48 sm:h-64 md:h-80 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-[#111827]/30 to-[#1F2937]/30">
               <AnimatePresence>
                 {messages.map((message) => (
                   <motion.div
@@ -402,14 +402,14 @@ export default function AIAgentTestPage() {
               )}
             </div>
 
-            {/* Input */}
-            <div className="p-3 sm:p-6 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
+            {/* Input - Compactere padding voor mobiel */}
+            <div className="p-2 sm:p-4 md:p-6 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
               <PlaceholdersAndVanishInput
                 placeholders={placeholders}
                 onChange={handleInputChange}
                 onSubmit={handleSubmit}
               />
-              <p className="text-xs text-gray-400 mt-2 sm:mt-3 text-center">
+              <p className="text-xs text-gray-400 mt-1 sm:mt-2 text-center">
                 Druk op Enter om je bericht te versturen • Powered by AI
               </p>
             </div>
