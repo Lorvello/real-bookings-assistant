@@ -5,7 +5,6 @@ import { DayBookingsModal } from './DayBookingsModal';
 import { BookingDetailModal } from './BookingDetailModal';
 import { CalendarWeekHeader } from './components/CalendarWeekHeader';
 import { CalendarDayCell } from './components/CalendarDayCell';
-import { generateSampleBookings } from './utils/sampleBookings';
 
 interface Booking {
   id: string;
@@ -46,24 +45,10 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
   const weekDays = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
 
-  // Combine real bookings with sample bookings for demonstration
-  const sampleBookings = generateSampleBookings(currentDate);
-  const allBookings = [...bookings, ...sampleBookings];
-
-  console.log('Total bookings in calendar:', allBookings.length);
-  console.log('Real bookings:', bookings.length);
-  console.log('Sample bookings:', sampleBookings.length);
-
   const getBookingsForDay = (day: Date) => {
-    const dayBookings = allBookings.filter(booking => 
+    return bookings.filter(booking => 
       isSameDay(new Date(booking.start_time), day)
     );
-    
-    if (dayBookings.length > 0) {
-      console.log(`Found ${dayBookings.length} bookings for ${day.toDateString()}:`, dayBookings.map(b => b.customer_name));
-    }
-    
-    return dayBookings;
   };
 
   const handleDayClick = (day: Date, dayBookings: Booking[]) => {
