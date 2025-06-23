@@ -79,7 +79,7 @@ const ProcessSection = () => {
         </div>
 
         {/* AI Agent Test Section */}
-        <div className="mt-20 sm:mt-24 space-y-6 sm:space-y-8">
+        <div className="mt-16 sm:mt-20 space-y-4 sm:space-y-6">
           <div className="text-center">
             <div className="flex items-center gap-4 justify-center mb-4 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 text-white rounded-full flex items-center justify-center font-bold text-lg bg-gradient-to-br from-purple-500 to-pink-500">
@@ -87,13 +87,13 @@ const ProcessSection = () => {
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-white">Test The AI Agent Yourself</h3>
             </div>
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-6 sm:mb-8 px-4 sm:px-0">
+            <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-4 sm:mb-6 px-4 sm:px-0">
               Try it yourself! Chat with our AI agent and experience how fast and natural 
               the booking process is. No registration required.
             </p>
           </div>
           
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 sm:p-8 mx-4 sm:mx-0">
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-3 sm:p-6 mx-4 sm:mx-0">
             <AIAgentTestChat />
           </div>
         </div>
