@@ -12,7 +12,8 @@ import {
   X,
   Bot,
   ArrowLeft,
-  Clock
+  Clock,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,6 +29,7 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Kalender', href: '/calendar', icon: Calendar },
   { name: 'Availability', href: '/availability', icon: Clock },
+  { name: 'Profile', href: '/profile', icon: User },
   { name: 'WhatsApp', href: '/conversations', icon: MessageCircle },
   { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot },
   { name: 'Instellingen', href: '/settings', icon: Settings },
