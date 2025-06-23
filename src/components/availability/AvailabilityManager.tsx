@@ -9,7 +9,6 @@ import { useSettingsData } from '@/hooks/useSettingsData';
 import { AvailabilityTabs } from './AvailabilityTabs';
 import { AvailabilityContent } from './AvailabilityContent';
 import { NoCalendarSelected } from './NoCalendarSelected';
-import { DashboardLayout } from '@/components/DashboardLayout';
 import type { Calendar } from '@/types/database';
 
 export const AvailabilityManager = () => {
@@ -66,14 +65,12 @@ export const AvailabilityManager = () => {
 
   if (authLoading || profileLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full bg-gray-900">
-          <div className="text-center">
-            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-300">Loading...</div>
-          </div>
+      <div className="flex items-center justify-center h-full bg-gray-900">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-lg text-gray-300">Loading...</div>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
@@ -83,57 +80,53 @@ export const AvailabilityManager = () => {
 
   if (!availabilityCalendar) {
     return (
-      <DashboardLayout>
-        <div className="bg-gray-900 min-h-full p-8">
-          <NoCalendarSelected profile={profile} user={profile} />
-        </div>
-      </DashboardLayout>
+      <div className="bg-gray-900 min-h-full p-8">
+        <NoCalendarSelected profile={profile} user={profile} />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="bg-gray-900 min-h-full">
-        {/* Availability Header */}
-        <div className="p-8 pb-0">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white">Beschikbaarheid</h1>
-            <p className="text-gray-400 mt-1">
-              Beheer je beschikbaarheid voor <strong className="text-white">{availabilityCalendar.name}</strong>
-            </p>
-          </div>
+    <div className="bg-gray-900 min-h-full">
+      {/* Availability Header */}
+      <div className="p-8 pb-0">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white">Beschikbaarheid</h1>
+          <p className="text-gray-400 mt-1">
+            Beheer je beschikbaarheid voor <strong className="text-white">{availabilityCalendar.name}</strong>
+          </p>
+        </div>
 
-          {/* Save Button and Status */}
-          {hasUnsavedChanges && (
-            <div className="mb-6 p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="text-yellow-400">
-                  Je hebt niet-opgeslagen wijzigingen
-                </div>
-                <button
-                  onClick={handleSave}
-                  disabled={loading}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-                >
-                  {loading ? 'Opslaan...' : 'Opslaan'}
-                </button>
+        {/* Save Button and Status */}
+        {hasUnsavedChanges && (
+          <div className="mb-6 p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="text-yellow-400">
+                Je hebt niet-opgeslagen wijzigingen
               </div>
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+              >
+                {loading ? 'Opslaan...' : 'Opslaan'}
+              </button>
             </div>
-          )}
-        </div>
-
-        <AvailabilityTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-
-        <div className="p-8 pt-6">
-          <AvailabilityContent
-            activeTab={activeTab}
-            onUnsavedChanges={handleUnsavedChanges}
-          />
-        </div>
+          </div>
+        )}
       </div>
-    </DashboardLayout>
+
+      <AvailabilityTabs
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+
+      <div className="p-8 pt-6">
+        <AvailabilityContent
+          activeTab={activeTab}
+          onUnsavedChanges={handleUnsavedChanges}
+        />
+      </div>
+    </div>
   );
 };
