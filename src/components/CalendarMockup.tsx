@@ -74,24 +74,24 @@ const CalendarMockup = () => {
                 {/* Booking Content - Direct under day number with NO margin */}
                 <div className="flex-1 flex flex-col justify-start">
                   {dayBookings.length === 1 && (
-                    <div className="w-full p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30 relative">
+                    <div className="w-full p-0.5 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30 relative">
                       {/* Indicator dot INSIDE the booking card */}
-                      <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                      <div className="text-[10px] text-slate-200 font-medium truncate text-left pr-3">
+                      <div className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full bg-slate-400"></div>
+                      <div className="text-[9px] text-slate-200 font-medium truncate text-left pr-2">
                         {format(new Date(dayBookings[0].start_time), 'HH:mm')}
                       </div>
-                      <div className="text-[9px] text-slate-300/80 truncate text-left pr-3">
+                      <div className="text-[8px] text-slate-300/80 truncate text-left pr-2">
                         {dayBookings[0].customer_name}
                       </div>
                     </div>
                   )}
                   
                   {dayBookings.length > 1 && (
-                    <div className="w-full p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
-                      <div className="text-[10px] text-slate-200 font-medium text-left">
+                    <div className="w-full p-0.5 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
+                      <div className="text-[9px] text-slate-200 font-medium text-left">
                         {dayBookings.length}
                       </div>
-                      <div className="text-[9px] text-slate-300/80 text-left">
+                      <div className="text-[8px] text-slate-300/80 text-left">
                         afspraken
                       </div>
                     </div>
