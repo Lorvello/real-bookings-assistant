@@ -12,6 +12,7 @@ import { CalendarOverviewCards } from '@/components/dashboard/CalendarOverviewCa
 import { CalendarManagement } from '@/components/dashboard/CalendarManagement';
 import { WhatsAppConfiguration } from '@/components/dashboard/WhatsAppConfiguration';
 import { AnalyticsPlaceholder } from '@/components/dashboard/AnalyticsPlaceholder';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import type { WhatsAppStatus } from '@/types/calendar';
 
 export function ProfileDashboard() {
@@ -29,17 +30,19 @@ export function ProfileDashboard() {
 
   if (calendarsLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 bg-primary rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-lg text-foreground">Loading dashboard...</div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-8 h-8 bg-primary rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="text-lg text-foreground">Loading dashboard...</div>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <DashboardLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ProfileDashboardHeader 
           profileName={profile?.full_name} 
@@ -99,7 +102,7 @@ export function ProfileDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
 
