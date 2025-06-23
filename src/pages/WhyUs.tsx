@@ -2,7 +2,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
-import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown } from 'lucide-react';
+import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown, Mail, BarChart3, Timer, UserCheck } from 'lucide-react';
 import { PricingBasic } from '@/components/PricingBasic';
 
 const WhyUs = () => {
@@ -45,6 +45,64 @@ const WhyUs = () => {
       title: "Only Provider with True WhatsApp Integration",
       description: "Direct integration with WhatsApp Business API - not just web widgets. Your customers book where they already are.",
       benefit: "Native WhatsApp experience"
+    }
+  ];
+
+  const whatsappStats = [
+    {
+      metric: "Open Rate",
+      whatsapp: "95-99%",
+      email: "~20%",
+      icon: MessageCircle,
+      improvement: "5x hoger"
+    },
+    {
+      metric: "Reactietijd",
+      whatsapp: "< 5 minuten",
+      email: "~90 minuten",
+      icon: Timer,
+      improvement: "18x sneller"
+    },
+    {
+      metric: "Responsrate",
+      whatsapp: "40-45%",
+      email: "~6%",
+      icon: UserCheck,
+      improvement: "7x meer reacties"
+    },
+    {
+      metric: "No-show Rate",
+      whatsapp: "< 20%",
+      email: "~35%",
+      icon: Calendar,
+      improvement: "50% minder"
+    }
+  ];
+
+  const sectorCases = [
+    {
+      sector: "Zorg",
+      icon: Shield,
+      results: ["80% snellere afspraakplanning", "40% minder no-shows", "95% berichten gelezen"],
+      description: "Gynecologiekliniek in Londen zag dramatische verbetering na WhatsApp implementatie."
+    },
+    {
+      sector: "Beauty & Wellness",
+      icon: Star,
+      results: ["30% meer boekingen", "50% minder no-shows", "Meer repeat bookings"],
+      description: "Nederlandse salons via Aimy platform boekten spectaculaire groei."
+    },
+    {
+      sector: "Recruitment",
+      icon: Users,
+      results: ["10x hogere responsratio", "5-10x snellere reacties", "98% open rate"],
+      description: "HR-bureaus versnellen hun wervingsproces drastisch met WhatsApp."
+    },
+    {
+      sector: "Horeca",
+      icon: Award,
+      results: ["95% berichten gelezen", "Minder no-shows", "Hogere gasttevredenheid"],
+      description: "Restaurants houden tafels vol met persoonlijke WhatsApp-herinneringen."
     }
   ];
 
@@ -198,6 +256,143 @@ const WhyUs = () => {
           </div>
         </div>
       </section>
+
+      {/* WhatsApp vs Email Statistics Section */}
+      <ScrollAnimatedSection as="section" className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-6">
+              Waarom <span className="text-green-400">WhatsApp</span> E-mail Verslaat in Afspraakbeheer
+            </h2>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              Wetenschappelijk bewezen resultaten van duizenden bedrijven wereldwijd
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {whatsappStats.map((stat, index) => (
+              <ScrollAnimatedSection 
+                key={index} 
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:bg-slate-800/70 transition-all duration-300"
+                delay={index * 100}
+              >
+                <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center mb-4">
+                  <stat.icon className="w-6 h-6 text-green-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-3">{stat.metric}</h3>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-green-400 font-bold">WhatsApp:</span>
+                    <span className="text-white font-semibold">{stat.whatsapp}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-red-400">E-mail:</span>
+                    <span className="text-slate-300">{stat.email}</span>
+                  </div>
+                </div>
+                <div className="bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-sm font-bold text-center border border-green-500/20">
+                  {stat.improvement}
+                </div>
+              </ScrollAnimatedSection>
+            ))}
+          </div>
+
+          {/* Detailed Comparison Table */}
+          <ScrollAnimatedSection className="border border-slate-700/30 rounded-2xl p-8 mb-16" delay={200}>
+            <h3 className="text-2xl font-bold text-white mb-8 text-center">Gedetailleerde Vergelijking</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-700/50">
+                    <th className="text-left py-4 px-6 text-slate-300">Kengetal</th>
+                    <th className="text-center py-4 px-6 text-green-400">WhatsApp</th>
+                    <th className="text-center py-4 px-6 text-red-400">E-mail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-slate-700/30">
+                    <td className="py-4 px-6 text-white font-medium">Gemiddelde open rate</td>
+                    <td className="py-4 px-6 text-center text-green-400 font-bold">95-99%</td>
+                    <td className="py-4 px-6 text-center text-slate-300">~20%</td>
+                  </tr>
+                  <tr className="border-b border-slate-700/30">
+                    <td className="py-4 px-6 text-white font-medium">Tijd tot bericht gelezen</td>
+                    <td className="py-4 px-6 text-center text-green-400 font-bold">80% binnen 5 min</td>
+                    <td className="py-4 px-6 text-center text-slate-300">Vaak pas na uren</td>
+                  </tr>
+                  <tr className="border-b border-slate-700/30">
+                    <td className="py-4 px-6 text-white font-medium">Gemiddelde responstijd</td>
+                    <td className="py-4 px-6 text-center text-green-400 font-bold">Binnen enkele minuten</td>
+                    <td className="py-4 px-6 text-center text-slate-300">~90 minuten</td>
+                  </tr>
+                  <tr className="border-b border-slate-700/30">
+                    <td className="py-4 px-6 text-white font-medium">Responsrate</td>
+                    <td className="py-4 px-6 text-center text-green-400 font-bold">40-45%</td>
+                    <td className="py-4 px-6 text-center text-slate-300">~6%</td>
+                  </tr>
+                  <tr>
+                    <td className="py-4 px-6 text-white font-medium">No-show percentage</td>
+                    <td className="py-4 px-6 text-center text-green-400 font-bold">&lt;20%</td>
+                    <td className="py-4 px-6 text-center text-slate-300">~35%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </ScrollAnimatedSection>
+        </div>
+      </ScrollAnimatedSection>
+
+      {/* Sector Case Studies */}
+      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-slate-800/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-6">
+              Bewezen Resultaten Across <span className="text-green-400">Alle Sectoren</span>
+            </h2>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              Van zorg tot horeca - bedrijven in elke sector zien dramatische verbeteringen
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-8">
+            {sectorCases.map((sector, index) => (
+              <ScrollAnimatedSection 
+                key={index} 
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 transition-all duration-300"
+                delay={index * 150}
+              >
+                <div className="flex items-start space-x-6">
+                  <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <sector.icon className="w-8 h-8 text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-white mb-3">{sector.sector}</h3>
+                    <p className="text-slate-300 mb-4 text-sm">{sector.description}</p>
+                    <div className="space-y-2">
+                      {sector.results.map((result, idx) => (
+                        <div key={idx} className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                          <span className="text-green-300 text-sm font-medium">{result}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </ScrollAnimatedSection>
+            ))}
+          </div>
+
+          {/* Key Insights Box */}
+          <ScrollAnimatedSection className="mt-16" delay={300}>
+            <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-2xl p-8 text-center">
+              <h3 className="text-2xl font-bold text-white mb-4">Belangrijkste Bevinding</h3>
+              <p className="text-xl text-green-300 max-w-4xl mx-auto">
+                "85% van consumenten berichten liever een bedrijf dan mailen • 53% van klanten neemt eerder iets af bij bedrijven die via chat benaderbaar zijn"
+              </p>
+            </div>
+          </ScrollAnimatedSection>
+        </div>
+      </ScrollAnimatedSection>
 
       {/* Competitive Advantages Section */}
       <ScrollAnimatedSection as="section" className="py-20 px-4">
