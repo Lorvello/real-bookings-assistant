@@ -20,7 +20,7 @@ export function ProfileDashboard() {
   const { calendars, loading: calendarsLoading } = useCalendars();
   const { profile, loading: profileLoading } = useProfile();
   const [whatsappStatus] = useState<WhatsAppStatus>({
-    isConnected: true,
+    isConnected: true, // Mock data - replace with actual WhatsApp status
     lastSeen: new Date(),
     phoneNumber: '+31 6 12345678'
   });
@@ -31,10 +31,10 @@ export function ProfileDashboard() {
   if (calendarsLoading || profileLoading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-300">Loading dashboard...</div>
+            <div className="w-8 h-8 bg-primary rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="text-lg text-foreground">Loading dashboard...</div>
           </div>
         </div>
       </DashboardLayout>
@@ -43,81 +43,64 @@ export function ProfileDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gray-900 p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-gray-400 mt-1">Beheer je WhatsApp Booking Assistant</p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <ProfileDashboardHeader 
+          profileName={profile?.full_name} 
+          whatsappStatus={whatsappStatus} 
+        />
 
         {/* Main Dashboard Content */}
-        <div className="max-w-4xl">
-          <Tabs defaultValue="calendar" className="space-y-6">
-            <div className="border-b border-gray-700 mb-8">
-              <nav className="-mb-px flex space-x-8">
-                <TabsTrigger 
-                  value="calendar" 
-                  className="py-2 px-1 border-b-2 font-medium text-sm data-[state=active]:border-green-600 data-[state=active]:text-green-600 border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Kalender
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="services" 
-                  className="py-2 px-1 border-b-2 font-medium text-sm data-[state=active]:border-green-600 data-[state=active]:text-green-600 border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                >
-                  <Wrench className="h-4 w-4 mr-2" />
-                  Service Types
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="whatsapp" 
-                  className="py-2 px-1 border-b-2 font-medium text-sm data-[state=active]:border-green-600 data-[state=active]:text-green-600 border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                >
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  WhatsApp
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="analytics" 
-                  className="py-2 px-1 border-b-2 font-medium text-sm data-[state=active]:border-green-600 data-[state=active]:text-green-600 border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                >
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Analytics
-                </TabsTrigger>
-              </nav>
-            </div>
+        <Tabs defaultValue="calendar" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 bg-card">
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Kalender
+            </TabsTrigger>
+            <TabsTrigger value="services" className="flex items-center gap-2">
+              <Wrench className="h-4 w-4" />
+              Service Types
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="calendar" className="space-y-6">
-              <CalendarOverviewCards calendars={calendars} />
-              <CalendarManagement calendars={calendars} />
-            </TabsContent>
+          <TabsContent value="calendar" className="space-y-6">
+            <CalendarOverviewCards calendars={calendars} />
+            <CalendarManagement calendars={calendars} />
+          </TabsContent>
 
-            <TabsContent value="services" className="space-y-6">
-              {activeCalendar ? (
-                <ServiceTypesManager calendarId={activeCalendar.id} />
-              ) : (
-                <Card className="border-gray-700 bg-gray-800">
-                  <CardContent className="flex items-center justify-center py-12">
-                    <div className="text-center">
-                      <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-white mb-2">No Active Calendar</h3>
-                      <p className="text-gray-400 mb-4">
-                        Create or activate a calendar first to manage service types
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
+          <TabsContent value="services" className="space-y-6">
+            {activeCalendar ? (
+              <ServiceTypesManager calendarId={activeCalendar.id} />
+            ) : (
+              <Card className="border-border">
+                <CardContent className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">No Active Calendar</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Create or activate a calendar first to manage service types
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-            <TabsContent value="whatsapp" className="space-y-6">
-              <WhatsAppConfiguration whatsappStatus={whatsappStatus} />
-            </TabsContent>
+          <TabsContent value="whatsapp" className="space-y-6">
+            <WhatsAppConfiguration whatsappStatus={whatsappStatus} />
+          </TabsContent>
 
-            <TabsContent value="analytics" className="space-y-6">
-              <AnalyticsPlaceholder />
-            </TabsContent>
-          </Tabs>
-        </div>
+          <TabsContent value="analytics" className="space-y-6">
+            <AnalyticsPlaceholder />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

@@ -5,6 +5,8 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { DashboardBackground } from '@/components/dashboard/DashboardBackground';
+import { DashboardLoadingScreen } from '@/components/dashboard/DashboardLoadingScreen';
+import { DashboardEmptyState } from '@/components/dashboard/DashboardEmptyState';
 import { DashboardTabs } from '@/components/DashboardTabs';
 
 const Dashboard = () => {
@@ -22,12 +24,9 @@ const Dashboard = () => {
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-300">Loading...</div>
-          </div>
-        </div>
+        <DashboardBackground>
+          <DashboardLoadingScreen />
+        </DashboardBackground>
       </DashboardLayout>
     );
   }
@@ -39,11 +38,9 @@ const Dashboard = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-lg text-gray-300">Geen kalender gevonden</div>
-          </div>
-        </div>
+        <DashboardBackground>
+          <DashboardEmptyState />
+        </DashboardBackground>
       </DashboardLayout>
     );
   }
@@ -54,10 +51,10 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <DashboardBackground>
-        <div className="min-h-screen bg-gray-900 p-6">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white">
+        <div className="space-y-8 p-8">
+          {/* Dashboard Header */}
+          <div className="text-center">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-green-100 to-green-200 bg-clip-text text-transparent mb-4">
               Dashboard
               {viewingAllCalendars 
                 ? ' - Alle kalenders'
@@ -66,7 +63,7 @@ const Dashboard = () => {
                   : ''
               }
             </h1>
-            <p className="text-gray-400 mt-1">
+            <p className="text-gray-400 text-lg">
               {viewingAllCalendars
                 ? `Overzicht van ${activeCalendarIds.length} kalenders`
                 : 'Overzicht van je boekingen en prestaties'
@@ -75,11 +72,9 @@ const Dashboard = () => {
           </div>
 
           {/* Dashboard Tabs */}
-          <div className="max-w-7xl">
-            {primaryCalendarId && (
-              <DashboardTabs calendarId={primaryCalendarId} />
-            )}
-          </div>
+          {primaryCalendarId && (
+            <DashboardTabs calendarId={primaryCalendarId} />
+          )}
         </div>
       </DashboardBackground>
     </DashboardLayout>
