@@ -2,6 +2,7 @@
 import React from 'react';
 import WhatsAppChat from './WhatsAppChat';
 import CalendarMockup from './CalendarMockup';
+import AIAgentTestPage from '@/components/ui/component';
 
 const ProcessSection = () => {
   return (
@@ -74,6 +75,26 @@ const ProcessSection = () => {
             <div className="flex-1 animate-appear opacity-100 delay-700">
               <CalendarMockup />
             </div>
+          </div>
+        </div>
+
+        {/* AI Agent Test Section */}
+        <div className="mt-24 space-y-8">
+          <div className="text-center">
+            <div className="flex items-center gap-4 justify-center mb-6">
+              <div className="w-12 h-12 text-white rounded-full flex items-center justify-center font-bold text-lg bg-gradient-to-br from-purple-500 to-pink-500">
+                3
+              </div>
+              <h3 className="text-2xl font-bold text-white">Test De AI Agent Zelf</h3>
+            </div>
+            <p className="text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-8">
+              Probeer het zelf uit! Chat met onze AI agent en ervaar hoe snel en natuurlijk 
+              het boekingsproces verloopt. Geen registratie nodig.
+            </p>
+          </div>
+          
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8">
+            <AIAgentTestPage />
           </div>
         </div>
       </div>
