@@ -35,7 +35,7 @@ const Solution = () => {
         </div>
         
         {/* Clean features grid - responsive design */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 sm:gap-16 mb-16 sm:mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 sm:gap-16">
           {/* Feature 1 - Clean design */}
           <div className="group text-center hover:transform hover:scale-105 transition-all duration-300 cursor-pointer px-4 sm:px-0">
             <div className="relative mb-6 sm:mb-8 flex justify-center">
@@ -96,31 +96,6 @@ const Solution = () => {
             <div className="flex items-center justify-center text-purple-400 font-semibold text-sm sm:text-base">
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               <span>300% meer boekingen gem.</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Clean stats section - responsive grid */}
-        <div className="text-center">
-          <h3 className="text-2xl sm:text-3xl font-bold text-white mb-8 sm:mb-12 px-4 sm:px-0">
-            De Cijfers Liegen Niet
-          </h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 px-4 sm:px-0">
-            <div className="group hover:transform hover:scale-105 transition-all duration-300">
-              <div className="text-3xl sm:text-4xl font-bold text-emerald-400 mb-2 group-hover:text-emerald-300 transition-colors">24/7</div>
-              <div className="text-slate-300 group-hover:text-slate-200 transition-colors text-sm sm:text-base">Altijd Beschikbaar</div>
-            </div>
-            <div className="group hover:transform hover:scale-105 transition-all duration-300">
-              <div className="text-3xl sm:text-4xl font-bold text-emerald-400 mb-2 group-hover:text-emerald-300 transition-colors">3s</div>
-              <div className="text-slate-300 group-hover:text-slate-200 transition-colors text-sm sm:text-base">Gemiddelde Reactie</div>
-            </div>
-            <div className="group hover:transform hover:scale-105 transition-all duration-300">
-              <div className="text-3xl sm:text-4xl font-bold text-emerald-400 mb-2 group-hover:text-emerald-300 transition-colors">300%</div>
-              <div className="text-slate-300 group-hover:text-slate-200 transition-colors text-sm sm:text-base">Meer Boekingen</div>
-            </div>
-            <div className="group hover:transform hover:scale-105 transition-all duration-300">
-              <div className="text-3xl sm:text-4xl font-bold text-emerald-400 mb-2 group-hover:text-emerald-300 transition-colors">0%</div>
-              <div className="text-slate-300 group-hover:text-slate-200 transition-colors text-sm sm:text-base">Menselijke Fouten</div>
             </div>
           </div>
         </div>
