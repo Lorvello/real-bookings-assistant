@@ -43,7 +43,7 @@ const CalendarMockup = () => {
         </div>
       </div>
       
-      {/* Fixed Height Calendar Grid */}
+      {/* Verbeterde Mobile Calendar Grid */}
       <div className="p-2">
         <div className="grid grid-cols-7 gap-1">
           {days.map(day => {
@@ -54,7 +54,7 @@ const CalendarMockup = () => {
             return (
               <div
                 key={day.toISOString()}
-                className={`rounded-lg p-1.5 h-[60px] flex flex-col transition-all duration-200 relative ${
+                className={`rounded-lg p-1.5 min-h-[70px] sm:h-[60px] flex flex-col transition-all duration-200 relative ${
                   isCurrentMonth 
                     ? isDayToday
                       ? 'bg-primary/10 border border-primary/30'
@@ -62,36 +62,35 @@ const CalendarMockup = () => {
                     : 'bg-muted/20 border border-border/10 opacity-50'
                 }`}
               >
-                {/* Day Number */}
-                <div className={`text-xs font-medium ${
+                {/* Day Number - Verbeterd voor mobiel */}
+                <div className={`text-xs sm:text-xs font-medium mb-1 ${
                   isDayToday 
-                    ? 'bg-primary text-primary-foreground w-4 h-4 rounded-md flex items-center justify-center text-[10px]' 
+                    ? 'bg-primary text-primary-foreground w-5 h-5 sm:w-4 sm:h-4 rounded-md flex items-center justify-center text-[10px] sm:text-[10px]' 
                     : 'text-foreground'
                 }`}>
                   {format(day, 'd')}
                 </div>
 
-                {/* Booking Content - Small margin between day number and appointments */}
-                <div className="flex-1 flex flex-col justify-start mt-0.5">
+                {/* Booking Content - Verbeterd voor mobiel */}
+                <div className="flex-1 flex flex-col justify-start space-y-0.5">
                   {dayBookings.length === 1 && (
-                    <div className="w-full px-1 py-0.5 rounded-sm bg-slate-700/50 backdrop-blur-sm border border-slate-600/30 relative">
-                      {/* Indicator dot INSIDE the booking card */}
-                      <div className="absolute top-0.5 right-0.5 w-0.5 h-0.5 rounded-full bg-slate-400"></div>
-                      <div className="text-[8px] text-slate-200 font-medium truncate text-left pr-1.5">
+                    <div className="w-full px-1.5 py-1 rounded-md bg-emerald-600/80 backdrop-blur-sm border border-emerald-500/30 relative">
+                      {/* Verbeterde tekst voor mobiel */}
+                      <div className="text-[9px] sm:text-[8px] text-white font-medium truncate text-left">
                         {format(new Date(dayBookings[0].start_time), 'HH:mm')}
                       </div>
-                      <div className="text-[7px] text-slate-300/80 truncate text-left pr-1.5">
+                      <div className="text-[8px] sm:text-[7px] text-white/90 truncate text-left leading-tight">
                         {dayBookings[0].customer_name}
                       </div>
                     </div>
                   )}
                   
                   {dayBookings.length > 1 && (
-                    <div className="w-full px-1 py-0.5 rounded-sm bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
-                      <div className="text-[8px] text-slate-200 font-medium text-left">
+                    <div className="w-full px-1.5 py-1 rounded-md bg-blue-600/80 backdrop-blur-sm border border-blue-500/30">
+                      <div className="text-[9px] sm:text-[8px] text-white font-medium text-left">
                         {dayBookings.length}
                       </div>
-                      <div className="text-[7px] text-slate-300/80 text-left">
+                      <div className="text-[8px] sm:text-[7px] text-white/90 text-left leading-tight">
                         afspraken
                       </div>
                     </div>
@@ -108,7 +107,7 @@ const CalendarMockup = () => {
         <div className="flex items-center justify-between text-[10px]">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
               <span className="text-muted-foreground">Afspraken</span>
             </div>
           </div>
