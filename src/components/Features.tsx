@@ -1,4 +1,3 @@
-
 import { Check, Calendar, Globe, BarChart3, Bell, Settings, Zap, Monitor, Link } from "lucide-react";
 
 const Features = () => {
@@ -62,7 +61,7 @@ const Features = () => {
   ];
 
   return (
-    <section className="py-24 px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+    <section className="py-24 px-4 bg-gradient-to-b from-gray-900 via-slate-900 to-slate-800 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
