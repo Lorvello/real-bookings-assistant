@@ -37,21 +37,21 @@ const StepIndicator = () => {
         {/* Title - matching hero style */}
         <div className="relative">
           <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight">
-            3 stappen.{' '}
+            3 steps.{' '}
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-              5 minuten.
+              5 minutes.
             </span>
             {' '}
             <span className="inline-flex items-center gap-3">
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Klaar.
+                Done.
               </span>
               <Sparkles className="w-8 h-8 text-emerald-400" />
             </span>
           </h3>
           
           <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-            Van eerste contact tot volledig werkende AI-assistent in nog geen 5 minuten
+            From first contact to fully working AI assistant in less than 5 minutes
           </p>
         </div>
       </div>

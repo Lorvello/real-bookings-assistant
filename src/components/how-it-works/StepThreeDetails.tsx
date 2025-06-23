@@ -13,7 +13,7 @@ const StepThreeDetails = () => {
               <span className="text-white text-lg font-bold">3</span>
             </div>
             <div>
-              <h3 className="text-3xl lg:text-4xl font-bold text-white mb-2">Je assistent gaat live</h3>
+              <h3 className="text-3xl lg:text-4xl font-bold text-white mb-2">Your assistant goes live</h3>
               <div className="flex items-center gap-2 text-emerald-400">
                 <Bot className="w-4 h-4" />
                 <span className="text-sm font-medium">AI-powered</span>
@@ -24,14 +24,14 @@ const StepThreeDetails = () => {
           <div className="space-y-8">
             <div>
               <p className="text-xl text-slate-300 leading-relaxed mb-8">
-                Klaar voor actie. Vanaf nu kunnen je klanten via WhatsApp:
+                Ready for action. From now on, your customers can via WhatsApp:
               </p>
               
               <div className="space-y-4 mb-8">
                 {[
-                  'Afspraken boeken (op basis van je kalender)',
-                  'Afspraken verzetten of annuleren',
-                  'Direct persoonlijke hulp krijgen, zonder wachttijd'
+                  'Book appointments (based on your calendar)',
+                  'Reschedule or cancel appointments',
+                  'Get immediate personal help, without waiting time'
                 ].map((item, index) => (
                   <div key={index} className="flex items-center gap-4">
                     <CheckCircle className="w-5 h-5 text-emerald-400" />
@@ -43,11 +43,11 @@ const StepThreeDetails = () => {
               <div className="border-l-4 border-emerald-400 pl-6">
                 <div className="flex items-center gap-4 mb-3">
                   <Sparkles className="w-6 h-6 text-emerald-400" />
-                  <span className="text-emerald-400 font-bold text-lg">Volledig geautomatiseerd</span>
+                  <span className="text-emerald-400 font-bold text-lg">Fully automated</span>
                 </div>
                 <p className="text-slate-300">
-                  Je hoeft zelf niets te doen. Je slimme assistent regelt alles — 24/7, 
-                  volledig automatisch, in jouw stijl.
+                  You don't have to do anything yourself. Your smart assistant handles everything — 24/7, 
+                  fully automatic, in your style.
                 </p>
               </div>
             </div>
@@ -61,20 +61,20 @@ const StepThreeDetails = () => {
             {[
               {
                 icon: MessageCircle,
-                title: 'Intelligente gesprekken',
-                description: 'Natuurlijke gesprekken en begrijpt context van klanten.',
+                title: 'Intelligent conversations',
+                description: 'Natural conversations and understands customer context.',
                 color: 'emerald'
               },
               {
                 icon: Calendar,
-                title: 'Slimme planning',
-                description: 'Automatische beschikbaarheid check en optimale tijdslots.',
+                title: 'Smart scheduling',
+                description: 'Automatic availability check and optimal time slots.',
                 color: 'emerald'
               },
               {
                 icon: Users,
-                title: 'Persoonlijke service',
-                description: 'Gepersonaliseerde aandacht voor elke klant.',
+                title: 'Personal service',
+                description: 'Personalized attention for every customer.',
                 color: 'emerald'
               }
             ].map((card, index) => {
@@ -102,9 +102,9 @@ const StepThreeDetails = () => {
             
             <h4 className="font-bold text-white mb-3 text-xl flex items-center justify-center gap-2">
               <Sparkles className="w-5 h-5 text-emerald-400" />
-              24/7 Actief
+              24/7 Active
             </h4>
-            <p className="text-slate-300">Live en actief sinds vandaag</p>
+            <p className="text-slate-300">Live and active since today</p>
           </div>
         </div>
       </div>
