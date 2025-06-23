@@ -54,7 +54,7 @@ const CalendarMockup = () => {
             return (
               <div
                 key={day.toISOString()}
-                className={`rounded-lg p-1.5 h-[60px] flex flex-col transition-all duration-200 ${
+                className={`rounded-lg p-1.5 h-[60px] flex flex-col transition-all duration-200 relative ${
                   isCurrentMonth 
                     ? isDayToday
                       ? 'bg-primary/10 border border-primary/30'
@@ -62,22 +62,22 @@ const CalendarMockup = () => {
                     : 'bg-muted/20 border border-border/10 opacity-50'
                 }`}
               >
-                {/* Day Header - Compact positioning */}
-                <div className="flex items-center justify-between">
-                  <div className={`text-xs font-medium ${
-                    isDayToday 
-                      ? 'bg-primary text-primary-foreground w-4 h-4 rounded-md flex items-center justify-center text-[10px]' 
-                      : isDayToday ? 'text-primary' : 'text-foreground'
-                  }`}>
-                    {format(day, 'd')}
-                  </div>
-                  {dayBookings.length > 0 && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                  )}
+                {/* Day Number - Top Left */}
+                <div className={`text-xs font-medium ${
+                  isDayToday 
+                    ? 'bg-primary text-primary-foreground w-4 h-4 rounded-md flex items-center justify-center text-[10px]' 
+                    : 'text-foreground'
+                }`}>
+                  {format(day, 'd')}
                 </div>
+
+                {/* Indicator Dot - Absolute positioned for single appointments only */}
+                {dayBookings.length === 1 && (
+                  <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                )}
                 
-                {/* Booking Content - Direct onder dag nummer */}
-                <div className="flex-1 flex flex-col justify-start mt-0.5">
+                {/* Booking Content - Direct under day number with no gap */}
+                <div className="flex-1 flex flex-col justify-start">
                   {dayBookings.length === 1 && (
                     <div className="w-full p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
                       <div className="text-[10px] text-slate-200 font-medium truncate text-left">
