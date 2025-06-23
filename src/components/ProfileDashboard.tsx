@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Calendar, Plus, Settings, MessageCircle, BarChart3, Clock, Users, Phone } from 'lucide-react';
+import { Calendar, Plus, Settings, MessageCircle, BarChart3, Clock, Users, Phone, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendars } from '@/hooks/useCalendars';
 import { useProfile } from '@/hooks/useProfile';
+import { ServiceTypesManager } from '@/components/ServiceTypesManager';
 import type { Calendar as CalendarType, WhatsAppStatus } from '@/types/calendar';
 
 export function ProfileDashboard() {
@@ -19,6 +20,9 @@ export function ProfileDashboard() {
     lastSeen: new Date(),
     phoneNumber: '+31 6 12345678'
   });
+
+  // Get the first active calendar for service types
+  const activeCalendar = calendars.find(cal => cal.is_active) || calendars[0];
 
   if (calendarsLoading || profileLoading) {
     return (
@@ -66,10 +70,14 @@ export function ProfileDashboard() {
 
         {/* Main Dashboard Content */}
         <Tabs defaultValue="calendar" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-card">
+          <TabsList className="grid w-full grid-cols-4 bg-card">
             <TabsTrigger value="calendar" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               Kalender
+            </TabsTrigger>
+            <TabsTrigger value="services" className="flex items-center gap-2">
+              <Wrench className="h-4 w-4" />
+              Service Types
             </TabsTrigger>
             <TabsTrigger value="whatsapp" className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
@@ -196,6 +204,24 @@ export function ProfileDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="services" className="space-y-6">
+            {activeCalendar ? (
+              <ServiceTypesManager calendarId={activeCalendar.id} />
+            ) : (
+              <Card className="border-border">
+                <CardContent className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">No Active Calendar</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Create or activate a calendar first to manage service types
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="whatsapp" className="space-y-6">
