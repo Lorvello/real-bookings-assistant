@@ -62,14 +62,12 @@ const CalendarMockup = () => {
                     : 'bg-muted/20 border border-border/10 opacity-50'
                 }`}
               >
-                {/* Day Header - Left Aligned */}
-                <div className={`flex items-center justify-between mb-1 ${
-                  isDayToday ? 'text-primary' : 'text-foreground'
-                }`}>
+                {/* Day Header - Compact positioning */}
+                <div className="flex items-center justify-between">
                   <div className={`text-xs font-medium ${
                     isDayToday 
                       ? 'bg-primary text-primary-foreground w-4 h-4 rounded-md flex items-center justify-center text-[10px]' 
-                      : ''
+                      : isDayToday ? 'text-primary' : 'text-foreground'
                   }`}>
                     {format(day, 'd')}
                   </div>
@@ -78,8 +76,8 @@ const CalendarMockup = () => {
                   )}
                 </div>
                 
-                {/* Booking Content - Left Aligned, No Centering */}
-                <div className="flex-1 flex flex-col items-start justify-start">
+                {/* Booking Content - Direct onder dag nummer */}
+                <div className="flex-1 flex flex-col justify-start mt-0.5">
                   {dayBookings.length === 1 && (
                     <div className="w-full p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
                       <div className="text-[10px] text-slate-200 font-medium truncate text-left">
@@ -92,7 +90,7 @@ const CalendarMockup = () => {
                   )}
                   
                   {dayBookings.length > 1 && (
-                    <div className="w-full p-1.5 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
+                    <div className="w-full p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
                       <div className="text-[10px] text-slate-200 font-medium text-left">
                         {dayBookings.length}
                       </div>
