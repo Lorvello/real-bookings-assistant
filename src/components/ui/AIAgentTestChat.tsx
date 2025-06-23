@@ -1,4 +1,3 @@
-
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
@@ -189,7 +188,8 @@ function PlaceholdersAndVanishInput({
   return (
     <form
       className={cn(
-        "w-full relative max-w-2xl mx-auto bg-[#1F2937] h-14 rounded-full overflow-hidden shadow-xl border border-[#10B981]/20 transition duration-200",
+        "w-full relative mx-auto bg-[#1F2937] rounded-2xl sm:rounded-full overflow-hidden shadow-xl border border-[#10B981]/20 transition duration-200",
+        "h-12 sm:h-14", // Smaller height on mobile
         value && "bg-[#111827]"
       )}
       onSubmit={handleSubmit}
@@ -213,7 +213,7 @@ function PlaceholdersAndVanishInput({
         value={value}
         type="text"
         className={cn(
-          "w-full relative text-sm sm:text-base z-50 border-none text-white bg-transparent h-full rounded-full focus:outline-none focus:ring-0 pl-6 sm:pl-8 pr-20",
+          "w-full relative text-sm z-50 border-none text-white bg-transparent h-full rounded-2xl sm:rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-8 pr-16 sm:pr-20",
           animating && "text-transparent"
         )}
       />
@@ -221,12 +221,12 @@ function PlaceholdersAndVanishInput({
       <button
         disabled={!value}
         type="submit"
-        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-10 w-10 rounded-full disabled:bg-gray-600 bg-[#10B981] hover:bg-[#25D366] transition duration-200 flex items-center justify-center disabled:opacity-50"
+        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-8 w-8 sm:h-10 sm:w-10 rounded-full disabled:bg-gray-600 bg-[#10B981] hover:bg-[#25D366] transition duration-200 flex items-center justify-center disabled:opacity-50"
       >
-        <Send className="text-white h-4 w-4" />
+        <Send className="text-white h-3 w-3 sm:h-4 sm:w-4" />
       </button>
 
-      <div className="absolute inset-0 flex items-center rounded-full pointer-events-none">
+      <div className="absolute inset-0 flex items-center rounded-2xl sm:rounded-full pointer-events-none">
         <AnimatePresence mode="wait">
           {!value && (
             <motion.p
@@ -235,7 +235,7 @@ function PlaceholdersAndVanishInput({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -15, opacity: 0 }}
               transition={{ duration: 0.3, ease: "linear" }}
-              className="text-gray-400 text-sm sm:text-base font-normal pl-6 sm:pl-8 text-left w-[calc(100%-2rem)] truncate"
+              className="text-gray-400 text-xs sm:text-base font-normal pl-4 sm:pl-8 text-left w-[calc(100%-3rem)] sm:w-[calc(100%-5rem)] truncate"
             >
               {placeholders[currentPlaceholder]}
             </motion.p>
@@ -311,36 +311,34 @@ export default function AIAgentTestPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#111827] via-[#1F2937] to-[#111827] text-white">
       {/* Chat Interface */}
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-2 sm:px-4 py-8 sm:py-16">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="max-w-4xl mx-auto"
+          className="w-full max-w-4xl mx-auto"
         >
           {/* Chat Container */}
-          <div className="bg-[#1F2937]/50 backdrop-blur-sm border border-[#10B981]/20 rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-[#1F2937]/50 backdrop-blur-sm border border-[#10B981]/20 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden">
             {/* Chat Header */}
-            <div className="bg-gradient-to-r from-[#1F2937] to-[#111827] px-6 py-4 border-b border-[#10B981]/20">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#10B981] rounded-full">
-                  <Bot className="h-5 w-5 text-white" />
+            <div className="bg-gradient-to-r from-[#1F2937] to-[#111827] px-3 sm:px-6 py-3 sm:py-4 border-b border-[#10B981]/20">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-[#10B981] rounded-full">
+                  <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-white">AI Agent Demo</h3>
-                  <p className="text-sm text-gray-400">Online en klaar om te helpen</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-white text-sm sm:text-base">AI Agent Demo</h3>
+                  <p className="text-xs sm:text-sm text-gray-400 truncate">Online en klaar om te helpen</p>
                 </div>
-                <div className="ml-auto">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-[#25D366] rounded-full animate-pulse"></div>
-                    <span className="text-xs text-gray-400">Live</span>
-                  </div>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#25D366] rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-400">Live</span>
                 </div>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="h-96 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-[#111827]/30 to-[#1F2937]/30">
+            <div className="h-64 sm:h-96 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-[#111827]/30 to-[#1F2937]/30">
               <AnimatePresence>
                 {messages.map((message) => (
                   <motion.div
@@ -350,24 +348,24 @@ export default function AIAgentTestPage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                     className={cn(
-                      "flex gap-3",
+                      "flex gap-2 sm:gap-3",
                       message.type === "user" ? "justify-end" : "justify-start"
                     )}
                   >
                     {message.type === "bot" && (
-                      <div className="p-2 bg-[#10B981] rounded-full h-fit">
-                        <Bot className="h-4 w-4 text-white" />
+                      <div className="p-1.5 sm:p-2 bg-[#10B981] rounded-full h-fit shrink-0">
+                        <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                       </div>
                     )}
                     <div
                       className={cn(
-                        "max-w-xs lg:max-w-md px-4 py-3 rounded-2xl",
+                        "max-w-[75%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl",
                         message.type === "user"
                           ? "bg-[#10B981] text-white rounded-br-md"
                           : "bg-[#1F2937] text-white border border-[#10B981]/20 rounded-bl-md"
                       )}
                     >
-                      <p className="text-sm">{message.content}</p>
+                      <p className="text-xs sm:text-sm leading-relaxed">{message.content}</p>
                       <p className="text-xs opacity-70 mt-1">
                         {message.timestamp.toLocaleTimeString([], {
                           hour: "2-digit",
@@ -376,8 +374,8 @@ export default function AIAgentTestPage() {
                       </p>
                     </div>
                     {message.type === "user" && (
-                      <div className="p-2 bg-[#25D366] rounded-full h-fit">
-                        <User className="h-4 w-4 text-white" />
+                      <div className="p-1.5 sm:p-2 bg-[#25D366] rounded-full h-fit shrink-0">
+                        <User className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                       </div>
                     )}
                   </motion.div>
@@ -388,16 +386,16 @@ export default function AIAgentTestPage() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-3 justify-start"
+                  className="flex gap-2 sm:gap-3 justify-start"
                 >
-                  <div className="p-2 bg-[#10B981] rounded-full h-fit">
-                    <Bot className="h-4 w-4 text-white" />
+                  <div className="p-1.5 sm:p-2 bg-[#10B981] rounded-full h-fit shrink-0">
+                    <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                   </div>
-                  <div className="bg-[#1F2937] border border-[#10B981]/20 px-4 py-3 rounded-2xl rounded-bl-md">
+                  <div className="bg-[#1F2937] border border-[#10B981]/20 px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl rounded-bl-md">
                     <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-[#10B981] rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-[#10B981] rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                      <div className="w-2 h-2 bg-[#10B981] rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#10B981] rounded-full animate-bounce"></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#10B981] rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#10B981] rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                     </div>
                   </div>
                 </motion.div>
@@ -405,13 +403,13 @@ export default function AIAgentTestPage() {
             </div>
 
             {/* Input */}
-            <div className="p-6 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
+            <div className="p-3 sm:p-6 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
               <PlaceholdersAndVanishInput
                 placeholders={placeholders}
                 onChange={handleInputChange}
                 onSubmit={handleSubmit}
               />
-              <p className="text-xs text-gray-400 mt-3 text-center">
+              <p className="text-xs text-gray-400 mt-2 sm:mt-3 text-center">
                 Druk op Enter om je bericht te versturen • Powered by AI
               </p>
             </div>
