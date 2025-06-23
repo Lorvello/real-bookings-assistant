@@ -1,3 +1,4 @@
+
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
@@ -27,14 +28,10 @@ export const generateSampleBookings = (currentDate: Date): Booking[] => {
   const year = monthStart.getFullYear();
   const month = monthStart.getMonth();
   
-  console.log('🏗️ Generating sample bookings for:', format(monthStart, 'MMMM yyyy', { locale: nl }));
-  console.log('Month details:', { year, month, monthStart: monthStart.toISOString(), monthEnd: monthEnd.toISOString() });
+  console.log('Generating sample bookings for:', format(monthStart, 'MMMM yyyy', { locale: nl }));
   
-  // Generate more diverse bookings across the entire month
-  const sampleBookings: Booking[] = [];
-  
-  // Week 1 (dagen 1-7)
-  sampleBookings.push(
+  const sampleBookings: Booking[] = [
+    // Week 1 - Early in month
     {
       id: 'sample-1',
       start_time: new Date(year, month, 2, 9, 0).toISOString(),
@@ -93,11 +90,9 @@ export const generateSampleBookings = (currentDate: Date): Booking[] => {
         color: '#FADBD8',
         duration: 60
       }
-    }
-  );
-
-  // Week 2 (dagen 8-14)
-  sampleBookings.push(
+    },
+    
+    // Week 2 - More appointments
     {
       id: 'sample-5',
       start_time: new Date(year, month, 8, 10, 0).toISOString(),
@@ -114,6 +109,49 @@ export const generateSampleBookings = (currentDate: Date): Booking[] => {
       }
     },
     {
+      id: 'sample-6',
+      start_time: new Date(year, month, 9, 13, 0).toISOString(),
+      end_time: new Date(year, month, 9, 14, 0).toISOString(),
+      customer_name: 'Sophie Bakker',
+      customer_email: 'sophie@example.com',
+      status: 'confirmed',
+      service_name: 'Nagelsalon',
+      service_types: {
+        name: 'Manicure & Gellak',
+        color: '#FFB6C1',
+        duration: 60
+      }
+    },
+    {
+      id: 'sample-7',
+      start_time: new Date(year, month, 10, 15, 30).toISOString(),
+      end_time: new Date(year, month, 10, 16, 30).toISOString(),
+      customer_name: 'David Rodriguez',
+      customer_phone: '+31623456789',
+      customer_email: 'david@example.com',
+      status: 'confirmed',
+      service_name: 'Personal Training',
+      service_types: {
+        name: 'Fitness Coaching',
+        color: '#F39C12',
+        duration: 60
+      }
+    },
+    {
+      id: 'sample-8',
+      start_time: new Date(year, month, 11, 9, 0).toISOString(),
+      end_time: new Date(year, month, 11, 10, 0).toISOString(),
+      customer_name: 'Priya Sharma',
+      customer_email: 'priya@example.com',
+      status: 'confirmed',
+      service_name: 'Yoga',
+      service_types: {
+        name: 'Private Yoga Sessie',
+        color: '#D7BDE2',
+        duration: 60
+      }
+    },
+    {
       id: 'sample-9',
       start_time: new Date(year, month, 12, 14, 0).toISOString(),
       end_time: new Date(year, month, 12, 15, 0).toISOString(),
@@ -127,11 +165,9 @@ export const generateSampleBookings = (currentDate: Date): Booking[] => {
         color: '#85C1E9',
         duration: 60
       }
-    }
-  );
-
-  // Week 3 (dagen 15-21)
-  sampleBookings.push(
+    },
+    
+    // Week 3 - Multiple appointments per day
     {
       id: 'sample-10',
       start_time: new Date(year, month, 15, 11, 0).toISOString(),
@@ -161,7 +197,8 @@ export const generateSampleBookings = (currentDate: Date): Booking[] => {
         duration: 60
       }
     },
-    // Dag met meerdere afspraken
+    
+    // Day with multiple bookings
     {
       id: 'sample-12',
       start_time: new Date(year, month, 17, 10, 0).toISOString(),
@@ -192,23 +229,21 @@ export const generateSampleBookings = (currentDate: Date): Booking[] => {
       }
     },
     {
-      id: 'sample-20',
-      start_time: new Date(year, month, 20, 13, 0).toISOString(),
-      end_time: new Date(year, month, 20, 14, 0).toISOString(),
-      customer_name: 'Sophie Bakker',
-      customer_email: 'sophie@example.com',
-      status: 'confirmed',
-      service_name: 'Nagelsalon',
+      id: 'sample-14',
+      start_time: new Date(year, month, 17, 16, 30).toISOString(),
+      end_time: new Date(year, month, 17, 17, 30).toISOString(),
+      customer_name: 'Fatima Al-Zahra',
+      customer_email: 'fatima@example.com',
+      status: 'pending',
+      service_name: 'Yoga',
       service_types: {
-        name: 'Manicure & Gellak',
-        color: '#FFB6C1',
+        name: 'Private Yoga Sessie',
+        color: '#D7BDE2',
         duration: 60
       }
-    }
-  );
-
-  // Week 4 & einde maand (dagen 22-31)
-  sampleBookings.push(
+    },
+    
+    // Week 4 & End of month
     {
       id: 'sample-15',
       start_time: new Date(year, month, 22, 13, 30).toISOString(),
@@ -225,8 +260,8 @@ export const generateSampleBookings = (currentDate: Date): Booking[] => {
     },
     {
       id: 'sample-16',
-      start_time: new Date(year, month, 25, 11, 0).toISOString(),
-      end_time: new Date(year, month, 25, 12, 30).toISOString(),
+      start_time: new Date(year, month, 23, 11, 0).toISOString(),
+      end_time: new Date(year, month, 23, 12, 30).toISOString(),
       customer_name: 'Jin Watanabe',
       customer_phone: '+31678901234',
       customer_email: 'jin@example.com',
@@ -237,30 +272,76 @@ export const generateSampleBookings = (currentDate: Date): Booking[] => {
         color: '#AED6F1',
         duration: 90
       }
+    },
+    {
+      id: 'sample-17',
+      start_time: new Date(year, month, 24, 15, 0).toISOString(),
+      end_time: new Date(year, month, 24, 16, 0).toISOString(),
+      customer_name: 'Carmen Rodriguez',
+      customer_email: 'carmen@example.com',
+      status: 'confirmed',
+      service_name: 'Dansles',
+      service_types: {
+        name: 'Salsa Workshop',
+        color: '#F1948A',
+        duration: 60
+      }
+    },
+    {
+      id: 'sample-18',
+      start_time: new Date(year, month, 25, 10, 0).toISOString(),
+      end_time: new Date(year, month, 25, 11, 0).toISOString(),
+      customer_name: 'Erik Johansson',
+      customer_phone: '+31612987654',
+      customer_email: 'erik@example.com',
+      status: 'pending',
+      service_name: 'Persoonlijk Trainer',
+      service_types: {
+        name: 'Kracht Training',
+        color: '#52C41A',
+        duration: 60
+      }
+    },
+    
+    // End of month appointments
+    {
+      id: 'sample-19',
+      start_time: new Date(year, month, 29, 12, 0).toISOString(),
+      end_time: new Date(year, month, 29, 13, 0).toISOString(),
+      customer_name: 'Yasmin El-Masri',
+      customer_email: 'yasmin@example.com',
+      status: 'confirmed',
+      service_name: 'Henna Kunst',
+      service_types: {
+        name: 'Traditionele Henna',
+        color: '#D4A574',
+        duration: 60
+      }
+    },
+    {
+      id: 'sample-20',
+      start_time: new Date(year, month, 30, 10, 30).toISOString(),
+      end_time: new Date(year, month, 30, 11, 30).toISOString(),
+      customer_name: 'Klaus Mueller',
+      customer_phone: '+31634521789',
+      customer_email: 'klaus@example.com',
+      status: 'confirmed',
+      service_name: 'Tarot Reading',
+      service_types: {
+        name: 'Spirituele Consultatie',
+        color: '#D5A6BD',
+        duration: 60
+      }
     }
-  );
+  ];
 
-  // Filter alleen bookings binnen de huidige maand
+  // Filter out bookings that don't fall within the current month
   const validBookings = sampleBookings.filter(booking => {
     const bookingDate = new Date(booking.start_time);
-    const isValid = bookingDate >= monthStart && bookingDate <= monthEnd;
-    
-    console.log(`Booking ${booking.customer_name} on ${bookingDate.toLocaleDateString()}:`, {
-      bookingDate: bookingDate.toISOString(),
-      monthStart: monthStart.toISOString(),
-      monthEnd: monthEnd.toISOString(),
-      isValid
-    });
-    
-    return isValid;
+    return bookingDate >= monthStart && bookingDate <= monthEnd;
   });
 
-  console.log(`✅ Generated ${validBookings.length} valid sample bookings for ${format(monthStart, 'MMMM yyyy', { locale: nl })}`);
-  console.log('Valid bookings:', validBookings.map(b => ({
-    name: b.customer_name,
-    date: new Date(b.start_time).toLocaleDateString(),
-    service: b.service_name
-  })));
+  console.log(`Generated ${validBookings.length} valid sample bookings for ${format(monthStart, 'MMMM yyyy', { locale: nl })}`);
   
   return validBookings;
 };
