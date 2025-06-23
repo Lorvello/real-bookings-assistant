@@ -43,7 +43,7 @@ const CalendarMockup = () => {
         </div>
       </div>
       
-      {/* Ultra-Compact Calendar Grid */}
+      {/* Fixed Height Calendar Grid */}
       <div className="p-2">
         <div className="grid grid-cols-7 gap-1">
           {days.map(day => {
@@ -54,7 +54,7 @@ const CalendarMockup = () => {
             return (
               <div
                 key={day.toISOString()}
-                className={`rounded-lg p-1.5 min-h-[60px] transition-all duration-200 ${
+                className={`rounded-lg p-1.5 h-[60px] flex flex-col transition-all duration-200 ${
                   isCurrentMonth 
                     ? isDayToday
                       ? 'bg-primary/10 border border-primary/30'
@@ -78,33 +78,34 @@ const CalendarMockup = () => {
                   )}
                 </div>
                 
-                {/* Ultra-Compact Bookings */}
-                <div className="space-y-0.5">
-                  {dayBookings.slice(0, 2).map((booking, index) => (
-                    <div
-                      key={booking.id}
-                      className="p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30"
-                    >
-                      <div className="text-[10px] text-slate-200 font-medium truncate">
-                        {format(new Date(booking.start_time), 'HH:mm')}
-                      </div>
-                      <div className="text-[9px] text-slate-300/80 truncate">
-                        {booking.customer_name}
-                      </div>
+                {/* Booking Content - Fixed Height */}
+                <div className="flex-1 flex items-center justify-center">
+                  {dayBookings.length === 0 && isCurrentMonth && (
+                    <div className="text-center opacity-0">
+                      <div className="text-[9px] text-muted-foreground">-</div>
                     </div>
-                  ))}
+                  )}
                   
-                  {dayBookings.length > 2 && (
-                    <div className="text-center py-0.5 bg-slate-700/30 rounded border border-slate-600/20">
-                      <div className="text-[9px] text-slate-400 font-medium">
-                        +{dayBookings.length - 2} meer
+                  {dayBookings.length === 1 && (
+                    <div className="w-full">
+                      <div className="p-1 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
+                        <div className="text-[10px] text-slate-200 font-medium truncate text-center">
+                          {format(new Date(dayBookings[0].start_time), 'HH:mm')}
+                        </div>
+                        <div className="text-[9px] text-slate-300/80 truncate text-center">
+                          {dayBookings[0].customer_name}
+                        </div>
                       </div>
                     </div>
                   )}
                   
-                  {dayBookings.length === 0 && isCurrentMonth && (
-                    <div className="text-center py-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="text-[9px] text-muted-foreground">-</div>
+                  {dayBookings.length > 1 && (
+                    <div className="w-full">
+                      <div className="p-1.5 rounded bg-slate-700/50 backdrop-blur-sm border border-slate-600/30">
+                        <div className="text-[10px] text-slate-200 font-medium text-center">
+                          {dayBookings.length} afspraken
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
