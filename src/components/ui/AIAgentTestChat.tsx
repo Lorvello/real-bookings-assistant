@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
@@ -251,7 +252,7 @@ export default function AIAgentTestPage() {
     {
       id: "1",
       type: "bot",
-      content: "Hallo! Ik ben jouw AI agent. Stel me een vraag om mijn capaciteiten te testen!",
+      content: "Hello! I'm your AI agent. Ask me a question to test my capabilities!",
       timestamp: new Date(),
     },
   ]);
@@ -259,11 +260,11 @@ export default function AIAgentTestPage() {
   const [inputValue, setInputValue] = useState("");
 
   const placeholders = [
-    "Vraag me iets over je bedrijf...",
-    "Test mijn kennis over marketing...",
-    "Stel een vraag over WhatsApp automatisering...",
-    "Vraag me om een strategie voor leadgeneratie...",
-    "Test mijn creativiteit met content ideeën...",
+    "Ask me something about your business...",
+    "Test my knowledge about marketing...",
+    "Ask me about WhatsApp automation...",
+    "Ask me for a lead generation strategy...",
+    "Test my creativity with content ideas...",
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,11 +273,11 @@ export default function AIAgentTestPage() {
 
   const simulateAIResponse = (userMessage: string): string => {
     const responses = [
-      "Dat is een interessante vraag! Als AI agent kan ik je helpen met het automatiseren van je WhatsApp communicatie en het verbeteren van je klantenservice.",
-      "Geweldig! Ik kan je ondersteunen bij het opzetten van geautomatiseerde workflows die je tijd besparen en je conversieratio verhogen.",
-      "Uitstekende vraag! Met mijn hulp kun je gepersonaliseerde berichten versturen, leads kwalificeren en je verkoop proces optimaliseren.",
-      "Perfect! Ik kan je helpen bij het creëren van chatbots, het segmenteren van je doelgroep en het verhogen van je klanttevredenheid.",
-      "Fantastisch! Laat me je laten zien hoe ik complexe taken kan automatiseren en je bedrijfsprocessen kan stroomlijnen.",
+      "That's an interesting question! As an AI agent, I can help you automate your WhatsApp communication and improve your customer service.",
+      "Great! I can support you in setting up automated workflows that save you time and increase your conversion rate.",
+      "Excellent question! With my help, you can send personalized messages, qualify leads, and optimize your sales process.",
+      "Perfect! I can help you create chatbots, segment your target audience, and increase your customer satisfaction.",
+      "Fantastic! Let me show you how I can automate complex tasks and streamline your business processes.",
     ];
     return responses[Math.floor(Math.random() * responses.length)];
   };
@@ -309,9 +310,9 @@ export default function AIAgentTestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#111827] via-[#1F2937] to-[#111827] text-white">
+    <div className="min-h-0 bg-gradient-to-br from-[#111827] via-[#1F2937] to-[#111827] text-white">
       {/* Chat Interface */}
-      <div className="container mx-auto px-2 sm:px-4 py-8 sm:py-16">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -328,7 +329,7 @@ export default function AIAgentTestPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-white text-sm sm:text-base">AI Agent Demo</h3>
-                  <p className="text-xs sm:text-sm text-gray-400 truncate">Online en klaar om te helpen</p>
+                  <p className="text-xs sm:text-sm text-gray-400 truncate">Online and ready to help</p>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#25D366] rounded-full animate-pulse"></div>
@@ -410,7 +411,7 @@ export default function AIAgentTestPage() {
                 onSubmit={handleSubmit}
               />
               <p className="text-xs text-gray-400 mt-1 sm:mt-2 text-center">
-                Druk op Enter om je bericht te versturen • Powered by AI
+                Press Enter to send your message • Powered by AI
               </p>
             </div>
           </div>
