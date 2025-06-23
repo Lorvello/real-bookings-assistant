@@ -46,21 +46,47 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
   const weekDays = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
 
-  // Combine real bookings with sample bookings for demonstration
+  // Generate sample bookings with detailed logging
   const sampleBookings = generateSampleBookings(currentDate);
   const allBookings = [...bookings, ...sampleBookings];
 
-  console.log('Total bookings in calendar:', allBookings.length);
+  console.log('=== CALENDAR DEBUG INFO ===');
+  console.log('Current date:', currentDate.toISOString());
+  console.log('Month start:', monthStart.toISOString());
+  console.log('Month end:', monthEnd.toISOString());
+  console.log('Calendar start:', calendarStart.toISOString());
+  console.log('Calendar end:', calendarEnd.toISOString());
+  console.log('Total days in grid:', days.length);
   console.log('Real bookings:', bookings.length);
   console.log('Sample bookings:', sampleBookings.length);
+  console.log('All bookings:', allBookings.length);
+  console.log('Sample bookings details:', sampleBookings.map(b => ({
+    id: b.id,
+    name: b.customer_name,
+    date: new Date(b.start_time).toLocaleDateString(),
+    time: new Date(b.start_time).toLocaleTimeString()
+  })));
+  console.log('Days array:', days.map(d => d.toLocaleDateString()));
 
   const getBookingsForDay = (day: Date) => {
-    const dayBookings = allBookings.filter(booking => 
-      isSameDay(new Date(booking.start_time), day)
-    );
+    const dayBookings = allBookings.filter(booking => {
+      const bookingDate = new Date(booking.start_time);
+      const isSame = isSameDay(bookingDate, day);
+      
+      if (isSame) {
+        console.log(`✅ Found booking for ${day.toLocaleDateString()}:`, {
+          booking: booking.customer_name,
+          bookingDate: bookingDate.toISOString(),
+          dayDate: day.toISOString()
+        });
+      }
+      
+      return isSame;
+    });
     
     if (dayBookings.length > 0) {
-      console.log(`Found ${dayBookings.length} bookings for ${day.toDateString()}:`, dayBookings.map(b => b.customer_name));
+      console.log(`📅 Day ${day.toLocaleDateString()} has ${dayBookings.length} bookings:`, 
+        dayBookings.map(b => `${b.customer_name} at ${new Date(b.start_time).toLocaleTimeString()}`));
     }
     
     return dayBookings;
@@ -97,8 +123,13 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 pt-2">
           <div className="grid grid-cols-7 gap-3">
-            {days.map(day => {
+            {days.map((day, index) => {
               const dayBookings = getBookingsForDay(day);
+              
+              console.log(`Day ${index + 1} (${day.toLocaleDateString()}):`, {
+                dayBookings: dayBookings.length,
+                bookingNames: dayBookings.map(b => b.customer_name)
+              });
 
               return (
                 <CalendarDayCell
