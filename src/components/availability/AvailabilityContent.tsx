@@ -19,53 +19,53 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
 }) => {
   if (activeTab === 'schedule') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900/50">
-        <div className="max-w-7xl mx-auto p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Main Content - Left Side (4/5 width) */}
-            <div className="lg:col-span-4 space-y-6">
-              {/* Daily Availability - Compact Card */}
-              <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-6 shadow-sm">
+      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Main Content - Left Side */}
+            <div className="lg:col-span-3 space-y-8">
+              {/* Daily Availability */}
+              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
                 <DailyAvailability onChange={onUnsavedChanges} />
               </div>
 
-              {/* Date Overrides - Compact Section */}
-              <div className="space-y-4">
+              {/* Date Overrides */}
+              <div className="space-y-6">
                 <div className="flex items-center space-x-3">
-                  <div className="p-1.5 bg-blue-500/10 rounded-xl">
-                    <Info className="h-4 w-4 text-blue-600" />
+                  <div className="p-2 bg-primary/20 rounded-2xl">
+                    <Info className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-base font-medium text-slate-900">
+                    <h3 className="text-lg font-medium text-foreground">
                       Uitzonderingen op schema
                     </h3>
-                    <p className="text-xs text-slate-600">
+                    <p className="text-sm text-muted-foreground">
                       Voeg datums toe waarop je beschikbaarheid afwijkt van je standaard werkuren.
                     </p>
                   </div>
                 </div>
                 
-                <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-6 shadow-sm">
+                <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
                   <DateOverrides onChange={onUnsavedChanges} />
                 </div>
               </div>
             </div>
 
-            {/* Sidebar - Right Side (1/5 width) */}
-            <div className="space-y-4">
-              {/* Timezone - Compact */}
-              <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-4 shadow-sm">
-                <div className="flex items-center space-x-2 mb-3">
-                  <div className="p-1 bg-blue-500/10 rounded-lg">
-                    <Globe className="h-3 w-3 text-blue-600" />
+            {/* Sidebar - Right Side */}
+            <div className="space-y-6">
+              {/* Timezone */}
+              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6 shadow-lg shadow-black/5">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="p-2 bg-blue-500/20 rounded-2xl">
+                    <Globe className="h-4 w-4 text-blue-600" />
                   </div>
-                  <h3 className="text-sm font-medium text-slate-900">Tijdzone</h3>
+                  <h3 className="text-sm font-medium text-foreground">Tijdzone</h3>
                 </div>
                 <Select defaultValue="europe-amsterdam">
-                  <SelectTrigger className="w-full bg-slate-50/80 border-slate-200/60 rounded-xl h-8 text-xs">
+                  <SelectTrigger className="w-full bg-background/80 border-border/60 rounded-2xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-slate-200 rounded-xl">
+                  <SelectContent className="bg-popover border-border rounded-2xl">
                     <SelectItem value="europe-amsterdam">Europa/Amsterdam</SelectItem>
                     <SelectItem value="europe-london">Europa/London</SelectItem>
                     <SelectItem value="america-new-york">Amerika/New_York</SelectItem>
@@ -74,20 +74,19 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
                 </Select>
               </div>
 
-              {/* Troubleshooter - Compact */}
-              <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-4 shadow-sm">
-                <div className="flex items-center space-x-2 mb-3">
-                  <div className="p-1 bg-orange-500/10 rounded-lg">
-                    <Wrench className="h-3 w-3 text-orange-600" />
+              {/* Troubleshooter */}
+              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6 shadow-lg shadow-black/5">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="p-2 bg-orange-500/20 rounded-2xl">
+                    <Wrench className="h-4 w-4 text-orange-600" />
                   </div>
-                  <h3 className="text-sm font-medium text-slate-900">Problemen?</h3>
+                  <h3 className="text-sm font-medium text-foreground">Problemen met je schema?</h3>
                 </div>
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="w-full bg-slate-50/80 border-slate-200/60 hover:bg-slate-100 rounded-xl text-xs h-8"
+                  className="w-full bg-background/80 border-border/60 hover:bg-muted rounded-2xl"
                 >
-                  Probleemoplosser
+                  Probleemoplosser starten
                 </Button>
               </div>
             </div>
@@ -99,10 +98,12 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
 
   if (activeTab === 'limits') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900/50">
-        <div className="max-w-5xl mx-auto p-4">
-          <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-6 shadow-sm">
-            <Limits onChange={onUnsavedChanges} />
+      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="max-w-4xl">
+            <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
+              <Limits onChange={onUnsavedChanges} />
+            </div>
           </div>
         </div>
       </div>
@@ -111,10 +112,12 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
 
   if (activeTab === 'advanced') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900/50">
-        <div className="max-w-5xl mx-auto p-4">
-          <div className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-6 shadow-sm">
-            <Advanced onChange={onUnsavedChanges} />
+      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="max-w-4xl">
+            <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
+              <Advanced onChange={onUnsavedChanges} />
+            </div>
           </div>
         </div>
       </div>
