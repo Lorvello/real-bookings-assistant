@@ -54,7 +54,7 @@ export const CalendarOwnershipHeader: React.FC<CalendarOwnershipHeaderProps> = (
             )}
           </div>
           
-          <CalendarSwitcher />
+          <CalendarSwitcher hideAllCalendarsOption={true} />
         </div>
       </div>
     </div>

@@ -16,7 +16,11 @@ import { Badge } from '@/components/ui/badge';
 import { UserContextDisplay } from './calendar-switcher/UserContextDisplay';
 import { CreateCalendarDialog } from './calendar-switcher/CreateCalendarDialog';
 
-export function CalendarSwitcher() {
+interface CalendarSwitcherProps {
+  hideAllCalendarsOption?: boolean;
+}
+
+export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwitcherProps) {
   const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading } = useCalendarContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
@@ -40,7 +44,7 @@ export function CalendarSwitcher() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="justify-between min-w-[250px]">
                 <div className="flex items-center space-x-2">
-                  {viewingAllCalendars ? (
+                  {viewingAllCalendars && !hideAllCalendarsOption ? (
                     <>
                       <Grid3X3 className="w-3 h-3 text-primary" />
                       <span className="truncate">Alle kalenders</span>
@@ -68,27 +72,31 @@ export function CalendarSwitcher() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               
-              {/* Alle kalenders optie */}
-              <DropdownMenuItem
-                onClick={() => selectAllCalendars()}
-                className="flex items-center space-x-3 p-3"
-              >
-                <Grid3X3 className="w-3 h-3 text-primary" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium">Alle kalenders</span>
-                    <Badge variant="outline" className="text-xs">Gemengd</Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Bekijk alle afspraken samen
-                  </p>
-                </div>
-                {viewingAllCalendars && (
-                  <div className="w-2 h-2 bg-primary rounded-full" />
-                )}
-              </DropdownMenuItem>
-              
-              <DropdownMenuSeparator />
+              {/* Alle kalenders optie - alleen tonen als niet verborgen */}
+              {!hideAllCalendarsOption && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => selectAllCalendars()}
+                    className="flex items-center space-x-3 p-3"
+                  >
+                    <Grid3X3 className="w-3 h-3 text-primary" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium">Alle kalenders</span>
+                        <Badge variant="outline" className="text-xs">Gemengd</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Bekijk alle afspraken samen
+                      </p>
+                    </div>
+                    {viewingAllCalendars && (
+                      <div className="w-2 h-2 bg-primary rounded-full" />
+                    )}
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                </>
+              )}
               
               {calendars.map((calendar) => (
                 <DropdownMenuItem
@@ -116,7 +124,7 @@ export function CalendarSwitcher() {
                       Eigenaar: Jij
                     </p>
                   </div>
-                  {!viewingAllCalendars && selectedCalendar?.id === calendar.id && (
+                  {(!viewingAllCalendars || hideAllCalendarsOption) && selectedCalendar?.id === calendar.id && (
                     <div className="w-2 h-2 bg-primary rounded-full" />
                   )}
                 </DropdownMenuItem>
