@@ -49,51 +49,17 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
   const tabsWithDateFilter = ['business-intelligence', 'performance-efficiency'];
   const showDateFilter = tabsWithDateFilter.includes(activeTab);
 
-  // Get appropriate header content based on active tab
-  const getHeaderContent = () => {
-    switch (activeTab) {
-      case 'overview':
-        return {
-          title: 'Dashboard Overview',
-          subtitle: 'Your business at a glance'
-        };
-      case 'live-operations':
-        return {
-          title: 'Live Operations Center',
-          subtitle: 'Real-time monitoring and current status'
-        };
-      case 'future-insights':
-        return {
-          title: 'Future Insights & Predictions',
-          subtitle: 'Trends analysis and forecasting'
-        };
-      default:
-        return {
-          title: 'Analytics Dashboard',
-          subtitle: `Viewing data for: ${selectedDateRange.label}`
-        };
-    }
-  };
-
-  const headerContent = getHeaderContent();
-
   return (
     <div className="space-y-6">
-      {/* Dynamic Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-white mb-1">{headerContent.title}</h2>
-          <p className="text-gray-400 text-sm">
-            {headerContent.subtitle}
-          </p>
-        </div>
-        {showDateFilter && (
+      {/* Date Filter - Only show for specific tabs */}
+      {showDateFilter && (
+        <div className="flex justify-end">
           <DateRangeFilter 
             selectedRange={selectedDateRange}
             onRangeChange={setSelectedDateRange}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
