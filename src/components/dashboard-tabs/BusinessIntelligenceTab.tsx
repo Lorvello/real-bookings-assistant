@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
@@ -14,6 +13,11 @@ interface BusinessIntelligenceTabProps {
 }
 
 export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntelligenceTabProps) {
+  // Add safety check for dateRange
+  if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
+    return <BusinessIntelligenceLoading />;
+  }
+
   const { data: businessIntel, isLoading, error } = useOptimizedBusinessIntelligence(
     calendarId, 
     dateRange.startDate, 

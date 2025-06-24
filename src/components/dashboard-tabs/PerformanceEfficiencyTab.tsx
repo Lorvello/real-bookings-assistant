@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
@@ -14,6 +13,23 @@ interface PerformanceEfficiencyTabProps {
 }
 
 export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceEfficiencyTabProps) {
+  // Add safety check for dateRange
+  if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
+    return (
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div 
+              key={i} 
+              className="h-44 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"
+            />
+          ))}
+        </div>
+        <div className="h-96 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"></div>
+      </div>
+    );
+  }
+
   const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(
     calendarId,
     dateRange.startDate,

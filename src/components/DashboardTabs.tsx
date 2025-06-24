@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BusinessIntelligenceTab } from './dashboard-tabs/BusinessIntelligenceTab';
@@ -19,11 +18,30 @@ interface DashboardTabsProps {
   calendarId: string;
 }
 
+// Create a default date range as fallback
+const getDefaultDateRange = (): DateRange => {
+  const now = new Date();
+  const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+  const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+  return {
+    startDate,
+    endDate,
+    preset: 'last30days',
+    label: 'Last 30 days'
+  };
+};
+
 export function DashboardTabs({ calendarId }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState('business-intelligence');
-  const [selectedDateRange, setSelectedDateRange] = useState<DateRange>(
-    getPresetRange('last30days')
-  );
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRange>(() => {
+    try {
+      return getPresetRange('last30days');
+    } catch (error) {
+      console.error('Error getting preset range, using default:', error);
+      return getDefaultDateRange();
+    }
+  });
 
   return (
     <div className="space-y-6">
