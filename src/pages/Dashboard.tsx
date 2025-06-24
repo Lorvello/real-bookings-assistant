@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { DashboardContent } from '@/components/dashboard/DashboardContent';
 import { useAuth } from '@/hooks/useAuth';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { selectedCalendar, calendars, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
 
   React.useEffect(() => {
     if (!authLoading && !user) {
@@ -15,7 +17,7 @@ const Dashboard = () => {
     }
   }, [user, authLoading, navigate]);
 
-  if (authLoading) {
+  if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full bg-gray-900">
@@ -32,6 +34,11 @@ const Dashboard = () => {
     return null;
   }
 
+  const activeCalendarIds = getActiveCalendarIds();
+  const calendarName = viewingAllCalendars 
+    ? 'Alle kalenders' 
+    : selectedCalendar?.name || 'Dashboard';
+
   return (
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-6">
@@ -45,7 +52,10 @@ const Dashboard = () => {
 
         {/* Dashboard Content with Clean Styling */}
         <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
-          <DashboardContent />
+          <DashboardContent 
+            calendarIds={activeCalendarIds}
+            calendarName={calendarName}
+          />
         </div>
       </div>
     </DashboardLayout>
