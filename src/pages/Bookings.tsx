@@ -1,10 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useOptimizedBookings } from '@/hooks/useOptimizedBookings';
+import { BookingDetailModal } from '@/components/calendar/BookingDetailModal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,8 @@ const Bookings = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Redirect if not authenticated
   React.useEffect(() => {
@@ -72,6 +74,16 @@ const Bookings = () => {
       }
     });
   }, [bookings, searchTerm, filterStatus, sortBy]);
+
+  const handleBookingClick = (booking: any) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedBooking(null);
+  };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -198,7 +210,11 @@ const Bookings = () => {
           ) : (
             <div className="space-y-4">
               {filteredAndSortedBookings.map((booking) => (
-                <Card key={booking.id} className="bg-gray-800 border-gray-700">
+                <Card 
+                  key={booking.id} 
+                  className="bg-gray-800 border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors"
+                  onClick={() => handleBookingClick(booking)}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
@@ -267,6 +283,13 @@ const Bookings = () => {
             </div>
           )}
         </div>
+
+        {/* Booking Detail Modal */}
+        <BookingDetailModal
+          open={isModalOpen}
+          onClose={handleCloseModal}
+          booking={selectedBooking}
+        />
       </div>
     </DashboardLayout>
   );
