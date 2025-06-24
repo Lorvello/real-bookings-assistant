@@ -19,7 +19,7 @@ export const BusinessTab: React.FC<BusinessTabProps> = ({
 }) => {
   return (
     <div className="space-y-8">
-      {/* Bedrijfs Basis Info */}
+      {/* Business Basic Info */}
       <BusinessBasicInfoSection 
         businessData={businessData}
         setBusinessData={setBusinessData}
@@ -28,7 +28,7 @@ export const BusinessTab: React.FC<BusinessTabProps> = ({
       {/* Service Types Section */}
       <ServiceTypesSection />
 
-      {/* Knowledge Base van de Booking Agent */}
+      {/* Knowledge Base of the Booking Agent */}
       <BusinessKnowledgeBaseSection 
         businessData={businessData}
         setBusinessData={setBusinessData}
@@ -39,7 +39,7 @@ export const BusinessTab: React.FC<BusinessTabProps> = ({
         disabled={loading} 
         className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
       >
-        {loading ? 'Opslaan...' : 'Bedrijfsinformatie Opslaan'}
+        {loading ? 'Saving...' : 'Save Business Information'}
       </button>
     </div>
   );

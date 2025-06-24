@@ -21,17 +21,17 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-semibold text-white">WhatsApp Business API</h2>
-            <p className="text-sm text-gray-400 mt-1">Beheer je WhatsApp booking assistant</p>
+            <p className="text-sm text-gray-400 mt-1">Manage your WhatsApp booking assistant</p>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-green-400">Verbonden</span>
+            <span className="text-green-400">Connected</span>
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            WhatsApp Business Nummer
+            WhatsApp Business Number
           </label>
           <input
             type="tel"
@@ -59,7 +59,7 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
               onClick={() => navigate('/#pricing')}
               className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
             >
-              Update Plan to Unlock This
+              Upgrade Plan to Unlock This
             </button>
           </div>
         </div>
@@ -76,19 +76,19 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
                 className="w-4 h-4 text-green-600 bg-gray-900 border-gray-700 rounded focus:ring-green-600"
               />
               <label className="text-gray-300">
-                Alleen actief tijdens openingstijden
+                Only active during business hours
               </label>
             </div>
           </div>
 
-          {/* Welkomstberichten */}
+          {/* Welcome Messages */}
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white mb-6">Automatische Berichten</h2>
+            <h2 className="text-xl font-semibold text-white mb-6">Automatic Messages</h2>
             
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Welkomstbericht
+                  Welcome Message
                 </label>
                 <textarea
                   value={whatsappSettings.welcome_message}
@@ -97,13 +97,13 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
                   className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
                 />
                 <p className="text-xs text-gray-400 mt-1">
-                  Variabelen: {'{business_name}'}, {'{customer_name}'}
+                  Variables: {'{business_name}'}, {'{customer_name}'}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Bericht buiten openingstijden
+                  Outside Hours Message
                 </label>
                 <textarea
                   value={whatsappSettings.outside_hours_message}
@@ -126,7 +126,7 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
           disabled
           className="w-full py-3 px-4 bg-gray-600 text-gray-400 font-medium rounded-lg cursor-not-allowed"
         >
-          WhatsApp Instellingen Opslaan
+          Save WhatsApp Settings
         </button>
       </div>
     </div>

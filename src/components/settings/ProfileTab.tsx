@@ -16,14 +16,14 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 }) => {
   return (
     <div className="space-y-8">
-      {/* Basis Informatie */}
+      {/* Basic Information */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Basis Informatie</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Basic Information</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Volledige Naam *
+              Full Name *
             </label>
             <input
               type="text"
@@ -55,7 +55,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Telefoonnummer *
+              Phone Number *
             </label>
             <input
               type="tel"
@@ -71,7 +71,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Geboortedatum
+              Date of Birth
             </label>
             <input
               type="date"
@@ -86,7 +86,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Taal
+              Language
             </label>
             <select
               value={profileData.language}
@@ -96,19 +96,19 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               })}
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             >
-              <option value="nl">Nederlands</option>
+              <option value="nl">Dutch</option>
               <option value="en">English</option>
-              <option value="de">Deutsch</option>
-              <option value="fr">Français</option>
-              <option value="es">Español</option>
-              <option value="tr">Türkçe</option>
-              <option value="ar">العربية</option>
+              <option value="de">German</option>
+              <option value="fr">French</option>
+              <option value="es">Spanish</option>
+              <option value="tr">Turkish</option>
+              <option value="ar">Arabic</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Tijdzone
+              Timezone
             </label>
             <select
               value={profileData.timezone}
@@ -127,14 +127,14 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
       </div>
 
-      {/* Bedrijfs Adres Informatie */}
+      {/* Business Address Information */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Bedrijfsadres Informatie</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Business Address Information</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Straatnaam
+              Street Name
             </label>
             <input
               type="text"
@@ -149,7 +149,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Huisnummer
+              House Number
             </label>
             <input
               type="text"
@@ -164,7 +164,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Postcode
+              Postal Code
             </label>
             <input
               type="text"
@@ -179,7 +179,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Plaats
+              City
             </label>
             <input
               type="text"
@@ -254,7 +254,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         disabled={loading}
         className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
       >
-        {loading ? 'Opslaan...' : 'Profiel Opslaan'}
+        {loading ? 'Saving...' : 'Save Profile'}
       </button>
     </div>
   );

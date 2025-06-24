@@ -11,7 +11,7 @@ export default function TestAIAgent() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">Test Your AI Agent</h1>
           <p className="text-gray-400 mt-1">
-            Test en evalueer de functionaliteit van je AI booking assistant
+            Test and evaluate the functionality of your AI booking assistant
           </p>
         </div>
 

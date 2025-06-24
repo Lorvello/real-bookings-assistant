@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
@@ -35,10 +36,10 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
 
   return (
     <div className="space-y-12">
-      {/* Financial & Business Metrics - Goud/Oranje Thema */}
+      {/* Financial & Business Metrics - Orange Theme */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Maand Omzet"
+          title="Monthly Revenue"
           value={`€${businessIntel?.month_revenue?.toFixed(2) || '0.00'}`}
           subtitle=""
           icon={Euro}
@@ -52,27 +53,27 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
         />
 
         <MetricCard
-          title="Unieke Klanten"
+          title="Unique Customers"
           value={String(businessIntel?.unique_customers_month || 0)}
-          subtitle="deze maand"
+          subtitle="this month"
           icon={Users}
           variant="orange"
           delay={0.2}
         />
 
         <MetricCard
-          title="Gemiddelde Waarde"
+          title="Average Value"
           value={`€${businessIntel?.avg_booking_value?.toFixed(2) || '0.00'}`}
-          subtitle="per afspraak"
+          subtitle="per appointment"
           icon={Euro}
           variant="orange"
           delay={0.3}
         />
 
         <MetricCard
-          title="Vorige Maand"
+          title="Previous Month"
           value={`€${businessIntel?.prev_month_revenue?.toFixed(2) || '0.00'}`}
-          subtitle="omzet vergelijking"
+          subtitle="revenue comparison"
           icon={BarChart3}
           variant="orange"
           delay={0.4}

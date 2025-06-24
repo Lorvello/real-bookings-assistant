@@ -5,7 +5,7 @@ export const BillingTab: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Facturering & Abonnement</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Billing & Subscription</h2>
         <div className="text-center py-16">
           <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,10 +14,10 @@ export const BillingTab: React.FC = () => {
           </div>
           <h3 className="text-lg font-medium text-white mb-2">Billing Management</h3>
           <p className="text-gray-400 mb-4">
-            Deze functie is nog in ontwikkeling. Binnenkort kun je hier je abonnement en facturen beheren.
+            This feature is still in development. Soon you'll be able to manage your subscription and invoices here.
           </p>
           <div className="text-sm text-gray-500">
-            Contacteer ons als je vragen hebt over je abonnement.
+            Contact us if you have questions about your subscription.
           </div>
         </div>
       </div>

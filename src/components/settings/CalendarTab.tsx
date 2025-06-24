@@ -19,12 +19,12 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
     <div className="space-y-8">
       {/* Booking Windows */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Booking Vensters</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Booking Windows</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Hoe ver vooruit kunnen klanten boeken?
+              How far in advance can customers book?
             </label>
             <select
               value={calendarSettings.booking_window_days}
@@ -44,7 +44,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Minimale tijd voor boeking
+              Minimum notice time for booking
             </label>
             <select
               value={calendarSettings.minimum_notice_hours}
@@ -54,24 +54,24 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
               })}
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             >
-              <option value="0">Direct beschikbaar</option>
-              <option value="0.5">30 minuten van tevoren</option>
-              <option value="1">1 uur van tevoren</option>
-              <option value="2">2 uur van tevoren</option>
-              <option value="3">3 uur van tevoren</option>
-              <option value="4">4 uur van tevoren</option>
-              <option value="6">6 uur van tevoren</option>
-              <option value="12">12 uur van tevoren</option>
-              <option value="24">24 uur van tevoren</option>
-              <option value="48">48 uur van tevoren</option>
-              <option value="72">72 uur van tevoren</option>
-              <option value="168">1 week van tevoren</option>
+              <option value="0">Available immediately</option>
+              <option value="0.5">30 minutes in advance</option>
+              <option value="1">1 hour in advance</option>
+              <option value="2">2 hours in advance</option>
+              <option value="3">3 hours in advance</option>
+              <option value="4">4 hours in advance</option>
+              <option value="6">6 hours in advance</option>
+              <option value="12">12 hours in advance</option>
+              <option value="24">24 hours in advance</option>
+              <option value="48">48 hours in advance</option>
+              <option value="72">72 hours in advance</option>
+              <option value="168">1 week in advance</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Tijdslot duur (minuten)
+              Time slot duration (minutes)
             </label>
             <select
               value={calendarSettings.slot_duration}
@@ -81,20 +81,20 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
               })}
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             >
-              <option value="10">10 minuten</option>
-              <option value="15">15 minuten</option>
-              <option value="20">20 minuten</option>
-              <option value="30">30 minuten</option>
-              <option value="45">45 minuten</option>
-              <option value="60">60 minuten</option>
-              <option value="90">90 minuten</option>
-              <option value="120">120 minuten</option>
+              <option value="10">10 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="20">20 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes</option>
+              <option value="90">90 minutes</option>
+              <option value="120">120 minutes</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Slot interval (hoe vaak beginnen slots)
+              Slot interval (how often slots start)
             </label>
             <select
               value={calendarSettings.slot_interval}
@@ -104,11 +104,11 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
               })}
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             >
-              <option value="5">Elke 5 minuten</option>
-              <option value="10">Elke 10 minuten</option>
-              <option value="15">Elke 15 minuten</option>
-              <option value="30">Elke 30 minuten</option>
-              <option value="60">Elk uur</option>
+              <option value="5">Every 5 minutes</option>
+              <option value="10">Every 10 minutes</option>
+              <option value="15">Every 15 minutes</option>
+              <option value="30">Every 30 minutes</option>
+              <option value="60">Every hour</option>
             </select>
           </div>
         </div>
@@ -116,12 +116,12 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
 
       {/* Buffer Times */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Buffer Tijden</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Buffer Times</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Buffer tijd voor afspraak (minuten)
+              Buffer time before appointment (minutes)
             </label>
             <input
               type="number"
@@ -138,7 +138,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Buffer tijd na afspraak (minuten)
+              Buffer time after appointment (minutes)
             </label>
             <input
               type="number"
@@ -155,19 +155,19 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
         </div>
       </div>
 
-      {/* Werkdagen */}
+      {/* Working Days */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Werkdagen</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Working Days</h2>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Object.entries({
-            monday: 'Maandag',
-            tuesday: 'Dinsdag',
-            wednesday: 'Woensdag',
-            thursday: 'Donderdag',
-            friday: 'Vrijdag',
-            saturday: 'Zaterdag',
-            sunday: 'Zondag'
+            monday: 'Monday',
+            tuesday: 'Tuesday',
+            wednesday: 'Wednesday',
+            thursday: 'Thursday',
+            friday: 'Friday',
+            saturday: 'Saturday',
+            sunday: 'Sunday'
           }).map(([key, label]) => (
             <label key={key} className="flex items-center space-x-3">
               <input
@@ -190,7 +190,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Standaard starttijd
+              Default start time
             </label>
             <input
               type="time"
@@ -205,7 +205,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Standaard eindtijd
+              Default end time
             </label>
             <input
               type="time"
@@ -220,14 +220,14 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
         </div>
       </div>
 
-      {/* Limieten */}
+      {/* Limits */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Booking Limieten</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Booking Limits</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Max bookings per dag (leeg = onbeperkt)
+              Max bookings per day (empty = unlimited)
             </label>
             <input
               type="number"
@@ -243,7 +243,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Max bookings per klant per dag
+              Max bookings per customer per day
             </label>
             <input
               type="number"
@@ -260,15 +260,15 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
         </div>
       </div>
 
-      {/* Herinneringen */}
+      {/* Reminders */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Automatische Herinneringen</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Automatic Reminders</h2>
         
         <div className="space-y-6">
           <div className="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
             <div>
-              <h3 className="text-white font-medium">Eerste herinnering</h3>
-              <p className="text-sm text-gray-400">Stuur automatisch een herinnering</p>
+              <h3 className="text-white font-medium">First reminder</h3>
+              <p className="text-sm text-gray-400">Send automatic reminder</p>
             </div>
             <div className="flex items-center space-x-4">
               <select
@@ -280,12 +280,12 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
                 disabled={!calendarSettings.reminder_enabled}
                 className="px-3 py-1 bg-gray-800 border border-gray-700 rounded text-white text-sm"
               >
-                <option value="1">1 uur</option>
-                <option value="2">2 uur</option>
-                <option value="4">4 uur</option>
-                <option value="12">12 uur</option>
-                <option value="24">24 uur</option>
-                <option value="48">48 uur</option>
+                <option value="1">1 hour</option>
+                <option value="2">2 hours</option>
+                <option value="4">4 hours</option>
+                <option value="12">12 hours</option>
+                <option value="24">24 hours</option>
+                <option value="48">48 hours</option>
               </select>
               <button
                 onClick={() => setCalendarSettings({
@@ -307,8 +307,8 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
 
           <div className="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
             <div>
-              <h3 className="text-white font-medium">Tweede herinnering</h3>
-              <p className="text-sm text-gray-400">Extra herinnering vlak voor afspraak</p>
+              <h3 className="text-white font-medium">Second reminder</h3>
+              <p className="text-sm text-gray-400">Extra reminder right before appointment</p>
             </div>
             <div className="flex items-center space-x-4">
               <select
@@ -320,9 +320,10 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
                 disabled={!calendarSettings.second_reminder_enabled}
                 className="px-3 py-1 bg-gray-800 border border-gray-700 rounded text-white text-sm"
               >
-                <option value="1">1 uur</option>
-                <option value="2">2 uur</option>
-                <option value="3">3 uur</option>
+                <option value="0.25">15 minutes</option>
+                <option value="0.5">30 minutes</option>
+                <option value="1">1 hour</option>
+                <option value="2">2 hours</option>
               </select>
               <button
                 onClick={() => setCalendarSettings({
@@ -344,12 +345,12 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
         </div>
       </div>
 
-      <button
-        onClick={handleUpdateProfile}
-        disabled={loading}
+      <button 
+        onClick={handleUpdateProfile} 
+        disabled={loading} 
         className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
       >
-        {loading ? 'Opslaan...' : 'Kalender Instellingen Opslaan'}
+        {loading ? 'Saving...' : 'Save Calendar Settings'}
       </button>
     </div>
   );
