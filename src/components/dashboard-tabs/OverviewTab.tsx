@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, User, Building2 } from 'lucide-react';
+import { Calendar, User, Building2, Settings, MessageCircle, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -26,134 +26,171 @@ export function OverviewTab({ calendarId }: OverviewTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-2">
-          Welcome back{profile?.full_name ? `, ${profile.full_name}` : ''}!
-        </h2>
-        <p className="text-gray-400">
-          Overview of your booking system and business settings
-        </p>
-      </div>
-
-      {/* Profile Information */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
-            <User className="h-5 w-5" />
-            Profile Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="font-medium text-gray-300">Email:</span>
-              <span className="text-gray-400">{user?.email}</span>
-            </div>
-            {profile?.full_name && (
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-300">Full Name:</span>
-                <span className="text-gray-400">{profile.full_name}</span>
+      {/* Profile & Business Info Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Profile Information Card */}
+        <div className="relative group">
+          {/* Background glow effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-cyan-500/20 rounded-2xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+          
+          {/* Card container */}
+          <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
+                <User className="h-5 w-5 text-cyan-400" />
               </div>
-            )}
-            {profile?.phone && (
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-300">Phone:</span>
-                <span className="text-gray-400">{profile.phone}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="font-medium text-gray-300">Member since:</span>
-              <span className="text-gray-400">{user ? new Date(user.created_at).toLocaleDateString() : ''}</span>
+              <h3 className="text-lg font-semibold text-slate-100">Profile Information</h3>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Business Information */}
-      {profile?.business_name && (
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Building2 className="h-5 w-5" />
-              Business Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="font-medium text-gray-300">Business Name:</span>
-                <span className="text-gray-400">{profile.business_name}</span>
+                <span className="font-medium text-slate-300">Email:</span>
+                <span className="text-slate-400 text-sm">{user?.email}</span>
               </div>
-              {profile.business_type && (
+              {profile?.full_name && (
                 <div className="flex justify-between">
-                  <span className="font-medium text-gray-300">Business Type:</span>
-                  <Badge variant="outline" className="capitalize border-gray-600 text-gray-300">
-                    {profile.business_type}
-                  </Badge>
+                  <span className="font-medium text-slate-300">Full Name:</span>
+                  <span className="text-slate-400 text-sm">{profile.full_name}</span>
                 </div>
               )}
+              {profile?.phone && (
+                <div className="flex justify-between">
+                  <span className="font-medium text-slate-300">Phone:</span>
+                  <span className="text-slate-400 text-sm">{profile.phone}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="font-medium text-slate-300">Member since:</span>
+                <span className="text-slate-400 text-sm">{user ? new Date(user.created_at).toLocaleDateString() : ''}</span>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </div>
+
+        {/* Business Information Card */}
+        {profile?.business_name && (
+          <div className="relative group">
+            {/* Background glow effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-cyan-500/20 rounded-2xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+            
+            {/* Card container */}
+            <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-cyan-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-100">Business Information</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="font-medium text-slate-300">Business Name:</span>
+                  <span className="text-slate-400 text-sm">{profile.business_name}</span>
+                </div>
+                {profile.business_type && (
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-slate-300">Business Type:</span>
+                    <Badge variant="outline" className="capitalize border-cyan-500/30 text-cyan-300 bg-cyan-500/10">
+                      {profile.business_type}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Your Calendars */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
-            <Calendar className="h-5 w-5" />
-            Your Calendars
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="relative group">
+        {/* Background glow effect */}
+        <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-cyan-500/20 rounded-2xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+        
+        {/* Card container */}
+        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-cyan-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-100">Your Calendars</h3>
+          </div>
+          
           {calendars.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {calendars.map((calendar) => (
-                <div key={calendar.id} className="flex justify-between items-center p-3 border border-gray-700 rounded-lg bg-gray-900">
-                  <div>
-                    <div className="font-medium text-white">{calendar.name}</div>
-                    <div className="text-sm text-gray-400">
+                <div key={calendar.id} className="flex justify-between items-center p-4 border border-slate-700/50 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
+                  <div className="space-y-1">
+                    <div className="font-medium text-slate-100">{calendar.name}</div>
+                    <div className="text-sm text-slate-400">
                       Booking URL: /{calendar.slug}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-slate-500 flex items-center gap-2">
+                      <Clock className="h-3 w-3" />
                       Timezone: {calendar.timezone}
                     </div>
                   </div>
-                  <Badge variant={calendar.is_active ? "default" : "secondary"} className={calendar.is_active ? "bg-green-600" : ""}>
+                  <Badge 
+                    variant={calendar.is_active ? "default" : "secondary"} 
+                    className={calendar.is_active ? "bg-green-600 hover:bg-green-700" : "bg-slate-600"}
+                  >
                     {calendar.is_active ? "Active" : "Inactive"}
                   </Badge>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500">No calendars found</p>
+            <div className="text-center py-8">
+              <Calendar className="h-12 w-12 text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-500">No calendars found</p>
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Quick Actions */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white">Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 flex-wrap">
-            <Button onClick={() => navigate('/settings')} className="bg-green-600 hover:bg-green-700">
+      <div className="relative group">
+        {/* Background glow effect */}
+        <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-cyan-500/20 rounded-2xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+        
+        {/* Card container */}
+        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
+              <Settings className="h-5 w-5 text-cyan-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-100">Quick Actions</h3>
+          </div>
+          
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Button 
+              onClick={() => navigate('/settings')} 
+              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-cyan-500/25 transition-all duration-200"
+            >
+              <Settings className="h-4 w-4 mr-2" />
               Settings
             </Button>
-            <Button onClick={() => navigate('/conversations')} className="bg-green-600 hover:bg-green-700">
-              View Conversations
+            <Button 
+              onClick={() => navigate('/conversations')} 
+              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-cyan-500/25 transition-all duration-200"
+            >
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Conversations
             </Button>
-            <Button onClick={() => navigate('/availability')} className="bg-green-600 hover:bg-green-700">
-              Manage Availability
+            <Button 
+              onClick={() => navigate('/availability')} 
+              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-cyan-500/25 transition-all duration-200"
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              Availability
             </Button>
-            <Button variant="outline" onClick={handleSignOut} className="border-gray-600 text-gray-300 hover:bg-gray-700">
+            <Button 
+              variant="outline" 
+              onClick={handleSignOut} 
+              className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50 hover:text-slate-200 hover:border-slate-500"
+            >
               Sign Out
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
