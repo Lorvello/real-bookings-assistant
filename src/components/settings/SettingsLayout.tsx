@@ -1,11 +1,13 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Building2, Calendar, MessageCircle, CreditCard } from 'lucide-react';
+import { User, Building2, Calendar, MessageCircle, CreditCard, Settings } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
 import { BusinessTab } from './BusinessTab';
 import { CalendarTab } from './CalendarTab';
 import { WhatsAppTab } from './WhatsAppTab';
 import { BillingTab } from './BillingTab';
+import { ServiceTypesSection } from './ServiceTypesSection';
 import { useSettingsData } from '@/hooks/useSettingsData';
 
 export function SettingsLayout() {
@@ -34,7 +36,7 @@ export function SettingsLayout() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5 bg-slate-800/80 backdrop-blur-sm border border-slate-700/50">
+          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:grid-cols-6 bg-slate-800/80 backdrop-blur-sm border border-slate-700/50">
             <TabsTrigger 
               value="profile" 
               className="flex items-center gap-2 text-slate-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg transition-all"
@@ -48,6 +50,13 @@ export function SettingsLayout() {
             >
               <Building2 className="h-4 w-4" />
               <span className="hidden sm:inline">Business</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="service-types" 
+              className="flex items-center gap-2 text-slate-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg transition-all"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Services</span>
             </TabsTrigger>
             <TabsTrigger 
               value="calendar" 
@@ -88,6 +97,10 @@ export function SettingsLayout() {
               loading={loading}
               handleUpdateProfile={handleUpdateProfile}
             />
+          </TabsContent>
+
+          <TabsContent value="service-types" className="space-y-6">
+            <ServiceTypesSection />
           </TabsContent>
 
           <TabsContent value="calendar" className="space-y-6">
