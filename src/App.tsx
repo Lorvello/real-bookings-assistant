@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -9,7 +10,6 @@ import AuthCallback from '@/pages/AuthCallback';
 import Testing from '@/pages/Testing';
 import NotFound from '@/pages/NotFound';
 import Settings from '@/pages/Settings';
-import Profile from '@/pages/Profile';
 import Availability from '@/pages/Availability';
 import Conversations from '@/pages/Conversations';
 import ConversationDetail from '@/pages/ConversationDetail';
@@ -45,7 +45,6 @@ function App() {
               <Route path="/conversations/:id" element={<ConversationDetail />} />
               <Route path="/test-ai-agent" element={<TestAIAgent />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/profile" element={<Profile />} />
               <Route path="/testing" element={<Testing />} />
               <Route path="/see-how-it-works" element={<SeeHowItWorks />} />
               <Route path="/why-us" element={<WhyUs />} />
