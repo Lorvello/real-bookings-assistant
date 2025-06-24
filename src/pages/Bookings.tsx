@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -12,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Clock, User, Phone, Mail, FileText, Search, Filter } from 'lucide-react';
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, isSameDay } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 
 const Bookings = () => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const Bookings = () => {
       if (filterStatus === 'today') {
         return isToday(new Date(booking.start_time));
       } else if (filterStatus === 'week') {
-        return isThisWeek(new Date(booking.start_time), { locale: nl });
+        return isThisWeek(new Date(booking.start_time), { locale: enUS });
       } else if (filterStatus === 'month') {
         return isThisMonth(new Date(booking.start_time));
       }
@@ -87,11 +88,11 @@ const Bookings = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      confirmed: { label: 'Bevestigd', variant: 'default' as const, color: 'bg-green-500' },
-      pending: { label: 'Afwachting', variant: 'secondary' as const, color: 'bg-yellow-500' },
-      cancelled: { label: 'Geannuleerd', variant: 'destructive' as const, color: 'bg-red-500' },
-      completed: { label: 'Voltooid', variant: 'outline' as const, color: 'bg-blue-500' },
-      'no-show': { label: 'Niet verschenen', variant: 'destructive' as const, color: 'bg-gray-500' }
+      confirmed: { label: 'Confirmed', variant: 'default' as const, color: 'bg-green-500' },
+      pending: { label: 'Pending', variant: 'secondary' as const, color: 'bg-yellow-500' },
+      cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-red-500' },
+      completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-blue-500' },
+      'no-show': { label: 'No Show', variant: 'destructive' as const, color: 'bg-gray-500' }
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
@@ -110,7 +111,7 @@ const Bookings = () => {
         <div className="flex items-center justify-center h-full bg-gray-900">
           <div className="text-center">
             <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-300">Laden...</div>
+            <div className="text-lg text-gray-300">Loading...</div>
           </div>
         </div>
       </DashboardLayout>
@@ -126,7 +127,7 @@ const Bookings = () => {
       <DashboardLayout>
         <div className="flex items-center justify-center h-full bg-gray-900">
           <div className="text-center">
-            <div className="text-lg text-gray-300">Geen kalender gevonden</div>
+            <div className="text-lg text-gray-300">No calendar found</div>
           </div>
         </div>
       </DashboardLayout>
@@ -138,9 +139,9 @@ const Bookings = () => {
       <div className="bg-gray-900 min-h-full p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Mijn Bookings</h1>
+          <h1 className="text-3xl font-bold text-white">My Bookings</h1>
           <p className="text-gray-400 mt-1">
-            Overzicht van al je afspraken
+            Overview of all your appointments
           </p>
         </div>
 
@@ -151,7 +152,7 @@ const Bookings = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Zoek op klant naam, email of telefoon..."
+                placeholder="Search by customer name, email or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-gray-800 border-gray-700 text-white"
@@ -165,10 +166,10 @@ const Bookings = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="all">Alle bookings</SelectItem>
-                <SelectItem value="today">Vandaag</SelectItem>
-                <SelectItem value="week">Deze week</SelectItem>
-                <SelectItem value="month">Komende maand</SelectItem>
+                <SelectItem value="all">All bookings</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="week">This week</SelectItem>
+                <SelectItem value="month">This month</SelectItem>
               </SelectContent>
             </Select>
 
@@ -178,9 +179,9 @@ const Bookings = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="newest">Nieuwste eerst</SelectItem>
-                <SelectItem value="date">Datum</SelectItem>
-                <SelectItem value="customer">Klant naam</SelectItem>
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="date">Date</SelectItem>
+                <SelectItem value="customer">Customer name</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -192,19 +193,19 @@ const Bookings = () => {
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-                <div className="text-gray-300">Bookings laden...</div>
+                <div className="text-gray-300">Loading bookings...</div>
               </div>
             </div>
           ) : filteredAndSortedBookings.length === 0 ? (
             <div className="text-center py-12">
               <Calendar className="w-16 h-16 text-gray-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-300 mb-2">
-                {searchTerm || filterStatus !== 'all' ? 'Geen bookings gevonden' : 'Nog geen bookings'}
+                {searchTerm || filterStatus !== 'all' ? 'No bookings found' : 'No bookings yet'}
               </h3>
               <p className="text-gray-500">
                 {searchTerm || filterStatus !== 'all' 
-                  ? 'Probeer je zoekopdracht of filters aan te passen.'
-                  : 'Je eerste booking zal hier verschijnen wanneer deze wordt gemaakt.'}
+                  ? 'Try adjusting your search or filters.'
+                  : 'Your first booking will appear here when it is created.'}
               </p>
             </div>
           ) : (
@@ -221,7 +222,7 @@ const Bookings = () => {
                         <Calendar className="w-5 h-5 text-green-400" />
                         <div>
                           <CardTitle className="text-white text-lg">
-                            {format(new Date(booking.start_time), 'EEEE d MMMM yyyy', { locale: nl })}
+                            {format(new Date(booking.start_time), 'EEEE d MMMM yyyy', { locale: enUS })}
                           </CardTitle>
                           <div className="flex items-center gap-2 text-gray-400 text-sm mt-1">
                             <Clock className="w-4 h-4" />
@@ -264,14 +265,14 @@ const Bookings = () => {
                           <div className="flex items-start gap-2 text-sm">
                             <FileText className="w-4 h-4 text-gray-400 mt-0.5" />
                             <div>
-                              <span className="text-gray-400">Notities: </span>
+                              <span className="text-gray-400">Notes: </span>
                               <span className="text-gray-300">{booking.notes}</span>
                             </div>
                           </div>
                         )}
                         {booking.total_price && (
                           <div className="text-sm">
-                            <span className="text-gray-400">Prijs: </span>
+                            <span className="text-gray-400">Price: </span>
                             <span className="text-green-400 font-medium">€{booking.total_price}</span>
                           </div>
                         )}

@@ -1,6 +1,6 @@
 
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { X, Clock, User, Phone, Mail, Calendar, MapPin, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -57,15 +57,15 @@ export function BookingDetailModal({ open, onClose, booking }: BookingDetailModa
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'Bevestigd';
+        return 'Confirmed';
       case 'pending':
-        return 'In behandeling';
+        return 'Pending';
       case 'cancelled':
-        return 'Geannuleerd';
+        return 'Cancelled';
       case 'completed':
-        return 'Voltooid';
+        return 'Completed';
       case 'no-show':
-        return 'Niet verschenen';
+        return 'No Show';
       default:
         return status;
     }
@@ -82,7 +82,7 @@ export function BookingDetailModal({ open, onClose, booking }: BookingDetailModa
                 backgroundColor: booking.service_types?.color || '#10B981'
               }}
             />
-            Afspraak Details
+            Appointment Details
           </DialogTitle>
         </DialogHeader>
 
@@ -90,7 +90,7 @@ export function BookingDetailModal({ open, onClose, booking }: BookingDetailModa
           {/* Service Information */}
           <div className="bg-gradient-to-r from-card to-card/50 rounded-lg p-4 border">
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              {booking.service_types?.name || booking.service_name || 'Afspraak'}
+              {booking.service_types?.name || booking.service_name || 'Appointment'}
             </h3>
             {booking.service_types?.description && (
               <p className="text-muted-foreground text-sm mb-3">
@@ -114,11 +114,11 @@ export function BookingDetailModal({ open, onClose, booking }: BookingDetailModa
             <div className="bg-card/50 rounded-lg p-4 border">
               <div className="flex items-center gap-2 text-muted-foreground mb-2">
                 <Calendar className="w-4 h-4" />
-                <span className="font-medium">Datum & Tijd</span>
+                <span className="font-medium">Date & Time</span>
               </div>
               <div className="space-y-1">
                 <div className="font-semibold text-foreground">
-                  {format(startTime, 'EEEE d MMMM yyyy', { locale: nl })}
+                  {format(startTime, 'EEEE d MMMM yyyy', { locale: enUS })}
                 </div>
                 <div className="text-muted-foreground">
                   {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
@@ -129,10 +129,10 @@ export function BookingDetailModal({ open, onClose, booking }: BookingDetailModa
             <div className="bg-card/50 rounded-lg p-4 border">
               <div className="flex items-center gap-2 text-muted-foreground mb-2">
                 <Clock className="w-4 h-4" />
-                <span className="font-medium">Duur</span>
+                <span className="font-medium">Duration</span>
               </div>
               <div className="font-semibold text-foreground">
-                {duration} minuten
+                {duration} minutes
               </div>
             </div>
           </div>
@@ -141,7 +141,7 @@ export function BookingDetailModal({ open, onClose, booking }: BookingDetailModa
           <div className="bg-card/50 rounded-lg p-4 border">
             <div className="flex items-center gap-2 text-muted-foreground mb-3">
               <User className="w-4 h-4" />
-              <span className="font-medium">Klantgegevens</span>
+              <span className="font-medium">Customer Information</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -171,13 +171,13 @@ export function BookingDetailModal({ open, onClose, booking }: BookingDetailModa
             <div className="bg-card/50 rounded-lg p-4 border">
               <div className="flex items-center gap-2 text-muted-foreground mb-3">
                 <FileText className="w-4 h-4" />
-                <span className="font-medium">Notities</span>
+                <span className="font-medium">Notes</span>
               </div>
               <div className="space-y-3">
                 {booking.notes && (
                   <div>
                     <div className="text-sm font-medium text-muted-foreground mb-1">
-                      Klant notities:
+                      Customer notes:
                     </div>
                     <div className="text-sm text-foreground bg-background/50 rounded p-2">
                       {booking.notes}
@@ -187,7 +187,7 @@ export function BookingDetailModal({ open, onClose, booking }: BookingDetailModa
                 {booking.internal_notes && (
                   <div>
                     <div className="text-sm font-medium text-muted-foreground mb-1">
-                      Interne notities:
+                      Internal notes:
                     </div>
                     <div className="text-sm text-foreground bg-background/50 rounded p-2">
                       {booking.internal_notes}
