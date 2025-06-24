@@ -25,8 +25,8 @@ const Bookings = () => {
   const {
     searchTerm,
     setSearchTerm,
-    filterStatus,
-    setFilterStatus,
+    dateRange,
+    setDateRange,
     sortBy,
     setSortBy,
     filteredAndSortedBookings
@@ -52,7 +52,7 @@ const Bookings = () => {
     setSelectedBooking(null);
   };
 
-  const hasFilters = searchTerm !== '' || filterStatus !== 'all';
+  const hasFilters = searchTerm !== '';
 
   if (authLoading || calendarsLoading) {
     return (
@@ -92,8 +92,8 @@ const Bookings = () => {
           <BookingsFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
             sortBy={sortBy}
             setSortBy={setSortBy}
           />

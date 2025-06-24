@@ -1,7 +1,8 @@
 
 import { useState, useMemo } from 'react';
-import { isToday, isThisWeek, isThisMonth } from 'date-fns';
+import { isWithinInterval, isToday, isThisWeek, isThisMonth } from 'date-fns';
 import { enUS } from 'date-fns/locale';
+import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 
 export interface Booking {
   id: string;
@@ -15,7 +16,23 @@ export interface Booking {
 
 export const useBookingsFilters = (bookings: Booking[]) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [dateRange, setDateRange] = useState<DateRange>(() => {
+    try {
+      return getPresetRange('last30days');
+    } catch (error) {
+      console.error('Error getting preset range, using default:', error);
+      const now = new Date();
+      const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      
+      return {
+        startDate,
+        endDate,
+        preset: 'last30days',
+        label: 'Last 30 days'
+      };
+    }
+  });
   const [sortBy, setSortBy] = useState('newest');
 
   const filteredAndSortedBookings = useMemo(() => {
@@ -27,16 +44,14 @@ export const useBookingsFilters = (bookings: Booking[]) => {
       
       if (!matchesSearch) return false;
       
-      // Status filter
-      if (filterStatus === 'today') {
-        return isToday(new Date(booking.start_time));
-      } else if (filterStatus === 'week') {
-        return isThisWeek(new Date(booking.start_time), { locale: enUS });
-      } else if (filterStatus === 'month') {
-        return isThisMonth(new Date(booking.start_time));
-      }
+      // Date range filter
+      const bookingDate = new Date(booking.start_time);
+      const isInDateRange = isWithinInterval(bookingDate, {
+        start: dateRange.startDate,
+        end: dateRange.endDate
+      });
       
-      return true;
+      return isInDateRange;
     });
 
     // Sort bookings
@@ -52,13 +67,13 @@ export const useBookingsFilters = (bookings: Booking[]) => {
           return 0;
       }
     });
-  }, [bookings, searchTerm, filterStatus, sortBy]);
+  }, [bookings, searchTerm, dateRange, sortBy]);
 
   return {
     searchTerm,
     setSearchTerm,
-    filterStatus,
-    setFilterStatus,
+    dateRange,
+    setDateRange,
     sortBy,
     setSortBy,
     filteredAndSortedBookings

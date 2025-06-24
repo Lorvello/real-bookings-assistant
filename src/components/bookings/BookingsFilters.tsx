@@ -2,13 +2,14 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { DateRangeFilter, DateRange } from '@/components/dashboard/DateRangeFilter';
 
 interface BookingsFiltersProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  filterStatus: string;
-  setFilterStatus: (status: string) => void;
+  dateRange: DateRange;
+  setDateRange: (range: DateRange) => void;
   sortBy: string;
   setSortBy: (sort: string) => void;
 }
@@ -16,8 +17,8 @@ interface BookingsFiltersProps {
 export function BookingsFilters({
   searchTerm,
   setSearchTerm,
-  filterStatus,
-  setFilterStatus,
+  dateRange,
+  setDateRange,
   sortBy,
   setSortBy
 }: BookingsFiltersProps) {
@@ -35,19 +36,13 @@ export function BookingsFilters({
           />
         </div>
 
-        {/* Filter */}
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-full md:w-48 bg-gray-800 border-gray-700 text-white">
-            <Filter className="w-4 h-4 mr-2" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-gray-800 border-gray-700">
-            <SelectItem value="all">All bookings</SelectItem>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="week">This week</SelectItem>
-            <SelectItem value="month">This month</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Date Range Filter */}
+        <div className="flex-shrink-0">
+          <DateRangeFilter 
+            selectedRange={dateRange}
+            onRangeChange={setDateRange}
+          />
+        </div>
 
         {/* Sort */}
         <Select value={sortBy} onValueChange={setSortBy}>
