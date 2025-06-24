@@ -27,8 +27,8 @@ interface DateRangeFilterProps {
 export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilterProps) {
   const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
   const [tempRange, setTempRange] = useState<{ startDate: Date | null; endDate: Date | null }>({
-    startDate: selectedRange.startDate,
-    endDate: selectedRange.endDate
+    startDate: null,
+    endDate: null
   });
 
   const handlePresetSelect = (preset: DateRangePreset) => {
@@ -37,9 +37,10 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
   };
 
   const openCustomDialog = () => {
+    // Always start with empty values when opening custom dialog
     setTempRange({
-      startDate: selectedRange.startDate,
-      endDate: selectedRange.endDate
+      startDate: null,
+      endDate: null
     });
     setIsCustomDialogOpen(true);
   };
@@ -63,9 +64,10 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
 
   const handleCancel = () => {
     setIsCustomDialogOpen(false);
+    // Reset to empty values for next time
     setTempRange({
-      startDate: selectedRange.startDate,
-      endDate: selectedRange.endDate
+      startDate: null,
+      endDate: null
     });
   };
 
