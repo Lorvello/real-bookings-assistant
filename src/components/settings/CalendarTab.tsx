@@ -2,7 +2,7 @@
 import React from 'react';
 import { CalendarSettings } from '@/components/CalendarSettings';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Save } from 'lucide-react';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
@@ -12,6 +12,7 @@ export function CalendarTab() {
   const { saving, hasPendingChanges, saveAllChanges } = useCalendarSettings(selectedCalendar?.id);
 
   const handleSave = async () => {
+    if (!hasPendingChanges || saving) return;
     await saveAllChanges();
   };
 
@@ -66,7 +67,11 @@ export function CalendarTab() {
         <Button
           onClick={handleSave}
           disabled={saving || !hasPendingChanges}
-          className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium px-6 py-2 rounded-lg transition-all duration-200 disabled:opacity-50"
+          className={`font-medium px-6 py-2 rounded-lg transition-all duration-200 ${
+            hasPendingChanges && !saving
+              ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white cursor-pointer'
+              : 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
+          }`}
         >
           {saving ? 'Saving...' : 'Save Calendar Settings'}
         </Button>

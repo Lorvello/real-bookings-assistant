@@ -28,6 +28,9 @@ export const useCalendarSettings = (calendarId?: string) => {
     if (!calendarId) return;
 
     try {
+      setLoading(true);
+      console.log('Fetching calendar settings for:', calendarId);
+
       const { data, error } = await supabase
         .from('calendar_settings')
         .select('*')
@@ -35,10 +38,17 @@ export const useCalendarSettings = (calendarId?: string) => {
         .single();
 
       if (error) {
-        console.error('Error fetching calendar settings:', error);
+        // If no settings exist, create default ones
+        if (error.code === 'PGRST116') {
+          console.log('No settings found, creating default settings...');
+          await createDefaultSettings();
+        } else {
+          console.error('Error fetching calendar settings:', error);
+        }
         return;
       }
 
+      console.log('Calendar settings loaded:', data);
       setSettings(data);
       setPendingChanges({});
     } catch (error) {
@@ -48,42 +58,86 @@ export const useCalendarSettings = (calendarId?: string) => {
     }
   };
 
+  const createDefaultSettings = async () => {
+    if (!calendarId || !user) return;
+
+    try {
+      const defaultSettings = {
+        calendar_id: calendarId,
+        user_id: user.id,
+        confirmation_required: true,
+        allow_waitlist: false,
+        whatsapp_bot_active: false,
+        slot_duration: 30,
+        buffer_time: 0,
+        minimum_notice_hours: 1,
+        booking_window_days: 60,
+        max_bookings_per_day: null
+      };
+
+      const { data, error } = await supabase
+        .from('calendar_settings')
+        .insert(defaultSettings)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating default settings:', error);
+        return;
+      }
+
+      console.log('Default settings created:', data);
+      setSettings(data);
+      setPendingChanges({});
+    } catch (error) {
+      console.error('Error creating default settings:', error);
+    }
+  };
+
   const updatePendingSettings = (updates: Partial<CalendarSettings>) => {
+    console.log('Updating pending settings:', updates);
     setPendingChanges(prev => ({ ...prev, ...updates }));
   };
 
   const saveAllChanges = async () => {
-    if (!calendarId || !settings || !hasPendingChanges) return;
+    if (!calendarId || !settings || !hasPendingChanges) {
+      console.log('Cannot save: missing requirements', { calendarId, settings: !!settings, hasPendingChanges });
+      return false;
+    }
 
     setSaving(true);
     try {
+      console.log('Saving calendar settings changes:', pendingChanges);
+
       const { error } = await supabase
         .from('calendar_settings')
         .update(pendingChanges)
         .eq('calendar_id', calendarId);
 
       if (error) {
+        console.error('Error saving calendar settings:', error);
         toast({
-          title: "Error",
-          description: "Failed to save calendar settings",
+          title: "Fout",
+          description: "Kan kalender instellingen niet opslaan",
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Success",
-        description: "Calendar settings saved successfully",
+        title: "Succes",
+        description: "Kalender instellingen succesvol opgeslagen",
       });
 
+      console.log('Settings saved successfully');
       setPendingChanges({});
       await fetchSettings();
       return true;
     } catch (error) {
       console.error('Error saving calendar settings:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: "Fout",
+        description: "Er is een onverwachte fout opgetreden",
         variant: "destructive",
       });
       return false;
