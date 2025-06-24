@@ -1,11 +1,11 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BusinessIntelligenceTab } from './dashboard-tabs/BusinessIntelligenceTab';
 import { PerformanceEfficiencyTab } from './dashboard-tabs/PerformanceEfficiencyTab';
 import { LiveOperationsTab } from './dashboard-tabs/LiveOperationsTab';
 import { FutureInsightsTab } from './dashboard-tabs/FutureInsightsTab';
-import { DateRangeFilter, DateRange, getPresetRange } from './dashboard/DateRangeFilter';
+import { DateRangeFilter } from './dashboard/DateRangeFilter';
+import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { 
   TrendingUp, 
   Activity, 

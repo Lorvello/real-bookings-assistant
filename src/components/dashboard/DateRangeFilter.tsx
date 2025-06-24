@@ -17,63 +17,12 @@ import {
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { CustomRangeCalendar } from './CustomRangeCalendar';
-
-export type DateRangePreset = 'last7days' | 'last30days' | 'last3months' | 'lastyear' | 'custom';
-
-export interface DateRange {
-  startDate: Date;
-  endDate: Date;
-  preset: DateRangePreset;
-  label: string;
-}
+import { DateRange, DateRangePreset, getPresetRange, presetOptions } from '@/utils/dateRangePresets';
 
 interface DateRangeFilterProps {
   selectedRange: DateRange;
   onRangeChange: (range: DateRange) => void;
 }
-
-const getPresetRange = (preset: DateRangePreset): DateRange => {
-  const now = new Date();
-  const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-  
-  switch (preset) {
-    case 'last7days':
-      return {
-        startDate: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-        endDate,
-        preset,
-        label: 'Last 7 days'
-      };
-    case 'last30days':
-      return {
-        startDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
-        endDate,
-        preset,
-        label: 'Last 30 days'
-      };
-    case 'last3months':
-      return {
-        startDate: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000),
-        endDate,
-        preset,
-        label: 'Last 3 months'
-      };
-    case 'lastyear':
-      return {
-        startDate: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000),
-        endDate,
-        preset,
-        label: 'Last year'
-      };
-    default:
-      return {
-        startDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
-        endDate,
-        preset: 'last30days',
-        label: 'Last 30 days'
-      };
-  }
-};
 
 export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilterProps) {
   const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
@@ -134,30 +83,15 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-48 bg-card border-border z-50" align="end">
-          <DropdownMenuItem 
-            onClick={() => handlePresetSelect('last7days')}
-            className="text-foreground hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
-          >
-            Last 7 days
-          </DropdownMenuItem>
-          <DropdownMenuItem 
-            onClick={() => handlePresetSelect('last30days')}
-            className="text-foreground hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
-          >
-            Last 30 days
-          </DropdownMenuItem>
-          <DropdownMenuItem 
-            onClick={() => handlePresetSelect('last3months')}
-            className="text-foreground hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
-          >
-            Last 3 months
-          </DropdownMenuItem>
-          <DropdownMenuItem 
-            onClick={() => handlePresetSelect('lastyear')}
-            className="text-foreground hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
-          >
-            Last year
-          </DropdownMenuItem>
+          {presetOptions.map(({ preset, label }) => (
+            <DropdownMenuItem 
+              key={preset}
+              onClick={() => handlePresetSelect(preset)}
+              className="text-foreground hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
+            >
+              {label}
+            </DropdownMenuItem>
+          ))}
           <DropdownMenuSeparator className="bg-border" />
           <DropdownMenuItem 
             onClick={openCustomDialog}
@@ -189,5 +123,6 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
   );
 }
 
-// Export the helper function for use in other components
+// Re-export types and functions for backward compatibility
+export type { DateRange, DateRangePreset };
 export { getPresetRange };
