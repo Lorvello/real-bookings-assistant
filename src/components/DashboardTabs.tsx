@@ -51,60 +51,62 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Date Filter - Only show for specific tabs */}
-      {showDateFilter && (
-        <div className="flex justify-end">
-          <DateRangeFilter 
-            selectedRange={selectedDateRange}
-            onRangeChange={setSelectedDateRange}
-          />
-        </div>
-      )}
-
       {/* Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 bg-gray-800 h-auto p-2">
-          <TabsTrigger 
-            value="overview" 
-            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg"
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="hidden sm:inline">Overview</span>
-            <span className="sm:hidden">Home</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="business-intelligence" 
-            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-orange-600 rounded-lg"
-          >
-            <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">Business Intelligence</span>
-            <span className="sm:hidden">BI</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="performance-efficiency" 
-            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-blue-600 rounded-lg"
-          >
-            <Activity className="h-4 w-4" />
-            <span className="hidden sm:inline">Performance</span>
-            <span className="sm:hidden">Perf</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="live-operations" 
-            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
-          >
-            <Radio className="h-4 w-4" />
-            <span className="hidden sm:inline">Live Operations</span>
-            <span className="sm:hidden">Live</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="future-insights" 
-            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-purple-600 rounded-lg"
-          >
-            <Brain className="h-4 w-4" />
-            <span className="hidden sm:inline">Future Insights</span>
-            <span className="sm:hidden">Future</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex items-center justify-between">
+          <TabsList className="grid grid-cols-2 lg:grid-cols-5 bg-gray-800 h-auto p-2 flex-shrink-0">
+            <TabsTrigger 
+              value="overview" 
+              className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden sm:inline">Overview</span>
+              <span className="sm:hidden">Home</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="business-intelligence" 
+              className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-orange-600 rounded-lg"
+            >
+              <TrendingUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Business Intelligence</span>
+              <span className="sm:hidden">BI</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="performance-efficiency" 
+              className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-blue-600 rounded-lg"
+            >
+              <Activity className="h-4 w-4" />
+              <span className="hidden sm:inline">Performance</span>
+              <span className="sm:hidden">Perf</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="live-operations" 
+              className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
+            >
+              <Radio className="h-4 w-4" />
+              <span className="hidden sm:inline">Live Operations</span>
+              <span className="sm:hidden">Live</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="future-insights" 
+              className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-purple-600 rounded-lg"
+            >
+              <Brain className="h-4 w-4" />
+              <span className="hidden sm:inline">Future Insights</span>
+              <span className="sm:hidden">Future</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Date Filter - Now positioned on the right side of the header */}
+          {showDateFilter && (
+            <div className="ml-6">
+              <DateRangeFilter 
+                selectedRange={selectedDateRange}
+                onRangeChange={setSelectedDateRange}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Tab Content */}
         <TabsContent value="overview">
