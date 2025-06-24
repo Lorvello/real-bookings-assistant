@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BusinessIntelligenceTab } from './dashboard-tabs/BusinessIntelligenceTab';
@@ -28,7 +27,7 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-gray-800 h-auto p-2">
           <TabsTrigger 
             value="business-intelligence" 
-            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
+            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-orange-600 rounded-lg"
           >
             <TrendingUp className="h-4 w-4" />
             <span className="hidden sm:inline">Business Intelligence</span>
@@ -36,7 +35,7 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
           </TabsTrigger>
           <TabsTrigger 
             value="performance-efficiency" 
-            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
+            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-blue-600 rounded-lg"
           >
             <Activity className="h-4 w-4" />
             <span className="hidden sm:inline">Performance</span>
@@ -52,7 +51,7 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
           </TabsTrigger>
           <TabsTrigger 
             value="future-insights" 
-            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
+            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-purple-600 rounded-lg"
           >
             <Brain className="h-4 w-4" />
             <span className="hidden sm:inline">Future Insights</span>

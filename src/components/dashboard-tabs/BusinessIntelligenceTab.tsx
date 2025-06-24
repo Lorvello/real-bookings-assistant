@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
@@ -80,7 +79,7 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
         />
       </div>
 
-      {/* Service Performance Chart */}
+      {/* Service Performance Chart - Orange Glow Only */}
       <div className="relative group">
         <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/20 via-amber-500/15 to-orange-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
         <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-orange-500/30 rounded-2xl shadow-2xl">
