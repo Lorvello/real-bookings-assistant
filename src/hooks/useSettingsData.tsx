@@ -56,46 +56,6 @@ export const useSettingsData = () => {
     other_info: ''
   });
 
-  // Calendar settings state
-  const [calendarSettings, setCalendarSettings] = useState({
-    booking_window_days: 60,
-    minimum_notice_hours: 24,
-    maximum_notice_days: 0,
-    slot_duration: 30,
-    slot_interval: 15,
-    buffer_time_before: 0,
-    buffer_time_after: 0,
-    max_bookings_per_day: null,
-    max_bookings_per_customer_per_day: 1,
-    max_future_bookings_per_customer: 5,
-    working_days: {
-      monday: true,
-      tuesday: true,
-      wednesday: true,
-      thursday: true,
-      friday: true,
-      saturday: false,
-      sunday: false
-    },
-    default_start_time: '09:00',
-    default_end_time: '17:00',
-    lunch_break_enabled: false,
-    lunch_start_time: '12:00',
-    lunch_end_time: '13:00',
-    vacation_mode: false,
-    vacation_message: '',
-    require_confirmation: true,
-    auto_confirm_regular_customers: false,
-    send_confirmation_email: true,
-    send_confirmation_whatsapp: true,
-    reminder_enabled: true,
-    reminder_hours_before: 24,
-    second_reminder_enabled: false,
-    second_reminder_hours_before: 2,
-    google_calendar_sync: false,
-    google_calendar_id: ''
-  });
-
   // WhatsApp settings state
   const [whatsappSettings, setWhatsappSettings] = useState({
     whatsapp_number: '',
@@ -183,8 +143,6 @@ export const useSettingsData = () => {
     setProfileData,
     businessData,
     setBusinessData,
-    calendarSettings,
-    setCalendarSettings,
     whatsappSettings,
     setWhatsappSettings,
     loading,
