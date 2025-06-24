@@ -2,10 +2,9 @@
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { Clock, AlertTriangle, Calendar, TrendingUp, Activity } from 'lucide-react';
+import { Clock, AlertTriangle, Calendar, Activity } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
-import { PerformanceInsights } from './performance/PerformanceInsights';
 
 interface PerformanceEfficiencyTabProps {
   calendarId: string;
@@ -96,28 +95,6 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
             <PeakHoursChart 
               data={performance?.peak_hours} 
               isLoading={isLoading}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Enhanced Performance Insights */}
-      <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-green-500/30 via-blue-500/20 to-green-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
-          <div className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-xl">
-                <TrendingUp className="h-6 w-6 text-green-400" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-100">Performance Inzichten & Aanbevelingen</h3>
-            </div>
-            
-            <PerformanceInsights
-              avgResponseTime={performance?.avg_response_time_minutes}
-              noShowRate={performance?.no_show_rate}
-              cancellationRate={performance?.cancellation_rate}
-              calendarUtilization={performance?.calendar_utilization_rate}
             />
           </div>
         </div>

@@ -2,18 +2,24 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOptimizedFutureInsights } from '@/hooks/dashboard/useOptimizedFutureInsights';
+import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { TrendingUp, Users, Calendar, Clock } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
+import { IntelligentRecommendations } from './future-insights/IntelligentRecommendations';
 
 interface FutureInsightsTabProps {
   calendarId: string;
 }
 
 export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
-  const { data: insights, isLoading, error } = useOptimizedFutureInsights(calendarId);
+  const { data: insights, isLoading: insightsLoading, error: insightsError } = useOptimizedFutureInsights(calendarId);
+  const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(calendarId);
   useRealtimeSubscription(calendarId);
+
+  const isLoading = insightsLoading || performanceLoading;
+  const error = insightsError || performanceError;
 
   if (isLoading) {
     return (
@@ -188,7 +194,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
         </div>
       </div>
 
-      {/* Enhanced Insights and Recommendations */}
+      {/* Intelligent Recommendations */}
       <div className="relative group">
         <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-blue-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
         <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
@@ -197,56 +203,23 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
               <div className="p-2 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-xl">
                 <TrendingUp className="h-6 w-6 text-green-400" />
               </div>
-              <h3 className="text-xl font-bold text-slate-100">Aanbevelingen & Inzichten</h3>
+              <h3 className="text-xl font-bold text-slate-100">Intelligente Aanbevelingen</h3>
+              <p className="text-sm text-slate-400 ml-auto">Gebaseerd op je performance data</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border border-blue-500/20 rounded-xl">
-                <h4 className="font-bold mb-3 text-blue-300 flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Wachtlijst Optimalisatie
-                </h4>
-                <p className="text-slate-300 text-sm leading-relaxed">
-                  {insights?.waitlist_size && insights.waitlist_size > 0 
-                    ? `Je hebt ${insights.waitlist_size} mensen op de wachtlijst. Overweeg extra tijdslots of prioriteer annuleringen.`
-                    : 'Geen wachtlijst op dit moment. Goed teken voor beschikbaarheid!'
-                  }
-                </p>
-              </div>
+            <IntelligentRecommendations
+              // Performance data
+              avgResponseTime={performance?.avg_response_time_minutes}
+              noShowRate={performance?.no_show_rate}
+              cancellationRate={performance?.cancellation_rate}
+              calendarUtilization={performance?.calendar_utilization_rate}
               
-              <div className="p-6 bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent border border-green-500/20 rounded-xl">
-                <h4 className="font-bold mb-3 text-green-300 flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Klant Retentie
-                </h4>
-                <p className="text-slate-300 text-sm leading-relaxed">
-                  {insights?.returning_customers_month && insights.returning_customers_month > 0
-                    ? `${insights.returning_customers_month} terugkerende klanten deze maand toont goede klanttevredenheid.`
-                    : 'Focus op klanttevredenheid om meer terugkerende klanten te krijgen.'
-                  }
-                </p>
-              </div>
-              
-              <div className="p-6 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border border-blue-500/20 rounded-xl">
-                <h4 className="font-bold mb-3 text-blue-300 flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Capaciteit Planning
-                </h4>
-                <p className="text-slate-300 text-sm leading-relaxed">
-                  Analyseer piekperiodes om je schema optimaal in te delen en wachttijden te minimaliseren.
-                </p>
-              </div>
-              
-              <div className="p-6 bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent border border-green-500/20 rounded-xl">
-                <h4 className="font-bold mb-3 text-green-300 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Marketing Timing
-                </h4>
-                <p className="text-slate-300 text-sm leading-relaxed">
-                  Gebruik seizoenspatronen om je marketing inspanningen op de juiste momenten in te zetten.
-                </p>
-              </div>
-            </div>
+              // Future insights data
+              waitlistSize={insights?.waitlist_size}
+              returningCustomersMonth={insights?.returning_customers_month}
+              demandForecast={insights?.demand_forecast}
+              seasonalPatterns={insights?.seasonal_patterns}
+            />
           </div>
         </div>
       </div>
