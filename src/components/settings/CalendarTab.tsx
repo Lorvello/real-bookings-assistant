@@ -51,9 +51,6 @@ export function CalendarTab() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Calendar Settings</h2>
-        <p className="text-muted-foreground">
-          Manage settings for: <span className="font-medium">{selectedCalendar.name}</span>
-        </p>
       </div>
 
       {/* Save Button */}
