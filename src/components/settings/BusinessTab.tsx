@@ -20,11 +20,6 @@ export const BusinessTab: React.FC<BusinessTabProps> = ({
 }) => {
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-white mb-2">Business Settings</h2>
-      </div>
-
       {/* Save Button */}
       <div className="flex items-center justify-between bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-4">
         <div className="flex items-center space-x-3">

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,11 +17,6 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 }) => {
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-white mb-2">Profile Settings</h2>
-      </div>
-
       {/* Save Button */}
       <div className="flex items-center justify-between bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-4">
         <div className="flex items-center space-x-3">
