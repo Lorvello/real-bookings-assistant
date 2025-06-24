@@ -90,7 +90,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
   return (
     <Card className="border-border">
       <CardHeader>
-        <CardTitle className="text-foreground">Kalender Instellingen</CardTitle>
+        <CardTitle className="text-foreground">Calendar Settings</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -102,7 +102,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-muted-foreground">
-                    Hoe ver vooruit kunnen klanten boeken?
+                    How far in advance can customers book?
                   </FormLabel>
                   <Select 
                     onValueChange={(value) => field.onChange(parseInt(value))}
@@ -110,15 +110,15 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
                   >
                     <FormControl>
                       <SelectTrigger className="bg-input border-border text-foreground focus:ring-primary">
-                        <SelectValue placeholder="Selecteer periode" />
+                        <SelectValue placeholder="Select period" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-card border-border">
                       <SelectItem value="7">1 week</SelectItem>
-                      <SelectItem value="14">2 weken</SelectItem>
-                      <SelectItem value="30">1 maand</SelectItem>
-                      <SelectItem value="60">2 maanden</SelectItem>
-                      <SelectItem value="90">3 maanden</SelectItem>
+                      <SelectItem value="14">2 weeks</SelectItem>
+                      <SelectItem value="30">1 month</SelectItem>
+                      <SelectItem value="60">2 months</SelectItem>
+                      <SelectItem value="90">3 months</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -133,7 +133,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-muted-foreground">
-                    Minimale tijd voor boeking
+                    Minimum advance notice for booking
                   </FormLabel>
                   <Select 
                     onValueChange={(value) => field.onChange(parseInt(value))}
@@ -141,14 +141,14 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
                   >
                     <FormControl>
                       <SelectTrigger className="bg-input border-border text-foreground focus:ring-primary">
-                        <SelectValue placeholder="Selecteer minimale tijd" />
+                        <SelectValue placeholder="Select minimum time" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="bg-card border-border">
-                      <SelectItem value="0">Direct beschikbaar</SelectItem>
-                      <SelectItem value="1">1 uur van tevoren</SelectItem>
-                      <SelectItem value="24">24 uur van tevoren</SelectItem>
-                      <SelectItem value="48">48 uur van tevoren</SelectItem>
+                      <SelectItem value="0">Available immediately</SelectItem>
+                      <SelectItem value="1">1 hour in advance</SelectItem>
+                      <SelectItem value="24">24 hours in advance</SelectItem>
+                      <SelectItem value="48">48 hours in advance</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -163,7 +163,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-muted-foreground">
-                    Standaard tijdslot duur (minuten)
+                    Default time slot duration (minutes)
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -174,7 +174,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    De standaard duur voor tijdslots in je kalender
+                    The default duration for time slots in your calendar
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -188,7 +188,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-muted-foreground">
-                    Buffer tijd tussen afspraken (minuten)
+                    Buffer time between appointments (minutes)
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -199,7 +199,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    Extra tijd tussen afspraken voor voorbereiding
+                    Extra time between appointments for preparation
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -213,7 +213,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-muted-foreground">
-                    Maximum boekingen per dag (optioneel)
+                    Maximum bookings per day (optional)
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -224,7 +224,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    Laat leeg voor onbeperkt aantal boekingen
+                    Leave empty for unlimited bookings
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -240,7 +240,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
                   </div>
                   <div>
                     <h3 className="text-foreground font-medium">WhatsApp Auto-Reply</h3>
-                    <p className="text-sm text-muted-foreground">Automatisch antwoorden via WhatsApp</p>
+                    <p className="text-sm text-muted-foreground">Automatically respond via WhatsApp</p>
                   </div>
                 </div>
                 <Switch
@@ -258,10 +258,10 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base text-foreground">
-                      Wachtlijst toestaan
+                      Allow waitlist
                     </FormLabel>
                     <FormDescription>
-                      Klanten kunnen zich op een wachtlijst plaatsen als er geen plekken beschikbaar zijn
+                      Customers can join a waitlist when no slots are available
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -282,10 +282,10 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base text-foreground">
-                      Bevestiging vereist
+                      Confirmation required
                     </FormLabel>
                     <FormDescription>
-                      Boekingen moeten door jou bevestigd worden voordat ze definitief zijn
+                      Bookings must be confirmed by you before they are final
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -307,10 +307,10 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
               {form.formState.isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Opslaan...
+                  Saving...
                 </>
               ) : (
-                'Instellingen Opslaan'
+                'Save Settings'
               )}
             </Button>
           </form>

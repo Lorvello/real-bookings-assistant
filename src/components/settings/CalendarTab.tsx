@@ -14,9 +14,9 @@ export function CalendarTab() {
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">Geen kalender gevonden</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No calendar found</h3>
             <p className="text-muted-foreground">
-              U heeft nog geen kalender. Maak eerst een kalender aan om instellingen te kunnen wijzigen.
+              You don't have any calendars yet. Create a calendar first to modify settings.
             </p>
           </div>
         </CardContent>
@@ -30,9 +30,9 @@ export function CalendarTab() {
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">Geen kalender geselecteerd</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No calendar selected</h3>
             <p className="text-muted-foreground">
-              Selecteer een kalender om de instellingen te kunnen wijzigen.
+              Select a calendar to modify settings.
             </p>
           </div>
         </CardContent>
@@ -43,9 +43,9 @@ export function CalendarTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Kalender Instellingen</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Calendar Settings</h2>
         <p className="text-muted-foreground">
-          Beheer de instellingen voor: <span className="font-medium">{selectedCalendar.name}</span>
+          Manage settings for: <span className="font-medium">{selectedCalendar.name}</span>
         </p>
       </div>
       
