@@ -27,14 +27,11 @@ export function SettingsLayout() {
     <div className="bg-gray-900 min-h-full p-8">
       <div className="space-y-6">
         {/* Header */}
-        <div className="relative">
-          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-cyan-500/20 rounded-2xl blur-xl opacity-60"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 p-6">
-            <h1 className="text-3xl font-bold text-white">Settings</h1>
-            <p className="text-gray-400 mt-1">
-              Manage your account and preferences
-            </p>
-          </div>
+        <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
+          <h1 className="text-3xl font-bold text-white">Settings</h1>
+          <p className="text-gray-400 mt-1">
+            Manage your account and preferences
+          </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
