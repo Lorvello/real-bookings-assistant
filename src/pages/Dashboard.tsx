@@ -5,11 +5,32 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { DashboardTabs } from '@/components/DashboardTabs';
+import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
+import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { calendars, selectedCalendar, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
+
+  // Date range state for the dashboard
+  const [selectedDateRange, setSelectedDateRange] = React.useState<DateRange>(() => {
+    try {
+      return getPresetRange('last30days');
+    } catch (error) {
+      console.error('Error getting preset range, using default:', error);
+      const now = new Date();
+      const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      
+      return {
+        startDate,
+        endDate,
+        preset: 'last30days',
+        label: 'Last 30 days'
+      };
+    }
+  });
 
   // Redirect if not authenticated
   React.useEffect(() => {
@@ -54,30 +75,45 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-8">
-        {/* Dashboard Header */}
+        {/* Dashboard Header with Date Filter */}
         <div className="mb-8">
           <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
-            <h1 className="text-3xl font-bold text-white">
-              Dashboard
-              {viewingAllCalendars 
-                ? ' - All calendars'
-                : selectedCalendar 
-                  ? ` - ${selectedCalendar.name}`
-                  : ''
-              }
-            </h1>
-            <p className="text-gray-400 mt-1">
-              {viewingAllCalendars
-                ? `Overview of ${activeCalendarIds.length} calendars`
-                : 'Overview of your bookings and performance'
-              }
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-white">
+                  Dashboard
+                  {viewingAllCalendars 
+                    ? ' - All calendars'
+                    : selectedCalendar 
+                      ? ` - ${selectedCalendar.name}`
+                      : ''
+                  }
+                </h1>
+                <p className="text-gray-400 mt-1">
+                  {viewingAllCalendars
+                    ? `Overview of ${activeCalendarIds.length} calendars`
+                    : 'Overview of your bookings and performance'
+                  }
+                </p>
+              </div>
+              
+              {/* Date Filter in Header */}
+              <div className="flex-shrink-0">
+                <DateRangeFilter 
+                  selectedRange={selectedDateRange}
+                  onRangeChange={setSelectedDateRange}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Dashboard Tabs */}
         {primaryCalendarId && (
-          <DashboardTabs calendarId={primaryCalendarId} />
+          <DashboardTabs 
+            calendarId={primaryCalendarId} 
+            dateRange={selectedDateRange}
+          />
         )}
       </div>
     </DashboardLayout>
