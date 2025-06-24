@@ -56,7 +56,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
       glowColor: "shadow-green-500/25"
     },
     {
-      title: "WhatsApp",
+      title: "WhatsApp Live",
       value: liveOps?.whatsapp_messages_last_hour || 0,
       subtitle: "berichten laatste uur",
       icon: MessageCircle,
@@ -88,7 +88,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-100">Live Operations Center</h3>
-            <p className="text-sm text-slate-400">Real-time data - updates automatisch</p>
+            <p className="text-sm text-slate-400">Real-time data - updates automatisch elke 2 minuten</p>
           </div>
         </div>
         
@@ -102,7 +102,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
         )}
       </div>
 
-      {/* Enhanced Metrics Cards */}
+      {/* Real-time Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {metrics.map((metric, index) => (
           <div
@@ -140,9 +140,9 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
         ))}
       </div>
 
-      {/* Status Dashboard & Today's Planning */}
+      {/* Real-time System Status & Today's Planning */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* Enhanced Status Dashboard */}
+        {/* Enhanced System Status */}
         <div className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-green-500/30 via-blue-500/20 to-green-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
           <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
@@ -151,7 +151,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                 <div className="p-2 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-xl">
                   <Activity className="h-5 w-5 text-green-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-100">System Status</h3>
+                <h3 className="text-lg font-semibold text-slate-100">Live System Status</h3>
               </div>
               
               <div className="space-y-4">
@@ -243,8 +243,8 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                   <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl flex items-center justify-center border border-slate-600/30">
                     <Calendar className="h-10 w-10 text-slate-400" />
                   </div>
-                  <p className="text-slate-300 font-medium mb-1">Geen afspraken gepland</p>
-                  <p className="text-sm text-slate-400">voor vandaag</p>
+                  <p className="text-slate-300 font-medium mb-1">Vrije dag vandaag</p>
+                  <p className="text-sm text-slate-400">Geen afspraken gepland</p>
                 </div>
               )}
             </div>

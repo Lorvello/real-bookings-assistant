@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
+import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { Clock, AlertTriangle, Calendar, Activity } from 'lucide-react';
+import { Clock, AlertTriangle, Calendar, Activity, MessageSquare } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
 
@@ -11,14 +12,18 @@ interface PerformanceEfficiencyTabProps {
 }
 
 export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTabProps) {
-  const { data: performance, isLoading, error } = useOptimizedPerformanceEfficiency(calendarId);
+  const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(calendarId);
+  const { data: businessIntel, isLoading: businessLoading, error: businessError } = useOptimizedBusinessIntelligence(calendarId);
   useRealtimeSubscription(calendarId);
+
+  const isLoading = performanceLoading || businessLoading;
+  const error = performanceError || businessError;
 
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+          {[1, 2, 3, 4, 5].map((i) => (
             <div 
               key={i} 
               className="h-40 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"
@@ -41,8 +46,8 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
 
   return (
     <div className="space-y-12">
-      {/* Enhanced Performance Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {/* Operational Performance Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
         <MetricCard
           title="Reactietijd"
           value={`${performance?.avg_response_time_minutes?.toFixed(1) || '0.0'}m`}
@@ -77,6 +82,15 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
           icon={Calendar}
           variant="green"
           delay={0.4}
+        />
+
+        <MetricCard
+          title="Conversie Rate"
+          value={`${businessIntel?.whatsapp_conversion_rate?.toFixed(1) || '0.0'}%`}
+          subtitle="WhatsApp → Boeking"
+          icon={MessageSquare}
+          variant="green"
+          delay={0.5}
         />
       </div>
 

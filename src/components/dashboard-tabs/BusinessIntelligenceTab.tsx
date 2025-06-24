@@ -2,7 +2,7 @@
 import React from 'react';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { TrendingUp, Euro, Users, MessageSquare } from 'lucide-react';
+import { TrendingUp, Euro, Users, BarChart3 } from 'lucide-react';
 import { BusinessIntelligenceLoading } from './business-intelligence/BusinessIntelligenceLoading';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { ServicePerformanceChart } from './business-intelligence/ServicePerformanceChart';
@@ -36,7 +36,7 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
 
   return (
     <div className="space-y-12">
-      {/* Organic Key Metrics */}
+      {/* Financial & Business Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <MetricCard
           title="Maand Omzet"
@@ -71,10 +71,10 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
         />
 
         <MetricCard
-          title="Conversie Rate"
-          value={`${businessIntel?.whatsapp_conversion_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="WhatsApp → Boeking"
-          icon={MessageSquare}
+          title="Vorige Maand"
+          value={`€${businessIntel?.prev_month_revenue?.toFixed(2) || '0.00'}`}
+          subtitle="omzet vergelijking"
+          icon={BarChart3}
           variant="blue"
           delay={0.4}
         />
