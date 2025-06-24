@@ -121,42 +121,42 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
         <DropdownMenuTrigger asChild>
           <Button 
             variant="outline" 
-            className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="bg-card border-border text-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <Calendar className="h-4 w-4 mr-2" />
             {selectedRange.label}
             <ChevronDown className="h-4 w-4 ml-2" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48 bg-gray-800 border-gray-700" align="end">
+        <DropdownMenuContent className="w-48 bg-card border-border z-50" align="end">
           <DropdownMenuItem 
             onClick={() => handlePresetSelect('last7days')}
-            className="text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="text-foreground hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
           >
             Last 7 days
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => handlePresetSelect('last30days')}
-            className="text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="text-foreground hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
           >
             Last 30 days
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => handlePresetSelect('last3months')}
-            className="text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="text-foreground hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
           >
             Last 3 months
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => handlePresetSelect('lastyear')}
-            className="text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="text-foreground hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
           >
             Last year
           </DropdownMenuItem>
-          <DropdownMenuSeparator className="bg-gray-700" />
+          <DropdownMenuSeparator className="bg-border" />
           <DropdownMenuItem 
             onClick={openCustomDialog}
-            className="text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="text-foreground hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
           >
             Custom range...
           </DropdownMenuItem>
@@ -164,44 +164,94 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
       </DropdownMenu>
 
       <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] bg-gray-900 border border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-white">
+        <DialogContent className="sm:max-w-[600px] bg-background border border-border shadow-2xl">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-semibold text-foreground text-center">
               Select Custom Date Range
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Start Date</label>
+          <div className="space-y-8 py-2">
+            <div className="space-y-4">
+              <label className="text-sm font-medium text-muted-foreground block text-center">
+                Start Date
+              </label>
               <div className="flex justify-center">
-                <CalendarComponent
-                  mode="single"
-                  selected={customStartDate}
-                  onSelect={setCustomStartDate}
-                  className="rounded-md border border-gray-700 bg-gray-800"
-                />
+                <div className="bg-card rounded-lg border border-border shadow-sm p-4">
+                  <CalendarComponent
+                    mode="single"
+                    selected={customStartDate}
+                    onSelect={setCustomStartDate}
+                    className={cn(
+                      "p-0 pointer-events-auto",
+                      "[&_.rdp-months]:flex [&_.rdp-months]:flex-col [&_.rdp-months]:gap-4",
+                      "[&_.rdp-month]:space-y-4",
+                      "[&_.rdp-caption]:flex [&_.rdp-caption]:justify-center [&_.rdp-caption]:pt-1 [&_.rdp-caption]:relative [&_.rdp-caption]:items-center",
+                      "[&_.rdp-caption_label]:text-base [&_.rdp-caption_label]:font-semibold [&_.rdp-caption_label]:text-foreground",
+                      "[&_.rdp-nav]:space-x-1 [&_.rdp-nav]:flex [&_.rdp-nav]:items-center",
+                      "[&_.rdp-nav_button]:h-8 [&_.rdp-nav_button]:w-8 [&_.rdp-nav_button]:bg-transparent [&_.rdp-nav_button]:p-0 [&_.rdp-nav_button]:opacity-70 [&_.rdp-nav_button]:hover:opacity-100 [&_.rdp-nav_button]:hover:bg-muted [&_.rdp-nav_button]:rounded-md [&_.rdp-nav_button]:transition-all [&_.rdp-nav_button]:border [&_.rdp-nav_button]:border-border",
+                      "[&_.rdp-nav_button_previous]:absolute [&_.rdp-nav_button_previous]:left-1",
+                      "[&_.rdp-nav_button_next]:absolute [&_.rdp-nav_button_next]:right-1",
+                      "[&_.rdp-table]:w-full [&_.rdp-table]:border-collapse [&_.rdp-table]:space-y-1",
+                      "[&_.rdp-head_row]:flex [&_.rdp-head_row]:mb-2",
+                      "[&_.rdp-head_cell]:text-muted-foreground [&_.rdp-head_cell]:rounded-md [&_.rdp-head_cell]:w-10 [&_.rdp-head_cell]:font-medium [&_.rdp-head_cell]:text-[0.8rem] [&_.rdp-head_cell]:text-center [&_.rdp-head_cell]:py-2",
+                      "[&_.rdp-row]:flex [&_.rdp-row]:w-full [&_.rdp-row]:mt-2",
+                      "[&_.rdp-cell]:h-10 [&_.rdp-cell]:w-10 [&_.rdp-cell]:text-center [&_.rdp-cell]:text-sm [&_.rdp-cell]:p-0 [&_.rdp-cell]:relative",
+                      "[&_.rdp-button]:h-10 [&_.rdp-button]:w-10 [&_.rdp-button]:p-0 [&_.rdp-button]:font-normal [&_.rdp-button]:text-foreground [&_.rdp-button]:hover:bg-accent [&_.rdp-button]:hover:text-accent-foreground [&_.rdp-button]:rounded-md [&_.rdp-button]:transition-all [&_.rdp-button]:border [&_.rdp-button]:border-transparent [&_.rdp-button]:hover:border-border",
+                      "[&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_selected]:hover:bg-primary [&_.rdp-day_selected]:hover:text-primary-foreground [&_.rdp-day_selected]:focus:bg-primary [&_.rdp-day_selected]:focus:text-primary-foreground [&_.rdp-day_selected]:border-primary",
+                      "[&_.rdp-day_today]:bg-accent [&_.rdp-day_today]:text-accent-foreground [&_.rdp-day_today]:font-semibold",
+                      "[&_.rdp-day_outside]:text-muted-foreground [&_.rdp-day_outside]:opacity-50",
+                      "[&_.rdp-day_disabled]:text-muted-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed",
+                      "[&_.rdp-day_hidden]:invisible"
+                    )}
+                  />
+                </div>
               </div>
             </div>
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">End Date</label>
+            <div className="space-y-4">
+              <label className="text-sm font-medium text-muted-foreground block text-center">
+                End Date
+              </label>
               <div className="flex justify-center">
-                <CalendarComponent
-                  mode="single"
-                  selected={customEndDate}
-                  onSelect={setCustomEndDate}
-                  className="rounded-md border border-gray-700 bg-gray-800"
-                />
+                <div className="bg-card rounded-lg border border-border shadow-sm p-4">
+                  <CalendarComponent
+                    mode="single"
+                    selected={customEndDate}
+                    onSelect={setCustomEndDate}
+                    className={cn(
+                      "p-0 pointer-events-auto",
+                      "[&_.rdp-months]:flex [&_.rdp-months]:flex-col [&_.rdp-months]:gap-4",
+                      "[&_.rdp-month]:space-y-4",
+                      "[&_.rdp-caption]:flex [&_.rdp-caption]:justify-center [&_.rdp-caption]:pt-1 [&_.rdp-caption]:relative [&_.rdp-caption]:items-center",
+                      "[&_.rdp-caption_label]:text-base [&_.rdp-caption_label]:font-semibold [&_.rdp-caption_label]:text-foreground",
+                      "[&_.rdp-nav]:space-x-1 [&_.rdp-nav]:flex [&_.rdp-nav]:items-center",
+                      "[&_.rdp-nav_button]:h-8 [&_.rdp-nav_button]:w-8 [&_.rdp-nav_button]:bg-transparent [&_.rdp-nav_button]:p-0 [&_.rdp-nav_button]:opacity-70 [&_.rdp-nav_button]:hover:opacity-100 [&_.rdp-nav_button]:hover:bg-muted [&_.rdp-nav_button]:rounded-md [&_.rdp-nav_button]:transition-all [&_.rdp-nav_button]:border [&_.rdp-nav_button]:border-border",
+                      "[&_.rdp-nav_button_previous]:absolute [&_.rdp-nav_button_previous]:left-1",
+                      "[&_.rdp-nav_button_next]:absolute [&_.rdp-nav_button_next]:right-1",
+                      "[&_.rdp-table]:w-full [&_.rdp-table]:border-collapse [&_.rdp-table]:space-y-1",
+                      "[&_.rdp-head_row]:flex [&_.rdp-head_row]:mb-2",
+                      "[&_.rdp-head_cell]:text-muted-foreground [&_.rdp-head_cell]:rounded-md [&_.rdp-head_cell]:w-10 [&_.rdp-head_cell]:font-medium [&_.rdp-head_cell]:text-[0.8rem] [&_.rdp-head_cell]:text-center [&_.rdp-head_cell]:py-2",
+                      "[&_.rdp-row]:flex [&_.rdp-row]:w-full [&_.rdp-row]:mt-2",
+                      "[&_.rdp-cell]:h-10 [&_.rdp-cell]:w-10 [&_.rdp-cell]:text-center [&_.rdp-cell]:text-sm [&_.rdp-cell]:p-0 [&_.rdp-cell]:relative",
+                      "[&_.rdp-button]:h-10 [&_.rdp-button]:w-10 [&_.rdp-button]:p-0 [&_.rdp-button]:font-normal [&_.rdp-button]:text-foreground [&_.rdp-button]:hover:bg-accent [&_.rdp-button]:hover:text-accent-foreground [&_.rdp-button]:rounded-md [&_.rdp-button]:transition-all [&_.rdp-button]:border [&_.rdp-button]:border-transparent [&_.rdp-button]:hover:border-border",
+                      "[&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-day_selected]:hover:bg-primary [&_.rdp-day_selected]:hover:text-primary-foreground [&_.rdp-day_selected]:focus:bg-primary [&_.rdp-day_selected]:focus:text-primary-foreground [&_.rdp-day_selected]:border-primary",
+                      "[&_.rdp-day_today]:bg-accent [&_.rdp-day_today]:text-accent-foreground [&_.rdp-day_today]:font-semibold",
+                      "[&_.rdp-day_outside]:text-muted-foreground [&_.rdp-day_outside]:opacity-50",
+                      "[&_.rdp-day_disabled]:text-muted-foreground [&_.rdp-day_disabled]:opacity-50 [&_.rdp-day_disabled]:cursor-not-allowed",
+                      "[&_.rdp-day_hidden]:invisible"
+                    )}
+                  />
+                </div>
               </div>
             </div>
 
             {/* Date Range Summary */}
             {customStartDate && customEndDate && (
-              <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+              <div className="bg-card rounded-lg p-4 border border-border shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Selected Range:</span>
-                  <span className="text-white font-medium">
+                  <span className="text-muted-foreground text-sm font-medium">Selected Range:</span>
+                  <span className="text-foreground font-semibold">
                     {format(customStartDate, 'MMM d, yyyy')} - {format(customEndDate, 'MMM d, yyyy')}
                   </span>
                 </div>
@@ -209,18 +259,18 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="pt-4">
             <Button 
               variant="outline" 
               onClick={() => setIsCustomDialogOpen(false)}
-              className="bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+              className="bg-card border-border text-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               Cancel
             </Button>
             <Button 
               onClick={handleCustomRangeApply}
               disabled={!customStartDate || !customEndDate}
-              className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Apply Range
             </Button>
