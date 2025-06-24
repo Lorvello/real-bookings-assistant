@@ -105,7 +105,7 @@ export const AvailabilityManager = () => {
       />
 
       <div className="p-4 pt-3">
-        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-5">
+        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-4">
           <AvailabilityContent
             activeTab={activeTab}
             onUnsavedChanges={handleUnsavedChanges}

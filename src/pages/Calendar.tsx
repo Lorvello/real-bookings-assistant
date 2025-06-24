@@ -56,9 +56,9 @@ const Calendar = () => {
       <div className="bg-gray-900 min-h-full p-4">
         <div className="space-y-4">
           {/* Calendar Header */}
-          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl shadow-lg p-6">
-            <h1 className="text-3xl font-bold text-white">{displayTitle}</h1>
-            <p className="text-gray-400 mt-1">
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-xl shadow-lg p-4">
+            <h1 className="text-2xl font-bold text-white">{displayTitle}</h1>
+            <p className="text-gray-400 mt-0.5">
               {viewingAllCalendars 
                 ? `Manage appointments from ${calendars.length} calendars`
                 : 'Manage your appointments and availability'
