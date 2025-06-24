@@ -8,7 +8,7 @@ import { CalendarSettings } from '@/types/database';
 
 interface CalendarRequiredFieldsProps {
   settings: CalendarSettings;
-  onUpdate: (updates: Partial<CalendarSettings>) => Promise<void>;
+  onUpdate: (updates: Partial<CalendarSettings>) => void;
 }
 
 export function CalendarRequiredFields({ settings, onUpdate }: CalendarRequiredFieldsProps) {
@@ -34,6 +34,7 @@ export function CalendarRequiredFields({ settings, onUpdate }: CalendarRequiredF
   const updateField = (field: string, value: boolean) => {
     setRequiredFields(prev => ({ ...prev, [field]: value }));
     // Here you could save to settings if needed
+    // onUpdate({ required_fields: { ...requiredFields, [field]: value } });
   };
 
   const defaultFields = [

@@ -12,7 +12,7 @@ interface CalendarSettingsProps {
 }
 
 export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
-  const { settings, loading, updateSettings } = useCalendarSettings(calendarId);
+  const { settings, loading, updatePendingSettings } = useCalendarSettings(calendarId);
 
   if (loading) {
     return (
@@ -51,7 +51,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
         <CardContent>
           <CalendarBasicSettings 
             settings={settings}
-            onUpdate={updateSettings}
+            onUpdate={updatePendingSettings}
           />
         </CardContent>
       </Card>
@@ -66,7 +66,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
         <CardContent>
           <CalendarPolicySettings 
             settings={settings}
-            onUpdate={updateSettings}
+            onUpdate={updatePendingSettings}
           />
         </CardContent>
       </Card>
@@ -81,7 +81,7 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
         <CardContent>
           <CalendarRequiredFields 
             settings={settings}
-            onUpdate={updateSettings}
+            onUpdate={updatePendingSettings}
           />
         </CardContent>
       </Card>

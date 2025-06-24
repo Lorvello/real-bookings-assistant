@@ -9,7 +9,11 @@ export const useCalendarSettings = (calendarId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [settings, setSettings] = useState<CalendarSettings | null>(null);
+  const [pendingChanges, setPendingChanges] = useState<Partial<CalendarSettings>>({});
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
   useEffect(() => {
     if (user && calendarId) {
@@ -36,6 +40,7 @@ export const useCalendarSettings = (calendarId?: string) => {
       }
 
       setSettings(data);
+      setPendingChanges({});
     } catch (error) {
       console.error('Error fetching calendar settings:', error);
     } finally {
@@ -43,44 +48,62 @@ export const useCalendarSettings = (calendarId?: string) => {
     }
   };
 
-  const updateSettings = async (updates: Partial<CalendarSettings>) => {
-    if (!calendarId || !settings) return;
+  const updatePendingSettings = (updates: Partial<CalendarSettings>) => {
+    setPendingChanges(prev => ({ ...prev, ...updates }));
+  };
 
+  const saveAllChanges = async () => {
+    if (!calendarId || !settings || !hasPendingChanges) return;
+
+    setSaving(true);
     try {
       const { error } = await supabase
         .from('calendar_settings')
-        .update(updates)
+        .update(pendingChanges)
         .eq('calendar_id', calendarId);
 
       if (error) {
         toast({
           title: "Error",
-          description: "Failed to update calendar settings",
+          description: "Failed to save calendar settings",
           variant: "destructive",
         });
-        return;
+        return false;
       }
 
       toast({
         title: "Success",
-        description: "Calendar settings updated successfully",
+        description: "Calendar settings saved successfully",
       });
 
+      setPendingChanges({});
       await fetchSettings();
+      return true;
     } catch (error) {
-      console.error('Error updating calendar settings:', error);
+      console.error('Error saving calendar settings:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
         variant: "destructive",
       });
+      return false;
+    } finally {
+      setSaving(false);
     }
   };
 
+  const getCurrentSettings = () => {
+    if (!settings) return null;
+    return { ...settings, ...pendingChanges };
+  };
+
   return {
-    settings,
+    settings: getCurrentSettings(),
     loading,
-    updateSettings,
+    saving,
+    hasPendingChanges,
+    updatePendingSettings,
+    saveAllChanges,
     refetch: fetchSettings
   };
 };

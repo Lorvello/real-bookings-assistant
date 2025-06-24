@@ -7,7 +7,7 @@ import { CalendarSettings } from '@/types/database';
 
 interface CalendarPolicySettingsProps {
   settings: CalendarSettings;
-  onUpdate: (updates: Partial<CalendarSettings>) => Promise<void>;
+  onUpdate: (updates: Partial<CalendarSettings>) => void;
 }
 
 export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySettingsProps) {
