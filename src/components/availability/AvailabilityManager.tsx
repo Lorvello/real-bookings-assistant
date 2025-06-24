@@ -17,7 +17,6 @@ export const AvailabilityManager = () => {
   const { selectedCalendar, viewingAllCalendars } = useCalendarContext();
   const { calendars } = useCalendars();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [setToDefault, setSetToDefault] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
 
   // Voor availability gebruiken we altijd een specifieke kalender

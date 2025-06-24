@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Info, Globe, Wrench } from 'lucide-react';
 import { DailyAvailability } from './DailyAvailability';
 import { DateOverrides } from './DateOverrides';
-import { Limits } from './Limits';
-import { Advanced } from './Advanced';
 
 interface AvailabilityContentProps {
   activeTab: string;
@@ -27,27 +25,6 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
               {/* Daily Availability */}
               <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
                 <DailyAvailability onChange={onUnsavedChanges} />
-              </div>
-
-              {/* Date Overrides */}
-              <div className="space-y-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-primary/20 rounded-2xl">
-                    <Info className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-foreground">
-                      Schedule exceptions
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Add dates when your availability differs from your standard working hours.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
-                  <DateOverrides onChange={onUnsavedChanges} />
-                </div>
               </div>
             </div>
 
@@ -96,27 +73,27 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     );
   }
 
-  if (activeTab === 'limits') {
+  if (activeTab === 'overrides') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
         <div className="max-w-7xl mx-auto p-6">
-          <div className="max-w-4xl">
-            <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
-              <Limits onChange={onUnsavedChanges} />
+          <div className="space-y-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary/20 rounded-2xl">
+                <Info className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-foreground">
+                  Schedule exceptions
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Add dates when your availability differs from your standard working hours.
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (activeTab === 'advanced') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="max-w-4xl">
+            
             <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-8 shadow-lg shadow-black/5">
-              <Advanced onChange={onUnsavedChanges} />
+              <DateOverrides onChange={onUnsavedChanges} />
             </div>
           </div>
         </div>
