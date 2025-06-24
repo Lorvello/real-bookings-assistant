@@ -1,46 +1,35 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
-import { useSettingsData } from '@/hooks/useSettingsData';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileTab } from './ProfileTab';
 import { BusinessTab } from './BusinessTab';
+import { CalendarTab } from './CalendarTab';
 import { WhatsAppTab } from './WhatsAppTab';
 import { BillingTab } from './BillingTab';
+import { useAuth } from '@/hooks/useAuth';
+import { GradientContainer } from '@/components/ui/GradientContainer';
+import { User, Building, Calendar, MessageCircle, CreditCard } from 'lucide-react';
 
-export const SettingsLayout = () => {
+export function SettingsLayout() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { profile, loading: profileLoading } = useProfile();
   const [activeTab, setActiveTab] = useState('profile');
 
-  const {
-    profileData,
-    setProfileData,
-    businessData,
-    setBusinessData,
-    whatsappSettings,
-    setWhatsappSettings,
-    loading,
-    handleUpdateProfile
-  } = useSettingsData();
-
-  // Redirect if not authenticated
-  useEffect(() => {
+  React.useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login');
     }
   }, [user, authLoading, navigate]);
 
-  if (authLoading || profileLoading) {
+  if (authLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-full bg-gray-900">
           <div className="text-center">
             <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-300">Loading...</div>
+            <div className="text-lg text-gray-300">Instellingen laden...</div>
           </div>
         </div>
       </DashboardLayout>
@@ -53,62 +42,73 @@ export const SettingsLayout = () => {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gray-900 p-6">
-        {/* Header */}
+      <div className="bg-gray-900 min-h-full p-8">
+        {/* Settings Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">Instellingen</h1>
-          <p className="text-gray-400 mt-1">Beheer je account en bedrijfsinstellingen</p>
+          <p className="text-gray-400 mt-1">
+            Beheer je account, business en integratie instellingen
+          </p>
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-700 mb-8">
-          <nav className="-mb-px flex space-x-8">
-            {['profile', 'business', 'whatsapp', 'billing'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
-                  activeTab === tab
-                    ? 'border-green-600 text-green-600'
-                    : 'border-transparent text-gray-400 hover:text-white hover:border-gray-300'
-                }`}
-              >
-                {tab === 'whatsapp' ? 'WhatsApp Custom Branding' : 
-                 tab === 'business' ? 'Bedrijf' : 
-                 tab === 'billing' ? 'Billing' :
-                 'Profiel'}
-              </button>
-            ))}
-          </nav>
-        </div>
+        {/* Settings Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          {/* Settings Tabs */}
+          <TabsList className="grid w-full grid-cols-5 bg-gray-800 h-auto p-2">
+            <TabsTrigger value="profile" className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg">
+              <User className="h-4 w-4" />
+              Profiel
+            </TabsTrigger>
+            <TabsTrigger value="business" className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg">
+              <Building className="h-4 w-4" />
+              Business
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg">
+              <Calendar className="h-4 w-4" />
+              Kalender
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg">
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
+            </TabsTrigger>
+            <TabsTrigger value="billing" className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg">
+              <CreditCard className="h-4 w-4" />
+              Facturering
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Tab Content */}
-        <div className="max-w-4xl">
-          {activeTab === 'profile' && (
-            <ProfileTab
-              profileData={profileData}
-              setProfileData={setProfileData}
-              loading={loading}
-              handleUpdateProfile={handleUpdateProfile}
-            />
-          )}
-          {activeTab === 'business' && (
-            <BusinessTab
-              businessData={businessData}
-              setBusinessData={setBusinessData}
-              loading={loading}
-              handleUpdateProfile={handleUpdateProfile}
-            />
-          )}
-          {activeTab === 'whatsapp' && (
-            <WhatsAppTab
-              whatsappSettings={whatsappSettings}
-              setWhatsappSettings={setWhatsappSettings}
-            />
-          )}
-          {activeTab === 'billing' && <BillingTab />}
-        </div>
+          {/* Tab Content with Gradient Styling */}
+          <TabsContent value="profile">
+            <GradientContainer variant="primary" className="p-6">
+              <ProfileTab />
+            </GradientContainer>
+          </TabsContent>
+
+          <TabsContent value="business">
+            <GradientContainer variant="blue" className="p-6">
+              <BusinessTab />
+            </GradientContainer>
+          </TabsContent>
+
+          <TabsContent value="calendar">
+            <GradientContainer variant="purple" className="p-6">
+              <CalendarTab />
+            </GradientContainer>
+          </TabsContent>
+
+          <TabsContent value="whatsapp">
+            <GradientContainer variant="cyan" className="p-6">
+              <WhatsAppTab />
+            </GradientContainer>
+          </TabsContent>
+
+          <TabsContent value="billing">
+            <GradientContainer variant="amber" className="p-6">
+              <BillingTab />
+            </GradientContainer>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
-};
+}

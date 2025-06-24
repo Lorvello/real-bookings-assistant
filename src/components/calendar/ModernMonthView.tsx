@@ -5,6 +5,7 @@ import { DayBookingsModal } from './DayBookingsModal';
 import { BookingDetailModal } from './BookingDetailModal';
 import { CalendarWeekHeader } from './components/CalendarWeekHeader';
 import { CalendarDayCell } from './components/CalendarDayCell';
+import { GradientContainer } from '@/components/ui/GradientContainer';
 
 interface Booking {
   id: string;
@@ -74,11 +75,11 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
   };
 
   return (
-    <div className="h-full flex flex-col bg-card">
+    <div className="h-full flex flex-col">
       {/* Enhanced Week Headers */}
       <CalendarWeekHeader weekDays={weekDays} />
 
-      {/* Optimized Calendar Grid - verbeterde scroll performance */}
+      {/* Optimized Calendar Grid with subtle gradient background */}
       <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
         <div className="p-2">
           <div className="grid grid-cols-7 gap-1">

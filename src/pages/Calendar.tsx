@@ -6,6 +6,7 @@ import { CalendarView } from '@/components/CalendarView';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { GradientContainer } from '@/components/ui/GradientContainer';
 
 const Calendar = () => {
   const navigate = useNavigate();
@@ -71,10 +72,10 @@ const Calendar = () => {
           <CalendarSwitcher />
         </div>
 
-        {/* Calendar Content */}
-        <div className="bg-gray-800 rounded-lg p-6">
+        {/* Calendar Content with Gradient Styling */}
+        <GradientContainer variant="primary" className="p-6">
           <CalendarView calendarIds={activeCalendarIds} />
-        </div>
+        </GradientContainer>
       </div>
     </DashboardLayout>
   );

@@ -9,6 +9,7 @@ import { useSettingsData } from '@/hooks/useSettingsData';
 import { AvailabilityTabs } from './AvailabilityTabs';
 import { AvailabilityContent } from './AvailabilityContent';
 import { NoCalendarSelected } from './NoCalendarSelected';
+import { GradientContainer } from '@/components/ui/GradientContainer';
 import type { Calendar } from '@/types/database';
 
 export const AvailabilityManager = () => {
@@ -99,7 +100,7 @@ export const AvailabilityManager = () => {
 
         {/* Save Button and Status */}
         {hasUnsavedChanges && (
-          <div className="mb-6 p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg">
+          <GradientContainer variant="amber" className="mb-6 p-4">
             <div className="flex items-center justify-between">
               <div className="text-yellow-400">
                 Je hebt niet-opgeslagen wijzigingen
@@ -112,7 +113,7 @@ export const AvailabilityManager = () => {
                 {loading ? 'Opslaan...' : 'Opslaan'}
               </button>
             </div>
-          </div>
+          </GradientContainer>
         )}
       </div>
 
@@ -122,10 +123,12 @@ export const AvailabilityManager = () => {
       />
 
       <div className="p-8 pt-6">
-        <AvailabilityContent
-          activeTab={activeTab}
-          onUnsavedChanges={handleUnsavedChanges}
-        />
+        <GradientContainer variant="purple" className="p-6">
+          <AvailabilityContent
+            activeTab={activeTab}
+            onUnsavedChanges={handleUnsavedChanges}
+          />
+        </GradientContainer>
       </div>
     </div>
   );
