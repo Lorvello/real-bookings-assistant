@@ -22,7 +22,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
 
   if (!defaultCalendar || !defaultSchedule) {
     return (
-      <div className="flex items-center justify-center py-4">
+      <div className="flex items-center justify-center py-6">
         <div className="text-center text-gray-400">
           <p>No calendar or schedule found</p>
         </div>
@@ -31,15 +31,15 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center space-x-2 mb-3">
-        <div className="p-1.5 bg-primary/20 rounded-xl">
+    <div className="space-y-3">
+      <div className="flex items-center space-x-2 mb-4">
+        <div className="p-2 bg-primary/20 rounded-xl">
           <Clock className="h-4 w-4 text-primary" />
         </div>
         <h3 className="text-base font-medium text-foreground">Working Hours</h3>
       </div>
       
-      <div className="space-y-1">
+      <div className="space-y-2">
         {DAYS.map((day) => (
           <DayRow
             key={day.key}

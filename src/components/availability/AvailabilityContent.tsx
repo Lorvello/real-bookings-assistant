@@ -18,28 +18,28 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   if (activeTab === 'schedule') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
-        <div className="max-w-7xl mx-auto p-3">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="max-w-7xl mx-auto p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
             {/* Main Content - Left Side */}
-            <div className="lg:col-span-3 space-y-4">
+            <div className="lg:col-span-3 space-y-5">
               {/* Daily Availability */}
-              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-4 shadow-lg shadow-black/5">
+              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-5 shadow-lg shadow-black/5">
                 <DailyAvailability onChange={onUnsavedChanges} />
               </div>
             </div>
 
             {/* Sidebar - Right Side */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Timezone */}
-              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-4 shadow-lg shadow-black/5">
-                <div className="flex items-center space-x-2 mb-3">
+              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-5 shadow-lg shadow-black/5">
+                <div className="flex items-center space-x-2 mb-4">
                   <div className="p-1.5 bg-blue-500/20 rounded-xl">
-                    <Globe className="h-3.5 w-3.5 text-blue-600" />
+                    <Globe className="h-4 w-4 text-blue-600" />
                   </div>
                   <h3 className="text-sm font-medium text-foreground">Timezone</h3>
                 </div>
                 <Select defaultValue="europe-amsterdam">
-                  <SelectTrigger className="w-full bg-background/80 border-border/60 rounded-xl h-8">
+                  <SelectTrigger className="w-full bg-background/80 border-border/60 rounded-xl h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border rounded-xl">
@@ -52,16 +52,16 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
               </div>
 
               {/* Troubleshooter */}
-              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-4 shadow-lg shadow-black/5">
-                <div className="flex items-center space-x-2 mb-3">
+              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-5 shadow-lg shadow-black/5">
+                <div className="flex items-center space-x-2 mb-4">
                   <div className="p-1.5 bg-orange-500/20 rounded-xl">
-                    <Wrench className="h-3.5 w-3.5 text-orange-600" />
+                    <Wrench className="h-4 w-4 text-orange-600" />
                   </div>
                   <h3 className="text-sm font-medium text-foreground">Problems with your schedule?</h3>
                 </div>
                 <Button
                   variant="outline"
-                  className="w-full bg-background/80 border-border/60 hover:bg-muted rounded-xl h-8 text-xs"
+                  className="w-full bg-background/80 border-border/60 hover:bg-muted rounded-xl h-9 text-xs"
                 >
                   Start troubleshooter
                 </Button>
@@ -76,8 +76,8 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   if (activeTab === 'overrides') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
-        <div className="max-w-7xl mx-auto p-3">
-          <div className="space-y-4">
+        <div className="max-w-7xl mx-auto p-4">
+          <div className="space-y-5">
             <div className="flex items-center space-x-2">
               <div className="p-1.5 bg-primary/20 rounded-xl">
                 <Info className="h-4 w-4 text-primary" />
@@ -92,7 +92,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
               </div>
             </div>
             
-            <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-4 shadow-lg shadow-black/5">
+            <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-5 shadow-lg shadow-black/5">
               <DateOverrides onChange={onUnsavedChanges} />
             </div>
           </div>

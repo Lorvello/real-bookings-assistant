@@ -73,7 +73,7 @@ export const DayRow: React.FC<DayRowProps> = ({
   };
 
   return (
-    <div className="flex items-center space-x-3 py-1.5 px-2 rounded-lg hover:bg-muted/30 transition-colors">
+    <div className="flex items-center space-x-3 py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors">
       <div className="w-20 text-sm font-medium text-foreground">
         {day.label}
       </div>
@@ -82,11 +82,10 @@ export const DayRow: React.FC<DayRowProps> = ({
         <Switch
           checked={availability.enabled}
           onCheckedChange={handleToggle}
-          size="sm"
           disabled={isPending || isSyncing}
         />
         {(isPending || isSyncing) && (
-          <Loader2 className="h-3 w-3 animate-spin ml-1 text-muted-foreground" />
+          <Loader2 className="h-3 w-3 animate-spin ml-2 text-muted-foreground" />
         )}
       </div>
 
@@ -101,7 +100,7 @@ export const DayRow: React.FC<DayRowProps> = ({
                 onValueChange={(value) => handleTimeChange(block.id, 'startTime', value)}
                 disabled={isPending || isSyncing}
               >
-                <SelectTrigger className="w-16 h-7 text-xs">
+                <SelectTrigger className="w-18 h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-32">
@@ -120,7 +119,7 @@ export const DayRow: React.FC<DayRowProps> = ({
                 onValueChange={(value) => handleTimeChange(block.id, 'endTime', value)}
                 disabled={isPending || isSyncing}
               >
-                <SelectTrigger className="w-16 h-7 text-xs">
+                <SelectTrigger className="w-18 h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-32">
@@ -137,7 +136,7 @@ export const DayRow: React.FC<DayRowProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => handleRemoveTimeBlock(block.id)}
-                  className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
                   disabled={isPending || isSyncing}
                 >
                   ×
@@ -150,7 +149,7 @@ export const DayRow: React.FC<DayRowProps> = ({
             variant="ghost"
             size="sm"
             onClick={handleAddTimeBlock}
-            className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
             disabled={isPending || isSyncing}
           >
             <Plus className="h-3 w-3" />
