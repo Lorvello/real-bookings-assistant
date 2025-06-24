@@ -18,15 +18,21 @@ import {
 interface DashboardTabsProps {
   calendarId: string;
   dateRange: DateRange;
+  onTabChange?: (tab: string) => void;
 }
 
-export function DashboardTabs({ calendarId, dateRange }: DashboardTabsProps) {
+export function DashboardTabs({ calendarId, dateRange, onTabChange }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState('overview');
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    onTabChange?.(value);
+  };
 
   return (
     <div className="space-y-6">
       {/* Dashboard Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid grid-cols-2 lg:grid-cols-5 bg-gray-800 h-auto p-2 flex-shrink-0">
           <TabsTrigger 
             value="overview" 

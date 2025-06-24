@@ -32,6 +32,12 @@ const Dashboard = () => {
     }
   });
 
+  // Track active tab to show date filter conditionally
+  const [activeTab, setActiveTab] = React.useState('overview');
+
+  // Show date filter only for business intelligence and performance efficiency tabs
+  const showDateFilter = activeTab === 'business-intelligence' || activeTab === 'performance-efficiency';
+
   // Redirect if not authenticated
   React.useEffect(() => {
     if (!authLoading && !user) {
@@ -75,7 +81,7 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-8">
-        {/* Dashboard Header with Date Filter */}
+        {/* Dashboard Header with Conditional Date Filter */}
         <div className="mb-8">
           <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between">
@@ -97,13 +103,15 @@ const Dashboard = () => {
                 </p>
               </div>
               
-              {/* Date Filter in Header */}
-              <div className="flex-shrink-0">
-                <DateRangeFilter 
-                  selectedRange={selectedDateRange}
-                  onRangeChange={setSelectedDateRange}
-                />
-              </div>
+              {/* Conditional Date Filter in Header */}
+              {showDateFilter && (
+                <div className="flex-shrink-0">
+                  <DateRangeFilter 
+                    selectedRange={selectedDateRange}
+                    onRangeChange={setSelectedDateRange}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -113,6 +121,7 @@ const Dashboard = () => {
           <DashboardTabs 
             calendarId={primaryCalendarId} 
             dateRange={selectedDateRange}
+            onTabChange={setActiveTab}
           />
         )}
       </div>
