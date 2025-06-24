@@ -37,13 +37,13 @@ export function CreateCalendarDialog({
 
   // Generate a better default calendar name
   const generateCalendarName = () => {
-    const userName = profile?.full_name?.split(' ')[0] || 'Mijn';
+    const userName = profile?.full_name?.split(' ')[0] || 'My';
     const businessName = profile?.business_name;
     
     if (businessName) {
-      return `${businessName} Kalender`;
+      return `${businessName} Calendar`;
     }
-    return `${userName} Kalender`;
+    return `${userName} Calendar`;
   };
 
   const handleCreateCalendar = async () => {
@@ -67,15 +67,15 @@ export function CreateCalendarDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>      
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nieuwe kalender aanmaken</DialogTitle>
+          <DialogTitle>Create new calendar</DialogTitle>
           <DialogDescription>
-            Maak een nieuwe kalender aan voor jezelf of een medewerker. Je kunt later altijd de instellingen aanpassen.
+            Create a new calendar for yourself or a team member. You can always adjust the settings later.
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor="calendar-name">Kalendernaam *</Label>
+            <Label htmlFor="calendar-name">Calendar name *</Label>
             <Input
               id="calendar-name"
               placeholder={generateCalendarName()}
@@ -83,22 +83,22 @@ export function CreateCalendarDialog({
               onChange={(e) => setNewCalendar(prev => ({ ...prev, name: e.target.value }))}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Bijv: {generateCalendarName()}, "Medewerker John", "Behandelkamer 2"
+              E.g: {generateCalendarName()}, "John Smith", "Treatment Room 2"
             </p>
           </div>
           
           <div>
-            <Label htmlFor="calendar-description">Beschrijving (optioneel)</Label>
+            <Label htmlFor="calendar-description">Description (optional)</Label>
             <Textarea
               id="calendar-description"
-              placeholder="Voor welke medewerker of locatie is deze kalender?"
+              placeholder="For which team member or location is this calendar?"
               value={newCalendar.description}
               onChange={(e) => setNewCalendar(prev => ({ ...prev, description: e.target.value }))}
             />
           </div>
           
           <div>
-            <Label htmlFor="calendar-color">Kleur</Label>
+            <Label htmlFor="calendar-color">Color</Label>
             <div className="flex items-center space-x-2 mt-1">
               <input
                 type="color"
@@ -108,20 +108,20 @@ export function CreateCalendarDialog({
                 className="w-8 h-8 rounded border"
               />
               <span className="text-sm text-muted-foreground">{newCalendar.color}</span>
-              <span className="text-xs text-muted-foreground">Kies een kleur om de kalender te onderscheiden</span>
+              <span className="text-xs text-muted-foreground">Choose a color to distinguish the calendar</span>
             </div>
           </div>
         </div>
         
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuleren
+            Cancel
           </Button>
           <Button 
             onClick={handleCreateCalendar}
             disabled={!newCalendar.name.trim() || creating}
           >
-            {creating ? 'Aanmaken...' : 'Kalender aanmaken'}
+            {creating ? 'Creating...' : 'Create calendar'}
           </Button>
         </DialogFooter>
       </DialogContent>

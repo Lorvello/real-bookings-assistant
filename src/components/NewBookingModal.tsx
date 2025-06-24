@@ -46,7 +46,7 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] bg-card border-border h-[90vh] max-h-[700px] flex flex-col p-0">
         <DialogHeader className="flex-shrink-0 p-6 pb-0">
-          <DialogTitle className="text-foreground">Nieuwe Afspraak</DialogTitle>
+          <DialogTitle className="text-foreground">New Appointment</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">

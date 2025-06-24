@@ -11,10 +11,10 @@ export function BookingFormActions({ onClose, isCreating }: BookingFormActionsPr
   return (
     <div className="flex justify-end space-x-2 pt-4 border-t border-border">
       <Button type="button" variant="outline" onClick={onClose}>
-        Annuleren
+        Cancel
       </Button>
       <Button type="submit" disabled={isCreating}>
-        {isCreating ? 'Bezig...' : 'Opslaan'}
+        {isCreating ? 'Saving...' : 'Save'}
       </Button>
     </div>
   );

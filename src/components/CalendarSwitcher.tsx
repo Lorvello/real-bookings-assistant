@@ -39,7 +39,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
         <UserContextDisplay />
 
         <div className="flex items-center space-x-2">
-          {/* Kalender Switcher Dropdown */}
+          {/* Calendar Switcher Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="justify-between min-w-[250px]">
@@ -47,7 +47,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                   {viewingAllCalendars && !hideAllCalendarsOption ? (
                     <>
                       <Grid3X3 className="w-3 h-3 text-primary" />
-                      <span className="truncate">Alle kalenders</span>
+                      <span className="truncate">All calendars</span>
                     </>
                   ) : (
                     <>
@@ -56,7 +56,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                         style={{ backgroundColor: selectedCalendar?.color || '#3B82F6' }}
                       />
                       <span className="truncate">
-                        {selectedCalendar ? selectedCalendar.name : 'Selecteer kalender'}
+                        {selectedCalendar ? selectedCalendar.name : 'Select calendar'}
                       </span>
                     </>
                   )}
@@ -68,11 +68,11 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
             <DropdownMenuContent className="w-80">
               <DropdownMenuLabel className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4" />
-                <span>Kalender Weergave</span>
+                <span>Calendar View</span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               
-              {/* Alle kalenders optie - alleen tonen als niet verborgen */}
+              {/* All calendars option - only show if not hidden */}
               {!hideAllCalendarsOption && (
                 <>
                   <DropdownMenuItem
@@ -82,11 +82,11 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                     <Grid3X3 className="w-3 h-3 text-primary" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium">Alle kalenders</span>
-                        <Badge variant="outline" className="text-xs">Gemengd</Badge>
+                        <span className="font-medium">All calendars</span>
+                        <Badge variant="outline" className="text-xs">Mixed</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Bekijk alle afspraken samen
+                        View all appointments together
                       </p>
                     </div>
                     {viewingAllCalendars && (
@@ -112,7 +112,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                     <div className="flex items-center space-x-2">
                       <span className="font-medium truncate">{calendar.name}</span>
                       {calendar.is_default && (
-                        <Badge variant="outline" className="text-xs">Standaard</Badge>
+                        <Badge variant="outline" className="text-xs">Default</Badge>
                       )}
                     </div>
                     {calendar.description && (
@@ -121,7 +121,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      Eigenaar: Jij
+                      Owner: You
                     </p>
                   </div>
                   {(!viewingAllCalendars || hideAllCalendarsOption) && selectedCalendar?.id === calendar.id && (
@@ -137,12 +137,12 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                 setShowCreateDialog(true);
               }}>
                 <Plus className="w-4 h-4 mr-2" />
-                Nieuwe kalender
+                New calendar
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Prominente "Nieuwe Kalender" knop */}
+          {/* Prominent "New Calendar" button */}
           <Button
             variant="outline"
             size="sm"
@@ -150,12 +150,12 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
             className="flex items-center gap-2 border-dashed border-2 hover:border-solid hover:bg-accent"
           >
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Nieuwe kalender</span>
+            <span className="hidden sm:inline">New calendar</span>
           </Button>
         </div>
       </div>
 
-      {/* Standalone CreateCalendarDialog voor de button */}
+      {/* Standalone CreateCalendarDialog for the button */}
       <CreateCalendarDialog 
         open={showCreateDialog} 
         onOpenChange={setShowCreateDialog}

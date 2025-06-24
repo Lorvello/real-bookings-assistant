@@ -11,7 +11,7 @@ export function CalendarWeekHeader({ weekDays }: CalendarWeekHeaderProps) {
           <div key={day} className="text-center py-3 px-2 rounded-xl bg-gradient-to-b from-muted/50 to-muted/30 border border-border/30">
             <div className="text-sm font-bold text-foreground tracking-wide">{day}</div>
             <div className="text-xs text-muted-foreground font-medium mt-1">
-              {['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'][index]}
+              {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][index]}
             </div>
           </div>
         ))}

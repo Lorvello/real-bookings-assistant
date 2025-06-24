@@ -42,7 +42,7 @@ export function BookingDateTimeFields({
 
   const handleDateSelect = (date: Date | undefined, onChange: (date: Date | undefined) => void) => {
     onChange(date);
-    // Sluit de kalender met een kleine vertraging voor een mooie animatie
+    // Close the calendar with a small delay for smooth animation
     setTimeout(() => {
       setIsCalendarOpen(false);
     }, 150);
@@ -50,13 +50,13 @@ export function BookingDateTimeFields({
 
   return (
     <div className="space-y-6">
-      {/* Datum */}
+      {/* Date */}
       <FormField
         control={form.control}
         name="date"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>Datum *</FormLabel>
+            <FormLabel>Date *</FormLabel>
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -72,7 +72,7 @@ export function BookingDateTimeFields({
                     {field.value ? (
                       format(field.value, "PPP")
                     ) : (
-                      <span>Selecteer een datum</span>
+                      <span>Select a date</span>
                     )}
                     <CalendarIcon className={cn(
                       "ml-auto h-4 w-4 opacity-50 transition-transform duration-200",
@@ -100,7 +100,7 @@ export function BookingDateTimeFields({
         )}
       />
 
-      {/* Tijd selectie - nu altijd zichtbaar */}
+      {/* Time selection - now always visible */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <FormField
@@ -108,11 +108,11 @@ export function BookingDateTimeFields({
             name="startTime"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Start tijd *</FormLabel>
+                <FormLabel>Start time *</FormLabel>
                 <Select onValueChange={(value) => onTimeChange('startTime', value)} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Selecteer tijd" />
+                      <SelectValue placeholder="Select time" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -133,11 +133,11 @@ export function BookingDateTimeFields({
             name="endTime"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Eind tijd *</FormLabel>
+                <FormLabel>End time *</FormLabel>
                 <Select onValueChange={(value) => onTimeChange('endTime', value)} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Selecteer tijd" />
+                      <SelectValue placeholder="Select time" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -157,7 +157,7 @@ export function BookingDateTimeFields({
         {/* Duration indicator */}
         {startTime && endTime && (
           <div className="text-sm text-muted-foreground animate-in fade-in duration-500">
-            Duur: {calculateDuration()} minuten ({(calculateDuration() / 60).toFixed(1)} uur)
+            Duration: {calculateDuration()} minutes ({(calculateDuration() / 60).toFixed(1)} hours)
           </div>
         )}
 
@@ -169,7 +169,7 @@ export function BookingDateTimeFields({
             onCheckedChange={(checked) => onAutoUpdateChange(checked === true)} 
           />
           <label htmlFor="auto-update" className="text-sm text-muted-foreground">
-            Automatisch eindtijd berekenen op basis van service type
+            Automatically calculate end time based on service type
           </label>
         </div>
       </div>

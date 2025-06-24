@@ -23,22 +23,22 @@ interface BookingBasicFieldsProps {
 export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: BookingBasicFieldsProps) {
   return (
     <div className="space-y-6">
-      {/* Titel */}
+      {/* Title */}
       <FormField
         control={form.control}
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Titel *</FormLabel>
+            <FormLabel>Title *</FormLabel>
             <FormControl>
-              <Input {...field} placeholder="Voer een titel in" className="bg-background" />
+              <Input {...field} placeholder="Enter a title" className="bg-background" />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Service Type Selectie */}
+      {/* Service Type Selection */}
       {serviceTypes.length > 0 && (
         <FormField
           control={form.control}
@@ -49,7 +49,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
               <Select onValueChange={onServiceTypeChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Selecteer service type" />
+                    <SelectValue placeholder="Select service type" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -66,32 +66,32 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         />
       )}
 
-      {/* Locatie */}
+      {/* Location */}
       <FormField
         control={form.control}
         name="location"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Locatie</FormLabel>
+            <FormLabel>Location</FormLabel>
             <FormControl>
-              <Input {...field} placeholder="Voer een locatie in" className="bg-background" />
+              <Input {...field} placeholder="Enter a location" className="bg-background" />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Beschrijving */}
+      {/* Description */}
       <FormField
         control={form.control}
         name="description"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Beschrijving</FormLabel>
+            <FormLabel>Description</FormLabel>
             <FormControl>
               <Textarea 
                 {...field} 
-                placeholder="Voer een beschrijving in" 
+                placeholder="Enter a description" 
                 className="bg-background"
                 rows={3}
               />
