@@ -20,7 +20,6 @@ interface CustomRangeCalendarProps {
 
 export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCancel }: CustomRangeCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectingStart, setSelectingStart] = useState(true);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -48,7 +47,6 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
         startDate: null,
         endDate: null
       });
-      setSelectingStart(true);
       return;
     }
 
@@ -58,34 +56,36 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
         startDate: null,
         endDate: null
       });
-      setSelectingStart(true);
       return;
     }
 
-    if (selectingStart || !value.startDate) {
-      // Select start date
+    if (!value.startDate) {
+      // No start date selected - set as start date
       onChange({
         startDate: date,
         endDate: null
       });
-      setSelectingStart(false);
-    } else {
-      // Select end date
+    } else if (!value.endDate) {
+      // Start date exists but no end date - set as end date
       if (isBefore(date, value.startDate)) {
         // If selected date is before start date, make it the new start date
         onChange({
           startDate: date,
           endDate: null
         });
-        setSelectingStart(false);
       } else {
         // Set as end date
         onChange({
           startDate: value.startDate,
           endDate: date
         });
-        setSelectingStart(true);
       }
+    } else {
+      // Both dates are selected - start new selection
+      onChange({
+        startDate: date,
+        endDate: null
+      });
     }
   };
 
@@ -112,7 +112,6 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
 
   const handleClear = () => {
     onChange({ startDate: null, endDate: null });
-    setSelectingStart(true);
     onClear();
   };
 
@@ -193,13 +192,14 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
       </div>
 
       {/* Selected range display */}
-      {value.startDate && (
+      {(value.startDate || value.endDate) && (
         <div className="mt-6 p-3 bg-muted/50 rounded-lg border">
           <div className="text-sm text-muted-foreground mb-1">Selected Range</div>
           <div className="text-sm font-medium">
-            {value.startDate && format(value.startDate, 'MMM d, yyyy')}
-            {value.endDate && ` - ${format(value.endDate, 'MMM d, yyyy')}`}
-            {!value.endDate && ' - Select end date'}
+            {value.startDate ? format(value.startDate, 'MMM d, yyyy') : 'Select start date'}
+            {value.startDate && !value.endDate && ' - Select end date'}
+            {value.startDate && value.endDate && ` - ${format(value.endDate, 'MMM d, yyyy')}`}
+            {!value.startDate && value.endDate && ` - ${format(value.endDate, 'MMM d, yyyy')}`}
           </div>
         </div>
       )}
