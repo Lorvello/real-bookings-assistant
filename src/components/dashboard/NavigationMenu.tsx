@@ -37,7 +37,7 @@ export function NavigationMenu({ isSidebarOpen, onNavigate }: NavigationMenuProp
   const location = useLocation();
 
   return (
-    <nav className="flex-1 space-y-1 px-1 py-4">
+    <nav className="flex-1 space-y-1 px-1 py-1">
       {navigation.map((item) => {
         const isActive = location.pathname === item.href;
         return (
