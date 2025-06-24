@@ -23,7 +23,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
             {/* Main Content - Left Side */}
             <div className="lg:col-span-3 space-y-8">
               {/* Daily Availability */}
-              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6 shadow-lg shadow-black/5">
+              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-4 shadow-lg shadow-black/5">
                 <DailyAvailability onChange={onUnsavedChanges} />
               </div>
             </div>
@@ -92,7 +92,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
               </div>
             </div>
             
-            <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6 shadow-lg shadow-black/5">
+            <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-4 shadow-lg shadow-black/5">
               <DateOverrides onChange={onUnsavedChanges} />
             </div>
           </div>

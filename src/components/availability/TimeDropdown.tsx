@@ -85,16 +85,16 @@ export const TimeDropdown: React.FC<TimeDropdownProps> = ({
         variant="outline"
         onClick={handleButtonClick}
         type="button"
-        className="w-18 h-10 text-sm bg-gray-800 border-gray-600 text-white hover:bg-gray-700 focus:border-teal-500 focus:ring-teal-500 flex items-center justify-between px-3"
+        className="w-16 h-8 text-xs bg-gray-800 border-gray-600 text-white hover:bg-gray-700 focus:border-teal-500 focus:ring-teal-500 flex items-center justify-between px-2"
       >
         <span>{formattedValue}</span>
-        <ChevronDown className={`h-3 w-3 opacity-50 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-2.5 w-2.5 opacity-50 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </Button>
       
       <div
-        className={`absolute top-full left-0 w-18 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-50 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 transition-all duration-200 ease-out ${
+        className={`absolute top-full left-0 w-16 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-50 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 transition-all duration-200 ease-out ${
           isOpen 
-            ? 'opacity-100 scale-100 max-h-48 overflow-y-auto' 
+            ? 'opacity-100 scale-100 max-h-40 overflow-y-auto' 
             : 'opacity-0 scale-95 max-h-0 overflow-hidden pointer-events-none'
         }`}
       >
@@ -108,7 +108,7 @@ export const TimeDropdown: React.FC<TimeDropdownProps> = ({
               onClose();
             }}
             type="button"
-            className={`w-full px-3 py-1.5 text-sm text-left hover:bg-gray-700 transition-colors duration-150 ${
+            className={`w-full px-2 py-1 text-xs text-left hover:bg-gray-700 transition-colors duration-150 ${
               time === formattedValue ? 'bg-gray-700 text-teal-400' : 'text-white'
             }`}
           >

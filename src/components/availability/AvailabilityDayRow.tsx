@@ -54,16 +54,16 @@ export const AvailabilityDayRow: React.FC<AvailabilityDayRowProps> = ({
         <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse z-10" />
       )}
       
-      <div className="space-y-2">
+      <div className="space-y-1">
         {/* Day header with toggle and name */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 min-w-[160px]">
+          <div className="flex items-center space-x-3 min-w-[140px]">
             <Switch
               checked={dayAvailability.enabled}
               onCheckedChange={(enabled) => onUpdateDayEnabled(day.key, enabled)}
-              className="scale-110"
+              className="scale-100"
             />
-            <span className={`text-base font-medium ${
+            <span className={`text-sm font-medium ${
               dayAvailability.enabled 
                 ? 'text-white' 
                 : 'text-gray-400'
@@ -75,7 +75,7 @@ export const AvailabilityDayRow: React.FC<AvailabilityDayRowProps> = ({
 
         {/* Time blocks */}
         {dayAvailability.enabled && (
-          <div className="space-y-1 ml-10">
+          <div className="space-y-1 ml-8">
             {dayAvailability.timeBlocks.map((block, index) => (
               <TimeBlockRow
                 key={block.id}
