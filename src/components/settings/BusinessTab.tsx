@@ -25,8 +25,8 @@ export const BusinessTab: React.FC<BusinessTabProps> = ({
         <div className="flex items-center space-x-3">
           <Save className="h-5 w-5 text-green-400" />
           <div>
-            <p className="text-white font-medium">Save Changes</p>
-            <p className="text-gray-400 text-sm">Save your business information</p>
+            <p className="text-white font-medium">Wijzigingen Opslaan</p>
+            <p className="text-gray-400 text-sm">Bewaar je bedrijfsinformatie</p>
           </div>
         </div>
         <Button
@@ -34,7 +34,7 @@ export const BusinessTab: React.FC<BusinessTabProps> = ({
           disabled={loading}
           className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium px-6 py-2 rounded-lg transition-all duration-200 disabled:opacity-50"
         >
-          {loading ? 'Saving...' : 'Save Business Information'}
+          {loading ? 'Bezig met opslaan...' : 'Bedrijfsgegevens Opslaan'}
         </Button>
       </div>
 

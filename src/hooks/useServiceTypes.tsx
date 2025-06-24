@@ -1,110 +1,184 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { ServiceType } from '@/types/database';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useToast } from '@/hooks/use-toast';
 
-export const useServiceTypes = (calendarId?: string) => {
-  const { user } = useAuth();
+export interface ServiceType {
+  id: string;
+  calendar_id: string;
+  name: string;
+  description?: string;
+  duration: number;
+  price?: number;
+  color: string;
+  is_active: boolean;
+  max_attendees: number;
+  preparation_time: number;
+  cleanup_time: number;
+  created_at: string;
+}
+
+export const useServiceTypes = () => {
+  const { selectedCalendar } = useCalendarContext();
   const { toast } = useToast();
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user && calendarId) {
+    if (selectedCalendar?.id) {
       fetchServiceTypes();
-    } else {
-      setServiceTypes([]);
-      setLoading(false);
     }
-  }, [user, calendarId]);
+  }, [selectedCalendar]);
 
   const fetchServiceTypes = async () => {
-    if (!calendarId) return;
+    if (!selectedCalendar?.id) return;
+
+    setLoading(true);
+    setError(null);
 
     try {
-      const { data, error } = await supabase
+      console.log('Fetching service types for calendar:', selectedCalendar.id);
+
+      const { data, error: fetchError } = await supabase
         .from('service_types')
         .select('*')
-        .eq('calendar_id', calendarId)
+        .eq('calendar_id', selectedCalendar.id)
         .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching service types:', error);
+      if (fetchError) {
+        console.error('Error fetching service types:', fetchError);
+        setError('Fout bij ophalen service types');
         return;
       }
 
-      setServiceTypes(data || []);
+      console.log('Service types data:', data);
+
+      if (!data || data.length === 0) {
+        console.log('No service types found, creating default one...');
+        await createDefaultServiceType();
+      } else {
+        setServiceTypes(data);
+      }
     } catch (error) {
-      console.error('Error fetching service types:', error);
+      console.error('Error in fetchServiceTypes:', error);
+      setError('Er is een fout opgetreden bij het laden van service types');
     } finally {
       setLoading(false);
     }
   };
 
-  const createServiceType = async (serviceType: Omit<ServiceType, 'id' | 'created_at'>) => {
-    if (!calendarId) return;
+  const createDefaultServiceType = async () => {
+    if (!selectedCalendar?.id) return;
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('service_types')
-        .insert({ ...serviceType, calendar_id: calendarId });
+        .insert({
+          calendar_id: selectedCalendar.id,
+          name: 'Standaard Afspraak',
+          description: 'Standaard service type',
+          duration: 30,
+          price: 50.00,
+          color: '#3B82F6',
+          is_active: true,
+          max_attendees: 1,
+          preparation_time: 0,
+          cleanup_time: 0
+        })
+        .select()
+        .single();
 
       if (error) {
+        console.error('Error creating default service type:', error);
         toast({
-          title: "Error",
-          description: "Failed to create service type",
+          title: "Fout",
+          description: "Kon geen standaard service type aanmaken",
           variant: "destructive",
         });
         return;
       }
 
+      console.log('Created default service type:', data);
+      setServiceTypes([data]);
+
       toast({
-        title: "Success",
-        description: "Service type created successfully",
+        title: "Succes",
+        description: "Standaard service type aangemaakt",
       });
 
-      await fetchServiceTypes();
+    } catch (error) {
+      console.error('Error creating default service type:', error);
+    }
+  };
+
+  const createServiceType = async (serviceTypeData: Partial<ServiceType>) => {
+    if (!selectedCalendar?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('service_types')
+        .insert({
+          calendar_id: selectedCalendar.id,
+          ...serviceTypeData
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating service type:', error);
+        toast({
+          title: "Fout",
+          description: "Fout bij aanmaken service type",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setServiceTypes(prev => [...prev, data]);
+      toast({
+        title: "Succes",
+        description: "Service type succesvol aangemaakt",
+      });
+
+      return data;
     } catch (error) {
       console.error('Error creating service type:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
     }
   };
 
   const updateServiceType = async (id: string, updates: Partial<ServiceType>) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('service_types')
         .update(updates)
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
 
       if (error) {
+        console.error('Error updating service type:', error);
         toast({
-          title: "Error",
-          description: "Failed to update service type",
+          title: "Fout",
+          description: "Fout bij bijwerken service type",
           variant: "destructive",
         });
         return;
       }
 
+      setServiceTypes(prev => 
+        prev.map(st => st.id === id ? data : st)
+      );
+
       toast({
-        title: "Success",
-        description: "Service type updated successfully",
+        title: "Succes",
+        description: "Service type succesvol bijgewerkt",
       });
 
-      await fetchServiceTypes();
+      return data;
     } catch (error) {
       console.error('Error updating service type:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
     }
   };
 
@@ -116,36 +190,33 @@ export const useServiceTypes = (calendarId?: string) => {
         .eq('id', id);
 
       if (error) {
+        console.error('Error deleting service type:', error);
         toast({
-          title: "Error",
-          description: "Failed to delete service type",
+          title: "Fout",
+          description: "Fout bij verwijderen service type",
           variant: "destructive",
         });
         return;
       }
 
+      setServiceTypes(prev => prev.filter(st => st.id !== id));
       toast({
-        title: "Success",
-        description: "Service type deleted successfully",
+        title: "Succes",
+        description: "Service type succesvol verwijderd",
       });
-
-      await fetchServiceTypes();
     } catch (error) {
       console.error('Error deleting service type:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
     }
   };
 
   return {
     serviceTypes,
     loading,
+    error,
     createServiceType,
     updateServiceType,
     deleteServiceType,
-    refetch: fetchServiceTypes
+    refetch: fetchServiceTypes,
+    hasCalendar: !!selectedCalendar?.id
   };
 };

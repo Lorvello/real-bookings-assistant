@@ -771,34 +771,130 @@ export type Database = {
       }
       users: {
         Row: {
+          accessibility_info: string | null
+          address_city: string | null
+          address_country: string | null
+          address_number: string | null
+          address_postal: string | null
+          address_street: string | null
+          avatar_url: string | null
+          business_city: string | null
+          business_country: string | null
+          business_description: string | null
+          business_email: string | null
           business_name: string | null
+          business_number: string | null
+          business_phone: string | null
+          business_postal: string | null
+          business_street: string | null
           business_type: string | null
+          business_type_other: string | null
+          business_whatsapp: string | null
           created_at: string | null
+          date_of_birth: string | null
           email: string
+          facebook: string | null
           full_name: string | null
+          gender: string | null
           id: string
+          instagram: string | null
+          language: string | null
+          linkedin: string | null
+          opening_hours_note: string | null
+          other_info: string | null
+          parking_info: string | null
           phone: string | null
+          public_transport_info: string | null
+          show_opening_hours: boolean | null
+          team_size: string | null
+          tiktok: string | null
+          timezone: string | null
           updated_at: string | null
+          website: string | null
         }
         Insert: {
+          accessibility_info?: string | null
+          address_city?: string | null
+          address_country?: string | null
+          address_number?: string | null
+          address_postal?: string | null
+          address_street?: string | null
+          avatar_url?: string | null
+          business_city?: string | null
+          business_country?: string | null
+          business_description?: string | null
+          business_email?: string | null
           business_name?: string | null
+          business_number?: string | null
+          business_phone?: string | null
+          business_postal?: string | null
+          business_street?: string | null
           business_type?: string | null
+          business_type_other?: string | null
+          business_whatsapp?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
           email: string
+          facebook?: string | null
           full_name?: string | null
+          gender?: string | null
           id: string
+          instagram?: string | null
+          language?: string | null
+          linkedin?: string | null
+          opening_hours_note?: string | null
+          other_info?: string | null
+          parking_info?: string | null
           phone?: string | null
+          public_transport_info?: string | null
+          show_opening_hours?: boolean | null
+          team_size?: string | null
+          tiktok?: string | null
+          timezone?: string | null
           updated_at?: string | null
+          website?: string | null
         }
         Update: {
+          accessibility_info?: string | null
+          address_city?: string | null
+          address_country?: string | null
+          address_number?: string | null
+          address_postal?: string | null
+          address_street?: string | null
+          avatar_url?: string | null
+          business_city?: string | null
+          business_country?: string | null
+          business_description?: string | null
+          business_email?: string | null
           business_name?: string | null
+          business_number?: string | null
+          business_phone?: string | null
+          business_postal?: string | null
+          business_street?: string | null
           business_type?: string | null
+          business_type_other?: string | null
+          business_whatsapp?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
           email?: string
+          facebook?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
+          instagram?: string | null
+          language?: string | null
+          linkedin?: string | null
+          opening_hours_note?: string | null
+          other_info?: string | null
+          parking_info?: string | null
           phone?: string | null
+          public_transport_info?: string | null
+          show_opening_hours?: boolean | null
+          team_size?: string | null
+          tiktok?: string | null
+          timezone?: string | null
           updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -1585,6 +1681,10 @@ export type Database = {
         }
         Returns: Json
       }
+      ensure_default_service_types: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       export_whatsapp_data: {
         Args: { p_calendar_id: string }
         Returns: Json
@@ -1638,6 +1738,10 @@ export type Database = {
         Returns: Json
       }
       get_dashboard_metrics: {
+        Args: { p_calendar_id: string }
+        Returns: Json
+      }
+      get_dashboard_metrics_safe: {
         Args: { p_calendar_id: string }
         Returns: Json
       }

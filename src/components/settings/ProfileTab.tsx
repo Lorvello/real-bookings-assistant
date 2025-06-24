@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         <div className="flex items-center space-x-3">
           <Save className="h-5 w-5 text-green-400" />
           <div>
-            <p className="text-white font-medium">Save Changes</p>
-            <p className="text-gray-400 text-sm">Save your profile information</p>
+            <p className="text-white font-medium">Wijzigingen Opslaan</p>
+            <p className="text-gray-400 text-sm">Bewaar je profielgegevens</p>
           </div>
         </div>
         <Button
@@ -31,18 +32,18 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           disabled={loading}
           className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium px-6 py-2 rounded-lg transition-all duration-200 disabled:opacity-50"
         >
-          {loading ? 'Saving...' : 'Save Profile'}
+          {loading ? 'Bezig met opslaan...' : 'Profiel Opslaan'}
         </Button>
       </div>
 
       {/* Basic Information */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Basic Information</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Basisinformatie</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Full Name *
+              Volledige Naam *
             </label>
             <input
               type="text"
@@ -74,7 +75,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Phone Number *
+              Telefoonnummer *
             </label>
             <input
               type="tel"
@@ -90,7 +91,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Date of Birth
+              Geboortedatum
             </label>
             <input
               type="date"
@@ -105,7 +106,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Language
+              Taal
             </label>
             <select
               value={profileData.language}
@@ -115,19 +116,19 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               })}
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             >
-              <option value="nl">Dutch</option>
-              <option value="en">English</option>
-              <option value="de">German</option>
-              <option value="fr">French</option>
-              <option value="es">Spanish</option>
-              <option value="tr">Turkish</option>
-              <option value="ar">Arabic</option>
+              <option value="nl">Nederlands</option>
+              <option value="en">Engels</option>
+              <option value="de">Duits</option>
+              <option value="fr">Frans</option>
+              <option value="es">Spaans</option>
+              <option value="tr">Turks</option>
+              <option value="ar">Arabisch</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Timezone
+              Tijdzone
             </label>
             <select
               value={profileData.timezone}
@@ -138,7 +139,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             >
               <option value="Europe/Amsterdam">Amsterdam (CET)</option>
-              <option value="Europe/London">London (GMT)</option>
+              <option value="Europe/London">Londen (GMT)</option>
               <option value="America/New_York">New York (EST)</option>
               <option value="America/Los_Angeles">Los Angeles (PST)</option>
             </select>
@@ -146,14 +147,14 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
       </div>
 
-      {/* Business Address Information */}
+      {/* Address Information */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Business Address Information</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Adresgegevens</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Street Name
+              Straatnaam
             </label>
             <input
               type="text"
@@ -168,7 +169,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              House Number
+              Huisnummer
             </label>
             <input
               type="text"
@@ -183,7 +184,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Postal Code
+              Postcode
             </label>
             <input
               type="text"
@@ -198,7 +199,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              City
+              Plaats
             </label>
             <input
               type="text"
@@ -229,7 +230,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 ...profileData,
                 website: e.target.value
               })}
-              placeholder="https://www.example.com"
+              placeholder="https://www.voorbeeld.nl"
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             />
           </div>
@@ -245,7 +246,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 ...profileData,
                 instagram: e.target.value
               })}
-              placeholder="@username"
+              placeholder="@gebruikersnaam"
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             />
           </div>
@@ -261,7 +262,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 ...profileData,
                 facebook: e.target.value
               })}
-              placeholder="facebook.com/pagename"
+              placeholder="facebook.com/paginanaam"
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             />
           </div>
