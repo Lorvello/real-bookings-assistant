@@ -112,21 +112,21 @@ export function WeekScheduleView({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 bg-primary rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center py-8">
+        <div className="w-6 h-6 bg-primary rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-background-secondary rounded-lg p-6 border border-border">
-        <h3 className="text-lg font-medium text-foreground mb-6 flex items-center">
-          <Clock className="h-5 w-5 mr-2" />
+    <div className="space-y-3">
+      <div className="bg-background-secondary rounded-lg p-4 border border-border">
+        <h3 className="text-base font-medium text-foreground mb-4 flex items-center">
+          <Clock className="h-4 w-4 mr-2" />
           Werkuren per dag
         </h3>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           {DAYS_OF_WEEK.map((day) => {
             const rule = getRuleForDay(day.key);
 

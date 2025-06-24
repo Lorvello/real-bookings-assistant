@@ -58,8 +58,8 @@ export const AvailabilityManager = () => {
     return (
       <div className="flex items-center justify-center h-full bg-gray-900">
         <div className="text-center">
-          <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-lg text-gray-300">Loading...</div>
+          <div className="w-6 h-6 bg-green-600 rounded-full animate-spin mx-auto mb-3"></div>
+          <div className="text-base text-gray-300">Loading...</div>
         </div>
       </div>
     );
@@ -71,7 +71,7 @@ export const AvailabilityManager = () => {
 
   if (!availabilityCalendar) {
     return (
-      <div className="bg-gray-900 min-h-full p-8">
+      <div className="bg-gray-900 min-h-full p-4">
         <NoCalendarSelected profile={profile} user={profile} />
       </div>
     );
@@ -81,16 +81,16 @@ export const AvailabilityManager = () => {
     <div className="bg-gray-900 min-h-full">
       {/* Save Button and Status */}
       {hasUnsavedChanges && (
-        <div className="p-8 pb-0">
-          <div className="bg-amber-900/30 border border-amber-500/30 rounded-xl p-4 mb-6">
+        <div className="p-4 pb-0">
+          <div className="bg-amber-900/30 border border-amber-500/30 rounded-lg p-3 mb-4">
             <div className="flex items-center justify-between">
-              <div className="text-yellow-400">
+              <div className="text-yellow-400 text-sm">
                 You have unsaved changes
               </div>
               <button
                 onClick={handleSave}
                 disabled={false}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-sm disabled:opacity-50"
               >
                 Save
               </button>
@@ -104,8 +104,8 @@ export const AvailabilityManager = () => {
         onTabChange={setActiveTab}
       />
 
-      <div className="p-8 pt-6">
-        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
+      <div className="p-4 pt-3">
+        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-4">
           <AvailabilityContent
             activeTab={activeTab}
             onUnsavedChanges={handleUnsavedChanges}

@@ -65,7 +65,7 @@ const getBookingsStartingInTimeSlot = (bookings: Booking[], day: Date, timeSlot:
   });
 };
 
-// Fixed positioning calculation
+// Fixed positioning calculation - made more compact
 const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
   const startTime = new Date(booking.start_time);
   const endTime = new Date(booking.end_time);
@@ -80,15 +80,15 @@ const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
   const bookingTotalMinutes = bookingHours * 60 + bookingMinutes;
   
   const offsetMinutes = bookingTotalMinutes - baseSlotMinutes;
-  const topOffset = Math.max(0, (offsetMinutes / 30) * 80); // 30 min = 80px
+  const topOffset = Math.max(0, (offsetMinutes / 30) * 50); // 30 min = 50px (reduced from 80px)
   
-  // Calculate height based on duration
-  const height = Math.max(40, (duration / 30) * 80); // minimum 40px, 30 min = 80px
+  // Calculate height based on duration - more compact
+  const height = Math.max(30, (duration / 30) * 50); // minimum 30px, 30 min = 50px (reduced from 40px/80px)
   
   return { topOffset, height };
 };
 
-// Booking Block Component
+// Booking Block Component - more compact
 function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking; timeSlot: string; onBookingClick: (booking: Booking) => void }) {
   const { topOffset, height } = calculateBookingPosition(booking, timeSlot);
   const startTime = new Date(booking.start_time);
@@ -96,20 +96,20 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
 
   return (
     <div
-      className="absolute inset-x-0 mx-2 p-3 rounded-2xl cursor-pointer hover:shadow-xl transition-all duration-200 z-10 group hover:scale-105 border border-white/20"
+      className="absolute inset-x-0 mx-1 p-2 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 group hover:scale-105 border border-white/20"
       style={{
         background: `linear-gradient(135deg, ${booking.service_types?.color || '#3B82F6'}, ${booking.service_types?.color || '#3B82F6'}dd)`,
         height: `${height}px`,
         top: `${topOffset}px`,
-        boxShadow: `0 4px 20px ${booking.service_types?.color || '#3B82F6'}40`
+        boxShadow: `0 2px 10px ${booking.service_types?.color || '#3B82F6'}40`
       }}
       title={`${booking.customer_name} - ${booking.service_types?.name || 'Appointment'} (${booking.customer_phone || 'No phone'})`}
       onClick={() => onBookingClick(booking)}
     >
       <div className="text-white">
-        <div className="flex items-center justify-between mb-2">
-          <div className="font-bold text-sm truncate">{booking.customer_name}</div>
-          <div className={`w-2 h-2 rounded-full ${
+        <div className="flex items-center justify-between mb-1">
+          <div className="font-bold text-xs truncate">{booking.customer_name}</div>
+          <div className={`w-1.5 h-1.5 rounded-full ${
             booking.status === 'confirmed' ? 'bg-white/90' :
             booking.status === 'pending' ? 'bg-yellow-300/90' :
             'bg-red-300/90'
@@ -122,8 +122,8 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
           {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
         </div>
         {booking.customer_phone && (
-          <div className="text-white/70 text-xs truncate flex items-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <div className="text-white/70 text-xs truncate flex items-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg className="w-2.5 h-2.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
               <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
             </svg>
             {booking.customer_phone}
@@ -139,7 +139,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
   
   const weekDays = getWeekDays(currentDate);
-  const timeSlots = generateTimeSlots(7, 22, 30); // 7:00 - 22:00, 30 min slots
+  const timeSlots = generateTimeSlots(8, 20, 30); // 8:00 - 20:00, 30 min slots (reduced from 7-22)
 
   const handleBookingClick = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -153,14 +153,14 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
 
   return (
     <div className="h-full overflow-auto bg-gradient-to-br from-background via-card to-background/95">
-      {/* Fixed header with days */}
+      {/* Fixed header with days - more compact */}
       <div className="sticky top-0 z-20 bg-card/95 backdrop-blur-sm border-b border-border/60 shadow-sm">
         <div className="grid grid-cols-8 gap-px">
-          <div className="w-20 p-4">
+          <div className="w-16 p-2">
             <div className="text-xs font-semibold text-muted-foreground">Time</div>
           </div>
           {weekDays.map((day) => (
-            <div key={day.toISOString()} className={`text-center py-4 px-2 rounded-2xl mx-1 transition-all duration-200 ${
+            <div key={day.toISOString()} className={`text-center py-2 px-1 rounded-lg mx-1 transition-all duration-200 ${
               isToday(day) 
                 ? 'bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30' 
                 : 'hover:bg-accent/50'
@@ -168,7 +168,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
               <div className="text-xs text-muted-foreground font-medium">
                 {format(day, 'EEE', { locale: enUS })}
               </div>
-              <div className={`text-xl font-bold mt-1 ${
+              <div className={`text-lg font-bold mt-0.5 ${
                 isToday(day) ? 'text-primary' : 'text-foreground'
               }`}>
                 {format(day, 'd')}
@@ -181,7 +181,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
         </div>
       </div>
 
-      {/* Scrollable time grid */}
+      {/* Scrollable time grid - more compact */}
       <div className="relative">
         {/* Time slots */}
         {timeSlots.map((timeSlot, index) => (
@@ -189,7 +189,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
             index % 2 === 0 ? 'bg-muted/20' : 'bg-transparent'
           }`}>
             {/* Time label */}
-            <div className="w-20 py-6 px-4 text-sm font-medium text-muted-foreground text-right border-r border-border/40">
+            <div className="w-16 py-3 px-2 text-xs font-medium text-muted-foreground text-right border-r border-border/40">
               {timeSlot}
             </div>
             
@@ -201,7 +201,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
               return (
                 <div
                   key={`${day.toISOString()}-${timeSlot}`}
-                  className={`relative transition-colors min-h-[80px] border-r border-border/30 ${
+                  className={`relative transition-colors min-h-[50px] border-r border-border/30 ${
                     isToday(day) 
                       ? 'bg-primary/5 hover:bg-primary/10' 
                       : 'bg-card/50 hover:bg-accent/30'
