@@ -8,7 +8,7 @@ interface MetricCardProps {
   value: string;
   subtitle: string;
   icon: LucideIcon;
-  variant: 'blue' | 'green';
+  variant: 'blue' | 'green' | 'orange' | 'purple';
   delay: number;
   change?: {
     value: number;
@@ -33,7 +33,8 @@ export function MetricCard({
       borderColor: 'border-blue-500/30',
       iconBgFrom: 'from-blue-500/20',
       iconBgTo: 'to-cyan-500/20',
-      iconColor: 'text-blue-400'
+      iconColor: 'text-blue-400',
+      glowColor: 'shadow-blue-500/25'
     },
     green: {
       gradientFrom: 'from-emerald-500/40',
@@ -41,7 +42,26 @@ export function MetricCard({
       borderColor: 'border-emerald-500/30',
       iconBgFrom: 'from-emerald-500/20',
       iconBgTo: 'to-teal-500/20',
-      iconColor: 'text-emerald-400'
+      iconColor: 'text-emerald-400',
+      glowColor: 'shadow-emerald-500/25'
+    },
+    orange: {
+      gradientFrom: 'from-orange-500/40',
+      gradientTo: 'to-amber-500/30',
+      borderColor: 'border-orange-500/30',
+      iconBgFrom: 'from-orange-500/20',
+      iconBgTo: 'to-amber-500/20',
+      iconColor: 'text-orange-400',
+      glowColor: 'shadow-orange-500/25'
+    },
+    purple: {
+      gradientFrom: 'from-purple-500/40',
+      gradientTo: 'to-violet-500/30',
+      borderColor: 'border-purple-500/30',
+      iconBgFrom: 'from-purple-500/20',
+      iconBgTo: 'to-violet-500/20',
+      iconColor: 'text-purple-400',
+      glowColor: 'shadow-purple-500/25'
     }
   };
 
@@ -57,8 +77,8 @@ export function MetricCard({
       {/* Background glow effect */}
       <div className={`absolute -inset-2 bg-gradient-to-br ${colors.gradientFrom} ${colors.gradientTo} blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300`}></div>
       
-      {/* Card container with fixed height */}
-      <div className={`relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border ${colors.borderColor} rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-40 flex flex-col justify-between p-6`}>
+      {/* Card container with standardized height */}
+      <div className={`relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border ${colors.borderColor} rounded-2xl shadow-xl ${colors.glowColor} hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-44 flex flex-col justify-between p-6`}>
         
         {/* Header with title and icon */}
         <div className="flex items-center justify-between mb-4">

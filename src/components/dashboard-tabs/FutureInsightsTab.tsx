@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useOptimizedFutureInsights } from '@/hooks/dashboard/useOptimizedFutureInsights';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
@@ -24,10 +23,10 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="animate-pulse">
-              <div className="h-40 bg-muted rounded-lg"></div>
+              <div className="h-44 bg-muted rounded-lg"></div>
             </div>
           ))}
         </div>
@@ -47,14 +46,14 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
 
   return (
     <div className="space-y-12">
-      {/* Enhanced Future Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* Future Metrics - Paars/Violet Thema */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <MetricCard
           title="Wachtlijst"
           value={String(insights?.waitlist_size || 0)}
           subtitle="wachtende klanten"
           icon={Clock}
-          variant="blue"
+          variant="purple"
           delay={0.1}
         />
 
@@ -63,7 +62,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
           value={String(insights?.returning_customers_month || 0)}
           subtitle="deze maand"
           icon={Users}
-          variant="green"
+          variant="purple"
           delay={0.2}
         />
 
@@ -72,19 +71,19 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
           value="Stabiel"
           subtitle="komende weken"
           icon={TrendingUp}
-          variant="blue"
+          variant="purple"
           delay={0.3}
         />
       </div>
 
       {/* Enhanced Demand Forecast Chart */}
       <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-green-500/30 via-blue-500/20 to-green-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
+        <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
           <div className="p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-xl">
-                <TrendingUp className="h-6 w-6 text-green-400" />
+              <div className="p-2 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl">
+                <TrendingUp className="h-6 w-6 text-purple-400" />
               </div>
               <h3 className="text-xl font-bold text-slate-100">Vraag Voorspelling (Komende Weken)</h3>
             </div>
@@ -106,7 +105,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                       formatter={(value) => [value, 'Verwachte Boekingen']}
                       contentStyle={{
                         backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        border: '1px solid rgba(34, 197, 94, 0.3)',
+                        border: '1px solid rgba(168, 85, 247, 0.3)',
                         borderRadius: '12px',
                         color: '#F1F5F9'
                       }}
@@ -114,10 +113,10 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                     <Line 
                       type="monotone" 
                       dataKey="bookings" 
-                      stroke="#22C55E" 
+                      stroke="#A855F7" 
                       strokeWidth={3}
-                      dot={{ fill: '#22C55E', strokeWidth: 2, r: 6 }}
-                      activeDot={{ r: 8, stroke: '#22C55E', strokeWidth: 2, fill: '#1F2937' }}
+                      dot={{ fill: '#A855F7', strokeWidth: 2, r: 6 }}
+                      activeDot={{ r: 8, stroke: '#A855F7', strokeWidth: 2, fill: '#1F2937' }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -137,12 +136,12 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
 
       {/* Enhanced Seasonal Patterns */}
       <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-green-500/20 to-blue-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
+        <div className="absolute -inset-1 bg-gradient-to-r from-violet-500/20 via-purple-500/15 to-violet-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-violet-500/30 rounded-2xl shadow-2xl">
           <div className="p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-blue-500/20 to-green-500/20 rounded-xl">
-                <Calendar className="h-6 w-6 text-blue-400" />
+              <div className="p-2 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-xl">
+                <Calendar className="h-6 w-6 text-violet-400" />
               </div>
               <h3 className="text-xl font-bold text-slate-100">Seizoenspatronen</h3>
             </div>
@@ -162,20 +161,20 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                       formatter={(value) => [Math.round(Number(value)), 'Gem. Boekingen']}
                       contentStyle={{
                         backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        border: '1px solid rgba(139, 92, 246, 0.3)',
                         borderRadius: '12px',
                         color: '#F1F5F9'
                       }}
                     />
                     <Bar 
                       dataKey="avg_bookings" 
-                      fill="url(#blueGradient)"
+                      fill="url(#purpleGradient)"
                       radius={[4, 4, 0, 0]}
                     />
                     <defs>
-                      <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.8"/>
-                        <stop offset="100%" stopColor="#1E40AF" stopOpacity="0.6"/>
+                      <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.8"/>
+                        <stop offset="100%" stopColor="#7C3AED" stopOpacity="0.6"/>
                       </linearGradient>
                     </defs>
                   </BarChart>
@@ -196,12 +195,12 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
 
       {/* Intelligent Recommendations */}
       <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-blue-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
+        <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/15 via-violet-500/10 to-purple-500/15 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
           <div className="p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-xl">
-                <TrendingUp className="h-6 w-6 text-green-400" />
+              <div className="p-2 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl">
+                <TrendingUp className="h-6 w-6 text-purple-400" />
               </div>
               <h3 className="text-xl font-bold text-slate-100">Intelligente Aanbevelingen</h3>
               <p className="text-sm text-slate-400 ml-auto">Gebaseerd op je performance data</p>

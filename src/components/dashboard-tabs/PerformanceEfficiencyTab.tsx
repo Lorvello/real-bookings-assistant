@@ -22,11 +22,11 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
-          {[1, 2, 3, 4, 5].map((i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
             <div 
               key={i} 
-              className="h-40 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"
+              className="h-44 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"
             />
           ))}
         </div>
@@ -46,8 +46,8 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
 
   return (
     <div className="space-y-12">
-      {/* Operational Performance Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+      {/* Operational Performance Metrics - Blauw Thema */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Reactietijd"
           value={`${performance?.avg_response_time_minutes?.toFixed(1) || '0.0'}m`}
@@ -76,31 +76,22 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
         />
 
         <MetricCard
-          title="Kalender Bezetting"
-          value={`${performance?.calendar_utilization_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="deze week"
-          icon={Calendar}
-          variant="green"
-          delay={0.4}
-        />
-
-        <MetricCard
           title="Conversie Rate"
           value={`${businessIntel?.whatsapp_conversion_rate?.toFixed(1) || '0.0'}%`}
           subtitle="WhatsApp → Boeking"
           icon={MessageSquare}
-          variant="green"
-          delay={0.5}
+          variant="blue"
+          delay={0.4}
         />
       </div>
 
       {/* Enhanced Peak Hours Chart */}
       <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/30 via-green-500/20 to-blue-500/30 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl">
+        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-cyan-500/15 to-blue-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-blue-500/30 rounded-2xl shadow-2xl">
           <div className="p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-blue-500/20 to-green-500/20 rounded-xl">
+              <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl">
                 <Activity className="h-6 w-6 text-blue-400" />
               </div>
               <h3 className="text-xl font-bold text-slate-100">Piekuren Analyse</h3>
@@ -112,6 +103,18 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
             />
           </div>
         </div>
+      </div>
+
+      {/* Kalender Bezetting Card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <MetricCard
+          title="Kalender Bezetting"
+          value={`${performance?.calendar_utilization_rate?.toFixed(1) || '0.0'}%`}
+          subtitle="deze week"
+          icon={Calendar}
+          variant="blue"
+          delay={0.5}
+        />
       </div>
     </div>
   );

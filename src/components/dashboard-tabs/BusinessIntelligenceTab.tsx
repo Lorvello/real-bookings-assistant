@@ -36,14 +36,14 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
 
   return (
     <div className="space-y-12">
-      {/* Financial & Business Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {/* Financial & Business Metrics - Goud/Oranje Thema */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Maand Omzet"
           value={`€${businessIntel?.month_revenue?.toFixed(2) || '0.00'}`}
           subtitle=""
           icon={Euro}
-          variant="green"
+          variant="orange"
           delay={0.1}
           change={{
             value: revenueChange,
@@ -57,7 +57,7 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
           value={String(businessIntel?.unique_customers_month || 0)}
           subtitle="deze maand"
           icon={Users}
-          variant="blue"
+          variant="orange"
           delay={0.2}
         />
 
@@ -66,7 +66,7 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
           value={`€${businessIntel?.avg_booking_value?.toFixed(2) || '0.00'}`}
           subtitle="per afspraak"
           icon={Euro}
-          variant="green"
+          variant="orange"
           delay={0.3}
         />
 
@@ -75,13 +75,18 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
           value={`€${businessIntel?.prev_month_revenue?.toFixed(2) || '0.00'}`}
           subtitle="omzet vergelijking"
           icon={BarChart3}
-          variant="blue"
+          variant="orange"
           delay={0.4}
         />
       </div>
 
       {/* Service Performance Chart */}
-      <ServicePerformanceChart data={businessIntel?.service_performance} />
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/20 via-amber-500/15 to-orange-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-orange-500/30 rounded-2xl shadow-2xl">
+          <ServicePerformanceChart data={businessIntel?.service_performance} />
+        </div>
+      </div>
     </div>
   );
 }
