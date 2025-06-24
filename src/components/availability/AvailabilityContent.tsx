@@ -37,10 +37,10 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
                   </div>
                   <div>
                     <h3 className="text-lg font-medium text-foreground">
-                      Uitzonderingen op schema
+                      Schedule exceptions
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Voeg datums toe waarop je beschikbaarheid afwijkt van je standaard werkuren.
+                      Add dates when your availability differs from your standard working hours.
                     </p>
                   </div>
                 </div>
@@ -59,17 +59,17 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
                   <div className="p-2 bg-blue-500/20 rounded-2xl">
                     <Globe className="h-4 w-4 text-blue-600" />
                   </div>
-                  <h3 className="text-sm font-medium text-foreground">Tijdzone</h3>
+                  <h3 className="text-sm font-medium text-foreground">Timezone</h3>
                 </div>
                 <Select defaultValue="europe-amsterdam">
                   <SelectTrigger className="w-full bg-background/80 border-border/60 rounded-2xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border rounded-2xl">
-                    <SelectItem value="europe-amsterdam">Europa/Amsterdam</SelectItem>
-                    <SelectItem value="europe-london">Europa/London</SelectItem>
-                    <SelectItem value="america-new-york">Amerika/New_York</SelectItem>
-                    <SelectItem value="asia-tokyo">Azië/Tokyo</SelectItem>
+                    <SelectItem value="europe-amsterdam">Europe/Amsterdam</SelectItem>
+                    <SelectItem value="europe-london">Europe/London</SelectItem>
+                    <SelectItem value="america-new-york">America/New_York</SelectItem>
+                    <SelectItem value="asia-tokyo">Asia/Tokyo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -80,13 +80,13 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
                   <div className="p-2 bg-orange-500/20 rounded-2xl">
                     <Wrench className="h-4 w-4 text-orange-600" />
                   </div>
-                  <h3 className="text-sm font-medium text-foreground">Problemen met je schema?</h3>
+                  <h3 className="text-sm font-medium text-foreground">Problems with your schedule?</h3>
                 </div>
                 <Button
                   variant="outline"
                   className="w-full bg-background/80 border-border/60 hover:bg-muted rounded-2xl"
                 >
-                  Probleemoplosser starten
+                  Start troubleshooter
                 </Button>
               </div>
             </div>

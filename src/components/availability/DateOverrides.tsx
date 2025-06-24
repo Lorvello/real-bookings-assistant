@@ -70,7 +70,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('nl-NL', { 
+    return date.toLocaleDateString('en-US', { 
       weekday: 'long', 
       day: 'numeric', 
       month: 'long' 
@@ -99,12 +99,12 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
       {showAddForm && (
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
-            <CardTitle className="text-base">Nieuwe Uitzondering</CardTitle>
+            <CardTitle className="text-base">New Exception</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date">Datum</Label>
+                <Label htmlFor="date">Date</Label>
                 <Input
                   id="date"
                   type="date"
@@ -115,14 +115,14 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
               </div>
               
               <div className="space-y-2">
-                <Label>Beschikbaar op deze dag</Label>
+                <Label>Available on this day</Label>
                 <div className="flex items-center space-x-2">
                   <Switch
                     checked={newOverride.enabled}
                     onCheckedChange={(enabled) => setNewOverride(prev => ({ ...prev, enabled }))}
                   />
                   <span className="text-sm text-muted-foreground">
-                    {newOverride.enabled ? 'Beschikbaar' : 'Niet beschikbaar'}
+                    {newOverride.enabled ? 'Available' : 'Not available'}
                   </span>
                 </div>
               </div>
@@ -131,7 +131,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
             {newOverride.enabled && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="startTime">Starttijd</Label>
+                  <Label htmlFor="startTime">Start time</Label>
                   <Input
                     id="startTime"
                     type="time"
@@ -142,7 +142,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="endTime">Eindtijd</Label>
+                  <Label htmlFor="endTime">End time</Label>
                   <Input
                     id="endTime"
                     type="time"
@@ -155,10 +155,10 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="reason">Reden (optioneel)</Label>
+              <Label htmlFor="reason">Reason (optional)</Label>
               <Textarea
                 id="reason"
-                placeholder="Bijv. vakantie, feestdag, speciale uren..."
+                placeholder="E.g. vacation, holiday, special hours..."
                 value={newOverride.reason}
                 onChange={(e) => setNewOverride(prev => ({ ...prev, reason: e.target.value }))}
                 className="bg-background border-border"
@@ -180,14 +180,14 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                   });
                 }}
               >
-                Annuleren
+                Cancel
               </Button>
               <Button
                 onClick={addOverride}
                 disabled={!newOverride.date}
                 className="bg-primary hover:bg-primary/90"
               >
-                Toevoegen
+                Add
               </Button>
             </div>
           </CardContent>
@@ -207,7 +207,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                         {formatDate(override.date)}
                       </Badge>
                       <Badge variant={override.enabled ? "outline" : "destructive"}>
-                        {override.enabled ? 'Beschikbaar' : 'Niet beschikbaar'}
+                        {override.enabled ? 'Available' : 'Not available'}
                       </Badge>
                     </div>
                     

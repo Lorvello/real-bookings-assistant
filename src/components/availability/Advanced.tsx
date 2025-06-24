@@ -35,43 +35,43 @@ export const Advanced: React.FC<AdvancedProps> = ({ onChange }) => {
   };
 
   const defaultFields = [
-    { key: 'name', label: 'Naam', description: 'Volledige naam van de klant' },
-    { key: 'email', label: 'E-mailadres', description: 'Voor bevestigingen en communicatie' },
-    { key: 'service', label: 'Service type', description: 'Welke service de klant wil boeken' }
+    { key: 'name', label: 'Name', description: 'Full name of the customer' },
+    { key: 'email', label: 'Email address', description: 'For confirmations and communication' },
+    { key: 'service', label: 'Service type', description: 'Which service the customer wants to book' }
   ];
 
   const optionalFields = [
-    { key: 'phone', label: 'Telefoonnummer', description: 'Voor directe communicatie en WhatsApp' },
-    { key: 'address', label: 'Adres', description: 'Woonadres van de klant' },
-    { key: 'company', label: 'Bedrijfsnaam', description: 'Voor zakelijke klanten' },
-    { key: 'dateOfBirth', label: 'Geboortedatum', description: 'Voor leeftijdsgerelateerde services' },
-    { key: 'emergencyContact', label: 'Noodcontact', description: 'Voor medische of risicovolle treatments' },
-    { key: 'medicalInfo', label: 'Medische informatie', description: 'Allergieën, medicatie, aandoeningen' },
-    { key: 'specialRequests', label: 'Speciale wensen', description: 'Extra verzoeken of opmerkingen' },
-    { key: 'howDidYouHear', label: 'Hoe van ons gehoord', description: 'Marketing tracking' },
-    { key: 'previousExperience', label: 'Eerdere ervaring', description: 'Met vergelijkbare services' },
-    { key: 'budget', label: 'Budget indicatie', description: 'Voor gepersonaliseerde aanbevelingen' },
-    { key: 'preferredCommunication', label: 'Communicatie voorkeur', description: 'E-mail, telefoon, WhatsApp, etc.' }
+    { key: 'phone', label: 'Phone number', description: 'For direct communication and WhatsApp' },
+    { key: 'address', label: 'Address', description: 'Customer\'s home address' },
+    { key: 'company', label: 'Company name', description: 'For business customers' },
+    { key: 'dateOfBirth', label: 'Date of birth', description: 'For age-related services' },
+    { key: 'emergencyContact', label: 'Emergency contact', description: 'For medical or risky treatments' },
+    { key: 'medicalInfo', label: 'Medical information', description: 'Allergies, medication, conditions' },
+    { key: 'specialRequests', label: 'Special requests', description: 'Extra requests or comments' },
+    { key: 'howDidYouHear', label: 'How did you hear about us', description: 'Marketing tracking' },
+    { key: 'previousExperience', label: 'Previous experience', description: 'With similar services' },
+    { key: 'budget', label: 'Budget indication', description: 'For personalized recommendations' },
+    { key: 'preferredCommunication', label: 'Communication preference', description: 'Email, phone, WhatsApp, etc.' }
   ];
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-foreground">Vereiste informatie</h2>
+        <h2 className="text-xl font-semibold text-foreground">Required information</h2>
         <p className="text-sm text-muted-foreground">
-          Configureer welke informatie de AI-agent moet verzamelen voordat een afspraak kan worden ingepland.
+          Configure which information the AI agent should collect before an appointment can be scheduled.
         </p>
       </div>
 
       {/* Default Fields Section */}
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
-          <h3 className="text-lg font-medium text-foreground">Standaard velden</h3>
+          <h3 className="text-lg font-medium text-foreground">Default fields</h3>
           <Info className="h-4 w-4 text-muted-foreground" />
         </div>
         <p className="text-sm text-muted-foreground">
-          Deze velden zijn altijd vereist en kunnen niet worden uitgeschakeld.
+          These fields are always required and cannot be disabled.
         </p>
         
         <div className="space-y-3">
@@ -96,10 +96,10 @@ export const Advanced: React.FC<AdvancedProps> = ({ onChange }) => {
       {/* Optional Fields Section */}
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
-          <h3 className="text-lg font-medium text-foreground">Optionele velden</h3>
+          <h3 className="text-lg font-medium text-foreground">Optional fields</h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          Schakel extra informatievelden in die relevant zijn voor jouw business.
+          Enable additional information fields that are relevant for your business.
         </p>
         
         <div className="space-y-3">
@@ -121,10 +121,10 @@ export const Advanced: React.FC<AdvancedProps> = ({ onChange }) => {
 
       {/* Summary Section */}
       <div className="bg-muted/30 border border-border rounded-lg p-4">
-        <h4 className="text-sm font-medium text-foreground mb-2">Samenvatting</h4>
+        <h4 className="text-sm font-medium text-foreground mb-2">Summary</h4>
         <p className="text-xs text-muted-foreground">
-          De agent zal {3 + Object.values(requiredFields).filter(Boolean).length - 3} informatievelden verzamelen 
-          voordat een afspraak wordt ingepland.
+          The agent will collect {3 + Object.values(requiredFields).filter(Boolean).length - 3} information fields 
+          before an appointment is scheduled.
         </p>
       </div>
     </div>

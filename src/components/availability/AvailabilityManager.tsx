@@ -91,9 +91,9 @@ export const AvailabilityManager = () => {
       {/* Availability Header */}
       <div className="p-8 pb-0">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Beschikbaarheid</h1>
+          <h1 className="text-3xl font-bold text-white">Availability</h1>
           <p className="text-gray-400 mt-1">
-            Beheer je beschikbaarheid voor <strong className="text-white">{availabilityCalendar.name}</strong>
+            Manage your availability for <strong className="text-white">{availabilityCalendar.name}</strong>
           </p>
         </div>
 
@@ -102,14 +102,14 @@ export const AvailabilityManager = () => {
           <div className="bg-amber-900/30 border border-amber-500/30 rounded-xl p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="text-yellow-400">
-                Je hebt niet-opgeslagen wijzigingen
+                You have unsaved changes
               </div>
               <button
                 onClick={handleSave}
                 disabled={loading}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
               >
-                {loading ? 'Opslaan...' : 'Opslaan'}
+                {loading ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>

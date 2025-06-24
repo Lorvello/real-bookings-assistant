@@ -21,21 +21,21 @@ export const AvailabilityTabs: React.FC<AvailabilityTabsProps> = ({
             className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
           >
             <Clock className="h-4 w-4" />
-            Schema
+            Schedule
           </TabsTrigger>
           <TabsTrigger 
             value="limits"
             className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
           >
             <Settings className="h-4 w-4" />
-            Limieten
+            Limits
           </TabsTrigger>
           <TabsTrigger 
             value="advanced"
             className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
           >
             <Zap className="h-4 w-4" />
-            Geavanceerd
+            Advanced
           </TabsTrigger>
         </TabsList>
       </Tabs>
