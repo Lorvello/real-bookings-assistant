@@ -164,7 +164,7 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
       </DropdownMenu>
 
       <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
-        <DialogContent className="sm:max-w-[700px] bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/50 shadow-2xl">
+        <DialogContent className="sm:max-w-[800px] bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/50 shadow-2xl">
           <DialogHeader className="space-y-4 pb-6">
             <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3">
               <div className="p-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl">
@@ -190,18 +190,19 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
                     mode="single"
                     selected={customStartDate}
                     onSelect={setCustomStartDate}
-                    className="pointer-events-auto p-4"
+                    className="pointer-events-auto p-6"
                     classNames={{
                       months: "text-white",
-                      month: "space-y-4",
-                      caption: "text-white font-semibold",
-                      caption_label: "text-white text-lg",
-                      nav_button: "text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors",
-                      head_cell: "text-gray-400 font-medium",
-                      cell: "text-white",
-                      day: "text-white hover:bg-gray-700 rounded-lg transition-colors font-medium",
+                      month: "space-y-6",
+                      caption: "text-white font-semibold mb-4",
+                      caption_label: "text-white text-xl",
+                      nav_button: "text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors w-9 h-9",
+                      head_cell: "text-gray-400 font-medium text-sm w-12 h-12 flex items-center justify-center",
+                      row: "flex w-full mt-1",
+                      cell: "relative w-12 h-12 text-center text-sm p-0 focus-within:relative focus-within:z-20",
+                      day: "w-full h-full text-white hover:bg-gray-700 rounded-lg transition-colors font-medium flex items-center justify-center",
                       day_selected: "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 rounded-lg shadow-lg",
-                      day_today: "bg-gray-700 text-white rounded-lg",
+                      day_today: "bg-gray-700 text-white rounded-lg font-bold",
                       day_outside: "text-gray-500 hover:text-gray-400"
                     }}
                   />
@@ -221,18 +222,19 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
                     mode="single"
                     selected={customEndDate}
                     onSelect={setCustomEndDate}
-                    className="pointer-events-auto p-4"
+                    className="pointer-events-auto p-6"
                     classNames={{
                       months: "text-white",
-                      month: "space-y-4",
-                      caption: "text-white font-semibold",
-                      caption_label: "text-white text-lg",
-                      nav_button: "text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors",
-                      head_cell: "text-gray-400 font-medium",
-                      cell: "text-white",
-                      day: "text-white hover:bg-gray-700 rounded-lg transition-colors font-medium",
+                      month: "space-y-6",
+                      caption: "text-white font-semibold mb-4",
+                      caption_label: "text-white text-xl",
+                      nav_button: "text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors w-9 h-9",
+                      head_cell: "text-gray-400 font-medium text-sm w-12 h-12 flex items-center justify-center",
+                      row: "flex w-full mt-1",
+                      cell: "relative w-12 h-12 text-center text-sm p-0 focus-within:relative focus-within:z-20",
+                      day: "w-full h-full text-white hover:bg-gray-700 rounded-lg transition-colors font-medium flex items-center justify-center",
                       day_selected: "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 rounded-lg shadow-lg",
-                      day_today: "bg-gray-700 text-white rounded-lg",
+                      day_today: "bg-gray-700 text-white rounded-lg font-bold",
                       day_outside: "text-gray-500 hover:text-gray-400"
                     }}
                   />
