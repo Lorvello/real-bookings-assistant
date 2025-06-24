@@ -41,6 +41,27 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
   const allDays = eachDayOfInterval({ start: startDate, end: endDate });
 
   const handleDateClick = (date: Date) => {
+    // Check if clicking on an already selected date
+    if (value.startDate && isSameDay(date, value.startDate) && !value.endDate) {
+      // Clicking on the selected start date when no end date is selected - clear selection
+      onChange({
+        startDate: null,
+        endDate: null
+      });
+      setSelectingStart(true);
+      return;
+    }
+
+    if (value.startDate && value.endDate && (isSameDay(date, value.startDate) || isSameDay(date, value.endDate))) {
+      // Clicking on either selected date when both are selected - clear selection
+      onChange({
+        startDate: null,
+        endDate: null
+      });
+      setSelectingStart(true);
+      return;
+    }
+
     if (selectingStart || !value.startDate) {
       // Select start date
       onChange({
