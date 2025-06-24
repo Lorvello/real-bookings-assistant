@@ -1,7 +1,7 @@
 
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Calendar, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type CalendarView = 'month' | 'week' | 'year';
@@ -39,10 +39,8 @@ export function CalendarHeader({
       <div className="flex items-center justify-between">
         {/* Left Section - Title & Navigation */}
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 rounded-2xl border border-primary/20 shadow-sm">
-              <Calendar className="h-6 w-6 text-primary" />
-            </div>
+          <div className="flex items-center space-x-3 px-4 py-3 bg-primary/5 rounded-lg border">
+            <Calendar className="h-6 w-6 text-primary" />
             
             <div>
               <h1 className="text-2xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
@@ -64,15 +62,6 @@ export function CalendarHeader({
               disabled={loading}
             >
               <ChevronLeft className="h-5 w-5" />
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => onNavigate('prev')}
-              className="px-4 py-2 h-10 rounded-xl border-border/60 bg-background/80 hover:bg-accent/80 transition-all duration-200 font-medium"
-              disabled={loading}
-            >
-              Today
             </Button>
             
             <Button
@@ -110,14 +99,6 @@ export function CalendarHeader({
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-11 w-11 rounded-2xl border-border/60 bg-background/80 hover:bg-accent/80 transition-all duration-200 shadow-sm"
-            >
-              <Users className="h-5 w-5" />
-            </Button>
-            
             <Button
               onClick={onNewBooking}
               disabled={loading}
