@@ -40,15 +40,12 @@ export function NavigationMenu({ isSidebarOpen, onNavigate }: NavigationMenuProp
     <nav className="flex-1 space-y-1 px-2 py-4">
       {navigation.map((item) => {
         const isActive = location.pathname === item.href;
-        const isBotIcon = item.icon === Bot;
-        
         return (
           <button
             key={item.name}
             onClick={() => onNavigate(item.href)}
             className={`
-              group flex items-center rounded-lg px-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
-              ${isBotIcon && !isSidebarOpen ? 'py-1' : 'py-2'}
+              group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
               ${isActive 
                 ? 'bg-green-600 text-white shadow-lg' 
                 : 'text-gray-300 hover:bg-gray-700 hover:text-white'
@@ -57,9 +54,7 @@ export function NavigationMenu({ isSidebarOpen, onNavigate }: NavigationMenuProp
             title={item.name}
           >
             <item.icon
-              className={`mr-3 flex-shrink-0 transition-colors duration-200 ${
-                isBotIcon ? 'h-4 w-4' : 'h-5 w-5'
-              } ${
+              className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200 ${
                 isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
               }`}
             />
