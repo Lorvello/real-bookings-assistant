@@ -164,96 +164,52 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
       </DropdownMenu>
 
       <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
-        <DialogContent className="sm:max-w-[900px] bg-gray-900 border border-gray-700">
+        <DialogContent className="sm:max-w-[500px] bg-gray-900 border border-gray-700">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-white">
+            <DialogTitle className="text-lg font-semibold text-white">
               Select Custom Date Range
             </DialogTitle>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
-            <div className="space-y-3">
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">Start Date</label>
-              <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <div className="flex justify-center">
                 <CalendarComponent
                   mode="single"
                   selected={customStartDate}
                   onSelect={setCustomStartDate}
-                  className="pointer-events-auto w-full"
-                  classNames={{
-                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                    month: "space-y-4 w-full",
-                    caption: "flex justify-center pt-1 relative items-center mb-4",
-                    caption_label: "text-sm font-medium text-white",
-                    nav: "space-x-1 flex items-center",
-                    nav_button: "h-7 w-7 bg-transparent p-0 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md transition-colors",
-                    nav_button_previous: "absolute left-1",
-                    nav_button_next: "absolute right-1",
-                    table: "w-full border-collapse space-y-1",
-                    head_row: "flex w-full",
-                    head_cell: "text-gray-400 rounded-md w-9 font-normal text-[0.8rem] flex items-center justify-center h-9",
-                    row: "flex w-full mt-2",
-                    cell: "h-9 w-9 text-center text-sm p-0 relative",
-                    day: "h-9 w-9 p-0 font-normal text-white hover:bg-gray-700 rounded-md transition-colors flex items-center justify-center",
-                    day_selected: "bg-green-600 text-white hover:bg-green-700 rounded-md",
-                    day_today: "bg-gray-700 text-white font-semibold rounded-md",
-                    day_outside: "text-gray-500 opacity-50",
-                    day_disabled: "text-gray-600 opacity-50",
-                    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                    day_hidden: "invisible",
-                  }}
+                  className="rounded-md border border-gray-700 bg-gray-800"
                 />
               </div>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">End Date</label>
-              <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <div className="flex justify-center">
                 <CalendarComponent
                   mode="single"
                   selected={customEndDate}
                   onSelect={setCustomEndDate}
-                  className="pointer-events-auto w-full"
-                  classNames={{
-                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                    month: "space-y-4 w-full",
-                    caption: "flex justify-center pt-1 relative items-center mb-4",
-                    caption_label: "text-sm font-medium text-white",
-                    nav: "space-x-1 flex items-center",
-                    nav_button: "h-7 w-7 bg-transparent p-0 text-gray-400 hover:text-white hover:bg-gray-700 rounded-md transition-colors",
-                    nav_button_previous: "absolute left-1",
-                    nav_button_next: "absolute right-1",
-                    table: "w-full border-collapse space-y-1",
-                    head_row: "flex w-full",
-                    head_cell: "text-gray-400 rounded-md w-9 font-normal text-[0.8rem] flex items-center justify-center h-9",
-                    row: "flex w-full mt-2",
-                    cell: "h-9 w-9 text-center text-sm p-0 relative",
-                    day: "h-9 w-9 p-0 font-normal text-white hover:bg-gray-700 rounded-md transition-colors flex items-center justify-center",
-                    day_selected: "bg-blue-600 text-white hover:bg-blue-700 rounded-md",
-                    day_today: "bg-gray-700 text-white font-semibold rounded-md",
-                    day_outside: "text-gray-500 opacity-50",
-                    day_disabled: "text-gray-600 opacity-50",
-                    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                    day_hidden: "invisible",
-                  }}
+                  className="rounded-md border border-gray-700 bg-gray-800"
                 />
               </div>
             </div>
+
+            {/* Date Range Summary */}
+            {customStartDate && customEndDate && (
+              <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400 text-sm">Selected Range:</span>
+                  <span className="text-white font-medium">
+                    {format(customStartDate, 'MMM d, yyyy')} - {format(customEndDate, 'MMM d, yyyy')}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Date Range Summary */}
-          {customStartDate && customEndDate && (
-            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-sm">Selected Range:</span>
-                <span className="text-white font-medium">
-                  {format(customStartDate, 'MMM d, yyyy')} - {format(customEndDate, 'MMM d, yyyy')}
-                </span>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="pt-4">
+          <DialogFooter>
             <Button 
               variant="outline" 
               onClick={() => setIsCustomDialogOpen(false)}
