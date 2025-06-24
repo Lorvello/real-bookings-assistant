@@ -32,6 +32,7 @@ export interface CalendarSettings {
   max_bookings_per_day?: number;
   allow_waitlist: boolean;
   confirmation_required: boolean;
+  whatsapp_bot_active: boolean;
   created_at: string;
 }
 
