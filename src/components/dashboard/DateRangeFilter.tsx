@@ -164,73 +164,107 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
       </DropdownMenu>
 
       <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] bg-gray-800 border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="text-white">Select Custom Date Range</DialogTitle>
+        <DialogContent className="sm:max-w-[700px] bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700/50 shadow-2xl">
+          <DialogHeader className="space-y-4 pb-6">
+            <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl">
+                <Calendar className="h-6 w-6 text-blue-400" />
+              </div>
+              Select Custom Date Range
+            </DialogTitle>
+            <p className="text-gray-400 text-sm">
+              Choose your custom start and end dates for data analysis
+            </p>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">Start Date</label>
-              <div className="border border-gray-600 rounded-lg">
-                <CalendarComponent
-                  mode="single"
-                  selected={customStartDate}
-                  onSelect={setCustomStartDate}
-                  className="pointer-events-auto"
-                  classNames={{
-                    months: "text-white",
-                    month: "space-y-4",
-                    caption: "text-white",
-                    caption_label: "text-white",
-                    nav_button: "text-gray-400 hover:text-white",
-                    head_cell: "text-gray-400",
-                    cell: "text-white",
-                    day: "text-white hover:bg-gray-700",
-                    day_selected: "bg-blue-600 text-white hover:bg-blue-700",
-                    day_today: "bg-gray-700 text-white"
-                  }}
-                />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></div>
+                <label className="text-lg font-semibold text-white">Start Date</label>
+              </div>
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <div className="relative bg-gray-800/80 backdrop-blur border border-gray-600/50 rounded-xl overflow-hidden">
+                  <CalendarComponent
+                    mode="single"
+                    selected={customStartDate}
+                    onSelect={setCustomStartDate}
+                    className="pointer-events-auto p-4"
+                    classNames={{
+                      months: "text-white",
+                      month: "space-y-4",
+                      caption: "text-white font-semibold",
+                      caption_label: "text-white text-lg",
+                      nav_button: "text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors",
+                      head_cell: "text-gray-400 font-medium",
+                      cell: "text-white",
+                      day: "text-white hover:bg-gray-700 rounded-lg transition-colors font-medium",
+                      day_selected: "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 rounded-lg shadow-lg",
+                      day_today: "bg-gray-700 text-white rounded-lg",
+                      day_outside: "text-gray-500 hover:text-gray-400"
+                    }}
+                  />
+                </div>
               </div>
             </div>
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">End Date</label>
-              <div className="border border-gray-600 rounded-lg">
-                <CalendarComponent
-                  mode="single"
-                  selected={customEndDate}
-                  onSelect={setCustomEndDate}
-                  className="pointer-events-auto"
-                  classNames={{
-                    months: "text-white",
-                    month: "space-y-4",
-                    caption: "text-white",
-                    caption_label: "text-white",
-                    nav_button: "text-gray-400 hover:text-white",
-                    head_cell: "text-gray-400",
-                    cell: "text-white",
-                    day: "text-white hover:bg-gray-700",
-                    day_selected: "bg-blue-600 text-white hover:bg-blue-700",
-                    day_today: "bg-gray-700 text-white"
-                  }}
-                />
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                <label className="text-lg font-semibold text-white">End Date</label>
+              </div>
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <div className="relative bg-gray-800/80 backdrop-blur border border-gray-600/50 rounded-xl overflow-hidden">
+                  <CalendarComponent
+                    mode="single"
+                    selected={customEndDate}
+                    onSelect={setCustomEndDate}
+                    className="pointer-events-auto p-4"
+                    classNames={{
+                      months: "text-white",
+                      month: "space-y-4",
+                      caption: "text-white font-semibold",
+                      caption_label: "text-white text-lg",
+                      nav_button: "text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors",
+                      head_cell: "text-gray-400 font-medium",
+                      cell: "text-white",
+                      day: "text-white hover:bg-gray-700 rounded-lg transition-colors font-medium",
+                      day_selected: "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 rounded-lg shadow-lg",
+                      day_today: "bg-gray-700 text-white rounded-lg",
+                      day_outside: "text-gray-500 hover:text-gray-400"
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          <DialogFooter>
+          {/* Date Range Summary */}
+          {customStartDate && customEndDate && (
+            <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-xl p-4 border border-gray-600/30">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-sm">Selected Range:</span>
+                <span className="text-white font-semibold">
+                  {format(customStartDate, 'MMM d, yyyy')} - {format(customEndDate, 'MMM d, yyyy')}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="pt-6 space-x-3">
             <Button 
               variant="outline" 
               onClick={() => setIsCustomDialogOpen(false)}
-              className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600"
+              className="bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
             >
               Cancel
             </Button>
             <Button 
               onClick={handleCustomRangeApply}
               disabled={!customStartDate || !customEndDate}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Apply Range
             </Button>
