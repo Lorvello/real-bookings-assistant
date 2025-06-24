@@ -54,7 +54,7 @@ export const AvailabilityDayRow: React.FC<AvailabilityDayRowProps> = ({
         <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse z-10" />
       )}
       
-      <div className="space-y-3">
+      <div className="space-y-2">
         {/* Day header with toggle and name */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4 min-w-[160px]">
@@ -75,7 +75,7 @@ export const AvailabilityDayRow: React.FC<AvailabilityDayRowProps> = ({
 
         {/* Time blocks */}
         {dayAvailability.enabled && (
-          <div className="space-y-2 ml-12">
+          <div className="space-y-1 ml-10">
             {dayAvailability.timeBlocks.map((block, index) => (
               <TimeBlockRow
                 key={block.id}

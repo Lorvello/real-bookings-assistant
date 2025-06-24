@@ -41,7 +41,7 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
   return (
     <div className="flex items-center justify-between w-full">
       {/* Time dropdowns - left side */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3">
         <TimeDropdown
           value={block.startTime}
           onChange={(value) => onUpdateTimeBlock(dayKey, block.id, 'startTime', value)}
@@ -60,7 +60,7 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
       </div>
 
       {/* Action buttons - right side */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1">
         {/* Delete button - only show if more than one time block */}
         {canDelete && (
           <Button
