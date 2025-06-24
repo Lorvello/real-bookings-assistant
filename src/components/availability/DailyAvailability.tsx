@@ -31,15 +31,15 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center space-x-2 mb-4">
-        <div className="p-2 bg-primary/20 rounded-xl">
-          <Clock className="h-4 w-4 text-primary" />
+    <div className="space-y-4">
+      <div className="flex items-center space-x-3 mb-5">
+        <div className="p-3 bg-primary/20 rounded-xl">
+          <Clock className="h-5 w-5 text-primary" />
         </div>
-        <h3 className="text-base font-medium text-foreground">Working Hours</h3>
+        <h3 className="text-lg font-medium text-foreground">Working Hours</h3>
       </div>
       
-      <div className="space-y-2">
+      <div className="space-y-3">
         {DAYS.map((day) => (
           <DayRow
             key={day.key}
