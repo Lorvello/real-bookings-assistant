@@ -482,7 +482,7 @@ export type Database = {
           name: string | null
           slug: string | null
           timezone: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           color?: string | null
@@ -494,7 +494,7 @@ export type Database = {
           name?: string | null
           slug?: string | null
           timezone?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           color?: string | null
@@ -506,7 +506,7 @@ export type Database = {
           name?: string | null
           slug?: string | null
           timezone?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
