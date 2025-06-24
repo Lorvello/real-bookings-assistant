@@ -5,19 +5,20 @@ import { LiveOperationsTab } from '@/components/dashboard-tabs/LiveOperationsTab
 import { BusinessIntelligenceTab } from '@/components/dashboard-tabs/BusinessIntelligenceTab';
 import { PerformanceEfficiencyTab } from '@/components/dashboard-tabs/PerformanceEfficiencyTab';
 import { FutureInsightsTab } from '@/components/dashboard-tabs/FutureInsightsTab';
-import { RealtimeDashboard } from '@/components/RealtimeDashboard';
-import { CalendarDashboard } from '@/components/CalendarDashboard';
+import { CalendarOverviewCards } from '@/components/dashboard/CalendarOverviewCards';
+import { CalendarManagement } from '@/components/dashboard/CalendarManagement';
+import { ServiceTypesManager } from '@/components/ServiceTypesManager';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { Activity, BarChart3, Zap, TrendingUp, Calendar } from 'lucide-react';
+import { useCalendars } from '@/hooks/useCalendars';
+import { Activity, BarChart3, Zap, TrendingUp, Eye, Wrench } from 'lucide-react';
 
 interface DashboardTabsProps {
   calendarId: string;
 }
 
 export function DashboardTabs({ calendarId }: DashboardTabsProps) {
-  const [activeTab, setActiveTab] = useState('live-ops');
-  const { getActiveCalendarIds } = useCalendarContext();
-  const activeCalendarIds = getActiveCalendarIds();
+  const [activeTab, setActiveTab] = useState('overview');
+  const { calendars } = useCalendars();
 
   return (
     <div className="space-y-8">
@@ -26,7 +27,19 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
         <div className="relative mb-8">
           <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 via-purple-500/15 to-primary/20 blur-xl rounded-3xl"></div>
           
-          <TabsList className="relative grid w-full grid-cols-5 bg-gradient-to-br from-card/95 via-card/80 to-card/70 backdrop-blur-2xl border border-primary/30 shadow-2xl p-2 h-auto rounded-3xl">
+          <TabsList className="relative grid w-full grid-cols-6 bg-gradient-to-br from-card/95 via-card/80 to-card/70 backdrop-blur-2xl border border-primary/30 shadow-2xl p-2 h-auto rounded-3xl">
+            <TabsTrigger value="overview" 
+                        className="flex items-center gap-3 py-4 px-6 rounded-2xl transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:via-primary/15 data-[state=active]:to-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-primary/30">
+              <Eye className="h-5 w-5" />
+              <span className="font-semibold">Overview</span>
+            </TabsTrigger>
+            
+            <TabsTrigger value="service-types"
+                        className="flex items-center gap-3 py-4 px-6 rounded-2xl transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500/20 data-[state=active]:via-green-500/15 data-[state=active]:to-green-500/10 data-[state=active]:text-green-400 data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-green-500/30">
+              <Wrench className="h-5 w-5" />
+              <span className="font-semibold">Service Types</span>
+            </TabsTrigger>
+            
             <TabsTrigger value="live-ops" 
                         className="flex items-center gap-3 py-4 px-6 rounded-2xl transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/20 data-[state=active]:via-primary/15 data-[state=active]:to-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-primary/30">
               <Activity className="h-5 w-5" />
@@ -50,16 +63,47 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
               <TrendingUp className="h-5 w-5" />
               <span className="font-semibold">Predictions</span>
             </TabsTrigger>
-
-            <TabsTrigger value="calendar"
-                        className="flex items-center gap-3 py-4 px-6 rounded-2xl transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500/20 data-[state=active]:via-green-500/15 data-[state=active]:to-green-500/10 data-[state=active]:text-green-400 data-[state=active]:shadow-lg data-[state=active]:border data-[state=active]:border-green-500/30">
-              <Calendar className="h-5 w-5" />
-              <span className="font-semibold">Kalender</span>
-            </TabsTrigger>
           </TabsList>
         </div>
 
         {/* Tab Content */}
+        <TabsContent value="overview" className="space-y-8">
+          <div className="relative">
+            <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent blur-2xl rounded-3xl"></div>
+            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-primary/20 shadow-2xl p-8 rounded-3xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-green-400 rounded-full flex items-center justify-center shadow-lg">
+                  <Eye className="h-4 w-4 text-white" />
+                </div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                  Kalender Overzicht
+                </h2>
+              </div>
+              <div className="space-y-6">
+                <CalendarOverviewCards calendars={calendars} />
+                <CalendarManagement calendars={calendars} />
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="service-types" className="space-y-8">
+          <div className="relative">
+            <div className="absolute -inset-4 bg-gradient-to-br from-green-500/20 via-green-500/10 to-transparent blur-2xl rounded-3xl"></div>
+            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-green-500/20 shadow-2xl p-8 rounded-3xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                  <Wrench className="h-4 w-4 text-white" />
+                </div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-green-400 bg-clip-text text-transparent">
+                  Service Types Beheer
+                </h2>
+              </div>
+              <ServiceTypesManager calendarId={calendarId} />
+            </div>
+          </div>
+        </TabsContent>
+
         <TabsContent value="live-ops" className="space-y-8">
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent blur-2xl rounded-3xl"></div>
@@ -125,23 +169,6 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
                 </h2>
               </div>
               <FutureInsightsTab calendarId={calendarId} />
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="calendar" className="space-y-8">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-br from-green-500/20 via-green-500/10 to-transparent blur-2xl rounded-3xl"></div>
-            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-green-500/20 shadow-2xl p-8 rounded-3xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                  <Calendar className="h-4 w-4 text-white" />
-                </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-green-400 bg-clip-text text-transparent">
-                  Kalender Overzicht
-                </h2>
-              </div>
-              <CalendarDashboard calendarIds={activeCalendarIds} />
             </div>
           </div>
         </TabsContent>
