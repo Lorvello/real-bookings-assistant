@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useOptimizedFutureInsights } from '@/hooks/dashboard/useOptimizedFutureInsights';
-import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { TrendingUp, Users, Calendar, Clock } from 'lucide-react';
@@ -13,12 +12,8 @@ interface FutureInsightsTabProps {
 }
 
 export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
-  const { data: insights, isLoading: insightsLoading, error: insightsError } = useOptimizedFutureInsights(calendarId);
-  const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(calendarId);
+  const { data: insights, isLoading, error } = useOptimizedFutureInsights(calendarId);
   useRealtimeSubscription(calendarId);
-
-  const isLoading = insightsLoading || performanceLoading;
-  const error = insightsError || performanceError;
 
   if (isLoading) {
     return (
@@ -228,17 +223,11 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                 <TrendingUp className="h-6 w-6 text-purple-400" />
               </div>
               <h3 className="text-xl font-bold text-slate-100">Intelligent Recommendations</h3>
-              <p className="text-sm text-slate-400 ml-auto">Based on your performance data</p>
+              <p className="text-sm text-slate-400 ml-auto">Based on historical patterns</p>
             </div>
             
             <IntelligentRecommendations
-              // Performance data
-              avgResponseTime={performance?.avg_response_time_minutes}
-              noShowRate={performance?.no_show_rate}
-              cancellationRate={performance?.cancellation_rate}
-              calendarUtilization={performance?.calendar_utilization_rate}
-              
-              // Future insights data
+              // Pass only future insights data
               waitlistSize={insights?.waitlist_size}
               returningCustomersMonth={insights?.returning_customers_month}
               demandForecast={insights?.demand_forecast}

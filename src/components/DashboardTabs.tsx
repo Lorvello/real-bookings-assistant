@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BusinessIntelligenceTab } from './dashboard-tabs/BusinessIntelligenceTab';
@@ -43,20 +44,49 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
     }
   });
 
+  // Check if current tab needs date filtering
+  const tabsWithDateFilter = ['business-intelligence', 'performance-efficiency'];
+  const showDateFilter = tabsWithDateFilter.includes(activeTab);
+
+  // Get appropriate header content based on active tab
+  const getHeaderContent = () => {
+    switch (activeTab) {
+      case 'live-operations':
+        return {
+          title: 'Live Operations Center',
+          subtitle: 'Real-time monitoring and current status'
+        };
+      case 'future-insights':
+        return {
+          title: 'Future Insights & Predictions',
+          subtitle: 'Trends analysis and forecasting'
+        };
+      default:
+        return {
+          title: 'Analytics Dashboard',
+          subtitle: `Viewing data for: ${selectedDateRange.label}`
+        };
+    }
+  };
+
+  const headerContent = getHeaderContent();
+
   return (
     <div className="space-y-6">
-      {/* Date Range Filter Header */}
+      {/* Dynamic Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white mb-1">Analytics Dashboard</h2>
+          <h2 className="text-xl font-semibold text-white mb-1">{headerContent.title}</h2>
           <p className="text-gray-400 text-sm">
-            Viewing data for: {selectedDateRange.label}
+            {headerContent.subtitle}
           </p>
         </div>
-        <DateRangeFilter 
-          selectedRange={selectedDateRange}
-          onRangeChange={setSelectedDateRange}
-        />
+        {showDateFilter && (
+          <DateRangeFilter 
+            selectedRange={selectedDateRange}
+            onRangeChange={setSelectedDateRange}
+          />
+        )}
       </div>
 
       {/* Dashboard Tabs */}
