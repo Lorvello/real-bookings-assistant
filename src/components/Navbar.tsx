@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -89,7 +90,7 @@ const Navbar = () => {
           {/* Desktop CTA Button or Profile */}
           <div className="hidden lg:block">
             {user ? (
-              <Link to="/profile">
+              <Link to="/dashboard">
                 <Avatar className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-green-400 transition-all">
                   <AvatarFallback className="bg-green-600 text-white">
                     <UserIcon className="h-4 w-4" />
@@ -129,7 +130,7 @@ const Navbar = () => {
           {/* Mobile menu button */}
           <div className="lg:hidden flex items-center space-x-4">
             {user ? (
-              <Link to="/profile">
+              <Link to="/dashboard">
                 <Avatar className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-green-400 transition-all">
                   <AvatarFallback className="bg-green-600 text-white">
                     <UserIcon className="h-4 w-4" />

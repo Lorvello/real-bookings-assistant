@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, User, Building2, Settings, MessageCircle, Clock } from 'lucide-react';
+import { Calendar, User, Building2, Settings, MessageCircle, Clock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -30,10 +30,8 @@ export function OverviewTab({ calendarId }: OverviewTabProps) {
       <div className="grid gap-6 md:grid-cols-2">
         {/* Profile Information Card */}
         <div className="relative group">
-          {/* Background glow effect */}
           <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-cyan-500/20 rounded-2xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
           
-          {/* Card container */}
           <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
@@ -69,10 +67,8 @@ export function OverviewTab({ calendarId }: OverviewTabProps) {
         {/* Business Information Card */}
         {profile?.business_name && (
           <div className="relative group">
-            {/* Background glow effect */}
             <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-cyan-500/20 rounded-2xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
             
-            {/* Card container */}
             <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
@@ -101,10 +97,8 @@ export function OverviewTab({ calendarId }: OverviewTabProps) {
 
       {/* Your Calendars */}
       <div className="relative group">
-        {/* Background glow effect */}
         <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-cyan-500/20 rounded-2xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
         
-        {/* Card container */}
         <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
@@ -147,10 +141,8 @@ export function OverviewTab({ calendarId }: OverviewTabProps) {
 
       {/* Quick Actions */}
       <div className="relative group">
-        {/* Background glow effect */}
         <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-cyan-500/20 rounded-2xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
         
-        {/* Card container */}
         <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-xl flex items-center justify-center">
@@ -162,29 +154,32 @@ export function OverviewTab({ calendarId }: OverviewTabProps) {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Button 
               onClick={() => navigate('/settings')} 
-              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-cyan-500/25 transition-all duration-200"
+              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-cyan-500/25 transition-all duration-200 justify-start"
             >
               <Settings className="h-4 w-4 mr-2" />
               Settings
+              <ArrowRight className="h-3 w-3 ml-auto opacity-60" />
             </Button>
             <Button 
               onClick={() => navigate('/conversations')} 
-              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-cyan-500/25 transition-all duration-200"
+              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-cyan-500/25 transition-all duration-200 justify-start"
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               Conversations
+              <ArrowRight className="h-3 w-3 ml-auto opacity-60" />
             </Button>
             <Button 
               onClick={() => navigate('/availability')} 
-              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-cyan-500/25 transition-all duration-200"
+              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-cyan-500/25 transition-all duration-200 justify-start"
             >
               <Clock className="h-4 w-4 mr-2" />
               Availability
+              <ArrowRight className="h-3 w-3 ml-auto opacity-60" />
             </Button>
             <Button 
               variant="outline" 
               onClick={handleSignOut} 
-              className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50 hover:text-slate-200 hover:border-slate-500"
+              className="border-slate-600/50 text-slate-300 hover:bg-slate-700/50 hover:text-slate-200 hover:border-slate-500 justify-start"
             >
               Sign Out
             </Button>

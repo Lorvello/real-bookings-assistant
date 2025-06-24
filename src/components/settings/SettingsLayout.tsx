@@ -26,32 +26,51 @@ export function SettingsLayout() {
   return (
     <div className="bg-gray-900 min-h-full p-8">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Settings</h1>
-          <p className="text-gray-400 mt-1">
-            Manage your account and preferences
-          </p>
+        {/* Header */}
+        <div className="relative">
+          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/15 to-cyan-500/20 rounded-2xl blur-xl opacity-60"></div>
+          <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-500/10 p-6">
+            <h1 className="text-3xl font-bold text-white">Settings</h1>
+            <p className="text-gray-400 mt-1">
+              Manage your account and preferences
+            </p>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5 bg-muted">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5 bg-slate-800/80 backdrop-blur-sm border border-slate-700/50">
+            <TabsTrigger 
+              value="profile" 
+              className="flex items-center gap-2 text-slate-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg transition-all"
+            >
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="business" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="business" 
+              className="flex items-center gap-2 text-slate-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg transition-all"
+            >
               <Building2 className="h-4 w-4" />
               <span className="hidden sm:inline">Business</span>
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="calendar" 
+              className="flex items-center gap-2 text-slate-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg transition-all"
+            >
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Calendar</span>
             </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="whatsapp" 
+              className="flex items-center gap-2 text-slate-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg transition-all"
+            >
               <MessageCircle className="h-4 w-4" />
               <span className="hidden sm:inline">WhatsApp</span>
             </TabsTrigger>
-            <TabsTrigger value="billing" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="billing" 
+              className="flex items-center gap-2 text-slate-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg transition-all"
+            >
               <CreditCard className="h-4 w-4" />
               <span className="hidden sm:inline">Billing</span>
             </TabsTrigger>
