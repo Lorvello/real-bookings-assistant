@@ -46,7 +46,7 @@ function App() {
               <Route path="/test-ai-agent" element={<TestAIAgent />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/testing" element={<Testing />} />
-              <Route path="/see-how-it-works" element={<SeeHowItWorks />} />
+              <Route path="/how-it-works" element={<SeeHowItWorks />} />
               <Route path="/why-us" element={<WhyUs />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="*" element={<NotFound />} />
