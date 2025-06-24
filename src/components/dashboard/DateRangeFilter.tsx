@@ -81,28 +81,29 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>(selectedRange.startDate);
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>(selectedRange.endDate);
   const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
-  const [selectingStartDate, setSelectingStartDate] = useState(true);
+  const [currentStep, setCurrentStep] = useState<'start' | 'end'>('start');
 
   const handlePresetSelect = (preset: DateRangePreset) => {
     const range = getPresetRange(preset);
     onRangeChange(range);
   };
 
-  const handleDateSelect = (date: Date | undefined) => {
+  const handleStartDateSelect = (date: Date | undefined) => {
     if (!date) return;
+    setCustomStartDate(date);
+    setCustomEndDate(undefined); // Reset end date when start date changes
+    setCurrentStep('end'); // Move to end date selection
+  };
 
-    if (selectingStartDate) {
-      setCustomStartDate(date);
-      setCustomEndDate(undefined);
-      setSelectingStartDate(false);
-    } else {
-      if (customStartDate && date < customStartDate) {
-        setCustomStartDate(date);
-        setCustomEndDate(customStartDate);
-      } else {
-        setCustomEndDate(date);
-      }
+  const handleEndDateSelect = (date: Date | undefined) => {
+    if (!date || !customStartDate) return;
+    
+    // Prevent selecting end date before start date
+    if (date < customStartDate) {
+      return;
     }
+    
+    setCustomEndDate(date);
   };
 
   const handleCustomRangeApply = () => {
@@ -121,14 +122,19 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
   const openCustomDialog = () => {
     setCustomStartDate(selectedRange.startDate);
     setCustomEndDate(selectedRange.endDate);
-    setSelectingStartDate(true);
+    setCurrentStep('start');
     setIsCustomDialogOpen(true);
   };
 
   const resetSelection = () => {
     setCustomStartDate(undefined);
     setCustomEndDate(undefined);
-    setSelectingStartDate(true);
+    setCurrentStep('start');
+  };
+
+  const goBackToStartDate = () => {
+    setCurrentStep('start');
+    setCustomEndDate(undefined);
   };
 
   return (
@@ -180,33 +186,46 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
       </DropdownMenu>
 
       <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
-        <DialogContent className="max-w-sm bg-card border-border">
-          <DialogHeader className="pb-3">
-            <DialogTitle className="text-lg font-semibold text-foreground text-center">
+        <DialogContent className="max-w-md bg-card border-border">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-semibold text-foreground text-center">
               Select Date Range
             </DialogTitle>
           </DialogHeader>
           
-          {/* Compact step indicator */}
-          <div className="flex items-center justify-center mb-4">
-            <div className="flex items-center space-x-2">
-              <div className={`flex items-center space-x-1 px-2 py-1 rounded text-xs ${
-                selectingStartDate ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          {/* Two-step progress indicator */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center space-x-4">
+              {/* Step 1: Start Date */}
+              <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                currentStep === 'start' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : customStartDate 
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                    : 'bg-muted text-muted-foreground'
               }`}>
-                <span>1. Start</span>
+                <span className="text-sm font-medium">1. Start Date</span>
                 {customStartDate && (
-                  <span className="bg-background/20 px-1 rounded">
+                  <span className="text-xs bg-background/20 px-2 py-1 rounded">
                     {format(customStartDate, 'MMM d')}
                   </span>
                 )}
               </div>
-              <div className="w-4 h-px bg-border"></div>
-              <div className={`flex items-center space-x-1 px-2 py-1 rounded text-xs ${
-                !selectingStartDate ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+
+              {/* Connector */}
+              <div className="w-8 h-px bg-border"></div>
+
+              {/* Step 2: End Date */}
+              <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                currentStep === 'end' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : customEndDate 
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                    : 'bg-muted text-muted-foreground'
               }`}>
-                <span>2. End</span>
+                <span className="text-sm font-medium">2. End Date</span>
                 {customEndDate && (
-                  <span className="bg-background/20 px-1 rounded">
+                  <span className="text-xs bg-background/20 px-2 py-1 rounded">
                     {format(customEndDate, 'MMM d')}
                   </span>
                 )}
@@ -214,34 +233,63 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
             </div>
           </div>
 
-          {/* Simple instruction */}
-          <p className="text-center text-sm text-muted-foreground mb-3">
-            {selectingStartDate ? "Choose start date" : "Choose end date"}
+          {/* Instructions */}
+          <p className="text-center text-sm text-muted-foreground mb-4">
+            {currentStep === 'start' 
+              ? "Choose your start date" 
+              : "Choose your end date (must be after start date)"}
           </p>
 
-          {/* Clean calendar using standard Shadcn styling */}
+          {/* Calendar */}
           <div className="flex justify-center">
-            <CalendarComponent
-              mode="single"
-              selected={selectingStartDate ? customStartDate : customEndDate}
-              onSelect={handleDateSelect}
-              className="pointer-events-auto"
-            />
+            {currentStep === 'start' ? (
+              <CalendarComponent
+                mode="single"
+                selected={customStartDate}
+                onSelect={handleStartDateSelect}
+                className="pointer-events-auto"
+                disabled={(date) => date > new Date()}
+              />
+            ) : (
+              <CalendarComponent
+                mode="single"
+                selected={customEndDate}
+                onSelect={handleEndDateSelect}
+                className="pointer-events-auto"
+                disabled={(date) => {
+                  if (!customStartDate) return true;
+                  return date < customStartDate || date > new Date();
+                }}
+              />
+            )}
           </div>
 
-          {/* Compact selected range display */}
+          {/* Selected range summary */}
           {customStartDate && customEndDate && (
-            <div className="bg-muted rounded p-3 mt-3">
+            <div className="bg-muted/50 rounded-lg p-4 mt-4 border border-border/50">
               <div className="text-center">
-                <p className="text-xs text-muted-foreground mb-1">Selected Range</p>
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                  Selected Range
+                </p>
+                <p className="text-sm font-semibold text-foreground">
                   {format(customStartDate, 'MMM d, yyyy')} - {format(customEndDate, 'MMM d, yyyy')}
                 </p>
               </div>
             </div>
           )}
 
-          <DialogFooter className="pt-3 flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+          <DialogFooter className="pt-4 flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+            {currentStep === 'end' && (
+              <Button 
+                variant="outline" 
+                onClick={goBackToStartDate}
+                size="sm"
+                className="w-full sm:w-auto"
+              >
+                ← Back to Start Date
+              </Button>
+            )}
+            
             <Button 
               variant="outline" 
               onClick={resetSelection}
@@ -250,6 +298,7 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
             >
               Reset
             </Button>
+            
             <Button 
               variant="outline" 
               onClick={() => setIsCustomDialogOpen(false)}
@@ -258,6 +307,7 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
             >
               Cancel
             </Button>
+            
             <Button 
               onClick={handleCustomRangeApply}
               disabled={!customStartDate || !customEndDate}
