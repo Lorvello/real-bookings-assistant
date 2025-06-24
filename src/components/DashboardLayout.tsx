@@ -8,8 +8,8 @@ import {
   MessageCircle,
   UserCircle,
   LogOut,
-  Menu,
-  X,
+  PanelLeft,
+  PanelRight,
   Bot,
   ArrowLeft,
   Clock,
@@ -77,24 +77,29 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     navigate('/');
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 w-full">
-      {/* Sidebar - Always visible */}
-      <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} bg-gray-800 transition-all duration-300 ease-in-out flex-shrink-0`}>
+      {/* Sidebar - Always visible with smooth animations */}
+      <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} bg-gray-800 transition-all duration-300 ease-in-out flex-shrink-0 relative`}>
         <div className="flex h-full flex-col">
           {/* Logo/Brand */}
           <div className="flex h-16 items-center justify-between px-4 border-b border-gray-700">
-            <h1 className={`text-xl font-bold text-white transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}>
+            <h1 className={`text-xl font-bold text-white transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
               Bookings Assistant
             </h1>
             <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-gray-400 hover:text-white p-1 rounded-md hover:bg-gray-700 transition-colors"
+              onClick={toggleSidebar}
+              className="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-700 transition-all duration-200 hover:scale-105 group"
+              title={isSidebarOpen ? 'Sidebar inklappen' : 'Sidebar uitklappen'}
             >
               {isSidebarOpen ? (
-                <X className="w-5 h-5" />
+                <PanelLeft className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
               ) : (
-                <Menu className="w-5 h-5" />
+                <PanelRight className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
               )}
             </button>
           </div>
@@ -103,12 +108,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="px-2 py-2 border-b border-gray-700">
             <button
               onClick={handleBackToWebsite}
-              className="group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-colors w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white"
+              className="group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white hover:scale-105"
+              title="Terug naar website"
             >
               <ArrowLeft
-                className="mr-3 h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-white"
+                className="mr-3 h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-white transition-colors duration-200"
               />
-              <span className={`transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+              <span className={`transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 w-0 overflow-hidden'}`}>
                 Back to Website
               </span>
             </button>
@@ -123,19 +129,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   key={item.name}
                   onClick={() => handleNavigation(item.href)}
                   className={`
-                    group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-colors w-full text-left
+                    group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
                     ${isActive 
-                      ? 'bg-green-600 text-white' 
+                      ? 'bg-green-600 text-white shadow-lg' 
                       : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                     }
                   `}
+                  title={item.name}
                 >
                   <item.icon
-                    className={`mr-3 h-6 w-6 flex-shrink-0 ${
+                    className={`mr-3 h-6 w-6 flex-shrink-0 transition-colors duration-200 ${
                       isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
                     }`}
                   />
-                  <span className={`transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+                  <span className={`transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 w-0 overflow-hidden'}`}>
                     {item.name}
                   </span>
                 </button>
@@ -145,7 +152,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Calendar Switcher Section */}
           {isSidebarOpen && !loading && calendars.length > 0 && (
-            <div className="border-t border-gray-700 p-4">
+            <div className="border-t border-gray-700 p-4 transition-all duration-300">
               <div className="mb-3">
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
                   Switch Calendar
@@ -157,7 +164,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="ghost" 
-                    className="w-full justify-between text-gray-300 hover:bg-gray-700 hover:text-white"
+                    className="w-full justify-between text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 hover:scale-105"
                   >
                     <div className="flex items-center space-x-2 min-w-0">
                       {viewingAllCalendars ? (
@@ -177,41 +184,41 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         </>
                       )}
                     </div>
-                    <ChevronDown className="w-4 h-4 opacity-50 flex-shrink-0" />
+                    <ChevronDown className="w-4 h-4 opacity-50 flex-shrink-0 transition-transform duration-200" />
                   </Button>
                 </DropdownMenuTrigger>
                 
-                <DropdownMenuContent className="w-64" align="end">
-                  <DropdownMenuLabel>Select Calendar</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+                <DropdownMenuContent className="w-64 bg-gray-800 border-gray-700" align="end">
+                  <DropdownMenuLabel className="text-gray-300">Select Calendar</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-gray-700" />
                   
                   {/* All calendars option */}
                   <DropdownMenuItem
                     onClick={() => selectAllCalendars()}
-                    className="flex items-center space-x-3 p-3"
+                    className="flex items-center space-x-3 p-3 text-gray-300 hover:bg-gray-700 focus:bg-gray-700"
                   >
                     <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-full" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
                         <span className="font-medium">All calendars</span>
-                        <Badge variant="outline" className="text-xs">Mixed</Badge>
+                        <Badge variant="outline" className="text-xs border-gray-600">Mixed</Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-400">
                         View all appointments together
                       </p>
                     </div>
                     {viewingAllCalendars && (
-                      <div className="w-2 h-2 bg-primary rounded-full" />
+                      <div className="w-2 h-2 bg-green-500 rounded-full" />
                     )}
                   </DropdownMenuItem>
                   
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-gray-700" />
                   
                   {calendars.map((calendar) => (
                     <DropdownMenuItem
                       key={calendar.id}
                       onClick={() => selectCalendar(calendar)}
-                      className="flex items-center space-x-3 p-3"
+                      className="flex items-center space-x-3 p-3 text-gray-300 hover:bg-gray-700 focus:bg-gray-700"
                     >
                       <div 
                         className="w-3 h-3 rounded-full flex-shrink-0" 
@@ -221,27 +228,30 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         <div className="flex items-center space-x-2">
                           <span className="font-medium truncate">{calendar.name}</span>
                           {calendar.is_default && (
-                            <Badge variant="outline" className="text-xs">Default</Badge>
+                            <Badge variant="outline" className="text-xs border-gray-600">Default</Badge>
                           )}
                         </div>
                         {calendar.description && (
-                          <p className="text-xs text-muted-foreground truncate">
+                          <p className="text-xs text-gray-400 truncate">
                             {calendar.description}
                           </p>
                         )}
                       </div>
                       {!viewingAllCalendars && selectedCalendar?.id === calendar.id && (
-                        <div className="w-2 h-2 bg-primary rounded-full" />
+                        <div className="w-2 h-2 bg-green-500 rounded-full" />
                       )}
                     </DropdownMenuItem>
                   ))}
                   
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-gray-700" />
                   
-                  <DropdownMenuItem onSelect={(e) => {
-                    e.preventDefault();
-                    setShowCreateDialog(true);
-                  }}>
+                  <DropdownMenuItem 
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setShowCreateDialog(true);
+                    }}
+                    className="text-gray-300 hover:bg-gray-700 focus:bg-gray-700"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     New calendar
                   </DropdownMenuItem>
@@ -257,7 +267,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <UserCircle className="h-10 w-10 text-gray-400" />
               </div>
               {isSidebarOpen && (
-                <div className="ml-3 min-w-0 flex-1">
+                <div className="ml-3 min-w-0 flex-1 transition-all duration-300">
                   <p className="text-sm font-medium text-white truncate">
                     {profile?.full_name || 'User'}
                   </p>
@@ -270,10 +280,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Button
               onClick={handleSignOut}
               variant="ghost"
-              className="mt-3 flex w-full items-center justify-start rounded-lg bg-gray-700 px-3 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white"
+              className="mt-3 flex w-full items-center justify-start rounded-lg bg-gray-700 px-3 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white transition-all duration-200 hover:scale-105"
+              title="Uitloggen"
             >
               <LogOut className="mr-2 h-5 w-5" />
-              {isSidebarOpen && <span>Sign Out</span>}
+              {isSidebarOpen && <span className="transition-all duration-300">Sign Out</span>}
             </Button>
           </div>
         </div>
