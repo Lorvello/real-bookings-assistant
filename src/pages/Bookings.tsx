@@ -135,9 +135,9 @@ const Bookings = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-8">
+      <div className="bg-gray-900 min-h-full p-6">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-white">Mijn Bookings</h1>
           <p className="text-gray-400 mt-1">
             Overzicht van al je afspraken
@@ -145,7 +145,7 @@ const Bookings = () => {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6 mb-6">
+        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6 mb-4">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1 relative">

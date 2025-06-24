@@ -80,48 +80,46 @@ export const AvailabilityManager = () => {
 
   if (!availabilityCalendar) {
     return (
-      <div className="bg-gray-900 min-h-full p-8">
+      <div className="bg-gray-900 min-h-full p-6">
         <NoCalendarSelected profile={profile} user={profile} />
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-900 min-h-full">
+    <div className="bg-gray-900 min-h-full p-6">
       {/* Availability Header */}
-      <div className="p-8 pb-0">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Beschikbaarheid</h1>
-          <p className="text-gray-400 mt-1">
-            Beheer je beschikbaarheid voor <strong className="text-white">{availabilityCalendar.name}</strong>
-          </p>
-        </div>
-
-        {/* Save Button and Status */}
-        {hasUnsavedChanges && (
-          <div className="bg-amber-900/30 border border-amber-500/30 rounded-xl p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="text-yellow-400">
-                Je hebt niet-opgeslagen wijzigingen
-              </div>
-              <button
-                onClick={handleSave}
-                disabled={loading}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-              >
-                {loading ? 'Opslaan...' : 'Opslaan'}
-              </button>
-            </div>
-          </div>
-        )}
+      <div className="mb-4">
+        <h1 className="text-3xl font-bold text-white">Beschikbaarheid</h1>
+        <p className="text-gray-400 mt-1">
+          Beheer je beschikbaarheid voor <strong className="text-white">{availabilityCalendar.name}</strong>
+        </p>
       </div>
+
+      {/* Save Button and Status */}
+      {hasUnsavedChanges && (
+        <div className="bg-amber-900/30 border border-amber-500/30 rounded-xl p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="text-yellow-400">
+              Je hebt niet-opgeslagen wijzigingen
+            </div>
+            <button
+              onClick={handleSave}
+              disabled={loading}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+            >
+              {loading ? 'Opslaan...' : 'Opslaan'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <AvailabilityTabs
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
 
-      <div className="p-8 pt-6">
+      <div className="mt-4">
         <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
           <AvailabilityContent
             activeTab={activeTab}

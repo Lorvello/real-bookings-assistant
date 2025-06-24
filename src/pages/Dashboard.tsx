@@ -2,29 +2,26 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { DashboardContent } from '@/components/dashboard/DashboardContent';
 import { useAuth } from '@/hooks/useAuth';
-import { useCalendarContext } from '@/contexts/CalendarContext';
-import { DashboardTabs } from '@/components/DashboardTabs';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { calendars, selectedCalendar, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
 
-  // Redirect if not authenticated
   React.useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login');
     }
   }, [user, authLoading, navigate]);
 
-  if (authLoading || calendarsLoading) {
+  if (authLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full bg-gray-900">
           <div className="text-center">
             <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-300">Dashboard laden...</div>
+            <div className="text-lg text-gray-300">Laden...</div>
           </div>
         </div>
       </DashboardLayout>
@@ -35,47 +32,21 @@ const Dashboard = () => {
     return null;
   }
 
-  if (calendars.length === 0) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-full bg-gray-900">
-          <div className="text-center">
-            <div className="text-lg text-gray-300">Geen kalender gevonden</div>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  const activeCalendarIds = getActiveCalendarIds();
-  const primaryCalendarId = activeCalendarIds.length > 0 ? activeCalendarIds[0] : undefined;
-
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-8">
-        {/* Dashboard Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">
-            Dashboard
-            {viewingAllCalendars 
-              ? ' - Alle kalenders'
-              : selectedCalendar 
-                ? ` - ${selectedCalendar.name}`
-                : ''
-            }
-          </h1>
+      <div className="bg-gray-900 min-h-full p-6">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
           <p className="text-gray-400 mt-1">
-            {viewingAllCalendars
-              ? `Overzicht van ${activeCalendarIds.length} kalenders`
-              : 'Overzicht van je boekingen en prestaties'
-            }
+            Overzicht van je bookings en prestaties
           </p>
         </div>
 
-        {/* Dashboard Tabs */}
-        {primaryCalendarId && (
-          <DashboardTabs calendarId={primaryCalendarId} />
-        )}
+        {/* Dashboard Content with Clean Styling */}
+        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
+          <DashboardContent />
+        </div>
       </div>
     </DashboardLayout>
   );
