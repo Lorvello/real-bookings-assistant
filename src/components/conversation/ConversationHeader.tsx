@@ -25,14 +25,14 @@ export const ConversationHeader: React.FC<ConversationHeaderProps> = ({
         className="text-gray-300 hover:text-white hover:bg-gray-800 mb-4"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
-        Terug naar gesprekken
+        Back to conversations
       </Button>
       
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Gesprek Details</h1>
+          <h1 className="text-3xl font-bold text-white">Conversation Details</h1>
           <p className="text-gray-400 mt-1">
-            Gestart op {format(startedAt, "PPP 'om' HH:mm", { locale: nl })}
+            Started on {format(startedAt, "PPP 'at' HH:mm", { locale: nl })}
           </p>
         </div>
         <Badge 

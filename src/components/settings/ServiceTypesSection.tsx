@@ -87,7 +87,7 @@ export const ServiceTypesSection: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Weet je zeker dat je dit service type wilt verwijderen?')) {
+    if (window.confirm('Are you sure you want to delete this service type?')) {
       await deleteServiceType(id);
     }
   };
@@ -116,7 +116,7 @@ export const ServiceTypesSection: React.FC = () => {
             className="bg-green-600 hover:bg-green-700 text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Service Toevoegen
+            Add Service
           </Button>
         )}
       </div>

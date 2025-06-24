@@ -41,25 +41,25 @@ export const ServiceTypeForm: React.FC<ServiceTypeFormProps> = ({
   return (
     <div className="bg-gray-900 rounded-lg p-4 mb-6 border border-gray-600">
       <h3 className="text-lg font-medium text-white mb-4">
-        {isEditing ? 'Service Bewerken' : 'Nieuwe Service'}
+        {isEditing ? 'Edit Service' : 'New Service'}
       </h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Service Naam *
+            Service Name *
           </label>
           <Input
             value={formData.name}
             onChange={(e) => onInputChange('name', e.target.value)}
             className="bg-gray-800 border-gray-600 text-white"
-            placeholder="Bijv. Kapsel & Kleuren"
+            placeholder="e.g. Hair & Color"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Duur (minuten) *
+            Duration (minutes) *
           </label>
           <Input
             type="number"
@@ -73,7 +73,7 @@ export const ServiceTypeForm: React.FC<ServiceTypeFormProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Prijs (€)
+            Price (€)
           </label>
           <Input
             type="number"
@@ -87,7 +87,7 @@ export const ServiceTypeForm: React.FC<ServiceTypeFormProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Max. Personen
+            Max. People
           </label>
           <Input
             type="number"
@@ -100,7 +100,7 @@ export const ServiceTypeForm: React.FC<ServiceTypeFormProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Voorbereiding (min)
+            Preparation (min)
           </label>
           <Input
             type="number"
@@ -113,7 +113,7 @@ export const ServiceTypeForm: React.FC<ServiceTypeFormProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Opruimen (min)
+            Cleanup (min)
           </label>
           <Input
             type="number"
@@ -127,20 +127,20 @@ export const ServiceTypeForm: React.FC<ServiceTypeFormProps> = ({
 
       <div className="mt-4">
         <label className="block text-sm font-medium text-gray-300 mb-2">
-          Beschrijving
+          Description
         </label>
         <Textarea
           value={formData.description}
           onChange={(e) => onInputChange('description', e.target.value)}
           className="bg-gray-800 border-gray-600 text-white"
           rows={3}
-          placeholder="Optionele beschrijving van de service..."
+          placeholder="Optional description of the service..."
         />
       </div>
 
       <div className="mt-4">
         <label className="block text-sm font-medium text-gray-300 mb-2">
-          Kleur
+          Color
         </label>
         <div className="flex flex-wrap gap-2">
           {colorOptions.map((color) => (
@@ -163,7 +163,7 @@ export const ServiceTypeForm: React.FC<ServiceTypeFormProps> = ({
           className="border-gray-600 text-gray-300 hover:bg-gray-700"
         >
           <X className="h-4 w-4 mr-2" />
-          Annuleren
+          Cancel
         </Button>
         <Button 
           onClick={onSubmit}
@@ -171,7 +171,7 @@ export const ServiceTypeForm: React.FC<ServiceTypeFormProps> = ({
           className="bg-green-600 hover:bg-green-700 text-white"
         >
           <Save className="h-4 w-4 mr-2" />
-          {isEditing ? 'Bijwerken' : 'Opslaan'}
+          {isEditing ? 'Update' : 'Save'}
         </Button>
       </div>
     </div>

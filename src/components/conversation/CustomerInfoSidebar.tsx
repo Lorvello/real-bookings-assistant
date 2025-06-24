@@ -32,7 +32,7 @@ export const CustomerInfoSidebar: React.FC<CustomerInfoSidebarProps> = ({
   return (
     <Card className="bg-gray-800 border-gray-700">
       <CardHeader>
-        <CardTitle className="text-white">Klant Informatie</CardTitle>
+        <CardTitle className="text-white">Customer Information</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-center">
@@ -56,31 +56,31 @@ export const CustomerInfoSidebar: React.FC<CustomerInfoSidebarProps> = ({
           <div className="flex items-center gap-3 text-gray-300">
             <Clock className="h-4 w-4 text-gray-400" />
             <div className="text-sm">
-              <p>Laatste activiteit:</p>
+              <p>Last activity:</p>
               <p className="text-gray-400">
-                {format(customerInfo.lastActivity, "PPP 'om' HH:mm", { locale: nl })}
+                {format(customerInfo.lastActivity, "PPP 'at' HH:mm", { locale: nl })}
               </p>
             </div>
           </div>
         </div>
 
         <div className="pt-4 border-t border-gray-700">
-          <h4 className="font-medium text-white mb-2">Gesprek Statistieken</h4>
+          <h4 className="font-medium text-white mb-2">Conversation Statistics</h4>
           <div className="space-y-2 text-sm text-gray-300">
             <div className="flex justify-between">
-              <span>Totaal berichten:</span>
+              <span>Total messages:</span>
               <span>{messages.length}</span>
             </div>
             <div className="flex justify-between">
-              <span>Klant berichten:</span>
+              <span>Customer messages:</span>
               <span>{messages.filter(m => m.type === 'user').length}</span>
             </div>
             <div className="flex justify-between">
-              <span>AI berichten:</span>
+              <span>AI messages:</span>
               <span>{messages.filter(m => m.type === 'bot').length}</span>
             </div>
             <div className="flex justify-between">
-              <span>Duur gesprek:</span>
+              <span>Conversation duration:</span>
               <span>3 min</span>
             </div>
           </div>

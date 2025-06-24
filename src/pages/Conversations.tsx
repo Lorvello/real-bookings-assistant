@@ -93,21 +93,21 @@ const ConversationsContent = () => {
         <div className="p-8 bg-gray-900 min-h-full">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
-            <p className="text-gray-400 mt-2">Selecteer een kalender om uw conversaties te bekijken</p>
+            <p className="text-gray-400 mt-2">Select a calendar to view your conversations</p>
           </div>
           
           {calendars.length > 0 ? (
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader className="text-center py-12">
                 <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <CardTitle className="text-gray-300">Selecteer een kalender</CardTitle>
+                <CardTitle className="text-gray-300">Select a calendar</CardTitle>
                 <CardDescription className="text-gray-400">
-                  Kies een kalender om uw WhatsApp conversaties te bekijken
+                  Choose a calendar to view your WhatsApp conversations
                 </CardDescription>
                 <div className="mt-6">
                   <Select onValueChange={setSelectedCalendarId}>
                     <SelectTrigger className="w-64 mx-auto bg-gray-700 border-gray-600 text-white">
-                      <SelectValue placeholder="Selecteer kalender" />
+                      <SelectValue placeholder="Select calendar" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
                       {calendars.map((calendar) => (
@@ -124,9 +124,9 @@ const ConversationsContent = () => {
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader className="text-center py-12">
                 <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <CardTitle className="text-gray-300">Geen kalenders gevonden</CardTitle>
+                <CardTitle className="text-gray-300">No calendars found</CardTitle>
                 <CardDescription className="text-gray-400">
-                  U heeft nog geen kalenders aangemaakt.
+                  You haven't created any calendars yet.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -143,12 +143,12 @@ const ConversationsContent = () => {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
-            <p className="text-gray-400 mt-2">Beheer uw WhatsApp conversaties en berichten</p>
+            <p className="text-gray-400 mt-2">Manage your WhatsApp conversations and messages</p>
           </div>
           
           {/* Calendar Selector */}
           <div className="flex items-center gap-4">
-            <label className="text-gray-300 text-sm">Kalender:</label>
+            <label className="text-gray-300 text-sm">Calendar:</label>
             <Select value={selectedCalendarId} onValueChange={setSelectedCalendarId}>
               <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
                 <SelectValue />
@@ -165,117 +165,9 @@ const ConversationsContent = () => {
         </div>
 
         {/* Analytics Dashboard */}
-        <div className="mb-8">
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-white flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Conversation Analytics
-                </CardTitle>
-                <div className="flex items-center gap-4">
-                  <Select value={timeFilter} onValueChange={setTimeFilter}>
-                    <SelectTrigger className="w-32 bg-gray-700 border-gray-600 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
-                      <SelectItem value="day">Vandaag</SelectItem>
-                      <SelectItem value="week">Deze week</SelectItem>
-                      <SelectItem value="month">Deze maand</SelectItem>
-                      <SelectItem value="custom">Aangepast</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  {timeFilter === 'custom' && (
-                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-48 justify-start text-left font-normal bg-gray-700 border-gray-600 text-white hover:bg-gray-600",
-                            !customDate && "text-gray-400"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {customDate ? format(customDate, "PPP", { locale: nl }) : "Selecteer datum"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-600" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={customDate}
-                          onSelect={(date) => {
-                            setCustomDate(date);
-                            setIsCalendarOpen(false);
-                          }}
-                          initialFocus
-                          className="bg-gray-800 text-white"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {metricsLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="bg-gray-700 p-4 rounded-lg animate-pulse">
-                      <div className="h-4 bg-gray-600 rounded mb-2"></div>
-                      <div className="h-8 bg-gray-600 rounded"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="bg-gray-700 p-4 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-400 text-sm">Totaal Gesprekken</p>
-                        <p className="text-2xl font-bold text-white">{metrics?.totalConversations || 0}</p>
-                      </div>
-                      <MessageSquare className="h-8 w-8 text-blue-400" />
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-700 p-4 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-400 text-sm">Gemiddelde Responstijd</p>
-                        <p className="text-2xl font-bold text-white">{metrics?.avgResponseTime || 0} min</p>
-                      </div>
-                      <Clock className="h-8 w-8 text-green-400" />
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-700 p-4 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-400 text-sm">Actieve Gesprekken</p>
-                        <p className="text-2xl font-bold text-white">{metrics?.activeConversations || 0}</p>
-                      </div>
-                      <UserIcon className="h-8 w-8 text-yellow-400" />
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-700 p-4 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-400 text-sm">Totaal Berichten</p>
-                        <p className="text-2xl font-bold text-white">{metrics?.totalMessages || 0}</p>
-                      </div>
-                      <MessageSquare className="h-8 w-8 text-purple-400" />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl">
+          <WhatsAppDashboard calendarId={selectedCalendarId} />
         </div>
-
-        {/* WhatsApp Interface */}
-        <WhatsAppDashboard calendarId={selectedCalendarId} />
       </div>
     </DashboardLayout>
   );

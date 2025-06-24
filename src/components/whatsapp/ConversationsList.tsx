@@ -110,7 +110,7 @@ export function ConversationsList({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
-            Conversaties
+            Conversations
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -131,14 +131,14 @@ export function ConversationsList({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <MessageCircle className="h-5 w-5" />
-          Conversaties ({filteredConversations?.length || 0})
+          Conversations ({filteredConversations?.length || 0})
         </CardTitle>
         
         <div className="space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Zoek conversaties..."
+              placeholder="Search conversations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -151,21 +151,21 @@ export function ConversationsList({
               size="sm"
               onClick={() => setStatusFilter('all')}
             >
-              Alle
+              All
             </Button>
             <Button
               variant={statusFilter === 'active' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setStatusFilter('active')}
             >
-              Actief
+              Active
             </Button>
             <Button
               variant={statusFilter === 'archived' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setStatusFilter('archived')}
             >
-              Gearchiveerd
+              Archived
             </Button>
           </div>
         </div>
@@ -243,12 +243,12 @@ export function ConversationsList({
           {filteredConversations?.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>Geen conversaties gevonden</p>
+              <p>No conversations found</p>
               {searchTerm && (
-                <p className="text-sm mt-1">Probeer een andere zoekterm</p>
+                <p className="text-sm mt-1">Try a different search term</p>
               )}
               {!searchTerm && conversations?.length === 0 && (
-                <p className="text-sm mt-1">Start uw eerste WhatsApp gesprek om te beginnen</p>
+                <p className="text-sm mt-1">Start your first WhatsApp conversation to begin</p>
               )}
             </div>
           )}

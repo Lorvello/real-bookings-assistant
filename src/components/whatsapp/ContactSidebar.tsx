@@ -82,7 +82,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         <CardContent className="flex items-center justify-center h-full">
           <div className="text-center text-gray-500">
             <User className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>Selecteer een conversatie om contact informatie te bekijken</p>
+            <p>Select a conversation to view contact information</p>
           </div>
         </CardContent>
       </Card>
@@ -94,7 +94,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-gray-900">Contact Informatie</CardTitle>
+        <CardTitle className="text-gray-900">Contact Information</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-center">
@@ -106,7 +106,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
           <h3 className="font-semibold text-gray-900">
             {contact?.display_name || 
              `${contact?.first_name || ''} ${contact?.last_name || ''}`.trim() || 
-             'Onbekend contact'}
+             'Unknown contact'}
           </h3>
         </div>
         
@@ -122,7 +122,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
             <div className="flex items-center gap-3 text-gray-700">
               <Clock className="h-4 w-4 text-gray-400" />
               <div className="text-sm">
-                <p>Laatst gezien:</p>
+                <p>Last seen:</p>
                 <p className="text-gray-500">
                   {formatDistanceToNow(new Date(contact.last_seen_at), { 
                     addSuffix: true, 
@@ -151,22 +151,22 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
 
         {messageStats && (
           <div className="pt-4 border-t border-gray-200">
-            <h4 className="font-medium text-gray-900 mb-2">Gesprek Statistieken</h4>
+            <h4 className="font-medium text-gray-900 mb-2">Conversation Statistics</h4>
             <div className="space-y-2 text-sm text-gray-600">
               <div className="flex justify-between">
-                <span>Totaal berichten:</span>
+                <span>Total messages:</span>
                 <span className="font-medium">{messageStats.total}</span>
               </div>
               <div className="flex justify-between">
-                <span>Inkomende berichten:</span>
+                <span>Incoming messages:</span>
                 <span className="font-medium">{messageStats.inbound}</span>
               </div>
               <div className="flex justify-between">
-                <span>Uitgaande berichten:</span>
+                <span>Outgoing messages:</span>
                 <span className="font-medium">{messageStats.outbound}</span>
               </div>
               <div className="flex justify-between">
-                <span>Gesprek duur:</span>
+                <span>Conversation duration:</span>
                 <span className="font-medium">{messageStats.duration}</span>
               </div>
             </div>
@@ -178,7 +178,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
             <div className="flex items-center gap-3 text-gray-700">
               <Calendar className="h-4 w-4 text-gray-400" />
               <div className="text-sm">
-                <p>Gesprek gestart:</p>
+                <p>Conversation started:</p>
                 <p className="text-gray-500">
                   {formatDistanceToNow(new Date(conversation.created_at), { 
                     addSuffix: true, 

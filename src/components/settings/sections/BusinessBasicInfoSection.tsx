@@ -14,12 +14,12 @@ export const BusinessBasicInfoSection: React.FC<BusinessBasicInfoSectionProps> =
 }) => {
   return (
     <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-      <h2 className="text-xl font-semibold text-white mb-6">Bedrijfsinformatie</h2>
+      <h2 className="text-xl font-semibold text-white mb-6">Business Information</h2>
       
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Bedrijfsnaam *
+            Business Name *
           </label>
           <input 
             type="text" 
@@ -35,7 +35,7 @@ export const BusinessBasicInfoSection: React.FC<BusinessBasicInfoSectionProps> =
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Type Bedrijf *
+            Business Type *
           </label>
           <Select 
             value={businessTypes.find(type => type.value === businessData.business_type)} 
@@ -46,7 +46,7 @@ export const BusinessBasicInfoSection: React.FC<BusinessBasicInfoSectionProps> =
             options={businessTypes} 
             className="react-select-container" 
             classNamePrefix="react-select" 
-            placeholder="Zoek en selecteer type bedrijf..." 
+            placeholder="Search and select business type..." 
             isSearchable 
             styles={{
               control: base => ({
@@ -85,7 +85,7 @@ export const BusinessBasicInfoSection: React.FC<BusinessBasicInfoSectionProps> =
                 ...businessData,
                 business_type_other: e.target.value
               })} 
-              placeholder="Specificeer type bedrijf..." 
+              placeholder="Specify business type..." 
               className="mt-2 w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
             />
           )}
@@ -93,7 +93,7 @@ export const BusinessBasicInfoSection: React.FC<BusinessBasicInfoSectionProps> =
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Bedrijfsomschrijving
+            Business Description
           </label>
           <textarea 
             value={businessData.business_description} 
@@ -103,7 +103,7 @@ export const BusinessBasicInfoSection: React.FC<BusinessBasicInfoSectionProps> =
             })} 
             rows={4} 
             className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-            placeholder="Vertel klanten over uw bedrijf..." 
+            placeholder="Tell customers about your business..." 
           />
         </div>
       </div>

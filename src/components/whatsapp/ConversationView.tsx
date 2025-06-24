@@ -89,7 +89,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
         <CardContent className="flex items-center justify-center h-full">
           <div className="text-center text-gray-500">
             <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>Selecteer een conversatie om berichten te bekijken</p>
+            <p>Select a conversation to view messages</p>
           </div>
         </CardContent>
       </Card>
@@ -140,7 +140,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
           ) : messages?.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>Nog geen berichten in deze conversatie</p>
+              <p>No messages in this conversation yet</p>
             </div>
           ) : (
             messages?.map((message) => (
@@ -191,7 +191,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Typ een bericht..."
+              placeholder="Type a message..."
               className="flex-1"
               disabled={sendMessage.isPending}
             />

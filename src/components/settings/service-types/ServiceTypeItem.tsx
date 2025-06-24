@@ -20,8 +20,8 @@ export const ServiceTypeItem: React.FC<ServiceTypeItemProps> = ({
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    if (remainingMinutes === 0) return `${hours}u`;
-    return `${hours}u ${remainingMinutes}min`;
+    if (remainingMinutes === 0) return `${hours}h`;
+    return `${hours}h ${remainingMinutes}min`;
   };
 
   return (
@@ -37,9 +37,9 @@ export const ServiceTypeItem: React.FC<ServiceTypeItemProps> = ({
             <div className="flex items-center space-x-4 text-sm text-gray-400 mt-1">
               <span>{formatDuration(serviceType.duration)}</span>
               {serviceType.price && <span>€{serviceType.price.toFixed(2)}</span>}
-              <span>{serviceType.max_attendees} persoon(en)</span>
+              <span>{serviceType.max_attendees} person(s)</span>
               <Badge variant={serviceType.is_active ? "default" : "secondary"}>
-                {serviceType.is_active ? "Actief" : "Inactief"}
+                {serviceType.is_active ? "Active" : "Inactive"}
               </Badge>
             </div>
             {serviceType.description && (
