@@ -83,23 +83,28 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-900 w-full">
-      {/* Sidebar - Always visible with smooth animations */}
+      {/* Sidebar */}
       <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} bg-gray-800 transition-all duration-300 ease-in-out flex-shrink-0 relative`}>
         <div className="flex h-full flex-col">
-          {/* Logo/Brand */}
+          {/* Header with Logo and Toggle */}
           <div className="flex h-16 items-center justify-between px-4 border-b border-gray-700">
-            <h1 className={`text-xl font-bold text-white transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
-              Bookings Assistant
-            </h1>
+            {/* Logo - only show when expanded */}
+            {isSidebarOpen && (
+              <h1 className="text-xl font-bold text-white transition-all duration-300">
+                Bookings Assistant
+              </h1>
+            )}
+            
+            {/* Toggle Button - positioned correctly */}
             <button
               onClick={toggleSidebar}
-              className="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-700 transition-all duration-200 hover:scale-105 group"
+              className="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-700 transition-all duration-200 hover:scale-105 group flex-shrink-0"
               title={isSidebarOpen ? 'Sidebar inklappen' : 'Sidebar uitklappen'}
             >
               {isSidebarOpen ? (
-                <PanelLeft className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                <PanelLeft className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               ) : (
-                <PanelRight className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                <PanelRight className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               )}
             </button>
           </div>
@@ -112,7 +117,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               title="Terug naar website"
             >
               <ArrowLeft
-                className="mr-3 h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-white transition-colors duration-200"
+                className="mr-3 h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-white transition-colors duration-200"
               />
               <span className={`transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 w-0 overflow-hidden'}`}>
                 Back to Website
@@ -138,7 +143,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   title={item.name}
                 >
                   <item.icon
-                    className={`mr-3 h-6 w-6 flex-shrink-0 transition-colors duration-200 ${
+                    className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200 ${
                       isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
                     }`}
                   />
