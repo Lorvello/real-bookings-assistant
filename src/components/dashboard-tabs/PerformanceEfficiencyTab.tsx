@@ -6,14 +6,24 @@ import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscripti
 import { Clock, AlertTriangle, Calendar, Activity, MessageSquare } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
+import { DateRange } from '@/components/dashboard/DateRangeFilter';
 
 interface PerformanceEfficiencyTabProps {
   calendarId: string;
+  dateRange: DateRange;
 }
 
-export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTabProps) {
-  const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(calendarId);
-  const { data: businessIntel, isLoading: businessLoading, error: businessError } = useOptimizedBusinessIntelligence(calendarId);
+export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceEfficiencyTabProps) {
+  const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(
+    calendarId,
+    dateRange.startDate,
+    dateRange.endDate
+  );
+  const { data: businessIntel, isLoading: businessLoading, error: businessError } = useOptimizedBusinessIntelligence(
+    calendarId,
+    dateRange.startDate,
+    dateRange.endDate
+  );
   useRealtimeSubscription(calendarId);
 
   const isLoading = performanceLoading || businessLoading;
@@ -44,6 +54,14 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
     );
   }
 
+  // Create dynamic labels based on date range
+  const getMetricSubtitle = (baseText: string) => {
+    if (dateRange.preset === 'custom') {
+      return `${dateRange.label}`;
+    }
+    return `${dateRange.label.toLowerCase()}`;
+  };
+
   return (
     <div className="space-y-12">
       {/* Operational Performance Metrics - Blue Theme */}
@@ -60,7 +78,7 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
         <MetricCard
           title="No-show Rate"
           value={`${performance?.no_show_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="last 30 days"
+          subtitle={getMetricSubtitle('period')}
           icon={AlertTriangle}
           variant="blue"
           delay={0.2}
@@ -69,7 +87,7 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
         <MetricCard
           title="Cancellation Rate"
           value={`${performance?.cancellation_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="last 30 days"
+          subtitle={getMetricSubtitle('period')}
           icon={AlertTriangle}
           variant="blue"
           delay={0.3}
@@ -110,7 +128,7 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
         <MetricCard
           title="Calendar Utilization"
           value={`${performance?.calendar_utilization_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="this week"
+          subtitle={getMetricSubtitle('period')}
           icon={Calendar}
           variant="blue"
           delay={0.5}

@@ -6,13 +6,19 @@ import { TrendingUp, Euro, Users, BarChart3 } from 'lucide-react';
 import { BusinessIntelligenceLoading } from './business-intelligence/BusinessIntelligenceLoading';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { ServicePerformanceChart } from './business-intelligence/ServicePerformanceChart';
+import { DateRange } from '@/components/dashboard/DateRangeFilter';
 
 interface BusinessIntelligenceTabProps {
   calendarId: string;
+  dateRange: DateRange;
 }
 
-export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabProps) {
-  const { data: businessIntel, isLoading, error } = useOptimizedBusinessIntelligence(calendarId);
+export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntelligenceTabProps) {
+  const { data: businessIntel, isLoading, error } = useOptimizedBusinessIntelligence(
+    calendarId, 
+    dateRange.startDate, 
+    dateRange.endDate
+  );
   useRealtimeSubscription(calendarId);
 
   if (isLoading) {
@@ -28,20 +34,28 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
     );
   }
 
-  const revenueChange = businessIntel && businessIntel.prev_month_revenue > 0 
-    ? ((businessIntel.month_revenue - businessIntel.prev_month_revenue) / businessIntel.prev_month_revenue * 100)
+  const revenueChange = businessIntel && businessIntel.prev_period_revenue > 0 
+    ? ((businessIntel.current_period_revenue - businessIntel.prev_period_revenue) / businessIntel.prev_period_revenue * 100)
     : 0;
 
   const isRevenueUp = revenueChange > 0;
+
+  // Create dynamic labels based on date range
+  const getMetricSubtitle = (baseText: string) => {
+    if (dateRange.preset === 'custom') {
+      return `${dateRange.label}`;
+    }
+    return `${dateRange.label.toLowerCase()}`;
+  };
 
   return (
     <div className="space-y-12">
       {/* Financial & Business Metrics - Orange Theme */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Monthly Revenue"
-          value={`€${businessIntel?.month_revenue?.toFixed(2) || '0.00'}`}
-          subtitle=""
+          title="Revenue"
+          value={`€${businessIntel?.current_period_revenue?.toFixed(2) || '0.00'}`}
+          subtitle={getMetricSubtitle('revenue')}
           icon={Euro}
           variant="orange"
           delay={0.1}
@@ -54,8 +68,8 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
 
         <MetricCard
           title="Unique Customers"
-          value={String(businessIntel?.unique_customers_month || 0)}
-          subtitle="this month"
+          value={String(businessIntel?.unique_customers || 0)}
+          subtitle={getMetricSubtitle('customers')}
           icon={Users}
           variant="orange"
           delay={0.2}
@@ -71,9 +85,9 @@ export function BusinessIntelligenceTab({ calendarId }: BusinessIntelligenceTabP
         />
 
         <MetricCard
-          title="Previous Month"
-          value={`€${businessIntel?.prev_month_revenue?.toFixed(2) || '0.00'}`}
-          subtitle="revenue comparison"
+          title="Previous Period"
+          value={`€${businessIntel?.prev_period_revenue?.toFixed(2) || '0.00'}`}
+          subtitle="comparison"
           icon={BarChart3}
           variant="orange"
           delay={0.4}

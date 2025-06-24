@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface BusinessIntelligenceData {
-  month_revenue: number;
-  prev_month_revenue: number;
-  unique_customers_month: number;
+  current_period_revenue: number;
+  prev_period_revenue: number;
+  unique_customers: number;
   avg_booking_value: number;
   whatsapp_conversion_rate: number;
   service_performance: Array<{
@@ -17,20 +17,24 @@ interface BusinessIntelligenceData {
   last_updated: string;
 }
 
-export function useOptimizedBusinessIntelligence(calendarId?: string) {
+export function useOptimizedBusinessIntelligence(
+  calendarId?: string, 
+  startDate?: Date, 
+  endDate?: Date
+) {
   return useQuery({
-    queryKey: ['optimized-business-intelligence', calendarId],
+    queryKey: ['optimized-business-intelligence', calendarId, startDate?.toISOString(), endDate?.toISOString()],
     queryFn: async (): Promise<BusinessIntelligenceData | null> => {
-      if (!calendarId) return null;
+      if (!calendarId || !startDate || !endDate) return null;
 
-      console.log('📊 Fetching business intelligence for:', calendarId);
+      console.log('📊 Fetching business intelligence for:', calendarId, startDate, endDate);
 
-      const now = new Date();
-      const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      // Calculate the previous period of the same length for comparison
+      const periodLength = endDate.getTime() - startDate.getTime();
+      const prevStartDate = new Date(startDate.getTime() - periodLength);
+      const prevEndDate = new Date(startDate.getTime());
 
-      // Get bookings for this month and last month
+      // Get bookings for current period and previous period
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
@@ -39,7 +43,8 @@ export function useOptimizedBusinessIntelligence(calendarId?: string) {
         `)
         .eq('calendar_id', calendarId)
         .neq('status', 'cancelled')
-        .gte('start_time', startOfLastMonth.toISOString());
+        .gte('start_time', prevStartDate.toISOString())
+        .lte('start_time', endDate.toISOString());
 
       if (bookingsError) {
         console.error('Error fetching bookings:', bookingsError);
@@ -54,24 +59,24 @@ export function useOptimizedBusinessIntelligence(calendarId?: string) {
           whatsapp_conversations!inner(calendar_id)
         `)
         .eq('whatsapp_conversations.calendar_id', calendarId)
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString());
 
       if (intentsError) {
         console.error('Error fetching intents:', intentsError);
       }
 
-      const thisMonthBookings = bookingsData?.filter(b => 
-        new Date(b.start_time) >= startOfThisMonth
+      const currentPeriodBookings = bookingsData?.filter(b => 
+        new Date(b.start_time) >= startDate && new Date(b.start_time) <= endDate
       ) || [];
 
-      const lastMonthBookings = bookingsData?.filter(b => 
-        new Date(b.start_time) >= startOfLastMonth && 
-        new Date(b.start_time) <= endOfLastMonth
+      const previousPeriodBookings = bookingsData?.filter(b => 
+        new Date(b.start_time) >= prevStartDate && new Date(b.start_time) < startDate
       ) || [];
 
-      // Calculate service performance
+      // Calculate service performance for current period
       const serviceStats = new Map();
-      thisMonthBookings.forEach(booking => {
+      currentPeriodBookings.forEach(booking => {
         const serviceName = booking.service_name || booking.service_types?.name || 'Unknown';
         const price = booking.total_price || booking.service_types?.price || 0;
         
@@ -97,20 +102,20 @@ export function useOptimizedBusinessIntelligence(calendarId?: string) {
       const conversionRate = totalIntents > 0 ? (completedIntents / totalIntents) * 100 : 0;
 
       return {
-        month_revenue: thisMonthBookings.reduce((sum, b) => 
+        current_period_revenue: currentPeriodBookings.reduce((sum, b) => 
           sum + (b.total_price || b.service_types?.price || 0), 0),
-        prev_month_revenue: lastMonthBookings.reduce((sum, b) => 
+        prev_period_revenue: previousPeriodBookings.reduce((sum, b) => 
           sum + (b.total_price || b.service_types?.price || 0), 0),
-        unique_customers_month: new Set(thisMonthBookings.map(b => b.customer_email)).size,
-        avg_booking_value: thisMonthBookings.length > 0 
-          ? thisMonthBookings.reduce((sum, b) => sum + (b.total_price || b.service_types?.price || 0), 0) / thisMonthBookings.length
+        unique_customers: new Set(currentPeriodBookings.map(b => b.customer_email)).size,
+        avg_booking_value: currentPeriodBookings.length > 0 
+          ? currentPeriodBookings.reduce((sum, b) => sum + (b.total_price || b.service_types?.price || 0), 0) / currentPeriodBookings.length
           : 0,
         whatsapp_conversion_rate: conversionRate,
         service_performance: servicePerformance,
         last_updated: new Date().toISOString()
       };
     },
-    enabled: !!calendarId,
+    enabled: !!calendarId && !!startDate && !!endDate,
     staleTime: 300000, // 5 minutes
     gcTime: 900000, // 15 minutes
     refetchInterval: 600000, // 10 minutes

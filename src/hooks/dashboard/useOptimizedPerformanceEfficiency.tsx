@@ -15,30 +15,35 @@ interface PerformanceEfficiencyData {
   last_updated: string;
 }
 
-export function useOptimizedPerformanceEfficiency(calendarId?: string) {
+export function useOptimizedPerformanceEfficiency(
+  calendarId?: string,
+  startDate?: Date,
+  endDate?: Date
+) {
   return useQuery({
-    queryKey: ['optimized-performance-efficiency', calendarId],
+    queryKey: ['optimized-performance-efficiency', calendarId, startDate?.toISOString(), endDate?.toISOString()],
     queryFn: async (): Promise<PerformanceEfficiencyData | null> => {
-      if (!calendarId) return null;
+      if (!calendarId || !startDate || !endDate) return null;
 
-      console.log('⚡ Fetching performance efficiency for:', calendarId);
+      console.log('⚡ Fetching performance efficiency for:', calendarId, startDate, endDate);
 
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
-      // Get bookings for the last 30 days
+      // Get bookings for the selected date range
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
         .eq('calendar_id', calendarId)
-        .gte('start_time', thirtyDaysAgo.toISOString());
+        .gte('start_time', startDate.toISOString())
+        .lte('start_time', endDate.toISOString());
 
       if (bookingsError) {
         console.error('Error fetching bookings:', bookingsError);
         throw bookingsError;
       }
 
-      // Get WhatsApp messages for response time calculation
+      // Get WhatsApp messages for response time calculation (limited to last 7 days for performance)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const responseTimeStartDate = startDate > sevenDaysAgo ? startDate : sevenDaysAgo;
+
       const { data: messagesData, error: messagesError } = await supabase
         .from('whatsapp_messages')
         .select(`
@@ -46,7 +51,8 @@ export function useOptimizedPerformanceEfficiency(calendarId?: string) {
           conversation_id!inner(calendar_id)
         `)
         .eq('conversation_id.calendar_id', calendarId)
-        .gte('created_at', sevenDaysAgo.toISOString())
+        .gte('created_at', responseTimeStartDate.toISOString())
+        .lte('created_at', endDate.toISOString())
         .order('created_at');
 
       if (messagesError) {
@@ -58,7 +64,7 @@ export function useOptimizedPerformanceEfficiency(calendarId?: string) {
       const noShowBookings = allBookings.filter(b => b.status === 'no-show').length;
       const cancelledBookings = allBookings.filter(b => b.status === 'cancelled').length;
 
-      // Calculate peak hours
+      // Calculate peak hours for the selected period
       const hourCounts = new Map();
       allBookings.forEach(booking => {
         if (booking.status !== 'cancelled') {
@@ -73,8 +79,7 @@ export function useOptimizedPerformanceEfficiency(calendarId?: string) {
           bookings,
           hour_label: `${String(hour).padStart(2, '0')}:00`
         }))
-        .sort((a, b) => b.bookings - a.bookings)
-        .slice(0, 24); // Show all hours for better visualization
+        .sort((a, b) => b.bookings - a.bookings);
 
       // Calculate response time (simplified - average between inbound and outbound messages)
       let totalResponseTime = 0;
@@ -105,10 +110,10 @@ export function useOptimizedPerformanceEfficiency(calendarId?: string) {
 
       const avgResponseTime = responseCount > 0 ? totalResponseTime / responseCount : 0;
 
-      // Simple utilization calculation (bookings vs available hours)
-      const workingHoursPerWeek = 40; // Assumption
-      const weeksInMonth = 4.33;
-      const totalAvailableHours = workingHoursPerWeek * weeksInMonth;
+      // Simple utilization calculation based on the selected period
+      const periodDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const workingHoursPerDay = 8; // Assumption
+      const totalAvailableHours = periodDays * workingHoursPerDay;
       const bookedHours = allBookings
         .filter(b => b.status !== 'cancelled')
         .reduce((sum, b) => sum + (b.booking_duration || 30) / 60, 0);
@@ -124,10 +129,10 @@ export function useOptimizedPerformanceEfficiency(calendarId?: string) {
         last_updated: new Date().toISOString()
       };
     },
-    enabled: !!calendarId,
-    staleTime: 600000, // 10 minutes (increased from 5 minutes)
-    gcTime: 1200000, // 20 minutes (increased from 10 minutes)
-    refetchInterval: 900000, // 15 minutes (increased from 10 minutes)
+    enabled: !!calendarId && !!startDate && !!endDate,
+    staleTime: 600000, // 10 minutes
+    gcTime: 1200000, // 20 minutes
+    refetchInterval: 900000, // 15 minutes
     refetchIntervalInBackground: true,
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15000),

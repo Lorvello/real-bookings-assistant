@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BusinessIntelligenceTab } from './dashboard-tabs/BusinessIntelligenceTab';
 import { PerformanceEfficiencyTab } from './dashboard-tabs/PerformanceEfficiencyTab';
 import { LiveOperationsTab } from './dashboard-tabs/LiveOperationsTab';
 import { FutureInsightsTab } from './dashboard-tabs/FutureInsightsTab';
+import { DateRangeFilter, DateRange, getPresetRange } from './dashboard/DateRangeFilter';
 import { 
   TrendingUp, 
   Activity, 
@@ -19,9 +21,26 @@ interface DashboardTabsProps {
 
 export function DashboardTabs({ calendarId }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState('business-intelligence');
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRange>(
+    getPresetRange('last30days')
+  );
 
   return (
     <div className="space-y-6">
+      {/* Date Range Filter Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-white mb-1">Analytics Dashboard</h2>
+          <p className="text-gray-400 text-sm">
+            Viewing data for: {selectedDateRange.label}
+          </p>
+        </div>
+        <DateRangeFilter 
+          selectedRange={selectedDateRange}
+          onRangeChange={setSelectedDateRange}
+        />
+      </div>
+
       {/* Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-gray-800 h-auto p-2">
@@ -62,13 +81,19 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
         {/* Tab Content */}
         <TabsContent value="business-intelligence">
           <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
-            <BusinessIntelligenceTab calendarId={calendarId} />
+            <BusinessIntelligenceTab 
+              calendarId={calendarId} 
+              dateRange={selectedDateRange}
+            />
           </div>
         </TabsContent>
 
         <TabsContent value="performance-efficiency">
           <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
-            <PerformanceEfficiencyTab calendarId={calendarId} />
+            <PerformanceEfficiencyTab 
+              calendarId={calendarId}
+              dateRange={selectedDateRange}
+            />
           </div>
         </TabsContent>
 
