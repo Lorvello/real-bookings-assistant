@@ -9,6 +9,7 @@ import { CalendarTab } from './CalendarTab';
 import { WhatsAppTab } from './WhatsAppTab';
 import { BillingTab } from './BillingTab';
 import { useAuth } from '@/hooks/useAuth';
+import { useSettingsData } from '@/hooks/useSettingsData';
 import { GradientContainer } from '@/components/ui/GradientContainer';
 import { User, Building, Calendar, MessageCircle, CreditCard } from 'lucide-react';
 
@@ -16,6 +17,20 @@ export function SettingsLayout() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
+  
+  // Use the settings data hook to get all the data and handlers
+  const {
+    profileData,
+    setProfileData,
+    businessData,
+    setBusinessData,
+    calendarSettings,
+    setCalendarSettings,
+    whatsappSettings,
+    setWhatsappSettings,
+    loading,
+    handleUpdateProfile
+  } = useSettingsData();
 
   React.useEffect(() => {
     if (!authLoading && !user) {
@@ -80,25 +95,43 @@ export function SettingsLayout() {
           {/* Tab Content with Gradient Styling */}
           <TabsContent value="profile">
             <GradientContainer variant="primary" className="p-6">
-              <ProfileTab />
+              <ProfileTab 
+                profileData={profileData}
+                setProfileData={setProfileData}
+                loading={loading}
+                handleUpdateProfile={handleUpdateProfile}
+              />
             </GradientContainer>
           </TabsContent>
 
           <TabsContent value="business">
             <GradientContainer variant="blue" className="p-6">
-              <BusinessTab />
+              <BusinessTab 
+                businessData={businessData}
+                setBusinessData={setBusinessData}
+                loading={loading}
+                handleUpdateProfile={handleUpdateProfile}
+              />
             </GradientContainer>
           </TabsContent>
 
           <TabsContent value="calendar">
             <GradientContainer variant="purple" className="p-6">
-              <CalendarTab />
+              <CalendarTab 
+                calendarSettings={calendarSettings}
+                setCalendarSettings={setCalendarSettings}
+                loading={loading}
+                handleUpdateProfile={handleUpdateProfile}
+              />
             </GradientContainer>
           </TabsContent>
 
           <TabsContent value="whatsapp">
             <GradientContainer variant="cyan" className="p-6">
-              <WhatsAppTab />
+              <WhatsAppTab 
+                whatsappSettings={whatsappSettings}
+                setWhatsappSettings={setWhatsappSettings}
+              />
             </GradientContainer>
           </TabsContent>
 
