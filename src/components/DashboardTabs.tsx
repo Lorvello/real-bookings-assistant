@@ -1,5 +1,7 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { OverviewTab } from './dashboard-tabs/OverviewTab';
 import { BusinessIntelligenceTab } from './dashboard-tabs/BusinessIntelligenceTab';
 import { PerformanceEfficiencyTab } from './dashboard-tabs/PerformanceEfficiencyTab';
 import { LiveOperationsTab } from './dashboard-tabs/LiveOperationsTab';
@@ -7,12 +9,11 @@ import { FutureInsightsTab } from './dashboard-tabs/FutureInsightsTab';
 import { DateRangeFilter } from './dashboard/DateRangeFilter';
 import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { 
+  LayoutDashboard,
   TrendingUp, 
   Activity, 
   Radio, 
-  Brain, 
-  BarChart3, 
-  Zap 
+  Brain
 } from 'lucide-react';
 
 interface DashboardTabsProps {
@@ -34,7 +35,7 @@ const getDefaultDateRange = (): DateRange => {
 };
 
 export function DashboardTabs({ calendarId }: DashboardTabsProps) {
-  const [activeTab, setActiveTab] = useState('business-intelligence');
+  const [activeTab, setActiveTab] = useState('overview');
   const [selectedDateRange, setSelectedDateRange] = useState<DateRange>(() => {
     try {
       return getPresetRange('last30days');
@@ -51,6 +52,11 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
   // Get appropriate header content based on active tab
   const getHeaderContent = () => {
     switch (activeTab) {
+      case 'overview':
+        return {
+          title: 'Dashboard Overview',
+          subtitle: 'Your business at a glance'
+        };
       case 'live-operations':
         return {
           title: 'Live Operations Center',
@@ -91,7 +97,15 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
 
       {/* Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-gray-800 h-auto p-2">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 bg-gray-800 h-auto p-2">
+          <TabsTrigger 
+            value="overview" 
+            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            <span className="hidden sm:inline">Overview</span>
+            <span className="sm:hidden">Home</span>
+          </TabsTrigger>
           <TabsTrigger 
             value="business-intelligence" 
             className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-orange-600 rounded-lg"
@@ -127,6 +141,12 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
         </TabsList>
 
         {/* Tab Content */}
+        <TabsContent value="overview">
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
+            <OverviewTab calendarId={calendarId} />
+          </div>
+        </TabsContent>
+
         <TabsContent value="business-intelligence">
           <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
             <BusinessIntelligenceTab 
