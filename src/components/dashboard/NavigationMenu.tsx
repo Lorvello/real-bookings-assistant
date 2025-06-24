@@ -47,7 +47,8 @@ export function NavigationMenu({ isSidebarOpen, onNavigate }: NavigationMenuProp
             key={item.name}
             onClick={() => onNavigate(item.href)}
             className={`
-              group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
+              group flex items-center rounded-lg px-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
+              ${isBotIcon && !isSidebarOpen ? 'py-1' : 'py-2'}
               ${isActive 
                 ? 'bg-green-600 text-white shadow-lg' 
                 : 'text-gray-300 hover:bg-gray-700 hover:text-white'
