@@ -18,12 +18,12 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   if (activeTab === 'schedule') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="max-w-7xl mx-auto p-5">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Main Content - Left Side */}
             <div className="lg:col-span-3 space-y-8">
               {/* Daily Availability */}
-              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-4 shadow-lg shadow-black/5">
+              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-5 shadow-lg shadow-black/5">
                 <DailyAvailability onChange={onUnsavedChanges} />
               </div>
             </div>
@@ -76,7 +76,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   if (activeTab === 'overrides') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="max-w-7xl mx-auto p-5">
           <div className="space-y-6">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-primary/20 rounded-2xl">
@@ -92,7 +92,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
               </div>
             </div>
             
-            <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-4 shadow-lg shadow-black/5">
+            <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-5 shadow-lg shadow-black/5">
               <DateOverrides onChange={onUnsavedChanges} />
             </div>
           </div>

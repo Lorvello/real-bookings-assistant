@@ -41,7 +41,7 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
   return (
     <div className="flex items-center justify-between w-full">
       {/* Time dropdowns - left side */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2.5">
         <TimeDropdown
           value={block.startTime}
           onChange={(value) => onUpdateTimeBlock(dayKey, block.id, 'startTime', value)}
@@ -60,17 +60,17 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
       </div>
 
       {/* Action buttons - right side */}
-      <div className="flex items-center space-x-0.5">
+      <div className="flex items-center space-x-1">
         {/* Delete button - only show if more than one time block */}
         {canDelete && (
           <Button
             variant="outline"
             size="sm"
             onClick={() => onRemoveTimeBlock(dayKey, block.id)}
-            className="bg-gray-800 border-gray-600 text-red-400 hover:bg-red-900/20 hover:border-red-500 p-1.5 h-7 w-7"
+            className="bg-gray-800 border-gray-600 text-red-400 hover:bg-red-900/20 hover:border-red-500 p-1.5 h-8 w-8"
             title="Tijdslot verwijderen"
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         )}
 
@@ -80,10 +80,10 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
             variant="outline"
             size="sm"
             onClick={() => onAddTimeBlock(dayKey)}
-            className="bg-green-800 border-green-600 text-green-400 hover:bg-green-900/20 hover:border-green-500 p-1.5 h-7 w-7"
+            className="bg-green-800 border-green-600 text-green-400 hover:bg-green-900/20 hover:border-green-500 p-1.5 h-8 w-8"
             title="Nieuw tijdslot toevoegen"
           >
-            <Plus className="h-3 w-3" />
+            <Plus className="h-3.5 w-3.5" />
           </Button>
         )}
       </div>

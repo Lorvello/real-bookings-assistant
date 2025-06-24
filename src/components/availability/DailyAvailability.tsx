@@ -184,14 +184,14 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   // Show loading state if we don't have calendar data yet
   if (!defaultCalendar || !defaultSchedule) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="text-center text-gray-400">Loading availability...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {DAYS.map((day) => {
         const dayAvailability = availability[day.key];
         const dayKey = day.key;
