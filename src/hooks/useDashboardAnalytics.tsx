@@ -46,7 +46,6 @@ export const useDashboardAnalytics = () => {
     try {
       console.log('Fetching dashboard metrics for calendar:', selectedCalendar.id);
 
-      // Gebruik de veilige dashboard metrics functie
       const { data, error: rpcError } = await supabase
         .rpc('get_dashboard_metrics_safe', {
           p_calendar_id: selectedCalendar.id
@@ -60,16 +59,17 @@ export const useDashboardAnalytics = () => {
 
       console.log('Dashboard metrics data:', data);
 
-      if (data) {
+      if (data && typeof data === 'object') {
+        const metricsData = data as Record<string, any>;
         setMetrics({
-          today_bookings: data.today_bookings || 0,
-          pending_bookings: data.pending_bookings || 0,
-          week_bookings: data.week_bookings || 0,
-          month_bookings: data.month_bookings || 0,
-          total_revenue: data.total_revenue || 0,
-          conversion_rate: data.conversion_rate || 0,
-          avg_response_time: data.avg_response_time || 0,
-          last_updated: data.last_updated || new Date().toISOString()
+          today_bookings: Number(metricsData.today_bookings) || 0,
+          pending_bookings: Number(metricsData.pending_bookings) || 0,
+          week_bookings: Number(metricsData.week_bookings) || 0,
+          month_bookings: Number(metricsData.month_bookings) || 0,
+          total_revenue: Number(metricsData.total_revenue) || 0,
+          conversion_rate: Number(metricsData.conversion_rate) || 0,
+          avg_response_time: Number(metricsData.avg_response_time) || 0,
+          last_updated: metricsData.last_updated || new Date().toISOString()
         });
       }
     } catch (error) {

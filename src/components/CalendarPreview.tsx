@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,7 @@ interface CalendarPreviewProps {
 }
 
 export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
-  const { serviceTypes, loading: servicesLoading } = useServiceTypes(calendarId);
+  const { serviceTypes, loading: servicesLoading } = useServiceTypes();
   const { getAvailableSlots, loading: slotsLoading } = useAvailableSlots();
   
   const [selectedDate, setSelectedDate] = useState<Date>();

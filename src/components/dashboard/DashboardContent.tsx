@@ -14,12 +14,12 @@ interface DashboardContentProps {
 export function DashboardContent({ calendarIds, calendarName }: DashboardContentProps) {
   // For analytics, use the first calendar or undefined if no calendars
   const primaryCalendarId = calendarIds.length > 0 ? calendarIds[0] : undefined;
-  const { data: analytics, isLoading } = useDashboardAnalytics(primaryCalendarId);
+  const { metrics, loading } = useDashboardAnalytics();
   
   // Set up realtime updates for the primary calendar
   useRealtimeDashboard(primaryCalendarId);
 
-  console.log('DashboardContent render:', { calendarIds, analytics, isLoading });
+  console.log('DashboardContent render:', { calendarIds, metrics, loading });
 
   if (calendarIds.length === 0) {
     return (
@@ -58,20 +58,7 @@ export function DashboardContent({ calendarIds, calendarName }: DashboardContent
       {/* Metrics Cards Section */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-white mb-4">Statistieken</h2>
-        <DashboardMetrics 
-          analytics={analytics || {
-            today_bookings: 0,
-            pending_bookings: 0,
-            week_bookings: 0,
-            month_bookings: 0,
-            total_revenue: 0,
-            conversion_rate: 0,
-            avg_response_time: 0,
-            last_updated: new Date().toISOString()
-          }} 
-          isLoading={isLoading}
-          showMultiCalendarNote={calendarIds.length > 1}
-        />
+        <DashboardMetrics />
       </div>
 
       {/* Calendar View Section */}

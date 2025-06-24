@@ -1,133 +1,73 @@
 
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Lock, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { MessageSquare, Phone, Settings } from 'lucide-react';
 
-interface WhatsAppTabProps {
-  whatsappSettings: any;
-  setWhatsappSettings: (settings: any) => void;
+export interface WhatsAppTabProps {
+  whatsappSettings?: any;
+  setWhatsappSettings?: (settings: any) => void;
 }
 
-export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
-  whatsappSettings,
-  setWhatsappSettings
+export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({ 
+  whatsappSettings = {}, 
+  setWhatsappSettings = () => {} 
 }) => {
-  const navigate = useNavigate();
+  const [isConnected, setIsConnected] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [botActive, setBotActive] = useState(false);
 
   return (
     <div className="space-y-8">
-      {/* WhatsApp Status - Always accessible */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
+        <div className="flex items-center space-x-3 mb-6">
+          <MessageSquare className="h-6 w-6 text-green-500" />
           <div>
-            <h2 className="text-xl font-semibold text-white">WhatsApp Business API</h2>
-            <p className="text-sm text-gray-400 mt-1">Manage your WhatsApp booking assistant</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-green-400">Connected</span>
+            <h2 className="text-xl font-semibold text-white">WhatsApp Integratie</h2>
+            <p className="text-gray-400 text-sm">Verbind je WhatsApp account voor automatische boekingen</p>
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            WhatsApp Business Number
-          </label>
-          <input
-            type="tel"
-            value={whatsappSettings.whatsapp_number}
-            onChange={(e) => setWhatsappSettings({ ...whatsappSettings, whatsapp_number: e.target.value })}
-            placeholder="+31 6 12345678"
-            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-          />
-        </div>
-      </div>
-
-      {/* Locked Features - Premium */}
-      <div className="relative">
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm rounded-xl z-10 flex items-center justify-center">
-          <div className="text-center bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-2xl">
-            <div className="w-16 h-16 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="h-8 w-8 text-green-400" />
+        <div className="space-y-6">
+          <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span className="text-white font-medium">
+                {isConnected ? 'Verbonden' : 'Niet verbonden'}
+              </span>
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">WhatsApp Custom Branding</h3>
-            <p className="text-gray-400 mb-6 max-w-md">
-              Unlock advanced WhatsApp features including custom messages, AI responses, quick replies, and more.
-            </p>
-            <button
-              onClick={() => navigate('/#pricing')}
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
-            >
-              Upgrade Plan to Unlock This
-            </button>
+            <Button variant="outline" size="sm">
+              {isConnected ? 'Ontkoppelen' : 'Verbinden'}
+            </Button>
           </div>
-        </div>
 
-        {/* Locked Content - Visible but disabled */}
-        <div className="opacity-50 pointer-events-none space-y-8">
-          {/* Business Hours Setting */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center space-x-4">
-              <input
-                type="checkbox"
-                checked={whatsappSettings.business_hours_only}
-                disabled
-                className="w-4 h-4 text-green-600 bg-gray-900 border-gray-700 rounded focus:ring-green-600"
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="phone" className="text-white">Telefoonnummer</Label>
+              <Input
+                id="phone"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+31 6 12345678"
+                className="bg-slate-700/50 border-slate-600 text-white"
               />
-              <label className="text-gray-300">
-                Only active during business hours
-              </label>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-white">WhatsApp Bot</Label>
+                <p className="text-sm text-gray-400">Automatische reacties en boekingen</p>
+              </div>
+              <Switch
+                checked={botActive}
+                onCheckedChange={setBotActive}
+              />
             </div>
           </div>
-
-          {/* Welcome Messages */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <h2 className="text-xl font-semibold text-white mb-6">Automatic Messages</h2>
-            
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Welcome Message
-                </label>
-                <textarea
-                  value={whatsappSettings.welcome_message}
-                  disabled
-                  rows={3}
-                  className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Variables: {'{business_name}'}, {'{customer_name}'}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Outside Hours Message
-                </label>
-                <textarea
-                  value={whatsappSettings.outside_hours_message}
-                  disabled
-                  rows={3}
-                  className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Additional locked sections would go here */}
         </div>
-      </div>
-
-      {/* Save Button - Also locked */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-gray-900/50 rounded-lg z-10"></div>
-        <button
-          disabled
-          className="w-full py-3 px-4 bg-gray-600 text-gray-400 font-medium rounded-lg cursor-not-allowed"
-        >
-          Save WhatsApp Settings
-        </button>
       </div>
     </div>
   );

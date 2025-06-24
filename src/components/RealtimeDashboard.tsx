@@ -18,16 +18,16 @@ export function RealtimeDashboard({ calendarId }: RealtimeDashboardProps) {
   useRealtimeBookings([calendarId]);
   useRealtimeDashboard(calendarId);
   
-  const { data: analytics, isLoading, error } = useDashboardAnalytics(calendarId);
+  const { metrics, loading, error } = useDashboardAnalytics();
 
-  console.log('🎯 RealtimeDashboard render:', { calendarId, analytics, isLoading, error });
+  console.log('🎯 RealtimeDashboard render:', { calendarId, metrics, loading, error });
 
-  if (isLoading) {
+  if (loading) {
     return <DashboardLoadingState />;
   }
 
   if (error) {
-    return <DashboardErrorState error={error} />;
+    return <DashboardErrorState error={new Error(error)} />;
   }
 
   return (
@@ -36,21 +36,21 @@ export function RealtimeDashboard({ calendarId }: RealtimeDashboardProps) {
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
         <span>Live data - updates in real-time</span>
-        {analytics?.last_updated && (
+        {metrics?.last_updated && (
           <span className="ml-2">
-            (laatste update: {new Date(analytics.last_updated).toLocaleTimeString('nl-NL')})
+            (laatste update: {new Date(metrics.last_updated).toLocaleTimeString('nl-NL')})
           </span>
         )}
       </div>
 
       {/* Enhanced Metrics Cards */}
-      <EnhancedMetricsCards analytics={analytics!} />
+      <EnhancedMetricsCards analytics={metrics!} />
 
       {/* Status indicators */}
       <DashboardStatusIndicator />
 
       {/* Debug info tijdens development */}
-      <DashboardDebugInfo calendarId={calendarId} analytics={analytics!} />
+      <DashboardDebugInfo calendarId={calendarId} analytics={metrics!} />
     </div>
   );
 }

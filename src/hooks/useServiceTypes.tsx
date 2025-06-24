@@ -117,12 +117,22 @@ export const useServiceTypes = () => {
     if (!selectedCalendar?.id) return;
 
     try {
+      const insertData = {
+        calendar_id: selectedCalendar.id,
+        name: serviceTypeData.name || '',
+        description: serviceTypeData.description || null,
+        duration: serviceTypeData.duration || 30,
+        price: serviceTypeData.price || null,
+        color: serviceTypeData.color || '#3B82F6',
+        is_active: serviceTypeData.is_active ?? true,
+        max_attendees: serviceTypeData.max_attendees || 1,
+        preparation_time: serviceTypeData.preparation_time || 0,
+        cleanup_time: serviceTypeData.cleanup_time || 0
+      };
+
       const { data, error } = await supabase
         .from('service_types')
-        .insert({
-          calendar_id: selectedCalendar.id,
-          ...serviceTypeData
-        })
+        .insert(insertData)
         .select()
         .single();
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,7 @@ const defaultServiceType: ServiceTypeForm = {
 
 export const ServiceTypesSection: React.FC = () => {
   const { selectedCalendar } = useCalendarContext();
-  const { serviceTypes, loading, createServiceType, updateServiceType, deleteServiceType } = useServiceTypes(selectedCalendar?.id);
+  const { serviceTypes, loading, createServiceType, updateServiceType, deleteServiceType } = useServiceTypes();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<ServiceTypeForm>(defaultServiceType);

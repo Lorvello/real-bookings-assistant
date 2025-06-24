@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, MoreVertical, MessageCircle, Clock, Euro, Users, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,8 @@ interface ServiceTypesManagerProps {
 
 export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
   const { toast } = useToast();
-  const { serviceTypes, loading, createServiceType, updateServiceType, deleteServiceType } = useServiceTypes(calendarId);
+  const { serviceTypes, loading, createServiceType, updateServiceType, deleteServiceType } = useServiceTypes();
+  
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingService, setEditingService] = useState<ServiceType | null>(null);
   const [saving, setSaving] = useState(false);

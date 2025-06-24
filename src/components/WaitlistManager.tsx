@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +29,7 @@ interface WaitlistManagerProps {
 
 export function WaitlistManager({ calendarId }: WaitlistManagerProps) {
   const { waitlistEntries, loading, removeFromWaitlist, updateWaitlistStatus } = useWaitlist(calendarId);
-  const { serviceTypes } = useServiceTypes(calendarId);
+  const { serviceTypes } = useServiceTypes();
 
   const getServiceTypeName = (serviceTypeId: string) => {
     const service = serviceTypes.find(s => s.id === serviceTypeId);
