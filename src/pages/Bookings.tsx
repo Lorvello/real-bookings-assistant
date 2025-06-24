@@ -86,29 +86,31 @@ const Bookings = () => {
   return (
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-8">
-        <BookingsHeader />
+        <div className="space-y-6">
+          <BookingsHeader />
 
-        <BookingsFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-        />
+          <BookingsFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+          />
 
-        <BookingsList
-          bookings={filteredAndSortedBookings}
-          loading={bookingsLoading}
-          hasFilters={hasFilters}
-          onBookingClick={handleBookingClick}
-        />
+          <BookingsList
+            bookings={filteredAndSortedBookings}
+            loading={bookingsLoading}
+            hasFilters={hasFilters}
+            onBookingClick={handleBookingClick}
+          />
 
-        <BookingDetailModal
-          open={isModalOpen}
-          onClose={handleCloseModal}
-          booking={selectedBooking}
-        />
+          <BookingDetailModal
+            open={isModalOpen}
+            onClose={handleCloseModal}
+            booking={selectedBooking}
+          />
+        </div>
       </div>
     </DashboardLayout>
   );

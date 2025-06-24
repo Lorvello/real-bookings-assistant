@@ -90,47 +90,50 @@ const ConversationsContent = () => {
   if (!selectedCalendarId) {
     return (
       <DashboardLayout>
-        <div className="p-8 bg-gray-900 min-h-full">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
-            <p className="text-gray-400 mt-2">Select a calendar to view your conversations</p>
+        <div className="bg-gray-900 min-h-full p-8">
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
+              <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
+              <p className="text-gray-400 mt-1">Select a calendar to view your conversations</p>
+            </div>
+            
+            {calendars.length > 0 ? (
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader className="text-center py-12">
+                  <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <CardTitle className="text-gray-300">Select a calendar</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Choose a calendar to view your WhatsApp conversations
+                  </CardDescription>
+                  <div className="mt-6">
+                    <Select onValueChange={setSelectedCalendarId}>
+                      <SelectTrigger className="w-64 mx-auto bg-gray-700 border-gray-600 text-white">
+                        <SelectValue placeholder="Select calendar" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-700 border-gray-600">
+                        {calendars.map((calendar) => (
+                          <SelectItem key={calendar.id} value={calendar.id}>
+                            {calendar.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardHeader>
+              </Card>
+            ) : (
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader className="text-center py-12">
+                  <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <CardTitle className="text-gray-300">No calendars found</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    You haven't created any calendars yet.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            )}
           </div>
-          
-          {calendars.length > 0 ? (
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader className="text-center py-12">
-                <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <CardTitle className="text-gray-300">Select a calendar</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Choose a calendar to view your WhatsApp conversations
-                </CardDescription>
-                <div className="mt-6">
-                  <Select onValueChange={setSelectedCalendarId}>
-                    <SelectTrigger className="w-64 mx-auto bg-gray-700 border-gray-600 text-white">
-                      <SelectValue placeholder="Select calendar" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
-                      {calendars.map((calendar) => (
-                        <SelectItem key={calendar.id} value={calendar.id}>
-                          {calendar.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardHeader>
-            </Card>
-          ) : (
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader className="text-center py-12">
-                <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <CardTitle className="text-gray-300">No calendars found</CardTitle>
-                <CardDescription className="text-gray-400">
-                  You haven't created any calendars yet.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
         </div>
       </DashboardLayout>
     );
@@ -139,34 +142,39 @@ const ConversationsContent = () => {
   // Show WhatsApp dashboard if calendar is selected
   return (
     <DashboardLayout>
-      <div className="p-8 bg-gray-900 min-h-full">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
-            <p className="text-gray-400 mt-2">Manage your WhatsApp conversations and messages</p>
+      <div className="bg-gray-900 min-h-full p-8">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
+                <p className="text-gray-400 mt-1">Manage your WhatsApp conversations and messages</p>
+              </div>
+              
+              {/* Calendar Selector */}
+              <div className="flex items-center gap-4">
+                <label className="text-gray-300 text-sm">Calendar:</label>
+                <Select value={selectedCalendarId} onValueChange={setSelectedCalendarId}>
+                  <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-700 border-gray-600">
+                    {calendars.map((calendar) => (
+                      <SelectItem key={calendar.id} value={calendar.id}>
+                        {calendar.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-          
-          {/* Calendar Selector */}
-          <div className="flex items-center gap-4">
-            <label className="text-gray-300 text-sm">Calendar:</label>
-            <Select value={selectedCalendarId} onValueChange={setSelectedCalendarId}>
-              <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-700 border-gray-600">
-                {calendars.map((calendar) => (
-                  <SelectItem key={calendar.id} value={calendar.id}>
-                    {calendar.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
-        {/* Analytics Dashboard */}
-        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl">
-          <WhatsAppDashboard calendarId={selectedCalendarId} />
+          {/* Analytics Dashboard */}
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl">
+            <WhatsAppDashboard calendarId={selectedCalendarId} />
+          </div>
         </div>
       </div>
     </DashboardLayout>

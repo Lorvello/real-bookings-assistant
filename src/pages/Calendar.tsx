@@ -54,20 +54,22 @@ const Calendar = () => {
   return (
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-8">
-        {/* Calendar Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">{displayTitle}</h1>
-          <p className="text-gray-400 mt-1">
-            {viewingAllCalendars 
-              ? `Manage appointments from ${calendars.length} calendars`
-              : 'Manage your appointments and availability'
-            }
-          </p>
-        </div>
+        <div className="space-y-6">
+          {/* Calendar Header */}
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
+            <h1 className="text-3xl font-bold text-white">{displayTitle}</h1>
+            <p className="text-gray-400 mt-1">
+              {viewingAllCalendars 
+                ? `Manage appointments from ${calendars.length} calendars`
+                : 'Manage your appointments and availability'
+              }
+            </p>
+          </div>
 
-        {/* Calendar Content with Clean Styling */}
-        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
-          <CalendarView calendarIds={activeCalendarIds} />
+          {/* Calendar Content with Clean Styling */}
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
+            <CalendarView calendarIds={activeCalendarIds} />
+          </div>
         </div>
       </div>
     </DashboardLayout>
