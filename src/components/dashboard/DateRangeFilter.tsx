@@ -212,7 +212,7 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
       </DropdownMenu>
 
       <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
-        <DialogContent className="max-w-md bg-card border-border">
+        <DialogContent className="max-w-lg bg-card border-border">
           <DialogHeader className="pb-4">
             <DialogTitle className="text-xl font-semibold text-foreground text-center">
               Select Date Range
@@ -308,10 +308,10 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
                 nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border border-border",
                 nav_button_previous: "absolute left-1",
                 nav_button_next: "absolute right-1",
-                table: "w-full border-collapse space-y-2",
+                table: "w-full border-collapse space-y-1",
                 head_row: "flex",
                 head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem] flex items-center justify-center",
-                row: "flex w-full mt-3",
+                row: "flex w-full mt-2",
                 cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
                 day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md flex items-center justify-center",
                 day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
