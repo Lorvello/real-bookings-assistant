@@ -28,12 +28,12 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Kalender', href: '/calendar', icon: Calendar },
+  { name: 'Calendar', href: '/calendar', icon: Calendar },
   { name: 'Bookings', href: '/bookings', icon: BookOpen },
   { name: 'Availability', href: '/availability', icon: Clock },
   { name: 'WhatsApp', href: '/conversations', icon: MessageCircle },
   { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot },
-  { name: 'Instellingen', href: '/settings', icon: Settings },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 interface DashboardLayoutProps {
@@ -94,7 +94,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 className="mr-3 h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-white"
               />
               <span className={`transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
-                Terug naar Website
+                Back to Website
               </span>
             </button>
           </div>
@@ -151,7 +151,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               className="mt-3 flex w-full items-center justify-start rounded-lg bg-gray-700 px-3 py-2 text-sm text-gray-300 hover:bg-gray-600 hover:text-white"
             >
               <LogOut className="mr-2 h-5 w-5" />
-              {isSidebarOpen && <span>Uitloggen</span>}
+              {isSidebarOpen && <span>Sign Out</span>}
             </Button>
           </div>
         </div>
