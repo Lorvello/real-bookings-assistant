@@ -22,13 +22,13 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState('business-intelligence');
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-gray-800 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-gray-800 h-auto p-2">
           <TabsTrigger 
             value="business-intelligence" 
-            className="flex items-center gap-2 py-2 px-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
+            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
           >
             <TrendingUp className="h-4 w-4" />
             <span className="hidden sm:inline">Business Intelligence</span>
@@ -36,7 +36,7 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
           </TabsTrigger>
           <TabsTrigger 
             value="performance-efficiency" 
-            className="flex items-center gap-2 py-2 px-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
+            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
           >
             <Activity className="h-4 w-4" />
             <span className="hidden sm:inline">Performance</span>
@@ -44,7 +44,7 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
           </TabsTrigger>
           <TabsTrigger 
             value="live-operations" 
-            className="flex items-center gap-2 py-2 px-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
+            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
           >
             <Radio className="h-4 w-4" />
             <span className="hidden sm:inline">Live Operations</span>
@@ -52,7 +52,7 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
           </TabsTrigger>
           <TabsTrigger 
             value="future-insights" 
-            className="flex items-center gap-2 py-2 px-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
+            className="flex items-center gap-2 py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg"
           >
             <Brain className="h-4 w-4" />
             <span className="hidden sm:inline">Future Insights</span>
