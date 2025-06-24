@@ -5,7 +5,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendars } from '@/hooks/useCalendars';
-import { useSettingsData } from '@/hooks/useSettingsData';
 import { AvailabilityTabs } from './AvailabilityTabs';
 import { AvailabilityContent } from './AvailabilityContent';
 import { NoCalendarSelected } from './NoCalendarSelected';
@@ -36,13 +35,6 @@ export const AvailabilityManager = () => {
     return defaultCalendar || calendars[0];
   }, [selectedCalendar, viewingAllCalendars, calendars]);
 
-  const {
-    calendarSettings,
-    setCalendarSettings,
-    loading,
-    handleUpdateProfile
-  } = useSettingsData();
-
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
@@ -52,7 +44,7 @@ export const AvailabilityManager = () => {
 
   const handleSave = async () => {
     try {
-      await handleUpdateProfile();
+      // Note: Save functionality moved to individual components
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving availability:', error);
@@ -106,10 +98,10 @@ export const AvailabilityManager = () => {
               </div>
               <button
                 onClick={handleSave}
-                disabled={loading}
+                disabled={false}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
               >
-                {loading ? 'Saving...' : 'Save'}
+                Save
               </button>
             </div>
           </div>

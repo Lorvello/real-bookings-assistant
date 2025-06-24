@@ -8,9 +8,21 @@ import { BusinessTab } from './BusinessTab';
 import { CalendarTab } from './CalendarTab';
 import { WhatsAppTab } from './WhatsAppTab';
 import { BillingTab } from './BillingTab';
+import { useSettingsData } from '@/hooks/useSettingsData';
 
 export function SettingsLayout() {
   const [activeTab, setActiveTab] = useState('profile');
+  
+  const {
+    profileData,
+    setProfileData,
+    businessData,
+    setBusinessData,
+    whatsappSettings,
+    setWhatsappSettings,
+    loading,
+    handleUpdateProfile
+  } = useSettingsData();
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -48,11 +60,21 @@ export function SettingsLayout() {
             </TabsList>
 
             <TabsContent value="profile" className="space-y-6">
-              <ProfileTab />
+              <ProfileTab 
+                profileData={profileData}
+                setProfileData={setProfileData}
+                loading={loading}
+                handleUpdateProfile={handleUpdateProfile}
+              />
             </TabsContent>
 
             <TabsContent value="business" className="space-y-6">
-              <BusinessTab />
+              <BusinessTab 
+                businessData={businessData}
+                setBusinessData={setBusinessData}
+                loading={loading}
+                handleUpdateProfile={handleUpdateProfile}
+              />
             </TabsContent>
 
             <TabsContent value="calendar" className="space-y-6">
@@ -60,7 +82,10 @@ export function SettingsLayout() {
             </TabsContent>
 
             <TabsContent value="whatsapp" className="space-y-6">
-              <WhatsAppTab />
+              <WhatsAppTab 
+                whatsappSettings={whatsappSettings}
+                setWhatsappSettings={setWhatsappSettings}
+              />
             </TabsContent>
 
             <TabsContent value="billing" className="space-y-6">
