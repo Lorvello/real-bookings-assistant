@@ -2,7 +2,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { DashboardTabs } from '@/components/DashboardTabs';
@@ -55,27 +54,22 @@ const Dashboard = () => {
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-8">
         {/* Dashboard Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">
-              Dashboard
-              {viewingAllCalendars 
-                ? ' - All calendars'
-                : selectedCalendar 
-                  ? ` - ${selectedCalendar.name}`
-                  : ''
-              }
-            </h1>
-            <p className="text-gray-400 mt-1">
-              {viewingAllCalendars
-                ? `Overview of ${activeCalendarIds.length} calendars`
-                : 'Overview of your bookings and performance'
-              }
-            </p>
-          </div>
-          
-          {/* Calendar Switcher */}
-          <CalendarSwitcher />
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white">
+            Dashboard
+            {viewingAllCalendars 
+              ? ' - All calendars'
+              : selectedCalendar 
+                ? ` - ${selectedCalendar.name}`
+                : ''
+            }
+          </h1>
+          <p className="text-gray-400 mt-1">
+            {viewingAllCalendars
+              ? `Overview of ${activeCalendarIds.length} calendars`
+              : 'Overview of your bookings and performance'
+            }
+          </p>
         </div>
 
         {/* Dashboard Tabs */}

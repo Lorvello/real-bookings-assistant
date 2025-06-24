@@ -14,11 +14,24 @@ import {
   ArrowLeft,
   Clock,
   Eye,
-  BookOpen
+  BookOpen,
+  Plus,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useCalendarContext } from '@/contexts/CalendarContext';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 
 interface NavItem {
   name: string;
@@ -45,7 +58,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
+  const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading } = useCalendarContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -128,6 +143,113 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             })}
           </nav>
 
+          {/* Calendar Switcher Section */}
+          {isSidebarOpen && !loading && calendars.length > 0 && (
+            <div className="border-t border-gray-700 p-4">
+              <div className="mb-3">
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+                  Switch Calendar
+                </p>
+              </div>
+              
+              {/* Calendar Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-between text-gray-300 hover:bg-gray-700 hover:text-white"
+                  >
+                    <div className="flex items-center space-x-2 min-w-0">
+                      {viewingAllCalendars ? (
+                        <>
+                          <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex-shrink-0" />
+                          <span className="truncate">All calendars</span>
+                        </>
+                      ) : (
+                        <>
+                          <div 
+                            className="w-3 h-3 rounded-full flex-shrink-0" 
+                            style={{ backgroundColor: selectedCalendar?.color || '#3B82F6' }}
+                          />
+                          <span className="truncate">
+                            {selectedCalendar ? selectedCalendar.name : 'Select calendar'}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <ChevronDown className="w-4 h-4 opacity-50 flex-shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                
+                <DropdownMenuContent className="w-64" align="end">
+                  <DropdownMenuLabel>Select Calendar</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  {/* All calendars option */}
+                  <DropdownMenuItem
+                    onClick={() => selectAllCalendars()}
+                    className="flex items-center space-x-3 p-3"
+                  >
+                    <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-full" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium">All calendars</span>
+                        <Badge variant="outline" className="text-xs">Mixed</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        View all appointments together
+                      </p>
+                    </div>
+                    {viewingAllCalendars && (
+                      <div className="w-2 h-2 bg-primary rounded-full" />
+                    )}
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  {calendars.map((calendar) => (
+                    <DropdownMenuItem
+                      key={calendar.id}
+                      onClick={() => selectCalendar(calendar)}
+                      className="flex items-center space-x-3 p-3"
+                    >
+                      <div 
+                        className="w-3 h-3 rounded-full flex-shrink-0" 
+                        style={{ backgroundColor: calendar.color || '#3B82F6' }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium truncate">{calendar.name}</span>
+                          {calendar.is_default && (
+                            <Badge variant="outline" className="text-xs">Default</Badge>
+                          )}
+                        </div>
+                        {calendar.description && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {calendar.description}
+                          </p>
+                        )}
+                      </div>
+                      {!viewingAllCalendars && selectedCalendar?.id === calendar.id && (
+                        <div className="w-2 h-2 bg-primary rounded-full" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onSelect={(e) => {
+                    e.preventDefault();
+                    setShowCreateDialog(true);
+                  }}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    New calendar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+
           {/* User Profile Section */}
           <div className="border-t border-gray-700 p-4">
             <div className="flex items-center">
@@ -163,6 +285,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* Create Calendar Dialog */}
+      <CreateCalendarDialog 
+        open={showCreateDialog} 
+        onOpenChange={setShowCreateDialog}
+        trigger="button"
+      />
     </div>
   );
 }
