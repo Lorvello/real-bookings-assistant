@@ -11,10 +11,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -78,7 +80,7 @@ const getPresetRange = (preset: DateRangePreset): DateRange => {
 export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilterProps) {
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>(selectedRange.startDate);
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>(selectedRange.endDate);
-  const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);
+  const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
 
   const handlePresetSelect = (preset: DateRangePreset) => {
     const range = getPresetRange(preset);
@@ -87,6 +89,15 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
 
   const handleCustomRangeApply = () => {
     if (customStartDate && customEndDate) {
+      // Validate that end date is after start date
+      if (customEndDate < customStartDate) {
+        // Swap dates if they're in wrong order
+        const temp = customStartDate;
+        setCustomStartDate(customEndDate);
+        setCustomEndDate(temp);
+        return;
+      }
+
       const range: DateRange = {
         startDate: customStartDate,
         endDate: customEndDate,
@@ -94,12 +105,18 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
         label: `${format(customStartDate, 'MMM d')} - ${format(customEndDate, 'MMM d, yyyy')}`
       };
       onRangeChange(range);
-      setIsCustomRangeOpen(false);
+      setIsCustomDialogOpen(false);
     }
   };
 
+  const openCustomDialog = () => {
+    setCustomStartDate(selectedRange.startDate);
+    setCustomEndDate(selectedRange.endDate);
+    setIsCustomDialogOpen(true);
+  };
+
   return (
-    <div className="flex items-center gap-2">
+    <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
@@ -138,7 +155,7 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-gray-700" />
           <DropdownMenuItem 
-            onClick={() => setIsCustomRangeOpen(true)}
+            onClick={openCustomDialog}
             className="text-gray-300 hover:bg-gray-700 hover:text-white"
           >
             Custom range...
@@ -146,90 +163,81 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Popover open={isCustomRangeOpen} onOpenChange={setIsCustomRangeOpen}>
-        <PopoverTrigger asChild>
-          <div />
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700" align="end">
-          <div className="p-4 space-y-4">
-            <div className="text-sm font-medium text-gray-300 mb-3">Select Custom Date Range</div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Start Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal bg-gray-700 border-gray-600 text-gray-300",
-                        !customStartDate && "text-gray-500"
-                      )}
-                    >
-                      {customStartDate ? format(customStartDate, "MMM d, yyyy") : "Pick start date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={customStartDate}
-                      onSelect={setCustomStartDate}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">End Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal bg-gray-700 border-gray-600 text-gray-300",
-                        !customEndDate && "text-gray-500"
-                      )}
-                    >
-                      {customEndDate ? format(customEndDate, "MMM d, yyyy") : "Pick end date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={customEndDate}
-                      onSelect={setCustomEndDate}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
+      <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] bg-gray-800 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Select Custom Date Range</DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">Start Date</label>
+              <div className="border border-gray-600 rounded-lg">
+                <CalendarComponent
+                  mode="single"
+                  selected={customStartDate}
+                  onSelect={setCustomStartDate}
+                  className="pointer-events-auto"
+                  classNames={{
+                    months: "text-white",
+                    month: "space-y-4",
+                    caption: "text-white",
+                    caption_label: "text-white",
+                    nav_button: "text-gray-400 hover:text-white",
+                    head_cell: "text-gray-400",
+                    cell: "text-white",
+                    day: "text-white hover:bg-gray-700",
+                    day_selected: "bg-blue-600 text-white hover:bg-blue-700",
+                    day_today: "bg-gray-700 text-white"
+                  }}
+                />
               </div>
             </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setIsCustomRangeOpen(false)}
-                className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600"
-              >
-                Cancel
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={handleCustomRangeApply}
-                disabled={!customStartDate || !customEndDate}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Apply
-              </Button>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">End Date</label>
+              <div className="border border-gray-600 rounded-lg">
+                <CalendarComponent
+                  mode="single"
+                  selected={customEndDate}
+                  onSelect={setCustomEndDate}
+                  className="pointer-events-auto"
+                  classNames={{
+                    months: "text-white",
+                    month: "space-y-4",
+                    caption: "text-white",
+                    caption_label: "text-white",
+                    nav_button: "text-gray-400 hover:text-white",
+                    head_cell: "text-gray-400",
+                    cell: "text-white",
+                    day: "text-white hover:bg-gray-700",
+                    day_selected: "bg-blue-600 text-white hover:bg-blue-700",
+                    day_today: "bg-gray-700 text-white"
+                  }}
+                />
+              </div>
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
-    </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsCustomDialogOpen(false)}
+              className="bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCustomRangeApply}
+              disabled={!customStartDate || !customEndDate}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Apply Range
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
