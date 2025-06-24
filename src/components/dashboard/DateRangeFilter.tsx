@@ -212,7 +212,7 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
       </DropdownMenu>
 
       <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
-        <DialogContent className="max-w-sm bg-card border-border">
+        <DialogContent className="max-w-md bg-card border-border">
           <DialogHeader className="pb-4">
             <DialogTitle className="text-xl font-semibold text-foreground text-center">
               Select Date Range
@@ -220,9 +220,9 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
           </DialogHeader>
           
           {/* Step indicator */}
-          <div className="flex items-center justify-center mb-4">
-            <div className="flex items-center space-x-3">
-              <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center space-x-4">
+              <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                 currentStep === 'start' 
                   ? 'bg-green-600 text-white' 
                   : customStartDate 
@@ -237,9 +237,9 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
                 )}
               </div>
 
-              <div className="w-6 h-px bg-border"></div>
+              <div className="w-8 h-px bg-border"></div>
 
-              <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
+              <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                 currentStep === 'end' 
                   ? 'bg-green-600 text-white' 
                   : customEndDate 
@@ -257,24 +257,24 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
           </div>
 
           {/* Instructions */}
-          <p className="text-center text-sm text-muted-foreground mb-4">
+          <p className="text-center text-sm text-muted-foreground mb-6">
             {currentStep === 'start' 
               ? "Choose your start date" 
               : "Choose your end date (must be after start date)"}
           </p>
 
           {/* Custom month navigation */}
-          <div className="flex items-center justify-between mb-4 px-4">
+          <div className="flex items-center justify-between mb-6 px-4">
             <Button
               variant="outline"
               size="sm"
               onClick={goToPreviousMonth}
-              className="h-8 w-8 p-0"
+              className="h-9 w-9 p-0"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
-            <h3 className="text-base font-semibold">
+            <h3 className="text-lg font-semibold">
               {format(currentMonth, 'MMMM yyyy')}
             </h3>
             
@@ -282,14 +282,14 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
               variant="outline"
               size="sm"
               onClick={goToNextMonth}
-              className="h-8 w-8 p-0"
+              className="h-9 w-9 p-0"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
 
           {/* Calendar */}
-          <div className="flex justify-center">
+          <div className="flex justify-center px-4">
             <CalendarComponent
               mode="single"
               selected={currentStep === 'start' ? customStartDate : customEndDate}
@@ -307,12 +307,12 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
                 nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border border-border",
                 nav_button_previous: "absolute left-1",
                 nav_button_next: "absolute right-1",
-                table: "w-full border-collapse space-y-1",
+                table: "w-full border-collapse space-y-2",
                 head_row: "flex",
-                head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
-                row: "flex w-full mt-2",
-                cell: "h-8 w-8 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
-                day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md",
+                head_cell: "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem] flex items-center justify-center",
+                row: "flex w-full mt-3",
+                cell: "h-10 w-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+                day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md flex items-center justify-center",
                 day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
                 day_today: "bg-accent text-accent-foreground",
                 day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
@@ -328,7 +328,7 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
 
           {/* Selected range summary */}
           {customStartDate && customEndDate && (
-            <div className="bg-muted/50 rounded-lg p-3 mt-4 border border-border/50">
+            <div className="bg-muted/50 rounded-lg p-4 mt-6 border border-border/50">
               <div className="text-center">
                 <p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">
                   Selected Range
@@ -340,7 +340,7 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
             </div>
           )}
 
-          <DialogFooter className="pt-4 gap-2">
+          <DialogFooter className="pt-6 gap-2">
             {currentStep === 'end' && (
               <Button 
                 variant="outline" 
