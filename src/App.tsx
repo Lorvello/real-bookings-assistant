@@ -17,6 +17,7 @@ import SeeHowItWorks from '@/pages/SeeHowItWorks';
 import WhyUs from '@/pages/WhyUs';
 import FAQ from '@/pages/FAQ';
 import TestAIAgent from '@/pages/TestAIAgent';
+import Profile from '@/pages/Profile';
 
 // Pages
 import Index from '@/pages/Index';
@@ -37,6 +38,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/bookings" element={<Bookings />} />
