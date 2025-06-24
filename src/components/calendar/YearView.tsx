@@ -1,6 +1,6 @@
 
 import { format, startOfYear, endOfYear, eachMonthOfInterval, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { Calendar, TrendingUp, CheckCircle, Clock } from 'lucide-react';
 
 interface Booking {
@@ -48,19 +48,19 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
     const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
     const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
     const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-    const weekDays = ['M', 'D', 'W', 'D', 'V', 'Z', 'Z'];
+    const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     const monthBookings = getBookingsCountForMonth(month);
 
     return (
       <div className="group bg-card/80 backdrop-blur-sm border border-border/60 rounded-3xl p-4 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200 hover:border-primary/30">
         <div className="text-center mb-4">
           <div className="text-lg font-bold text-foreground mb-1">
-            {format(month, 'MMMM', { locale: nl })}
+            {format(month, 'MMMM', { locale: enUS })}
           </div>
           <div className="flex items-center justify-center gap-2">
             <Calendar className="h-3 w-3 text-primary" />
             <span className="text-sm text-muted-foreground font-medium">
-              {monthBookings} afspraken
+              {monthBookings} appointments
             </span>
           </div>
         </div>
@@ -96,7 +96,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
                           : 'text-foreground hover:bg-accent/50'
                       : 'text-muted-foreground/50'
                   }`}
-                  title={hasBookings ? `${dayBookings.length} afspraak${dayBookings.length > 1 ? 'en' : ''}` : ''}
+                  title={hasBookings ? `${dayBookings.length} appointment${dayBookings.length > 1 ? 's' : ''}` : ''}
                 >
                   {format(day, 'd')}
                 </div>
@@ -124,9 +124,9 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
           </div>
           <div>
             <h3 className="text-2xl font-bold text-foreground">
-              Jaaroverzicht {format(currentDate, 'yyyy')}
+              Year Overview {format(currentDate, 'yyyy')}
             </h3>
-            <p className="text-muted-foreground">Complete statistieken en prestaties</p>
+            <p className="text-muted-foreground">Complete statistics and performance</p>
           </div>
         </div>
         
@@ -136,7 +136,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
               <Calendar className="h-5 w-5 text-primary mr-2" />
             </div>
             <div className="text-3xl font-bold text-primary mb-1">{bookings.length}</div>
-            <div className="text-sm text-muted-foreground font-medium">Totaal afspraken</div>
+            <div className="text-sm text-muted-foreground font-medium">Total appointments</div>
           </div>
           
           <div className="text-center p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-2xl border border-green-500/20">
@@ -146,7 +146,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
             <div className="text-3xl font-bold text-green-600 mb-1">
               {bookings.filter(b => b.status === 'confirmed').length}
             </div>
-            <div className="text-sm text-muted-foreground font-medium">Bevestigd</div>
+            <div className="text-sm text-muted-foreground font-medium">Confirmed</div>
           </div>
           
           <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-2xl border border-blue-500/20">
@@ -156,7 +156,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
             <div className="text-3xl font-bold text-blue-600 mb-1">
               {bookings.filter(b => b.status === 'completed').length}
             </div>
-            <div className="text-sm text-muted-foreground font-medium">Voltooid</div>
+            <div className="text-sm text-muted-foreground font-medium">Completed</div>
           </div>
           
           <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-2xl border border-purple-500/20">

@@ -42,8 +42,8 @@ export function CalendarContent({
             <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
             <div className="absolute inset-0 w-12 h-12 border-4 border-primary/10 rounded-full mx-auto"></div>
           </div>
-          <p className="text-muted-foreground font-medium">Boekingen laden...</p>
-          <p className="text-xs text-muted-foreground/70 mt-1">Een moment geduld</p>
+          <p className="text-muted-foreground font-medium">Loading bookings...</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">Please wait</p>
         </div>
       </div>
     );
@@ -56,7 +56,7 @@ export function CalendarContent({
           <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-red-500 text-xl">⚠️</span>
           </div>
-          <p className="text-red-500 font-semibold mb-2">Fout bij laden van boekingen</p>
+          <p className="text-red-500 font-semibold mb-2">Error loading bookings</p>
           <p className="text-muted-foreground text-sm">{error}</p>
         </div>
       </div>

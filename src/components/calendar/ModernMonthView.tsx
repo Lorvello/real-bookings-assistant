@@ -44,7 +44,7 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  const weekDays = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+  const weekDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
   const getBookingsForDay = (day: Date) => {
     return bookings.filter(booking => 

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { BookingDetailModal } from './BookingDetailModal';
 
 interface Booking {
@@ -103,7 +103,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
         top: `${topOffset}px`,
         boxShadow: `0 4px 20px ${booking.service_types?.color || '#3B82F6'}40`
       }}
-      title={`${booking.customer_name} - ${booking.service_types?.name || 'Afspraak'} (${booking.customer_phone || 'Geen telefoon'})`}
+      title={`${booking.customer_name} - ${booking.service_types?.name || 'Appointment'} (${booking.customer_phone || 'No phone'})`}
       onClick={() => onBookingClick(booking)}
     >
       <div className="text-white">
@@ -116,7 +116,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
           }`} />
         </div>
         <div className="text-white/90 text-xs font-medium truncate mb-1">
-          {booking.service_types?.name || 'Afspraak'}
+          {booking.service_types?.name || 'Appointment'}
         </div>
         <div className="text-white/80 text-xs">
           {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
@@ -157,7 +157,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
       <div className="sticky top-0 z-20 bg-card/95 backdrop-blur-sm border-b border-border/60 shadow-sm">
         <div className="grid grid-cols-8 gap-px">
           <div className="w-20 p-4">
-            <div className="text-xs font-semibold text-muted-foreground">Tijd</div>
+            <div className="text-xs font-semibold text-muted-foreground">Time</div>
           </div>
           {weekDays.map((day) => (
             <div key={day.toISOString()} className={`text-center py-4 px-2 rounded-2xl mx-1 transition-all duration-200 ${
@@ -166,7 +166,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
                 : 'hover:bg-accent/50'
             }`}>
               <div className="text-xs text-muted-foreground font-medium">
-                {format(day, 'EEE', { locale: nl })}
+                {format(day, 'EEE', { locale: enUS })}
               </div>
               <div className={`text-xl font-bold mt-1 ${
                 isToday(day) ? 'text-primary' : 'text-foreground'
@@ -174,7 +174,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
                 {format(day, 'd')}
               </div>
               <div className="text-xs text-muted-foreground">
-                {format(day, 'MMM', { locale: nl })}
+                {format(day, 'MMM', { locale: enUS })}
               </div>
             </div>
           ))}

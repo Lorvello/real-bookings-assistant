@@ -1,6 +1,5 @@
 
-import { format, isSameMonth, isToday } from 'date-fns';
-import { Calendar, Clock, User, Phone } from 'lucide-react';
+import { format, isSameMonth, isSameDay } from 'date-fns';
 
 interface Booking {
   id: string;
@@ -38,90 +37,87 @@ export function CalendarDayCell({
   onBookingClick 
 }: CalendarDayCellProps) {
   const isCurrentMonth = isSameMonth(day, currentDate);
-  const isDayToday = isToday(day);
+  const isToday = isSameDay(day, new Date());
   const hasMultipleBookings = dayBookings.length > 1;
 
   return (
     <div
-      className={`group rounded-xl p-2 min-h-[80px] transition-colors duration-200 cursor-pointer ${
+      className={`group rounded-xl p-1.5 min-h-[80px] transition-all duration-200 hover:shadow-lg ${
         hasMultipleBookings ? 'cursor-pointer' : ''
       } ${
         isCurrentMonth 
-          ? isDayToday
-            ? 'bg-primary/20 border border-primary/40'
-            : 'bg-card border border-border/40 hover:border-primary/20'
-          : 'bg-muted/40 border border-border/20 opacity-60'
+          ? isToday
+            ? 'bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 border-2 border-primary/40 shadow-lg shadow-primary/10'
+            : 'bg-card/90 backdrop-blur-sm border border-border/60 hover:border-primary/30 hover:bg-card/95'
+          : 'bg-muted/30 border border-border/30 opacity-60'
       }`}
       onClick={() => onDayClick(day, dayBookings)}
     >
-      {/* Day Header */}
-      <div className={`flex items-center justify-between mb-1.5 ${
-        isDayToday ? 'text-primary' : 'text-foreground'
+      <div className={`flex items-center justify-between mb-1 ${
+        isToday ? 'text-primary font-bold' : 'text-foreground'
       }`}>
-        <div className={`text-sm font-semibold ${
-          isDayToday 
-            ? 'bg-primary text-primary-foreground w-6 h-6 rounded-lg flex items-center justify-center text-xs' 
+        <div className={`text-sm font-bold ${
+          isToday 
+            ? 'bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-xs shadow-lg' 
             : ''
         }`}>
           {format(day, 'd')}
         </div>
         {dayBookings.length > 0 && (
-          <div className="flex items-center gap-1 bg-blue-500/15 text-blue-600 px-1 py-0.5 rounded font-medium text-xs">
-            <Calendar className="w-2 h-2" />
+          <div className="text-xs bg-blue-500/20 text-blue-600 px-1 py-0.5 rounded-full font-medium">
             {dayBookings.length}
           </div>
         )}
       </div>
       
-      {/* Bookings Display */}
-      <div className="space-y-1">
+      <div className="space-y-0.5">
+        {/* Show appointments differently based on count */}
         {dayBookings.length === 0 && isCurrentMonth && (
-          <div className="text-center py-1 opacity-0 group-hover:opacity-60 transition-opacity duration-300">
-            <div className="text-xs text-muted-foreground">Geen afspraken</div>
+          <div className="text-center py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="text-xs text-muted-foreground mb-0.5">No appointments</div>
+            <div className="w-3 h-px bg-border mx-auto"></div>
           </div>
         )}
         
         {dayBookings.length === 1 && (
           <div
-            className="p-1.5 rounded-lg cursor-pointer hover:opacity-90 transition-opacity duration-200 border border-white/10"
+            className="group/booking p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
             style={{
-              backgroundColor: `${dayBookings[0].service_types?.color || '#3B82F6'}dd`
+              backgroundColor: dayBookings[0].service_types?.color || '#3B82F6',
+              backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`
             }}
-            title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name}`}
+            title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name} (${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'})`}
             onClick={(e) => {
               e.stopPropagation();
               onBookingClick(dayBookings[0]);
             }}
           >
-            <div className="flex items-center justify-between mb-0.5">
-              <div className="flex items-center gap-1 text-white text-xs font-medium">
-                <Clock className="w-2 h-2" />
+            <div className="flex items-center justify-between">
+              <div className="text-white text-xs font-semibold">
                 {format(new Date(dayBookings[0].start_time), 'HH:mm')}
               </div>
               <div className={`w-1 h-1 rounded-full ${
-                dayBookings[0].status === 'confirmed' ? 'bg-white/80' :
-                dayBookings[0].status === 'pending' ? 'bg-yellow-300/80' :
-                'bg-red-300/80'
+                dayBookings[0].status === 'confirmed' ? 'bg-white/90' :
+                dayBookings[0].status === 'pending' ? 'bg-yellow-300/90' :
+                'bg-red-300/90'
               }`} />
             </div>
-            <div className="text-white/90 text-xs font-medium truncate mb-0.5 flex items-center gap-1">
-              <User className="w-2 h-2" />
+            <div className="text-white/95 text-xs font-medium truncate mt-0.5">
               {dayBookings[0].customer_name}
             </div>
-            <div className="text-white/75 text-xs truncate">
-              {dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Afspraak'}
+            <div className="text-white/80 text-xs truncate">
+              {dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}
             </div>
           </div>
         )}
         
         {dayBookings.length > 1 && (
-          <div className="text-center py-1.5 bg-blue-500/15 rounded-lg border border-blue-500/20 hover:bg-blue-500/20 transition-colors duration-200 cursor-pointer">
-            <div className="text-blue-600 font-medium text-xs mb-0.5 flex items-center justify-center gap-1">
-              <Calendar className="w-2.5 h-2.5" />
-              {dayBookings.length} afspraken
+          <div className="text-center py-2 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20 hover:from-blue-500/15 hover:to-blue-500/10 hover:border-blue-500/30 transition-all duration-200 cursor-pointer group-hover:scale-105">
+            <div className="text-blue-600 font-semibold text-xs mb-0.5">
+              {dayBookings.length} appointments
             </div>
             <div className="text-xs text-blue-600/70">
-              Klik voor details
+              Click for details
             </div>
           </div>
         )}
