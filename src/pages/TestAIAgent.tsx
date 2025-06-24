@@ -2,7 +2,6 @@
 import React from 'react';
 import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { GradientContainer } from '@/components/ui/GradientContainer';
 
 export default function TestAIAgent() {
   return (
@@ -16,10 +15,10 @@ export default function TestAIAgent() {
           </p>
         </div>
 
-        {/* AI Agent Test Chat with Gradient Styling */}
-        <GradientContainer variant="blue">
+        {/* AI Agent Test Chat with Clean Styling */}
+        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl">
           <AIAgentTestChat />
-        </GradientContainer>
+        </div>
       </div>
     </DashboardLayout>
   );

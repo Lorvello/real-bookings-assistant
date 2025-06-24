@@ -66,110 +66,92 @@ export function DashboardTabs({ calendarId }: DashboardTabsProps) {
           </TabsList>
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content - Clean containers without excessive glow */}
         <TabsContent value="overview" className="space-y-8">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent blur-2xl rounded-3xl"></div>
-            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-primary/20 shadow-2xl p-8 rounded-3xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-green-400 rounded-full flex items-center justify-center shadow-lg">
-                  <Eye className="h-4 w-4 text-white" />
-                </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                  Kalender Overzicht
-                </h2>
+          <div className="bg-card/95 backdrop-blur-sm border border-primary/20 shadow-lg rounded-xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-green-400 rounded-full flex items-center justify-center shadow-lg">
+                <Eye className="h-4 w-4 text-white" />
               </div>
-              <div className="space-y-6">
-                <CalendarOverviewCards calendars={calendars} />
-                <CalendarManagement calendars={calendars} />
-              </div>
+              <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                Kalender Overzicht
+              </h2>
+            </div>
+            <div className="space-y-6">
+              <CalendarOverviewCards calendars={calendars} />
+              <CalendarManagement calendars={calendars} />
             </div>
           </div>
         </TabsContent>
 
         <TabsContent value="service-types" className="space-y-8">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-br from-green-500/20 via-green-500/10 to-transparent blur-2xl rounded-3xl"></div>
-            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-green-500/20 shadow-2xl p-8 rounded-3xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                  <Wrench className="h-4 w-4 text-white" />
-                </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-green-400 bg-clip-text text-transparent">
-                  Service Types Beheer
-                </h2>
+          <div className="bg-card/95 backdrop-blur-sm border border-green-500/20 shadow-lg rounded-xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                <Wrench className="h-4 w-4 text-white" />
               </div>
-              <ServiceTypesManager calendarId={calendarId} />
+              <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-green-400 bg-clip-text text-transparent">
+                Service Types Beheer
+              </h2>
             </div>
+            <ServiceTypesManager calendarId={calendarId} />
           </div>
         </TabsContent>
 
         <TabsContent value="live-ops" className="space-y-8">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent blur-2xl rounded-3xl"></div>
-            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-primary/20 shadow-2xl p-8 rounded-3xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-green-400 rounded-full flex items-center justify-center shadow-lg">
-                  <Activity className="h-4 w-4 text-white" />
-                </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                  Live Operations Center
-                </h2>
-                <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-primary rounded-full animate-pulse shadow-lg"></div>
+          <div className="bg-card/95 backdrop-blur-sm border border-primary/20 shadow-lg rounded-xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-green-400 rounded-full flex items-center justify-center shadow-lg">
+                <Activity className="h-4 w-4 text-white" />
               </div>
-              <LiveOperationsTab calendarId={calendarId} />
+              <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                Live Operations Center
+              </h2>
+              <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-primary rounded-full animate-pulse shadow-lg"></div>
             </div>
+            <LiveOperationsTab calendarId={calendarId} />
           </div>
         </TabsContent>
 
         <TabsContent value="business-intel" className="space-y-8">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-br from-blue-500/20 via-blue-500/10 to-transparent blur-2xl rounded-3xl"></div>
-            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-blue-500/20 shadow-2xl p-8 rounded-3xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                  <BarChart3 className="h-4 w-4 text-white" />
-                </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-blue-400 bg-clip-text text-transparent">
-                  Business Intelligence
-                </h2>
+          <div className="bg-card/95 backdrop-blur-sm border border-blue-500/20 shadow-lg rounded-xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                <BarChart3 className="h-4 w-4 text-white" />
               </div>
-              <BusinessIntelligenceTab calendarId={calendarId} />
+              <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-blue-400 bg-clip-text text-transparent">
+                Business Intelligence
+              </h2>
             </div>
+            <BusinessIntelligenceTab calendarId={calendarId} />
           </div>
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-8">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-br from-yellow-500/20 via-yellow-500/10 to-transparent blur-2xl rounded-3xl"></div>
-            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-yellow-500/20 shadow-2xl p-8 rounded-3xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                  <Zap className="h-4 w-4 text-white" />
-                </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-yellow-400 bg-clip-text text-transparent">
-                  Performance & Efficiency
-                </h2>
+          <div className="bg-card/95 backdrop-blur-sm border border-yellow-500/20 shadow-lg rounded-xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                <Zap className="h-4 w-4 text-white" />
               </div>
-              <PerformanceEfficiencyTab calendarId={calendarId} />
+              <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-yellow-400 bg-clip-text text-transparent">
+                Performance & Efficiency
+              </h2>
             </div>
+            <PerformanceEfficiencyTab calendarId={calendarId} />
           </div>
         </TabsContent>
 
         <TabsContent value="insights" className="space-y-8">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-br from-purple-500/20 via-purple-500/10 to-transparent blur-2xl rounded-3xl"></div>
-            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-purple-500/20 shadow-2xl p-8 rounded-3xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                  <TrendingUp className="h-4 w-4 text-white" />
-                </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-purple-400 bg-clip-text text-transparent">
-                  Future Insights & Predictions
-                </h2>
+          <div className="bg-card/95 backdrop-blur-sm border border-purple-500/20 shadow-lg rounded-xl p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <TrendingUp className="h-4 w-4 text-white" />
               </div>
-              <FutureInsightsTab calendarId={calendarId} />
+              <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-purple-400 bg-clip-text text-transparent">
+                Future Insights & Predictions
+              </h2>
             </div>
+            <FutureInsightsTab calendarId={calendarId} />
           </div>
         </TabsContent>
       </Tabs>

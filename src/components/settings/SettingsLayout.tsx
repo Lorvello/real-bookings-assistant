@@ -10,7 +10,6 @@ import { WhatsAppTab } from './WhatsAppTab';
 import { BillingTab } from './BillingTab';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettingsData } from '@/hooks/useSettingsData';
-import { GradientContainer } from '@/components/ui/GradientContainer';
 import { User, Building, Calendar, MessageCircle, CreditCard } from 'lucide-react';
 
 export function SettingsLayout() {
@@ -92,53 +91,53 @@ export function SettingsLayout() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab Content with Gradient Styling */}
+          {/* Tab Content with Clean Styling */}
           <TabsContent value="profile">
-            <GradientContainer variant="primary" className="p-6">
+            <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
               <ProfileTab 
                 profileData={profileData}
                 setProfileData={setProfileData}
                 loading={loading}
                 handleUpdateProfile={handleUpdateProfile}
               />
-            </GradientContainer>
+            </div>
           </TabsContent>
 
           <TabsContent value="business">
-            <GradientContainer variant="blue" className="p-6">
+            <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
               <BusinessTab 
                 businessData={businessData}
                 setBusinessData={setBusinessData}
                 loading={loading}
                 handleUpdateProfile={handleUpdateProfile}
               />
-            </GradientContainer>
+            </div>
           </TabsContent>
 
           <TabsContent value="calendar">
-            <GradientContainer variant="purple" className="p-6">
+            <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
               <CalendarTab 
                 calendarSettings={calendarSettings}
                 setCalendarSettings={setCalendarSettings}
                 loading={loading}
                 handleUpdateProfile={handleUpdateProfile}
               />
-            </GradientContainer>
+            </div>
           </TabsContent>
 
           <TabsContent value="whatsapp">
-            <GradientContainer variant="cyan" className="p-6">
+            <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
               <WhatsAppTab 
                 whatsappSettings={whatsappSettings}
                 setWhatsappSettings={setWhatsappSettings}
               />
-            </GradientContainer>
+            </div>
           </TabsContent>
 
           <TabsContent value="billing">
-            <GradientContainer variant="amber" className="p-6">
+            <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
               <BillingTab />
-            </GradientContainer>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
