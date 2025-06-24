@@ -27,13 +27,13 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
         <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl flex items-center justify-center border border-slate-600/30">
           <Activity className="h-10 w-10 text-slate-400" />
         </div>
-        <p className="text-slate-300 font-medium mb-2">Geen piekuren data beschikbaar</p>
-        <p className="text-sm text-slate-400">Meer historische data nodig voor analyse</p>
+        <p className="text-slate-300 font-medium mb-2">No peak hours data available</p>
+        <p className="text-sm text-slate-400">More historical data needed for analysis</p>
       </div>
     );
   }
 
-  // Maak een complete dataset voor alle werkuren (6:00 - 22:00)
+  // Create a complete dataset for all working hours (6:00 - 22:00)
   const completeHourData = [];
   for (let hour = 6; hour <= 22; hour++) {
     const existingData = data.find(d => d.hour === hour);
@@ -45,19 +45,19 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
     });
   }
 
-  // Bepaal max waarde voor kleur intensiteit
+  // Determine max value for color intensity
   const maxBookings = Math.max(...completeHourData.map(d => d.bookings));
   
-  // Functie om kleur te bepalen op basis van drukte
+  // Function to determine color based on activity
   const getBarColor = (bookings: number) => {
-    if (bookings === 0) return '#64748B'; // Grijs voor geen boekingen
+    if (bookings === 0) return '#64748B'; // Gray for no bookings
     
     const intensity = bookings / maxBookings;
-    if (intensity >= 0.8) return '#EF4444'; // Rood voor zeer druk
-    if (intensity >= 0.6) return '#F97316'; // Oranje voor druk  
-    if (intensity >= 0.4) return '#EAB308'; // Geel voor gemiddeld
-    if (intensity >= 0.2) return '#22C55E'; // Groen voor rustig
-    return '#10B981'; // Lichtgroen voor heel rustig
+    if (intensity >= 0.8) return '#EF4444'; // Red for very busy
+    if (intensity >= 0.6) return '#F97316'; // Orange for busy  
+    if (intensity >= 0.4) return '#EAB308'; // Yellow for moderate
+    if (intensity >= 0.2) return '#22C55E'; // Green for quiet
+    return '#10B981'; // Light green for very quiet
   };
 
   // Custom tooltip component
@@ -66,13 +66,13 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
       const data = payload[0].payload;
       const bookings = data.bookings;
       
-      let drukteIndicatie = '';
-      if (bookings === 0) drukteIndicatie = 'Geen boekingen';
-      else if (bookings / maxBookings >= 0.8) drukteIndicatie = 'Zeer druk 🔥';
-      else if (bookings / maxBookings >= 0.6) drukteIndicatie = 'Druk 📈';
-      else if (bookings / maxBookings >= 0.4) drukteIndicatie = 'Gemiddeld 📊';
-      else if (bookings / maxBookings >= 0.2) drukteIndicatie = 'Rustig 😌';
-      else drukteIndicatie = 'Heel rustig 💤';
+      let activityLevel = '';
+      if (bookings === 0) activityLevel = 'No bookings';
+      else if (bookings / maxBookings >= 0.8) activityLevel = 'Very busy 🔥';
+      else if (bookings / maxBookings >= 0.6) activityLevel = 'Busy 📈';
+      else if (bookings / maxBookings >= 0.4) activityLevel = 'Moderate 📊';
+      else if (bookings / maxBookings >= 0.2) activityLevel = 'Quiet 😌';
+      else activityLevel = 'Very quiet 💤';
 
       return (
         <div className="bg-slate-900/95 border border-green-500/30 rounded-xl p-4 shadow-2xl backdrop-blur-sm">
@@ -82,10 +82,10 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
           </div>
           <div className="flex items-center gap-2 mb-1">
             <Users className="h-4 w-4 text-blue-400" />
-            <span className="text-slate-200">{bookings} afspraken</span>
+            <span className="text-slate-200">{bookings} appointments</span>
           </div>
           <div className="text-sm text-slate-300 mt-2 px-2 py-1 bg-slate-800/50 rounded">
-            {drukteIndicatie}
+            {activityLevel}
           </div>
         </div>
       );
@@ -95,31 +95,31 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
 
   return (
     <div className="space-y-6">
-      {/* Legenda bovenaan */}
+      {/* Legend at the top */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded" style={{ backgroundColor: '#64748B' }}></div>
-          <span className="text-slate-300">Geen boekingen</span>
+          <span className="text-slate-300">No bookings</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded" style={{ backgroundColor: '#10B981' }}></div>
-          <span className="text-slate-300">Heel rustig</span>
+          <span className="text-slate-300">Very quiet</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded" style={{ backgroundColor: '#22C55E' }}></div>
-          <span className="text-slate-300">Rustig</span>
+          <span className="text-slate-300">Quiet</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded" style={{ backgroundColor: '#EAB308' }}></div>
-          <span className="text-slate-300">Gemiddeld</span>
+          <span className="text-slate-300">Moderate</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded" style={{ backgroundColor: '#F97316' }}></div>
-          <span className="text-slate-300">Druk</span>
+          <span className="text-slate-300">Busy</span>
         </div>
       </div>
 
-      {/* Grafiek */}
+      {/* Chart */}
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={completeHourData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
@@ -137,7 +137,7 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
               stroke="#94A3B8" 
               fontSize={12}
               tick={{ fill: '#94A3B8' }}
-              label={{ value: 'Aantal afspraken', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#94A3B8' } }}
+              label={{ value: 'Number of appointments', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#94A3B8' } }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="bookings" radius={[4, 4, 0, 0]}>
@@ -149,7 +149,7 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
         </ResponsiveContainer>
       </div>
 
-      {/* Snelle inzichten onderaan */}
+      {/* Quick insights at the bottom */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         {(() => {
           const sortedHours = [...completeHourData].sort((a, b) => b.bookings - a.bookings);
@@ -162,28 +162,28 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
               <div className="bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-slate-200">Drukste moment</span>
+                  <span className="text-sm font-medium text-slate-200">Busiest time</span>
                 </div>
                 <p className="text-lg font-bold text-slate-100">{busiestHour.display_label}</p>
-                <p className="text-sm text-slate-300">{busiestHour.bookings} afspraken</p>
+                <p className="text-sm text-slate-300">{busiestHour.bookings} appointments</p>
               </div>
 
               <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-slate-200">Rustige momenten</span>
+                  <span className="text-sm font-medium text-slate-200">Quiet times</span>
                 </div>
-                <p className="text-lg font-bold text-slate-100">{quietestHours.length} uren</p>
-                <p className="text-sm text-slate-300">Zonder afspraken</p>
+                <p className="text-lg font-bold text-slate-100">{quietestHours.length} hours</p>
+                <p className="text-sm text-slate-300">Without appointments</p>
               </div>
 
               <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-slate-200">Gemiddeld per uur</span>
+                  <span className="text-sm font-medium text-slate-200">Average per hour</span>
                 </div>
                 <p className="text-lg font-bold text-slate-100">{averageBookings.toFixed(1)}</p>
-                <p className="text-sm text-slate-300">afspraken</p>
+                <p className="text-sm text-slate-300">appointments</p>
               </div>
             </>
           );

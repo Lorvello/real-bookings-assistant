@@ -44,6 +44,31 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
     );
   }
 
+  // Map Dutch month names to English
+  const translateMonthName = (dutchName: string) => {
+    const monthMap: { [key: string]: string } = {
+      'Januari': 'January',
+      'Februari': 'February', 
+      'Maart': 'March',
+      'April': 'April',
+      'Mei': 'May',
+      'Juni': 'June',
+      'Juli': 'July',
+      'Augustus': 'August',
+      'September': 'September',
+      'Oktober': 'October',
+      'November': 'November',
+      'December': 'December'
+    };
+    return monthMap[dutchName] || dutchName;
+  };
+
+  // Transform seasonal patterns data to English
+  const transformedSeasonalPatterns = insights?.seasonal_patterns?.map(pattern => ({
+    ...pattern,
+    month_name: translateMonthName(pattern.month_name)
+  }));
+
   return (
     <div className="space-y-12">
       {/* Future Metrics - Purple/Violet Theme */}
@@ -146,10 +171,10 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
               <h3 className="text-xl font-bold text-slate-100">Seasonal Patterns</h3>
             </div>
             
-            {insights?.seasonal_patterns && insights.seasonal_patterns.length > 0 ? (
+            {transformedSeasonalPatterns && transformedSeasonalPatterns.length > 0 ? (
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={insights.seasonal_patterns}>
+                  <BarChart data={transformedSeasonalPatterns}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
                     <XAxis 
                       dataKey="month_name" 
@@ -217,7 +242,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
               waitlistSize={insights?.waitlist_size}
               returningCustomersMonth={insights?.returning_customers_month}
               demandForecast={insights?.demand_forecast}
-              seasonalPatterns={insights?.seasonal_patterns}
+              seasonalPatterns={transformedSeasonalPatterns}
             />
           </div>
         </div>

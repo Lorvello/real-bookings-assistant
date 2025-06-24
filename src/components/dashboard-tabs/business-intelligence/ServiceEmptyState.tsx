@@ -11,9 +11,9 @@ export function ServiceEmptyState() {
           <TrendingUp className="h-10 w-10 text-slate-400" />
         </div>
       </div>
-      <h3 className="text-xl font-semibold text-slate-200 mb-2">Nog geen service data</h3>
+      <h3 className="text-xl font-semibold text-slate-200 mb-2">No service data available yet</h3>
       <p className="text-slate-400 max-w-md mx-auto">
-        Service performance wordt weergegeven zodra er boekingen zijn gemaakt voor verschillende services.
+        Service performance will be displayed once bookings are made for different services.
       </p>
     </div>
   );

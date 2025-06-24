@@ -42,24 +42,24 @@ export function IntelligentRecommendations({
       if (avgResponseTime > 15) {
         recommendations.push({
           icon: Clock,
-          title: "Snellere Reactietijd Kans",
-          message: `Je reactietijd is momenteel ${avgResponseTime.toFixed(1)} minuten. Door sneller te reageren (binnen 5-10 minuten) verhoog je klanttevredenheid en conversie. Overweeg automatische begroetingen of pushnotificaties!`,
+          title: "Faster Response Time Opportunity",
+          message: `Your response time is currently ${avgResponseTime.toFixed(1)} minutes. By responding faster (within 5-10 minutes) you increase customer satisfaction and conversion. Consider automatic greetings or push notifications!`,
           variant: "purple" as const,
           priority: 1
         });
       } else if (avgResponseTime > 5) {
         recommendations.push({
           icon: Clock,
-          title: "Reactietijd Optimalisatie Tip",
-          message: `Met ${avgResponseTime.toFixed(1)} minuten reactietijd doe je het al goed! Om het nog beter te maken: streef naar onder de 5 minuten voor maximale klanttevredenheid.`,
+          title: "Response Time Optimization Tip",
+          message: `With ${avgResponseTime.toFixed(1)} minutes response time you're already doing well! To make it even better: aim for under 5 minutes for maximum customer satisfaction.`,
           variant: "purple" as const,
           priority: 2
         });
       } else {
         recommendations.push({
           icon: Zap,
-          title: "Uitstekende Reactietijd!",
-          message: `Fantastisch! Je reactietijd van ${avgResponseTime.toFixed(1)} minuten is excellent. Klanten waarderen snelle service - dit helpt je conversie aanzienlijk.`,
+          title: "Excellent Response Time!",
+          message: `Fantastic! Your response time of ${avgResponseTime.toFixed(1)} minutes is excellent. Customers appreciate fast service - this helps your conversion significantly.`,
           variant: "purple" as const,
           priority: 3
         });
@@ -70,16 +70,16 @@ export function IntelligentRecommendations({
     if (noShowRate !== undefined && noShowRate > 10) {
       recommendations.push({
         icon: Calendar,
-        title: "No-show Preventie Strategie",
-        message: `Je no-show rate van ${noShowRate.toFixed(1)}% biedt verbeterkansen. Probeer 24u en 2u van tevoren herinneringen te sturen. Een kleine aanbetaling kan ook helpen om commitment te verhogen.`,
+        title: "No-show Prevention Strategy",
+        message: `Your no-show rate of ${noShowRate.toFixed(1)}% offers improvement opportunities. Try sending reminders 24h and 2h in advance. A small deposit can also help increase commitment.`,
         variant: "purple" as const,
         priority: 1
       });
     } else if (noShowRate !== undefined && noShowRate <= 5) {
       recommendations.push({
         icon: Heart,
-        title: "Geweldige Betrouwbaarheid!",
-        message: `Je no-show rate van ${noShowRate.toFixed(1)}% is uitstekend! Je klanten zijn betrouwbaar en waarderen je service. Blijf doen wat je doet!`,
+        title: "Great Reliability!",
+        message: `Your no-show rate of ${noShowRate.toFixed(1)}% is excellent! Your customers are reliable and appreciate your service. Keep doing what you're doing!`,
         variant: "purple" as const,
         priority: 3
       });
@@ -89,8 +89,8 @@ export function IntelligentRecommendations({
     if (cancellationRate !== undefined && cancellationRate > 20) {
       recommendations.push({
         icon: Users,
-        title: "Flexibiliteit Verhogen",
-        message: `Met ${cancellationRate.toFixed(1)}% annuleringen kun je flexibiliteit als sterkte gebruiken. Bied gemakkelijke herboekingsopties aan en analyseer de hoofdredenen voor annuleringen.`,
+        title: "Increase Flexibility",
+        message: `With ${cancellationRate.toFixed(1)}% cancellations you can use flexibility as a strength. Offer easy rebooking options and analyze the main reasons for cancellations.`,
         variant: "purple" as const,
         priority: 2
       });
@@ -101,24 +101,24 @@ export function IntelligentRecommendations({
       if (calendarUtilization > 85) {
         recommendations.push({
           icon: TrendingUp,
-          title: "Geweldige Vraag - Groei Kans!",
-          message: `Je kalender is ${calendarUtilization.toFixed(1)}% bezet - dat is fantastisch! Dit toont sterke vraag. Overweeg uitbreiding: extra tijdslots, personeel of een tweede locatie.`,
+          title: "Great Demand - Growth Opportunity!",
+          message: `Your calendar is ${calendarUtilization.toFixed(1)}% booked - that's fantastic! This shows strong demand. Consider expansion: extra time slots, staff, or a second location.`,
           variant: "purple" as const,
           priority: 1
         });
       } else if (calendarUtilization < 40) {
         recommendations.push({
           icon: Lightbulb,
-          title: "Marketing Groeikansen",
-          message: `Je kalender heeft nog ${(100 - calendarUtilization).toFixed(1)}% ruimte voor meer klanten. Perfect moment voor marketing: sociale media, SEO of doorverwijzingscampagnes kunnen je helpen groeien.`,
+          title: "Marketing Growth Opportunities",
+          message: `Your calendar still has ${(100 - calendarUtilization).toFixed(1)}% room for more customers. Perfect time for marketing: social media, SEO, or referral campaigns can help you grow.`,
           variant: "purple" as const,
           priority: 2
         });
       } else {
         recommendations.push({
           icon: Target,
-          title: "Gezonde Bezettingsgraad",
-          message: `Je kalender is ${calendarUtilization.toFixed(1)}% bezet - een mooie balans! Je hebt ruimte voor groei zonder overbelasting. Perfecte basis voor stabiele groei.`,
+          title: "Healthy Utilization Rate",
+          message: `Your calendar is ${calendarUtilization.toFixed(1)}% booked - a nice balance! You have room for growth without overload. Perfect foundation for stable growth.`,
           variant: "purple" as const,
           priority: 3
         });
@@ -129,8 +129,8 @@ export function IntelligentRecommendations({
     if (waitlistSize !== undefined && waitlistSize > 5) {
       recommendations.push({
         icon: Clock,
-        title: "Wachtlijst = Groei Indicator!",
-        message: `${waitlistSize} mensen op je wachtlijst tonen sterke vraag! Overweeg extra tijdslots toe te voegen of prioriteer annuleringen om deze enthousiaste klanten te bedienen.`,
+        title: "Waitlist = Growth Indicator!",
+        message: `${waitlistSize} people on your waitlist show strong demand! Consider adding extra time slots or prioritize cancellations to serve these enthusiastic customers.`,
         variant: "purple" as const,
         priority: 1
       });
@@ -141,16 +141,16 @@ export function IntelligentRecommendations({
       if (returningCustomersMonth < 3) {
         recommendations.push({
           icon: Heart,
-          title: "Klantrelaties Versterken",
-          message: `Je hebt dit maand ${returningCustomersMonth} terugkerende klanten gehad. Kans om loyaliteit te bouwen: follow-up service, loyaliteitsprogramma's of persoonlijke aandacht kunnen het verschil maken.`,
+          title: "Strengthen Customer Relations",
+          message: `You've had ${returningCustomersMonth} returning customers this month. Opportunity to build loyalty: follow-up service, loyalty programs, or personal attention can make the difference.`,
           variant: "purple" as const,
           priority: 2
         });
       } else if (returningCustomersMonth > 10) {
         recommendations.push({
           icon: Heart,
-          title: "Fantastische Klantloyaliteit!",
-          message: `${returningCustomersMonth} terugkerende klanten deze maand tonen geweldige loyaliteit! Je doet het uitstekend. Vraag om reviews en doorverwijzingen - tevreden klanten zijn je beste ambassadeurs.`,
+          title: "Fantastic Customer Loyalty!",
+          message: `${returningCustomersMonth} returning customers this month show great loyalty! You're doing excellently. Ask for reviews and referrals - satisfied customers are your best ambassadors.`,
           variant: "purple" as const,
           priority: 3
         });
@@ -165,16 +165,16 @@ export function IntelligentRecommendations({
       if (trendUp > trendDown) {
         recommendations.push({
           icon: TrendingUp,
-          title: "Groeiende Vraag Voorspeld!",
-          message: `Trends tonen groeiende vraag de komende weken. Geweldig nieuws! Bereid extra capaciteit voor en overweeg seasonale pricing tijdens piekperiodes.`,
+          title: "Growing Demand Predicted!",
+          message: `Trends show growing demand in the coming weeks. Great news! Prepare extra capacity and consider seasonal pricing during peak periods.`,
           variant: "purple" as const,
           priority: 2
         });
       } else if (trendDown > trendUp) {
         recommendations.push({
           icon: Lightbulb,
-          title: "Marketing Kans Gespot",
-          message: `Trends tonen kans voor meer klanten. Perfect moment voor promoties, nieuwe service introductie, of een referral campagne om momentum te creëren.`,
+          title: "Marketing Opportunity Spotted",
+          message: `Trends show opportunity for more customers. Perfect time for promotions, new service introduction, or a referral campaign to create momentum.`,
           variant: "purple" as const,
           priority: 1
         });
@@ -190,8 +190,8 @@ export function IntelligentRecommendations({
       if (currentPattern && currentPattern.avg_bookings > avgPattern * 1.5) {
         recommendations.push({
           icon: Calendar,
-          title: "Seizoens Succeskans",
-          message: `${currentPattern.month_name} is historisch een sterke maand voor je! Zorg dat je voorbereid bent: voldoende capaciteit en personeel planning maximaliseren je succeskansen.`,
+          title: "Seasonal Success Opportunity",
+          message: `${currentPattern.month_name} is historically a strong month for you! Make sure you're prepared: sufficient capacity and staff planning maximize your success opportunities.`,
           variant: "purple" as const,
           priority: 2
         });
@@ -212,8 +212,8 @@ export function IntelligentRecommendations({
         <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-2xl flex items-center justify-center border border-purple-500/30">
           <Target className="h-8 w-8 text-purple-400" />
         </div>
-        <p className="text-slate-300 font-medium mb-2">Alles ziet er geweldig uit!</p>
-        <p className="text-sm text-slate-400">Je performance is sterk. We houden de metrics in de gaten voor nieuwe kansen.</p>
+        <p className="text-slate-300 font-medium mb-2">Everything looks great!</p>
+        <p className="text-sm text-slate-400">Your performance is strong. We'll keep monitoring the metrics for new opportunities.</p>
       </div>
     );
   }
