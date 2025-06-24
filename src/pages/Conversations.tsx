@@ -146,29 +146,8 @@ const ConversationsContent = () => {
         <div className="space-y-6">
           {/* Header */}
           <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
-                <p className="text-gray-400 mt-1">Manage your WhatsApp conversations and messages</p>
-              </div>
-              
-              {/* Calendar Selector */}
-              <div className="flex items-center gap-4">
-                <label className="text-gray-300 text-sm">Calendar:</label>
-                <Select value={selectedCalendarId} onValueChange={setSelectedCalendarId}>
-                  <SelectTrigger className="w-48 bg-gray-700 border-gray-600 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-700 border-gray-600">
-                    {calendars.map((calendar) => (
-                      <SelectItem key={calendar.id} value={calendar.id}>
-                        {calendar.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <h1 className="text-3xl font-bold text-white">WhatsApp Conversations</h1>
+            <p className="text-gray-400 mt-1">Manage your WhatsApp conversations and messages</p>
           </div>
 
           {/* Analytics Dashboard */}
