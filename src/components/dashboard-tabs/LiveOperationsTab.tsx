@@ -45,35 +45,35 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-100">Live Operations Center</h3>
-            <p className="text-sm text-slate-400">Real-time data - updates automatisch elke 2 minuten</p>
+            <p className="text-sm text-slate-400">Real-time data - updates automatically every 2 minutes</p>
           </div>
         </div>
         
         {liveOps?.last_updated && (
           <div className="text-right">
-            <p className="text-xs text-slate-400">Laatste update</p>
+            <p className="text-xs text-slate-400">Last update</p>
             <p className="text-sm font-mono text-slate-300">
-              {new Date(liveOps.last_updated).toLocaleTimeString('nl-NL')}
+              {new Date(liveOps.last_updated).toLocaleTimeString('en-US')}
             </p>
           </div>
         )}
       </div>
 
-      {/* Real-time Metrics Cards - Groen Thema */}
+      {/* Real-time Metrics Cards - Green Theme */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Vandaag"
+          title="Today"
           value={String(liveOps?.today_bookings || 0)}
-          subtitle={`${liveOps?.today_confirmed || 0} bevestigd, ${liveOps?.today_pending || 0} wachtend`}
+          subtitle={`${liveOps?.today_confirmed || 0} confirmed, ${liveOps?.today_pending || 0} pending`}
           icon={Calendar}
           variant="green"
           delay={0.1}
         />
 
         <MetricCard
-          title="Nu Actief"
+          title="Currently Active"
           value={String(liveOps?.currently_active_bookings || 0)}
-          subtitle="lopende afspraken"
+          subtitle="ongoing appointments"
           icon={Users}
           variant="green"
           delay={0.2}
@@ -82,16 +82,16 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
         <MetricCard
           title="WhatsApp Live"
           value={String(liveOps?.whatsapp_messages_last_hour || 0)}
-          subtitle="berichten laatste uur"
+          subtitle="messages last hour"
           icon={MessageCircle}
           variant="green"
           delay={0.3}
         />
 
         <MetricCard
-          title="Volgende"
-          value={timeUntilNext !== null ? `${timeUntilNext}m` : "Geen"}
-          subtitle={timeUntilNext !== null ? "tot volgende afspraak" : "geplande afspraken"}
+          title="Next"
+          value={timeUntilNext !== null ? `${timeUntilNext}m` : "None"}
+          subtitle={timeUntilNext !== null ? "until next appointment" : "scheduled appointments"}
           icon={Clock}
           variant="green"
           delay={0.4}
@@ -116,7 +116,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                 <div className="flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm shadow-green-400/50"></div>
-                    <span className="text-sm font-medium text-slate-200">Kalender Status</span>
+                    <span className="text-sm font-medium text-slate-200">Calendar Status</span>
                   </div>
                   <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
                     Online
@@ -129,7 +129,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                     <span className="text-sm font-medium text-slate-200">WhatsApp Bot</span>
                   </div>
                   <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
-                    Actief
+                    Active
                   </Badge>
                 </div>
                 
@@ -156,7 +156,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                 <div className="p-2 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl">
                   <Calendar className="h-5 w-5 text-green-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-100">Vandaag's Planning</h3>
+                <h3 className="text-lg font-semibold text-slate-100">Today's Schedule</h3>
               </div>
               
               {nextAppointmentTime ? (
@@ -164,9 +164,9 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                   <div className="p-4 bg-gradient-to-r from-green-500/10 via-emerald-500/5 to-transparent border border-green-500/20 rounded-xl">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-slate-100 mb-1">Volgende Afspraak</p>
+                        <p className="font-semibold text-slate-100 mb-1">Next Appointment</p>
                         <p className="text-sm text-slate-300 font-mono">
-                          {nextAppointmentTime.toLocaleTimeString('nl-NL', { 
+                          {nextAppointmentTime.toLocaleTimeString('en-US', { 
                             hour: '2-digit', 
                             minute: '2-digit' 
                           })}
@@ -183,7 +183,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                         >
                           {timeUntilNext && timeUntilNext < 60 
                             ? `${timeUntilNext} min`
-                            : `${Math.floor((timeUntilNext || 0) / 60)}u ${(timeUntilNext || 0) % 60}m`
+                            : `${Math.floor((timeUntilNext || 0) / 60)}h ${(timeUntilNext || 0) % 60}m`
                           }
                         </Badge>
                       </div>
@@ -192,7 +192,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                   
                   <div className="text-center p-4 bg-slate-800/30 rounded-xl border border-slate-700/20">
                     <p className="text-sm text-slate-400">
-                      Bekijk alle afspraken in de kalender voor meer details
+                      View all appointments in the calendar for more details
                     </p>
                   </div>
                 </div>
@@ -201,8 +201,8 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                   <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl flex items-center justify-center border border-slate-600/30">
                     <Calendar className="h-10 w-10 text-slate-400" />
                   </div>
-                  <p className="text-slate-300 font-medium mb-1">Vrije dag vandaag</p>
-                  <p className="text-sm text-slate-400">Geen afspraken gepland</p>
+                  <p className="text-slate-300 font-medium mb-1">Free day today</p>
+                  <p className="text-sm text-slate-400">No appointments scheduled</p>
                 </div>
               )}
             </div>

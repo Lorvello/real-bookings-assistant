@@ -48,8 +48,8 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
             <div className="flex items-center gap-2 text-blue-300">
               <Info className="h-4 w-4" />
               <span className="text-sm font-medium">
-                Statistieken worden getoond voor de eerste geselecteerde kalender. 
-                Gecombineerde statistieken komen binnenkort beschikbaar.
+                Statistics are shown for the first selected calendar. 
+                Combined statistics will be available soon.
               </span>
             </div>
           </CardContent>
@@ -61,7 +61,7 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
         <Card className="bg-card/50 border-border hover:bg-card/70 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Vandaag
+              Today
             </CardTitle>
             <Calendar className="h-4 w-4 text-green-400" />
           </CardHeader>
@@ -70,7 +70,7 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
               {analytics.today_bookings}
             </div>
             <p className="text-xs text-muted-foreground">
-              afspraken
+              appointments
             </p>
           </CardContent>
         </Card>
@@ -79,7 +79,7 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
         <Card className="bg-card/50 border-border hover:bg-card/70 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              In behandeling
+              Pending
             </CardTitle>
             <Clock className="h-4 w-4 text-yellow-400" />
           </CardHeader>
@@ -88,7 +88,7 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
               {analytics.pending_bookings}
             </div>
             <p className="text-xs text-muted-foreground">
-              wachtend op bevestiging
+              awaiting confirmation
             </p>
           </CardContent>
         </Card>
@@ -97,7 +97,7 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
         <Card className="bg-card/50 border-border hover:bg-card/70 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Deze week
+              This Week
             </CardTitle>
             <TrendingUp className="h-4 w-4 text-blue-400" />
           </CardHeader>
@@ -106,7 +106,7 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
               {analytics.week_bookings}
             </div>
             <p className="text-xs text-muted-foreground">
-              afspraken
+              appointments
             </p>
           </CardContent>
         </Card>
@@ -115,7 +115,7 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
         <Card className="bg-card/50 border-border hover:bg-card/70 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Omzet (maand)
+              Revenue (Month)
             </CardTitle>
             <Euro className="h-4 w-4 text-green-400" />
           </CardHeader>
@@ -124,7 +124,7 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
               €{analytics.total_revenue.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
-              deze maand
+              this month
             </p>
           </CardContent>
         </Card>
@@ -138,7 +138,7 @@ export function DashboardMetrics({ analytics, isLoading, showMultiCalendarNote =
         </div>
         {analytics.last_updated && (
           <span>
-            Laatste update: {new Date(analytics.last_updated).toLocaleTimeString('nl-NL')}
+            Last update: {new Date(analytics.last_updated).toLocaleTimeString('en-US')}
           </span>
         )}
       </div>

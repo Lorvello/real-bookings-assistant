@@ -1,6 +1,6 @@
 
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -26,11 +26,11 @@ export function CalendarHeader({
   const formatTitle = () => {
     switch (currentView) {
       case 'week':
-        return format(currentDate, "'Week van' d MMMM yyyy", { locale: nl });
+        return format(currentDate, "'Week of' MMMM d, yyyy", { locale: enUS });
       case 'year':
         return format(currentDate, 'yyyy');
       default:
-        return format(currentDate, 'MMMM yyyy', { locale: nl });
+        return format(currentDate, 'MMMM yyyy', { locale: enUS });
     }
   };
 
@@ -49,7 +49,7 @@ export function CalendarHeader({
                 {formatTitle()}
               </h1>
               <p className="text-sm text-muted-foreground font-medium">
-                Beheer je afspraken en beschikbaarheid
+                Manage your appointments and availability
               </p>
             </div>
           </div>
@@ -72,7 +72,7 @@ export function CalendarHeader({
               className="px-4 py-2 h-10 rounded-xl border-border/60 bg-background/80 hover:bg-accent/80 transition-all duration-200 font-medium"
               disabled={loading}
             >
-              Vandaag
+              Today
             </Button>
             
             <Button
@@ -103,7 +103,7 @@ export function CalendarHeader({
                     : 'hover:bg-accent/80'
                 }`}
               >
-                {view === 'month' ? 'Maand' : view === 'week' ? 'Week' : 'Jaar'}
+                {view === 'month' ? 'Month' : view === 'week' ? 'Week' : 'Year'}
               </Button>
             ))}
           </div>
@@ -124,7 +124,7 @@ export function CalendarHeader({
               className="h-11 px-6 rounded-2xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/25 transition-all duration-200 hover:shadow-xl hover:shadow-primary/30 hover:scale-105"
             >
               <Plus className="h-5 w-5 mr-2" />
-              Nieuwe Afspraak
+              New Appointment
             </Button>
           </div>
         </div>
@@ -135,7 +135,7 @@ export function CalendarHeader({
         <div className="absolute inset-0 bg-card/80 backdrop-blur-sm rounded-t-3xl flex items-center justify-center">
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-            <span className="text-sm font-medium text-muted-foreground">Laden...</span>
+            <span className="text-sm font-medium text-muted-foreground">Loading...</span>
           </div>
         </div>
       )}

@@ -46,12 +46,12 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
 
   return (
     <div className="space-y-12">
-      {/* Operational Performance Metrics - Blauw Thema */}
+      {/* Operational Performance Metrics - Blue Theme */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Reactietijd"
+          title="Response Time"
           value={`${performance?.avg_response_time_minutes?.toFixed(1) || '0.0'}m`}
-          subtitle="gemiddeld WhatsApp"
+          subtitle="average WhatsApp"
           icon={Clock}
           variant="blue"
           delay={0.1}
@@ -60,25 +60,25 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
         <MetricCard
           title="No-show Rate"
           value={`${performance?.no_show_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="laatste 30 dagen"
+          subtitle="last 30 days"
           icon={AlertTriangle}
           variant="blue"
           delay={0.2}
         />
 
         <MetricCard
-          title="Annulering Rate"
+          title="Cancellation Rate"
           value={`${performance?.cancellation_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="laatste 30 dagen"
+          subtitle="last 30 days"
           icon={AlertTriangle}
           variant="blue"
           delay={0.3}
         />
 
         <MetricCard
-          title="Conversie Rate"
+          title="Conversion Rate"
           value={`${businessIntel?.whatsapp_conversion_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="WhatsApp → Boeking"
+          subtitle="WhatsApp → Booking"
           icon={MessageSquare}
           variant="blue"
           delay={0.4}
@@ -94,7 +94,7 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
               <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl">
                 <Activity className="h-6 w-6 text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold text-slate-100">Piekuren Analyse</h3>
+              <h3 className="text-xl font-bold text-slate-100">Peak Hours Analysis</h3>
             </div>
             
             <PeakHoursChart 
@@ -105,12 +105,12 @@ export function PerformanceEfficiencyTab({ calendarId }: PerformanceEfficiencyTa
         </div>
       </div>
 
-      {/* Kalender Bezetting Card */}
+      {/* Calendar Utilization Card */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <MetricCard
-          title="Kalender Bezetting"
+          title="Calendar Utilization"
           value={`${performance?.calendar_utilization_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="deze week"
+          subtitle="this week"
           icon={Calendar}
           variant="blue"
           delay={0.5}

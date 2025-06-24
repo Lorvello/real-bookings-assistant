@@ -46,30 +46,30 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
 
   return (
     <div className="space-y-12">
-      {/* Future Metrics - Paars/Violet Thema */}
+      {/* Future Metrics - Purple/Violet Theme */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <MetricCard
-          title="Wachtlijst"
+          title="Waitlist"
           value={String(insights?.waitlist_size || 0)}
-          subtitle="wachtende klanten"
+          subtitle="waiting customers"
           icon={Clock}
           variant="purple"
           delay={0.1}
         />
 
         <MetricCard
-          title="Terugkerende Klanten"
+          title="Returning Customers"
           value={String(insights?.returning_customers_month || 0)}
-          subtitle="deze maand"
+          subtitle="this month"
           icon={Users}
           variant="purple"
           delay={0.2}
         />
 
         <MetricCard
-          title="Trend Analyse"
-          value="Stabiel"
-          subtitle="komende weken"
+          title="Trend Analysis"
+          value="Stable"
+          subtitle="upcoming weeks"
           icon={TrendingUp}
           variant="purple"
           delay={0.3}
@@ -85,7 +85,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
               <div className="p-2 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl">
                 <TrendingUp className="h-6 w-6 text-purple-400" />
               </div>
-              <h3 className="text-xl font-bold text-slate-100">Vraag Voorspelling (Komende Weken)</h3>
+              <h3 className="text-xl font-bold text-slate-100">Demand Forecast (Upcoming Weeks)</h3>
             </div>
             
             {insights?.demand_forecast && insights.demand_forecast.length > 0 ? (
@@ -102,7 +102,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                     <YAxis stroke="#94A3B8" fontSize={12} />
                     <Tooltip 
                       labelFormatter={(week) => `Week ${week}`}
-                      formatter={(value) => [value, 'Verwachte Boekingen']}
+                      formatter={(value) => [value, 'Expected Bookings']}
                       contentStyle={{
                         backgroundColor: 'rgba(15, 23, 42, 0.95)',
                         border: '1px solid rgba(168, 85, 247, 0.3)',
@@ -126,8 +126,8 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                 <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl flex items-center justify-center border border-slate-600/30">
                   <TrendingUp className="h-10 w-10 text-slate-400" />
                 </div>
-                <p className="text-slate-300 font-medium mb-2">Nog geen trend data beschikbaar</p>
-                <p className="text-sm text-slate-400">Meer historische data nodig voor voorspellingen</p>
+                <p className="text-slate-300 font-medium mb-2">No trend data available yet</p>
+                <p className="text-sm text-slate-400">More historical data needed for forecasts</p>
               </div>
             )}
           </div>
@@ -143,7 +143,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
               <div className="p-2 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-xl">
                 <Calendar className="h-6 w-6 text-violet-400" />
               </div>
-              <h3 className="text-xl font-bold text-slate-100">Seizoenspatronen</h3>
+              <h3 className="text-xl font-bold text-slate-100">Seasonal Patterns</h3>
             </div>
             
             {insights?.seasonal_patterns && insights.seasonal_patterns.length > 0 ? (
@@ -158,7 +158,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                     />
                     <YAxis stroke="#94A3B8" fontSize={12} />
                     <Tooltip 
-                      formatter={(value) => [Math.round(Number(value)), 'Gem. Boekingen']}
+                      formatter={(value) => [Math.round(Number(value)), 'Avg. Bookings']}
                       contentStyle={{
                         backgroundColor: 'rgba(15, 23, 42, 0.95)',
                         border: '1px solid rgba(139, 92, 246, 0.3)',
@@ -185,8 +185,8 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                 <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl flex items-center justify-center border border-slate-600/30">
                   <Calendar className="h-10 w-10 text-slate-400" />
                 </div>
-                <p className="text-slate-300 font-medium mb-2">Nog geen seizoensdata beschikbaar</p>
-                <p className="text-sm text-slate-400">Een vol jaar data nodig voor patronen</p>
+                <p className="text-slate-300 font-medium mb-2">No seasonal data available yet</p>
+                <p className="text-sm text-slate-400">A full year of data needed for patterns</p>
               </div>
             )}
           </div>
@@ -202,8 +202,8 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
               <div className="p-2 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl">
                 <TrendingUp className="h-6 w-6 text-purple-400" />
               </div>
-              <h3 className="text-xl font-bold text-slate-100">Intelligente Aanbevelingen</h3>
-              <p className="text-sm text-slate-400 ml-auto">Gebaseerd op je performance data</p>
+              <h3 className="text-xl font-bold text-slate-100">Intelligent Recommendations</h3>
+              <p className="text-sm text-slate-400 ml-auto">Based on your performance data</p>
             </div>
             
             <IntelligentRecommendations
