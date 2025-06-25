@@ -61,8 +61,14 @@ const Features = () => {
     }
   ];
 
+  const stats = [
+    { value: "24/7", label: "Always Working" },
+    { value: "∞", label: "Unlimited Capacity" },
+    { value: "0%", label: "Human Errors" }
+  ];
+
   return (
-    <section className="py-8 md:py-24 px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+    <section className="py-6 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -74,76 +80,104 @@ const Features = () => {
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header - Compact mobile */}
-        <div className="text-center mb-8 md:mb-20">
-          <h2 className="text-2xl md:text-5xl font-bold text-white mb-3 md:mb-6 px-4 sm:px-0">
+        <div className="text-center mb-6 md:mb-20">
+          <h2 className="text-xl md:text-5xl font-bold text-white mb-2 md:mb-6 px-3 sm:px-0">
             Everything You Need To{" "}
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
               Automate Bookings
             </span>
           </h2>
-          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-4 sm:px-0">
+          <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
             Powerful features that work seamlessly together to maximize your bookings and revenue
           </p>
         </div>
         
-        {/* Features grid - Compact mobile */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12 mb-12 md:mb-32">
+        {/* Desktop: Features grid */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12 mb-12 md:mb-32">
           {features.map((feature, index) => (
             <div 
               key={index} 
               className="group text-center hover:transform hover:scale-105 transition-all duration-300 cursor-pointer px-4 md:px-0"
             >
-              {/* Compact icon */}
               <div className="relative mb-4 md:mb-8 flex justify-center">
                 <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
                   <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white" strokeWidth={1.5} />
                 </div>
-                
-                {/* Subtle glow effect */}
                 <div className={`absolute inset-0 w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300`}></div>
               </div>
-              
-              {/* Compact typography */}
               <h3 className={`text-base md:text-xl font-bold text-white mb-2 md:mb-4 leading-tight ${feature.hoverTextColor} transition-colors duration-300`}>
                 {feature.title}
               </h3>
-              
-              {/* Condensed description */}
               <p className="text-slate-300 text-xs md:text-base leading-relaxed group-hover:text-slate-200 transition-colors duration-300">
                 {feature.description}
               </p>
             </div>
           ))}
         </div>
+
+        {/* Mobile: Features carousel */}
+        <div className="md:hidden mb-6">
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex space-x-3 snap-x snap-mandatory scroll-smooth">
+              {features.map((feature, index) => (
+                <div key={index} className="w-[75vw] flex-none snap-start bg-slate-800/50 rounded-2xl p-3 text-center">
+                  <div className="relative mb-3 flex justify-center">
+                    <div className={`w-8 h-8 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
+                      <feature.icon className="w-4 h-4 text-white" strokeWidth={1.5} />
+                    </div>
+                  </div>
+                  <h3 className="text-xs font-bold text-white mb-2 leading-tight">
+                    {feature.title}
+                  </h3>
+                  <p className="text-slate-300 text-xs leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Features carousel indicators */}
+          <div className="flex justify-center space-x-1 mt-3">
+            {Array.from({ length: Math.ceil(features.length / 2) }).map((_, index) => (
+              <div key={index} className="w-1.5 h-1.5 bg-slate-600 rounded-full"></div>
+            ))}
+          </div>
+        </div>
         
         {/* CTA Section - Compact mobile */}
-        <div className="text-center relative overflow-hidden pt-8 md:pt-16 pb-8 md:pb-20">
+        <div className="text-center relative overflow-hidden pt-6 md:pt-16 pb-6 md:pb-20">
           {/* Background decoration for CTA */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
           
-          <div className="relative z-10 px-4 sm:px-0">
-            <h3 className="text-xl md:text-4xl font-bold mb-4 md:mb-8 text-white">
+          <div className="relative z-10 px-3 sm:px-0">
+            <h3 className="text-lg md:text-4xl font-bold mb-3 md:mb-8 text-white">
               Don't Let Revenue Sleep While You Do
             </h3>
-            <p className="text-sm md:text-xl text-slate-300 mb-8 md:mb-16 max-w-2xl mx-auto">
+            <p className="text-xs md:text-xl text-slate-300 mb-6 md:mb-16 max-w-2xl mx-auto">
               While you're busy with customers, your AI agent is busy booking new ones. 
               Start your free trial and see the difference automation makes.
             </p>
             
-            {/* Stats section - Compact mobile */}
-            <div className="flex flex-col md:flex-row flex-wrap justify-center gap-6 md:gap-16">
-              <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
-                <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">24/7</div>
-                <div className="text-slate-400 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Always Working</div>
-              </div>
-              <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
-                <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">∞</div>
-                <div className="text-slate-400 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Unlimited Capacity</div>
-              </div>
-              <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
-                <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">0%</div>
-                <div className="text-slate-400 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Human Errors</div>
+            {/* Desktop: Stats section */}
+            <div className="hidden md:flex md:flex-row flex-wrap justify-center gap-6 md:gap-16">
+              {stats.map((stat, index) => (
+                <div key={index} className="group text-center hover:transform hover:scale-105 transition-all duration-300">
+                  <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">{stat.value}</div>
+                  <div className="text-slate-400 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Mobile: Stats carousel */}
+            <div className="md:hidden overflow-x-auto scrollbar-hide">
+              <div className="flex space-x-6 snap-x snap-mandatory scroll-smooth justify-start">
+                {stats.map((stat, index) => (
+                  <div key={index} className="w-[45vw] flex-none snap-start text-center bg-slate-800/30 rounded-xl p-3">
+                    <div className="text-xl font-bold mb-1 text-emerald-400">{stat.value}</div>
+                    <div className="text-slate-400 text-xs uppercase tracking-wider">{stat.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

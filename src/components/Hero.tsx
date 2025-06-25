@@ -4,7 +4,7 @@ import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "l
 
 const Hero = () => {
   return (
-    <section className="relative min-h-[80vh] md:min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 overflow-hidden flex items-center justify-center">
+    <section className="relative min-h-[70vh] md:min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 overflow-hidden flex items-center justify-center">
       {/* Animated background elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -15,16 +15,16 @@ const Hero = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.4)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.4)_1px,transparent_1px)] bg-[size:64px_64px] opacity-30"></div>
       
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+      <div className="relative max-w-7xl mx-auto px-3 md:px-4 sm:px-6 lg:px-8 text-center z-10">
         {/* Floating badge */}
-        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-6 md:py-3 mb-3 md:mb-8 animate-appear opacity-0">
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-6 md:py-3 mb-2 md:mb-8 animate-appear opacity-0">
           <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
           <span className="text-emerald-300 text-xs md:text-sm font-medium">AI-Powered Booking Revolution</span>
         </div>
 
-        {/* Main headline - Compact mobile approach */}
-        <div className="space-y-3 md:space-y-8">
-          <h1 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-extrabold text-white leading-tight md:leading-[0.95] tracking-tight animate-appear opacity-100">
+        {/* Main headline - More compact on mobile */}
+        <div className="space-y-2 md:space-y-8">
+          <h1 className="text-xl md:text-5xl xl:text-6xl 2xl:text-8xl font-extrabold text-white leading-tight md:leading-[0.95] tracking-tight animate-appear opacity-100">
             <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
               Bookings
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
@@ -34,42 +34,42 @@ const Hero = () => {
             via WhatsApp
           </h1>
 
-          <p className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-2 md:px-0">
+          <p className="text-xs md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-2 md:px-0">
             Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-semibold">24/7 automation</span>,{" "}
             <span className="text-emerald-400 font-semibold">instant responses</span>,{" "}
             <span className="text-emerald-400 font-semibold">zero missed opportunities</span>.
           </p>
 
-          {/* CTA Section - Compact mobile */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-6 pt-4 md:pt-8 animate-appear opacity-100 delay-500 px-4 sm:px-0">
-            <Button className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 md:px-8 py-3 md:py-6 text-base md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[44px]">
+          {/* CTA Section - More compact on mobile */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-6 pt-3 md:pt-8 animate-appear opacity-100 delay-500 px-3 sm:px-0">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 md:px-8 py-2 md:py-6 text-sm md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[44px]">
               <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
               Start Free 7-Day Trial
             </Button>
             
-            <button className="w-full sm:w-auto text-slate-300 hover:text-white text-base md:text-lg font-medium flex items-center justify-center gap-2 group transition-colors min-h-[44px] px-4">
+            <button className="w-full sm:w-auto text-slate-300 hover:text-white text-sm md:text-lg font-medium flex items-center justify-center gap-2 group transition-colors min-h-[44px] px-4">
               <Zap className="w-4 h-4 md:w-5 md:h-5 group-hover:text-emerald-400 transition-colors" />
               See how it works
             </button>
           </div>
 
-          {/* Social proof - Compact mobile */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-8 pt-3 md:pt-4 animate-appear opacity-100 delay-700 px-4 sm:px-0">
+          {/* Social proof - Compact on mobile */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-8 pt-2 md:pt-4 animate-appear opacity-100 delay-700 px-3 sm:px-0">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="flex -space-x-1 md:-space-x-2">
-                <div className="w-5 h-5 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
+                <div className="w-4 h-4 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <Scissors className="w-2 h-2 md:w-4 md:h-4 text-slate-700" />
                 </div>
-                <div className="w-5 h-5 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
+                <div className="w-4 h-4 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <div className="w-2 h-2 md:w-4 md:h-4 bg-slate-700 rounded-t-full" style={{
                     clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)"
                   }}></div>
                 </div>
-                <div className="w-5 h-5 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
+                <div className="w-4 h-4 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <Dumbbell className="w-2 h-2 md:w-4 md:h-4 text-slate-700" />
                 </div>
-                <div className="w-5 h-5 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
+                <div className="w-4 h-4 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
                   <Stethoscope className="w-2 h-2 md:w-4 md:h-4 text-slate-700" />
                 </div>
               </div>
@@ -78,7 +78,7 @@ const Hero = () => {
             
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (
-                <span key={i} className="text-yellow-400 text-sm md:text-lg">★</span>
+                <span key={i} className="text-yellow-400 text-xs md:text-lg">★</span>
               ))}
               <span className="text-slate-400 text-xs md:text-sm ml-1 md:ml-2">4.9/5 rating</span>
             </div>
