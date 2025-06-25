@@ -1,4 +1,3 @@
-
 import { Check, Calendar, Globe, BarChart3, Bell, Settings, Zap, Monitor, Link } from "lucide-react";
 
 const Features = () => {
@@ -13,7 +12,7 @@ const Features = () => {
     {
       icon: Settings,
       title: "Fully Personalized",
-      description: "Customize the AI Agent to your services, FAQs and booking logic — from custom hairstyles to business-specific questions",
+      description: "Customize the AI Agent to your services, FAQs and booking logic, from custom hairstyles to business-specific questions",
       color: "from-blue-500 to-blue-600",
       hoverTextColor: "group-hover:text-blue-300"
     },
@@ -27,7 +26,7 @@ const Features = () => {
     {
       icon: Link,
       title: "Connect Your Existing Calendar",
-      description: "Integrate seamlessly with Google Calendar, Outlook, Calendly and more - maintain your current workflow",
+      description: "Integrate seamlessly with Google Calendar, Outlook, Calendly and more, maintain your current workflow",
       color: "from-blue-400 to-blue-500",
       hoverTextColor: "group-hover:text-blue-300"
     },
