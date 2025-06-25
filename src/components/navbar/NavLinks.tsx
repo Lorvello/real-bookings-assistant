@@ -17,7 +17,7 @@ export function NavLinks({ navItems, onNavClick, isMobile = false }: NavLinksPro
   const location = useLocation();
 
   const linkClasses = (path: string) => 
-    `${isMobile ? 'block' : ''} px-3 py-2 rounded-md ${isMobile ? 'text-base' : 'text-sm'} font-medium transition-colors ${
+    `${isMobile ? 'block' : ''} px-3 py-3 sm:py-2 rounded-md ${isMobile ? 'text-base' : 'text-sm'} font-medium transition-colors min-h-[44px] flex items-center ${
       location.pathname === path
         ? 'text-green-400 bg-slate-700/50'
         : 'text-slate-300 hover:text-white hover:bg-slate-700/30'

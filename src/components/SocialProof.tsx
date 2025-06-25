@@ -22,7 +22,7 @@ const SocialProof = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+    <section className="py-16 sm:py-20 px-4 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -33,43 +33,45 @@ const SocialProof = () => {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
       
       <div className="max-w-6xl mx-auto relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-white mb-6">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 sm:mb-6 px-4 sm:px-0">
             Trusted by <span className="text-emerald-400">1000+ Businesses</span>
           </h2>
-          <p className="text-xl text-slate-300">Join successful businesses that are already automating their bookings</p>
+          <p className="text-base sm:text-lg md:text-xl text-slate-300 px-4 sm:px-0">Join successful businesses that are already automating their bookings</p>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
+        {/* Testimonials grid - Mobile optimized */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16">
           {testimonials.map((testimonial, index) => (
             <div 
               key={index} 
-              className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-300"
+              className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 sm:p-8 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-300 mx-4 sm:mx-0"
             >
               <div className="flex mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <span key={i} className="text-yellow-400 text-xl">⭐</span>
+                  <span key={i} className="text-yellow-400 text-lg sm:text-xl">⭐</span>
                 ))}
               </div>
-              <p className="text-slate-300 mb-6 italic">"{testimonial.quote}"</p>
+              <p className="text-slate-300 mb-4 sm:mb-6 italic text-sm sm:text-base">"{testimonial.quote}"</p>
               <div>
-                <div className="font-semibold text-white">{testimonial.name}</div>
-                <div className="text-sm text-slate-400">{testimonial.business}</div>
+                <div className="font-semibold text-white text-sm sm:text-base">{testimonial.name}</div>
+                <div className="text-xs sm:text-sm text-slate-400">{testimonial.business}</div>
               </div>
             </div>
           ))}
         </div>
         
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 text-center">
-          <div className="flex justify-center items-center gap-4 mb-4">
-            <span className="text-3xl">🔒</span>
-            <span className="text-3xl">✅</span>
-            <span className="text-3xl">🛡️</span>
+        {/* Trust badges - Mobile optimized */}
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 sm:p-8 text-center mx-4 sm:mx-0">
+          <div className="flex justify-center items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+            <span className="text-2xl sm:text-3xl">🔒</span>
+            <span className="text-2xl sm:text-3xl">✅</span>
+            <span className="text-2xl sm:text-3xl">🛡️</span>
           </div>
-          <h3 className="text-xl font-semibold text-white mb-2">
+          <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
             Enterprise-Grade Security & Compliance
           </h3>
-          <p className="text-slate-300">
+          <p className="text-slate-300 text-sm sm:text-base">
             GDPR compliant • End-to-end encryption • SOC 2 certified • 99.9% uptime guarantee
           </p>
         </div>

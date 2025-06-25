@@ -28,7 +28,7 @@ const Navbar = () => {
   return (
     <nav className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg border-b border-slate-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-14 sm:h-16">
           <Logo onNavClick={handleNavClick} />
           
           {/* Desktop Navigation Links */}
@@ -47,8 +47,8 @@ const Navbar = () => {
             />
           </div>
 
-          {/* Mobile menu button */}
-          <div className="lg:hidden flex items-center space-x-4">
+          {/* Mobile menu button - Improved touch target */}
+          <div className="lg:hidden flex items-center space-x-2 sm:space-x-4">
             <AuthSection 
               user={user} 
               isDialogOpen={isDialogOpen} 
@@ -57,9 +57,10 @@ const Navbar = () => {
             />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-slate-300 hover:text-white transition-colors"
+              className="text-slate-300 hover:text-white transition-colors p-2 -m-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Toggle mobile menu"
             >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMobileMenuOpen ? <X className="h-5 w-5 sm:h-6 sm:w-6" /> : <Menu className="h-5 w-5 sm:h-6 sm:w-6" />}
             </button>
           </div>
         </div>
