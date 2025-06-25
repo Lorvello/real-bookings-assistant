@@ -68,7 +68,7 @@ const Features = () => {
   ];
 
   return (
-    <section className="py-6 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+    <section className="py-8 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -80,8 +80,8 @@ const Features = () => {
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header - Compact mobile */}
-        <div className="text-center mb-6 md:mb-20">
-          <h2 className="text-xl md:text-5xl font-bold text-white mb-2 md:mb-6 px-3 sm:px-0">
+        <div className="text-center mb-8 md:mb-20">
+          <h2 className="text-xl md:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
             Everything You Need To{" "}
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
               Automate Bookings
@@ -115,12 +115,12 @@ const Features = () => {
           ))}
         </div>
 
-        {/* Mobile: Features carousel */}
-        <div className="md:hidden mb-6">
-          <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex space-x-3 snap-x snap-mandatory scroll-smooth">
+        {/* Mobile: Features carousel with snap-scroll */}
+        <div className="md:hidden mb-8">
+          <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth">
+            <div className="flex space-x-3">
               {features.map((feature, index) => (
-                <div key={index} className="w-[75vw] flex-none snap-start bg-slate-800/50 rounded-2xl p-3 text-center">
+                <div key={index} className="w-[75vw] flex-none snap-start snap-always bg-slate-800/50 rounded-2xl p-4 text-center">
                   <div className="relative mb-3 flex justify-center">
                     <div className={`w-8 h-8 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
                       <feature.icon className="w-4 h-4 text-white" strokeWidth={1.5} />
@@ -137,7 +137,7 @@ const Features = () => {
             </div>
           </div>
           {/* Features carousel indicators */}
-          <div className="flex justify-center space-x-1 mt-3">
+          <div className="flex justify-center space-x-1 mt-4">
             {Array.from({ length: Math.ceil(features.length / 2) }).map((_, index) => (
               <div key={index} className="w-1.5 h-1.5 bg-slate-600 rounded-full"></div>
             ))}
@@ -145,16 +145,16 @@ const Features = () => {
         </div>
         
         {/* CTA Section - Compact mobile */}
-        <div className="text-center relative overflow-hidden pt-6 md:pt-16 pb-6 md:pb-20">
+        <div className="text-center relative overflow-hidden pt-8 md:pt-16 pb-8 md:pb-20">
           {/* Background decoration for CTA */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
           
           <div className="relative z-10 px-3 sm:px-0">
-            <h3 className="text-lg md:text-4xl font-bold mb-3 md:mb-8 text-white">
+            <h3 className="text-lg md:text-4xl font-bold mb-4 md:mb-8 text-white">
               Don't Let Revenue Sleep While You Do
             </h3>
-            <p className="text-xs md:text-xl text-slate-300 mb-6 md:mb-16 max-w-2xl mx-auto">
+            <p className="text-xs md:text-xl text-slate-300 mb-8 md:mb-16 max-w-2xl mx-auto">
               While you're busy with customers, your AI agent is busy booking new ones. 
               Start your free trial and see the difference automation makes.
             </p>
@@ -169,15 +169,17 @@ const Features = () => {
               ))}
             </div>
 
-            {/* Mobile: Stats carousel */}
-            <div className="md:hidden overflow-x-auto scrollbar-hide">
-              <div className="flex space-x-6 snap-x snap-mandatory scroll-smooth justify-start">
-                {stats.map((stat, index) => (
-                  <div key={index} className="w-[45vw] flex-none snap-start text-center bg-slate-800/30 rounded-xl p-3">
-                    <div className="text-xl font-bold mb-1 text-emerald-400">{stat.value}</div>
-                    <div className="text-slate-400 text-xs uppercase tracking-wider">{stat.label}</div>
-                  </div>
-                ))}
+            {/* Mobile: Stats carousel with snap-scroll */}
+            <div className="md:hidden">
+              <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth">
+                <div className="flex space-x-4">
+                  {stats.map((stat, index) => (
+                    <div key={index} className="w-[45vw] flex-none snap-start snap-always text-center bg-slate-800/30 rounded-xl p-4">
+                      <div className="text-xl font-bold mb-1 text-emerald-400">{stat.value}</div>
+                      <div className="text-slate-400 text-xs uppercase tracking-wider">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

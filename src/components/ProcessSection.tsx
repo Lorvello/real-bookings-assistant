@@ -6,7 +6,7 @@ import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 
 const ProcessSection = () => {
   return (
-    <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-6 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-8 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -18,8 +18,8 @@ const ProcessSection = () => {
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section header - Compact */}
-        <div className="text-center mb-6 md:mb-16">
-          <h2 className="text-xl md:text-5xl font-bold text-white mb-2 md:mb-6 px-3 sm:px-0">
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className="text-xl md:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
             See How It Works
           </h2>
           <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
@@ -29,10 +29,10 @@ const ProcessSection = () => {
         </div>
 
         {/* Process flow - Compact mobile */}
-        <div className="space-y-6 md:space-y-16">
+        <div className="space-y-8 md:space-y-16">
           {/* Step 1: WhatsApp Chat */}
-          <div className="flex flex-col lg:flex-row items-center gap-3 md:gap-12">
-            <div className="flex-1 space-y-2 md:space-y-6 text-center lg:text-left">
+          <div className="flex flex-col lg:flex-row items-center gap-4 md:gap-12">
+            <div className="flex-1 space-y-3 md:space-y-6 text-center lg:text-left">
               <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   1
@@ -49,14 +49,14 @@ const ProcessSection = () => {
               </div>
             </div>
             
-            <div className="flex-1 animate-appear opacity-100 delay-300 w-full max-w-xs md:max-w-sm lg:max-w-none">
+            <div className="flex-1 animate-appear opacity-100 delay-300 w-full max-w-[280px] md:max-w-sm lg:max-w-none">
               <WhatsAppChat />
             </div>
           </div>
 
           {/* Step 2: Calendar Result */}
-          <div className="flex flex-col lg:flex-row-reverse items-center gap-3 md:gap-12">
-            <div className="flex-1 space-y-2 md:space-y-6 text-center lg:text-left">
+          <div className="flex flex-col lg:flex-row-reverse items-center gap-4 md:gap-12">
+            <div className="flex-1 space-y-3 md:space-y-6 text-center lg:text-left">
               <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-blue-500 to-indigo-500">
                   2
@@ -72,22 +72,22 @@ const ProcessSection = () => {
               </div>
             </div>
             
-            <div className="flex-1 animate-appear opacity-100 delay-700 w-full max-w-xs md:max-w-sm lg:max-w-none">
+            <div className="flex-1 animate-appear opacity-100 delay-700 w-full max-w-[280px] md:max-w-sm lg:max-w-none">
               <CalendarMockup />
             </div>
           </div>
         </div>
 
         {/* AI Agent Test Section - Compact mobile */}
-        <div className="mt-8 md:mt-24 space-y-2 md:space-y-8">
+        <div className="mt-12 md:mt-24 space-y-3 md:space-y-8">
           <div className="text-center">
-            <div className="flex items-center gap-2 md:gap-4 justify-center mb-2 md:mb-6">
+            <div className="flex items-center gap-2 md:gap-4 justify-center mb-3 md:mb-6">
               <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-purple-500 to-pink-500">
                 3
               </div>
               <h3 className="text-sm md:text-2xl font-bold text-white">Test The AI Agent Yourself</h3>
             </div>
-            <p className="text-xs md:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-3 md:mb-8 px-3 sm:px-0">
+            <p className="text-xs md:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-4 md:mb-8 px-3 sm:px-0">
               Try it yourself! Chat with our AI agent and experience how fast and natural 
               the booking process is. No registration required.
             </p>

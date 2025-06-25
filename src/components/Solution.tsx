@@ -31,7 +31,7 @@ const Solution = () => {
   ];
 
   return (
-    <section className="py-6 md:py-24 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+    <section className="py-8 md:py-24 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"></div>
@@ -43,13 +43,13 @@ const Solution = () => {
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header - Compact mobile */}
-        <div className="text-center mb-6 md:mb-20">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-6 md:py-3 mb-2 md:mb-8 backdrop-blur-sm">
+        <div className="text-center mb-8 md:mb-20">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-6 md:py-3 mb-3 md:mb-8 backdrop-blur-sm">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span className="text-emerald-300 text-xs md:text-sm font-medium">The Solution</span>
           </div>
           
-          <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-2 md:mb-6 leading-tight px-2 md:px-0">
+          <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
             Meet Your <span className="text-emerald-400">24/7</span><br />
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
               Booking Assistant
@@ -85,31 +85,33 @@ const Solution = () => {
           ))}
         </div>
 
-        {/* Mobile: Horizontal carousel */}
-        <div className="md:hidden overflow-x-auto scrollbar-hide">
-          <div className="flex space-x-4 snap-x snap-mandatory scroll-smooth">
-            {features.map((feature, index) => (
-              <div key={index} className="w-[80vw] flex-none snap-start bg-slate-800/50 rounded-2xl p-3 text-center">
-                <div className="relative mb-4 flex justify-center">
-                  <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
-                    <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+        {/* Mobile: Snap-scroll carousel */}
+        <div className="md:hidden">
+          <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth">
+            <div className="flex space-x-4">
+              {features.map((feature, index) => (
+                <div key={index} className="w-[80vw] flex-none snap-start snap-always bg-slate-800/50 rounded-2xl p-4 text-center">
+                  <div className="relative mb-4 flex justify-center">
+                    <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
+                      <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                  </div>
+                  <h3 className="text-sm font-bold text-white mb-2 leading-tight">
+                    {feature.title}
+                  </h3>
+                  <p className="text-slate-300 text-xs leading-relaxed mb-3">
+                    {feature.description}
+                  </p>
+                  <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs">
+                    <Clock className="w-3 h-3 mr-1" />
+                    <span>{feature.stat}</span>
                   </div>
                 </div>
-                <h3 className="text-sm font-bold text-white mb-2 leading-tight">
-                  {feature.title}
-                </h3>
-                <p className="text-slate-300 text-xs leading-relaxed mb-3">
-                  {feature.description}
-                </p>
-                <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs">
-                  <Clock className="w-3 h-3 mr-1" />
-                  <span>{feature.stat}</span>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
           {/* Carousel indicators */}
-          <div className="flex justify-center space-x-2 mt-4">
+          <div className="flex justify-center space-x-2 mt-6">
             {features.map((_, index) => (
               <div key={index} className="w-2 h-2 bg-slate-600 rounded-full"></div>
             ))}

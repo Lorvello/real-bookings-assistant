@@ -65,17 +65,17 @@ export const Pricing: React.FC<PricingProps> = ({
   };
 
   return (
-    <section className={`py-20 px-4 ${showAsSelection ? 'bg-white' : 'bg-gray-900'}`}>
+    <section className={`py-8 md:py-20 px-4 ${showAsSelection ? 'bg-white' : 'bg-gray-900'}`}>
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className={`text-4xl font-bold mb-6 ${showAsSelection ? 'text-gray-900' : 'text-white'}`}>
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className={`text-xl md:text-4xl font-bold mb-3 md:mb-6 ${showAsSelection ? 'text-gray-900' : 'text-white'}`}>
             {title}
           </h2>
-          <p className={`text-xl whitespace-pre-line mb-8 ${showAsSelection ? 'text-gray-600' : 'text-gray-300'}`}>
+          <p className={`text-xs md:text-xl whitespace-pre-line mb-4 md:mb-8 ${showAsSelection ? 'text-gray-600' : 'text-gray-300'}`}>
             {description}
           </p>
           
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-4 md:mb-8">
             <div className="relative">
               {billingPeriod === "yearly" && (
                 <div className="absolute -top-4 right-4 bg-black text-green-500 px-2 py-1 rounded text-xs font-bold">
@@ -94,7 +94,7 @@ export const Pricing: React.FC<PricingProps> = ({
               >
                 <ToggleGroupItem 
                   value="monthly" 
-                  className={`px-6 py-2 rounded-md transition-all ${
+                  className={`px-4 md:px-6 py-2 rounded-md transition-all ${
                     billingPeriod === 'monthly' 
                       ? `${showAsSelection ? 'bg-white text-gray-900' : 'bg-white text-gray-900'} shadow-md` 
                       : `${showAsSelection ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-300 hover:text-white hover:bg-gray-700'}`
@@ -104,7 +104,7 @@ export const Pricing: React.FC<PricingProps> = ({
                 </ToggleGroupItem>
                 <ToggleGroupItem 
                   value="yearly" 
-                  className={`px-6 py-2 rounded-md transition-all ${
+                  className={`px-4 md:px-6 py-2 rounded-md transition-all ${
                     billingPeriod === 'yearly' 
                       ? `${showAsSelection ? 'bg-white text-gray-900' : 'bg-white text-gray-900'} shadow-md` 
                       : `${showAsSelection ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-300 hover:text-white hover:bg-gray-700'}`
@@ -119,7 +119,8 @@ export const Pricing: React.FC<PricingProps> = ({
         
         {showAsSelection && (
           <RadioGroup value={selectedPlan} onValueChange={onPlanSelect} className="mb-8">
-            <div className="grid md:grid-cols-3 gap-8">
+            {/* Desktop: Grid layout */}
+            <div className="hidden md:grid md:grid-cols-3 gap-8">
               {plans.map((plan, index) => (
                 <div key={index} className="relative">
                   <Card 
@@ -210,86 +211,285 @@ export const Pricing: React.FC<PricingProps> = ({
                 </div>
               ))}
             </div>
+
+            {/* Mobile: Carousel */}
+            <div className="md:hidden">
+              <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth">
+                <div className="flex space-x-4">
+                  {plans.map((plan, index) => (
+                    <div key={index} className="w-[85vw] flex-none snap-start snap-always">
+                      <Card 
+                        onClick={() => handlePlanClick(plan.name)}
+                        className={`relative cursor-pointer transition-all duration-300 ${
+                          selectedPlan === plan.name 
+                            ? 'border-green-500 shadow-lg ring-2 ring-green-500 bg-green-50' 
+                            : plan.name === 'ENTERPRISE' 
+                              ? 'bg-black border-gray-600 text-white' 
+                              : 'bg-white border-gray-300'
+                        } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''}`}
+                      >
+                        {plan.isPopular && (
+                          <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs">
+                            Most Popular
+                          </Badge>
+                        )}
+                        
+                        <div className="absolute top-4 right-4">
+                          <RadioGroupItem value={plan.name} />
+                        </div>
+                        
+                        <CardHeader className="text-center pb-4">
+                          <CardTitle className={`font-bold text-2xl ${
+                            plan.name === 'ENTERPRISE' ? 'text-white' : 
+                            selectedPlan === plan.name ? 'text-gray-900' : 'text-gray-900'
+                          }`}>
+                            {plan.name}
+                          </CardTitle>
+                          <CardDescription className={`mt-2 text-xs ${
+                            plan.name === 'ENTERPRISE' ? 'text-gray-300' : 
+                            selectedPlan === plan.name ? 'text-gray-600' : 'text-gray-500'
+                          }`}>
+                            {plan.description}
+                          </CardDescription>
+                          <div className="mt-3">
+                            {plan.isCustom ? (
+                              <span className={`text-2xl font-bold ${
+                                plan.name === 'ENTERPRISE' ? 'text-white' : 
+                                selectedPlan === plan.name ? 'text-gray-900' : 'text-gray-900'
+                              }`}>
+                                Custom
+                              </span>
+                            ) : (
+                              <>
+                                <span className={`text-3xl font-bold ${
+                                  plan.name === 'ENTERPRISE' ? 'text-white' : 
+                                  selectedPlan === plan.name ? 'text-gray-900' : 'text-gray-900'
+                                }`}>
+                                  €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
+                                </span>
+                                <span className={`ml-2 text-sm ${
+                                  plan.name === 'ENTERPRISE' ? 'text-gray-300' : 
+                                  selectedPlan === plan.name ? 'text-gray-600' : 'text-gray-500'
+                                }`}>
+                                  /month
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          {!plan.isCustom && billingPeriod === "yearly" && (
+                            <div className="text-xs text-green-600 font-medium">
+                              Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
+                            </div>
+                          )}
+                        </CardHeader>
+                        
+                        <CardContent className="pb-4">
+                          <ul className="space-y-2">
+                            {plan.features.slice(0, 6).map((feature, featureIndex) => (
+                              <li key={featureIndex} className="flex items-center">
+                                <span className="text-green-500 mr-2 text-sm">✓</span>
+                                <span className={`text-xs ${
+                                  plan.name === 'ENTERPRISE' ? 'text-gray-200' : 
+                                  selectedPlan === plan.name ? 'text-gray-700' : 'text-gray-600'
+                                }`}>
+                                  {feature}
+                                </span>
+                              </li>
+                            ))}
+                            {plan.features.length > 6 && (
+                              <li className={`text-xs italic ${
+                                plan.name === 'ENTERPRISE' ? 'text-gray-400' : 'text-gray-500'
+                              }`}>
+                                +{plan.features.length - 6} more features
+                              </li>
+                            )}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Carousel indicators */}
+              <div className="flex justify-center space-x-2 mt-4">
+                {plans.map((_, index) => (
+                  <div key={index} className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                ))}
+              </div>
+            </div>
           </RadioGroup>
         )}
 
         {!showAsSelection && (
-          <div className="grid md:grid-cols-3 gap-8">
-            {plans.map((plan, index) => (
-              <Card 
-                key={index}
-                onMouseEnter={() => handleCardHover(plan.name)} 
-                onMouseLeave={handleCardLeave}
-                className={`relative cursor-pointer transition-all duration-300 ${
-                  plan.name === 'ENTERPRISE' ? 'bg-black border-gray-600 text-white' : 'bg-gray-800 border-gray-700'
-                } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} ${
-                  hoveredCard === plan.name ? 'scale-105 shadow-xl' : 'hover:scale-102'
-                }`}
-              >
-                {plan.isPopular && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white">
-                    Most Popular
-                  </Badge>
-                )}
-                
-                <CardHeader className="text-center">
-                  <CardTitle className={`font-bold text-4xl ${plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'}`}>
-                    {plan.name}
-                  </CardTitle>
-                  <CardDescription className={`mt-2 ${plan.name === 'ENTERPRISE' ? 'text-gray-300' : 'text-gray-400'}`}>
-                    {plan.description}
-                  </CardDescription>
-                  <div className="mt-4">
-                    {plan.isCustom ? (
-                      <span className={`text-3xl font-bold ${plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'}`}>
-                        Custom
-                      </span>
-                    ) : (
-                      <>
-                        <span className={`text-5xl font-bold ${plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'}`}>
-                          €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
-                        </span>
-                        <span className={`ml-2 ${plan.name === 'ENTERPRISE' ? 'text-gray-300' : 'text-gray-400'}`}>
-                          /month
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  {!plan.isCustom && billingPeriod === "yearly" && (
-                    <div className="text-sm text-green-400 font-medium">
-                      Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
-                    </div>
+          <>
+            {/* Desktop: Grid layout */}
+            <div className="hidden md:grid md:grid-cols-3 gap-8">
+              {plans.map((plan, index) => (
+                <Card 
+                  key={index}
+                  onMouseEnter={() => handleCardHover(plan.name)} 
+                  onMouseLeave={handleCardLeave}
+                  className={`relative cursor-pointer transition-all duration-300 ${
+                    plan.name === 'ENTERPRISE' ? 'bg-black border-gray-600 text-white' : 'bg-gray-800 border-gray-700'
+                  } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} ${
+                    hoveredCard === plan.name ? 'scale-105 shadow-xl' : 'hover:scale-102'
+                  }`}
+                >
+                  {plan.isPopular && (
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white">
+                      Most Popular
+                    </Badge>
                   )}
-                </CardHeader>
-                
-                <CardContent>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center">
-                        <span className="text-green-400 mr-3">✓</span>
-                        <span className={plan.name === 'ENTERPRISE' ? 'text-gray-200' : 'text-gray-300'}>
-                          {feature}
+                  
+                  <CardHeader className="text-center">
+                    <CardTitle className={`font-bold text-4xl ${plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'}`}>
+                      {plan.name}
+                    </CardTitle>
+                    <CardDescription className={`mt-2 ${plan.name === 'ENTERPRISE' ? 'text-gray-300' : 'text-gray-400'}`}>
+                      {plan.description}
+                    </CardDescription>
+                    <div className="mt-4">
+                      {plan.isCustom ? (
+                        <span className={`text-3xl font-bold ${plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'}`}>
+                          Custom
                         </span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                
-                <CardFooter>
-                  <Button 
-                    className={`w-full transition-all duration-300 ${
-                      plan.name === 'ENTERPRISE' 
-                        ? 'bg-white hover:bg-gray-100 text-black hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]' 
-                        : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]'
-                    }`} 
-                    asChild
-                  >
-                    <a href={plan.href}>{getButtonText(plan)}</a>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+                      ) : (
+                        <>
+                          <span className={`text-5xl font-bold ${plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'}`}>
+                            €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
+                          </span>
+                          <span className={`ml-2 ${plan.name === 'ENTERPRISE' ? 'text-gray-300' : 'text-gray-400'}`}>
+                            /month
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {!plan.isCustom && billingPeriod === "yearly" && (
+                      <div className="text-sm text-green-400 font-medium">
+                        Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
+                      </div>
+                    )}
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <ul className="space-y-3">
+                      {plan.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="flex items-center">
+                          <span className="text-green-400 mr-3">✓</span>
+                          <span className={plan.name === 'ENTERPRISE' ? 'text-gray-200' : 'text-gray-300'}>
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  
+                  <CardFooter>
+                    <Button 
+                      className={`w-full transition-all duration-300 ${
+                        plan.name === 'ENTERPRISE' 
+                          ? 'bg-white hover:bg-gray-100 text-black hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]' 
+                          : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]'
+                      }`} 
+                      asChild
+                    >
+                      <a href={plan.href}>{getButtonText(plan)}</a>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+
+            {/* Mobile: Carousel */}
+            <div className="md:hidden">
+              <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth">
+                <div className="flex space-x-4">
+                  {plans.map((plan, index) => (
+                    <div key={index} className="w-[85vw] flex-none snap-start snap-always">
+                      <Card 
+                        className={`relative cursor-pointer transition-all duration-300 ${
+                          plan.name === 'ENTERPRISE' ? 'bg-black border-gray-600 text-white' : 'bg-gray-800 border-gray-700'
+                        } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''}`}
+                      >
+                        {plan.isPopular && (
+                          <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs">
+                            Most Popular
+                          </Badge>
+                        )}
+                        
+                        <CardHeader className="text-center pb-4">
+                          <CardTitle className={`font-bold text-2xl ${plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'}`}>
+                            {plan.name}
+                          </CardTitle>
+                          <CardDescription className={`mt-2 text-xs ${plan.name === 'ENTERPRISE' ? 'text-gray-300' : 'text-gray-400'}`}>
+                            {plan.description}
+                          </CardDescription>
+                          <div className="mt-3">
+                            {plan.isCustom ? (
+                              <span className={`text-2xl font-bold ${plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'}`}>
+                                Custom
+                              </span>
+                            ) : (
+                              <>
+                                <span className={`text-3xl font-bold ${plan.name === 'ENTERPRISE' ? 'text-white' : 'text-white'}`}>
+                                  €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
+                                </span>
+                                <span className={`ml-2 text-sm ${plan.name === 'ENTERPRISE' ? 'text-gray-300' : 'text-gray-400'}`}>
+                                  /month
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          {!plan.isCustom && billingPeriod === "yearly" && (
+                            <div className="text-xs text-green-400 font-medium">
+                              Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
+                            </div>
+                          )}
+                        </CardHeader>
+                        
+                        <CardContent className="pb-4">
+                          <ul className="space-y-2">
+                            {plan.features.slice(0, 6).map((feature, featureIndex) => (
+                              <li key={featureIndex} className="flex items-center">
+                                <span className="text-green-400 mr-2 text-sm">✓</span>
+                                <span className={`text-xs ${plan.name === 'ENTERPRISE' ? 'text-gray-200' : 'text-gray-300'}`}>
+                                  {feature}
+                                </span>
+                              </li>
+                            ))}
+                            {plan.features.length > 6 && (
+                              <li className={`text-xs italic ${plan.name === 'ENTERPRISE' ? 'text-gray-400' : 'text-gray-400'}`}>
+                                +{plan.features.length - 6} more features
+                              </li>
+                            )}
+                          </ul>
+                        </CardContent>
+                        
+                        <CardFooter className="pt-4">
+                          <Button 
+                            className={`w-full transition-all duration-300 text-sm py-2 ${
+                              plan.name === 'ENTERPRISE' 
+                                ? 'bg-white hover:bg-gray-100 text-black hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]' 
+                                : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]'
+                            }`} 
+                            asChild
+                          >
+                            <a href={plan.href}>{getButtonText(plan)}</a>
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Carousel indicators */}
+              <div className="flex justify-center space-x-2 mt-4">
+                {plans.map((_, index) => (
+                  <div key={index} className="w-2 h-2 bg-gray-600 rounded-full"></div>
+                ))}
+              </div>
+            </div>
+          </>
         )}
       </div>
     </section>

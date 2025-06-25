@@ -37,10 +37,10 @@ const Index = () => {
       <Navbar />
       <Hero />
       <ScrollAnimatedSection>
-        <section className="py-6 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+        <section className="py-8 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-6 md:mb-16">
-              <h2 className="text-xl md:text-5xl font-bold text-white mb-2 md:mb-6">
+            <div className="text-center mb-8 md:mb-16">
+              <h2 className="text-xl md:text-5xl font-bold text-white mb-3 md:mb-6">
                 Do you recognize this <span className="text-red-400">problem</span>?
               </h2>
               <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
@@ -62,22 +62,24 @@ const Index = () => {
               ))}
             </div>
 
-            {/* Mobile: Horizontal carousel */}
-            <div className="md:hidden overflow-x-auto scrollbar-hide">
-              <div className="flex space-x-4 snap-x snap-mandatory scroll-smooth">
-                {painPoints.map((painPoint, index) => (
-                  <div key={index} className="w-[85vw] flex-none snap-start">
-                    <PainPoint
-                      icon={painPoint.icon}
-                      title={painPoint.title}
-                      description={painPoint.description}
-                      color={painPoint.color}
-                    />
-                  </div>
-                ))}
+            {/* Mobile: Snap-scroll carousel */}
+            <div className="md:hidden">
+              <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth">
+                <div className="flex space-x-4">
+                  {painPoints.map((painPoint, index) => (
+                    <div key={index} className="w-[85vw] flex-none snap-start snap-always">
+                      <PainPoint
+                        icon={painPoint.icon}
+                        title={painPoint.title}
+                        description={painPoint.description}
+                        color={painPoint.color}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
               {/* Carousel indicators */}
-              <div className="flex justify-center space-x-2 mt-4">
+              <div className="flex justify-center space-x-2 mt-6">
                 {painPoints.map((_, index) => (
                   <div key={index} className="w-2 h-2 bg-slate-600 rounded-full"></div>
                 ))}
