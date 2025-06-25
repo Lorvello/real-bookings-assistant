@@ -62,7 +62,7 @@ const Features = () => {
   ];
 
   return (
-    <section className="py-16 sm:py-20 md:py-24 px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+    <section className="py-8 md:py-24 px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -73,77 +73,77 @@ const Features = () => {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header - Mobile optimized */}
-        <div className="text-center mb-16 sm:mb-20">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 px-4 sm:px-0">
+        {/* Header - Compact mobile */}
+        <div className="text-center mb-8 md:mb-20">
+          <h2 className="text-2xl md:text-5xl font-bold text-white mb-3 md:mb-6 px-4 sm:px-0">
             Everything You Need To{" "}
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
               Automate Bookings
             </span>
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-slate-300 max-w-3xl mx-auto px-4 sm:px-0">
+          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-4 sm:px-0">
             Powerful features that work seamlessly together to maximize your bookings and revenue
           </p>
         </div>
         
-        {/* Features grid - Mobile first responsive design */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 md:gap-12 mb-20 sm:mb-24 md:mb-32">
+        {/* Features grid - Compact mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12 mb-12 md:mb-32">
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="group text-center hover:transform hover:scale-105 transition-all duration-300 cursor-pointer px-4 sm:px-0"
+              className="group text-center hover:transform hover:scale-105 transition-all duration-300 cursor-pointer px-4 md:px-0"
             >
-              {/* Clean, minimal icon */}
-              <div className="relative mb-6 sm:mb-8 flex justify-center">
-                <div className={`w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
-                  <feature.icon className="w-8 h-8 sm:w-10 sm:h-10 text-white" strokeWidth={1.5} />
+              {/* Compact icon */}
+              <div className="relative mb-4 md:mb-8 flex justify-center">
+                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+                  <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white" strokeWidth={1.5} />
                 </div>
                 
                 {/* Subtle glow effect */}
-                <div className={`absolute inset-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br ${feature.color} rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300`}></div>
+                <div className={`absolute inset-0 w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300`}></div>
               </div>
               
-              {/* Clean typography */}
-              <h3 className={`text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 leading-tight ${feature.hoverTextColor} transition-colors duration-300`}>
+              {/* Compact typography */}
+              <h3 className={`text-base md:text-xl font-bold text-white mb-2 md:mb-4 leading-tight ${feature.hoverTextColor} transition-colors duration-300`}>
                 {feature.title}
               </h3>
               
-              {/* Simple description */}
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed group-hover:text-slate-200 transition-colors duration-300">
+              {/* Condensed description */}
+              <p className="text-slate-300 text-xs md:text-base leading-relaxed group-hover:text-slate-200 transition-colors duration-300">
                 {feature.description}
               </p>
             </div>
           ))}
         </div>
         
-        {/* CTA Section - Mobile optimized */}
-        <div className="text-center relative overflow-hidden pt-12 sm:pt-16 pb-16 sm:pb-20">
+        {/* CTA Section - Compact mobile */}
+        <div className="text-center relative overflow-hidden pt-8 md:pt-16 pb-8 md:pb-20">
           {/* Background decoration for CTA */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
           
           <div className="relative z-10 px-4 sm:px-0">
-            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-white">
+            <h3 className="text-xl md:text-4xl font-bold mb-4 md:mb-8 text-white">
               Don't Let Revenue Sleep While You Do
             </h3>
-            <p className="text-base sm:text-lg md:text-xl text-slate-300 mb-12 sm:mb-16 max-w-2xl mx-auto">
+            <p className="text-sm md:text-xl text-slate-300 mb-8 md:mb-16 max-w-2xl mx-auto">
               While you're busy with customers, your AI agent is busy booking new ones. 
               Start your free trial and see the difference automation makes.
             </p>
             
-            {/* Stats section - Mobile optimized */}
-            <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-8 sm:gap-12 md:gap-16">
+            {/* Stats section - Compact mobile */}
+            <div className="flex flex-col md:flex-row flex-wrap justify-center gap-6 md:gap-16">
               <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
-                <div className="text-3xl sm:text-4xl font-bold mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">24/7</div>
-                <div className="text-slate-400 text-xs sm:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Always Working</div>
+                <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">24/7</div>
+                <div className="text-slate-400 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Always Working</div>
               </div>
               <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
-                <div className="text-3xl sm:text-4xl font-bold mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">∞</div>
-                <div className="text-slate-400 text-xs sm:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Unlimited Capacity</div>
+                <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">∞</div>
+                <div className="text-slate-400 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Unlimited Capacity</div>
               </div>
               <div className="group text-center hover:transform hover:scale-105 transition-all duration-300">
-                <div className="text-3xl sm:text-4xl font-bold mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">0%</div>
-                <div className="text-slate-400 text-xs sm:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Human Errors</div>
+                <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">0%</div>
+                <div className="text-slate-400 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">Human Errors</div>
               </div>
             </div>
           </div>
