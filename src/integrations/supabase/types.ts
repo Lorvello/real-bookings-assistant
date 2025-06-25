@@ -1894,7 +1894,13 @@ export type Database = {
         Returns: undefined
       }
       export_whatsapp_data: {
-        Args: { p_calendar_id: string }
+        Args:
+          | { p_calendar_id: string }
+          | {
+              p_calendar_id: string
+              p_start_date?: string
+              p_end_date?: string
+            }
         Returns: Json
       }
       generate_confirmation_token: {
@@ -1933,12 +1939,20 @@ export type Database = {
         Args: { p_calendar_id: string; p_days?: number }
         Returns: Json
       }
+      get_business_hours: {
+        Args: { p_calendar_id: string }
+        Returns: Json
+      }
       get_calendar_availability: {
         Args: {
           p_calendar_slug: string
           p_start_date?: string
           p_days?: number
         }
+        Returns: Json
+      }
+      get_calendar_statistics: {
+        Args: { p_calendar_id: string }
         Returns: Json
       }
       get_conversation_context: {
@@ -1972,7 +1986,9 @@ export type Database = {
         Returns: string
       }
       match_quick_reply_flow: {
-        Args: { p_calendar_id: string; p_message_text: string }
+        Args:
+          | { p_calendar_id: string; p_message_text: string }
+          | { p_message: string; p_calendar_id: string }
         Returns: Json
       }
       process_webhook_queue: {
@@ -2001,12 +2017,18 @@ export type Database = {
         Returns: undefined
       }
       render_whatsapp_template: {
-        Args: {
-          p_calendar_id: string
-          p_template_key: string
-          p_variables?: Json
-          p_language?: string
-        }
+        Args:
+          | {
+              p_calendar_id: string
+              p_template_key: string
+              p_variables?: Json
+              p_language?: string
+            }
+          | {
+              p_template_key: string
+              p_calendar_id: string
+              p_variables?: Json
+            }
         Returns: Json
       }
       resolve_recurring_availability: {
