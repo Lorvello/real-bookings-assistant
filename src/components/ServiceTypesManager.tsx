@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, MoreVertical, MessageCircle, Clock, Euro, Users, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +25,7 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
     name: '',
     description: '',
     duration: 30,
-    price: 0,
+    price: '',  // Changed from 0 to empty string
     color: '#3B82F6',
     max_attendees: 1,
     preparation_time: 0,
@@ -36,7 +37,7 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
       name: '',
       description: '',
       duration: 30,
-      price: 0,
+      price: '',  // Changed from 0 to empty string
       color: '#3B82F6',
       max_attendees: 1,
       preparation_time: 0,
@@ -51,7 +52,7 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
       name: service.name,
       description: service.description || '',
       duration: service.duration,
-      price: service.price || 0,
+      price: service.price?.toString() || '',  // Convert to string, allow empty
       color: service.color,
       max_attendees: service.max_attendees,
       preparation_time: service.preparation_time,
@@ -85,6 +86,7 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
     try {
       const serviceData = {
         ...formData,
+        price: formData.price === '' ? 0 : parseFloat(formData.price),  // Only convert to number when saving
         calendar_id: calendarId,
         is_active: true,
       };
@@ -216,10 +218,11 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
                 <input
                   type="number"
                   value={formData.price}
-                  onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}  // Keep as string during editing
                   className="w-full p-2 border border-border rounded-md bg-background text-foreground"
                   min="0"
                   step="0.01"
+                  placeholder="0.00"
                 />
               </div>
               
