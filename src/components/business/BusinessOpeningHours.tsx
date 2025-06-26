@@ -2,6 +2,7 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
 import { Json } from '@/integrations/supabase/types';
+import { getDayNameDutch } from '@/utils/n8nDayMappingHelper';
 
 interface BusinessOpeningHoursProps {
   formattedOpeningHours?: string | null;
@@ -23,8 +24,8 @@ export const BusinessOpeningHours: React.FC<BusinessOpeningHoursProps> = ({
     try {
       const rules = Array.isArray(availabilityRules) ? availabilityRules : [];
       return rules.map((rule: any) => ({
-        day_of_week: rule.day_of_week || 0,
-        day_name_dutch: rule.day_name_dutch || 'Onbekend',
+        day_of_week: rule.day_of_week || 1,
+        day_name_dutch: getDayNameDutch(rule.day_of_week || 1),
         start_time: rule.start_time || '09:00',
         end_time: rule.end_time || '17:00',
         is_available: rule.is_available !== false

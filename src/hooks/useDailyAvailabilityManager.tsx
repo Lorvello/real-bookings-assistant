@@ -30,7 +30,7 @@ const DAYS = [
   { key: 'thursday', label: 'Thursday', isWeekend: false, dayOfWeek: 4 },
   { key: 'friday', label: 'Friday', isWeekend: false, dayOfWeek: 5 },
   { key: 'saturday', label: 'Saturday', isWeekend: true, dayOfWeek: 6 },
-  { key: 'sunday', label: 'Sunday', isWeekend: true, dayOfWeek: 0 }
+  { key: 'sunday', label: 'Sunday', isWeekend: true, dayOfWeek: 7 }
 ];
 
 // Helper function to validate and clean time blocks

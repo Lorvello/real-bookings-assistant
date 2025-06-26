@@ -22,7 +22,7 @@ const DAYS_OF_WEEK = [
   { key: 4, label: 'Donderdag', short: 'Do' },
   { key: 5, label: 'Vrijdag', short: 'Vr' },
   { key: 6, label: 'Zaterdag', short: 'Za' },
-  { key: 0, label: 'Zondag', short: 'Zo' },
+  { key: 7, label: 'Zondag', short: 'Zo' },
 ];
 
 // Helper function to format time to HH:MM
