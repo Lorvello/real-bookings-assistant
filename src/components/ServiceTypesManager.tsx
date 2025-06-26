@@ -23,28 +23,28 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
   const [editingService, setEditingService] = useState<ServiceType | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Form state
+  // Form state - all numeric fields as strings for easier editing
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    duration: 30,
+    duration: '',
     price: '',
     color: '#3B82F6',
-    max_attendees: 1,
-    preparation_time: 0,
-    cleanup_time: 0,
+    max_attendees: '',
+    preparation_time: '',
+    cleanup_time: '',
   });
 
   const resetForm = () => {
     setFormData({
       name: '',
       description: '',
-      duration: 30,
+      duration: '',
       price: '',
       color: '#3B82F6',
-      max_attendees: 1,
-      preparation_time: 0,
-      cleanup_time: 0,
+      max_attendees: '',
+      preparation_time: '',
+      cleanup_time: '',
     });
     setEditingService(null);
     setShowAddModal(false);
@@ -54,12 +54,12 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
     setFormData({
       name: service.name,
       description: service.description || '',
-      duration: service.duration,
+      duration: service.duration.toString(),
       price: service.price?.toString() || '',
       color: service.color,
-      max_attendees: service.max_attendees,
-      preparation_time: service.preparation_time,
-      cleanup_time: service.cleanup_time,
+      max_attendees: service.max_attendees.toString(),
+      preparation_time: service.preparation_time.toString(),
+      cleanup_time: service.cleanup_time.toString(),
     });
     setEditingService(service);
     setShowAddModal(true);
@@ -75,7 +75,8 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
       return;
     }
 
-    if (formData.duration <= 0) {
+    const duration = parseInt(formData.duration) || 0;
+    if (duration <= 0) {
       toast({
         title: "Error", 
         description: "Duur moet groter zijn dan 0",
@@ -88,8 +89,14 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
     
     try {
       const serviceData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description || null,
+        duration: duration,
         price: formData.price === '' ? 0 : parseFloat(formData.price),
+        color: formData.color,
+        max_attendees: parseInt(formData.max_attendees) || 1,
+        preparation_time: parseInt(formData.preparation_time) || 0,
+        cleanup_time: parseInt(formData.cleanup_time) || 0,
         calendar_id: calendarId,
         is_active: true,
       };

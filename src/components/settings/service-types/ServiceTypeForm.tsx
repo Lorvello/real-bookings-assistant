@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 interface ServiceTypeFormData {
   name: string;
   description: string;
-  duration: number;
+  duration: string; // Changed from number to string
   price: string;
   color: string;
-  max_attendees: number;
-  preparation_time: number;
-  cleanup_time: number;
+  max_attendees: string; // Changed from number to string
+  preparation_time: string; // Changed from number to string
+  cleanup_time: string; // Changed from number to string
 }
 
 interface ServiceTypeFormProps {
@@ -62,9 +62,10 @@ export function ServiceTypeForm({
           <input
             type="number"
             value={formData.duration}
-            onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
+            onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
             className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             min="1"
+            placeholder="30"
           />
         </div>
         
@@ -90,9 +91,10 @@ export function ServiceTypeForm({
           <input
             type="number"
             value={formData.max_attendees}
-            onChange={(e) => setFormData(prev => ({ ...prev, max_attendees: parseInt(e.target.value) || 1 }))}
+            onChange={(e) => setFormData(prev => ({ ...prev, max_attendees: e.target.value }))}
             className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             min="1"
+            placeholder="1"
           />
         </div>
         
@@ -103,9 +105,10 @@ export function ServiceTypeForm({
           <input
             type="number"
             value={formData.preparation_time}
-            onChange={(e) => setFormData(prev => ({ ...prev, preparation_time: parseInt(e.target.value) || 0 }))}
+            onChange={(e) => setFormData(prev => ({ ...prev, preparation_time: e.target.value }))}
             className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             min="0"
+            placeholder="0"
           />
         </div>
         
@@ -116,9 +119,10 @@ export function ServiceTypeForm({
           <input
             type="number"
             value={formData.cleanup_time}
-            onChange={(e) => setFormData(prev => ({ ...prev, cleanup_time: parseInt(e.target.value) || 0 }))}
+            onChange={(e) => setFormData(prev => ({ ...prev, cleanup_time: e.target.value }))}
             className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             min="0"
+            placeholder="0"
           />
         </div>
         
