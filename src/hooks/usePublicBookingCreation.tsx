@@ -7,7 +7,7 @@ interface BookingData {
   calendarSlug: string;
   serviceTypeId: string;
   customerName: string;
-  customerEmail?: string; // Made optional
+  customerEmail?: string | null; // Properly nullable
   customerPhone?: string;
   startTime: Date;
   notes?: string;
@@ -36,8 +36,8 @@ export const usePublicBookingCreation = () => {
         p_customer_name: bookingData.customerName,
         p_start_time: bookingData.startTime.toISOString(),
         p_customer_email: bookingData.customerEmail || null,
-        p_customer_phone: bookingData.customerPhone || '',
-        p_notes: bookingData.notes || ''
+        p_customer_phone: bookingData.customerPhone || null,
+        p_notes: bookingData.notes || null
       });
 
       if (error) {

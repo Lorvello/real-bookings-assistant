@@ -260,7 +260,7 @@ export type Database = {
           confirmation_token: string | null
           confirmed_at: string | null
           created_at: string | null
-          customer_email: string
+          customer_email: string | null
           customer_name: string
           customer_phone: string | null
           end_time: string
@@ -282,7 +282,7 @@ export type Database = {
           confirmation_token?: string | null
           confirmed_at?: string | null
           created_at?: string | null
-          customer_email: string
+          customer_email?: string | null
           customer_name: string
           customer_phone?: string | null
           end_time: string
@@ -304,7 +304,7 @@ export type Database = {
           confirmation_token?: string | null
           confirmed_at?: string | null
           created_at?: string | null
-          customer_email?: string
+          customer_email?: string | null
           customer_name?: string
           customer_phone?: string | null
           end_time?: string
@@ -1032,7 +1032,7 @@ export type Database = {
         Row: {
           calendar_id: string | null
           created_at: string | null
-          customer_email: string
+          customer_email: string | null
           customer_name: string
           expires_at: string | null
           flexibility: string | null
@@ -1047,7 +1047,7 @@ export type Database = {
         Insert: {
           calendar_id?: string | null
           created_at?: string | null
-          customer_email: string
+          customer_email?: string | null
           customer_name: string
           expires_at?: string | null
           flexibility?: string | null
@@ -1062,7 +1062,7 @@ export type Database = {
         Update: {
           calendar_id?: string | null
           created_at?: string | null
-          customer_email?: string
+          customer_email?: string | null
           customer_name?: string
           expires_at?: string | null
           flexibility?: string | null

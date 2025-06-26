@@ -4,7 +4,7 @@ export interface WaitlistEntry {
   calendar_id: string;
   service_type_id: string;
   customer_name: string;
-  customer_email: string;
+  customer_email?: string | null; // Now properly nullable
   preferred_date: string;
   preferred_time_start?: string;
   preferred_time_end?: string;
@@ -17,7 +17,7 @@ export interface WaitlistEntry {
 
 export interface WaitlistFormData {
   customer_name: string;
-  customer_email: string;
+  customer_email?: string; // Made optional
   preferred_date: Date;
   preferred_time_start?: string;
   preferred_time_end?: string;

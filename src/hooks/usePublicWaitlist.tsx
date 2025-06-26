@@ -11,7 +11,7 @@ export const usePublicWaitlist = () => {
     calendarSlug: string,
     serviceTypeId: string,
     customerName: string,
-    customerEmail: string,
+    customerEmail: string | null, // Now properly nullable
     preferredDate: Date,
     preferredTimeStart?: string,
     preferredTimeEnd?: string,
@@ -24,7 +24,7 @@ export const usePublicWaitlist = () => {
         p_calendar_slug: calendarSlug,
         p_service_type_id: serviceTypeId,
         p_customer_name: customerName,
-        p_customer_email: customerEmail,
+        p_customer_email: customerEmail || null,
         p_preferred_date: preferredDate.toISOString().split('T')[0],
         p_preferred_time_start: preferredTimeStart || null,
         p_preferred_time_end: preferredTimeEnd || null,

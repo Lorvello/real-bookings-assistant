@@ -1,3 +1,4 @@
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -85,7 +86,7 @@ export interface Booking {
   calendar_id: string;
   service_type_id?: string;
   customer_name: string;
-  customer_email?: string; // Made optional
+  customer_email?: string | null; // Now properly nullable
   customer_phone?: string;
   start_time: string;
   end_time: string;
