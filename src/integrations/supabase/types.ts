@@ -52,6 +52,13 @@ export type Database = {
             foreignKeyName: "availability_overrides_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "availability_overrides_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
@@ -114,6 +121,13 @@ export type Database = {
             referencedRelation: "availability_schedules"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "availability_rules_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["schedule_id"]
+          },
         ]
       }
       availability_schedules: {
@@ -144,6 +158,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "availability_schedules_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
@@ -233,6 +254,13 @@ export type Database = {
             columns: ["service_type_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "booking_intents_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["service_type_id"]
           },
           {
@@ -330,6 +358,13 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
@@ -359,6 +394,13 @@ export type Database = {
             columns: ["service_type_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "bookings_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["service_type_id"]
           },
           {
@@ -420,6 +462,13 @@ export type Database = {
             foreignKeyName: "calendar_members_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_members_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
@@ -448,8 +497,22 @@ export type Database = {
             foreignKeyName: "calendar_members_invited_by_fkey"
             columns: ["invited_by"]
             isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "calendar_members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "calendar_members_user_id_fkey"
@@ -509,6 +572,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: true
             referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
@@ -579,6 +649,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "calendars_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "calendars_user_id_fkey"
             columns: ["user_id"]
@@ -717,6 +794,13 @@ export type Database = {
             foreignKeyName: "quick_reply_flows_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "quick_reply_flows_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
@@ -786,6 +870,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "recurring_availability_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
@@ -867,6 +958,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
@@ -1086,6 +1184,13 @@ export type Database = {
             foreignKeyName: "waitlist_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "waitlist_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
@@ -1115,6 +1220,13 @@ export type Database = {
             columns: ["service_type_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "waitlist_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["service_type_id"]
           },
           {
@@ -1164,6 +1276,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "webhook_endpoints_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
@@ -1233,6 +1352,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "webhook_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
@@ -1318,6 +1444,8 @@ export type Database = {
           created_at: string | null
           id: string
           last_message_at: string | null
+          message: Json | null
+          session_id: string | null
           status: string | null
         }
         Insert: {
@@ -1327,6 +1455,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_message_at?: string | null
+          message?: Json | null
+          session_id?: string | null
           status?: string | null
         }
         Update: {
@@ -1336,6 +1466,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_message_at?: string | null
+          message?: Json | null
+          session_id?: string | null
           status?: string | null
         }
         Relationships: [
@@ -1344,6 +1476,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
@@ -1479,6 +1618,13 @@ export type Database = {
             foreignKeyName: "whatsapp_templates_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_templates_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
@@ -1556,6 +1702,61 @@ export type Database = {
         }
         Relationships: []
       }
+      business_availability_overview: {
+        Row: {
+          allow_waitlist: boolean | null
+          availability_rules: Json | null
+          booking_window_days: number | null
+          buffer_time: number | null
+          business_city: string | null
+          business_country: string | null
+          business_created_at: string | null
+          business_description: string | null
+          business_email: string | null
+          business_name: string | null
+          business_number: string | null
+          business_phone: string | null
+          business_postal: string | null
+          business_street: string | null
+          business_type: string | null
+          business_whatsapp: string | null
+          calendar_active: boolean | null
+          calendar_color: string | null
+          calendar_created_at: string | null
+          calendar_description: string | null
+          calendar_id: string | null
+          calendar_name: string | null
+          calendar_slug: string | null
+          cleanup_time: number | null
+          confirmation_required: boolean | null
+          current_month_stats: Json | null
+          facebook: string | null
+          instagram: string | null
+          is_default_schedule: boolean | null
+          last_updated: string | null
+          linkedin: string | null
+          max_attendees: number | null
+          max_bookings_per_day: number | null
+          minimum_notice_hours: number | null
+          preparation_time: number | null
+          recent_overrides: Json | null
+          schedule_id: string | null
+          schedule_name: string | null
+          service_active: boolean | null
+          service_color: string | null
+          service_description: string | null
+          service_duration: number | null
+          service_name: string | null
+          service_price: number | null
+          service_type_id: string | null
+          slot_duration: number | null
+          timezone: string | null
+          user_id: string | null
+          website: string | null
+          whatsapp_bot_active: boolean | null
+        }
+        Relationships: []
+      }
       calendar_stats: {
         Row: {
           avg_duration_minutes: number | null
@@ -1573,6 +1774,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
@@ -1640,6 +1848,13 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
@@ -1691,6 +1906,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
@@ -1760,6 +1982,13 @@ export type Database = {
             foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
@@ -1801,6 +2030,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
@@ -1960,6 +2196,25 @@ export type Database = {
         Args: { p_calendar_id: string; p_days?: number }
         Returns: Json
       }
+      get_business_available_slots: {
+        Args: {
+          p_calendar_slug: string
+          p_service_type_id?: string
+          p_start_date?: string
+          p_days?: number
+        }
+        Returns: {
+          business_name: string
+          calendar_name: string
+          service_name: string
+          slot_date: string
+          slot_start: string
+          slot_end: string
+          is_available: boolean
+          service_price: number
+          service_duration: number
+        }[]
+      }
       get_business_hours: {
         Args: { p_calendar_id: string }
         Returns: Json
@@ -2030,6 +2285,10 @@ export type Database = {
         Returns: undefined
       }
       refresh_analytics_views: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_business_availability_overview: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
