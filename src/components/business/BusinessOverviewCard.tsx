@@ -38,6 +38,21 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
     return types[type || 'other'] || 'Onbekend';
   };
 
+  // Helper function to safely access current_month_stats
+  const getCurrentMonthStats = () => {
+    if (!business.current_month_stats || typeof business.current_month_stats !== 'object') {
+      return { total_bookings: 0, total_revenue: 0 };
+    }
+    
+    const stats = business.current_month_stats as Record<string, any>;
+    return {
+      total_bookings: stats.total_bookings || 0,
+      total_revenue: stats.total_revenue || 0
+    };
+  };
+
+  const monthStats = getCurrentMonthStats();
+
   return (
     <Card className="w-full hover:shadow-lg transition-shadow">
       <CardHeader>
@@ -160,17 +175,17 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
         )}
 
         {/* Statistieken */}
-        {business.current_month_stats && showFullDetails && (
+        {showFullDetails && (
           <div className="space-y-2 pt-4 border-t">
             <h4 className="font-semibold text-sm">Deze maand</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-muted-foreground">Boekingen: </span>
-                <span className="font-medium">{business.current_month_stats.total_bookings || 0}</span>
+                <span className="font-medium">{monthStats.total_bookings}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Omzet: </span>
-                <span className="font-medium">€{(business.current_month_stats.total_revenue || 0).toFixed(2)}</span>
+                <span className="font-medium">€{Number(monthStats.total_revenue).toFixed(2)}</span>
               </div>
             </div>
           </div>
