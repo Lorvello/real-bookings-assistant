@@ -1731,6 +1731,7 @@ export type Database = {
           confirmation_required: boolean | null
           current_month_stats: Json | null
           facebook: string | null
+          formatted_opening_hours: string | null
           instagram: string | null
           is_default_schedule: boolean | null
           last_updated: string | null
@@ -2241,6 +2242,18 @@ export type Database = {
       }
       get_dashboard_metrics_safe: {
         Args: { p_calendar_id: string }
+        Returns: Json
+      }
+      get_day_name_dutch: {
+        Args: { day_num: number }
+        Returns: string
+      }
+      get_formatted_business_hours: {
+        Args: { p_calendar_id: string }
+        Returns: string
+      }
+      get_n8n_day_mapping: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       get_todays_schedule: {

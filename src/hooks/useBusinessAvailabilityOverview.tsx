@@ -49,6 +49,7 @@ export interface BusinessAvailabilityOverview {
   schedule_id: string | null;
   schedule_name: string | null;
   is_default_schedule: boolean | null;
+  formatted_opening_hours: string | null; // NIEUW
   availability_rules: Json | null;
   recent_overrides: Json | null;
   current_month_stats: Json | null;

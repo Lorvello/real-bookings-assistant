@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin, Phone, Mail, Globe, ExternalLink } from 'lucide-react';
 import { BusinessAvailabilityOverview } from '@/hooks/useBusinessAvailabilityOverview';
+import { BusinessOpeningHours } from './BusinessOpeningHours';
 
 interface BusinessOverviewCardProps {
   business: BusinessAvailabilityOverview;
@@ -145,9 +146,18 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
           )}
         </div>
 
+        {/* Openingstijden - NIEUW */}
+        <div className="pt-2 border-t">
+          <BusinessOpeningHours 
+            formattedOpeningHours={business.formatted_opening_hours}
+            availabilityRules={business.availability_rules}
+            showCompact={!showFullDetails}
+          />
+        </div>
+
         {/* Service informatie */}
         {business.service_name && (
-          <div className="space-y-2">
+          <div className="space-y-2 pt-2 border-t">
             <h4 className="font-semibold text-sm">Service details</h4>
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-1">
