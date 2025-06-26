@@ -15,9 +15,9 @@ export function CalendarRequiredFields({ settings, onUpdate }: CalendarRequiredF
   const [requiredFields, setRequiredFields] = useState({
     // Default fields - always required
     name: true,
-    email: true,
     service: true,
     // Optional fields - can be toggled
+    email: false, // Email is now optional
     phone: false,
     address: false,
     company: false,
@@ -39,11 +39,11 @@ export function CalendarRequiredFields({ settings, onUpdate }: CalendarRequiredF
 
   const defaultFields = [
     { key: 'name', label: 'Name', description: 'Full name of the customer' },
-    { key: 'email', label: 'Email address', description: 'For confirmations and communication' },
     { key: 'service', label: 'Service type', description: 'Which service the customer wants to book' }
   ];
 
   const optionalFields = [
+    { key: 'email', label: 'Email address', description: 'For confirmations and communication (recommended)' },
     { key: 'phone', label: 'Phone number', description: 'For direct communication and WhatsApp' },
     { key: 'address', label: 'Address', description: 'Customer\'s home address' },
     { key: 'company', label: 'Company name', description: 'For business customers' },
@@ -122,8 +122,8 @@ export function CalendarRequiredFields({ settings, onUpdate }: CalendarRequiredF
       <div className="bg-muted/30 border border-border rounded-lg p-4">
         <h4 className="text-sm font-medium text-foreground mb-2">Summary</h4>
         <p className="text-xs text-muted-foreground">
-          The agent will collect {3 + Object.values(requiredFields).filter(Boolean).length - 3} information fields 
-          before an appointment is scheduled.
+          The agent will collect {2 + Object.values(requiredFields).filter(Boolean).length - 2} information fields 
+          before an appointment is scheduled. Email is now optional but recommended for confirmations.
         </p>
       </div>
     </div>

@@ -85,7 +85,7 @@ export interface Booking {
   calendar_id: string;
   service_type_id?: string;
   customer_name: string;
-  customer_email: string;
+  customer_email?: string; // Made optional
   customer_phone?: string;
   start_time: string;
   end_time: string;

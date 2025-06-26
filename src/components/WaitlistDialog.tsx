@@ -53,7 +53,7 @@ export function WaitlistDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !formData.customer_name || !formData.customer_email) {
+    if (!selectedDate || !formData.customer_name) {
       return;
     }
 
@@ -61,7 +61,7 @@ export function WaitlistDialog({
       calendarSlug,
       serviceTypeId,
       formData.customer_name,
-      formData.customer_email,
+      formData.customer_email || '', // Allow empty email
       selectedDate,
       formData.preferred_time_start || undefined,
       formData.preferred_time_end || undefined,
@@ -112,7 +112,7 @@ export function WaitlistDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="customer_email">E-mail *</Label>
+            <Label htmlFor="customer_email">E-mail (optioneel)</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -122,9 +122,11 @@ export function WaitlistDialog({
                 value={formData.customer_email}
                 onChange={(e) => setFormData({ ...formData, customer_email: e.target.value })}
                 className="pl-10"
-                required
               />
             </div>
+            <p className="text-xs text-muted-foreground">
+              Email is handig voor bevestigingen, maar niet verplicht
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -190,7 +192,7 @@ export function WaitlistDialog({
             </Button>
             <Button 
               type="submit" 
-              disabled={loading || !selectedDate || !formData.customer_name || !formData.customer_email}
+              disabled={loading || !selectedDate || !formData.customer_name}
               className="flex-1"
             >
               {loading ? 'Toevoegen...' : 'Aan wachtlijst toevoegen'}

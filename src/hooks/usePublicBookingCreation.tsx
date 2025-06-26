@@ -7,7 +7,7 @@ interface BookingData {
   calendarSlug: string;
   serviceTypeId: string;
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string; // Made optional
   customerPhone?: string;
   startTime: Date;
   notes?: string;
@@ -34,9 +34,9 @@ export const usePublicBookingCreation = () => {
         p_calendar_slug: bookingData.calendarSlug,
         p_service_type_id: bookingData.serviceTypeId,
         p_customer_name: bookingData.customerName,
-        p_customer_email: bookingData.customerEmail,
-        p_customer_phone: bookingData.customerPhone || '',
         p_start_time: bookingData.startTime.toISOString(),
+        p_customer_email: bookingData.customerEmail || null,
+        p_customer_phone: bookingData.customerPhone || '',
         p_notes: bookingData.notes || ''
       });
 
@@ -71,7 +71,9 @@ export const usePublicBookingCreation = () => {
 
       toast({
         title: "Booking succesvol!",
-        description: "Je afspraak is bevestigd. Je ontvangt een bevestigingsmail.",
+        description: bookingData.customerEmail 
+          ? "Je afspraak is bevestigd. Je ontvangt een bevestigingsmail."
+          : "Je afspraak is bevestigd.",
       });
 
       setLoading(false);

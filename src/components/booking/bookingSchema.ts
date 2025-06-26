@@ -14,6 +14,7 @@ export const bookingSchema = z.object({
   reminderTiming: z.string().optional(),
   serviceTypeId: z.string().optional(),
   isInternal: z.boolean().default(true),
+  customerEmail: z.string().email('Ongeldig email formaat').optional().or(z.literal('')),
 }).refine((data) => {
   // Valideer dat eind tijd na start tijd is
   if (data.startTime && data.endTime) {

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Booking } from '@/types/database';
@@ -14,12 +13,12 @@ export const usePublicBookings = () => {
   ) => {
     setLoading(true);
 
-    // Ensure required fields are present
-    if (!bookingData.customer_name || !bookingData.customer_email || 
+    // Ensure required fields are present - email is now optional
+    if (!bookingData.customer_name || 
         !bookingData.start_time || !bookingData.end_time) {
       toast({
         title: "Error",
-        description: "Customer name, email, start time, and end time are required",
+        description: "Customer name, start time, and end time are required",
         variant: "destructive",
       });
       setLoading(false);
@@ -50,7 +49,7 @@ export const usePublicBookings = () => {
           calendar_id: calendarId,
           service_type_id: bookingData.service_type_id,
           customer_name: bookingData.customer_name,
-          customer_email: bookingData.customer_email,
+          customer_email: bookingData.customer_email || null, // Allow null
           customer_phone: bookingData.customer_phone,
           start_time: bookingData.start_time,
           end_time: bookingData.end_time,
@@ -72,7 +71,9 @@ export const usePublicBookings = () => {
 
       toast({
         title: "Success",
-        description: "Booking created successfully! Check your email for confirmation.",
+        description: bookingData.customer_email 
+          ? "Booking created successfully! Check your email for confirmation."
+          : "Booking created successfully!",
       });
 
       setLoading(false);
