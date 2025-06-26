@@ -1271,6 +1271,7 @@ export type Database = {
           display_name: string | null
           first_name: string | null
           id: string
+          Last_appointment: string | null
           last_name: string | null
           last_seen_at: string | null
           linked_customer_email: string | null
@@ -1284,6 +1285,7 @@ export type Database = {
           display_name?: string | null
           first_name?: string | null
           id?: string
+          Last_appointment?: string | null
           last_name?: string | null
           last_seen_at?: string | null
           linked_customer_email?: string | null
@@ -1297,6 +1299,7 @@ export type Database = {
           display_name?: string | null
           first_name?: string | null
           id?: string
+          Last_appointment?: string | null
           last_name?: string | null
           last_seen_at?: string | null
           linked_customer_email?: string | null

@@ -1,11 +1,13 @@
 
 import React from 'react';
 import { CalendarSettings } from '@/components/CalendarSettings';
+import { ServiceTypesManager } from '@/components/ServiceTypesManager';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Save } from 'lucide-react';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
+import { Separator } from '@/components/ui/separator';
 
 export function CalendarTab() {
   const { selectedCalendar, calendars } = useCalendarContext();
@@ -78,6 +80,11 @@ export function CalendarTab() {
       </div>
       
       <CalendarSettings calendarId={selectedCalendar.id} />
+
+      <Separator />
+
+      {/* Service Types Section */}
+      <ServiceTypesManager calendarId={selectedCalendar.id} />
     </div>
   );
 }
