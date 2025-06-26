@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin, Phone, Mail, Globe, ExternalLink } from 'lucide-react';
-import { BusinessAvailabilityOverview } from '@/hooks/useBusinessAvailabilityOverview';
+import { BusinessAvailabilityOverview } from '@/types/businessAvailability';
 import { BusinessOpeningHours } from './BusinessOpeningHours';
 
 interface BusinessOverviewCardProps {
@@ -146,7 +145,7 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
           )}
         </div>
 
-        {/* Openingstijden - NIEUW */}
+        {/* Openingstijden */}
         <div className="pt-2 border-t">
           <BusinessOpeningHours 
             formattedOpeningHours={business.formatted_opening_hours}

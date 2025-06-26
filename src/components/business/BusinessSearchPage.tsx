@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Filter, RefreshCw } from 'lucide-react';
 import { BusinessOverviewCard } from './BusinessOverviewCard';
 import { useBusinessAvailabilityOverview } from '@/hooks/useBusinessAvailabilityOverview';
+import { BusinessOverviewFilters } from '@/types/businessAvailability';
 
 export const BusinessSearchPage: React.FC = () => {
   const { data, loading, fetchBusinessOverview, refreshOverview } = useBusinessAvailabilityOverview();
@@ -21,7 +22,7 @@ export const BusinessSearchPage: React.FC = () => {
   }, []);
 
   const handleSearch = () => {
-    const filters: any = {};
+    const filters: BusinessOverviewFilters = {};
     
     if (searchTerm.trim()) {
       filters.business_name = searchTerm.trim();
