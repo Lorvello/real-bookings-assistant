@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 export interface BusinessAvailabilityOverview {
   user_id: string;
@@ -48,9 +49,9 @@ export interface BusinessAvailabilityOverview {
   schedule_id: string | null;
   schedule_name: string | null;
   is_default_schedule: boolean | null;
-  availability_rules: any[] | null;
-  recent_overrides: any[] | null;
-  current_month_stats: any | null;
+  availability_rules: Json | null;
+  recent_overrides: Json | null;
+  current_month_stats: Json | null;
   last_updated: string;
   calendar_created_at: string;
   business_created_at: string;
