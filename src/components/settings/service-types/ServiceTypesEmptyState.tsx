@@ -1,21 +1,29 @@
 
 import React from 'react';
 import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ServiceTypesEmptyStateProps {
   onAddService: () => void;
 }
 
-export const ServiceTypesEmptyState: React.FC<ServiceTypesEmptyStateProps> = ({
-  onAddService
-}) => {
+export function ServiceTypesEmptyState({ onAddService }: ServiceTypesEmptyStateProps) {
   return (
-    <div className="text-center py-8">
-      <div className="text-gray-400 mb-4">
-        <Plus className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p>No service types added yet</p>
-        <p className="text-sm">Add your first service to get started</p>
+    <div className="text-center py-12">
+      <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
+        <Plus className="h-8 w-8 text-muted-foreground" />
       </div>
+      <h3 className="text-lg font-medium text-foreground mb-2">Geen services gevonden</h3>
+      <p className="text-muted-foreground mb-4">
+        Voeg je eerste service toe om boekingen te kunnen ontvangen
+      </p>
+      <Button 
+        onClick={onAddService}
+        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+      >
+        <Plus className="h-4 w-4 mr-2" />
+        Eerste Service Toevoegen
+      </Button>
     </div>
   );
-};
+}
