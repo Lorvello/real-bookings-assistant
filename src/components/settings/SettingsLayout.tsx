@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Building2, Calendar, CreditCard, MessageSquare } from 'lucide-react';
+import { User, Building2, Calendar, CreditCard, MessageSquare, Wrench } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
 import { BusinessTab } from './BusinessTab';
 import { CalendarTab } from './CalendarTab';
+import { ServicesTab } from './ServicesTab';
 import { BillingTab } from './BillingTab';
 import { WhatsAppTab } from './WhatsAppTab';
 import { useSettingsData } from '@/hooks/useSettingsData';
@@ -32,7 +33,7 @@ export const SettingsLayout = () => {
 
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-gray-800/50 border-gray-700">
+          <TabsList className="grid w-full grid-cols-6 bg-gray-800/50 border-gray-700">
             <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-gray-700">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Profiel</span>
@@ -44,6 +45,10 @@ export const SettingsLayout = () => {
             <TabsTrigger value="calendar" className="flex items-center gap-2 data-[state=active]:bg-gray-700">
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Kalender</span>
+            </TabsTrigger>
+            <TabsTrigger value="services" className="flex items-center gap-2 data-[state=active]:bg-gray-700">
+              <Wrench className="h-4 w-4" />
+              <span className="hidden sm:inline">Services</span>
             </TabsTrigger>
             <TabsTrigger value="billing" className="flex items-center gap-2 data-[state=active]:bg-gray-700">
               <CreditCard className="h-4 w-4" />
@@ -75,6 +80,10 @@ export const SettingsLayout = () => {
 
           <TabsContent value="calendar" className="space-y-6">
             <CalendarTab />
+          </TabsContent>
+
+          <TabsContent value="services" className="space-y-6">
+            <ServicesTab />
           </TabsContent>
 
           <TabsContent value="billing" className="space-y-6">
