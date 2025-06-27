@@ -28,8 +28,8 @@ const ProcessSection = () => {
           </p>
         </div>
 
-        {/* Process flow - Compact mobile */}
-        <div className="space-y-8 md:space-y-16">
+        {/* Process flow - Increased mobile spacing */}
+        <div className="space-y-16 md:space-y-16">
           {/* Step 1: WhatsApp Chat */}
           <div className="flex flex-col lg:flex-row items-center gap-4 md:gap-12">
             <div className="flex-1 space-y-3 md:space-y-6 text-center lg:text-left">

@@ -1,4 +1,3 @@
-
 import { Check, Calendar, Globe, BarChart3, Bell, Settings, Zap, Monitor, Link } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -176,31 +175,33 @@ const Features = () => {
           ))}
         </div>
 
-        {/* Mobile: Enhanced features carousel */}
+        {/* Mobile: Perfect snapping features carousel */}
         <div className="md:hidden mb-8">
           <div 
             ref={featuresCarouselRef}
-            className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain"
+            className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
             style={{
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            <div className="flex space-x-4 pb-4">
+            <div className="flex pb-4">
               {features.map((feature, index) => (
-                <div key={index} className="w-[78vw] flex-none snap-start snap-always bg-slate-800/50 rounded-2xl p-5 text-center">
-                  <div className="relative mb-4 flex justify-center">
-                    <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
-                      <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+                <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
+                  <div className="bg-slate-800/50 rounded-2xl p-5 text-center h-full">
+                    <div className="relative mb-4 flex justify-center">
+                      <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
+                        <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+                      </div>
                     </div>
+                    <h3 className="text-sm font-bold text-white mb-3 leading-tight">
+                      {feature.title}
+                    </h3>
+                    <p className="text-slate-300 text-xs leading-relaxed">
+                      {feature.description}
+                    </p>
                   </div>
-                  <h3 className="text-sm font-bold text-white mb-3 leading-tight">
-                    {feature.title}
-                  </h3>
-                  <p className="text-slate-300 text-xs leading-relaxed">
-                    {feature.description}
-                  </p>
                 </div>
               ))}
             </div>
@@ -248,22 +249,24 @@ const Features = () => {
               ))}
             </div>
 
-            {/* Mobile: Enhanced stats carousel */}
+            {/* Mobile: Perfect snapping stats carousel */}
             <div className="md:hidden">
               <div 
                 ref={statsCarouselRef}
-                className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain"
+                className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
                   WebkitOverflowScrolling: 'touch'
                 }}
               >
-                <div className="flex space-x-4 pb-4">
+                <div className="flex pb-4">
                   {stats.map((stat, index) => (
-                    <div key={index} className="w-[45vw] flex-none snap-start snap-always text-center bg-slate-800/30 rounded-xl p-5">
-                      <div className="text-2xl font-bold mb-2 text-emerald-400">{stat.value}</div>
-                      <div className="text-slate-400 text-xs uppercase tracking-wider">{stat.label}</div>
+                    <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
+                      <div className="text-center bg-slate-800/30 rounded-xl p-5">
+                        <div className="text-2xl font-bold mb-2 text-emerald-400">{stat.value}</div>
+                        <div className="text-slate-400 text-xs uppercase tracking-wider">{stat.label}</div>
+                      </div>
                     </div>
                   ))}
                 </div>

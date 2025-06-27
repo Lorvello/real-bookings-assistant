@@ -1,4 +1,3 @@
-
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
@@ -255,5 +254,17 @@
   /* Custom WhatsApp green color */
   .bg-whatsapp {
     background-color: #25D366;
+  }
+
+  /* Perfect carousel snapping */
+  .perfect-snap-carousel {
+    scroll-snap-type: x mandatory;
+    scroll-snap-stop: always;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .perfect-snap-carousel > div > div {
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
   }
 }

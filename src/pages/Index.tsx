@@ -1,4 +1,3 @@
-
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ProcessSection from "@/components/ProcessSection";
@@ -100,20 +99,20 @@ const Index = () => {
               ))}
             </div>
 
-            {/* Mobile: Enhanced smooth carousel */}
+            {/* Mobile: Perfect snapping carousel */}
             <div className="md:hidden">
               <div 
                 ref={carouselRef}
-                className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain"
+                className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
                   WebkitOverflowScrolling: 'touch'
                 }}
               >
-                <div className="flex space-x-4 pb-4">
+                <div className="flex pb-4">
                   {painPoints.map((painPoint, index) => (
-                    <div key={index} className="w-[82vw] flex-none snap-start snap-always">
+                    <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
                       <PainPoint
                         icon={painPoint.icon}
                         title={painPoint.title}
