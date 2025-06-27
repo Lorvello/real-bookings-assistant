@@ -9,8 +9,13 @@ import SocialProof from "@/components/SocialProof";
 import { PricingBasic } from "@/components/PricingBasic";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 import { Clock, PhoneOff, MessageSquareX } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 
 const Index = () => {
+  const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(true);
+
   const painPoints = [
     {
       icon: Clock,
@@ -32,79 +37,152 @@ const Index = () => {
     }
   ];
 
+  // Handle carousel scroll and update active indicator
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    const handleScroll = () => {
+      const scrollLeft = carousel.scrollLeft;
+      const itemWidth = carousel.children[0]?.clientWidth || 0;
+      const newIndex = Math.round(scrollLeft / itemWidth);
+      setActiveCarouselIndex(newIndex);
+      setIsAutoScrolling(false);
+    };
+
+    carousel.addEventListener('scroll', handleScroll, { passive: true });
+    return () => carousel.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Handle carousel indicator click
+  const handleIndicatorClick = (index: number) => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+    
+    const itemWidth = carousel.children[0]?.clientWidth || 0;
+    carousel.scrollTo({
+      left: index * itemWidth,
+      behavior: 'smooth'
+    });
+    setActiveCarouselIndex(index);
+    setIsAutoScrolling(false);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
       <Hero />
-      <ScrollAnimatedSection>
-        <section className="py-8 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-8 md:mb-16">
-              <h2 className="text-xl md:text-5xl font-bold text-white mb-3 md:mb-6">
-                Do you recognize this <span className="text-red-400">problem</span>?
-              </h2>
-              <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-                These daily frustrations cost you time, money and customers. It's time for a solution.
-              </p>
-            </div>
-            
-            {/* Desktop: Grid layout */}
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
-              {painPoints.map((painPoint, index) => (
-                <ScrollAnimatedSection key={index} delay={index * 150}>
-                  <PainPoint
-                    icon={painPoint.icon}
-                    title={painPoint.title}
-                    description={painPoint.description}
-                    color={painPoint.color}
-                  />
-                </ScrollAnimatedSection>
-              ))}
-            </div>
+      
+      {/* Pain Points Section - Reduced size and better spacing */}
+      <div className="mb-8 md:mb-16">
+        <ScrollAnimatedSection>
+          <section className="py-6 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-6 md:mb-16">
+                <h2 className="text-lg md:text-5xl font-bold text-white mb-2 md:mb-6">
+                  Do you recognize this <span className="text-red-400">problem</span>?
+                </h2>
+                <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+                  These daily frustrations cost you time, money and customers. It's time for a solution.
+                </p>
+              </div>
+              
+              {/* Desktop: Grid layout */}
+              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+                {painPoints.map((painPoint, index) => (
+                  <ScrollAnimatedSection key={index} delay={index * 150}>
+                    <PainPoint
+                      icon={painPoint.icon}
+                      title={painPoint.title}
+                      description={painPoint.description}
+                      color={painPoint.color}
+                    />
+                  </ScrollAnimatedSection>
+                ))}
+              </div>
 
-            {/* Mobile: Snap-scroll carousel */}
-            <div className="md:hidden">
-              <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth">
-                <div className="flex space-x-4">
-                  {painPoints.map((painPoint, index) => (
-                    <div key={index} className="w-[85vw] flex-none snap-start snap-always">
-                      <PainPoint
-                        icon={painPoint.icon}
-                        title={painPoint.title}
-                        description={painPoint.description}
-                        color={painPoint.color}
-                      />
-                    </div>
+              {/* Mobile: Enhanced smooth carousel */}
+              <div className="md:hidden">
+                <div 
+                  ref={carouselRef}
+                  className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  <div className="flex space-x-4 pb-4">
+                    {painPoints.map((painPoint, index) => (
+                      <div key={index} className="w-[82vw] flex-none snap-start snap-always">
+                        <PainPoint
+                          icon={painPoint.icon}
+                          title={painPoint.title}
+                          description={painPoint.description}
+                          color={painPoint.color}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Interactive carousel indicators */}
+                <div className="flex justify-center space-x-2 mt-4">
+                  {painPoints.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleIndicatorClick(index)}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        index === activeCarouselIndex
+                          ? 'bg-red-400 w-6'
+                          : 'bg-slate-600 hover:bg-slate-500'
+                      }`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
                   ))}
                 </div>
               </div>
-              {/* Carousel indicators */}
-              <div className="flex justify-center space-x-2 mt-6">
-                {painPoints.map((_, index) => (
-                  <div key={index} className="w-2 h-2 bg-slate-600 rounded-full"></div>
-                ))}
-              </div>
             </div>
+          </section>
+        </ScrollAnimatedSection>
+      </div>
+
+      {/* Solution Section - Better spacing */}
+      <div className="mb-8 md:mb-16">
+        <ScrollAnimatedSection delay={100}>
+          <Solution />
+        </ScrollAnimatedSection>
+      </div>
+
+      {/* Process Section - Better spacing */}
+      <div className="mb-8 md:mb-16">
+        <ScrollAnimatedSection delay={200}>
+          <ProcessSection />
+        </ScrollAnimatedSection>
+      </div>
+
+      {/* Features Section - Better spacing */}
+      <div className="mb-8 md:mb-16">
+        <ScrollAnimatedSection delay={100}>
+          <Features />
+        </ScrollAnimatedSection>
+      </div>
+
+      {/* Social Proof Section - Better spacing */}
+      <div className="mb-8 md:mb-16">
+        <ScrollAnimatedSection delay={200}>
+          <SocialProof />
+        </ScrollAnimatedSection>
+      </div>
+
+      {/* Pricing Section - Better spacing */}
+      <div className="mb-8 md:mb-16">
+        <ScrollAnimatedSection delay={100}>
+          <div id="pricing">
+            <PricingBasic />
           </div>
-        </section>
-      </ScrollAnimatedSection>
-      <ScrollAnimatedSection delay={100}>
-        <Solution />
-      </ScrollAnimatedSection>
-      <ScrollAnimatedSection delay={200}>
-        <ProcessSection />
-      </ScrollAnimatedSection>
-      <ScrollAnimatedSection delay={100}>
-        <Features />
-      </ScrollAnimatedSection>
-      <ScrollAnimatedSection delay={200}>
-        <SocialProof />
-      </ScrollAnimatedSection>
-      <ScrollAnimatedSection delay={100}>
-        <div id="pricing">
-          <PricingBasic />
-        </div>
-      </ScrollAnimatedSection>
+        </ScrollAnimatedSection>
+      </div>
     </div>
   );
 };
