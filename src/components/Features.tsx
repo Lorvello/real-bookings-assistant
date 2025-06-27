@@ -1,3 +1,4 @@
+
 import { Check, Calendar, Globe, BarChart3, Bell, Settings, Zap, Monitor, Link } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -207,18 +208,18 @@ const Features = () => {
             </div>
           </div>
           
-          {/* Enhanced features carousel indicators */}
+          {/* Enhanced features carousel indicators - Now showing 8 indicators */}
           <div className="flex justify-center space-x-1 mt-4 mb-8">
-            {Array.from({ length: Math.ceil(features.length / 2) }).map((_, index) => (
+            {features.map((_, index) => (
               <button
                 key={index}
-                onClick={() => handleFeatureIndicatorClick(index * 2)}
+                onClick={() => handleFeatureIndicatorClick(index)}
                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  Math.floor(activeFeatureIndex / 2) === index
+                  index === activeFeatureIndex
                     ? 'bg-emerald-400 w-4'
                     : 'bg-slate-600 hover:bg-slate-500'
                 }`}
-                aria-label={`Go to features slide ${index + 1}`}
+                aria-label={`Go to feature ${index + 1}`}
               />
             ))}
           </div>

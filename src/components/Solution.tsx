@@ -1,8 +1,12 @@
 
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Brain, Target, Clock, Users, TrendingUp } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 
 const Solution = () => {
+  const [activeSolutionIndex, setActiveSolutionIndex] = useState(0);
+  const solutionCarouselRef = useRef<HTMLDivElement>(null);
+
   const features = [
     {
       icon: MessageCircle,
@@ -29,6 +33,34 @@ const Solution = () => {
       hoverTextColor: "group-hover:text-purple-300"
     }
   ];
+
+  // Handle solution carousel scroll
+  useEffect(() => {
+    const carousel = solutionCarouselRef.current;
+    if (!carousel) return;
+
+    const handleScroll = () => {
+      const scrollLeft = carousel.scrollLeft;
+      const itemWidth = carousel.children[0]?.clientWidth || 0;
+      const newIndex = Math.round(scrollLeft / itemWidth);
+      setActiveSolutionIndex(newIndex);
+    };
+
+    carousel.addEventListener('scroll', handleScroll, { passive: true });
+    return () => carousel.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Handle carousel indicator click
+  const handleSolutionIndicatorClick = (index: number) => {
+    const carousel = solutionCarouselRef.current;
+    if (!carousel) return;
+    
+    const itemWidth = carousel.children[0]?.clientWidth || 0;
+    carousel.scrollTo({
+      left: index * itemWidth,
+      behavior: 'smooth'
+    });
+  };
 
   return (
     <section className="py-8 md:py-24 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
@@ -85,26 +117,36 @@ const Solution = () => {
           ))}
         </div>
 
-        {/* Mobile: Snap-scroll carousel */}
+        {/* Mobile: Centered snap-scroll carousel with indicators */}
         <div className="md:hidden">
-          <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth">
-            <div className="flex space-x-4">
+          <div 
+            ref={solutionCarouselRef}
+            className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            <div className="flex">
               {features.map((feature, index) => (
-                <div key={index} className="w-[80vw] flex-none snap-start snap-always bg-slate-800/50 rounded-2xl p-4 text-center">
-                  <div className="relative mb-4 flex justify-center">
-                    <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
-                      <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+                <div key={index} className="w-[100vw] flex-none snap-start snap-always flex justify-center px-4">
+                  <div className="bg-slate-800/50 rounded-2xl p-4 text-center max-w-sm w-full">
+                    <div className="relative mb-4 flex justify-center">
+                      <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
+                        <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+                      </div>
                     </div>
-                  </div>
-                  <h3 className="text-sm font-bold text-white mb-2 leading-tight">
-                    {feature.title}
-                  </h3>
-                  <p className="text-slate-300 text-xs leading-relaxed mb-3">
-                    {feature.description}
-                  </p>
-                  <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs">
-                    <Clock className="w-3 h-3 mr-1" />
-                    <span>{feature.stat}</span>
+                    <h3 className="text-sm font-bold text-white mb-2 leading-tight">
+                      {feature.title}
+                    </h3>
+                    <p className="text-slate-300 text-xs leading-relaxed mb-3">
+                      {feature.description}
+                    </p>
+                    <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs">
+                      <Clock className="w-3 h-3 mr-1" />
+                      <span>{feature.stat}</span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -113,7 +155,16 @@ const Solution = () => {
           {/* Carousel indicators */}
           <div className="flex justify-center space-x-2 mt-6">
             {features.map((_, index) => (
-              <div key={index} className="w-2 h-2 bg-slate-600 rounded-full"></div>
+              <button
+                key={index}
+                onClick={() => handleSolutionIndicatorClick(index)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index === activeSolutionIndex
+                    ? 'bg-emerald-400 w-6'
+                    : 'bg-slate-600 hover:bg-slate-500'
+                }`}
+                aria-label={`Go to solution ${index + 1}`}
+              />
             ))}
           </div>
         </div>

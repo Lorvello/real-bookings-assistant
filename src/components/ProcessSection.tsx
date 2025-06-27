@@ -1,4 +1,3 @@
-
 import React from 'react';
 import WhatsAppChat from './WhatsAppChat';
 import CalendarMockup from './CalendarMockup';
@@ -29,7 +28,7 @@ const ProcessSection = () => {
         </div>
 
         {/* Process flow - Increased mobile spacing */}
-        <div className="space-y-16 md:space-y-16">
+        <div className="space-y-24 md:space-y-16">
           {/* Step 1: WhatsApp Chat */}
           <div className="flex flex-col lg:flex-row items-center gap-4 md:gap-12">
             <div className="flex-1 space-y-3 md:space-y-6 text-center lg:text-left">
@@ -78,8 +77,8 @@ const ProcessSection = () => {
           </div>
         </div>
 
-        {/* AI Agent Test Section - Compact mobile */}
-        <div className="mt-12 md:mt-24 space-y-3 md:space-y-8">
+        {/* AI Agent Test Section - Increased top margin on mobile */}
+        <div className="mt-20 md:mt-24 space-y-3 md:space-y-8">
           <div className="text-center">
             <div className="flex items-center gap-2 md:gap-4 justify-center mb-3 md:mb-6">
               <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-purple-500 to-pink-500">
