@@ -73,116 +73,104 @@ const Index = () => {
       <Navbar />
       <Hero />
       
-      {/* Pain Points Section - Reduced size and better spacing */}
-      <div className="mb-8 md:mb-16">
-        <ScrollAnimatedSection>
-          <section className="py-6 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center mb-6 md:mb-16">
-                <h2 className="text-lg md:text-5xl font-bold text-white mb-2 md:mb-6">
-                  Do you recognize this <span className="text-red-400">problem</span>?
-                </h2>
-                <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-                  These daily frustrations cost you time, money and customers. It's time for a solution.
-                </p>
-              </div>
-              
-              {/* Desktop: Grid layout */}
-              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
-                {painPoints.map((painPoint, index) => (
-                  <ScrollAnimatedSection key={index} delay={index * 150}>
-                    <PainPoint
-                      icon={painPoint.icon}
-                      title={painPoint.title}
-                      description={painPoint.description}
-                      color={painPoint.color}
-                    />
-                  </ScrollAnimatedSection>
-                ))}
-              </div>
+      {/* Pain Points Section - Direct connection, no white space */}
+      <ScrollAnimatedSection>
+        <section className="py-6 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-6 md:mb-16">
+              <h2 className="text-lg md:text-5xl font-bold text-white mb-2 md:mb-6">
+                Do you recognize this <span className="text-red-400">problem</span>?
+              </h2>
+              <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+                These daily frustrations cost you time, money and customers. It's time for a solution.
+              </p>
+            </div>
+            
+            {/* Desktop: Grid layout */}
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+              {painPoints.map((painPoint, index) => (
+                <ScrollAnimatedSection key={index} delay={index * 150}>
+                  <PainPoint
+                    icon={painPoint.icon}
+                    title={painPoint.title}
+                    description={painPoint.description}
+                    color={painPoint.color}
+                  />
+                </ScrollAnimatedSection>
+              ))}
+            </div>
 
-              {/* Mobile: Enhanced smooth carousel */}
-              <div className="md:hidden">
-                <div 
-                  ref={carouselRef}
-                  className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain"
-                  style={{
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
-                    WebkitOverflowScrolling: 'touch'
-                  }}
-                >
-                  <div className="flex space-x-4 pb-4">
-                    {painPoints.map((painPoint, index) => (
-                      <div key={index} className="w-[82vw] flex-none snap-start snap-always">
-                        <PainPoint
-                          icon={painPoint.icon}
-                          title={painPoint.title}
-                          description={painPoint.description}
-                          color={painPoint.color}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Interactive carousel indicators */}
-                <div className="flex justify-center space-x-2 mt-4">
-                  {painPoints.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleIndicatorClick(index)}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        index === activeCarouselIndex
-                          ? 'bg-red-400 w-6'
-                          : 'bg-slate-600 hover:bg-slate-500'
-                      }`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
+            {/* Mobile: Enhanced smooth carousel */}
+            <div className="md:hidden">
+              <div 
+                ref={carouselRef}
+                className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                <div className="flex space-x-4 pb-4">
+                  {painPoints.map((painPoint, index) => (
+                    <div key={index} className="w-[82vw] flex-none snap-start snap-always">
+                      <PainPoint
+                        icon={painPoint.icon}
+                        title={painPoint.title}
+                        description={painPoint.description}
+                        color={painPoint.color}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>
+              
+              {/* Interactive carousel indicators */}
+              <div className="flex justify-center space-x-2 mt-4">
+                {painPoints.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleIndicatorClick(index)}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === activeCarouselIndex
+                        ? 'bg-red-400 w-6'
+                        : 'bg-slate-600 hover:bg-slate-500'
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
-          </section>
-        </ScrollAnimatedSection>
-      </div>
-
-      {/* Solution Section - Better spacing */}
-      <div className="mb-8 md:mb-16">
-        <ScrollAnimatedSection delay={100}>
-          <Solution />
-        </ScrollAnimatedSection>
-      </div>
-
-      {/* Process Section - Better spacing */}
-      <div className="mb-8 md:mb-16">
-        <ScrollAnimatedSection delay={200}>
-          <ProcessSection />
-        </ScrollAnimatedSection>
-      </div>
-
-      {/* Features Section - Better spacing */}
-      <div className="mb-8 md:mb-16">
-        <ScrollAnimatedSection delay={100}>
-          <Features />
-        </ScrollAnimatedSection>
-      </div>
-
-      {/* Social Proof Section - Better spacing */}
-      <div className="mb-8 md:mb-16">
-        <ScrollAnimatedSection delay={200}>
-          <SocialProof />
-        </ScrollAnimatedSection>
-      </div>
-
-      {/* Pricing Section - Better spacing */}
-      <div className="mb-8 md:mb-16">
-        <ScrollAnimatedSection delay={100}>
-          <div id="pricing">
-            <PricingBasic />
           </div>
-        </ScrollAnimatedSection>
-      </div>
+        </section>
+      </ScrollAnimatedSection>
+
+      {/* Solution Section - Direct connection */}
+      <ScrollAnimatedSection delay={100}>
+        <Solution />
+      </ScrollAnimatedSection>
+
+      {/* Process Section - Direct connection */}
+      <ScrollAnimatedSection delay={200}>
+        <ProcessSection />
+      </ScrollAnimatedSection>
+
+      {/* Features Section - Direct connection */}
+      <ScrollAnimatedSection delay={100}>
+        <Features />
+      </ScrollAnimatedSection>
+
+      {/* Social Proof Section - Direct connection */}
+      <ScrollAnimatedSection delay={200}>
+        <SocialProof />
+      </ScrollAnimatedSection>
+
+      {/* Pricing Section - Direct connection */}
+      <ScrollAnimatedSection delay={100}>
+        <div id="pricing">
+          <PricingBasic />
+        </div>
+      </ScrollAnimatedSection>
     </div>
   );
 };
