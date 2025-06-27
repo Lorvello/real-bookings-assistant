@@ -3,7 +3,7 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import ProcessHighlights from '@/components/how-it-works/ProcessHighlights';
 import AITestSection from '@/components/how-it-works/AITestSection';
-import { PricingBasic } from '@/components/PricingBasic';
+import { Pricing } from '@/components/Pricing';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 const SeeHowItWorks = () => {
@@ -41,7 +41,7 @@ const SeeHowItWorks = () => {
       {/* Pricing Section - Increased mobile padding */}
       <ScrollAnimatedSection>
         <div id="pricing">
-          <PricingBasic />
+          <Pricing />
         </div>
       </ScrollAnimatedSection>
     </div>

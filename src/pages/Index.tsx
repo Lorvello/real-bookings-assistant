@@ -1,4 +1,3 @@
-
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ProcessSection from "@/components/ProcessSection";
@@ -6,7 +5,7 @@ import PainPoint from "@/components/PainPoint";
 import Solution from "@/components/Solution";
 import Features from "@/components/Features";
 import SocialProof from "@/components/SocialProof";
-import { PricingBasic } from "@/components/PricingBasic";
+import { Pricing } from "@/components/Pricing";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 import { Clock, PhoneOff, MessageSquareX } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -75,7 +74,7 @@ const Index = () => {
       
       {/* Pain Points Section - Increased mobile padding */}
       <ScrollAnimatedSection>
-        <section className="py-12 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+        <section className="py-16 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-6 md:mb-16">
               <h2 className="text-lg md:text-5xl font-bold text-white mb-2 md:mb-6">
@@ -168,7 +167,7 @@ const Index = () => {
       {/* Pricing Section - Increased mobile padding */}
       <ScrollAnimatedSection delay={100}>
         <div id="pricing">
-          <PricingBasic />
+          <Pricing />
         </div>
       </ScrollAnimatedSection>
     </div>

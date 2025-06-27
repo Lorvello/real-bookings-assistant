@@ -3,7 +3,7 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown, Mail, BarChart3, Timer, UserCheck, Heart, Brain, Smartphone, Gauge } from 'lucide-react';
-import { PricingBasic } from '@/components/PricingBasic';
+import { Pricing } from '@/components/Pricing';
 
 const WhyUs = () => {
   const proofPoints = [
@@ -602,7 +602,7 @@ const WhyUs = () => {
 
       {/* Pricing Section */}
       <ScrollAnimatedSection delay={200}>
-        <PricingBasic />
+        <Pricing />
       </ScrollAnimatedSection>
     </div>
   );
