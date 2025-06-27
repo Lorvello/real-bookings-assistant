@@ -63,7 +63,7 @@ const Solution = () => {
   };
 
   return (
-    <section className="py-8 md:py-24 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+    <section className="py-16 md:py-24 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"></div>
@@ -117,7 +117,7 @@ const Solution = () => {
           ))}
         </div>
 
-        {/* Mobile: Centered snap-scroll carousel with indicators */}
+        {/* Mobile: Improved centered snap-scroll carousel with indicators */}
         <div className="md:hidden">
           <div 
             ref={solutionCarouselRef}
@@ -128,10 +128,10 @@ const Solution = () => {
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            <div className="flex">
+            <div className="flex gap-4 px-4 pb-4">
               {features.map((feature, index) => (
-                <div key={index} className="w-[100vw] flex-none snap-start snap-always flex justify-center px-4">
-                  <div className="bg-slate-800/50 rounded-2xl p-4 text-center max-w-sm w-full">
+                <div key={index} className="w-[85vw] flex-none snap-start snap-always">
+                  <div className="bg-slate-800/50 rounded-2xl p-4 text-center h-full">
                     <div className="relative mb-4 flex justify-center">
                       <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
                         <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />

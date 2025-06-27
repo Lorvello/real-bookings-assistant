@@ -1,3 +1,4 @@
+
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ProcessSection from "@/components/ProcessSection";
@@ -72,9 +73,9 @@ const Index = () => {
       <Navbar />
       <Hero />
       
-      {/* Pain Points Section - Direct connection, no white space */}
+      {/* Pain Points Section - Increased mobile padding */}
       <ScrollAnimatedSection>
-        <section className="py-6 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+        <section className="py-12 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-6 md:mb-16">
               <h2 className="text-lg md:text-5xl font-bold text-white mb-2 md:mb-6">
@@ -144,27 +145,27 @@ const Index = () => {
         </section>
       </ScrollAnimatedSection>
 
-      {/* Solution Section - Direct connection */}
+      {/* Solution Section - Increased mobile padding */}
       <ScrollAnimatedSection delay={100}>
         <Solution />
       </ScrollAnimatedSection>
 
-      {/* Process Section - Direct connection */}
+      {/* Process Section - Increased mobile padding */}
       <ScrollAnimatedSection delay={200}>
         <ProcessSection />
       </ScrollAnimatedSection>
 
-      {/* Features Section - Direct connection */}
+      {/* Features Section - Increased mobile padding */}
       <ScrollAnimatedSection delay={100}>
         <Features />
       </ScrollAnimatedSection>
 
-      {/* Social Proof Section - Direct connection */}
+      {/* Social Proof Section - Increased mobile padding */}
       <ScrollAnimatedSection delay={200}>
         <SocialProof />
       </ScrollAnimatedSection>
 
-      {/* Pricing Section - Direct connection */}
+      {/* Pricing Section - Increased mobile padding */}
       <ScrollAnimatedSection delay={100}>
         <div id="pricing">
           <PricingBasic />

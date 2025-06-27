@@ -11,8 +11,8 @@ const SeeHowItWorks = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
       <Navbar />
       
-      {/* Hero Section - Mobile optimized */}
-      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-6 md:py-24 px-3 md:px-4 relative overflow-hidden">
+      {/* Hero Section - Increased mobile padding */}
+      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-12 md:py-24 px-3 md:px-4 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -35,10 +35,10 @@ const SeeHowItWorks = () => {
         </div>
       </section>
 
-      {/* AI Test Section - Direct connection */}
+      {/* AI Test Section - Increased mobile padding */}
       <AITestSection />
 
-      {/* Pricing Section - Direct connection */}
+      {/* Pricing Section - Increased mobile padding */}
       <ScrollAnimatedSection>
         <div id="pricing">
           <PricingBasic />

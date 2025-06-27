@@ -129,7 +129,7 @@ const Features = () => {
   };
 
   return (
-    <section className="py-6 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+    <section className="py-12 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
       {/* Background decoration - Optimized for mobile */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -208,7 +208,7 @@ const Features = () => {
             </div>
           </div>
           
-          {/* Enhanced features carousel indicators - Now showing 8 indicators */}
+          {/* Enhanced features carousel indicators - All 8 indicators */}
           <div className="flex justify-center space-x-1 mt-4 mb-8">
             {features.map((_, index) => (
               <button

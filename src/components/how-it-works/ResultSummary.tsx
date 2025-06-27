@@ -70,7 +70,7 @@ const ResultSummary = () => {
           </div>
         </div>
         
-        {/* Main description - much smaller on mobile */}
+        {/* Main description - cleaner text formatting */}
         <div className="max-w-5xl mx-auto text-center mb-6 md:mb-16">
           <p className="text-sm md:text-2xl lg:text-3xl text-slate-200 leading-relaxed mb-4 md:mb-8">
             From now on, you{' '}
@@ -78,15 +78,13 @@ const ResultSummary = () => {
             {' '}have to waste time going back and forth messaging about appointments.
           </p>
           
-          <div className="flex flex-wrap justify-center gap-2 md:gap-4 text-sm md:text-xl lg:text-2xl text-slate-200">
-            <span>You get</span>
-            <span className="text-emerald-400 font-bold">more bookings</span>
-            <span>,</span>
-            <span className="text-emerald-400 font-bold">happier customers</span>
-            <span>, and</span>
+          <p className="text-sm md:text-xl lg:text-2xl text-slate-200">
+            You get{' '}
+            <span className="text-emerald-400 font-bold">more bookings</span>,{' '}
+            <span className="text-emerald-400 font-bold">happier customers</span>, and{' '}
             <span className="text-emerald-400 font-bold">more time</span>
-            <span>for what really matters.</span>
-          </div>
+            {' '}for what really matters.
+          </p>
         </div>
         
         {/* Desktop: Grid layout - keep existing */}
@@ -110,7 +108,7 @@ const ResultSummary = () => {
           })}
         </div>
 
-        {/* Mobile: Horizontal slideshow */}
+        {/* Mobile: Improved horizontal slideshow */}
         <div className="md:hidden">
           <div 
             ref={statsCarouselRef}
@@ -121,11 +119,11 @@ const ResultSummary = () => {
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            <div className="flex pb-4">
+            <div className="flex gap-3 pb-4 px-2">
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
-                  <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
+                  <div key={index} className="w-[85vw] flex-none snap-start snap-always">
                     <div className="border border-slate-600 rounded-2xl p-6 text-center h-full">
                       <Icon className="w-6 h-6 mx-auto text-emerald-400 mb-4" />
                       

@@ -6,7 +6,7 @@ import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 const AITestSection = () => {
   return (
     <ScrollAnimatedSection>
-      <section className="py-6 md:py-32 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+      <section className="py-12 md:py-32 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
