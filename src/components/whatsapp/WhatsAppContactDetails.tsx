@@ -4,10 +4,10 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Calendar } from 'lucide-react';
 import { formatDate, getBookingStatusColor } from './utils/contactFormatters';
-import type { WhatsAppContactOverview as WhatsAppContactOverviewType } from '@/types/whatsappOverview';
+import type { WhatsAppContactOverview as WhatsAppContact } from '@/types/whatsappOverview';
 
 interface WhatsAppContactDetailsProps {
-  contact: WhatsAppContactOverviewType;
+  contact: WhatsAppContact;
 }
 
 export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps) {

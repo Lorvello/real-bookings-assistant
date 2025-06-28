@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Phone, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { WhatsAppContactDetails } from './WhatsAppContactDetails';
 import { formatPhone, getStatusColor } from './utils/contactFormatters';
-import type { WhatsAppContactOverview as WhatsAppContactOverviewType } from '@/types/whatsappOverview';
+import type { WhatsAppContactOverview as WhatsAppContact } from '@/types/whatsappOverview';
 
 interface WhatsAppContactCardProps {
-  contact: WhatsAppContactOverviewType;
+  contact: WhatsAppContact;
   isExpanded: boolean;
   onToggleExpanded: () => void;
 }

@@ -6,6 +6,7 @@ import { useWhatsAppContactOverview, useRefreshWhatsAppContactOverview } from '@
 import { MessageCircle, RefreshCw } from 'lucide-react';
 import { WhatsAppContactFilters } from './WhatsAppContactFilters';
 import { WhatsAppContactCard } from './WhatsAppContactCard';
+import type { WhatsAppContactOverview as WhatsAppContact } from '@/types/whatsappOverview';
 
 interface WhatsAppContactOverviewProps {
   calendarId: string;
@@ -19,7 +20,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
   const { data: contacts, isLoading, error } = useWhatsAppContactOverview(calendarId);
   const refreshMutation = useRefreshWhatsAppContactOverview();
 
-  const filteredContacts = contacts?.filter(contact => {
+  const filteredContacts = contacts?.filter((contact: WhatsAppContact) => {
     const matchesSearch = 
       contact.phone_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -126,7 +127,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredContacts.map((contact) => (
+            {filteredContacts.map((contact: WhatsAppContact) => (
               <WhatsAppContactCard
                 key={contact.contact_id}
                 contact={contact}
