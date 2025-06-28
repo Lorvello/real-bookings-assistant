@@ -1391,6 +1391,72 @@ export type Database = {
           },
         ]
       }
+      whatsapp_contact_overview: {
+        Row: {
+          booking_id: string | null
+          booking_status: string | null
+          business_name: string | null
+          calendar_id: string | null
+          calendar_name: string | null
+          contact_created_at: string | null
+          contact_id: string
+          conversation_created_at: string | null
+          conversation_status: string | null
+          display_name: string | null
+          first_name: string | null
+          laatste_booking: string | null
+          laatste_service: string | null
+          last_message_at: string | null
+          last_name: string | null
+          last_seen_at: string | null
+          phone_number: string
+          session_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          booking_status?: string | null
+          business_name?: string | null
+          calendar_id?: string | null
+          calendar_name?: string | null
+          contact_created_at?: string | null
+          contact_id: string
+          conversation_created_at?: string | null
+          conversation_status?: string | null
+          display_name?: string | null
+          first_name?: string | null
+          laatste_booking?: string | null
+          laatste_service?: string | null
+          last_message_at?: string | null
+          last_name?: string | null
+          last_seen_at?: string | null
+          phone_number: string
+          session_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          booking_status?: string | null
+          business_name?: string | null
+          calendar_id?: string | null
+          calendar_name?: string | null
+          contact_created_at?: string | null
+          contact_id?: string
+          conversation_created_at?: string | null
+          conversation_status?: string | null
+          display_name?: string | null
+          first_name?: string | null
+          laatste_booking?: string | null
+          laatste_service?: string | null
+          last_message_at?: string | null
+          last_name?: string | null
+          last_seen_at?: string | null
+          phone_number?: string
+          session_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       whatsapp_contacts: {
         Row: {
           created_at: string | null
@@ -2306,6 +2372,10 @@ export type Database = {
         Returns: undefined
       }
       refresh_dashboard_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_whatsapp_contact_overview: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
