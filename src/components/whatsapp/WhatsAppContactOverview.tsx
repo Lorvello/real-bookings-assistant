@@ -19,7 +19,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { WhatsAppContactOverview } from '@/types/whatsappOverview';
+import type { WhatsAppContactOverview as WhatsAppContactOverviewType } from '@/types/whatsappOverview';
 
 interface WhatsAppContactOverviewProps {
   calendarId: string;
