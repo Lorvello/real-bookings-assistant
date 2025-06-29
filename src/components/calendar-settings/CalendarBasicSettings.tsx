@@ -16,7 +16,7 @@ export function CalendarBasicSettings({ settings, onUpdate }: CalendarBasicSetti
         <div className="space-y-1">
           <Label className="text-foreground font-medium">Confirmation Required</Label>
           <p className="text-sm text-muted-foreground">
-            Manual confirmation is disabled - all bookings are automatically confirmed
+            Handmatige bevestiging is uitgeschakeld - alle boekingen worden automatisch bevestigd
           </p>
         </div>
         <Switch

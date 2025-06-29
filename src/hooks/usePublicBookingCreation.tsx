@@ -30,18 +30,28 @@ export const usePublicBookingCreation = () => {
     setLoading(true);
 
     try {
-      console.log('🚀 Creating public booking with confirmed status:', bookingData);
+      console.log('🚀 Creating public booking - automatically confirmed:', bookingData);
       
-      // Use the create_booking function - it should now always create confirmed bookings
-      const { data, error } = await supabase.rpc('create_booking', {
-        p_calendar_slug: bookingData.calendarSlug,
-        p_service_type_id: bookingData.serviceTypeId,
-        p_customer_name: bookingData.customerName,
-        p_start_time: bookingData.startTime.toISOString(),
-        p_customer_email: bookingData.customerEmail || null,
-        p_customer_phone: bookingData.customerPhone || null,
-        p_notes: bookingData.notes || null
-      });
+      // Direct insert into bookings table - automatically confirmed by trigger
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert({
+          calendar_id: (await supabase
+            .from('calendars')
+            .select('id')
+            .eq('slug', bookingData.calendarSlug)
+            .single()).data?.id,
+          service_type_id: bookingData.serviceTypeId,
+          customer_name: bookingData.customerName,
+          customer_email: bookingData.customerEmail,
+          customer_phone: bookingData.customerPhone,
+          start_time: bookingData.startTime.toISOString(),
+          end_time: new Date(bookingData.startTime.getTime() + 30 * 60000).toISOString(), // Default 30 min
+          notes: bookingData.notes,
+          status: 'confirmed' // Will be enforced by trigger anyway
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Booking error:', error);
@@ -54,40 +64,23 @@ export const usePublicBookingCreation = () => {
         return { success: false, error: error.message };
       }
 
-      const result = data as unknown as BookingResult & {
-        booking_id?: string;
-        confirmation_token?: string;
-        start_time?: string;
-        end_time?: string;
-      };
-
-      if (!result?.success) {
-        toast({
-          title: "Booking gefaald",
-          description: result?.error || "Booking kon niet worden aangemaakt",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return { success: false, error: result?.error || "Booking gefaald" };
-      }
-
-      // Show success message for confirmed booking
+      // All bookings are now automatically confirmed
       toast({
-        title: "Booking succesvol!",
+        title: "Booking succesvol bevestigd!",
         description: bookingData.customerEmail 
-          ? "Uw afspraak is bevestigd. U ontvangt een bevestigingsmail."
-          : "Uw afspraak is bevestigd.",
+          ? "Uw afspraak is direct bevestigd. U ontvangt een bevestigingsmail."
+          : "Uw afspraak is direct bevestigd.",
       });
 
-      console.log('✅ Public booking created successfully and confirmed');
+      console.log('✅ Public booking created and automatically confirmed:', data);
 
       setLoading(false);
       return {
         success: true,
-        bookingId: result.booking_id,
-        confirmationToken: result.confirmation_token,
-        startTime: result.start_time,
-        endTime: result.end_time
+        bookingId: data.id,
+        confirmationToken: data.confirmation_token,
+        startTime: data.start_time,
+        endTime: data.end_time
       };
     } catch (error) {
       console.error('Booking creation error:', error);

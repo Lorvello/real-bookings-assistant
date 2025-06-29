@@ -25,7 +25,7 @@ export const useOptimizedBookings = (calendarId?: string) => {
   const { handleError, retryWithBackoff } = useErrorHandler();
   const queryClient = useQueryClient();
 
-  // Optimized booking fetch met indexen
+  // Optimized booking fetch
   const fetchBookings = async (): Promise<Booking[]> => {
     if (!calendarId) return [];
 
@@ -40,7 +40,7 @@ export const useOptimizedBookings = (calendarId?: string) => {
       throw error;
     }
 
-    // Transform all bookings - ensure they're all treated as confirmed in the UI
+    // All bookings are now confirmed by default
     return (data || []).map(booking => ({
       ...booking,
       status: booking.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
@@ -52,7 +52,7 @@ export const useOptimizedBookings = (calendarId?: string) => {
     queryFn: () => retryWithBackoff(fetchBookings),
     enabled: !!user && !!calendarId,
     staleTime: 2 * 60 * 1000, // 2 minuten
-    gcTime: 5 * 60 * 1000, // 5 minuten cache (was cacheTime)
+    gcTime: 5 * 60 * 1000, // 5 minuten cache
     refetchOnWindowFocus: true,
     retry: (failureCount, error) => {
       const appError = handleError(error, 'Fetch bookings');
@@ -60,11 +60,12 @@ export const useOptimizedBookings = (calendarId?: string) => {
     }
   });
 
-  // Optimized booking creation met optimistic updates - always confirmed
+  // Optimized booking creation - automatically confirmed by database
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData: BookingInsert) => {
       if (!calendarId) throw new Error('Calendar ID required');
       
+      // Database trigger will automatically set status to 'confirmed'
       const { data, error } = await supabase
         .from('bookings')
         .insert({
@@ -75,11 +76,9 @@ export const useOptimizedBookings = (calendarId?: string) => {
           customer_phone: bookingData.customer_phone,
           start_time: bookingData.start_time,
           end_time: bookingData.end_time,
-          status: 'confirmed', // Always confirmed now
           notes: bookingData.notes,
           internal_notes: bookingData.internal_notes,
-          total_price: bookingData.total_price,
-          confirmed_at: new Date().toISOString()
+          total_price: bookingData.total_price
         })
         .select()
         .single();
@@ -94,7 +93,7 @@ export const useOptimizedBookings = (calendarId?: string) => {
       // Snapshot previous value
       const previousBookings = queryClient.getQueryData(['bookings', calendarId]);
 
-      // Optimistically update with confirmed status
+      // Optimistically update with confirmed status (automatically set by DB)
       const optimisticBooking = {
         id: 'temp-' + Date.now(),
         ...newBooking,
@@ -139,29 +138,25 @@ export const useOptimizedBookings = (calendarId?: string) => {
       queryClient.invalidateQueries({ queryKey: ['optimized-analytics', calendarId] });
       
       toast({
-        title: "Booking aangemaakt",
-        description: "Booking is succesvol bevestigd",
+        title: "Booking bevestigd",
+        description: "Booking is automatisch bevestigd",
       });
     }
   });
 
-  // Batch booking operations voor performance
+  // Batch booking operations
   const batchUpdateBookings = async (updates: { id: string; updates: Partial<Booking> }[]) => {
     try {
       const promises = updates.map(({ id, updates: bookingUpdates }) =>
         supabase
           .from('bookings')
-          .update({
-            ...bookingUpdates,
-            // Ensure status remains confirmed for any updates
-            status: 'confirmed'
-          })
+          .update(bookingUpdates)
           .eq('id', id)
       );
 
       await Promise.all(promises);
       
-      // Invalidate cache na batch update
+      // Invalidate cache after batch update
       queryClient.invalidateQueries({ queryKey: ['bookings', calendarId] });
       
       toast({

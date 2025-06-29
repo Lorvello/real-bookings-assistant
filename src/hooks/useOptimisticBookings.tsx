@@ -24,18 +24,12 @@ export function useOptimisticBookings(calendarId?: string) {
 
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData: CreateBookingData) => {
-      console.log('🚀 Creating booking optimistically:', bookingData);
+      console.log('🚀 Creating booking - automatically confirmed:', bookingData);
       
-      // ALWAYS force confirmed status in frontend
-      const finalBookingData = {
-        ...bookingData,
-        status: 'confirmed' as const,
-        confirmed_at: new Date().toISOString()
-      };
-
+      // Status is automatically forced to 'confirmed' by database trigger
       const { data, error } = await supabase
         .from('bookings')
-        .insert([finalBookingData])
+        .insert([bookingData])
         .select('*')
         .single();
 
@@ -44,7 +38,7 @@ export function useOptimisticBookings(calendarId?: string) {
         throw new Error(error.message);
       }
 
-      console.log('✅ Booking created successfully:', data);
+      console.log('✅ Booking created and automatically confirmed:', data);
       return data;
     },
     onMutate: async (bookingData) => {
@@ -52,7 +46,7 @@ export function useOptimisticBookings(calendarId?: string) {
       await queryClient.cancelQueries({ queryKey: ['bookings'] });
       await queryClient.cancelQueries({ queryKey: ['multiple-calendar-bookings'] });
 
-      // Create optimistic booking - ALWAYS confirmed
+      // Create optimistic booking - automatically confirmed
       const optimisticBooking = {
         id: 'temp-' + Date.now(),
         ...bookingData,
@@ -82,7 +76,7 @@ export function useOptimisticBookings(calendarId?: string) {
         old ? [...old, optimisticBooking] : [optimisticBooking]
       );
 
-      console.log('📝 Applied optimistic update with confirmed status');
+      console.log('📝 Applied optimistic update - automatically confirmed');
 
       return { previousBookings, previousMultipleBookings };
     },
@@ -104,11 +98,11 @@ export function useOptimisticBookings(calendarId?: string) {
       });
     },
     onSuccess: (data) => {
-      console.log('🎉 Booking successfully created with confirmed status:', data);
+      console.log('🎉 Booking successfully created and automatically confirmed:', data);
       
       toast({
-        title: "Afspraak aangemaakt!",
-        description: `Afspraak voor ${data.customer_name} is bevestigd.`,
+        title: "Afspraak bevestigd!",
+        description: `Afspraak voor ${data.customer_name} is direct bevestigd.`,
       });
 
       // Invalidate queries to fetch fresh data
