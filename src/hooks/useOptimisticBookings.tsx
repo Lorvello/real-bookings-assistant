@@ -12,7 +12,6 @@ interface CreateBookingData {
   customer_phone?: string;
   start_time: string;
   end_time: string;
-  status?: 'confirmed'; // Always confirmed now
   notes?: string;
   internal_notes?: string;
   total_price?: number;
@@ -27,7 +26,7 @@ export function useOptimisticBookings(calendarId?: string) {
     mutationFn: async (bookingData: CreateBookingData) => {
       console.log('🚀 Creating booking optimistically:', bookingData);
       
-      // Force confirmed status
+      // ALWAYS force confirmed status in frontend
       const finalBookingData = {
         ...bookingData,
         status: 'confirmed' as const,
@@ -53,7 +52,7 @@ export function useOptimisticBookings(calendarId?: string) {
       await queryClient.cancelQueries({ queryKey: ['bookings'] });
       await queryClient.cancelQueries({ queryKey: ['multiple-calendar-bookings'] });
 
-      // Create optimistic booking
+      // Create optimistic booking - ALWAYS confirmed
       const optimisticBooking = {
         id: 'temp-' + Date.now(),
         ...bookingData,
@@ -83,7 +82,7 @@ export function useOptimisticBookings(calendarId?: string) {
         old ? [...old, optimisticBooking] : [optimisticBooking]
       );
 
-      console.log('📝 Applied optimistic update');
+      console.log('📝 Applied optimistic update with confirmed status');
 
       return { previousBookings, previousMultipleBookings };
     },
@@ -105,7 +104,7 @@ export function useOptimisticBookings(calendarId?: string) {
       });
     },
     onSuccess: (data) => {
-      console.log('🎉 Booking successfully created:', data);
+      console.log('🎉 Booking successfully created with confirmed status:', data);
       
       toast({
         title: "Afspraak aangemaakt!",

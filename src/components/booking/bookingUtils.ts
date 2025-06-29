@@ -64,7 +64,7 @@ export const buildBookingNotes = (data: BookingFormData, duration: number): stri
   }
   
   notes += `Duur: ${duration} minuten\n`;
-  notes += `Status: Bevestigd`; // Always confirmed now
+  notes += `Status: Bevestigd`; // All bookings are now confirmed
   
   return notes.trim();
 };

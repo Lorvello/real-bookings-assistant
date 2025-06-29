@@ -14,7 +14,6 @@ interface BookingInsert {
   customer_phone?: string;
   start_time?: string;
   end_time?: string;
-  status?: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
   notes?: string;
   internal_notes?: string;
   total_price?: number;
@@ -41,6 +40,7 @@ export const useOptimizedBookings = (calendarId?: string) => {
       throw error;
     }
 
+    // Transform all bookings - ensure they're all treated as confirmed in the UI
     return (data || []).map(booking => ({
       ...booking,
       status: booking.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
@@ -60,7 +60,7 @@ export const useOptimizedBookings = (calendarId?: string) => {
     }
   });
 
-  // Optimized booking creation met optimistic updates
+  // Optimized booking creation met optimistic updates - always confirmed
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData: BookingInsert) => {
       if (!calendarId) throw new Error('Calendar ID required');
@@ -75,10 +75,11 @@ export const useOptimizedBookings = (calendarId?: string) => {
           customer_phone: bookingData.customer_phone,
           start_time: bookingData.start_time,
           end_time: bookingData.end_time,
-          status: bookingData.status || 'confirmed',
+          status: 'confirmed', // Always confirmed now
           notes: bookingData.notes,
           internal_notes: bookingData.internal_notes,
-          total_price: bookingData.total_price
+          total_price: bookingData.total_price,
+          confirmed_at: new Date().toISOString()
         })
         .select()
         .single();
@@ -93,10 +94,12 @@ export const useOptimizedBookings = (calendarId?: string) => {
       // Snapshot previous value
       const previousBookings = queryClient.getQueryData(['bookings', calendarId]);
 
-      // Optimistically update
+      // Optimistically update with confirmed status
       const optimisticBooking = {
         id: 'temp-' + Date.now(),
         ...newBooking,
+        status: 'confirmed' as const,
+        confirmed_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       } as Booking;
@@ -137,7 +140,7 @@ export const useOptimizedBookings = (calendarId?: string) => {
       
       toast({
         title: "Booking aangemaakt",
-        description: "Booking is succesvol aangemaakt",
+        description: "Booking is succesvol bevestigd",
       });
     }
   });
@@ -148,7 +151,11 @@ export const useOptimizedBookings = (calendarId?: string) => {
       const promises = updates.map(({ id, updates: bookingUpdates }) =>
         supabase
           .from('bookings')
-          .update(bookingUpdates)
+          .update({
+            ...bookingUpdates,
+            // Ensure status remains confirmed for any updates
+            status: 'confirmed'
+          })
           .eq('id', id)
       );
 

@@ -12,16 +12,17 @@ interface CalendarBasicSettingsProps {
 export function CalendarBasicSettings({ settings, onUpdate }: CalendarBasicSettingsProps) {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between opacity-50">
         <div className="space-y-1">
           <Label className="text-foreground font-medium">Confirmation Required</Label>
           <p className="text-sm text-muted-foreground">
-            Require manual confirmation for new bookings
+            Manual confirmation is disabled - all bookings are automatically confirmed
           </p>
         </div>
         <Switch
-          checked={settings.confirmation_required ?? true}
-          onCheckedChange={(checked) => onUpdate({ confirmation_required: checked })}
+          checked={false}
+          disabled={true}
+          onCheckedChange={() => {}}
         />
       </div>
 

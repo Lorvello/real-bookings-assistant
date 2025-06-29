@@ -30,7 +30,9 @@ export const usePublicBookingCreation = () => {
     setLoading(true);
 
     try {
-      // Use the updated create_booking function that always creates confirmed bookings
+      console.log('🚀 Creating public booking with confirmed status:', bookingData);
+      
+      // Use the create_booking function - it should now always create confirmed bookings
       const { data, error } = await supabase.rpc('create_booking', {
         p_calendar_slug: bookingData.calendarSlug,
         p_service_type_id: bookingData.serviceTypeId,
@@ -69,12 +71,15 @@ export const usePublicBookingCreation = () => {
         return { success: false, error: result?.error || "Booking gefaald" };
       }
 
+      // Show success message for confirmed booking
       toast({
         title: "Booking succesvol!",
         description: bookingData.customerEmail 
-          ? "Je afspraak is bevestigd. Je ontvangt een bevestigingsmail."
-          : "Je afspraak is bevestigd.",
+          ? "Uw afspraak is bevestigd. U ontvangt een bevestigingsmail."
+          : "Uw afspraak is bevestigd.",
       });
+
+      console.log('✅ Public booking created successfully and confirmed');
 
       setLoading(false);
       return {
