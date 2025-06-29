@@ -4,10 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { CalendarSettings } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 
 export const useCalendarSettings = (calendarId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { refetchCalendars } = useCalendarContext();
   const [settings, setSettings] = useState<CalendarSettings | null>(null);
   const [pendingChanges, setPendingChanges] = useState<Partial<CalendarSettings>>({});
   const [loading, setLoading] = useState(true);
@@ -99,6 +101,49 @@ export const useCalendarSettings = (calendarId?: string) => {
     setPendingChanges(prev => ({ ...prev, ...updates }));
   };
 
+  const updateCalendarName = async (newName: string) => {
+    if (!calendarId) return false;
+
+    setSaving(true);
+    try {
+      console.log('Updating calendar name to:', newName);
+
+      const { error } = await supabase
+        .from('calendars')
+        .update({ name: newName })
+        .eq('id', calendarId);
+
+      if (error) {
+        console.error('Error updating calendar name:', error);
+        toast({
+          title: "Fout",
+          description: "Kan kalendernaam niet bijwerken",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      toast({
+        title: "Succes",
+        description: "Kalendernaam succesvol bijgewerkt",
+      });
+
+      // Refresh calendars to update the context
+      await refetchCalendars();
+      return true;
+    } catch (error) {
+      console.error('Error updating calendar name:', error);
+      toast({
+        title: "Fout",
+        description: "Er is een onverwachte fout opgetreden",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const saveAllChanges = async () => {
     if (!calendarId || !settings || !hasPendingChanges) {
       console.log('Cannot save: missing requirements', { calendarId, settings: !!settings, hasPendingChanges });
@@ -157,6 +202,7 @@ export const useCalendarSettings = (calendarId?: string) => {
     saving,
     hasPendingChanges,
     updatePendingSettings,
+    updateCalendarName,
     saveAllChanges,
     refetch: fetchSettings
   };

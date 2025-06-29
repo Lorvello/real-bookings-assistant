@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 import { CalendarBasicSettings } from './calendar-settings/CalendarBasicSettings';
 import { CalendarPolicySettings } from './calendar-settings/CalendarPolicySettings';
 import { CalendarRequiredFields } from './calendar-settings/CalendarRequiredFields';
@@ -12,7 +13,8 @@ interface CalendarSettingsProps {
 }
 
 export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
-  const { settings, loading, updatePendingSettings } = useCalendarSettings(calendarId);
+  const { settings, loading, updatePendingSettings, updateCalendarName } = useCalendarSettings(calendarId);
+  const { selectedCalendar } = useCalendarContext();
 
   if (loading) {
     return (
@@ -52,6 +54,8 @@ export function CalendarSettings({ calendarId }: CalendarSettingsProps) {
           <CalendarBasicSettings 
             settings={settings}
             onUpdate={updatePendingSettings}
+            calendarName={selectedCalendar?.name}
+            onUpdateCalendarName={updateCalendarName}
           />
         </CardContent>
       </Card>
