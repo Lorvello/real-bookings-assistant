@@ -2,8 +2,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
-interface BookingData {
+interface CreateBookingData {
   calendar_id: string;
   service_type_id?: string;
   customer_name: string;
@@ -11,100 +12,110 @@ interface BookingData {
   customer_phone?: string;
   start_time: string;
   end_time: string;
-  status?: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
+  status?: 'confirmed'; // Always confirmed now
   notes?: string;
   internal_notes?: string;
   total_price?: number;
 }
 
-export function useOptimisticBookings(calendarId: string) {
-  const queryClient = useQueryClient();
+export function useOptimisticBookings(calendarId?: string) {
+  const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const createBookingMutation = useMutation({
-    mutationFn: async (bookingData: BookingData) => {
+    mutationFn: async (bookingData: CreateBookingData) => {
+      console.log('🚀 Creating booking optimistically:', bookingData);
+      
+      // Force confirmed status
+      const finalBookingData = {
+        ...bookingData,
+        status: 'confirmed' as const,
+        confirmed_at: new Date().toISOString()
+      };
+
       const { data, error } = await supabase
         .from('bookings')
-        .insert(bookingData)
-        .select(`
-          *,
-          service_types (
-            name,
-            color,
-            duration
-          )
-        `)
+        .insert([finalBookingData])
+        .select('*')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error:', error);
+        throw new Error(error.message);
+      }
+
+      console.log('✅ Booking created successfully:', data);
       return data;
     },
-    onMutate: async (newBooking) => {
-      console.log('🚀 Optimistic booking creation:', newBooking);
-      
-      // Cancel outgoing refetches voor alle relevante queries
+    onMutate: async (bookingData) => {
+      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['bookings'] });
-      await queryClient.cancelQueries({ queryKey: ['dashboard-analytics'] });
+      await queryClient.cancelQueries({ queryKey: ['multiple-calendar-bookings'] });
 
-      // Snapshot the previous values
+      // Create optimistic booking
+      const optimisticBooking = {
+        id: 'temp-' + Date.now(),
+        ...bookingData,
+        status: 'confirmed' as const,
+        confirmed_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        confirmation_token: null,
+        cancelled_at: null,
+        cancellation_reason: null,
+        booking_duration: 30,
+        service_name: null,
+      };
+
+      // Snapshot the previous value
       const previousBookings = queryClient.getQueryData(['bookings', calendarId]);
       const previousMultipleBookings = queryClient.getQueryData(['multiple-calendar-bookings']);
 
-      // Optimistically update single calendar bookings
-      queryClient.setQueryData(['bookings', calendarId], (old: any) => {
-        const optimisticBooking = {
-          id: 'temp-' + Date.now(),
-          ...newBooking,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        return old ? [...old, optimisticBooking] : [optimisticBooking];
-      });
+      // Optimistically update to the new value
+      if (calendarId) {
+        queryClient.setQueryData(['bookings', calendarId], (old: any) => 
+          old ? [...old, optimisticBooking] : [optimisticBooking]
+        );
+      }
 
-      // Optimistically update multiple calendar bookings (voor kalender views die meerdere kalenders tonen)
-      queryClient.setQueryData(['multiple-calendar-bookings'], (old: any) => {
-        if (!old) return old;
-        const optimisticBooking = {
-          id: 'temp-' + Date.now(),
-          ...newBooking,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        return [...old, optimisticBooking];
-      });
+      queryClient.setQueryData(['multiple-calendar-bookings'], (old: any) => 
+        old ? [...old, optimisticBooking] : [optimisticBooking]
+      );
+
+      console.log('📝 Applied optimistic update');
 
       return { previousBookings, previousMultipleBookings };
     },
-    onError: (error, newBooking, context) => {
-      console.error('❌ Booking creation failed, rolling back:', error);
+    onError: (err, bookingData, context) => {
+      console.error('❌ Booking creation failed:', err);
       
-      // Rollback optimistic updates
-      if (context?.previousBookings) {
+      // Rollback optimistic update
+      if (context?.previousBookings && calendarId) {
         queryClient.setQueryData(['bookings', calendarId], context.previousBookings);
       }
       if (context?.previousMultipleBookings) {
         queryClient.setQueryData(['multiple-calendar-bookings'], context.previousMultipleBookings);
       }
-      
+
       toast({
         title: "Fout bij aanmaken afspraak",
-        description: error instanceof Error ? error.message : "Onbekende fout",
+        description: err instanceof Error ? err.message : 'Onbekende fout opgetreden',
         variant: "destructive",
       });
     },
     onSuccess: (data) => {
-      console.log('✅ Booking created successfully:', data);
+      console.log('🎉 Booking successfully created:', data);
       
       toast({
-        title: "Afspraak aangemaakt",
-        description: "De afspraak is succesvol aangemaakt en is nu zichtbaar in de kalender",
+        title: "Afspraak aangemaakt!",
+        description: `Afspraak voor ${data.customer_name} is bevestigd.`,
       });
-    },
-    onSettled: () => {
-      // Invalidate en refresh alle relevante queries
+
+      // Invalidate queries to fetch fresh data
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['multiple-calendar-bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
     },
   });
 

@@ -7,7 +7,7 @@ interface BookingData {
   calendarSlug: string;
   serviceTypeId: string;
   customerName: string;
-  customerEmail?: string | null; // Properly nullable
+  customerEmail?: string | null;
   customerPhone?: string;
   startTime: Date;
   notes?: string;
@@ -30,6 +30,7 @@ export const usePublicBookingCreation = () => {
     setLoading(true);
 
     try {
+      // Use the updated create_booking function that always creates confirmed bookings
       const { data, error } = await supabase.rpc('create_booking', {
         p_calendar_slug: bookingData.calendarSlug,
         p_service_type_id: bookingData.serviceTypeId,
@@ -51,7 +52,6 @@ export const usePublicBookingCreation = () => {
         return { success: false, error: error.message };
       }
 
-      // Type cast the JSON response to our expected structure
       const result = data as unknown as BookingResult & {
         booking_id?: string;
         confirmation_token?: string;

@@ -1,43 +1,70 @@
 
-import { format } from 'date-fns';
+import { addMinutes, format, parse } from 'date-fns';
 import { BookingFormData } from './bookingSchema';
 
 export const calculateDuration = (startTime: string, endTime: string): number => {
-  if (!startTime || !endTime) return 0;
-  const [startH, startM] = startTime.split(':').map(Number);
-  const [endH, endM] = endTime.split(':').map(Number);
-  const startMinutes = startH * 60 + startM;
-  const endMinutes = endH * 60 + endM;
-  return Math.max(0, endMinutes - startMinutes);
+  const start = parse(startTime, 'HH:mm', new Date());
+  const end = parse(endTime, 'HH:mm', new Date());
+  
+  // Handle end time on next day
+  if (end < start) {
+    const nextDayEnd = new Date(end);
+    nextDayEnd.setDate(nextDayEnd.getDate() + 1);
+    return Math.round((nextDayEnd.getTime() - start.getTime()) / (1000 * 60));
+  }
+  
+  return Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+};
+
+export const calculateEndTimeFromService = (startTime: string, durationMinutes: number): string => {
+  const start = parse(startTime, 'HH:mm', new Date());
+  const end = addMinutes(start, durationMinutes);
+  return format(end, 'HH:mm');
 };
 
 export const calculateBookingTimes = (data: BookingFormData) => {
-  if (!data.startTime || !data.endTime) {
-    throw new Error('Start time and end time are required');
-  }
-  
-  const dateStr = format(data.date, 'yyyy-MM-dd');
-  const startTime = `${dateStr}T${data.startTime}:00+01:00`;
-  const endTime = `${dateStr}T${data.endTime}:00+01:00`;
+  const bookingDate = data.date;
+  const startTime = new Date(bookingDate);
+  const [startHours, startMinutes] = data.startTime.split(':').map(Number);
+  startTime.setHours(startHours, startMinutes, 0, 0);
 
-  return { startTime, endTime };
+  const endTime = new Date(bookingDate);
+  const [endHours, endMinutes] = data.endTime.split(':').map(Number);
+  endTime.setHours(endHours, endMinutes, 0, 0);
+
+  // Handle next day scenarios
+  if (endTime < startTime) {
+    endTime.setDate(endTime.getDate() + 1);
+  }
+
+  return {
+    startTime: startTime.toISOString(),
+    endTime: endTime.toISOString()
+  };
 };
 
 export const buildBookingNotes = (data: BookingFormData, duration: number): string => {
-  return [
-    data.location && `Locatie: ${data.location}`,
-    data.description && `Beschrijving: ${data.description}`,
-    data.hasReminder && `Herinnering: ${data.reminderTiming} minuten van tevoren`,
-    'Interne afspraak - handmatig aangemaakt',
-    `Duur: ${duration} minuten`
-  ].filter(Boolean).join('\n');
-};
-
-export const calculateEndTimeFromService = (startTime: string, duration: number): string => {
-  const [hours, minutes] = startTime.split(':').map(Number);
-  const startMinutes = hours * 60 + minutes;
-  const endMinutes = startMinutes + duration;
-  const endHours = Math.floor(endMinutes / 60);
-  const endMins = endMinutes % 60;
-  return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+  let notes = '';
+  
+  if (data.location && data.location.trim()) {
+    notes += `Locatie: ${data.location.trim()}\n`;
+  }
+  
+  if (data.description && data.description.trim()) {
+    notes += `Beschrijving: ${data.description.trim()}\n`;
+  }
+  
+  if (data.hasReminder) {
+    const reminderText = data.reminderTiming === '30' ? '30 minuten' : 
+                        data.reminderTiming === '60' ? '1 uur' :
+                        data.reminderTiming === '120' ? '2 uur' :
+                        data.reminderTiming === '1440' ? '1 dag' :
+                        `${data.reminderTiming} minuten`;
+    notes += `Herinnering: ${reminderText} van tevoren\n`;
+  }
+  
+  notes += `Duur: ${duration} minuten\n`;
+  notes += `Status: Bevestigd`; // Always confirmed now
+  
+  return notes.trim();
 };
