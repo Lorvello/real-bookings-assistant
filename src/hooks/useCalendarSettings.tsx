@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,7 +8,7 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 export const useCalendarSettings = (calendarId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { refetchCalendars } = useCalendarContext();
+  const { refreshCalendars } = useCalendarContext();
   const [settings, setSettings] = useState<CalendarSettings | null>(null);
   const [pendingChanges, setPendingChanges] = useState<Partial<CalendarSettings>>({});
   const [loading, setLoading] = useState(true);
@@ -129,7 +128,7 @@ export const useCalendarSettings = (calendarId?: string) => {
       });
 
       // Refresh calendars to update the context
-      await refetchCalendars();
+      await refreshCalendars();
       return true;
     } catch (error) {
       console.error('Error updating calendar name:', error);
