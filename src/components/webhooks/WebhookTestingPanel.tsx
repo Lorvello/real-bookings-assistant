@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { TestTube, Play, Zap, CheckCircle, AlertTriangle, Rocket } from 'lucide-react';
+import { TestTube, Play, Zap, CheckCircle, AlertTriangle, Rocket, Activity, Database } from 'lucide-react';
 
 interface WebhookTestingPanelProps {
   calendarId: string;
@@ -32,6 +32,250 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
       ...result,
       timestamp: new Date().toISOString()
     }, ...prev.slice(0, 9)]);
+  };
+
+  const runCompleteSystemTest = async () => {
+    try {
+      setTesting(true);
+      
+      toast({
+        title: "🚀 Complete System Test Gestart",
+        description: "Testing volledige webhook pipeline: Database → Trigger → Edge Function → n8n",
+      });
+
+      // Phase 1: System Health Check
+      addTestResult({
+        success: true,
+        message: '📊 Phase 1: System Health Check - Gestart',
+      });
+
+      // Check webhook endpoints
+      const { data: endpoints, error: endpointError } = await supabase
+        .from('webhook_endpoints')
+        .select('*')
+        .eq('calendar_id', calendarId)
+        .eq('is_active', true);
+
+      if (endpointError) throw endpointError;
+
+      if (!endpoints || endpoints.length === 0) {
+        addTestResult({
+          success: false,
+          message: '❌ Geen actieve webhook endpoints gevonden',
+          details: { calendar_id: calendarId }
+        });
+        return;
+      }
+
+      addTestResult({
+        success: true,
+        message: `✅ ${endpoints.length} actieve webhook endpoint(s) gevonden`,
+        details: { endpoints: endpoints.map(e => e.webhook_url) }
+      });
+
+      // Phase 2: Database Trigger Test
+      addTestResult({
+        success: true,
+        message: '📊 Phase 2: Database Trigger Test - Gestart',
+      });
+
+      const testBooking = {
+        calendar_id: calendarId,
+        customer_name: 'Complete System Test',
+        customer_email: 'system-test@brandevolves.app',
+        customer_phone: '+31612345999',
+        start_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+        end_time: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+        status: 'pending',
+        service_name: 'Complete System Test Service',
+        notes: 'Volledige webhook systeem test'
+      };
+
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert(testBooking)
+        .select()
+        .single();
+
+      if (bookingError) throw bookingError;
+
+      addTestResult({
+        success: true,
+        message: '✅ Test booking aangemaakt',
+        details: { booking_id: booking.id }
+      });
+
+      // Wait for trigger to process
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Check if webhook event was created
+      const { data: webhookEvent, error: webhookError } = await supabase
+        .from('webhook_events')
+        .select('*')
+        .eq('calendar_id', calendarId)
+        .eq('event_type', 'booking.created')
+        .gte('created_at', new Date(Date.now() - 10000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (webhookError) throw webhookError;
+
+      if (!webhookEvent || webhookEvent.length === 0) {
+        addTestResult({
+          success: false,
+          message: '❌ Database trigger FAILED - Geen webhook event aangemaakt',
+          details: { booking_id: booking.id }
+        });
+        return;
+      }
+
+      const payload = webhookEvent[0].payload as any;
+      const triggerSource = payload?.trigger_source || 'unknown';
+
+      addTestResult({
+        success: true,
+        message: '✅ Database trigger werkt perfect',
+        details: {
+          webhook_event_id: webhookEvent[0].id,
+          trigger_source: triggerSource,
+          payload_size: JSON.stringify(webhookEvent[0].payload).length
+        }
+      });
+
+      // Phase 3: Edge Function Test
+      addTestResult({
+        success: true,
+        message: '📊 Phase 3: Edge Function Processing - Gestart',
+      });
+
+      const { data: processResult, error: processError } = await supabase.functions.invoke('process-webhooks', {
+        body: { 
+          source: 'complete-system-test',
+          calendar_id: calendarId,
+          force: false,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      if (processError) throw processError;
+
+      addTestResult({
+        success: true,
+        message: `✅ Edge Function verwerkt: ${processResult?.processed || 0} webhooks`,
+        details: {
+          processed: processResult?.processed || 0,
+          successful: processResult?.successful || 0,
+          failed: processResult?.failed || 0
+        }
+      });
+
+      // Phase 4: Webhook Delivery Verification
+      addTestResult({
+        success: true,
+        message: '📊 Phase 4: Webhook Delivery Verification - Gestart',
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      const { data: finalStatus, error: statusError } = await supabase
+        .from('webhook_events')
+        .select('status, attempts, last_attempt_at')
+        .eq('id', webhookEvent[0].id)
+        .single();
+
+      if (statusError) throw statusError;
+
+      const deliverySuccess = finalStatus.status === 'sent';
+
+      addTestResult({
+        success: deliverySuccess,
+        message: deliverySuccess 
+          ? '✅ Webhook succesvol afgeleverd aan n8n' 
+          : `❌ Webhook delivery failed - Status: ${finalStatus.status}`,
+        details: {
+          final_status: finalStatus.status,
+          attempts: finalStatus.attempts,
+          last_attempt: finalStatus.last_attempt_at
+        }
+      });
+
+      // Phase 5: System Performance Test
+      addTestResult({
+        success: true,
+        message: '📊 Phase 5: System Performance Test - Gestart',
+      });
+
+      const startTime = Date.now();
+      
+      // Test multiple webhook processing
+      const { data: bulkProcessResult } = await supabase.functions.invoke('process-webhooks', {
+        body: { 
+          source: 'performance-test',
+          calendar_id: calendarId,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      const processingTime = Date.now() - startTime;
+
+      addTestResult({
+        success: processingTime < 10000,
+        message: `✅ Performance test: ${processingTime}ms verwerking`,
+        details: {
+          processing_time_ms: processingTime,
+          bulk_result: bulkProcessResult,
+          performance_rating: processingTime < 5000 ? 'Excellent' : processingTime < 10000 ? 'Good' : 'Needs improvement'
+        }
+      });
+
+      // Cleanup
+      await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', booking.id);
+
+      // Final Summary
+      const overallSuccess = deliverySuccess && processingTime < 10000;
+      
+      addTestResult({
+        success: overallSuccess,
+        message: overallSuccess 
+          ? '🎉 COMPLETE SYSTEM TEST SUCCESVOL! Alle componenten werken perfect.' 
+          : '⚠️ Complete system test voltooid met waarschuwingen - controleer details',
+        details: {
+          test_phases: 5,
+          database_trigger: 'OK',
+          edge_function: 'OK',
+          webhook_delivery: deliverySuccess ? 'OK' : 'FAILED',
+          performance: processingTime < 10000 ? 'OK' : 'SLOW',
+          system_status: overallSuccess ? 'OPERATIONAL' : 'DEGRADED',
+          recommendations: overallSuccess ? ['System is fully operational'] : ['Check webhook endpoints', 'Monitor n8n workflow']
+        }
+      });
+
+      toast({
+        title: overallSuccess ? "🎉 Complete System Test SUCCESVOL!" : "⚠️ System Test Voltooid",
+        description: overallSuccess 
+          ? "Volledige webhook pipeline werkt perfect van database naar n8n"
+          : "Test voltooid met waarschuwingen - controleer resultaten",
+        variant: overallSuccess ? "default" : "destructive",
+      });
+
+    } catch (error) {
+      console.error('Complete system test error:', error);
+      addTestResult({
+        success: false,
+        message: `❌ Complete system test FAILED: ${error}`,
+        details: { error_type: 'system_test_failure', error_message: String(error) }
+      });
+      toast({
+        title: "Complete System Test Failed",
+        description: `Fout tijdens test: ${error}`,
+        variant: "destructive",
+      });
+    } finally {
+      setTesting(false);
+    }
   };
 
   const testDatabaseTrigger = async () => {
@@ -450,43 +694,47 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
         {/* Enhanced Test Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Button
+            onClick={runCompleteSystemTest}
+            disabled={testing}
+            variant="default"
+            className="h-20 flex flex-col items-center justify-center bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+          >
+            <Activity className="w-6 h-6 mb-2" />
+            <span className="font-semibold">Complete System Test</span>
+            <span className="text-xs opacity-90">Volledige Pipeline Test</span>
+          </Button>
+          
+          <Button
             onClick={testDatabaseTrigger}
             disabled={testing}
             variant="outline"
-            className="h-16 flex flex-col items-center justify-center"
+            className="h-20 flex flex-col items-center justify-center"
           >
-            <Play className="w-5 h-5 mb-1" />
-            Test Database Trigger
+            <Database className="w-5 h-5 mb-1" />
+            <span>Database Trigger</span>
+            <span className="text-xs opacity-70">Test Trigger</span>
           </Button>
           
           <Button
             onClick={testEdgeFunctionProcessing}
             disabled={testing}
             variant="outline"
-            className="h-16 flex flex-col items-center justify-center"
+            className="h-20 flex flex-col items-center justify-center"
           >
             <Zap className="w-5 h-5 mb-1" />
-            Test Edge Function
+            <span>Edge Function</span>
+            <span className="text-xs opacity-70">Test Processing</span>
           </Button>
           
           <Button
             onClick={processAllPendingWebhooks}
             disabled={testing}
             variant="secondary"
-            className="h-16 flex flex-col items-center justify-center"
+            className="h-20 flex flex-col items-center justify-center"
           >
             <Rocket className="w-5 h-5 mb-1" />
-            Process All Pending
-          </Button>
-          
-          <Button
-            onClick={testEndToEndFlow}
-            disabled={testing}
-            variant="default"
-            className="h-16 flex flex-col items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600"
-          >
-            <TestTube className="w-5 h-5 mb-1" />
-            {testing ? 'Testing...' : 'End-to-End Test'}
+            <span>Process Pending</span>
+            <span className="text-xs opacity-70">Manual Process</span>
           </Button>
         </div>
 
