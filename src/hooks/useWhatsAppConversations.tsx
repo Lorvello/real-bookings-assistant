@@ -17,7 +17,8 @@ export function useWhatsAppConversations(calendarId: string) {
             display_name,
             first_name,
             last_name,
-            profile_picture_url
+            profile_picture_url,
+            created_at
           )
         `)
         .eq('calendar_id', calendarId)
