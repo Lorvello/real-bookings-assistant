@@ -2,57 +2,70 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-interface WhatsAppMetrics {
-  totalConversations: number;
-  activeConversations: number;
-  totalMessages: number;
-  avgResponseTime: number;
-  // Add comparison data
-  prevWeekConversations?: number;
+interface ConversationMetrics {
+  total_contacts: number;
+  total_conversations: number;
+  active_conversations: number;
+  total_messages: number;
+  inbound_messages: number;
+  outbound_messages: number;
+  avg_response_time_minutes: number;
+  bookings_via_whatsapp: number;
+  total_booking_intents: number;
+  completed_booking_intents: number;
+  conversation_to_booking_rate: number;
+  booking_intent_conversion_rate: number;
 }
 
 export function useWhatsAppConversationMetrics(calendarId?: string) {
   return useQuery({
     queryKey: ['whatsapp-conversation-metrics', calendarId],
-    queryFn: async (): Promise<WhatsAppMetrics | null> => {
+    queryFn: async (): Promise<ConversationMetrics | null> => {
       if (!calendarId) return null;
 
-      const [conversationsData, messagesData, prevWeekData] = await Promise.all([
-        // Current conversations
-        supabase
-          .from('whatsapp_conversations')
-          .select('id, status', { count: 'exact' })
-          .eq('calendar_id', calendarId),
-        
-        // Total messages
-        supabase
-          .from('whatsapp_messages')
-          .select('id, whatsapp_conversations!inner(calendar_id)', { count: 'exact' })
-          .eq('whatsapp_conversations.calendar_id', calendarId),
-        
-        // Previous week conversations for comparison
-        supabase
-          .from('whatsapp_conversations')
-          .select('id', { count: 'exact' })
-          .eq('calendar_id', calendarId)
-          .gte('created_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
-          .lt('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-      ]);
+      const { data, error } = await supabase
+        .from('whatsapp_analytics')
+        .select('*')
+        .eq('calendar_id', calendarId)
+        .single();
 
-      const totalConversations = conversationsData.count || 0;
-      const activeConversations = conversationsData.data?.filter(c => c.status === 'active').length || 0;
-      const totalMessages = messagesData.count || 0;
-      const prevWeekConversations = prevWeekData.count || 0;
+      if (error) {
+        // If no analytics data exists, return default values
+        if (error.code === 'PGRST116') {
+          return {
+            total_contacts: 0,
+            total_conversations: 0,
+            active_conversations: 0,
+            total_messages: 0,
+            inbound_messages: 0,
+            outbound_messages: 0,
+            avg_response_time_minutes: 0,
+            bookings_via_whatsapp: 0,
+            total_booking_intents: 0,
+            completed_booking_intents: 0,
+            conversation_to_booking_rate: 0,
+            booking_intent_conversion_rate: 0,
+          };
+        }
+        throw error;
+      }
 
       return {
-        totalConversations,
-        activeConversations,
-        totalMessages,
-        avgResponseTime: 2, // Simplified
-        prevWeekConversations,
+        total_contacts: data.total_contacts || 0,
+        total_conversations: data.total_conversations || 0,
+        active_conversations: data.active_conversations || 0,
+        total_messages: data.total_messages || 0,
+        inbound_messages: data.inbound_messages || 0,
+        outbound_messages: data.outbound_messages || 0,
+        avg_response_time_minutes: data.avg_response_time_minutes || 0,
+        bookings_via_whatsapp: data.bookings_via_whatsapp || 0,
+        total_booking_intents: data.total_booking_intents || 0,
+        completed_booking_intents: data.completed_booking_intents || 0,
+        conversation_to_booking_rate: data.conversation_to_booking_rate || 0,
+        booking_intent_conversion_rate: data.booking_intent_conversion_rate || 0,
       };
     },
     enabled: !!calendarId,
-    staleTime: 60000, // 1 minute
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

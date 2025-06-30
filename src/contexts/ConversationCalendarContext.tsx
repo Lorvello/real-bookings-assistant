@@ -1,36 +1,38 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useCalendars } from '@/hooks/useCalendars';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 
 interface ConversationCalendarContextType {
   selectedCalendarId: string | null;
-  setSelectedCalendarId: (id: string | null) => void;
-  calendars: any[];
-  isLoading: boolean;
+  setSelectedCalendarId: (calendarId: string) => void;
+  calendars: Array<{ id: string; name: string }>;
 }
 
 const ConversationCalendarContext = createContext<ConversationCalendarContextType | undefined>(undefined);
 
 export function ConversationCalendarProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const { calendars, loading } = useCalendars();
+  const { calendars, selectedCalendar } = useCalendarContext();
   const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
 
-  // Auto-select first calendar when calendars load
+  // Auto-select the first available calendar or the currently selected one
   useEffect(() => {
-    if (calendars.length > 0 && !selectedCalendarId) {
+    if (selectedCalendar) {
+      setSelectedCalendarId(selectedCalendar.id);
+    } else if (calendars.length > 0 && !selectedCalendarId) {
       setSelectedCalendarId(calendars[0].id);
     }
-  }, [calendars, selectedCalendarId]);
+  }, [selectedCalendar, calendars, selectedCalendarId]);
+
+  const handleSetSelectedCalendarId = (calendarId: string) => {
+    setSelectedCalendarId(calendarId);
+  };
 
   return (
     <ConversationCalendarContext.Provider
       value={{
         selectedCalendarId,
-        setSelectedCalendarId,
-        calendars,
-        isLoading: loading,
+        setSelectedCalendarId: handleSetSelectedCalendarId,
+        calendars: calendars.map(cal => ({ id: cal.id, name: cal.name })),
       }}
     >
       {children}

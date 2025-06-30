@@ -1,57 +1,87 @@
 
-import { useMemo } from 'react';
-import { useWhatsAppConversations } from '@/hooks/useWhatsAppConversations';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { WhatsAppConversation } from '@/types/whatsapp';
 
-interface ConversationsFilter {
-  searchTerm: string;
-  statusFilter: 'all' | 'active' | 'closed' | 'archived';
-  dateRange: { start: Date; end: Date };
+interface ConversationFilters {
+  searchTerm?: string;
+  statusFilter?: 'all' | 'active' | 'closed' | 'archived';
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
 }
 
 export function useWhatsAppConversationsList(
   calendarId: string,
-  filters: ConversationsFilter
+  filters: ConversationFilters = {}
 ) {
-  const { data: conversations, isLoading, error } = useWhatsAppConversations(calendarId);
+  const conversationsQuery = useQuery({
+    queryKey: ['whatsapp-conversations-list', calendarId, filters],
+    queryFn: async () => {
+      let query = supabase
+        .from('whatsapp_conversations')
+        .select(`
+          *,
+          whatsapp_contacts (
+            id,
+            phone_number,
+            display_name,
+            first_name,
+            last_name,
+            profile_picture_url
+          )
+        `)
+        .eq('calendar_id', calendarId);
 
-  const filteredConversations = useMemo(() => {
-    if (!conversations) return [];
+      // Apply status filter
+      if (filters.statusFilter && filters.statusFilter !== 'all') {
+        query = query.eq('status', filters.statusFilter);
+      }
 
-    return conversations.filter(conversation => {
-      const contact = conversation.whatsapp_contacts;
+      // Apply date range filter
+      if (filters.dateRange) {
+        query = query
+          .gte('created_at', filters.dateRange.start.toISOString())
+          .lte('created_at', filters.dateRange.end.toISOString());
+      }
+
+      query = query
+        .order('last_message_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      // Apply search filter client-side for more flexibility
+      let filteredData = data || [];
       
-      // Search filter
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
-        const matchesSearch = 
-          contact?.phone_number?.includes(searchLower) ||
-          contact?.display_name?.toLowerCase().includes(searchLower) ||
-          contact?.first_name?.toLowerCase().includes(searchLower) ||
-          contact?.last_name?.toLowerCase().includes(searchLower);
-        
-        if (!matchesSearch) return false;
+        filteredData = filteredData.filter(conversation => {
+          const contact = conversation.whatsapp_contacts;
+          if (!contact) return false;
+          
+          return (
+            contact.phone_number?.toLowerCase().includes(searchLower) ||
+            contact.display_name?.toLowerCase().includes(searchLower) ||
+            contact.first_name?.toLowerCase().includes(searchLower) ||
+            contact.last_name?.toLowerCase().includes(searchLower)
+          );
+        });
       }
 
-      // Status filter
-      if (filters.statusFilter !== 'all' && conversation.status !== filters.statusFilter) {
-        return false;
-      }
-
-      // Date range filter
-      const lastActivity = conversation.last_message_at ? new Date(conversation.last_message_at) : new Date(conversation.created_at);
-      if (lastActivity < filters.dateRange.start || lastActivity > filters.dateRange.end) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [conversations, filters]);
+      return filteredData;
+    },
+    enabled: !!calendarId,
+    staleTime: 30000, // 30 seconds
+  });
 
   return {
-    conversations: filteredConversations,
-    isLoading,
-    error,
-    totalCount: conversations?.length || 0,
-    filteredCount: filteredConversations.length,
+    conversations: conversationsQuery.data || [],
+    isLoading: conversationsQuery.isLoading,
+    error: conversationsQuery.error,
+    refetch: conversationsQuery.refetch,
   };
 }
