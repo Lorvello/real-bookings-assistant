@@ -111,17 +111,9 @@ export function WhatsAppContactCard({
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            {/* Modern Avatar */}
+            {/* Modern Avatar - removed profile_picture_url usage */}
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm shadow-sm">
-              {contact.profile_picture_url ? (
-                <img 
-                  src={contact.profile_picture_url} 
-                  alt={displayName}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                getInitials(displayName)
-              )}
+              {getInitials(displayName)}
             </div>
             
             <div className="flex-1 min-w-0">
