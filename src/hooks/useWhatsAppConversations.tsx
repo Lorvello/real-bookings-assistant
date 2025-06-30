@@ -2,8 +2,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { WhatsAppConversation } from '@/types/whatsapp';
+import { useWhatsAppConversationUpdates } from './useWhatsAppConversationUpdates';
 
 export function useWhatsAppConversations(calendarId: string) {
+  // Set up real-time updates
+  useWhatsAppConversationUpdates(calendarId);
+
   return useQuery({
     queryKey: ['whatsapp-conversations', calendarId],
     queryFn: async () => {

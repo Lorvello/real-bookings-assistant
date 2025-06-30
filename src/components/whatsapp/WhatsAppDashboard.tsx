@@ -4,6 +4,7 @@ import { ConversationsList } from './ConversationsList';
 import { ConversationView } from './ConversationView';
 import { ContactSidebar } from './ContactSidebar';
 import { WhatsAppContactOverview } from './WhatsAppContactOverview';
+import { OrphanedConversationsManager } from './OrphanedConversationsManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface WhatsAppDashboardProps {
@@ -16,9 +17,10 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
   return (
     <div className="h-full">
       <Tabs defaultValue="overview" className="h-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Contacten Overzicht</TabsTrigger>
           <TabsTrigger value="conversations">Live Gesprekken</TabsTrigger>
+          <TabsTrigger value="management">Beheer</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="mt-6">
@@ -45,6 +47,12 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
             <div className="lg:col-span-1">
               <ContactSidebar conversationId={selectedConversationId} />
             </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="management" className="mt-6">
+          <div className="space-y-6">
+            <OrphanedConversationsManager />
           </div>
         </TabsContent>
       </Tabs>

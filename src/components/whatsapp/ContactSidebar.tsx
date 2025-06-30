@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, Phone, Calendar, Clock, MessageSquare, Mail } from 'lucide-react';
+import { User, Phone, Calendar, Clock, MessageSquare, Mail, Link } from 'lucide-react';
 import { useWhatsAppConversations } from '@/hooks/useWhatsAppConversations';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -84,6 +83,12 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         <CardTitle className="flex items-center gap-2 text-white">
           <User className="w-5 h-5 text-green-400" />
           Contact Info
+          {conversation.calendar_id && (
+            <Badge className="bg-green-500/20 text-green-300 border-green-500/30 ml-auto">
+              <Link className="w-3 h-3 mr-1" />
+              Gekoppeld
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
@@ -129,6 +134,15 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
                 <span className="text-sm text-gray-200">
                   {format(new Date(conversation.last_message_at), 'dd MMM HH:mm', { locale: nl })}
                 </span>
+              </div>
+            )}
+
+            {conversation.calendar_id && (
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 mt-3">
+                <div className="flex items-center gap-2 text-sm text-green-300">
+                  <Link className="w-4 h-4" />
+                  <span className="font-medium">Automatisch gekoppeld aan kalender</span>
+                </div>
               </div>
             )}
           </div>

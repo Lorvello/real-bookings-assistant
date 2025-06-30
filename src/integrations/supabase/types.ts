@@ -2227,6 +2227,16 @@ export type Database = {
             }
         Returns: Json
       }
+      find_orphaned_whatsapp_conversations: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          conversation_id: string
+          contact_phone: string
+          contact_name: string
+          message_count: number
+          last_activity: string
+        }[]
+      }
       generate_confirmation_token: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2329,6 +2339,10 @@ export type Database = {
       get_whatsapp_data_retention_days: {
         Args: { p_calendar_id: string }
         Returns: number
+      }
+      link_existing_whatsapp_conversations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       log_error: {
         Args: {
