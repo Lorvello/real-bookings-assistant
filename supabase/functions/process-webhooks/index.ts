@@ -13,285 +13,187 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    console.log('🚀 Starting enhanced webhook processing...');
-
-    // Parse request body to get trigger info
-    const requestBody = await req.text();
-    let triggerInfo = {};
+    const { source, calendar_id, force, test } = await req.json()
     
-    try {
-      if (requestBody) {
-        triggerInfo = JSON.parse(requestBody);
-        console.log('📨 Trigger info:', triggerInfo);
-      }
-    } catch (e) {
-      console.log('📨 No trigger info provided, processing all pending webhooks');
+    console.log(`🚀 Processing webhooks - Source: ${source}, Calendar: ${calendar_id}, Force: ${force}, Test: ${test}`)
+
+    // Haal pending webhook events op
+    let query = supabaseClient
+      .from('webhook_events')
+      .select('*')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+      .limit(50)
+
+    if (calendar_id && !force) {
+      query = query.eq('calendar_id', calendar_id)
     }
 
-    // Fetch pending webhook events with detailed booking information
-    const { data: events, error: fetchError } = await supabase
-      .from('webhook_events')
-      .select(`
-        *,
-        webhook_endpoints!inner(webhook_url, is_active)
-      `)
-      .eq('status', 'pending')
-      .eq('webhook_endpoints.is_active', true)
-      .order('created_at', { ascending: true })
-      .limit(100)
+    const { data: webhookEvents, error: webhookError } = await query
 
-    if (fetchError) {
-      console.error('❌ Error fetching webhook events:', fetchError)
+    if (webhookError) {
+      console.error('❌ Error fetching webhook events:', webhookError)
+      throw webhookError
+    }
+
+    if (!webhookEvents || webhookEvents.length === 0) {
+      console.log('✅ No pending webhook events to process')
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch webhook events', details: fetchError }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
+        JSON.stringify({ 
+          success: true, 
+          processed: 0, 
+          successful: 0,
+          message: 'No pending webhooks' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log(`📊 Found ${events?.length || 0} pending webhook events`);
+    console.log(`📤 Processing ${webhookEvents.length} webhook events...`)
 
-    if (!events || events.length === 0) {
-      return new Response(
-        JSON.stringify({ 
-          success: true,
-          processed: 0,
-          successful: 0,
-          failed: 0,
-          message: 'No pending webhooks to process',
-          timestamp: new Date().toISOString()
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
+    let processedCount = 0
+    let successfulCount = 0
 
-    const results = []
-    const processedEvents = []
-
-    for (const event of events) {
+    // Verwerk elke webhook event
+    for (const webhookEvent of webhookEvents) {
       try {
-        console.log(`📤 Processing webhook ${event.id} for ${event.event_type}`);
-        
-        // Enhanced payload with metadata
-        const webhookPayload = {
-          event_type: event.event_type,
-          webhook_id: event.id,
-          timestamp: event.created_at,
-          ...event.payload,
-          metadata: {
-            source: 'Brand Evolves Calendar',
-            version: '1.0',
-            webhook_url: event.webhook_endpoints.webhook_url,
-            attempts: event.attempts + 1,
-            trigger_source: event.payload?.trigger_source || 'unknown'
-          }
-        };
+        // Haal actieve webhook endpoints op voor deze calendar
+        const { data: endpoints, error: endpointError } = await supabaseClient
+          .from('webhook_endpoints')
+          .select('*')
+          .eq('calendar_id', webhookEvent.calendar_id)
+          .eq('is_active', true)
 
-        console.log(`🎯 Sending to: ${event.webhook_endpoints.webhook_url}`);
-        console.log(`📦 Payload preview:`, {
-          event_type: webhookPayload.event_type,
-          booking_id: webhookPayload.booking_id,
-          customer_name: webhookPayload.customer_name
-        });
-
-        // Send webhook to n8n with enhanced headers and timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-        const response = await fetch(event.webhook_endpoints.webhook_url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'Brand-Evolves-Webhook/1.0',
-            'X-Webhook-Event': event.event_type,
-            'X-Webhook-ID': event.id,
-            'X-Webhook-Timestamp': event.created_at,
-            'X-Webhook-Attempt': (event.attempts + 1).toString(),
-            'X-Calendar-ID': event.calendar_id,
-          },
-          body: JSON.stringify(webhookPayload),
-          signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        const success = response.ok
-        const attempts = event.attempts + 1
-        const responseText = await response.text();
-
-        console.log(`📡 Response status: ${response.status}`);
-        console.log(`📄 Response preview: ${responseText.substring(0, 200)}...`);
-
-        if (success) {
-          console.log(`✅ Webhook ${event.id} delivered successfully`);
-          
-          // Update webhook event status to sent
-          const { error: updateError } = await supabase
-            .from('webhook_events')
-            .update({
-              status: 'sent',
-              attempts: attempts,
-              last_attempt_at: new Date().toISOString()
-            })
-            .eq('id', event.id);
-
-          if (updateError) {
-            console.error(`❌ Error updating webhook status:`, updateError);
-          }
-
-          // Log successful delivery
-          await supabase
-            .from('webhook_events')
-            .insert({
-              calendar_id: event.calendar_id,
-              event_type: 'webhook.delivered',
-              payload: {
-                webhook_url: event.webhook_endpoints.webhook_url,
-                original_event: event.event_type,
-                booking_id: event.payload?.booking_id,
-                delivered_at: new Date().toISOString(),
-                response_status: response.status,
-                response_body: responseText.substring(0, 1000),
-                delivery_time_ms: Date.now() - new Date(event.created_at).getTime()
-              },
-              status: 'sent'
-            });
-
-          processedEvents.push(event.id);
-
-        } else {
-          console.error(`❌ Webhook ${event.id} failed with status ${response.status}: ${responseText.substring(0, 500)}`);
-          
-          const newStatus = attempts >= 3 ? 'failed' : 'pending';
-          
-          await supabase
-            .from('webhook_events')
-            .update({
-              status: newStatus,
-              attempts: attempts,
-              last_attempt_at: new Date().toISOString()
-            })
-            .eq('id', event.id);
-
-          // Log failure
-          await supabase
-            .from('webhook_events')
-            .insert({
-              calendar_id: event.calendar_id,
-              event_type: 'webhook.failed',
-              payload: {
-                webhook_url: event.webhook_endpoints.webhook_url,
-                original_event: event.event_type,
-                booking_id: event.payload?.booking_id,
-                failed_at: new Date().toISOString(),
-                error_status: response.status,
-                error_message: responseText.substring(0, 500),
-                attempts: attempts,
-                will_retry: newStatus === 'pending'
-              },
-              status: 'sent'
-            });
+        if (endpointError) {
+          console.error('❌ Error fetching endpoints:', endpointError)
+          continue
         }
 
-        results.push({
-          event_id: event.id,
-          success,
-          status: response.status,
-          attempts,
-          webhook_url: event.webhook_endpoints.webhook_url,
-          response_preview: responseText.substring(0, 200),
-          event_type: event.event_type
-        });
+        if (!endpoints || endpoints.length === 0) {
+          console.log(`⚠️ No active endpoints for calendar ${webhookEvent.calendar_id}`)
+          
+          // Mark as failed - no endpoints
+          await supabaseClient
+            .from('webhook_events')
+            .update({
+              status: 'failed',
+              attempts: (webhookEvent.attempts || 0) + 1,
+              last_attempt_at: new Date().toISOString()
+            })
+            .eq('id', webhookEvent.id)
+          
+          processedCount++
+          continue
+        }
+
+        // Verstuur naar elke actieve endpoint
+        for (const endpoint of endpoints) {
+          try {
+            console.log(`📡 Sending webhook to: ${endpoint.webhook_url}`)
+            
+            const webhookPayload = {
+              ...webhookEvent.payload,
+              webhook_event_id: webhookEvent.id,
+              delivered_at: new Date().toISOString(),
+              source: 'brand-evolves-webhook'
+            }
+
+            const response = await fetch(endpoint.webhook_url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'Brand-Evolves-Webhook/1.0',
+                'X-Webhook-Source': 'supabase-edge-function'
+              },
+              body: JSON.stringify(webhookPayload)
+            })
+
+            if (response.ok) {
+              console.log(`✅ Webhook sent successfully to ${endpoint.webhook_url}`)
+              
+              // Mark as sent
+              await supabaseClient
+                .from('webhook_events')
+                .update({
+                  status: 'sent',
+                  attempts: (webhookEvent.attempts || 0) + 1,
+                  last_attempt_at: new Date().toISOString()
+                })
+                .eq('id', webhookEvent.id)
+              
+              successfulCount++
+            } else {
+              console.error(`❌ Webhook failed: ${response.status} ${response.statusText}`)
+              const responseText = await response.text()
+              console.error(`Response: ${responseText}`)
+              
+              // Mark as failed
+              await supabaseClient
+                .from('webhook_events')
+                .update({
+                  status: 'failed',
+                  attempts: (webhookEvent.attempts || 0) + 1,
+                  last_attempt_at: new Date().toISOString()
+                })
+                .eq('id', webhookEvent.id)
+            }
+          } catch (fetchError) {
+            console.error(`❌ Network error sending webhook:`, fetchError)
+            
+            // Mark as failed
+            await supabaseClient
+              .from('webhook_events')
+              .update({
+                status: 'failed',
+                attempts: (webhookEvent.attempts || 0) + 1,
+                last_attempt_at: new Date().toISOString()
+              })
+              .eq('id', webhookEvent.id)
+          }
+        }
+
+        processedCount++
 
       } catch (error) {
-        console.error(`💥 Error sending webhook ${event.id}:`, error);
-        
-        const attempts = event.attempts + 1;
-        const newStatus = attempts >= 3 ? 'failed' : 'pending';
-        
-        // Update failed attempt
-        await supabase
-          .from('webhook_events')
-          .update({
-            status: newStatus,
-            attempts: attempts,
-            last_attempt_at: new Date().toISOString()
-          })
-          .eq('id', event.id);
-
-        // Log error
-        await supabase
-          .from('webhook_events')
-          .insert({
-            calendar_id: event.calendar_id,
-            event_type: 'webhook.error',
-            payload: {
-              webhook_url: event.webhook_endpoints?.webhook_url || 'unknown',
-              original_event: event.event_type,
-              booking_id: event.payload?.booking_id,
-              error_at: new Date().toISOString(),
-              error_message: error.message,
-              error_type: error.name,
-              attempts: attempts,
-              will_retry: newStatus === 'pending'
-            },
-            status: 'sent'
-          });
-
-        results.push({
-          event_id: event.id,
-          success: false,
-          error: error.message,
-          attempts: attempts,
-          event_type: event.event_type
-        });
+        console.error(`❌ Error processing webhook ${webhookEvent.id}:`, error)
+        processedCount++
       }
     }
 
-    const successCount = results.filter(r => r.success).length;
-    const failedCount = results.filter(r => !r.success).length;
+    const result = {
+      success: true,
+      processed: processedCount,
+      successful: successfulCount,
+      failed: processedCount - successfulCount,
+      source,
+      timestamp: new Date().toISOString()
+    }
 
-    console.log(`🎯 Processing complete: ${results.length} events processed`);
-    console.log(`✅ Successfully sent: ${successCount}`);
-    console.log(`❌ Failed: ${failedCount}`);
+    console.log(`🎉 Webhook processing complete:`, result)
 
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        processed: results.length,
-        successful: successCount,
-        failed: failedCount,
-        results,
-        trigger_info: triggerInfo,
-        timestamp: new Date().toISOString()
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+      JSON.stringify(result),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
 
   } catch (error) {
-    console.error('💥 Critical error in webhook processor:', error);
+    console.error('💥 Error in process-webhooks function:', error)
+    
     return new Response(
       JSON.stringify({ 
-        success: false,
-        error: 'Internal server error',
-        message: error.message,
+        success: false, 
+        error: error.message,
         timestamp: new Date().toISOString()
       }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
-    );
+    )
   }
-});
+})

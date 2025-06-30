@@ -11,6 +11,7 @@ import { WebhookHealthMonitor } from '../webhooks/WebhookHealthMonitor';
 import { WebhookTestingPanel } from '../webhooks/WebhookTestingPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
+import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
 
 interface WhatsAppDashboardProps {
   calendarId: string;
@@ -19,8 +20,15 @@ interface WhatsAppDashboardProps {
 export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   
-  // Initialize webhook processor
+  // Initialize enhanced webhook processor
   useWebhookProcessor(calendarId);
+  
+  // Start enhanced auto-processor for real-time webhook processing
+  useWebhookAutoProcessor({ 
+    calendarId, 
+    enabled: true,
+    intervalMs: 5000 // Check every 5 seconds for faster processing
+  });
 
   return (
     <div className="h-full">
