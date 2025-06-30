@@ -19,6 +19,19 @@ interface RealtimePayload {
   eventType: string;
 }
 
+interface TestWebhookResponse {
+  success: boolean;
+  test_webhook_id: string;
+  active_endpoints: number;
+  message: string;
+}
+
+interface ManualProcessResponse {
+  success: boolean;
+  pending_webhooks: number;
+  message: string;
+}
+
 export function useWebhookProcessor(calendarId?: string) {
   const { toast } = useToast();
 
@@ -144,12 +157,14 @@ export function useWebhookProcessor(calendarId?: string) {
       
       console.log('✅ Webhook system test result:', data);
       
+      const testResult = data as TestWebhookResponse;
+      
       toast({
         title: "Webhook test gestart",
-        description: `Test webhook aangemaakt met ${data.active_endpoints} actieve endpoint(s)`,
+        description: `Test webhook aangemaakt met ${testResult.active_endpoints} actieve endpoint(s)`,
       });
       
-      return data;
+      return testResult;
     } catch (error) {
       console.error('💥 Error testing webhook system:', error);
       toast({
@@ -173,15 +188,17 @@ export function useWebhookProcessor(calendarId?: string) {
       
       console.log('✅ Manual processing result:', data);
       
+      const processResult = data as ManualProcessResponse;
+      
       toast({
         title: "Handmatige verwerking gestart",
-        description: `${data.pending_webhooks} webhook(s) worden verwerkt`,
+        description: `${processResult.pending_webhooks} webhook(s) worden verwerkt`,
       });
       
       // Trigger actual processing
       setTimeout(() => processWebhookQueue(), 1000);
       
-      return data;
+      return processResult;
     } catch (error) {
       console.error('💥 Error in manual webhook processing:', error);
       toast({
