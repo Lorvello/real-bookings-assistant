@@ -5,7 +5,9 @@ import { ConversationView } from './ConversationView';
 import { ContactSidebar } from './ContactSidebar';
 import { WhatsAppContactOverview } from './WhatsAppContactOverview';
 import { OrphanedConversationsManager } from './OrphanedConversationsManager';
+import { WebhookStatusMonitor } from '../webhooks/WebhookStatusMonitor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
 
 interface WhatsAppDashboardProps {
   calendarId: string;
@@ -13,13 +15,17 @@ interface WhatsAppDashboardProps {
 
 export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  
+  // Initialize webhook processor
+  useWebhookProcessor(calendarId);
 
   return (
     <div className="h-full">
       <Tabs defaultValue="overview" className="h-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Contacten Overzicht</TabsTrigger>
           <TabsTrigger value="conversations">Live Gesprekken</TabsTrigger>
+          <TabsTrigger value="webhooks">Webhook Status</TabsTrigger>
           <TabsTrigger value="management">Beheer</TabsTrigger>
         </TabsList>
         
@@ -48,6 +54,10 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
               <ContactSidebar conversationId={selectedConversationId} />
             </div>
           </div>
+        </TabsContent>
+        
+        <TabsContent value="webhooks" className="mt-6">
+          <WebhookStatusMonitor calendarId={calendarId} />
         </TabsContent>
         
         <TabsContent value="management" className="mt-6">

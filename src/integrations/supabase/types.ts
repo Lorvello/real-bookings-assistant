@@ -2360,6 +2360,10 @@ export type Database = {
           | { p_message: string; p_calendar_id: string }
         Returns: Json
       }
+      process_booking_webhook_events: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       process_webhook_queue: {
         Args: Record<PropertyKey, never>
         Returns: undefined
