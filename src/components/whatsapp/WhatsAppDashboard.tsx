@@ -5,11 +5,8 @@ import { ConversationView } from './ConversationView';
 import { ContactSidebar } from './ContactSidebar';
 import { WhatsAppContactOverview } from './WhatsAppContactOverview';
 import { OrphanedConversationsManager } from './OrphanedConversationsManager';
-import { WebhookStatusMonitor } from '../webhooks/WebhookStatusMonitor';
-import { WebhookDebugger } from '../webhooks/WebhookDebugger';
+import { WebhookFlowDashboard } from '../webhooks/WebhookFlowDashboard';
 import { WebhookHealthMonitor } from '../webhooks/WebhookHealthMonitor';
-import { WebhookTestingPanel } from '../webhooks/WebhookTestingPanel';
-import { RealTimeWebhookMonitor } from '../webhooks/RealTimeWebhookMonitor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
@@ -35,36 +32,30 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
   return (
     <div className="h-full">
       <Tabs defaultValue="overview" className="h-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">
             Contacten Overzicht
           </TabsTrigger>
           <TabsTrigger value="conversations">
             Live Gesprekken
           </TabsTrigger>
-          <TabsTrigger value="realtime">
+          <TabsTrigger value="webhook-flow">
             <div className="flex items-center gap-2">
-              Real-time Monitor
+              Webhook Flow
               <Badge variant="default" className="bg-green-500 animate-pulse">
-                LIVE
+                ENABLED
               </Badge>
             </div>
           </TabsTrigger>
           <TabsTrigger value="health">
             <div className="flex items-center gap-2">
-              Webhook Health
+              System Health
               {isProcessing && (
                 <Badge variant="secondary" className="bg-blue-100 text-blue-800 animate-pulse">
                   Processing
                 </Badge>
               )}
             </div>
-          </TabsTrigger>
-          <TabsTrigger value="testing">
-            Enhanced Testing
-          </TabsTrigger>
-          <TabsTrigger value="debug">
-            Webhook Debug
           </TabsTrigger>
           <TabsTrigger value="management">
             Beheer
@@ -98,20 +89,12 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
           </div>
         </TabsContent>
         
-        <TabsContent value="realtime" className="mt-6">
-          <RealTimeWebhookMonitor calendarId={calendarId} />
+        <TabsContent value="webhook-flow" className="mt-6">
+          <WebhookFlowDashboard calendarId={calendarId} />
         </TabsContent>
         
         <TabsContent value="health" className="mt-6">
           <WebhookHealthMonitor calendarId={calendarId} />
-        </TabsContent>
-        
-        <TabsContent value="testing" className="mt-6">
-          <WebhookTestingPanel calendarId={calendarId} />
-        </TabsContent>
-        
-        <TabsContent value="debug" className="mt-6">
-          <WebhookDebugger calendarId={calendarId} />
         </TabsContent>
         
         <TabsContent value="management" className="mt-6">
