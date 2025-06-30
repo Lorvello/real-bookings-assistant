@@ -157,7 +157,7 @@ export function useWebhookProcessor(calendarId?: string) {
       
       console.log('✅ Webhook system test result:', data);
       
-      const testResult = data as TestWebhookResponse;
+      const testResult = data as unknown as TestWebhookResponse;
       
       toast({
         title: "Webhook test gestart",
@@ -188,7 +188,7 @@ export function useWebhookProcessor(calendarId?: string) {
       
       console.log('✅ Manual processing result:', data);
       
-      const processResult = data as ManualProcessResponse;
+      const processResult = data as unknown as ManualProcessResponse;
       
       toast({
         title: "Handmatige verwerking gestart",
