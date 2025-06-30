@@ -7,6 +7,8 @@ import { WhatsAppContactOverview } from './WhatsAppContactOverview';
 import { OrphanedConversationsManager } from './OrphanedConversationsManager';
 import { WebhookStatusMonitor } from '../webhooks/WebhookStatusMonitor';
 import { WebhookDebugger } from '../webhooks/WebhookDebugger';
+import { WebhookHealthMonitor } from '../webhooks/WebhookHealthMonitor';
+import { WebhookTestingPanel } from '../webhooks/WebhookTestingPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
 
@@ -23,10 +25,11 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
   return (
     <div className="h-full">
       <Tabs defaultValue="overview" className="h-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Contacten Overzicht</TabsTrigger>
           <TabsTrigger value="conversations">Live Gesprekken</TabsTrigger>
-          <TabsTrigger value="webhooks">Webhook Status</TabsTrigger>
+          <TabsTrigger value="health">Webhook Health</TabsTrigger>
+          <TabsTrigger value="testing">Webhook Testing</TabsTrigger>
           <TabsTrigger value="debug">Webhook Debug</TabsTrigger>
           <TabsTrigger value="management">Beheer</TabsTrigger>
         </TabsList>
@@ -58,8 +61,12 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
           </div>
         </TabsContent>
         
-        <TabsContent value="webhooks" className="mt-6">
-          <WebhookStatusMonitor calendarId={calendarId} />
+        <TabsContent value="health" className="mt-6">
+          <WebhookHealthMonitor calendarId={calendarId} />
+        </TabsContent>
+        
+        <TabsContent value="testing" className="mt-6">
+          <WebhookTestingPanel calendarId={calendarId} />
         </TabsContent>
         
         <TabsContent value="debug" className="mt-6">
