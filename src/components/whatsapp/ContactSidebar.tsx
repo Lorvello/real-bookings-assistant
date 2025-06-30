@@ -160,7 +160,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
             {contact && 'linked_customer_email' in contact && contact.linked_customer_email && (
               <div className="flex justify-between">
                 <span className="text-gray-400">Email:</span>
-                <span className="text-gray-200 font-mono text-xs">{contact.linked_customer_email}</span>
+                <span className="text-gray-200 font-mono text-xs">{String(contact.linked_customer_email)}</span>
               </div>
             )}
           </div>
@@ -185,7 +185,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
               <div className="flex items-center gap-2 text-sm mt-2">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-300">
-                  Laatst gezien: {format(new Date(contact.last_seen_at), 'dd MMM yyyy HH:mm', { locale: nl })}
+                  Laatst gezien: {format(new Date(String(contact.last_seen_at)), 'dd MMM yyyy HH:mm', { locale: nl })}
                 </span>
               </div>
             )}
