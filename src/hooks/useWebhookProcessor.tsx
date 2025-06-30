@@ -4,8 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface WebhookEventPayload {
+  id?: string;
   calendar_id?: string;
+  event_type?: string;
   status?: string;
+  attempts?: number;
+  payload?: any;
   [key: string]: any;
 }
 
@@ -38,6 +42,7 @@ export function useWebhookProcessor(calendarId?: string) {
           console.log('📤 New webhook event detected:', payload);
           
           if (payload.new?.event_type?.startsWith('booking.')) {
+            console.log('🎯 Processing booking webhook immediately');
             // Process booking webhooks immediately
             await processBookingWebhook(payload.new);
           }
@@ -53,6 +58,7 @@ export function useWebhookProcessor(calendarId?: string) {
         schema: 'public',
         table: 'webhook_events'
       }, (payload: RealtimePayload) => {
+        console.log('📨 Webhook event change detected:', payload);
         if (payload.new?.calendar_id === calendarId && payload.new?.status === 'pending') {
           console.log('🚀 Processing webhook event immediately');
           processWebhookQueue();
@@ -83,8 +89,10 @@ export function useWebhookProcessor(calendarId?: string) {
         return;
       }
 
+      console.log('📋 Found webhook endpoints:', endpoints);
+
       if (!endpoints || endpoints.length === 0) {
-        console.log('No active webhook endpoints found');
+        console.log('⚠️ No active webhook endpoints found for calendar:', webhookEvent.calendar_id);
         return;
       }
 
@@ -93,18 +101,24 @@ export function useWebhookProcessor(calendarId?: string) {
         try {
           console.log('🎯 Sending webhook to:', endpoint.webhook_url);
           
+          const webhookPayload = {
+            ...webhookEvent.payload,
+            webhook_id: webhookEvent.id,
+            timestamp: webhookEvent.created_at || new Date().toISOString()
+          };
+          
+          console.log('📦 Webhook payload:', webhookPayload);
+          
           const response = await fetch(endpoint.webhook_url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'User-Agent': 'Brand-Evolves-Webhook/1.0',
             },
-            body: JSON.stringify({
-              ...webhookEvent.payload,
-              webhook_id: webhookEvent.id,
-              timestamp: webhookEvent.created_at
-            })
+            body: JSON.stringify(webhookPayload)
           });
+
+          console.log('📡 Webhook response status:', response.status);
 
           if (response.ok) {
             console.log('✅ Webhook delivered successfully');
@@ -124,6 +138,8 @@ export function useWebhookProcessor(calendarId?: string) {
               description: `Booking webhook succesvol verzonden naar n8n`,
             });
           } else {
+            const responseText = await response.text();
+            console.error('❌ Webhook delivery failed:', response.status, responseText);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
         } catch (error) {
