@@ -20,15 +20,15 @@ serve(async (req) => {
 
     const { source, calendar_id, force, test } = await req.json()
     
-    console.log(`🚀 Processing webhooks - Source: ${source}, Calendar: ${calendar_id}, Force: ${force}, Test: ${test}`)
+    console.log(`🚀 Enhanced webhook processing - Source: ${source}, Calendar: ${calendar_id}, Force: ${force}, Test: ${test}`)
 
-    // Haal pending webhook events op
+    // Haal pending webhook events op met prioriteit voor nieuwe events
     let query = supabaseClient
       .from('webhook_events')
       .select('*')
       .eq('status', 'pending')
       .order('created_at', { ascending: true })
-      .limit(50)
+      .limit(100) // Verhoogd van 50 naar 100 voor snellere batch processing
 
     if (calendar_id && !force) {
       query = query.eq('calendar_id', calendar_id)
@@ -58,9 +58,10 @@ serve(async (req) => {
 
     let processedCount = 0
     let successfulCount = 0
+    let failedCount = 0
 
-    // Verwerk elke webhook event
-    for (const webhookEvent of webhookEvents) {
+    // Parallel processing voor snellere verwerking
+    const webhookPromises = webhookEvents.map(async (webhookEvent) => {
       try {
         // Haal actieve webhook endpoints op voor deze calendar
         const { data: endpoints, error: endpointError } = await supabaseClient
@@ -71,7 +72,7 @@ serve(async (req) => {
 
         if (endpointError) {
           console.error('❌ Error fetching endpoints:', endpointError)
-          continue
+          throw endpointError
         }
 
         if (!endpoints || endpoints.length === 0) {
@@ -87,107 +88,143 @@ serve(async (req) => {
             })
             .eq('id', webhookEvent.id)
           
-          processedCount++
-          continue
+          return { success: false, reason: 'no_endpoints' }
         }
 
-        // Verstuur naar elke actieve endpoint
-        for (const endpoint of endpoints) {
+        // Verstuur naar elke actieve endpoint (parallel)
+        const endpointPromises = endpoints.map(async (endpoint) => {
           try {
-            console.log(`📡 Sending webhook to: ${endpoint.webhook_url}`)
+            console.log(`📡 Sending enhanced webhook to: ${endpoint.webhook_url}`)
             
-            const webhookPayload = {
+            // Verrijkte webhook payload met meer context
+            const enhancedPayload = {
               ...webhookEvent.payload,
               webhook_event_id: webhookEvent.id,
               delivered_at: new Date().toISOString(),
-              source: 'brand-evolves-webhook'
+              source: 'brand-evolves-webhook-enhanced',
+              delivery_attempt: (webhookEvent.attempts || 0) + 1,
+              calendar_context: {
+                webhook_url: endpoint.webhook_url,
+                endpoint_id: endpoint.id
+              }
             }
 
             const response = await fetch(endpoint.webhook_url, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'User-Agent': 'Brand-Evolves-Webhook/1.0',
-                'X-Webhook-Source': 'supabase-edge-function'
+                'User-Agent': 'Brand-Evolves-Webhook/2.0',
+                'X-Webhook-Source': 'supabase-edge-function-enhanced',
+                'X-Delivery-Attempt': String((webhookEvent.attempts || 0) + 1),
+                'X-Event-Type': webhookEvent.event_type,
+                'X-Calendar-ID': webhookEvent.calendar_id
               },
-              body: JSON.stringify(webhookPayload)
+              body: JSON.stringify(enhancedPayload)
             })
 
+            const responseText = await response.text()
+            console.log(`📨 Response from ${endpoint.webhook_url}:`, response.status, responseText.substring(0, 100))
+
             if (response.ok) {
-              console.log(`✅ Webhook sent successfully to ${endpoint.webhook_url}`)
-              
-              // Mark as sent
-              await supabaseClient
-                .from('webhook_events')
-                .update({
-                  status: 'sent',
-                  attempts: (webhookEvent.attempts || 0) + 1,
-                  last_attempt_at: new Date().toISOString()
-                })
-                .eq('id', webhookEvent.id)
-              
-              successfulCount++
+              console.log(`✅ Enhanced webhook sent successfully to ${endpoint.webhook_url}`)
+              return { success: true, endpoint: endpoint.webhook_url }
             } else {
-              console.error(`❌ Webhook failed: ${response.status} ${response.statusText}`)
-              const responseText = await response.text()
-              console.error(`Response: ${responseText}`)
-              
-              // Mark as failed
-              await supabaseClient
-                .from('webhook_events')
-                .update({
-                  status: 'failed',
-                  attempts: (webhookEvent.attempts || 0) + 1,
-                  last_attempt_at: new Date().toISOString()
-                })
-                .eq('id', webhookEvent.id)
+              console.error(`❌ Enhanced webhook failed: ${response.status} ${response.statusText}`)
+              return { success: false, status: response.status, response: responseText }
             }
           } catch (fetchError) {
-            console.error(`❌ Network error sending webhook:`, fetchError)
-            
-            // Mark as failed
-            await supabaseClient
-              .from('webhook_events')
-              .update({
-                status: 'failed',
-                attempts: (webhookEvent.attempts || 0) + 1,
-                last_attempt_at: new Date().toISOString()
-              })
-              .eq('id', webhookEvent.id)
+            console.error(`❌ Network error sending enhanced webhook:`, fetchError)
+            return { success: false, error: fetchError.message }
           }
+        })
+
+        const endpointResults = await Promise.allSettled(endpointPromises)
+        const successfulEndpoints = endpointResults.filter(result => 
+          result.status === 'fulfilled' && result.value.success
+        ).length
+
+        if (successfulEndpoints > 0) {
+          // Mark as sent if at least one endpoint succeeded
+          await supabaseClient
+            .from('webhook_events')
+            .update({
+              status: 'sent',
+              attempts: (webhookEvent.attempts || 0) + 1,
+              last_attempt_at: new Date().toISOString()
+            })
+            .eq('id', webhookEvent.id)
+          
+          return { success: true, endpoints_reached: successfulEndpoints }
+        } else {
+          // Mark as failed if all endpoints failed
+          await supabaseClient
+            .from('webhook_events')
+            .update({
+              status: 'failed',
+              attempts: (webhookEvent.attempts || 0) + 1,
+              last_attempt_at: new Date().toISOString()
+            })
+            .eq('id', webhookEvent.id)
+          
+          return { success: false, reason: 'all_endpoints_failed' }
         }
 
-        processedCount++
-
       } catch (error) {
-        console.error(`❌ Error processing webhook ${webhookEvent.id}:`, error)
-        processedCount++
+        console.error(`❌ Error processing enhanced webhook ${webhookEvent.id}:`, error)
+        
+        // Mark as failed
+        await supabaseClient
+          .from('webhook_events')
+          .update({
+            status: 'failed',
+            attempts: (webhookEvent.attempts || 0) + 1,
+            last_attempt_at: new Date().toISOString()
+          })
+          .eq('id', webhookEvent.id)
+        
+        return { success: false, error: error.message }
       }
-    }
+    })
 
-    const result = {
+    // Wait for all webhook processing to complete
+    const results = await Promise.allSettled(webhookPromises)
+    
+    // Count results
+    results.forEach(result => {
+      processedCount++
+      if (result.status === 'fulfilled' && result.value.success) {
+        successfulCount++
+      } else {
+        failedCount++
+      }
+    })
+
+    const finalResult = {
       success: true,
       processed: processedCount,
       successful: successfulCount,
-      failed: processedCount - successfulCount,
+      failed: failedCount,
       source,
-      timestamp: new Date().toISOString()
+      enhanced: true,
+      timestamp: new Date().toISOString(),
+      batch_size: webhookEvents.length
     }
 
-    console.log(`🎉 Webhook processing complete:`, result)
+    console.log(`🎉 Enhanced webhook processing complete:`, finalResult)
 
     return new Response(
-      JSON.stringify(result),
+      JSON.stringify(finalResult),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('💥 Error in process-webhooks function:', error)
+    console.error('💥 Error in enhanced process-webhooks function:', error)
     
     return new Response(
       JSON.stringify({ 
         success: false, 
         error: error.message,
+        enhanced: true,
         timestamp: new Date().toISOString()
       }),
       { 

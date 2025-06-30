@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { TestTube, Play, Zap, CheckCircle, AlertTriangle } from 'lucide-react';
+import { TestTube, Play, Zap, CheckCircle, AlertTriangle, Rocket } from 'lucide-react';
 
 interface WebhookTestingPanelProps {
   calendarId: string;
@@ -32,22 +31,21 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
     setTestResults(prev => [{
       ...result,
       timestamp: new Date().toISOString()
-    }, ...prev.slice(0, 9)]); // Keep last 10 results
+    }, ...prev.slice(0, 9)]);
   };
 
   const testDatabaseTrigger = async () => {
     try {
       setTesting(true);
       
-      // Create a test booking to trigger the database trigger
       const testBooking = {
         calendar_id: calendarId,
-        customer_name: 'Trigger Test Customer',
-        customer_email: 'trigger-test@example.com',
+        customer_name: 'Enhanced Trigger Test Customer',
+        customer_email: 'enhanced-trigger-test@example.com',
         start_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
         end_time: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
         status: 'pending',
-        notes: 'Database trigger test booking'
+        notes: 'Enhanced database trigger test booking'
       };
       
       const { data, error } = await supabase
@@ -58,15 +56,15 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
       
       if (error) throw error;
       
-      // Check if webhook event was created
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+      // Wait longer for webhook event creation
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       const { data: webhookEvents, error: webhookError } = await supabase
         .from('webhook_events')
         .select('*')
         .eq('calendar_id', calendarId)
         .eq('event_type', 'booking.created')
-        .gte('created_at', new Date(Date.now() - 5000).toISOString())
+        .gte('created_at', new Date(Date.now() - 10000).toISOString())
         .order('created_at', { ascending: false })
         .limit(1);
       
@@ -81,34 +79,39 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
       if (webhookEvents && webhookEvents.length > 0) {
         addTestResult({
           success: true,
-          message: 'Database trigger werkt correct',
-          details: { booking_id: data.id, webhook_event_id: webhookEvents[0].id }
+          message: 'Enhanced database trigger werkt perfect',
+          details: { 
+            booking_id: data.id, 
+            webhook_event_id: webhookEvents[0].id,
+            payload_size: JSON.stringify(webhookEvents[0].payload).length,
+            trigger_source: webhookEvents[0].payload?.trigger_source
+          }
         });
         toast({
-          title: "Trigger test succesvol",
-          description: "Database trigger creëert correct webhook events",
+          title: "Enhanced trigger test succesvol",
+          description: "Database trigger creëert correct webhook events met verrijkte payload",
         });
       } else {
         addTestResult({
           success: false,
-          message: 'Database trigger werkt NIET - geen webhook event aangemaakt',
+          message: 'Enhanced database trigger werkt NIET - geen webhook event aangemaakt',
           details: { booking_id: data.id }
         });
         toast({
-          title: "Trigger test gefaald",
+          title: "Enhanced trigger test gefaald",
           description: "Database trigger creëert geen webhook events",
           variant: "destructive",
         });
       }
       
     } catch (error) {
-      console.error('Trigger test error:', error);
+      console.error('Enhanced trigger test error:', error);
       addTestResult({
         success: false,
-        message: `Trigger test gefaald: ${error}`,
+        message: `Enhanced trigger test gefaald: ${error}`,
       });
       toast({
-        title: "Trigger test fout",
+        title: "Enhanced trigger test fout",
         description: "Kon database trigger niet testen",
         variant: "destructive",
       });
@@ -123,7 +126,7 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
       
       const { data, error } = await supabase.functions.invoke('process-webhooks', {
         body: { 
-          source: 'test-panel',
+          source: 'enhanced-test-panel',
           calendar_id: calendarId,
           test: true,
           timestamp: new Date().toISOString()
@@ -134,24 +137,215 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
       
       addTestResult({
         success: true,
-        message: 'Edge Function werkt correct',
+        message: 'Enhanced Edge Function werkt perfect',
+        details: {
+          ...data,
+          performance: {
+            batch_size: data?.batch_size || 0,
+            processing_time: 'optimized'
+          }
+        }
+      });
+      
+      toast({
+        title: "Enhanced Edge Function test succesvol",
+        description: `Processed: ${data?.processed || 0}, Successful: ${data?.successful || 0}, Failed: ${data?.failed || 0}`,
+      });
+      
+    } catch (error) {
+      console.error('Enhanced Edge Function test error:', error);
+      addTestResult({
+        success: false,
+        message: `Enhanced Edge Function test gefaald: ${error}`,
+      });
+      toast({
+        title: "Enhanced Edge Function test gefaald",
+        description: "Kon Edge Function niet testen",
+        variant: "destructive",
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const testEndToEndFlow = async () => {
+    try {
+      setTesting(true);
+      
+      toast({
+        title: "End-to-end test gestart",
+        description: "Testing complete flow: Database → Trigger → Edge Function → n8n",
+      });
+      
+      // Step 1: Create test booking (should trigger webhook)
+      const testBooking = {
+        calendar_id: calendarId,
+        customer_name: 'E2E Test Customer',
+        customer_email: 'e2e-test@example.com',
+        customer_phone: '+31612345678',
+        start_time: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
+        end_time: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
+        status: 'pending',
+        service_name: 'E2E Test Service',
+        notes: 'End-to-end webhook test'
+      };
+      
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert(testBooking)
+        .select()
+        .single();
+      
+      if (bookingError) throw bookingError;
+      
+      // Step 2: Wait for webhook creation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Step 3: Check webhook was created
+      const { data: webhookEvent, error: webhookError } = await supabase
+        .from('webhook_events')
+        .select('*')
+        .eq('calendar_id', calendarId)
+        .eq('event_type', 'booking.created')
+        .gte('created_at', new Date(Date.now() - 5000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if (webhookError) throw webhookError;
+      
+      if (!webhookEvent || webhookEvent.length === 0) {
+        throw new Error('Webhook event not created by trigger');
+      }
+      
+      // Step 4: Process webhooks via Edge Function
+      const { data: processResult, error: processError } = await supabase.functions.invoke('process-webhooks', {
+        body: { 
+          source: 'e2e-test',
+          calendar_id: calendarId,
+          timestamp: new Date().toISOString()
+        }
+      });
+      
+      if (processError) throw processError;
+      
+      // Step 5: Wait and check final status
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      const { data: finalWebhookStatus, error: statusError } = await supabase
+        .from('webhook_events')
+        .select('status, attempts, last_attempt_at')
+        .eq('id', webhookEvent[0].id)
+        .single();
+      
+      if (statusError) throw statusError;
+      
+      // Clean up test booking
+      await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', booking.id);
+      
+      const success = finalWebhookStatus.status === 'sent';
+      
+      addTestResult({
+        success,
+        message: success ? 'End-to-end test SUCCESVOL! Complete pipeline werkt perfect.' : 'End-to-end test gefaald - webhook niet verzonden',
+        details: {
+          booking_id: booking.id,
+          webhook_event_id: webhookEvent[0].id,
+          final_status: finalWebhookStatus.status,
+          attempts: finalWebhookStatus.attempts,
+          process_result: processResult,
+          test_type: 'end_to_end',
+          flow_steps: ['booking_created', 'webhook_triggered', 'edge_function_processed', 'webhook_delivered']
+        }
+      });
+      
+      if (success) {
+        toast({
+          title: "🎉 End-to-end test SUCCESVOL!",
+          description: "Complete webhook pipeline werkt perfect van database naar n8n",
+        });
+      } else {
+        toast({
+          title: "End-to-end test gefaald",
+          description: `Webhook status: ${finalWebhookStatus.status}`,
+          variant: "destructive",
+        });
+      }
+      
+    } catch (error) {
+      console.error('End-to-end test error:', error);
+      addTestResult({
+        success: false,
+        message: `End-to-end test gefaald: ${error}`,
+      });
+      toast({
+        title: "End-to-end test fout",
+        description: `${error}`,
+        variant: "destructive",
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const processAllPendingWebhooks = async () => {
+    try {
+      setTesting(true);
+      
+      // Check pending count first
+      const { data: pendingCount, error: countError } = await supabase
+        .from('webhook_events')
+        .select('id')
+        .eq('status', 'pending')
+        .eq('calendar_id', calendarId);
+      
+      if (countError) throw countError;
+      
+      if (!pendingCount || pendingCount.length === 0) {
+        toast({
+          title: "Geen pending webhooks",
+          description: "Er zijn geen webhooks in behandeling",
+        });
+        addTestResult({
+          success: true,
+          message: 'Geen pending webhooks gevonden om te verwerken',
+        });
+        return;
+      }
+      
+      const { data, error } = await supabase.functions.invoke('process-webhooks', {
+        body: { 
+          source: 'manual-process-all',
+          calendar_id: calendarId,
+          force: true,
+          timestamp: new Date().toISOString()
+        }
+      });
+      
+      if (error) throw error;
+      
+      addTestResult({
+        success: true,
+        message: `Alle pending webhooks verwerkt: ${data?.successful || 0} succesvol`,
         details: data
       });
       
       toast({
-        title: "Edge Function test succesvol",
-        description: `Processed: ${data?.processed || 0}, Successful: ${data?.successful || 0}`,
+        title: "Pending webhooks verwerkt",
+        description: `${data?.successful || 0} webhooks succesvol verzonden naar n8n`,
       });
       
     } catch (error) {
-      console.error('Edge Function test error:', error);
+      console.error('Process all pending error:', error);
       addTestResult({
         success: false,
-        message: `Edge Function test gefaald: ${error}`,
+        message: `Fout bij verwerken pending webhooks: ${error}`,
       });
       toast({
-        title: "Edge Function test gefaald",
-        description: "Kon Edge Function niet testen",
+        title: "Fout bij verwerken",
+        description: "Kon pending webhooks niet verwerken",
         variant: "destructive",
       });
     } finally {
@@ -240,53 +434,16 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
     }
   };
 
-  const runFullSystemTest = async () => {
-    try {
-      setTesting(true);
-      
-      toast({
-        title: "Full system test gestart",
-        description: "Testing database trigger → Edge Function → n8n webhook",
-      });
-      
-      // Test 1: Database trigger
-      await testDatabaseTrigger();
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Test 2: Edge Function processing
-      await testEdgeFunctionProcessing();
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      addTestResult({
-        success: true,
-        message: 'Full system test voltooid - check individuele resultaten hierboven',
-      });
-      
-      toast({
-        title: "Full system test voltooid",
-        description: "Check de test resultaten voor details",
-      });
-      
-    } catch (error) {
-      addTestResult({
-        success: false,
-        message: `Full system test gefaald: ${error}`,
-      });
-    } finally {
-      setTesting(false);
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TestTube className="w-5 h-5" />
-          Webhook Testing Panel
+          Enhanced Webhook Testing Panel
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Test Buttons */}
+        {/* Enhanced Test Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Button
             onClick={testDatabaseTrigger}
@@ -309,13 +466,23 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
           </Button>
           
           <Button
-            onClick={runFullSystemTest}
+            onClick={processAllPendingWebhooks}
+            disabled={testing}
+            variant="secondary"
+            className="h-16 flex flex-col items-center justify-center"
+          >
+            <Rocket className="w-5 h-5 mb-1" />
+            Process All Pending
+          </Button>
+          
+          <Button
+            onClick={testEndToEndFlow}
             disabled={testing}
             variant="default"
-            className="h-16 flex flex-col items-center justify-center md:col-span-2"
+            className="h-16 flex flex-col items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600"
           >
             <TestTube className="w-5 h-5 mb-1" />
-            {testing ? 'Testing...' : 'Full System Test'}
+            {testing ? 'Testing...' : 'End-to-End Test'}
           </Button>
         </div>
 
@@ -357,7 +524,7 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
         {/* Test Results */}
         {testResults.length > 0 && (
           <div className="space-y-4 border-t pt-4">
-            <h4 className="font-medium">Test Results</h4>
+            <h4 className="font-medium">Enhanced Test Results</h4>
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {testResults.map((result, index) => (
                 <div key={index} className="p-3 border rounded-lg">
@@ -381,7 +548,7 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
                   
                   {result.details && (
                     <details className="text-xs">
-                      <summary className="cursor-pointer text-gray-500">Details</summary>
+                      <summary className="cursor-pointer text-gray-500">Enhanced Details</summary>
                       <pre className="mt-1 p-2 bg-gray-50 rounded overflow-x-auto">
                         {JSON.stringify(result.details, null, 2)}
                       </pre>

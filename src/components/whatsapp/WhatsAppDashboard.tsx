@@ -10,6 +10,7 @@ import { WebhookDebugger } from '../webhooks/WebhookDebugger';
 import { WebhookHealthMonitor } from '../webhooks/WebhookHealthMonitor';
 import { WebhookTestingPanel } from '../webhooks/WebhookTestingPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
 import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
 
@@ -23,23 +24,42 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
   // Initialize enhanced webhook processor
   useWebhookProcessor(calendarId);
   
-  // Start enhanced auto-processor for real-time webhook processing
-  useWebhookAutoProcessor({ 
+  // Start enhanced auto-processor with optimized settings
+  const { isProcessing } = useWebhookAutoProcessor({ 
     calendarId, 
     enabled: true,
-    intervalMs: 5000 // Check every 5 seconds for faster processing
+    intervalMs: 3000 // Faster processing - every 3 seconds
   });
 
   return (
     <div className="h-full">
       <Tabs defaultValue="overview" className="h-full">
         <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview">Contacten Overzicht</TabsTrigger>
-          <TabsTrigger value="conversations">Live Gesprekken</TabsTrigger>
-          <TabsTrigger value="health">Webhook Health</TabsTrigger>
-          <TabsTrigger value="testing">Webhook Testing</TabsTrigger>
-          <TabsTrigger value="debug">Webhook Debug</TabsTrigger>
-          <TabsTrigger value="management">Beheer</TabsTrigger>
+          <TabsTrigger value="overview">
+            Contacten Overzicht
+          </TabsTrigger>
+          <TabsTrigger value="conversations">
+            Live Gesprekken
+          </TabsTrigger>
+          <TabsTrigger value="health">
+            <div className="flex items-center gap-2">
+              Webhook Health
+              {isProcessing && (
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 animate-pulse">
+                  Processing
+                </Badge>
+              )}
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="testing">
+            Enhanced Testing
+          </TabsTrigger>
+          <TabsTrigger value="debug">
+            Webhook Debug
+          </TabsTrigger>
+          <TabsTrigger value="management">
+            Beheer
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="mt-6">
