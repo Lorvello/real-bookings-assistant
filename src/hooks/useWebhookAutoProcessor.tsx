@@ -26,16 +26,16 @@ export function useWebhookAutoProcessor({
     const processWebhooks = async () => {
       try {
         // Check if there are pending webhooks
-        const { data: pendingCount, error: countError } = await supabase
+        const { data: pendingWebhooks, error: countError } = await supabase
           .from('webhook_events')
-          .select('id', { count: 'exact', head: true })
+          .select('id')
           .eq('status', 'pending')
           .eq(calendarId ? 'calendar_id' : 'status', calendarId || 'pending');
 
         if (countError) throw countError;
 
-        if (pendingCount && pendingCount > 0) {
-          console.log(`🔄 Auto-processing ${pendingCount} pending webhooks...`);
+        if (pendingWebhooks && pendingWebhooks.length > 0) {
+          console.log(`🔄 Auto-processing ${pendingWebhooks.length} pending webhooks...`);
           
           const { data, error } = await supabase.functions.invoke('process-webhooks', {
             body: { 
