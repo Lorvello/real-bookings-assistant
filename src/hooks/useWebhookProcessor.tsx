@@ -25,7 +25,7 @@ export function useWebhookProcessor(calendarId?: string) {
   useEffect(() => {
     if (!calendarId) return;
 
-    console.log('🔗 Setting up webhook processor for calendar:', calendarId);
+    console.log('🔗 Setting up enhanced webhook processor for calendar:', calendarId);
 
     // Listen for new webhook events and process them automatically
     const webhookChannel = supabase
@@ -42,12 +42,12 @@ export function useWebhookProcessor(calendarId?: string) {
           console.log('📤 New webhook event detected:', payload);
           
           if (payload.new && payload.new.status === 'pending') {
-            console.log('🚀 Automatically processing new webhook event');
+            console.log('🚀 Auto-processing new webhook event:', payload.new.event_type);
             
-            // Small delay to ensure database transaction is complete
+            // Trigger webhook processing with small delay
             setTimeout(async () => {
               await processWebhookQueue();
-            }, 1000);
+            }, 2000);
           }
         }
       )
@@ -65,7 +65,7 @@ export function useWebhookProcessor(calendarId?: string) {
           // Show toast for successful deliveries
           if (payload.new?.status === 'sent' && payload.old?.status === 'pending') {
             toast({
-              title: "Webhook verzonden",
+              title: "Webhook succesvol verzonden",
               description: `${payload.new.event_type} succesvol verzonden naar n8n`,
             });
           }
@@ -74,29 +74,30 @@ export function useWebhookProcessor(calendarId?: string) {
           if (payload.new?.status === 'failed' && payload.old?.status !== 'failed') {
             toast({
               title: "Webhook gefaald",
-              description: `${payload.new.event_type} kon niet worden verzonden`,
+              description: `${payload.new.event_type} kon niet worden verzonden (${payload.new.attempts} pogingen)`,
               variant: "destructive",
             });
           }
         }
       )
       .subscribe((status) => {
-        console.log(`📡 Webhook processor subscription status for ${calendarId}:`, status);
+        console.log(`📡 Enhanced webhook processor subscription status for ${calendarId}:`, status);
       });
 
     return () => {
-      console.log('🔌 Cleaning up webhook processor');
+      console.log('🔌 Cleaning up enhanced webhook processor');
       supabase.removeChannel(webhookChannel);
     };
   }, [calendarId, toast]);
 
   const processWebhookQueue = async () => {
     try {
-      console.log('🔄 Calling process-webhooks edge function...');
+      console.log('🔄 Calling enhanced process-webhooks edge function...');
       
       const { data, error } = await supabase.functions.invoke('process-webhooks', {
         body: { 
           source: 'webhook-processor',
+          calendar_id: calendarId,
           timestamp: new Date().toISOString()
         }
       });
@@ -106,18 +107,18 @@ export function useWebhookProcessor(calendarId?: string) {
         throw error;
       }
       
-      console.log('✅ Webhook processing response:', data);
+      console.log('✅ Enhanced webhook processing response:', data);
       
       if (data?.successful > 0) {
         toast({
           title: "Webhooks verwerkt",
-          description: `${data.successful} webhook(s) succesvol verzonden`,
+          description: `${data.successful} webhook(s) succesvol verzonden naar n8n`,
         });
       }
       
       return data;
     } catch (error) {
-      console.error('💥 Error processing webhook queue:', error);
+      console.error('💥 Error processing enhanced webhook queue:', error);
       toast({
         title: "Webhook fout",
         description: "Er is een fout opgetreden bij het verwerken van webhooks",
@@ -127,13 +128,74 @@ export function useWebhookProcessor(calendarId?: string) {
     }
   };
 
-  const processBookingWebhook = async (webhookEvent: WebhookEventPayload) => {
-    console.log('📨 Processing individual booking webhook:', webhookEvent);
-    return processWebhookQueue();
+  const testWebhookSystem = async () => {
+    if (!calendarId) {
+      throw new Error('Calendar ID is required for webhook testing');
+    }
+
+    try {
+      console.log('🧪 Testing webhook system for calendar:', calendarId);
+      
+      const { data, error } = await supabase.rpc('test_webhook_system', {
+        p_calendar_id: calendarId
+      });
+      
+      if (error) throw error;
+      
+      console.log('✅ Webhook system test result:', data);
+      
+      toast({
+        title: "Webhook test gestart",
+        description: `Test webhook aangemaakt met ${data.active_endpoints} actieve endpoint(s)`,
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('💥 Error testing webhook system:', error);
+      toast({
+        title: "Webhook test fout",
+        description: "Kon webhook systeem niet testen",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const manualProcessWebhooks = async () => {
+    try {
+      console.log('🔧 Manual webhook processing for calendar:', calendarId);
+      
+      const { data, error } = await supabase.rpc('manual_process_webhooks', {
+        p_calendar_id: calendarId
+      });
+      
+      if (error) throw error;
+      
+      console.log('✅ Manual processing result:', data);
+      
+      toast({
+        title: "Handmatige verwerking gestart",
+        description: `${data.pending_webhooks} webhook(s) worden verwerkt`,
+      });
+      
+      // Trigger actual processing
+      setTimeout(() => processWebhookQueue(), 1000);
+      
+      return data;
+    } catch (error) {
+      console.error('💥 Error in manual webhook processing:', error);
+      toast({
+        title: "Handmatige verwerking fout",
+        description: "Kon webhooks niet handmatig verwerken",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   return {
     processWebhookQueue,
-    processBookingWebhook
+    testWebhookSystem,
+    manualProcessWebhooks
   };
 }

@@ -2354,6 +2354,10 @@ export type Database = {
         }
         Returns: string
       }
+      manual_process_webhooks: {
+        Args: { p_calendar_id?: string }
+        Returns: Json
+      }
       match_quick_reply_flow: {
         Args:
           | { p_calendar_id: string; p_message_text: string }
@@ -2427,6 +2431,10 @@ export type Database = {
       setup_calendar_defaults: {
         Args: { p_calendar_id: string; p_business_type?: string }
         Returns: undefined
+      }
+      test_webhook_system: {
+        Args: { p_calendar_id: string }
+        Returns: Json
       }
     }
     Enums: {

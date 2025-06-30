@@ -18,7 +18,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    console.log('🚀 Starting webhook processing...');
+    console.log('🚀 Starting enhanced webhook processing...');
+
+    // Parse request body to get trigger info
+    const requestBody = await req.text();
+    let triggerInfo = {};
+    
+    try {
+      if (requestBody) {
+        triggerInfo = JSON.parse(requestBody);
+        console.log('📨 Trigger info:', triggerInfo);
+      }
+    } catch (e) {
+      console.log('📨 No trigger info provided, processing all pending webhooks');
+    }
 
     // Fetch pending webhook events with detailed booking information
     const { data: events, error: fetchError } = await supabase
@@ -30,7 +43,7 @@ serve(async (req) => {
       .eq('status', 'pending')
       .eq('webhook_endpoints.is_active', true)
       .order('created_at', { ascending: true })
-      .limit(50)
+      .limit(100)
 
     if (fetchError) {
       console.error('❌ Error fetching webhook events:', fetchError)
@@ -45,14 +58,30 @@ serve(async (req) => {
 
     console.log(`📊 Found ${events?.length || 0} pending webhook events`);
 
+    if (!events || events.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          processed: 0,
+          successful: 0,
+          failed: 0,
+          message: 'No pending webhooks to process',
+          timestamp: new Date().toISOString()
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
     const results = []
     const processedEvents = []
 
-    for (const event of events || []) {
+    for (const event of events) {
       try {
         console.log(`📤 Processing webhook ${event.id} for ${event.event_type}`);
         
-        // Enhanced payload with all booking details
+        // Enhanced payload with metadata
         const webhookPayload = {
           event_type: event.event_type,
           webhook_id: event.id,
@@ -62,16 +91,21 @@ serve(async (req) => {
             source: 'Brand Evolves Calendar',
             version: '1.0',
             webhook_url: event.webhook_endpoints.webhook_url,
-            attempts: event.attempts + 1
+            attempts: event.attempts + 1,
+            trigger_source: event.payload?.trigger_source || 'unknown'
           }
         };
 
         console.log(`🎯 Sending to: ${event.webhook_endpoints.webhook_url}`);
-        console.log(`📦 Payload:`, JSON.stringify(webhookPayload, null, 2));
+        console.log(`📦 Payload preview:`, {
+          event_type: webhookPayload.event_type,
+          booking_id: webhookPayload.booking_id,
+          customer_name: webhookPayload.customer_name
+        });
 
-        // Send webhook to n8n with timeout and retry logic
+        // Send webhook to n8n with enhanced headers and timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
 
         const response = await fetch(event.webhook_endpoints.webhook_url, {
           method: 'POST',
@@ -81,6 +115,8 @@ serve(async (req) => {
             'X-Webhook-Event': event.event_type,
             'X-Webhook-ID': event.id,
             'X-Webhook-Timestamp': event.created_at,
+            'X-Webhook-Attempt': (event.attempts + 1).toString(),
+            'X-Calendar-ID': event.calendar_id,
           },
           body: JSON.stringify(webhookPayload),
           signal: controller.signal
@@ -93,7 +129,7 @@ serve(async (req) => {
         const responseText = await response.text();
 
         console.log(`📡 Response status: ${response.status}`);
-        console.log(`📄 Response body: ${responseText}`);
+        console.log(`📄 Response preview: ${responseText.substring(0, 200)}...`);
 
         if (success) {
           console.log(`✅ Webhook ${event.id} delivered successfully`);
@@ -124,7 +160,8 @@ serve(async (req) => {
                 booking_id: event.payload?.booking_id,
                 delivered_at: new Date().toISOString(),
                 response_status: response.status,
-                response_body: responseText.substring(0, 1000) // Limit response body length
+                response_body: responseText.substring(0, 1000),
+                delivery_time_ms: Date.now() - new Date(event.created_at).getTime()
               },
               status: 'sent'
             });
@@ -132,7 +169,7 @@ serve(async (req) => {
           processedEvents.push(event.id);
 
         } else {
-          console.error(`❌ Webhook ${event.id} failed with status ${response.status}: ${responseText}`);
+          console.error(`❌ Webhook ${event.id} failed with status ${response.status}: ${responseText.substring(0, 500)}`);
           
           const newStatus = attempts >= 3 ? 'failed' : 'pending';
           
@@ -158,7 +195,8 @@ serve(async (req) => {
                 failed_at: new Date().toISOString(),
                 error_status: response.status,
                 error_message: responseText.substring(0, 500),
-                attempts: attempts
+                attempts: attempts,
+                will_retry: newStatus === 'pending'
               },
               status: 'sent'
             });
@@ -170,7 +208,8 @@ serve(async (req) => {
           status: response.status,
           attempts,
           webhook_url: event.webhook_endpoints.webhook_url,
-          response_preview: responseText.substring(0, 200)
+          response_preview: responseText.substring(0, 200),
+          event_type: event.event_type
         });
 
       } catch (error) {
@@ -201,7 +240,9 @@ serve(async (req) => {
               booking_id: event.payload?.booking_id,
               error_at: new Date().toISOString(),
               error_message: error.message,
-              attempts: attempts
+              error_type: error.name,
+              attempts: attempts,
+              will_retry: newStatus === 'pending'
             },
             status: 'sent'
           });
@@ -210,27 +251,27 @@ serve(async (req) => {
           event_id: event.id,
           success: false,
           error: error.message,
-          attempts: attempts
+          attempts: attempts,
+          event_type: event.event_type
         });
       }
     }
 
-    console.log(`🎯 Processed ${results.length} webhook events`);
-    console.log(`✅ Successfully sent: ${results.filter(r => r.success).length}`);
-    console.log(`❌ Failed: ${results.filter(r => !r.success).length}`);
+    const successCount = results.filter(r => r.success).length;
+    const failedCount = results.filter(r => !r.success).length;
 
-    // Notify real-time listeners about processing completion
-    if (processedEvents.length > 0) {
-      console.log('📢 Notifying real-time listeners...');
-    }
+    console.log(`🎯 Processing complete: ${results.length} events processed`);
+    console.log(`✅ Successfully sent: ${successCount}`);
+    console.log(`❌ Failed: ${failedCount}`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
         processed: results.length,
-        successful: results.filter(r => r.success).length,
-        failed: results.filter(r => !r.success).length,
+        successful: successCount,
+        failed: failedCount,
         results,
+        trigger_info: triggerInfo,
         timestamp: new Date().toISOString()
       }),
       { 

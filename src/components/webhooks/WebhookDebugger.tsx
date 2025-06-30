@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { RefreshCw, AlertTriangle, CheckCircle, Play, Bug } from 'lucide-react';
+import { RefreshCw, AlertTriangle, CheckCircle, Play, Bug, TestTube, Zap } from 'lucide-react';
+import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
 
 interface WebhookDebuggerProps {
   calendarId: string;
@@ -17,13 +18,14 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
+  const { processWebhookQueue, testWebhookSystem, manualProcessWebhooks } = useWebhookProcessor(calendarId);
 
   useEffect(() => {
     fetchDebugData();
     
-    // Set up real-time subscription for webhook events
+    // Enhanced real-time subscription for webhook events
     const channel = supabase
-      .channel(`webhook-debug-${calendarId}`)
+      .channel(`webhook-debug-enhanced-${calendarId}`)
       .on(
         'postgres_changes',
         {
@@ -32,12 +34,14 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
           table: 'webhook_events',
           filter: `calendar_id=eq.${calendarId}`,
         },
-        () => {
-          console.log('🔄 Webhook event changed, refreshing debug data');
+        (payload) => {
+          console.log('🔄 Webhook event changed in debugger, refreshing data:', payload);
           fetchDebugData();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Webhook debugger subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -56,13 +60,13 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
 
       if (endpointsError) throw endpointsError;
 
-      // Fetch recent webhook events
+      // Fetch recent webhook events with more details
       const { data: eventsData, error: eventsError } = await supabase
         .from('webhook_events')
         .select('*')
         .eq('calendar_id', calendarId)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (eventsError) throw eventsError;
 
@@ -96,12 +100,12 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
         timestamp: new Date().toISOString(),
         metadata: {
           source: 'webhook-debugger',
-          test: true
+          test: true,
+          user_initiated: true
         }
       };
 
       console.log('🧪 Testing webhook:', endpointUrl);
-      console.log('📦 Test payload:', testPayload);
 
       const response = await fetch(endpointUrl, {
         method: 'POST',
@@ -114,9 +118,8 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
         body: JSON.stringify(testPayload)
       });
 
-      console.log('📡 Test response status:', response.status);
       const responseText = await response.text();
-      console.log('📄 Test response body:', responseText);
+      console.log('📡 Test response:', response.status, responseText);
 
       if (response.ok) {
         toast({
@@ -142,37 +145,25 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
     }
   };
 
-  const manualTrigger = async () => {
+  const handleTestWebhookSystem = async () => {
     try {
       setProcessing(true);
-      
-      console.log('🚀 Manually triggering webhook processing...');
-      
-      const { data, error } = await supabase.functions.invoke('process-webhooks', {
-        body: { 
-          source: 'manual-trigger',
-          calendar_id: calendarId,
-          timestamp: new Date().toISOString()
-        }
-      });
-      
-      if (error) throw error;
-      
-      console.log('✅ Manual trigger response:', data);
-      
-      toast({
-        title: "Webhook processing gestart",
-        description: `${data?.processed || 0} webhook events verwerkt`,
-      });
-      
+      await testWebhookSystem();
       fetchDebugData();
     } catch (error) {
-      console.error('Manual trigger error:', error);
-      toast({
-        title: "Fout",
-        description: "Kon webhook processing niet starten",
-        variant: "destructive",
-      });
+      // Error handling is done in the hook
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleManualTrigger = async () => {
+    try {
+      setProcessing(true);
+      await manualProcessWebhooks();
+      fetchDebugData();
+    } catch (error) {
+      // Error handling is done in the hook
     } finally {
       setProcessing(false);
     }
@@ -192,6 +183,8 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
 
   const pendingEvents = recentEvents.filter(e => e.status === 'pending');
   const failedEvents = recentEvents.filter(e => e.status === 'failed');
+  const sentEvents = recentEvents.filter(e => e.status === 'sent');
+  const deliveryEvents = recentEvents.filter(e => e.event_type.includes('webhook.'));
 
   return (
     <div className="space-y-6">
@@ -200,16 +193,25 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bug className="w-5 h-5" />
-              Webhook Debug Info
+              Enhanced Webhook Debug Info
             </div>
             <div className="flex items-center gap-2">
               <Button 
-                onClick={manualTrigger} 
+                onClick={handleTestWebhookSystem} 
+                variant="secondary" 
+                size="sm"
+                disabled={processing}
+              >
+                <TestTube className="w-4 h-4 mr-2" />
+                {processing ? 'Testing...' : 'System Test'}
+              </Button>
+              <Button 
+                onClick={handleManualTrigger} 
                 variant="default" 
                 size="sm"
                 disabled={processing}
               >
-                <Play className="w-4 h-4 mr-2" />
+                <Zap className="w-4 h-4 mr-2" />
                 {processing ? 'Processing...' : 'Manual Trigger'}
               </Button>
               <Button onClick={fetchDebugData} variant="outline" size="sm">
@@ -221,14 +223,24 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {/* Status Overview */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Enhanced Status Overview */}
+            <div className="grid grid-cols-4 gap-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-blue-600">Totaal Events</p>
                     <p className="text-2xl font-bold text-blue-800">{recentEvents.length}</p>
                   </div>
+                </div>
+              </div>
+              
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-green-600">Sent</p>
+                    <p className="text-2xl font-bold text-green-800">{sentEvents.length}</p>
+                  </div>
+                  {sentEvents.length > 0 && <CheckCircle className="w-8 h-8 text-green-500" />}
                 </div>
               </div>
               
@@ -287,7 +299,7 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
               )}
             </div>
 
-            {/* Recent Events */}
+            {/* Recent Events with Enhanced Display */}
             <div>
               <h4 className="font-medium mb-3">Recent Webhook Events</h4>
               {recentEvents.length > 0 ? (
@@ -306,6 +318,11 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
                           {event.attempts > 1 && (
                             <Badge variant="outline">
                               {event.attempts} attempts
+                            </Badge>
+                          )}
+                          {event.payload?.trigger_source && (
+                            <Badge variant="secondary" className="text-xs">
+                              {event.payload.trigger_source}
                             </Badge>
                           )}
                         </div>
@@ -350,6 +367,20 @@ export function WebhookDebugger({ calendarId }: WebhookDebuggerProps) {
                 </p>
               )}
             </div>
+
+            {/* Delivery Stats */}
+            {deliveryEvents.length > 0 && (
+              <div>
+                <h4 className="font-medium mb-3">Delivery Statistics</h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    {deliveryEvents.filter(e => e.event_type === 'webhook.delivered').length} successful deliveries, {' '}
+                    {deliveryEvents.filter(e => e.event_type === 'webhook.failed').length} failed deliveries, {' '}
+                    {deliveryEvents.filter(e => e.event_type === 'webhook.error').length} errors
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
