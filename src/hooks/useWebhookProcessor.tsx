@@ -3,6 +3,18 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface WebhookEventPayload {
+  calendar_id?: string;
+  status?: string;
+  [key: string]: any;
+}
+
+interface RealtimePayload {
+  new?: WebhookEventPayload;
+  old?: WebhookEventPayload;
+  eventType: string;
+}
+
 export function useWebhookProcessor(calendarId?: string) {
   const { toast } = useToast();
 
@@ -22,10 +34,10 @@ export function useWebhookProcessor(calendarId?: string) {
           table: 'webhook_events',
           filter: `calendar_id=eq.${calendarId}`,
         },
-        async (payload) => {
+        async (payload: RealtimePayload) => {
           console.log('📤 New webhook event detected:', payload);
           
-          if (payload.new.event_type?.startsWith('booking.')) {
+          if (payload.new?.event_type?.startsWith('booking.')) {
             // Process booking webhooks immediately
             await processBookingWebhook(payload.new);
           }
@@ -40,7 +52,7 @@ export function useWebhookProcessor(calendarId?: string) {
         event: '*',
         schema: 'public',
         table: 'webhook_events'
-      }, (payload) => {
+      }, (payload: RealtimePayload) => {
         if (payload.new?.calendar_id === calendarId && payload.new?.status === 'pending') {
           console.log('🚀 Processing webhook event immediately');
           processWebhookQueue();
@@ -55,7 +67,7 @@ export function useWebhookProcessor(calendarId?: string) {
     };
   }, [calendarId, toast]);
 
-  const processBookingWebhook = async (webhookEvent: any) => {
+  const processBookingWebhook = async (webhookEvent: WebhookEventPayload) => {
     try {
       console.log('📨 Processing booking webhook:', webhookEvent);
       
@@ -102,7 +114,7 @@ export function useWebhookProcessor(calendarId?: string) {
               .from('webhook_events')
               .update({
                 status: 'sent',
-                attempts: webhookEvent.attempts + 1,
+                attempts: (webhookEvent.attempts || 0) + 1,
                 last_attempt_at: new Date().toISOString()
               })
               .eq('id', webhookEvent.id);
@@ -122,7 +134,7 @@ export function useWebhookProcessor(calendarId?: string) {
             .from('webhook_events')
             .update({
               status: 'failed',
-              attempts: webhookEvent.attempts + 1,
+              attempts: (webhookEvent.attempts || 0) + 1,
               last_attempt_at: new Date().toISOString()
             })
             .eq('id', webhookEvent.id);
