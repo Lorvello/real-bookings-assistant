@@ -156,7 +156,8 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
               </div>
             )}
             
-            {contact?.linked_customer_email && (
+            {/* Check if contact has linked_customer_email property */}
+            {contact && 'linked_customer_email' in contact && contact.linked_customer_email && (
               <div className="flex justify-between">
                 <span className="text-gray-400">Email:</span>
                 <span className="text-gray-200 font-mono text-xs">{contact.linked_customer_email}</span>
@@ -179,7 +180,8 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
               </span>
             </div>
             
-            {contact.last_seen_at && (
+            {/* Check if contact has last_seen_at property */}
+            {contact && 'last_seen_at' in contact && contact.last_seen_at && (
               <div className="flex items-center gap-2 text-sm mt-2">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-300">
