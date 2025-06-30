@@ -77,6 +77,10 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
         .eq('id', data.id);
       
       if (webhookEvents && webhookEvents.length > 0) {
+        // Safely access payload properties with proper type casting
+        const payload = webhookEvents[0].payload as any;
+        const triggerSource = payload?.trigger_source || 'unknown';
+        
         addTestResult({
           success: true,
           message: 'Enhanced database trigger werkt perfect',
@@ -84,7 +88,7 @@ export function WebhookTestingPanel({ calendarId }: WebhookTestingPanelProps) {
             booking_id: data.id, 
             webhook_event_id: webhookEvents[0].id,
             payload_size: JSON.stringify(webhookEvents[0].payload).length,
-            trigger_source: webhookEvents[0].payload?.trigger_source
+            trigger_source: triggerSource
           }
         });
         toast({
