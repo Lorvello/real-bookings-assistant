@@ -27,7 +27,7 @@ export function useWebhookProcessor(calendarId?: string) {
 
     console.log('🔗 Setting up webhook processor for calendar:', calendarId);
 
-    // Listen for webhook processing notifications
+    // Listen for new webhook events and process them automatically
     const webhookChannel = supabase
       .channel(`webhook-processor-${calendarId}`)
       .on(
@@ -41,146 +41,95 @@ export function useWebhookProcessor(calendarId?: string) {
         async (payload: RealtimePayload) => {
           console.log('📤 New webhook event detected:', payload);
           
-          if (payload.new?.event_type?.startsWith('booking.')) {
-            console.log('🎯 Processing booking webhook immediately');
-            // Process booking webhooks immediately
-            await processBookingWebhook(payload.new);
+          if (payload.new && payload.new.status === 'pending') {
+            console.log('🚀 Automatically processing new webhook event');
+            
+            // Small delay to ensure database transaction is complete
+            setTimeout(async () => {
+              await processWebhookQueue();
+            }, 1000);
           }
         }
       )
-      .subscribe();
-
-    // Listen for PostgreSQL notifications
-    const notificationChannel = supabase
-      .channel('webhook-notifications')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'webhook_events'
-      }, (payload: RealtimePayload) => {
-        console.log('📨 Webhook event change detected:', payload);
-        if (payload.new?.calendar_id === calendarId && payload.new?.status === 'pending') {
-          console.log('🚀 Processing webhook event immediately');
-          processWebhookQueue();
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'webhook_events',
+          filter: `calendar_id=eq.${calendarId}`,
+        },
+        (payload: RealtimePayload) => {
+          console.log('📨 Webhook event updated:', payload);
+          
+          // Show toast for successful deliveries
+          if (payload.new?.status === 'sent' && payload.old?.status === 'pending') {
+            toast({
+              title: "Webhook verzonden",
+              description: `${payload.new.event_type} succesvol verzonden naar n8n`,
+            });
+          }
+          
+          // Show toast for failures
+          if (payload.new?.status === 'failed' && payload.old?.status !== 'failed') {
+            toast({
+              title: "Webhook gefaald",
+              description: `${payload.new.event_type} kon niet worden verzonden`,
+              variant: "destructive",
+            });
+          }
         }
-      })
-      .subscribe();
+      )
+      .subscribe((status) => {
+        console.log(`📡 Webhook processor subscription status for ${calendarId}:`, status);
+      });
 
     return () => {
       console.log('🔌 Cleaning up webhook processor');
       supabase.removeChannel(webhookChannel);
-      supabase.removeChannel(notificationChannel);
     };
   }, [calendarId, toast]);
 
-  const processBookingWebhook = async (webhookEvent: WebhookEventPayload) => {
+  const processWebhookQueue = async () => {
     try {
-      console.log('📨 Processing booking webhook:', webhookEvent);
+      console.log('🔄 Calling process-webhooks edge function...');
       
-      // Get webhook endpoints for this calendar
-      const { data: endpoints, error: endpointsError } = await supabase
-        .from('webhook_endpoints')
-        .select('*')
-        .eq('calendar_id', webhookEvent.calendar_id)
-        .eq('is_active', true);
-
-      if (endpointsError) {
-        console.error('Error fetching webhook endpoints:', endpointsError);
-        return;
-      }
-
-      console.log('📋 Found webhook endpoints:', endpoints);
-
-      if (!endpoints || endpoints.length === 0) {
-        console.log('⚠️ No active webhook endpoints found for calendar:', webhookEvent.calendar_id);
-        return;
-      }
-
-      // Send webhook to each endpoint
-      for (const endpoint of endpoints) {
-        try {
-          console.log('🎯 Sending webhook to:', endpoint.webhook_url);
-          
-          const webhookPayload = {
-            ...webhookEvent.payload,
-            webhook_id: webhookEvent.id,
-            timestamp: webhookEvent.created_at || new Date().toISOString()
-          };
-          
-          console.log('📦 Webhook payload:', webhookPayload);
-          
-          const response = await fetch(endpoint.webhook_url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'User-Agent': 'Brand-Evolves-Webhook/1.0',
-            },
-            body: JSON.stringify(webhookPayload)
-          });
-
-          console.log('📡 Webhook response status:', response.status);
-
-          if (response.ok) {
-            console.log('✅ Webhook delivered successfully');
-            
-            // Update webhook status to sent
-            await supabase
-              .from('webhook_events')
-              .update({
-                status: 'sent',
-                attempts: (webhookEvent.attempts || 0) + 1,
-                last_attempt_at: new Date().toISOString()
-              })
-              .eq('id', webhookEvent.id);
-
-            toast({
-              title: "Webhook verzonden",
-              description: `Booking webhook succesvol verzonden naar n8n`,
-            });
-          } else {
-            const responseText = await response.text();
-            console.error('❌ Webhook delivery failed:', response.status, responseText);
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-        } catch (error) {
-          console.error('❌ Webhook delivery failed:', error);
-          
-          // Update webhook status to failed
-          await supabase
-            .from('webhook_events')
-            .update({
-              status: 'failed',
-              attempts: (webhookEvent.attempts || 0) + 1,
-              last_attempt_at: new Date().toISOString()
-            })
-            .eq('id', webhookEvent.id);
-
-          toast({
-            title: "Webhook fout",
-            description: `Kon webhook niet verzenden: ${error}`,
-            variant: "destructive",
-          });
+      const { data, error } = await supabase.functions.invoke('process-webhooks', {
+        body: { 
+          source: 'webhook-processor',
+          timestamp: new Date().toISOString()
         }
+      });
+      
+      if (error) {
+        console.error('❌ Error calling process-webhooks:', error);
+        throw error;
       }
+      
+      console.log('✅ Webhook processing response:', data);
+      
+      if (data?.successful > 0) {
+        toast({
+          title: "Webhooks verwerkt",
+          description: `${data.successful} webhook(s) succesvol verzonden`,
+        });
+      }
+      
+      return data;
     } catch (error) {
-      console.error('Error processing booking webhook:', error);
+      console.error('💥 Error processing webhook queue:', error);
+      toast({
+        title: "Webhook fout",
+        description: "Er is een fout opgetreden bij het verwerken van webhooks",
+        variant: "destructive",
+      });
+      throw error;
     }
   };
 
-  const processWebhookQueue = async () => {
-    try {
-      console.log('🔄 Processing webhook queue...');
-      
-      const { error } = await supabase.rpc('process_webhook_queue');
-      
-      if (error) {
-        console.error('Error processing webhook queue:', error);
-      } else {
-        console.log('✅ Webhook queue processed successfully');
-      }
-    } catch (error) {
-      console.error('Error calling process_webhook_queue:', error);
-    }
+  const processBookingWebhook = async (webhookEvent: WebhookEventPayload) => {
+    console.log('📨 Processing individual booking webhook:', webhookEvent);
+    return processWebhookQueue();
   };
 
   return {
