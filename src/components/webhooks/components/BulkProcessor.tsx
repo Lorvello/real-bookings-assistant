@@ -97,23 +97,28 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
 
           // Strategy 2: Direct phone lookup if no session_id found
           if (!sessionId && booking.customer_phone) {
-            const { data: conversationData } = await supabase
-              .from('whatsapp_conversations')
-              .select('session_id')
-              .eq('calendar_id', calendarId)
-              .in('contact_id', 
-                supabase
-                  .from('whatsapp_contacts')
-                  .select('id')
-                  .eq('phone_number', booking.customer_phone)
-              )
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .single();
+            // Get contact IDs for phone lookup
+            const { data: contactIds } = await supabase
+              .from('whatsapp_contacts')
+              .select('id')
+              .eq('phone_number', booking.customer_phone);
 
-            if (conversationData?.session_id) {
-              sessionId = conversationData.session_id;
-              console.log(`✅ Found session_id via phone lookup for booking ${booking.id}: ${sessionId}`);
+            if (contactIds && contactIds.length > 0) {
+              const contactIdList = contactIds.map(c => c.id);
+              
+              const { data: conversationData } = await supabase
+                .from('whatsapp_conversations')
+                .select('session_id')
+                .eq('calendar_id', calendarId)
+                .in('contact_id', contactIdList)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+
+              if (conversationData?.session_id) {
+                sessionId = conversationData.session_id;
+                console.log(`✅ Found session_id via phone lookup for booking ${booking.id}: ${sessionId}`);
+              }
             }
           }
 

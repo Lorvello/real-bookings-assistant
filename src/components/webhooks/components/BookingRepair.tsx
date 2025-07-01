@@ -86,7 +86,7 @@ export function BookingRepair({ calendarId, onResultsUpdate }: BookingRepairProp
 
           if (existingIntent) continue; // Skip if already exists
 
-          // Find WhatsApp contact
+          // Find WhatsApp contact and conversation
           const { data: contact } = await supabase
             .from('whatsapp_contacts')
             .select(`
@@ -98,19 +98,21 @@ export function BookingRepair({ calendarId, onResultsUpdate }: BookingRepairProp
             .eq('phone_number', booking.customer_phone)
             .single();
 
-          if (contact?.whatsapp_conversations?.id) {
+          if (contact && contact.whatsapp_conversations && contact.whatsapp_conversations.length > 0) {
+            const conversation = contact.whatsapp_conversations[0];
+            
             // Create booking_intent
             const { error: intentError } = await supabase
               .from('booking_intents')
               .insert({
-                conversation_id: contact.whatsapp_conversations.id,
+                conversation_id: conversation.id,
                 service_type_id: booking.service_type_id,
                 status: 'booked',
                 booking_id: booking.id,
                 collected_data: {
                   customer_name: booking.customer_name,
                   linked_retroactively: true,
-                  session_id: contact.whatsapp_conversations.session_id
+                  session_id: conversation.session_id
                 }
               });
 
