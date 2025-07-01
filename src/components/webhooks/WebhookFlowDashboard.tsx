@@ -3,10 +3,11 @@ import React from 'react';
 import { CompleteWebhookTester } from './CompleteWebhookTester';
 import { RealTimeWebhookMonitor } from './RealTimeWebhookMonitor';
 import { WebhookTestingPanel } from './WebhookTestingPanel';
+import { BulkWebhookProcessor } from './BulkWebhookProcessor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Globe, Zap } from 'lucide-react';
+import { CheckCircle, Globe, Zap, Database } from 'lucide-react';
 
 interface WebhookFlowDashboardProps {
   calendarId: string;
@@ -43,8 +44,17 @@ export function WebhookFlowDashboard({ calendarId }: WebhookFlowDashboardProps) 
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="flow-test" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="bulk-process" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="bulk-process">
+            <div className="flex items-center gap-2">
+              <Database className="w-4 h-4" />
+              Alle Bookings
+              <Badge variant="default" className="bg-blue-500">
+                BULK
+              </Badge>
+            </div>
+          </TabsTrigger>
           <TabsTrigger value="flow-test">
             <div className="flex items-center gap-2">
               Complete Flow Test
@@ -60,6 +70,10 @@ export function WebhookFlowDashboard({ calendarId }: WebhookFlowDashboardProps) 
             Advanced Testing
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="bulk-process" className="mt-6">
+          <BulkWebhookProcessor calendarId={calendarId} />
+        </TabsContent>
 
         <TabsContent value="flow-test" className="mt-6">
           <CompleteWebhookTester calendarId={calendarId} />
