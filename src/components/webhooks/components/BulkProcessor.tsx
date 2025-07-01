@@ -19,28 +19,44 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
     setProcessing(true);
 
     try {
-      console.log('🚀 Starting bulk webhook processing for all bookings...');
+      console.log('🚀 Starting enhanced bulk webhook processing with complete booking data...');
 
-      // First, get all bookings for this calendar
+      // Stap 1: Link bestaande WhatsApp conversations
+      console.log('🔗 Linking existing WhatsApp conversations...');
+      const { error: linkError } = await supabase.rpc('link_existing_whatsapp_conversations');
+      if (linkError) {
+        console.error('Warning: Could not link existing conversations:', linkError);
+      }
+
+      // Stap 2: Haal alle bookings op met complete data
       const { data: allBookings, error: bookingsError } = await supabase
         .from('bookings')
-        .select('*')
+        .select(`
+          *,
+          service_types (
+            id, name, description, duration, price, color,
+            preparation_time, cleanup_time, max_attendees
+          ),
+          calendars!inner (
+            id, name, slug, user_id,
+            users!inner (
+              business_name
+            )
+          )
+        `)
         .eq('calendar_id', calendarId)
         .order('created_at', { ascending: false });
 
       if (bookingsError) throw bookingsError;
 
-      console.log(`📊 Found ${allBookings?.length || 0} total bookings`);
+      console.log(`📊 Found ${allBookings?.length || 0} total bookings with complete data`);
 
-      // Check which bookings already have webhook events
-      const { data: existingWebhooks, error: webhookError } = await supabase
+      // Stap 3: Check bestaande webhook events
+      const { data: existingWebhooks } = await supabase
         .from('webhook_events')
         .select('id, payload')
         .eq('calendar_id', calendarId);
 
-      if (webhookError) throw webhookError;
-
-      // Extract booking IDs that already have webhooks
       const existingBookingIds = new Set(
         existingWebhooks?.map(w => {
           const payload = w.payload as any;
@@ -48,30 +64,110 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
         }).filter(Boolean) || []
       );
 
-      console.log(`📋 Found ${existingWebhooks?.length || 0} existing webhook events`);
-
-      // Find bookings without webhook events
-      const bookingsWithoutWebhooks = allBookings?.filter(
-        booking => !existingBookingIds.has(booking.id)
-      ) || [];
-
-      console.log(`🔍 Found ${bookingsWithoutWebhooks.length} bookings without webhooks`);
+      // Stap 4: Find bookings without webhooks OR regenerate all for complete data
+      const bookingsToProcess = allBookings || [];
+      console.log(`🔍 Processing all ${bookingsToProcess.length} bookings with enhanced session_id lookup`);
 
       let webhooksCreated = 0;
 
-      // Create webhook events for bookings that don't have them
-      for (const booking of bookingsWithoutWebhooks) {
+      // Stap 5: Create enhanced webhook events for all bookings
+      for (const booking of bookingsToProcess) {
         try {
-          // Enhanced webhook payload with ALL booking table columns
+          // Enhanced session_id lookup via multiple strategies
+          let sessionId = null;
+          
+          // Strategy 1: Via booking_intents
+          if (booking.customer_phone) {
+            const { data: intentData } = await supabase
+              .from('booking_intents')
+              .select(`
+                id,
+                whatsapp_conversations!inner (
+                  session_id
+                )
+              `)
+              .eq('booking_id', booking.id)
+              .single();
+
+            if (intentData?.whatsapp_conversations?.session_id) {
+              sessionId = intentData.whatsapp_conversations.session_id;
+              console.log(`✅ Found session_id via booking_intent for booking ${booking.id}: ${sessionId}`);
+            }
+          }
+
+          // Strategy 2: Direct phone lookup if no session_id found
+          if (!sessionId && booking.customer_phone) {
+            const { data: conversationData } = await supabase
+              .from('whatsapp_conversations')
+              .select('session_id')
+              .eq('calendar_id', calendarId)
+              .in('contact_id', 
+                supabase
+                  .from('whatsapp_contacts')
+                  .select('id')
+                  .eq('phone_number', booking.customer_phone)
+              )
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+
+            if (conversationData?.session_id) {
+              sessionId = conversationData.session_id;
+              console.log(`✅ Found session_id via phone lookup for booking ${booking.id}: ${sessionId}`);
+            }
+          }
+
+          // Strategy 3: Create session_id if still missing
+          if (!sessionId && booking.customer_phone) {
+            // Create or get WhatsApp contact
+            const { data: contact, error: contactError } = await supabase
+              .from('whatsapp_contacts')
+              .upsert(
+                { 
+                  phone_number: booking.customer_phone,
+                  display_name: booking.customer_name 
+                },
+                { onConflict: 'phone_number' }
+              )
+              .select('id')
+              .single();
+
+            if (!contactError && contact) {
+              // Create or update conversation with session_id
+              const newSessionId = `session_${booking.customer_phone.substring(1)}_${Date.now()}`;
+              
+              const { error: convError } = await supabase
+                .from('whatsapp_conversations')
+                .upsert(
+                  {
+                    contact_id: contact.id,
+                    calendar_id: calendarId,
+                    session_id: newSessionId,
+                    status: 'active'
+                  },
+                  { onConflict: 'calendar_id,contact_id' }
+                );
+
+              if (!convError) {
+                sessionId = newSessionId;
+                console.log(`✅ Created new session_id for booking ${booking.id}: ${sessionId}`);
+              }
+            }
+          }
+
+          // Enhanced webhook payload met ALLE booking kolommen + session_id
           const webhookPayload = {
             event_type: 'booking.created',
             booking_id: booking.id,
             calendar_id: booking.calendar_id,
+            calendar_slug: booking.calendars?.slug,
+            calendar_name: booking.calendars?.name,
+            business_name: booking.calendars?.users?.business_name || booking.business_name,
             service_type_id: booking.service_type_id,
             customer_name: booking.customer_name,
             customer_email: booking.customer_email,
             customer_phone: booking.customer_phone,
-            service_name: booking.service_name,
+            service_name: booking.service_name || booking.service_types?.name,
             start_time: booking.start_time,
             end_time: booking.end_time,
             status: booking.status,
@@ -83,15 +179,36 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
             cancelled_at: booking.cancelled_at,
             cancellation_reason: booking.cancellation_reason,
             booking_duration: booking.booking_duration,
-            business_name: booking.business_name,
             calender_name: booking.calender_name,
-            session_id: booking.session_id,
+            session_id: sessionId,
             created_at: booking.created_at,
             updated_at: booking.updated_at,
+            // Service type details
+            service_type_data: booking.service_types ? {
+              service_type_id: booking.service_types.id,
+              service_type_name: booking.service_types.name,
+              service_type_description: booking.service_types.description,
+              service_type_duration: booking.service_types.duration,
+              service_type_price: booking.service_types.price,
+              service_type_color: booking.service_types.color,
+              service_type_preparation_time: booking.service_types.preparation_time,
+              service_type_cleanup_time: booking.service_types.cleanup_time,
+              service_type_max_attendees: booking.service_types.max_attendees
+            } : null,
             timestamp: new Date().toISOString(),
-            trigger_source: 'bulk_processor'
+            trigger_source: 'bulk_processor_enhanced',
+            session_id_strategy: sessionId ? 'found_or_created' : 'not_available',
+            complete_booking_data: true
           };
 
+          // Delete existing webhook for this booking to avoid duplicates
+          await supabase
+            .from('webhook_events')
+            .delete()
+            .eq('calendar_id', calendarId)
+            .like('payload->booking_id', `"${booking.id}"`);
+
+          // Insert new enhanced webhook event
           const { error: insertError } = await supabase
             .from('webhook_events')
             .insert({
@@ -105,20 +222,22 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
             console.error(`❌ Failed to create webhook for booking ${booking.id}:`, insertError);
           } else {
             webhooksCreated++;
-            console.log(`✅ Created webhook for booking ${booking.id}`);
+            console.log(`✅ Created enhanced webhook for booking ${booking.id} with session_id: ${sessionId || 'none'}`);
           }
         } catch (error) {
           console.error(`💥 Error processing booking ${booking.id}:`, error);
         }
       }
 
-      // Now process all pending webhooks
+      // Stap 6: Process alle pending webhooks met enhanced processor
+      console.log('📤 Processing all webhook events with enhanced data...');
       const { data: processResult, error: processError } = await supabase.functions.invoke('process-webhooks', {
         body: { 
-          source: 'bulk-processor',
+          source: 'bulk-processor-enhanced',
           calendar_id: calendarId,
           timestamp: new Date().toISOString(),
-          force_process: true
+          force_process: true,
+          enhanced_data: true
         }
       });
 
@@ -127,16 +246,14 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
         throw processError;
       }
 
-      console.log('✅ Bulk processing complete:', processResult);
+      console.log('✅ Enhanced bulk processing complete:', processResult);
 
-      // Get final status
-      const { data: finalPendingWebhooks, error: finalError } = await supabase
+      // Stap 7: Get final status
+      const { data: finalPendingWebhooks } = await supabase
         .from('webhook_events')
         .select('id')
         .eq('calendar_id', calendarId)
         .eq('status', 'pending');
-
-      if (finalError) throw finalError;
 
       const results = {
         totalBookings: allBookings?.length || 0,
@@ -148,14 +265,14 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
       onResultsUpdate(results);
 
       toast({
-        title: "Bulk processing voltooid!",
-        description: `Alle ${results.totalBookings} bookings verwerkt. ${results.webhooksSent} webhooks succesvol verzonden.`,
+        title: "Enhanced bulk processing voltooid!",
+        description: `Alle ${results.totalBookings} bookings verwerkt met complete data en session_id lookup. ${results.webhooksSent} webhooks succesvol verzonden.`,
       });
 
     } catch (error) {
-      console.error('💥 Bulk processing error:', error);
+      console.error('💥 Enhanced bulk processing error:', error);
       toast({
-        title: "Bulk processing gefaald",
+        title: "Enhanced bulk processing gefaald",
         description: `Fout: ${error}`,
         variant: "destructive",
       });
@@ -172,7 +289,7 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
       className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
     >
       <Play className="w-4 h-4 mr-2" />
-      {processing ? 'Verwerking bezig...' : 'Verwerk Alle Bookings'}
+      {processing ? 'Enhanced Processing...' : 'Enhanced Bulk Process'}
     </Button>
   );
 }
