@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,11 @@ export function BulkWebhookProcessor({ calendarId }: BulkWebhookProcessorProps) 
 
       // Extract booking IDs that already have webhooks
       const existingBookingIds = new Set(
-        existingWebhooks?.map(w => w.payload?.booking_id).filter(Boolean) || []
+        existingWebhooks?.map(w => {
+          // Safely access booking_id from payload
+          const payload = w.payload as any;
+          return payload?.booking_id;
+        }).filter(Boolean) || []
       );
 
       console.log(`📋 Found ${existingWebhooks?.length || 0} existing webhook events`);
