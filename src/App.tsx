@@ -4,6 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CalendarProvider } from '@/contexts/CalendarContext';
 import { ConversationCalendarProvider } from '@/contexts/ConversationCalendarContext';
+import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
+import { useAuth } from '@/hooks/useAuth';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import AuthCallback from '@/pages/AuthCallback';
@@ -27,12 +29,26 @@ import Bookings from '@/pages/Bookings';
 
 const queryClient = new QueryClient();
 
+// Global webhook processor component
+function GlobalWebhookProcessor() {
+  const { user } = useAuth();
+  
+  // Start global webhook auto-processor when user is authenticated
+  useWebhookAutoProcessor({ 
+    enabled: !!user,
+    intervalMs: 3000 // Process every 3 seconds globally
+  });
+
+  return null; // This component doesn't render anything
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <CalendarProvider>
         <ConversationCalendarProvider>
           <Router>
+            <GlobalWebhookProcessor />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />

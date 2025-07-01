@@ -10,7 +10,6 @@ import { WebhookHealthMonitor } from '../webhooks/WebhookHealthMonitor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
-import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
 
 interface WhatsAppDashboardProps {
   calendarId: string;
@@ -21,18 +20,11 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
   
   // Initialize enhanced webhook processor
   useWebhookProcessor(calendarId);
-  
-  // Start enhanced auto-processor with optimized settings
-  const { isProcessing } = useWebhookAutoProcessor({ 
-    calendarId, 
-    enabled: true,
-    intervalMs: 3000 // Faster processing - every 3 seconds
-  });
 
   return (
     <div className="h-full">
       <Tabs defaultValue="overview" className="h-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">
             Contacten Overzicht
           </TabsTrigger>
@@ -42,19 +34,17 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
           <TabsTrigger value="webhook-flow">
             <div className="flex items-center gap-2">
               Webhook Flow
-              <Badge variant="default" className="bg-green-500 animate-pulse">
-                ENABLED
+              <Badge variant="default" className="bg-green-500">
+                GLOBAL
               </Badge>
             </div>
           </TabsTrigger>
           <TabsTrigger value="health">
             <div className="flex items-center gap-2">
               System Health
-              {isProcessing && (
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800 animate-pulse">
-                  Processing
-                </Badge>
-              )}
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                Monitoring
+              </Badge>
             </div>
           </TabsTrigger>
           <TabsTrigger value="management">
