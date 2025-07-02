@@ -85,8 +85,8 @@ const Bookings = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-8">
-        <div className="space-y-6">
+      <div className="bg-gray-900 min-h-full p-3 md:p-8">
+        <div className="space-y-4 md:space-y-6">
           <BookingsHeader />
 
           <BookingsFilters

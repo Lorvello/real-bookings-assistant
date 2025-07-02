@@ -34,45 +34,45 @@ const Profile = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-8">
-        <div className="mb-8">
-          <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
-            <h1 className="text-3xl font-bold text-white mb-2">
+      <div className="bg-gray-900 min-h-full p-3 md:p-8">
+        <div className="mb-4 md:mb-8">
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-3 md:p-6">
+            <h1 className="text-lg md:text-3xl font-bold text-white mb-1 md:mb-2">
               Profile
             </h1>
-            <p className="text-gray-400">
+            <p className="text-gray-400 text-xs md:text-base">
               Manage your account settings and preferences
             </p>
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-          <h2 className="text-xl font-semibold text-white mb-6">Account Information</h2>
+        <div className="bg-gray-800 rounded-xl p-3 md:p-6 border border-gray-700">
+          <h2 className="text-base md:text-xl font-semibold text-white mb-4 md:mb-6">Account Information</h2>
           
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-xs md:text-sm font-medium text-gray-300 mb-1 md:mb-2">
                 Email
               </label>
-              <div className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
+              <div className="w-full px-3 md:px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm md:text-base">
                 {user.email}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-xs md:text-sm font-medium text-gray-300 mb-1 md:mb-2">
                 User ID
               </label>
-              <div className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white font-mono text-sm">
+              <div className="w-full px-3 md:px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white font-mono text-xs md:text-sm">
                 {user.id}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-xs md:text-sm font-medium text-gray-300 mb-1 md:mb-2">
                 Account Created
               </label>
-              <div className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white">
+              <div className="w-full px-3 md:px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm md:text-base">
                 {new Date(user.created_at).toLocaleDateString('nl-NL', {
                   year: 'numeric',
                   month: 'long',

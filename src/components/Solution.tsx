@@ -117,20 +117,20 @@ const Solution = () => {
           ))}
         </div>
 
-        {/* Mobile: Improved centered snap-scroll carousel with indicators */}
+        {/* Mobile: Perfect centered snap-scroll carousel */}
         <div className="md:hidden">
           <div 
             ref={solutionCarouselRef}
-            className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
+            className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain"
             style={{
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            <div className="flex gap-4 px-4 pb-4">
+            <div className="flex pb-4">
               {features.map((feature, index) => (
-                <div key={index} className="w-[85vw] flex-none snap-start snap-always">
+                <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
                   <div className="bg-slate-800/50 rounded-2xl p-4 text-center h-full">
                     <div className="relative mb-4 flex justify-center">
                       <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
