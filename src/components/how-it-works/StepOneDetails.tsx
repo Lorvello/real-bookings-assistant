@@ -7,19 +7,19 @@ const StepOneDetails = () => {
     <div className="relative">
       <div className="grid lg:grid-cols-2 gap-6 md:gap-12 items-center">
         {/* Left side - Content */}
-        <div className="space-y-4 md:space-y-6">
-          <div className="flex items-center gap-3 md:gap-4">
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-sm md:text-lg font-bold">1</span>
-            </div>
-            <div>
-              <h3 className="text-lg md:text-2xl lg:text-3xl font-bold text-white mb-1">Fill in your basic information</h3>
-              <div className="flex items-center gap-2 text-emerald-400">
-                <Sparkles className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="text-xs md:text-sm font-medium">Super simple</span>
+          <div className="space-y-3 md:space-y-6">
+            <div className="flex items-center gap-2 md:gap-4">
+              <div className="w-6 h-6 md:w-10 md:h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white text-xs md:text-lg font-bold">1</span>
+              </div>
+              <div>
+                <h3 className="text-base md:text-2xl lg:text-3xl font-bold text-white mb-1">Fill in your basic information</h3>
+                <div className="flex items-center gap-1 text-emerald-400">
+                  <Sparkles className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs md:text-sm font-medium">Super simple</span>
+                </div>
               </div>
             </div>
-          </div>
           
           <div className="space-y-3 md:space-y-4">
             <div className="grid gap-2">

@@ -60,46 +60,16 @@ const ProcessHighlights = () => {
             </div>
           </div>
 
-          {/* Mobile: Perfect snapping carousel */}
-          <div className="md:hidden">
-            <div 
-              ref={stepsCarouselRef}
-              className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              <div className="flex pb-4">
-                {steps.map((step, index) => {
-                  const StepComponent = step.component;
-                  return (
-                    <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
-                      <div className="bg-slate-800/30 rounded-2xl p-4 h-full">
-                        <StepComponent />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            
-            {/* Interactive carousel indicators */}
-            <div className="flex justify-center space-x-2 mt-4">
-              {steps.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleStepIndicatorClick(index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === activeStepIndex
-                      ? 'bg-emerald-400 w-6'
-                      : 'bg-slate-600 hover:bg-slate-500'
-                  }`}
-                  aria-label={`Go to step ${index + 1}`}
-                />
-              ))}
-            </div>
+          {/* Mobile: Vertical layout */}
+          <div className="md:hidden space-y-6">
+            {steps.map((step, index) => {
+              const StepComponent = step.component;
+              return (
+                <div key={index} className="bg-slate-800/30 rounded-2xl p-4">
+                  <StepComponent />
+                </div>
+              );
+            })}
           </div>
           
           <ResultSummary />

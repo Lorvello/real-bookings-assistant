@@ -23,41 +23,41 @@ export const SettingsLayout = () => {
   } = useSettingsData();
 
   return (
-    <div className="min-h-screen bg-gray-900 p-3 md:p-6">
+    <div className="min-h-screen bg-gray-900 p-2 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-4 md:mb-8">
-          <h1 className="text-lg md:text-3xl font-bold text-white mb-1 md:mb-2">Instellingen</h1>
-          <p className="text-gray-400 text-xs md:text-base">Beheer je profiel, bedrijf en kalenderinstellingen</p>
+        <div className="mb-3 md:mb-8">
+          <h1 className="text-base md:text-3xl font-bold text-white mb-1 md:mb-2">Instellingen</h1>
+          <p className="text-gray-400 text-xs md:text-base">Beheer instellingen</p>
         </div>
 
         {/* Settings Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 md:space-y-6">
           <div className="overflow-x-auto">
             <TabsList className="grid w-full grid-cols-6 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2">
-              <TabsTrigger value="profile" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-1 md:px-4 py-2 md:py-3">
+              <TabsTrigger value="profile" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <User className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="hidden sm:inline text-xs md:text-sm">Profiel</span>
+                <span className="text-xs md:text-sm">Profiel</span>
               </TabsTrigger>
-              <TabsTrigger value="business" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-1 md:px-4 py-2 md:py-3">
+              <TabsTrigger value="business" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Building2 className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="hidden sm:inline text-xs md:text-sm">Bedrijf</span>
+                <span className="text-xs md:text-sm">Bedrijf</span>
               </TabsTrigger>
-              <TabsTrigger value="calendar" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-1 md:px-4 py-2 md:py-3">
+              <TabsTrigger value="calendar" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Calendar className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="hidden sm:inline text-xs md:text-sm">Kalender</span>
+                <span className="text-xs md:text-sm">Kalender</span>
               </TabsTrigger>
-              <TabsTrigger value="services" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-1 md:px-4 py-2 md:py-3">
+              <TabsTrigger value="services" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Wrench className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="hidden sm:inline text-xs md:text-sm">Services</span>
+                <span className="text-xs md:text-sm">Services</span>
               </TabsTrigger>
-              <TabsTrigger value="billing" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-1 md:px-4 py-2 md:py-3">
+              <TabsTrigger value="billing" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <CreditCard className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="hidden sm:inline text-xs md:text-sm">Facturering</span>
+                <span className="text-xs md:text-sm">Billing</span>
               </TabsTrigger>
-              <TabsTrigger value="whatsapp" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-1 md:px-4 py-2 md:py-3">
+              <TabsTrigger value="whatsapp" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="hidden sm:inline text-xs md:text-sm">WhatsApp</span>
+                <span className="text-xs md:text-sm">WhatsApp</span>
               </TabsTrigger>
             </TabsList>
           </div>

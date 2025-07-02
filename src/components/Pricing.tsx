@@ -104,19 +104,19 @@ export const Pricing = () => {
               >
                 Monthly
               </button>
-              <button
-                onClick={() => setIsAnnual(true)}
-                className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
-                  isAnnual
-                    ? 'bg-emerald-500 text-white shadow-lg'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                Annual
-                <span className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-bold">
-                  Save 20%
-                </span>
-              </button>
+                <button
+                  onClick={() => setIsAnnual(true)}
+                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
+                    isAnnual
+                      ? 'bg-emerald-500 text-white shadow-lg'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  Annual
+                  <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                    Save 20%
+                  </span>
+                </button>
             </div>
           </div>
         </div>
@@ -200,15 +200,15 @@ export const Pricing = () => {
               {plans.map((plan, index) => (
                 <div
                   key={plan.name}
-                  className={`w-[85vw] flex-none snap-start snap-always relative rounded-3xl p-6 border transition-all ${
+                  className={`w-[90vw] flex-none snap-start snap-always relative rounded-3xl p-6 border transition-all ${
                     plan.isEnterprise
                       ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
                       : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
                   } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}
                 >
                    {plan.popular && (
-                     <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
-                       <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                       <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">
                          Most Popular
                        </div>
                      </div>

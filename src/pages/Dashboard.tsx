@@ -80,13 +80,13 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-3 md:p-8">
+      <div className="bg-gray-900 min-h-full p-2 md:p-8">
         {/* Dashboard Header with Conditional Date Filter */}
         <div className="mb-4 md:mb-8">
           <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-3 md:p-6">
             <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
               <div>
-                <h1 className="text-lg md:text-3xl font-bold text-white">
+                <h1 className="text-base md:text-3xl font-bold text-white">
                   Dashboard
                   <span className="hidden md:inline">
                     {viewingAllCalendars 
