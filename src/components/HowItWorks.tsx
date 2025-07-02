@@ -19,7 +19,10 @@ const HowItWorks = () => {
               STEP 1
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Client Sends Message</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 md:hidden text-sm">
+              Customer messages via WhatsApp
+            </p>
+            <p className="text-gray-600 hidden md:block">
               Your potential client messages your WhatsApp number asking about availability or services
             </p>
           </div>
@@ -32,7 +35,10 @@ const HowItWorks = () => {
               STEP 2
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Asks Smart Questions</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 md:hidden text-sm">
+              AI checks availability instantly
+            </p>
+            <p className="text-gray-600 hidden md:block">
               The AI agent qualifies the lead, gathers requirements, and checks your real-time availability
             </p>
           </div>
@@ -45,7 +51,10 @@ const HowItWorks = () => {
               STEP 3
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Booking Confirmed</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 md:hidden text-sm">
+              Automatic booking + calendar sync
+            </p>
+            <p className="text-gray-600 hidden md:block">
               AI books the appointment, syncs with your calendar, and sends confirmation to both parties
             </p>
           </div>

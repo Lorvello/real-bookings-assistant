@@ -104,19 +104,19 @@ export const Pricing = () => {
               >
                 Monthly
               </button>
-                <button
-                  onClick={() => setIsAnnual(true)}
-                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
-                    isAnnual
-                      ? 'bg-emerald-500 text-white shadow-lg'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  Annual
-                  <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                    Save 20%
-                  </span>
-                </button>
+                  <button
+                    onClick={() => setIsAnnual(true)}
+                    className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
+                      isAnnual
+                        ? 'bg-emerald-500 text-white shadow-lg'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    Annual
+                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                      Save 20%
+                    </span>
+                  </button>
             </div>
           </div>
         </div>
@@ -133,8 +133,8 @@ export const Pricing = () => {
               } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}
             >
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                  <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap shadow-lg">
                     Most Popular
                   </div>
                 </div>
@@ -228,7 +228,7 @@ export const Pricing = () => {
                         </div>
                         {isAnnual && (
                           <div className="text-xs text-emerald-400 mt-1">
-                            Billed annually (€{plan.annualPrice * 12}/year)
+                            Billed annually (€{(plan.annualPrice || 0) * 12}/year)
                           </div>
                         )}
                       </div>

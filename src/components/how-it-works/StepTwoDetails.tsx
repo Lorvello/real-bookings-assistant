@@ -13,18 +13,18 @@ const StepTwoDetails = () => {
               <span className="text-white text-sm md:text-lg font-bold">2</span>
             </div>
             <div>
-              <h3 className="text-lg md:text-2xl lg:text-3xl font-bold text-white mb-1">Choose your WhatsApp strategy</h3>
+              <h3 className="text-lg md:text-2xl lg:text-3xl font-bold text-white mb-1">Choose WhatsApp Option</h3>
               <div className="flex items-center gap-2 text-emerald-400">
                 <MessageSquare className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="text-xs md:text-sm font-medium">Flexible & secure</span>
+                <span className="text-xs md:text-sm font-medium">Two simple options</span>
               </div>
             </div>
           </div>
           
           <div className="space-y-4 md:space-y-6">
-            <p className="text-base md:text-lg text-slate-300 leading-relaxed">
-              You have two options to get started. We ensure everything works seamlessly, 
-              without you having to do anything technical.
+            <p className="text-xs md:text-lg text-slate-300 leading-relaxed">
+              <span className="md:hidden">Quick choice: new number or use yours</span>
+              <span className="hidden md:inline">You have two options to get started. We ensure everything works seamlessly, without you having to do anything technical.</span>
             </p>
             
             <div className="border-l-4 border-emerald-400 pl-3 md:pl-4 bg-emerald-500/5 py-2 md:py-3 rounded-r-lg">

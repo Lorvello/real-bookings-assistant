@@ -60,8 +60,8 @@ const ProcessHighlights = () => {
             </div>
           </div>
 
-          {/* Mobile: Vertical layout */}
-          <div className="md:hidden space-y-6">
+          {/* Mobile: Vertical layout with increased spacing */}
+          <div className="md:hidden space-y-12">
             {steps.map((step, index) => {
               const StepComponent = step.component;
               return (

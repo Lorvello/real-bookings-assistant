@@ -773,52 +773,65 @@ const WhyUs = () => {
         </div>
       </ScrollAnimatedSection>
 
-      {/* Digital Transformation Conclusion */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
+      {/* Digital Transformation Conclusion - Compact Mobile */}
+      <ScrollAnimatedSection as="section" className="py-6 md:py-20 px-3 md:px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+          <div className="text-center mb-4 md:mb-16">
+            <h2 className="text-lg md:text-4xl font-bold text-white mb-2 md:mb-6 px-3 sm:px-0">
               The Future is <span className="text-green-400">Mobile-First</span>
             </h2>
-            <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto leading-relaxed px-3 sm:px-0">
-              The shift from email to WhatsApp is not temporary - it's part of a broader digital transformation. 
-              Consumers expect speed, convenience and personal communication. Businesses that embrace this 
-              <strong className="text-emerald-400"> win more customers, retain them longer and grow faster</strong>.
+            <p className="text-xs md:text-xl text-slate-300 max-w-4xl mx-auto leading-relaxed px-3 sm:px-0">
+              <span className="md:hidden">WhatsApp beats email: speed, personal touch, better results.</span>
+              <span className="hidden md:inline">
+                The shift from email to WhatsApp is not temporary - it's part of a broader digital transformation. 
+                Consumers expect speed, convenience and personal communication. Businesses that embrace this 
+                <strong className="text-emerald-400"> win more customers, retain them longer and grow faster</strong>.
+              </span>
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-12">
-            <div className="text-center">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
-                <Smartphone className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-              </div>
-              <h3 className="text-lg md:text-xl font-bold text-white mb-2">Mobile-First Behavior</h3>
-              <p className="text-slate-300 text-sm md:text-base">People check their phone 96 times per day. WhatsApp fits into their natural behavior.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
-                <Zap className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-              </div>
-              <h3 className="text-lg md:text-xl font-bold text-white mb-2">Expectation of Speed</h3>
-              <p className="text-slate-300 text-sm md:text-base">Customers expect immediate responses. WhatsApp delivers this, email no longer does.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
-                <Heart className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-              </div>
-              <h3 className="text-lg md:text-xl font-bold text-white mb-2">Personal Connection</h3>
-              <p className="text-slate-300 text-sm md:text-base">85% prefer messaging over emails. It feels more personal and trusted.</p>
+          {/* Mobile: Show only conclusion */}
+          <div className="md:hidden text-center">
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-green-500/20 rounded-2xl p-3 mx-3">
+              <p className="text-xs text-green-300 leading-relaxed">
+                WhatsApp = <strong>faster confirmation + higher attendance + better customer experience</strong>
+              </p>
             </div>
           </div>
 
-          <div className="text-center">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-green-500/20 rounded-2xl p-4 md:p-8 max-w-4xl mx-auto mx-3 md:mx-auto">
-              <h3 className="text-lg md:text-2xl font-bold text-white mb-3 md:mb-4">Conclusion in One Sentence</h3>
-              <p className="text-sm md:text-xl text-green-300 leading-relaxed">
-                For scheduling and managing customer appointments, WhatsApp in 2025 is a <strong>proven superior channel</strong> 
-                compared to email – it ensures faster confirmation, higher attendance and a smoother customer experience, 
-                which ultimately leads to <strong>better business results</strong>.
-              </p>
+          {/* Desktop: Full content */}
+          <div className="hidden md:block">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-12">
+              <div className="text-center">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
+                  <Smartphone className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-white mb-2">Mobile-First Behavior</h3>
+                <p className="text-slate-300 text-sm md:text-base">People check their phone 96 times per day. WhatsApp fits into their natural behavior.</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
+                  <Zap className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-white mb-2">Expectation of Speed</h3>
+                <p className="text-slate-300 text-sm md:text-base">Customers expect immediate responses. WhatsApp delivers this, email no longer does.</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
+                  <Heart className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-white mb-2">Personal Connection</h3>
+                <p className="text-slate-300 text-sm md:text-base">85% prefer messaging over emails. It feels more personal and trusted.</p>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-green-500/20 rounded-2xl p-4 md:p-8 max-w-4xl mx-auto mx-3 md:mx-auto">
+                <h3 className="text-lg md:text-2xl font-bold text-white mb-3 md:mb-4">Conclusion in One Sentence</h3>
+                <p className="text-sm md:text-xl text-green-300 leading-relaxed">
+                  WhatsApp ensures faster confirmation, higher attendance and better business results.
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -13,20 +13,21 @@ const StepThreeDetails = () => {
               <span className="text-white text-sm md:text-lg font-bold">3</span>
             </div>
             <div>
-              <h3 className="text-lg md:text-2xl lg:text-3xl font-bold text-white mb-1">Your assistant goes live</h3>
+              <h3 className="text-lg md:text-2xl lg:text-3xl font-bold text-white mb-1">AI Assistant Live</h3>
               <div className="flex items-center gap-2 text-emerald-400">
                 <Bot className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="text-xs md:text-sm font-medium">AI-powered</span>
+                <span className="text-xs md:text-sm font-medium">24/7 automated</span>
               </div>
             </div>
           </div>
           
           <div className="space-y-4 md:space-y-6">
-            <p className="text-base md:text-lg text-slate-300 leading-relaxed">
-              Ready for action. From now on, your customers can via WhatsApp:
+            <p className="text-xs md:text-lg text-slate-300 leading-relaxed">
+              <span className="md:hidden">AI handles all bookings automatically</span>
+              <span className="hidden md:inline">Ready for action. From now on, your customers can via WhatsApp:</span>
             </p>
             
-            <div className="space-y-2 md:space-y-3">
+            <div className="hidden md:block space-y-2 md:space-y-3">
               {[
                 'Book appointments (based on your calendar)',
                 'Reschedule or cancel appointments',
