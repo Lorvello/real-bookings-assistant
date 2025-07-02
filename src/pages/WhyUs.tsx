@@ -79,24 +79,28 @@ const WhyUs = () => {
       icon: Heart,
       title: "Personal Touch",
       description: "85% of consumers prefer messaging a business over emailing. WhatsApp feels personal and trusted.",
+      mobileDescription: "85% prefer messaging - more personal than email.",
       stat: "85% prefers messaging"
     },
     {
       icon: Brain,
       title: "Lower Threshold",
       description: "53% of customers are more likely to purchase from businesses that are reachable via chat. It feels less formal than email.",
+      mobileDescription: "53% more likely to buy from chat-enabled businesses.",
       stat: "53% higher conversion"
     },
     {
       icon: Smartphone,
       title: "Mobile-First Behavior",
       description: "People check their phone 96 times per day. WhatsApp fits into their natural behavior.",
+      mobileDescription: "WhatsApp fits natural phone checking habits.",
       stat: "96x per day checked"
     },
     {
       icon: Zap,
       title: "Real-time Interaction",
       description: "Two-way communication in one conversation. Customers can directly ask, confirm or change.",
+      mobileDescription: "Direct two-way communication in one chat.",
       stat: "Direct interaction"
     }
   ];
@@ -109,6 +113,8 @@ const WhyUs = () => {
       caseTitle: "Gynecology Clinic London",
       caseBefore: "Scheduling appointments took an average of 5 minutes per phone/email back-and-forth. No-show rate was high due to missed email reminders.",
       caseAfter: "After implementing WhatsApp chatbot: appointment scheduling in <1 minute, 40% fewer no-shows through effective reminders.",
+      mobileBefore: "5 minutes per booking, high no-shows from missed emails.",
+      mobileAfter: "<1 minute booking, 40% fewer no-shows via WhatsApp.",
       implementation: [
         "Automated WhatsApp chatbot for bookings",
         "Personal reminders 24h in advance",
@@ -130,6 +136,8 @@ const WhyUs = () => {
       caseTitle: "Dutch Salons via Aimy Platform",
       caseBefore: "Lots of back-and-forth emailing/calling for appointments. Email reminders were often missed (30% open rate).",
       caseAfter: "WhatsApp integration led to spectacular growth in bookings and dramatic drop in no-shows.",
+      mobileBefore: "Email back-and-forth, 30% open rate for reminders.",
+      mobileAfter: "WhatsApp = 30% more bookings, 50% fewer no-shows.",
       implementation: [
         "WhatsApp messages for appointment confirmation",
         "Automatic reminders via WhatsApp",
@@ -151,6 +159,8 @@ const WhyUs = () => {
       caseTitle: "HR Agencies and Recruiters",
       caseBefore: "Candidates responded slowly to email invitations. Many interviews had to be postponed due to late responses.",
       caseAfter: "WhatsApp invitations lead to 10x higher response and drastically accelerated recruitment process.",
+      mobileBefore: "Slow email responses, postponed interviews.",
+      mobileAfter: "10x higher response, faster recruitment.",
       implementation: [
         "WhatsApp invitations for interviews",
         "Quick confirmation of appointments",
@@ -172,6 +182,8 @@ const WhyUs = () => {
       caseTitle: "3-Step WhatsApp Funnel",
       caseBefore: "Reservation confirmations via email were often missed. Last-minute cancellations didn't get through, empty tables.",
       caseAfter: "Personal WhatsApp reminders keep tables full and guests informed.",
+      mobileBefore: "Missed email confirmations, empty tables.",
+      mobileAfter: "WhatsApp reminders = full tables, informed guests.",
       implementation: [
         "Step 1: Direct confirmation via WhatsApp with extra info",
         "Step 2: Reminder 4h in advance with cancellation link",
@@ -193,18 +205,21 @@ const WhyUs = () => {
       icon: Crown,
       title: "4+ Years Proven Results",
       description: "While others are still catching up, we already have 4+ years of experience with AI-driven appointment automation.",
+      mobileDescription: "4+ years experience while others catch up.",
       proof: "10,000+ satisfied businesses"
     },
     {
       icon: Rocket,
       title: "5 Minutes vs 5 Weeks Setup",
       description: "Our competitors need weeks of setup. We get you live in minutes, without technical knowledge.",
+      mobileDescription: "Live in minutes, not weeks like competitors.",
       proof: "Average setup: 4.7 minutes"
     },
     {
       icon: Target,
       title: "300% Better Results",
       description: "Independent studies show that our AI converts 3x more inquiries into bookings than other systems.",
+      mobileDescription: "3x more bookings than other AI systems.",
       proof: "Verified by 1,000+ case studies"
     }
   ];
@@ -212,6 +227,7 @@ const WhyUs = () => {
   const testimonials = [
     {
       quote: "We tried 3 other booking systems before finding this one. None came even close. This is the only one that actually understands our business.",
+      mobileQuote: "Tried 3 others first. None came close. This actually works.",
       author: "Sarah Chen",
       role: "Owner, Wellness Spa",
       result: "+400% bookings",
@@ -219,6 +235,7 @@ const WhyUs = () => {
     },
     {
       quote: "Switched from Calendly and another AI tool. The difference is night and day - this really works like a real receptionist.",
+      mobileQuote: "Switched from Calendly. Night and day difference.",
       author: "Mike Rodriguez", 
       role: "Manager, Auto Repair",
       result: "+250% revenue",
@@ -226,6 +243,7 @@ const WhyUs = () => {
     },
     {
       quote: "First tried the 'big names'. Wasted months. Should have started here. Best ROI of any business tool I've ever bought.",
+      mobileQuote: "Tried big names first. Wasted months. Best ROI ever.",
       author: "Emma Thompson",
       role: "Director, Medical Clinic", 
       result: "+180% efficiency",
@@ -285,7 +303,6 @@ const WhyUs = () => {
           <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/5 rounded-full blur-3xl"></div>
         </div>
         
-        {/* Grid pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
         
         <div className="max-w-7xl mx-auto text-center relative z-10">
@@ -293,13 +310,24 @@ const WhyUs = () => {
             Why 10,000+ Businesses <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Choose WhatsApp Over Email</span>
           </h1>
           <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto mb-8 md:mb-16 px-3 sm:px-0">
-            Scientifically proven results: <strong className="text-emerald-400">95% higher open rates, 18x faster responses, 50% fewer no-shows</strong>. 
-            Discover why smart businesses are switching en masse.
+            <span className="md:hidden">
+              <strong className="text-emerald-400">95% higher open rates, 18x faster responses, 50% fewer no-shows</strong>. 
+              Smart businesses switch to WhatsApp.
+            </span>
+            <span className="hidden md:inline">
+              Scientifically proven results: <strong className="text-emerald-400">95% higher open rates, 18x faster responses, 50% fewer no-shows</strong>. 
+              Discover why smart businesses are switching en masse.
+            </span>
           </p>
           
           <div className="border border-emerald-500/20 rounded-2xl p-4 md:p-8 max-w-3xl mx-auto mx-3 sm:mx-auto">
             <p className="text-sm md:text-xl font-semibold text-emerald-300">
-              ✅ Proven by 1000+ case studies • 85% of customers prefer messaging • Results within 24 hours
+              <span className="md:hidden">
+                ✅ 1000+ case studies • 85% prefer messaging • Results in 24h
+              </span>
+              <span className="hidden md:inline">
+                ✅ Proven by 1000+ case studies • 85% of customers prefer messaging • Results within 24 hours
+              </span>
             </p>
           </div>
         </div>
@@ -332,7 +360,8 @@ const WhyUs = () => {
                <span className="text-green-400">Scientific Facts</span>: WhatsApp vs Email
              </h2>
              <p className="text-xs md:text-lg text-slate-300 max-w-2xl mx-auto px-3 sm:px-0">
-               Research among thousands of businesses worldwide
+               <span className="md:hidden">Research from thousands of businesses</span>
+               <span className="hidden md:inline">Research among thousands of businesses worldwide</span>
              </p>
            </div>
           
@@ -391,14 +420,15 @@ const WhyUs = () => {
              ))}
            </div>
 
-           {/* Key Insight Box - More compact */}
+           {/* Key Insight Box */}
            <ScrollAnimatedSection className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-3 md:p-6 text-center mx-3 md:mx-0" delay={300}>
              <div className="flex items-center justify-center gap-2 mb-2 md:mb-3">
                <Gauge className="w-4 h-4 md:w-6 md:h-6 text-green-400" />
                <h3 className="text-sm md:text-xl font-bold text-white">Key Finding</h3>
              </div>
              <p className="text-xs md:text-lg text-green-300 max-w-3xl mx-auto leading-relaxed">
-               85% prefer messaging over email • 53% more likely to purchase from chat-enabled businesses
+               <span className="md:hidden">85% prefer messaging • 53% more likely to buy from chat businesses</span>
+               <span className="hidden md:inline">85% prefer messaging over email • 53% more likely to purchase from chat-enabled businesses</span>
              </p>
            </ScrollAnimatedSection>
         </div>
@@ -409,10 +439,14 @@ const WhyUs = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              Why WhatsApp Works <span className="text-green-400">Psychologically</span> Better
+              Why WhatsApp Works <span className="text-green-400">
+                <span className="md:hidden">Better</span>
+                <span className="hidden md:inline">Psychologically</span>
+              </span> Better
             </h2>
             <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-              It's not just about numbers - it's about how people feel and behave
+              <span className="md:hidden">How people feel and behave matters</span>
+              <span className="hidden md:inline">It's not just about numbers - it's about how people feel and behave</span>
             </p>
           </div>
           
@@ -429,7 +463,10 @@ const WhyUs = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-3">{benefit.title}</h3>
-                    <p className="text-slate-300 mb-3 md:mb-4 text-sm md:text-base">{benefit.description}</p>
+                    <p className="text-slate-300 mb-3 md:mb-4 text-sm md:text-base">
+                      <span className="md:hidden">{benefit.mobileDescription}</span>
+                      <span className="hidden md:inline">{benefit.description}</span>
+                    </p>
                     <div className="bg-green-500/10 text-green-400 px-3 md:px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold inline-block border border-green-500/20">
                       {benefit.stat}
                     </div>
@@ -449,7 +486,8 @@ const WhyUs = () => {
               <span className="text-green-400">Proven Results</span> Across All Sectors
             </h2>
             <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-              In-depth case studies of real businesses that saw dramatic improvements
+              <span className="md:hidden">Real businesses, dramatic improvements</span>
+              <span className="hidden md:inline">In-depth case studies of real businesses that saw dramatic improvements</span>
             </p>
           </div>
           
@@ -564,11 +602,11 @@ const WhyUs = () => {
                       <div className="space-y-3 text-xs">
                         <div>
                           <span className="text-red-400 font-semibold">Before:</span>
-                          <p className="text-slate-300 mt-1">{study.caseBefore}</p>
+                          <p className="text-slate-300 mt-1">{study.mobileBefore}</p>
                         </div>
                         <div>
                           <span className="text-green-400 font-semibold">After:</span>
-                          <p className="text-slate-300 mt-1">{study.caseAfter}</p>
+                          <p className="text-slate-300 mt-1">{study.mobileAfter}</p>
                         </div>
                         <div className="bg-slate-800/50 rounded-lg p-3 border-l-2 border-green-400">
                           <p className="text-slate-300 italic">"{study.quote}"</p>
@@ -607,7 +645,8 @@ const WhyUs = () => {
               Why We're Different From <span className="text-emerald-400">All Others</span>
             </h2>
             <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-              We didn't just build a booking tool. We built the most advanced AI assistant that truly understands your business.
+              <span className="md:hidden">Advanced AI that understands your business</span>
+              <span className="hidden md:inline">We didn't just build a booking tool. We built the most advanced AI assistant that truly understands your business.</span>
             </p>
           </div>
           
@@ -650,7 +689,10 @@ const WhyUs = () => {
                         <advantage.icon className="w-6 h-6 text-emerald-400" />
                       </div>
                       <h3 className="text-lg font-bold text-white mb-3">{advantage.title}</h3>
-                      <p className="text-slate-300 mb-3 text-sm">{advantage.description}</p>
+                      <p className="text-slate-300 mb-3 text-sm">
+                        <span className="md:hidden">{advantage.mobileDescription}</span>
+                        <span className="hidden md:inline">{advantage.description}</span>
+                      </p>
                       <div className="text-emerald-400 font-bold text-xs">
                         {advantage.proof}
                       </div>
@@ -684,10 +726,12 @@ const WhyUs = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              Why Businesses Switch From Competitors To Us
+              <span className="md:hidden">Why Businesses Switch To Us</span>
+              <span className="hidden md:inline">Why Businesses Switch From Competitors To Us</span>
             </h2>
             <p className="text-sm md:text-xl text-slate-300 px-3 sm:px-0">
-              Real stories from businesses that tried others first, and then found us
+              <span className="md:hidden">Tried others first, then found us</span>
+              <span className="hidden md:inline">Real stories from businesses that tried others first, and then found us</span>
             </p>
           </div>
           
@@ -738,7 +782,10 @@ const WhyUs = () => {
                           <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
                         ))}
                       </div>
-                      <p className="text-slate-300 mb-4 italic font-medium text-sm">"{testimonial.quote}"</p>
+                      <p className="text-slate-300 mb-4 italic font-medium text-sm">
+                        "<span className="md:hidden">{testimonial.mobileQuote}</span>
+                        <span className="hidden md:inline">{testimonial.quote}</span>"
+                      </p>
                       <div className="flex justify-between items-end">
                         <div>
                           <div className="font-bold text-white text-sm">{testimonial.author}</div>
@@ -773,7 +820,7 @@ const WhyUs = () => {
         </div>
       </ScrollAnimatedSection>
 
-      {/* Digital Transformation Conclusion - Compact Mobile */}
+      {/* Digital Transformation Conclusion */}
       <ScrollAnimatedSection as="section" className="py-6 md:py-20 px-3 md:px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-4 md:mb-16">
@@ -790,11 +837,11 @@ const WhyUs = () => {
             </p>
           </div>
           
-          {/* Mobile: Show only conclusion */}
+          {/* Mobile: Simplified conclusion */}
           <div className="md:hidden text-center">
             <div className="bg-slate-800/50 backdrop-blur-sm border border-green-500/20 rounded-2xl p-3 mx-3">
               <p className="text-xs text-green-300 leading-relaxed">
-                WhatsApp = <strong>faster confirmation + higher attendance + better customer experience</strong>
+                WhatsApp = <strong>faster bookings + higher attendance + better results</strong>
               </p>
             </div>
           </div>
