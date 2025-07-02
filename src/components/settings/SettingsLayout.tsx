@@ -33,32 +33,34 @@ export const SettingsLayout = () => {
 
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-gray-800/50 border-gray-700">
-            <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-gray-700">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Profiel</span>
-            </TabsTrigger>
-            <TabsTrigger value="business" className="flex items-center gap-2 data-[state=active]:bg-gray-700">
-              <Building2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Bedrijf</span>
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-2 data-[state=active]:bg-gray-700">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Kalender</span>
-            </TabsTrigger>
-            <TabsTrigger value="services" className="flex items-center gap-2 data-[state=active]:bg-gray-700">
-              <Wrench className="h-4 w-4" />
-              <span className="hidden sm:inline">Services</span>
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="flex items-center gap-2 data-[state=active]:bg-gray-700">
-              <CreditCard className="h-4 w-4" />
-              <span className="hidden sm:inline">Facturering</span>
-            </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="flex items-center gap-2 data-[state=active]:bg-gray-700">
-              <MessageSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">WhatsApp</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="grid w-full grid-cols-6 bg-gray-800/50 border-gray-700 min-w-max">
+              <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4">
+                <User className="h-4 w-4" />
+                <span className="hidden md:inline">Profiel</span>
+              </TabsTrigger>
+              <TabsTrigger value="business" className="flex items-center gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4">
+                <Building2 className="h-4 w-4" />
+                <span className="hidden md:inline">Bedrijf</span>
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="flex items-center gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4">
+                <Calendar className="h-4 w-4" />
+                <span className="hidden md:inline">Kalender</span>
+              </TabsTrigger>
+              <TabsTrigger value="services" className="flex items-center gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4">
+                <Wrench className="h-4 w-4" />
+                <span className="hidden md:inline">Services</span>
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="flex items-center gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4">
+                <CreditCard className="h-4 w-4" />
+                <span className="hidden md:inline">Facturering</span>
+              </TabsTrigger>
+              <TabsTrigger value="whatsapp" className="flex items-center gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4">
+                <MessageSquare className="h-4 w-4" />
+                <span className="hidden md:inline">WhatsApp</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="profile" className="space-y-6">
             <ProfileTab

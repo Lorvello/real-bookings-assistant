@@ -1,11 +1,18 @@
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown, Mail, BarChart3, Timer, UserCheck, Heart, Brain, Smartphone, Gauge } from 'lucide-react';
 import { Pricing } from '@/components/Pricing';
 
 const WhyUs = () => {
+  const [activeSectorIndex, setActiveSectorIndex] = useState(0);
+  const [activeAdvantageIndex, setActiveAdvantageIndex] = useState(0);
+  const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(0);
+  const sectorCarouselRef = useRef<HTMLDivElement>(null);
+  const advantageCarouselRef = useRef<HTMLDivElement>(null);
+  const testimonialCarouselRef = useRef<HTMLDivElement>(null);
+
   const proofPoints = [
     {
       number: "10,000+",
@@ -226,51 +233,91 @@ const WhyUs = () => {
     }
   ];
 
+  // Carousel scroll handlers
+  useEffect(() => {
+    const setupCarousel = (ref: React.RefObject<HTMLDivElement>, setActiveIndex: (index: number) => void) => {
+      const carousel = ref.current;
+      if (!carousel) return;
+
+      const handleScroll = () => {
+        const scrollLeft = carousel.scrollLeft;
+        const itemWidth = carousel.children[0]?.clientWidth || 0;
+        const newIndex = Math.round(scrollLeft / itemWidth);
+        setActiveIndex(newIndex);
+      };
+
+      carousel.addEventListener('scroll', handleScroll, { passive: true });
+      return () => carousel.removeEventListener('scroll', handleScroll);
+    };
+
+    const cleanupSector = setupCarousel(sectorCarouselRef, setActiveSectorIndex);
+    const cleanupAdvantage = setupCarousel(advantageCarouselRef, setActiveAdvantageIndex);
+    const cleanupTestimonial = setupCarousel(testimonialCarouselRef, setActiveTestimonialIndex);
+
+    return () => {
+      cleanupSector?.();
+      cleanupAdvantage?.();
+      cleanupTestimonial?.();
+    };
+  }, []);
+
+  // Carousel indicator click handlers
+  const handleCarouselClick = (ref: React.RefObject<HTMLDivElement>, index: number) => {
+    const carousel = ref.current;
+    if (!carousel) return;
+    
+    const itemWidth = carousel.children[0]?.clientWidth || 0;
+    carousel.scrollTo({
+      left: index * itemWidth,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-24 px-4 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-12 md:py-24 px-3 md:px-4 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/5 rounded-full blur-3xl"></div>
         </div>
         
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
         
         <div className="max-w-7xl mx-auto text-center relative z-10">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+          <h1 className="text-2xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
             Why 10,000+ Businesses <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Choose WhatsApp Over Email</span>
           </h1>
-          <p className="text-xl text-slate-300 max-w-4xl mx-auto mb-16">
+          <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto mb-8 md:mb-16 px-3 sm:px-0">
             Scientifically proven results: <strong className="text-emerald-400">95% higher open rates, 18x faster responses, 50% fewer no-shows</strong>. 
             Discover why smart businesses are switching en masse.
           </p>
           
-          <div className="border border-emerald-500/20 rounded-2xl p-8 max-w-3xl mx-auto">
-            <p className="text-xl font-semibold text-emerald-300">
+          <div className="border border-emerald-500/20 rounded-2xl p-4 md:p-8 max-w-3xl mx-auto mx-3 sm:mx-auto">
+            <p className="text-sm md:text-xl font-semibold text-emerald-300">
               ✅ Proven by 1000+ case studies • 85% of customers prefer messaging • Results within 24 hours
             </p>
           </div>
         </div>
         
         {/* Social Proof Stats */}
-        <div className="max-w-7xl mx-auto mt-20 relative z-10">
-          <div className="grid md:grid-cols-4 gap-8">
+        <div className="max-w-7xl mx-auto mt-12 md:mt-20 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 px-3 md:px-0">
             {proofPoints.map((stat, index) => (
               <ScrollAnimatedSection 
                 key={index} 
                 className="text-center"
                 delay={index * 100}
               >
-                <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                  <stat.icon className="w-6 h-6 text-emerald-400" />
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-3 md:mb-4 mx-auto">
+                  <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-emerald-400" />
                 </div>
-                <div className="text-3xl font-bold text-white mb-2">{stat.number}</div>
-                <div className="text-slate-400">{stat.label}</div>
+                <div className="text-xl md:text-3xl font-bold text-white mb-1 md:mb-2">{stat.number}</div>
+                <div className="text-xs md:text-base text-slate-400">{stat.label}</div>
               </ScrollAnimatedSection>
             ))}
           </div>
@@ -278,18 +325,19 @@ const WhyUs = () => {
       </section>
 
       {/* Complete WhatsApp vs Email Statistics */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-6">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               The <span className="text-green-400">Scientific Facts</span>: WhatsApp vs Email
             </h2>
-            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+            <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
               Based on extensive research among thousands of businesses worldwide
             </p>
           </div>
           
-          <ScrollAnimatedSection className="border border-slate-700/30 rounded-2xl p-8 mb-12" delay={200}>
+          {/* Desktop: Table */}
+          <ScrollAnimatedSection className="hidden md:block border border-slate-700/30 rounded-2xl p-8 mb-12" delay={200}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -301,49 +349,58 @@ const WhyUs = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-slate-700/30">
-                    <td className="py-4 px-6 text-white font-medium">Average open rate</td>
-                    <td className="py-4 px-6 text-center text-red-300">~20%</td>
-                    <td className="py-4 px-6 text-center text-green-400 font-bold">95-99%</td>
-                    <td className="py-4 px-6 text-center text-emerald-400 font-bold">5x higher</td>
-                  </tr>
-                  <tr className="border-b border-slate-700/30">
-                    <td className="py-4 px-6 text-white font-medium">Time until message read</td>
-                    <td className="py-4 px-6 text-center text-red-300">Often only after hours</td>
-                    <td className="py-4 px-6 text-center text-green-400 font-bold">80% within 5 min</td>
-                    <td className="py-4 px-6 text-center text-emerald-400 font-bold">18x faster</td>
-                  </tr>
-                  <tr className="border-b border-slate-700/30">
-                    <td className="py-4 px-6 text-white font-medium">Average response time</td>
-                    <td className="py-4 px-6 text-center text-red-300">~90 minutes</td>
-                    <td className="py-4 px-6 text-center text-green-400 font-bold">Within minutes</td>
-                    <td className="py-4 px-6 text-center text-emerald-400 font-bold">18x faster</td>
-                  </tr>
-                  <tr className="border-b border-slate-700/30">
-                    <td className="py-4 px-6 text-white font-medium">Response rate</td>
-                    <td className="py-4 px-6 text-center text-red-300">~6%</td>
-                    <td className="py-4 px-6 text-center text-green-400 font-bold">40-45%</td>
-                    <td className="py-4 px-6 text-center text-emerald-400 font-bold">7x more responses</td>
-                  </tr>
-                  <tr>
-                    <td className="py-4 px-6 text-white font-medium">No-show percentage</td>
-                    <td className="py-4 px-6 text-center text-red-300">~35%</td>
-                    <td className="py-4 px-6 text-center text-green-400 font-bold">&lt;20%</td>
-                    <td className="py-4 px-6 text-center text-emerald-400 font-bold">50% less</td>
-                  </tr>
+                  {whatsappVsEmailStats.map((stat, index) => (
+                    <tr key={index} className="border-b border-slate-700/30">
+                      <td className="py-4 px-6 text-white font-medium">{stat.metric}</td>
+                      <td className="py-4 px-6 text-center text-red-300">{stat.email}</td>
+                      <td className="py-4 px-6 text-center text-green-400 font-bold">{stat.whatsapp}</td>
+                      <td className="py-4 px-6 text-center text-emerald-400 font-bold">{stat.improvement}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           </ScrollAnimatedSection>
 
+          {/* Mobile: Vertical Cards */}
+          <div className="md:hidden space-y-4 mb-8">
+            {whatsappVsEmailStats.map((stat, index) => (
+              <ScrollAnimatedSection 
+                key={index} 
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4"
+                delay={index * 100}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <stat.icon className="w-5 h-5 text-emerald-400" />
+                  <h3 className="text-white font-bold text-sm">{stat.metric}</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                    <div className="text-red-400 font-semibold mb-1">Email</div>
+                    <div className="text-red-300">{stat.email}</div>
+                  </div>
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                    <div className="text-green-400 font-semibold mb-1">WhatsApp</div>
+                    <div className="text-green-400 font-bold">{stat.whatsapp}</div>
+                  </div>
+                </div>
+                <div className="mt-3 text-center">
+                  <div className="bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/20 inline-block">
+                    {stat.improvement}
+                  </div>
+                </div>
+              </ScrollAnimatedSection>
+            ))}
+          </div>
+
           {/* Key Insight Box */}
-          <ScrollAnimatedSection className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-2xl p-8 text-center" delay={300}>
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <Gauge className="w-8 h-8 text-green-400" />
-              <h3 className="text-2xl font-bold text-white">Key Finding</h3>
-              <Gauge className="w-8 h-8 text-green-400" />
+          <ScrollAnimatedSection className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-2xl p-4 md:p-8 text-center mx-3 md:mx-0" delay={300}>
+            <div className="flex items-center justify-center gap-2 md:gap-4 mb-3 md:mb-4">
+              <Gauge className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
+              <h3 className="text-lg md:text-2xl font-bold text-white">Key Finding</h3>
+              <Gauge className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
             </div>
-            <p className="text-xl text-green-300 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-sm md:text-xl text-green-300 max-w-4xl mx-auto leading-relaxed">
               "85% of consumers prefer messaging a business over emailing • 53% of customers are more likely to purchase from businesses that are reachable via chat"
             </p>
           </ScrollAnimatedSection>
@@ -351,32 +408,32 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Psychological Benefits Section */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-slate-800/20">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4 bg-slate-800/20">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-6">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               Why WhatsApp Works <span className="text-green-400">Psychologically</span> Better
             </h2>
-            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+            <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
               It's not just about numbers - it's about how people feel and behave
             </p>
           </div>
           
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
             {psychologicalBenefits.map((benefit, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/70 transition-all duration-300"
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 md:p-8 hover:bg-slate-800/70 transition-all duration-300"
                 delay={index * 150}
               >
-                <div className="flex items-start space-x-6">
-                  <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center flex-shrink-0">
-                    <benefit.icon className="w-8 h-8 text-green-400" />
+                <div className="flex items-start space-x-4 md:space-x-6">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <benefit.icon className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-white mb-3">{benefit.title}</h3>
-                    <p className="text-slate-300 mb-4">{benefit.description}</p>
-                    <div className="bg-green-500/10 text-green-400 px-4 py-2 rounded-full text-sm font-bold inline-block border border-green-500/20">
+                    <h3 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-3">{benefit.title}</h3>
+                    <p className="text-slate-300 mb-3 md:mb-4 text-sm md:text-base">{benefit.description}</p>
+                    <div className="bg-green-500/10 text-green-400 px-3 md:px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold inline-block border border-green-500/20">
                       {benefit.stat}
                     </div>
                   </div>
@@ -388,18 +445,19 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Detailed Sector Case Studies */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-6">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               <span className="text-green-400">Proven Results</span> Across All Sectors
             </h2>
-            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+            <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
               In-depth case studies of real businesses that saw dramatic improvements
             </p>
           </div>
           
-          <div className="space-y-12">
+          {/* Desktop: Vertical layout */}
+          <div className="hidden md:block space-y-12">
             {sectorCaseStudies.map((study, index) => (
               <ScrollAnimatedSection 
                 key={index} 
@@ -473,22 +531,91 @@ const WhyUs = () => {
               </ScrollAnimatedSection>
             ))}
           </div>
+
+          {/* Mobile: Carousel */}
+          <div className="md:hidden">
+            <div 
+              ref={sectorCarouselRef}
+              className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              <div className="flex pb-4">
+                {sectorCaseStudies.map((study, index) => (
+                  <div key={index} className="w-[95vw] flex-none snap-start snap-always px-2">
+                    <div className="border border-slate-700/30 rounded-2xl p-4 h-full bg-slate-800/30">
+                      {/* Header */}
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
+                          <study.icon className="w-6 h-6 text-green-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-white">{study.sector}</h3>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {study.headerStats.map((stat, idx) => (
+                              <span key={idx} className="text-green-400 font-semibold text-xs">{stat}</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Case Study */}
+                      <h4 className="text-sm font-bold text-white mb-2">{study.caseTitle}</h4>
+                      <div className="space-y-3 text-xs">
+                        <div>
+                          <span className="text-red-400 font-semibold">Before:</span>
+                          <p className="text-slate-300 mt-1">{study.caseBefore}</p>
+                        </div>
+                        <div>
+                          <span className="text-green-400 font-semibold">After:</span>
+                          <p className="text-slate-300 mt-1">{study.caseAfter}</p>
+                        </div>
+                        <div className="bg-slate-800/50 rounded-lg p-3 border-l-2 border-green-400">
+                          <p className="text-slate-300 italic">"{study.quote}"</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Carousel indicators */}
+            <div className="flex justify-center space-x-2 mt-4">
+              {sectorCaseStudies.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleCarouselClick(sectorCarouselRef, index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === activeSectorIndex
+                      ? 'bg-green-400 w-6'
+                      : 'bg-slate-600 hover:bg-slate-500'
+                  }`}
+                  aria-label={`Go to case study ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </ScrollAnimatedSection>
 
       {/* Competitive Advantages */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-slate-800/20">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4 bg-slate-800/20">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-6">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               Why We're Different From <span className="text-emerald-400">All Others</span>
             </h2>
-            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+            <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
               We didn't just build a booking tool. We built the most advanced AI assistant that truly understands your business.
             </p>
           </div>
           
-          <div className="grid lg:grid-cols-3 gap-8">
+          {/* Desktop: Grid */}
+          <div className="hidden md:grid lg:grid-cols-3 gap-8">
             {competitiveAdvantages.map((advantage, index) => (
               <ScrollAnimatedSection 
                 key={index} 
@@ -506,22 +633,69 @@ const WhyUs = () => {
               </ScrollAnimatedSection>
             ))}
           </div>
+
+          {/* Mobile: Carousel */}
+          <div className="md:hidden">
+            <div 
+              ref={advantageCarouselRef}
+              className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              <div className="flex pb-4">
+                {competitiveAdvantages.map((advantage, index) => (
+                  <div key={index} className="w-[95vw] flex-none snap-start snap-always px-2">
+                    <div className="border border-slate-700/30 rounded-2xl p-4 h-full bg-slate-800/30">
+                      <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4">
+                        <advantage.icon className="w-6 h-6 text-emerald-400" />
+                      </div>
+                      <h3 className="text-lg font-bold text-white mb-3">{advantage.title}</h3>
+                      <p className="text-slate-300 mb-3 text-sm">{advantage.description}</p>
+                      <div className="text-emerald-400 font-bold text-xs">
+                        {advantage.proof}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Carousel indicators */}
+            <div className="flex justify-center space-x-2 mt-4">
+              {competitiveAdvantages.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleCarouselClick(advantageCarouselRef, index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === activeAdvantageIndex
+                      ? 'bg-emerald-400 w-6'
+                      : 'bg-slate-600 hover:bg-slate-500'
+                  }`}
+                  aria-label={`Go to advantage ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </ScrollAnimatedSection>
 
       {/* Social Proof - Testimonials */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-6">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               Why Businesses Switch From Competitors To Us
             </h2>
-            <p className="text-xl text-slate-300">
+            <p className="text-sm md:text-xl text-slate-300 px-3 sm:px-0">
               Real stories from businesses that tried others first, and then found us
             </p>
           </div>
           
-          <div className="grid lg:grid-cols-3 gap-8">
+          {/* Desktop: Grid */}
+          <div className="hidden md:grid lg:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <ScrollAnimatedSection 
                 key={index} 
@@ -546,51 +720,104 @@ const WhyUs = () => {
               </ScrollAnimatedSection>
             ))}
           </div>
+
+          {/* Mobile: Carousel */}
+          <div className="md:hidden">
+            <div 
+              ref={testimonialCarouselRef}
+              className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              <div className="flex pb-4">
+                {testimonials.map((testimonial, index) => (
+                  <div key={index} className="w-[95vw] flex-none snap-start snap-always px-2">
+                    <div className="border border-slate-700/30 rounded-2xl p-4 h-full bg-slate-800/30">
+                      <div className="flex gap-1 mb-3">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                        ))}
+                      </div>
+                      <p className="text-slate-300 mb-4 italic font-medium text-sm">"{testimonial.quote}"</p>
+                      <div className="flex justify-between items-end">
+                        <div>
+                          <div className="font-bold text-white text-sm">{testimonial.author}</div>
+                          <div className="text-slate-400 text-xs">{testimonial.role}</div>
+                        </div>
+                        <div className="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full text-xs font-bold border border-emerald-500/20">
+                          {testimonial.result}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Carousel indicators */}
+            <div className="flex justify-center space-x-2 mt-4">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleCarouselClick(testimonialCarouselRef, index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === activeTestimonialIndex
+                      ? 'bg-yellow-400 w-6'
+                      : 'bg-slate-600 hover:bg-slate-500'
+                  }`}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </ScrollAnimatedSection>
 
       {/* Digital Transformation Conclusion */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-6">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               The Future is <span className="text-green-400">Mobile-First</span>
             </h2>
-            <p className="text-xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto leading-relaxed px-3 sm:px-0">
               The shift from email to WhatsApp is not temporary - it's part of a broader digital transformation. 
               Consumers expect speed, convenience and personal communication. Businesses that embrace this 
               <strong className="text-emerald-400"> win more customers, retain them longer and grow faster</strong>.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-12">
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Smartphone className="w-8 h-8 text-green-400" />
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
+                <Smartphone className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Mobile-First Behavior</h3>
-              <p className="text-slate-300">People check their phone 96 times per day. WhatsApp fits into their natural behavior.</p>
+              <h3 className="text-lg md:text-xl font-bold text-white mb-2">Mobile-First Behavior</h3>
+              <p className="text-slate-300 text-sm md:text-base">People check their phone 96 times per day. WhatsApp fits into their natural behavior.</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-8 h-8 text-green-400" />
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
+                <Zap className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Expectation of Speed</h3>
-              <p className="text-slate-300">Customers expect immediate responses. WhatsApp delivers this, email no longer does.</p>
+              <h3 className="text-lg md:text-xl font-bold text-white mb-2">Expectation of Speed</h3>
+              <p className="text-slate-300 text-sm md:text-base">Customers expect immediate responses. WhatsApp delivers this, email no longer does.</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-8 h-8 text-green-400" />
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
+                <Heart className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Personal Connection</h3>
-              <p className="text-slate-300">85% prefer messaging over emails. It feels more personal and trusted.</p>
+              <h3 className="text-lg md:text-xl font-bold text-white mb-2">Personal Connection</h3>
+              <p className="text-slate-300 text-sm md:text-base">85% prefer messaging over emails. It feels more personal and trusted.</p>
             </div>
           </div>
 
           <div className="text-center">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-green-500/20 rounded-2xl p-8 max-w-4xl mx-auto">
-              <h3 className="text-2xl font-bold text-white mb-4">Conclusion in One Sentence</h3>
-              <p className="text-xl text-green-300 leading-relaxed">
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-green-500/20 rounded-2xl p-4 md:p-8 max-w-4xl mx-auto mx-3 md:mx-auto">
+              <h3 className="text-lg md:text-2xl font-bold text-white mb-3 md:mb-4">Conclusion in One Sentence</h3>
+              <p className="text-sm md:text-xl text-green-300 leading-relaxed">
                 For scheduling and managing customer appointments, WhatsApp in 2025 is a <strong>proven superior channel</strong> 
                 compared to email – it ensures faster confirmation, higher attendance and a smoother customer experience, 
                 which ultimately leads to <strong>better business results</strong>.

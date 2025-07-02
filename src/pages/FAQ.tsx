@@ -298,22 +298,22 @@ const FAQ = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-24 px-4 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-12 md:py-24 px-3 md:px-4 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/5 rounded-full blur-3xl"></div>
         </div>
         
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
         
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <ScrollAnimatedSection>
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+            <h1 className="text-2xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               Frequently Asked <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Questions</span>
             </h1>
-            <p className="text-xl text-slate-300 max-w-4xl mx-auto mb-16">
+            <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto mb-8 md:mb-16 px-3 sm:px-0">
               Everything you need to know about our AI-powered WhatsApp booking platform. 
               Can't find what you're looking for? <strong className="text-emerald-400">Contact our support team</strong>.
             </p>
@@ -321,14 +321,14 @@ const FAQ = () => {
 
           {/* Quick Stats */}
           <ScrollAnimatedSection delay={200}>
-            <div className="grid md:grid-cols-4 gap-6 mb-16">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-16 px-3 md:px-0">
               {quickStats.map((stat, index) => (
-                <div key={index} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:bg-slate-800/70 transition-all duration-300">
-                  <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                    <stat.icon className="w-6 h-6 text-emerald-400" />
+                <div key={index} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-3 md:p-6 hover:bg-slate-800/70 transition-all duration-300">
+                  <div className="w-8 h-8 md:w-12 md:h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-2 md:mb-4 mx-auto">
+                    <stat.icon className="w-4 h-4 md:w-6 md:h-6 text-emerald-400" />
                   </div>
-                  <div className="text-3xl font-bold text-white mb-2">{stat.number}</div>
-                  <div className="text-slate-400 text-sm">{stat.label}</div>
+                  <div className="text-lg md:text-3xl font-bold text-white mb-1 md:mb-2">{stat.number}</div>
+                  <div className="text-slate-400 text-xs md:text-sm">{stat.label}</div>
                 </div>
               ))}
             </div>
