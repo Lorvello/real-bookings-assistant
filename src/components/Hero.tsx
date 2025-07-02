@@ -35,10 +35,11 @@ const Hero = () => {
           </h1>
 
           <p className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0">
-            Your AI assistant books appointments through WhatsApp while you sleep.{" "}
+            <span className="md:hidden">AI books appointments 24/7 via WhatsApp. Zero missed opportunities.</span>
+            <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-semibold">24/7 automation</span>,{" "}
             <span className="text-emerald-400 font-semibold">instant responses</span>,{" "}
-            <span className="text-emerald-400 font-semibold">zero missed opportunities</span>.
+            <span className="text-emerald-400 font-semibold">zero missed opportunities</span>.</span>
           </p>
 
           {/* CTA Section - Mobile optimized with proper touch targets */}

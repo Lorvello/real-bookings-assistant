@@ -12,6 +12,7 @@ const Solution = () => {
       icon: MessageCircle,
       title: "Instant WhatsApp Responses",
       description: "Responds within seconds to every message, 24/7. Your customers get immediate answers to their questions and available time slots.",
+      mobileDescription: "Instant 24/7 responses with available slots.",
       stat: "Average response: 3 seconds",
       color: "from-emerald-500 to-green-500",
       hoverTextColor: "group-hover:text-emerald-300"
@@ -20,6 +21,7 @@ const Solution = () => {
       icon: Brain,
       title: "Smart Conversations",
       description: "Understands context, asks the right questions, and guides customers to the perfect appointment time that works for everyone.",
+      mobileDescription: "Smart questions to find perfect appointment times.",
       stat: "98% customer satisfaction",
       color: "from-blue-500 to-indigo-500",
       hoverTextColor: "group-hover:text-blue-300"
@@ -28,6 +30,7 @@ const Solution = () => {
       icon: Target,
       title: "Perfect For Every Business",
       description: "Salons, clinics, gyms, consultants - if you book appointments, our AI adapts to your specific business needs.",
+      mobileDescription: "Adapts to any appointment-based business.",
       stat: "300% more bookings avg.",
       color: "from-purple-500 to-pink-500",
       hoverTextColor: "group-hover:text-purple-300"
@@ -88,8 +91,9 @@ const Solution = () => {
             </span>
           </h2>
           <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
-            The AI that never sleeps, never misses a lead, and books appointments 
-            faster than any human could.
+            <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
+            <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
+            faster than any human could.</span>
           </p>
         </div>
         
@@ -141,7 +145,7 @@ const Solution = () => {
                       {feature.title}
                     </h3>
                     <p className="text-slate-300 text-xs leading-relaxed mb-3">
-                      {feature.description}
+                      {feature.mobileDescription || feature.description}
                     </p>
                     <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs">
                       <Clock className="w-3 h-3 mr-1" />

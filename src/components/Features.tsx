@@ -13,6 +13,7 @@ const Features = () => {
       icon: Zap,
       title: "100% Automatic Bookings",
       description: "No manual intervention needed. Books, confirms and reschedules automatically",
+      mobileDescription: "Fully automatic booking system",
       color: "from-emerald-500 to-emerald-600",
       hoverTextColor: "group-hover:text-emerald-300"
     },
@@ -20,6 +21,7 @@ const Features = () => {
       icon: Settings,
       title: "Fully Personalized",
       description: "Customize the AI Agent to your services, FAQs and booking logic, from custom hairstyles to business-specific questions",
+      mobileDescription: "Customize AI to your business needs",
       color: "from-blue-500 to-blue-600",
       hoverTextColor: "group-hover:text-blue-300"
     },
@@ -27,6 +29,7 @@ const Features = () => {
       icon: Calendar,
       title: "Advanced Dashboard & Own Calendar",
       description: "Get your own professional calendar with a highly advanced dashboard for complete control over your bookings",
+      mobileDescription: "Professional calendar with advanced dashboard",
       color: "from-green-400 to-green-500",
       hoverTextColor: "group-hover:text-green-300"
     },
@@ -34,6 +37,7 @@ const Features = () => {
       icon: Link,
       title: "Connect Your Existing Calendar",
       description: "Integrate seamlessly with Google Calendar, Outlook, Calendly and more, maintain your current workflow",
+      mobileDescription: "Connects to Google, Outlook, Calendly",
       color: "from-blue-400 to-blue-500",
       hoverTextColor: "group-hover:text-blue-300"
     },
@@ -41,6 +45,7 @@ const Features = () => {
       icon: Bell,
       title: "Automatic Reminders",
       description: "Sends confirmation and reminder messages to reduce no-shows",
+      mobileDescription: "Auto confirmations and reminders",
       color: "from-emerald-600 to-green-600",
       hoverTextColor: "group-hover:text-emerald-300"
     },
@@ -48,6 +53,7 @@ const Features = () => {
       icon: BarChart3,
       title: "Detailed Analytics",
       description: "Track booking rates, popular times and generated revenue in your personal dashboard",
+      mobileDescription: "Track rates, times, revenue",
       color: "from-blue-600 to-indigo-600",
       hoverTextColor: "group-hover:text-blue-300"
     },
@@ -55,6 +61,7 @@ const Features = () => {
       icon: Globe,
       title: "Multi-language Support",
       description: "Automatically communicates in your customers' preferred language",
+      mobileDescription: "Speaks your customers' language",
       color: "from-green-500 to-emerald-500",
       hoverTextColor: "group-hover:text-green-300"
     },
@@ -62,6 +69,7 @@ const Features = () => {
       icon: Monitor,
       title: "Real-time Dashboard Monitoring",
       description: "View live bookings, performance and customer interactions in your advanced control panel",
+      mobileDescription: "Live monitoring and insights",
       color: "from-blue-500 to-indigo-500",
       hoverTextColor: "group-hover:text-blue-300"
     }
@@ -149,7 +157,8 @@ const Features = () => {
             </span>
           </h2>
           <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-            Powerful features that work seamlessly together to maximize your bookings and revenue
+            <span className="md:hidden">Features that maximize bookings and revenue</span>
+            <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
           </p>
         </div>
         
@@ -200,7 +209,7 @@ const Features = () => {
                       {feature.title}
                     </h3>
                     <p className="text-slate-300 text-xs leading-relaxed">
-                      {feature.description}
+                      {feature.mobileDescription || feature.description}
                     </p>
                   </div>
                 </div>
@@ -236,8 +245,9 @@ const Features = () => {
               Don't Let Revenue Sleep While You Do
             </h3>
             <p className="text-sm md:text-xl text-slate-300 mb-8 md:mb-16 max-w-2xl mx-auto">
-              While you're busy with customers, your AI agent is busy booking new ones. 
-              Start your free trial and see the difference automation makes.
+              <span className="md:hidden">AI books while you work. Start free trial today.</span>
+              <span className="hidden md:inline">While you're busy with customers, your AI agent is busy booking new ones. 
+              Start your free trial and see the difference automation makes.</span>
             </p>
             
             {/* Desktop: Stats section */}

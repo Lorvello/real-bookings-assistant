@@ -120,7 +120,8 @@ const SocialProof = () => {
             Trusted by <span className="text-emerald-400">10,000+</span> Businesses
           </h2>
           <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-            Join thousands of business owners who've revolutionized their booking process
+            <span className="md:hidden">Thousands trust our booking automation</span>
+            <span className="hidden md:inline">Join thousands of business owners who've revolutionized their booking process</span>
           </p>
         </div>
 
