@@ -112,7 +112,7 @@ const Index = () => {
               >
                 <div className="flex pb-4">
                   {painPoints.map((painPoint, index) => (
-                    <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
+                    <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
                       <PainPoint
                         icon={painPoint.icon}
                         title={painPoint.title}

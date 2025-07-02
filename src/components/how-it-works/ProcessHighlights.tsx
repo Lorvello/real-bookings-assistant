@@ -75,7 +75,7 @@ const ProcessHighlights = () => {
                 {steps.map((step, index) => {
                   const StepComponent = step.component;
                   return (
-                    <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
+                    <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
                       <div className="bg-slate-800/30 rounded-2xl p-4 h-full">
                         <StepComponent />
                       </div>

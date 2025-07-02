@@ -189,7 +189,7 @@ const Features = () => {
           >
             <div className="flex pb-4">
               {features.map((feature, index) => (
-                <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
+                <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
                   <div className="bg-slate-800/50 rounded-2xl p-5 text-center h-full">
                     <div className="relative mb-4 flex justify-center">
                       <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
@@ -250,42 +250,14 @@ const Features = () => {
               ))}
             </div>
 
-            {/* Mobile: Perfect snapping stats carousel */}
+            {/* Mobile: Stats grid (replaced carousel) */}
             <div className="md:hidden">
-              <div 
-                ref={statsCarouselRef}
-                className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                <div className="flex pb-4">
-                  {stats.map((stat, index) => (
-                    <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
-                      <div className="text-center bg-slate-800/30 rounded-xl p-5">
-                        <div className="text-2xl font-bold mb-2 text-emerald-400">{stat.value}</div>
-                        <div className="text-slate-400 text-xs uppercase tracking-wider">{stat.label}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Interactive stats indicators */}
-              <div className="flex justify-center space-x-2 mt-4">
-                {stats.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleStatsIndicatorClick(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === activeStatsIndex
-                        ? 'bg-emerald-400 w-4'
-                        : 'bg-slate-600 hover:bg-slate-500'
-                    }`}
-                    aria-label={`Go to stats slide ${index + 1}`}
-                  />
+              <div className="grid grid-cols-3 gap-4">
+                {stats.map((stat, index) => (
+                  <div key={index} className="text-center bg-slate-800/30 rounded-xl p-4">
+                    <div className="text-xl font-bold mb-1 text-emerald-400">{stat.value}</div>
+                    <div className="text-slate-400 text-xs uppercase tracking-wider">{stat.label}</div>
+                  </div>
                 ))}
               </div>
             </div>

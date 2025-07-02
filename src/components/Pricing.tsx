@@ -206,13 +206,13 @@ export const Pricing = () => {
                       : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
                   } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}
                 >
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1 rounded-full text-xs font-bold">
-                        Most Popular
-                      </div>
-                    </div>
-                  )}
+                   {plan.popular && (
+                     <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
+                       <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                         Most Popular
+                       </div>
+                     </div>
+                   )}
 
                   <div className="text-center mb-6">
                     <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>

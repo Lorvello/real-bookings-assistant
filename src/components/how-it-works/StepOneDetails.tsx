@@ -21,79 +21,50 @@ const StepOneDetails = () => {
             </div>
           </div>
           
-          <div className="space-y-4 md:space-y-6">
-            <div>
-              <h4 className="text-base md:text-lg font-semibold text-emerald-400 mb-3 md:mb-4 flex items-center gap-3">
-                <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full"></div>
-                What do you need?
-              </h4>
-              <div className="grid gap-2 md:gap-3">
-                {[
-                  'Your business name',
-                  'Website URL (optional)', 
-                  'Email address',
-                  'Type of services you offer'
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-emerald-400 shrink-0" />
-                    <span className="text-slate-300 text-xs md:text-sm">{item}</span>
-                  </div>
-                ))}
-              </div>
+          <div className="space-y-3 md:space-y-4">
+            <div className="grid gap-2">
+              {[
+                'Business name & email',
+                'Service types'
+              ].map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-emerald-400 shrink-0" />
+                  <span className="text-slate-300 text-xs md:text-sm">{item}</span>
+                </div>
+              ))}
             </div>
             
-            <div className="border-l-4 border-emerald-400 pl-3 md:pl-4 bg-emerald-500/5 py-2 md:py-3 rounded-r-lg">
-              <div className="flex items-center gap-3 mb-2">
-                <Clock className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
-                <span className="text-emerald-400 font-bold text-sm md:text-base">Time needed: 2 minutes</span>
+            <div className="border-l-4 border-emerald-400 pl-3 bg-emerald-500/5 py-2 rounded-r-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
+                <span className="text-emerald-400 font-bold text-xs md:text-sm">2 minutes setup</span>
               </div>
-              <p className="text-slate-300 text-xs md:text-sm">
-                No technical knowledge required. Our wizard guides you through every step.
-              </p>
             </div>
           </div>
         </div>
         
         {/* Right side - Visual */}
         <div className="relative">
-          <div className="space-y-4 md:space-y-6">
-            <h4 className="text-lg md:text-xl font-bold text-white flex items-center gap-3">
-              <Calendar className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
-              Connect calendar
+          <div className="space-y-3 md:space-y-4">
+            <h4 className="text-sm md:text-lg font-bold text-white flex items-center gap-2">
+              <Calendar className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
+              Calendar options
             </h4>
             
-            <div className="space-y-3 md:space-y-4">
-              {/* Recommended option */}
-              <div className="relative">
-                <div className="border border-emerald-500/30 rounded-xl p-4 md:p-5 bg-emerald-500/5">
-                  <div className="flex items-center justify-between mb-2 md:mb-3">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
-                      <span className="font-bold text-white text-xs md:text-sm">Option 1: Use our calendar</span>
-                    </div>
-                    <div className="px-2 py-1 bg-emerald-500 text-white rounded-full">
-                      <span className="text-xs font-bold">RECOMMENDED</span>
-                    </div>
-                  </div>
-                  <p className="text-slate-300 text-xs mb-2">Ready to use immediately. No setup needed.</p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full"></div>
-                    <span className="text-emerald-400 text-xs font-medium">Live in 30 seconds</span>
+            <div className="space-y-2 md:space-y-3">
+              <div className="border border-emerald-500/30 rounded-lg p-3 bg-emerald-500/5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-white text-xs">Use our calendar</span>
+                  <div className="px-2 py-0.5 bg-emerald-500 text-white rounded-full">
+                    <span className="text-xs font-bold">FAST</span>
                   </div>
                 </div>
+                <p className="text-slate-300 text-xs">Live in 30 seconds</p>
               </div>
               
-              {/* Second option */}
-              <div className="border border-slate-600 rounded-xl p-4 md:p-5">
-                <div className="flex items-center gap-3 mb-2 md:mb-3">
-                  <Settings className="w-3 h-3 md:w-4 md:h-4 text-slate-400" />
-                  <span className="font-bold text-white text-xs md:text-sm">Option 2: Connect your own calendar</span>
-                </div>
-                <p className="text-slate-300 text-xs mb-2">Google Calendar, Outlook, Apple Calendar - everything syncs automatically.</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-slate-400 rounded-full"></div>
-                  <span className="text-slate-400 text-xs font-medium">Setup in 2 minutes</span>
-                </div>
+              <div className="border border-slate-600 rounded-lg p-3">
+                <span className="font-bold text-white text-xs">Connect existing calendar</span>
+                <p className="text-slate-300 text-xs">Google, Outlook, Apple</p>
               </div>
             </div>
           </div>

@@ -304,37 +304,37 @@ const WhyUs = () => {
           </div>
         </div>
         
-        {/* Social Proof Stats */}
-        <div className="max-w-7xl mx-auto mt-12 md:mt-20 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 px-3 md:px-0">
-            {proofPoints.map((stat, index) => (
-              <ScrollAnimatedSection 
-                key={index} 
-                className="text-center"
-                delay={index * 100}
-              >
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-3 md:mb-4 mx-auto">
-                  <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-emerald-400" />
-                </div>
-                <div className="text-xl md:text-3xl font-bold text-white mb-1 md:mb-2">{stat.number}</div>
-                <div className="text-xs md:text-base text-slate-400">{stat.label}</div>
-              </ScrollAnimatedSection>
-            ))}
-          </div>
-        </div>
+         {/* Social Proof Stats - More compact */}
+         <div className="max-w-6xl mx-auto mt-8 md:mt-16 relative z-10">
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 px-3 md:px-0">
+             {proofPoints.map((stat, index) => (
+               <ScrollAnimatedSection 
+                 key={index} 
+                 className="text-center"
+                 delay={index * 100}
+               >
+                 <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-2 md:mb-3 mx-auto">
+                   <stat.icon className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
+                 </div>
+                 <div className="text-lg md:text-2xl font-bold text-white mb-1">{stat.number}</div>
+                 <div className="text-xs md:text-sm text-slate-400">{stat.label}</div>
+               </ScrollAnimatedSection>
+             ))}
+           </div>
+         </div>
       </section>
 
-      {/* Complete WhatsApp vs Email Statistics */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              The <span className="text-green-400">Scientific Facts</span>: WhatsApp vs Email
-            </h2>
-            <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-              Based on extensive research among thousands of businesses worldwide
-            </p>
-          </div>
+       {/* Complete WhatsApp vs Email Statistics */}
+       <ScrollAnimatedSection as="section" className="py-8 md:py-16 px-3 md:px-4">
+         <div className="max-w-6xl mx-auto">
+           <div className="text-center mb-6 md:mb-12">
+             <h2 className="text-lg md:text-3xl font-bold text-white mb-3 md:mb-4 px-3 sm:px-0">
+               <span className="text-green-400">Scientific Facts</span>: WhatsApp vs Email
+             </h2>
+             <p className="text-xs md:text-lg text-slate-300 max-w-2xl mx-auto px-3 sm:px-0">
+               Research among thousands of businesses worldwide
+             </p>
+           </div>
           
           {/* Desktop: Table */}
           <ScrollAnimatedSection className="hidden md:block border border-slate-700/30 rounded-2xl p-8 mb-12" delay={200}>
@@ -362,48 +362,45 @@ const WhyUs = () => {
             </div>
           </ScrollAnimatedSection>
 
-          {/* Mobile: Vertical Cards */}
-          <div className="md:hidden space-y-4 mb-8">
-            {whatsappVsEmailStats.map((stat, index) => (
-              <ScrollAnimatedSection 
-                key={index} 
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4"
-                delay={index * 100}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <stat.icon className="w-5 h-5 text-emerald-400" />
-                  <h3 className="text-white font-bold text-sm">{stat.metric}</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                    <div className="text-red-400 font-semibold mb-1">Email</div>
-                    <div className="text-red-300">{stat.email}</div>
-                  </div>
-                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                    <div className="text-green-400 font-semibold mb-1">WhatsApp</div>
-                    <div className="text-green-400 font-bold">{stat.whatsapp}</div>
-                  </div>
-                </div>
-                <div className="mt-3 text-center">
-                  <div className="bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/20 inline-block">
-                    {stat.improvement}
-                  </div>
-                </div>
-              </ScrollAnimatedSection>
-            ))}
-          </div>
+           {/* Mobile: Compact Cards - Show only first 3 */}
+           <div className="md:hidden space-y-3 mb-6">
+             {whatsappVsEmailStats.slice(0, 3).map((stat, index) => (
+               <ScrollAnimatedSection 
+                 key={index} 
+                 className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-3"
+                 delay={index * 100}
+               >
+                 <div className="flex items-center gap-2 mb-2">
+                   <stat.icon className="w-4 h-4 text-emerald-400" />
+                   <h3 className="text-white font-bold text-xs">{stat.metric}</h3>
+                 </div>
+                 <div className="grid grid-cols-3 gap-2 text-xs">
+                   <div className="bg-red-500/10 border border-red-500/20 rounded p-2">
+                     <div className="text-red-400 font-semibold mb-0.5">Email</div>
+                     <div className="text-red-300">{stat.email}</div>
+                   </div>
+                   <div className="bg-green-500/10 border border-green-500/20 rounded p-2">
+                     <div className="text-green-400 font-semibold mb-0.5">WhatsApp</div>
+                     <div className="text-green-400 font-bold">{stat.whatsapp}</div>
+                   </div>
+                   <div className="bg-emerald-500/10 border border-emerald-500/20 rounded p-2 flex items-center justify-center">
+                     <div className="text-emerald-400 font-bold text-center">{stat.improvement}</div>
+                   </div>
+                 </div>
+               </ScrollAnimatedSection>
+             ))}
+           </div>
 
-          {/* Key Insight Box */}
-          <ScrollAnimatedSection className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-2xl p-4 md:p-8 text-center mx-3 md:mx-0" delay={300}>
-            <div className="flex items-center justify-center gap-2 md:gap-4 mb-3 md:mb-4">
-              <Gauge className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-              <h3 className="text-lg md:text-2xl font-bold text-white">Key Finding</h3>
-              <Gauge className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-            </div>
-            <p className="text-sm md:text-xl text-green-300 max-w-4xl mx-auto leading-relaxed">
-              "85% of consumers prefer messaging a business over emailing • 53% of customers are more likely to purchase from businesses that are reachable via chat"
-            </p>
-          </ScrollAnimatedSection>
+           {/* Key Insight Box - More compact */}
+           <ScrollAnimatedSection className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-3 md:p-6 text-center mx-3 md:mx-0" delay={300}>
+             <div className="flex items-center justify-center gap-2 mb-2 md:mb-3">
+               <Gauge className="w-4 h-4 md:w-6 md:h-6 text-green-400" />
+               <h3 className="text-sm md:text-xl font-bold text-white">Key Finding</h3>
+             </div>
+             <p className="text-xs md:text-lg text-green-300 max-w-3xl mx-auto leading-relaxed">
+               85% prefer messaging over email • 53% more likely to purchase from chat-enabled businesses
+             </p>
+           </ScrollAnimatedSection>
         </div>
       </ScrollAnimatedSection>
 

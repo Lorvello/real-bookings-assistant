@@ -144,53 +144,25 @@ const SocialProof = () => {
           })}
         </div>
 
-        {/* Mobile: Stats carousel */}
+        {/* Mobile: Stats grid (replaced carousel) */}
         <div className="md:hidden mb-8">
-          <div 
-            ref={statsCarouselRef}
-            className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            <div className="flex pb-4">
-              {stats.map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                  <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
-                    <div className="text-center bg-slate-800/30 rounded-xl p-6">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center mb-4 mx-auto shadow-lg">
-                        <Icon className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="text-2xl font-bold text-emerald-400 mb-2">
-                        {stat.value}
-                      </div>
-                      <div className="text-slate-400 text-sm">
-                        {stat.label}
-                      </div>
-                    </div>
+          <div className="grid grid-cols-3 gap-3">
+            {stats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <div key={index} className="text-center bg-slate-800/30 rounded-xl p-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center mb-3 mx-auto shadow-lg">
+                    <Icon className="w-5 h-5 text-white" />
                   </div>
-                );
-              })}
-            </div>
-          </div>
-          
-          {/* Stats indicators */}
-          <div className="flex justify-center space-x-2 mb-8">
-            {stats.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => handleStatsIndicatorClick(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === activeStatsIndex
-                    ? 'bg-emerald-400 w-4'
-                    : 'bg-slate-600 hover:bg-slate-500'
-                }`}
-                aria-label={`Go to stats slide ${index + 1}`}
-              />
-            ))}
+                  <div className="text-lg font-bold text-emerald-400 mb-1">
+                    {stat.value}
+                  </div>
+                  <div className="text-slate-400 text-xs">
+                    {stat.label}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -252,7 +224,7 @@ const SocialProof = () => {
           >
             <div className="flex pb-4">
               {testimonials.map((testimonial, index) => (
-                <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
+                <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
                   <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 h-full">
                     <div className="flex items-center mb-4">
                       <img 

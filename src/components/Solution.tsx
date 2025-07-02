@@ -130,7 +130,7 @@ const Solution = () => {
           >
             <div className="flex pb-4">
               {features.map((feature, index) => (
-                <div key={index} className="w-[100vw] flex-none snap-start snap-always px-4">
+                <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
                   <div className="bg-slate-800/50 rounded-2xl p-4 text-center h-full">
                     <div className="relative mb-4 flex justify-center">
                       <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
