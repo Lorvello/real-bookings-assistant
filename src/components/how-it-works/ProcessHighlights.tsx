@@ -61,11 +61,11 @@ const ProcessHighlights = () => {
           </div>
 
           {/* Mobile: Vertical layout with increased spacing */}
-          <div className="md:hidden space-y-12">
+          <div className="md:hidden space-y-16">
             {steps.map((step, index) => {
               const StepComponent = step.component;
               return (
-                <div key={index} className="bg-slate-800/30 rounded-2xl p-4">
+                <div key={index} className="bg-slate-800/30 rounded-2xl p-6">
                   <StepComponent />
                 </div>
               );

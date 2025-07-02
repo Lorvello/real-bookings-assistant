@@ -21,9 +21,9 @@ const StepOneDetails = () => {
               </div>
             </div>
           
-          <div className="space-y-3 md:space-y-4">
+          <div className="space-y-4 md:space-y-4">
             <p className="text-xs md:text-sm text-slate-300 md:hidden">
-              Business info + WhatsApp = Live in minutes
+              Quick setup: Business info + WhatsApp
             </p>
             
             <div className="hidden md:grid gap-2">
@@ -52,7 +52,8 @@ const StepOneDetails = () => {
           <div className="space-y-3 md:space-y-4">
             <h4 className="text-sm md:text-lg font-bold text-white flex items-center gap-2">
               <Calendar className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
-              Calendar options
+              <span className="md:hidden">Calendar options</span>
+              <span className="hidden md:inline">Calendar options</span>
             </h4>
             
             <div className="space-y-2 md:space-y-3">
@@ -67,8 +68,9 @@ const StepOneDetails = () => {
               </div>
               
               <div className="border border-slate-600 rounded-lg p-3">
-                <span className="font-bold text-white text-xs">Connect existing calendar</span>
-                <p className="text-slate-300 text-xs">Google, Outlook, Apple</p>
+                <span className="font-bold text-white text-xs">Connect existing</span>
+                <p className="text-slate-300 text-xs md:hidden">Google, Outlook, Apple</p>
+                <p className="text-slate-300 text-xs hidden md:block">Google, Outlook, Apple</p>
               </div>
             </div>
           </div>

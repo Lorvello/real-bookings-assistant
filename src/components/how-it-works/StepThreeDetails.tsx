@@ -43,9 +43,15 @@ const StepThreeDetails = () => {
             <div className="border-l-4 border-emerald-400 pl-3 md:pl-4 bg-emerald-500/5 py-2 md:py-3 rounded-r-lg">
               <div className="flex items-center gap-3 mb-2">
                 <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
-                <span className="text-emerald-400 font-bold text-sm md:text-base">Fully automated</span>
+                <span className="text-emerald-400 font-bold text-sm md:text-base">
+                  <span className="md:hidden">24/7 automated</span>
+                  <span className="hidden md:inline">Fully automated</span>
+                </span>
               </div>
-              <p className="text-slate-300 text-xs md:text-sm">
+              <p className="text-slate-300 text-xs md:text-sm md:hidden">
+                Works 24/7 in your style.
+              </p>
+              <p className="text-slate-300 text-xs md:text-sm hidden md:block">
                 You don't have to do anything yourself. Your smart assistant handles everything — 24/7, 
                 fully automatic, in your style.
               </p>
@@ -53,10 +59,29 @@ const StepThreeDetails = () => {
           </div>
         </div>
         
-        {/* Right side - Visual */}
+        {/* Right side - Visual - Simplified for mobile */}
         <div className="space-y-3 md:space-y-4">
-          {/* Feature cards */}
-          <div className="grid gap-2 md:gap-3">
+          {/* Mobile: Show only 2 key cards */}
+          <div className="md:hidden grid gap-2">
+            <div className="border border-slate-600 rounded-xl p-3">
+              <div className="flex items-center gap-3 mb-2">
+                <MessageCircle className="w-3 h-3 text-emerald-400" />
+                <h5 className="font-bold text-white text-xs">Smart conversations</h5>
+              </div>
+              <p className="text-xs text-slate-300">Natural conversations</p>
+            </div>
+            
+            <div className="border border-slate-600 rounded-xl p-3">
+              <div className="flex items-center gap-3 mb-2">
+                <Calendar className="w-3 h-3 text-emerald-400" />
+                <h5 className="font-bold text-white text-xs">Auto scheduling</h5>
+              </div>
+              <p className="text-xs text-slate-300">Checks availability automatically</p>
+            </div>
+          </div>
+
+          {/* Desktop: Show all feature cards */}
+          <div className="hidden md:grid gap-2 md:gap-3">
             {[
               {
                 icon: MessageCircle,
