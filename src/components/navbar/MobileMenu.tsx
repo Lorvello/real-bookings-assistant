@@ -1,6 +1,8 @@
 
 import React from 'react';
+import { User } from '@supabase/supabase-js';
 import { NavLinks } from './NavLinks';
+import { AuthSection } from './AuthSection';
 
 interface NavItem {
   name: string;
@@ -11,9 +13,12 @@ interface MobileMenuProps {
   isOpen: boolean;
   navItems: NavItem[];
   onNavClick: () => void;
+  user: User | null;
+  isDialogOpen: boolean;
+  setIsDialogOpen: (open: boolean) => void;
 }
 
-export function MobileMenu({ isOpen, navItems, onNavClick }: MobileMenuProps) {
+export function MobileMenu({ isOpen, navItems, onNavClick, user, isDialogOpen, setIsDialogOpen }: MobileMenuProps) {
   return (
     <div 
       className={`lg:hidden fixed inset-0 z-50 transition-all duration-300 ease-in-out ${
@@ -34,10 +39,18 @@ export function MobileMenu({ isOpen, navItems, onNavClick }: MobileMenuProps) {
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="p-6 space-y-4">
-          <div className="text-xl font-bold text-white mb-8 text-center">Navigation</div>
-          <div className="space-y-2">
+        <div className="p-6 space-y-6 h-full flex flex-col">
+          <div className="text-xl font-bold text-white mb-4 text-center">Navigation</div>
+          <div className="space-y-2 flex-1">
             <NavLinks navItems={navItems} onNavClick={onNavClick} isMobile />
+          </div>
+          <div className="mt-auto pt-6 border-t border-slate-700">
+            <AuthSection 
+              user={user} 
+              isDialogOpen={isDialogOpen} 
+              setIsDialogOpen={setIsDialogOpen} 
+              isMobile 
+            />
           </div>
         </div>
       </div>

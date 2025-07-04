@@ -47,14 +47,8 @@ const Navbar = () => {
             />
           </div>
 
-          {/* Mobile menu button - Improved touch target */}
-          <div className="lg:hidden flex items-center space-x-2 sm:space-x-4">
-            <AuthSection 
-              user={user} 
-              isDialogOpen={isDialogOpen} 
-              setIsDialogOpen={setIsDialogOpen} 
-              isMobile 
-            />
+          {/* Mobile menu button */}
+          <div className="lg:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-slate-300 hover:text-white transition-colors p-2 -m-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -68,7 +62,10 @@ const Navbar = () => {
         <MobileMenu 
           isOpen={isMobileMenuOpen} 
           navItems={navItems} 
-          onNavClick={handleNavClick} 
+          onNavClick={handleNavClick}
+          user={user}
+          isDialogOpen={isDialogOpen}
+          setIsDialogOpen={setIsDialogOpen}
         />
       </div>
     </nav>
