@@ -65,45 +65,32 @@ export const Pricing = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 relative overflow-hidden">
-      {/* Hero-style background elements - 60% intensity */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/6 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/6 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-emerald-400/3 rounded-full blur-3xl"></div>
-      </div>
-      
-      {/* Hero-style grid pattern overlay - 60% intensity */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.12)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.24)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.24)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-18"></div>
-      
-      {/* Smooth transition fade from previous section */}
-      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-slate-900/0 via-slate-900/50 to-transparent"></div>
-      
+    <section className="py-16 md:py-24 px-3 md:px-4 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center mb-8 md:mb-16">
           <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
-            <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
-            <span className="text-emerald-400 font-semibold text-sm md:text-base">Simple Pricing</span>
+            <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-500 mr-2" />
+            <span className="text-emerald-500 font-semibold text-sm md:text-base">Simple Pricing</span>
           </div>
-          <h2 className="text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-            Choose Your <span className="text-emerald-400">Perfect Plan</span>
+          <h2 className="text-2xl md:text-5xl font-bold text-slate-800 mb-4 md:mb-6 px-3 sm:px-0">
+            Choose Your <span className="text-emerald-500">Perfect Plan</span>
           </h2>
-          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+          <p className="text-sm md:text-xl text-slate-600 max-w-3xl mx-auto px-3 sm:px-0">
             Start with our free trial and scale as you grow. No setup fees, no contracts.
           </p>
         </div>
 
         {/* Pricing toggle */}
         <div className="flex items-center justify-center mb-8 md:mb-12">
-          <div className="bg-slate-800/50 rounded-full p-1 border border-slate-700/50">
+          <div className="bg-white/80 rounded-full p-1 border border-gray-200">
             <div className="flex">
               <button
                 onClick={() => setIsAnnual(false)}
                 className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 ${
                   !isAnnual
                     ? 'bg-emerald-500 text-white shadow-lg'
-                    : 'text-slate-300 hover:text-white'
+                    : 'text-slate-600 hover:text-slate-800'
                 }`}
               >
                 Monthly
@@ -113,7 +100,7 @@ export const Pricing = () => {
                     className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
                       isAnnual
                         ? 'bg-emerald-500 text-white shadow-lg'
-                        : 'text-slate-300 hover:text-white'
+                        : 'text-slate-600 hover:text-slate-800'
                     }`}
                   >
                     Annual
@@ -132,8 +119,8 @@ export const Pricing = () => {
               key={plan.name}
               className={`relative rounded-3xl p-8 border transition-all duration-300 hover:scale-105 ${
                 plan.isEnterprise
-                  ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
-                  : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
+                  ? 'bg-gradient-to-br from-gray-100 to-white border-gray-300'
+                  : 'bg-white/95 backdrop-blur-sm border-gray-200'
               } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}
             >
               {plan.popular && (
@@ -145,27 +132,27 @@ export const Pricing = () => {
               )}
 
               <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                <p className="text-slate-400 mb-6">{plan.description}</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">{plan.name}</h3>
+                <p className="text-slate-600 mb-6">{plan.description}</p>
                 
                 {plan.monthlyPrice ? (
                   <div className="mb-6">
                     <div className="flex items-center justify-center">
-                      <span className="text-4xl font-bold text-emerald-400">
+                      <span className="text-4xl font-bold text-emerald-500">
                         €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                       </span>
-                      <span className="text-slate-400 text-xl ml-2">/month</span>
+                      <span className="text-slate-600 text-xl ml-2">/month</span>
                     </div>
                     {isAnnual && (
-                      <div className="text-sm text-emerald-400 mt-2">
+                      <div className="text-sm text-emerald-500 mt-2">
                         Billed annually (€{plan.annualPrice * 12}/year)
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className="mb-6">
-                    <div className="text-4xl font-bold text-white mb-2">Custom</div>
-                    <div className="text-slate-400">Contact us for pricing</div>
+                    <div className="text-4xl font-bold text-slate-800 mb-2">Custom</div>
+                    <div className="text-slate-600">Contact us for pricing</div>
                   </div>
                 )}
               </div>
@@ -176,7 +163,7 @@ export const Pricing = () => {
                     <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Check className="w-3 h-3 text-white" />
                     </div>
-                    <span className="text-slate-300 text-sm">{feature}</span>
+                    <span className="text-slate-600 text-sm">{feature}</span>
                   </div>
                 ))}
               </div>
@@ -184,10 +171,10 @@ export const Pricing = () => {
               <Button 
                 className={`w-full font-semibold py-3 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
                   plan.isEnterprise
-                    ? 'bg-white text-black hover:bg-gray-100'
+                    ? 'bg-slate-800 text-white hover:bg-slate-700'
                     : plan.popular
                     ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white'
-                    : 'bg-slate-700 hover:bg-slate-600 text-white'
+                    : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
                 }`}
               >
                 {plan.cta}
@@ -279,9 +266,6 @@ export const Pricing = () => {
             30 days free trial • No credit card required • Cancel anytime
           </p>
         </div>
-        
-        {/* Smooth transition fade to next section */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-900/0 via-slate-900/50 to-transparent"></div>
       </div>
     </section>
   );
