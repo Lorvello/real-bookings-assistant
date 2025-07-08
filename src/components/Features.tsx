@@ -137,7 +137,7 @@ const Features = () => {
   };
 
   return (
-    <section className="space-luxury-lg bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+    <section className="space-golden-md bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
       {/* Enhanced background with luxury depth */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-500/8 rounded-full blur-3xl animate-breathe"></div>
@@ -149,22 +149,21 @@ const Features = () => {
       
       <div className="container-luxury relative z-10">
         {/* Luxury header section */}
-        <div className="text-center space-golden-lg">
-          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white breathe-md text-balance reading-width-wide">
+        <div className="text-center space-golden-sm">
+          <h2 className="text-3xl md:text-5xl xl:text-6xl font-black text-white breathe-sm text-balance reading-width-wide">
             Everything You Need To{" "}
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent relative">
               Automate Bookings
-              <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/10 to-green-400/10 blur-2xl -z-10 animate-breathe"></div>
             </span>
           </h2>
-          <p className="text-xl md:text-2xl text-slate-300 reading-width font-light leading-relaxed text-pretty">
+          <p className="text-lg md:text-xl text-slate-300 reading-width font-light leading-relaxed text-pretty">
             <span className="md:hidden">Features that maximize bookings and revenue</span>
             <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
           </p>
         </div>
         
         {/* Desktop: Enhanced grid - Fixed layout */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-golden-lg space-golden-lg">
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-golden-lg space-golden-sm">
           {features.map((feature, index) => (
             <div 
               key={index} 
@@ -175,16 +174,16 @@ const Features = () => {
               <div className="absolute inset-0 glass-subtle rounded-3xl shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-blue-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
-              <div className="relative text-center p-6 md:p-8 transition-luxury group-hover:-translate-y-1">
-                <div className="relative mb-6 md:mb-8 flex justify-center">
-                  <div className={`w-14 h-14 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury group-hover:ring-2 group-hover:ring-emerald-500/20`}>
-                    <feature.icon className="w-7 h-7 md:w-10 md:h-10 text-white group-hover:scale-105 transition-transform duration-300" strokeWidth={1.5} />
+              <div className="relative text-center p-4 md:p-6 transition-luxury group-hover:-translate-y-1">
+                <div className="relative mb-4 md:mb-6 flex justify-center">
+                  <div className={`w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury group-hover:ring-2 group-hover:ring-emerald-500/20`}>
+                    <feature.icon className="w-6 h-6 md:w-8 md:h-8 text-white group-hover:scale-105 transition-transform duration-300" strokeWidth={1.5} />
                   </div>
                 </div>
-                <h3 className="text-lg md:text-xl xl:text-2xl font-bold text-white mb-3 md:mb-4 leading-tight group-hover:text-slate-100 transition-colors duration-300 text-balance">
+                <h3 className="text-base md:text-lg xl:text-xl font-bold text-white mb-2 md:mb-3 leading-tight group-hover:text-slate-100 transition-colors duration-300 text-balance">
                   {feature.title}
                 </h3>
-                <p className="text-slate-300 text-sm md:text-base xl:text-lg leading-relaxed group-hover:text-slate-200 transition-colors duration-300 text-pretty">
+                <p className="text-slate-300 text-xs md:text-sm xl:text-base leading-relaxed group-hover:text-slate-200 transition-colors duration-300 text-pretty">
                   {feature.description}
                 </p>
               </div>

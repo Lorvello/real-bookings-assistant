@@ -37,8 +37,8 @@ const Hero = () => {
       <div className="container-luxury relative z-10 text-center">
         {/* Premium floating badge with glassmorphism - CENTERED */}
         <div className="flex justify-center mb-6 md:mb-8">
-          <div className="inline-flex items-center gap-2 md:gap-3 glass-effect rounded-full px-4 py-2 md:px-6 md:py-3 animate-fade-in-luxury shadow-luxury-sm hover:shadow-luxury-md transition-luxury">
-            <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+          <div className="inline-flex items-center gap-2 md:gap-3 glass-effect rounded-full px-4 py-2 md:px-6 md:py-3 shadow-luxury-sm hover:shadow-luxury-md transition-luxury">
+            <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full"></div>
             <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
             <span className="text-emerald-300 text-xs md:text-sm font-medium tracking-wide">AI-Powered Booking Revolution</span>
           </div>
@@ -46,17 +46,16 @@ const Hero = () => {
 
         {/* Premium headline with enhanced typography - REDUCED SIZE */}
         <div className="space-golden-sm">
-          <h1 className="text-3xl md:text-5xl xl:text-6xl 2xl:text-7xl font-black text-white leading-[0.9] tracking-tight animate-fade-in-luxury delay-luxury-1 text-balance reading-width-wide mx-auto">
+          <h1 className="text-3xl md:text-5xl xl:text-6xl 2xl:text-7xl font-black text-white leading-[0.9] tracking-tight text-balance reading-width-wide mx-auto">
             <span className="bg-gradient-to-r from-emerald-300 via-green-400 to-teal-400 bg-clip-text text-transparent relative inline-block">
               Bookings
-              <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/20 via-green-400/15 to-teal-400/20 blur-2xl -z-10 animate-breathe"></div>
             </span>
             {" "}on Auto Pilot
             <br />
             <span className="text-slate-100 font-light">via WhatsApp</span>
           </h1>
 
-          <p className="text-base md:text-lg lg:text-xl text-slate-300 reading-width leading-relaxed animate-fade-in-luxury delay-luxury-2 breathe-sm font-light text-pretty mx-auto">
+          <p className="text-base md:text-lg lg:text-xl text-slate-300 reading-width leading-relaxed breathe-sm font-light text-pretty mx-auto">
             <span className="md:hidden">AI books appointments 24/7 via WhatsApp. Zero missed opportunities.</span>
             <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-medium">24/7 automation</span>,{" "}
@@ -65,7 +64,7 @@ const Hero = () => {
           </p>
 
           {/* Enhanced CTA Section with glassmorphism - CENTERED */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 breathe-md animate-fade-in-luxury delay-luxury-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 breathe-md">
             <Button 
               ref={ctaRef}
               className={`w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold rounded-2xl shadow-luxury-lg shadow-emerald-500/25 border-0 transition-luxury hover-lift-context group min-h-[48px] md:min-h-[56px] ${magneticClassName}`}
@@ -81,7 +80,7 @@ const Hero = () => {
           </div>
 
           {/* Enhanced social proof with luxury styling - REDUCED SPACING */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-8 breathe-sm animate-fade-in-luxury delay-luxury-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-8 breathe-sm">
             <div className="flex items-center gap-4">
               <div className="flex -space-x-3">
                 <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full border-2 border-slate-700 flex items-center justify-center shadow-luxury-sm">

@@ -78,7 +78,7 @@ const Index = () => {
         delay={200}
         enableCursorGradient={true}
       >
-        <section className="space-luxury-md bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+        <section className="space-golden-sm bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
           {/* Enhanced background with depth layers */}
           <div className="absolute inset-0">
             <div className="absolute top-20 left-10 w-96 h-96 bg-red-500/8 rounded-full blur-3xl animate-breathe"></div>
@@ -90,11 +90,11 @@ const Index = () => {
           <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.08)_1px,transparent_1px)] bg-[size:80px_80px] opacity-30"></div>
           
           <div className="container-luxury relative z-10">
-            <div className="text-center breathe-lg">
-              <h2 className="text-3xl md:text-5xl xl:text-6xl font-black text-white breathe-sm text-balance reading-width-wide mx-auto">
+            <div className="text-center breathe-sm">
+              <h2 className="text-2xl md:text-4xl xl:text-5xl font-black text-white breathe-sm text-balance reading-width-wide mx-auto">
                 Do you recognize this <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-500 bg-clip-text text-transparent">problem</span>?
               </h2>
-              <p className="text-lg md:text-xl text-slate-300 reading-width mx-auto font-light leading-relaxed text-pretty">
+              <p className="text-base md:text-lg text-slate-300 reading-width mx-auto font-light leading-relaxed text-pretty">
                 These daily frustrations cost you time, money and customers. It's time for a solution.
               </p>
             </div>
@@ -106,7 +106,7 @@ const Index = () => {
                   <div className="group relative">
                     {/* Luxury card background with glassmorphism */}
                     <div className="absolute inset-0 glass-subtle rounded-3xl shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury"></div>
-                    <div className="relative p-8 md:p-10">
+                    <div className="relative p-4 md:p-6">
                       <PainPoint
                         icon={painPoint.icon}
                         title={painPoint.title}

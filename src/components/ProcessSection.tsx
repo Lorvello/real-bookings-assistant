@@ -7,7 +7,7 @@ import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 
 const ProcessSection = () => {
   return (
-    <section className="space-luxury-lg bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+    <section className="space-golden-md bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
       {/* Enhanced background with luxury depth */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-breathe"></div>
@@ -20,11 +20,11 @@ const ProcessSection = () => {
       
       <div className="container-luxury relative z-10">
         {/* Luxury section header */}
-        <div className="text-center space-golden-lg">
-          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white breathe-md text-balance reading-width-wide">
+        <div className="text-center space-golden-sm">
+          <h2 className="text-3xl md:text-5xl xl:text-6xl font-black text-white breathe-sm text-balance reading-width-wide">
             See How It Works
           </h2>
-          <p className="text-xl md:text-2xl text-slate-300 reading-width leading-relaxed font-light text-pretty">
+          <p className="text-lg md:text-xl text-slate-300 reading-width leading-relaxed font-light text-pretty">
             From first message to confirmed appointment in less than 30 seconds. 
             Watch how our AI handles the entire booking process automatically.
           </p>
@@ -35,7 +35,7 @@ const ProcessSection = () => {
           {/* Timeline connector line - Desktop only */}
           <div className="hidden lg:block absolute left-1/2 top-24 bottom-24 w-1 bg-gradient-to-b from-emerald-400/30 via-blue-400/30 to-purple-400/30 rounded-full transform -translate-x-1/2 z-0"></div>
           
-          <div className="space-y-golden-xl relative z-10">
+          <div className="space-y-golden-md relative z-10">
             {/* Step 1: WhatsApp Chat with floating number */}
             <div className="flex flex-col lg:flex-row items-center gap-golden-lg relative">
               {/* Floating process number with luxury glow */}
@@ -119,9 +119,9 @@ const ProcessSection = () => {
                 </div>
               </div>
               
-              <div className="text-center breathe-md pt-12">
-                <h3 className="text-xl md:text-3xl font-bold text-white breathe-sm">Test The AI Agent Yourself</h3>
-                <p className="text-base md:text-lg text-slate-300 leading-relaxed reading-width mx-auto">
+              <div className="text-center breathe-sm pt-8">
+                <h3 className="text-lg md:text-2xl font-bold text-white breathe-sm">Test The AI Agent Yourself</h3>
+                <p className="text-sm md:text-base text-slate-300 leading-relaxed reading-width mx-auto">
                   Try it yourself! Chat with our AI agent and experience how fast and natural 
                   the booking process is. No registration required.
                 </p>
