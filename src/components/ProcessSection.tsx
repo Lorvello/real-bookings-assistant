@@ -20,11 +20,11 @@ const ProcessSection = () => {
       
       <div className="container-luxury relative z-10">
         {/* Luxury section header */}
-        <div className="text-center mb-20 md:mb-32">
-          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white mb-8 md:mb-12 text-balance">
+        <div className="text-center space-golden-lg">
+          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white breathe-md text-balance reading-width-wide">
             See How It Works
           </h2>
-          <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed font-light text-pretty">
+          <p className="text-xl md:text-2xl text-slate-300 reading-width leading-relaxed font-light text-pretty">
             From first message to confirmed appointment in less than 30 seconds. 
             Watch how our AI handles the entire booking process automatically.
           </p>
@@ -35,9 +35,9 @@ const ProcessSection = () => {
           {/* Timeline connector line - Desktop only */}
           <div className="hidden lg:block absolute left-1/2 top-24 bottom-24 w-1 bg-gradient-to-b from-emerald-400/30 via-blue-400/30 to-purple-400/30 rounded-full transform -translate-x-1/2 z-0"></div>
           
-          <div className="space-y-32 md:space-y-40 relative z-10">
+          <div className="space-y-golden-xl relative z-10">
             {/* Step 1: WhatsApp Chat with floating number */}
-            <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-16 relative">
+            <div className="flex flex-col lg:flex-row items-center gap-golden-lg relative">
               {/* Floating process number with luxury glow */}
               <div className="absolute -top-8 lg:top-1/2 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:-translate-y-1/2 z-20">
                 <div className="relative">
@@ -48,7 +48,7 @@ const ProcessSection = () => {
                 </div>
               </div>
               
-              <div className="flex-1 space-y-6 md:space-y-8 text-center lg:text-left animate-fade-in-luxury delay-luxury-1">
+              <div className="flex-1 space-golden-sm text-center lg:text-left animate-fade-in-luxury delay-luxury-1">
                 <div className="glass-subtle rounded-3xl p-8 md:p-10 shadow-luxury-md">
                   <h3 className="text-2xl md:text-4xl font-bold text-white mb-4 md:mb-6">Customer Starts WhatsApp Chat</h3>
                   <p className="text-lg md:text-xl text-slate-300 leading-relaxed mb-6 md:mb-8">

@@ -86,13 +86,13 @@ const Solution = () => {
       
       <div className="container-luxury relative z-10">
         {/* Luxury header section */}
-        <div className="text-center mb-20 md:mb-32">
-          <div className="inline-flex items-center gap-3 glass-effect rounded-full px-6 py-3 md:px-8 md:py-4 mb-8 md:mb-12 shadow-luxury-sm">
+        <div className="text-center space-golden-lg">
+          <div className="inline-flex items-center gap-3 glass-effect rounded-full px-6 py-3 md:px-8 md:py-4 breathe-md shadow-luxury-sm">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span className="text-emerald-300 text-sm md:text-base font-medium tracking-wide">The Solution</span>
           </div>
           
-          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white mb-8 md:mb-12 leading-tight text-balance">
+          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white breathe-md leading-tight text-balance reading-width-wide">
             Meet Your <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">24/7</span>
             <br />
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent relative">
@@ -100,7 +100,7 @@ const Solution = () => {
               <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/15 to-green-400/15 blur-2xl -z-10 animate-breathe"></div>
             </span>
           </h2>
-          <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed font-light text-pretty">
+          <p className="text-xl md:text-2xl text-slate-300 reading-width leading-relaxed font-light text-pretty">
             <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
             <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
             faster than any human could.</span>
@@ -108,7 +108,7 @@ const Solution = () => {
         </div>
         
         {/* Desktop: Enhanced grid layout with consistent sizing */}
-        <div className="hidden md:grid md:grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+        <div className="hidden md:grid md:grid-cols-1 lg:grid-cols-3 gap-golden-lg">
           {features.map((feature, index) => (
             <div key={index} className="group relative animate-fade-in-luxury" style={{ animationDelay: `${index * 0.15}s` }}>
               {/* Luxury card background */}
