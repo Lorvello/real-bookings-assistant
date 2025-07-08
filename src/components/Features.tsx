@@ -149,22 +149,22 @@ const Features = () => {
       
       <div className="container-luxury relative z-10">
         {/* Luxury header section */}
-        <div className="text-center space-golden-lg">
-          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white breathe-md text-balance reading-width-wide">
+        <div className="text-center mb-20 md:mb-32">
+          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white mb-8 md:mb-12 text-balance">
             Everything You Need To{" "}
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent relative">
               Automate Bookings
               <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/10 to-green-400/10 blur-2xl -z-10 animate-breathe"></div>
             </span>
           </h2>
-          <p className="text-xl md:text-2xl text-slate-300 reading-width font-light leading-relaxed text-pretty">
+          <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto font-light leading-relaxed text-pretty">
             <span className="md:hidden">Features that maximize bookings and revenue</span>
             <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
           </p>
         </div>
         
         {/* Desktop: Enhanced grid - Fixed layout */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-golden-lg space-golden-lg">
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-20 md:mb-32">
           {features.map((feature, index) => (
             <div 
               key={index} 
@@ -242,23 +242,23 @@ const Features = () => {
         </div>
         
         {/* Enhanced CTA Section with luxury styling */}
-        <div className="text-center relative overflow-hidden space-golden-lg">
+        <div className="text-center relative overflow-hidden">
           {/* Background decoration for CTA */}
           <div className="absolute top-0 right-0 w-64 h-64 md:w-80 md:h-80 bg-emerald-500/8 rounded-full blur-3xl animate-breathe"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 md:w-64 md:h-64 bg-emerald-500/6 rounded-full blur-3xl animate-breathe delay-luxury-2"></div>
           
           <div className="relative z-10">
-            <h3 className="text-3xl md:text-5xl xl:text-6xl font-black breathe-md text-white text-balance reading-width-wide">
+            <h3 className="text-3xl md:text-5xl xl:text-6xl font-black mb-6 md:mb-12 text-white text-balance">
               Don't Let Revenue Sleep While You Do
             </h3>
-            <p className="text-lg md:text-2xl text-slate-300 breathe-lg reading-width font-light leading-relaxed text-pretty">
+            <p className="text-lg md:text-2xl text-slate-300 mb-12 md:mb-20 max-w-4xl mx-auto font-light leading-relaxed text-pretty">
               <span className="md:hidden">AI books while you work. Start free trial today.</span>
               <span className="hidden md:inline">While you're busy with customers, your AI agent is busy booking new ones. 
               Start your free trial and see the difference automation makes.</span>
             </p>
             
             {/* Desktop: Enhanced stats section */}
-            <div className="hidden md:flex md:flex-row flex-wrap justify-center gap-golden-lg">
+            <div className="hidden md:flex md:flex-row flex-wrap justify-center gap-12 md:gap-20">
               {stats.map((stat, index) => (
                 <div key={index} className="group text-center hover-lift cursor-pointer">
                   <div className="glass-subtle rounded-2xl p-6 md:p-8 shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury">
@@ -275,7 +275,7 @@ const Features = () => {
 
             {/* Mobile: Enhanced stats grid */}
             <div className="md:hidden">
-              <div className="grid grid-cols-3 gap-golden">
+              <div className="grid grid-cols-3 gap-4">
                 {stats.map((stat, index) => (
                   <div key={index} className="text-center glass-subtle rounded-2xl p-4 shadow-luxury-sm">
                     <div className="text-2xl font-black mb-1 bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">

@@ -34,7 +34,7 @@ const Hero = () => {
       {/* Refined grid pattern with depth */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.15)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.2)_1px,transparent_1px)] bg-[size:40px_40px] md:bg-[size:80px_80px] opacity-40"></div>
       
-      <div className="container-luxury relative z-10">
+      <div className="relative container-luxury text-center z-10">
         {/* Premium floating badge with glassmorphism */}
         <div className="inline-flex items-center gap-3 glass-effect rounded-full px-6 py-3 md:px-8 md:py-4 mb-8 md:mb-12 animate-fade-in-luxury shadow-luxury-sm hover:shadow-luxury-md transition-luxury">
           <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
@@ -43,8 +43,8 @@ const Hero = () => {
         </div>
 
         {/* Premium headline with enhanced typography */}
-        <div className="space-golden-md">
-          <h1 className="text-4xl md:text-6xl xl:text-7xl 2xl:text-8xl font-black text-white leading-[0.9] tracking-tight animate-fade-in-luxury delay-luxury-1 text-balance reading-width-wide">
+        <div className="space-luxury-sm">
+          <h1 className="text-4xl md:text-6xl xl:text-7xl 2xl:text-8xl font-black text-white leading-[0.9] tracking-tight animate-fade-in-luxury delay-luxury-1 text-balance">
             <span className="bg-gradient-to-r from-emerald-300 via-green-400 to-teal-400 bg-clip-text text-transparent relative inline-block">
               Bookings
               <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/20 via-green-400/15 to-teal-400/20 blur-2xl -z-10 animate-breathe"></div>
@@ -54,7 +54,7 @@ const Hero = () => {
             <span className="text-slate-100 font-light">via WhatsApp</span>
           </h1>
 
-          <p className="text-lg md:text-xl lg:text-2xl text-slate-300 reading-width leading-relaxed animate-fade-in-luxury delay-luxury-2 breathe-md font-light text-pretty">
+          <p className="text-lg md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-fade-in-luxury delay-luxury-2 mt-8 md:mt-12 font-light text-pretty">
             <span className="md:hidden">AI books appointments 24/7 via WhatsApp. Zero missed opportunities.</span>
             <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-medium">24/7 automation</span>,{" "}
@@ -63,7 +63,7 @@ const Hero = () => {
           </p>
 
           {/* Enhanced CTA Section with glassmorphism */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-golden breathe-lg animate-fade-in-luxury delay-luxury-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-8 pt-12 md:pt-16 animate-fade-in-luxury delay-luxury-3">
             <Button 
               ref={ctaRef}
               className={`w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 md:px-10 py-4 md:py-6 text-lg md:text-xl font-semibold rounded-2xl shadow-luxury-lg shadow-emerald-500/25 border-0 transition-luxury hover-lift-context group min-h-[56px] md:min-h-[64px] ${magneticClassName}`}
@@ -79,7 +79,7 @@ const Hero = () => {
           </div>
 
           {/* Enhanced social proof with luxury styling */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-golden breathe-lg animate-fade-in-luxury delay-luxury-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 md:gap-12 pt-12 md:pt-16 animate-fade-in-luxury delay-luxury-4">
             <div className="flex items-center gap-4">
               <div className="flex -space-x-3">
                 <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full border-2 border-slate-700 flex items-center justify-center shadow-luxury-sm">

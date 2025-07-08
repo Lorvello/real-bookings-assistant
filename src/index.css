@@ -352,55 +352,14 @@
     transition: var(--luxury-transition-slow);
   }
   
-  /* Golden Ratio Constants (φ = 1.618) for Perfect Proportions */
-  --golden-ratio: 1.618;
-  --golden-ratio-inverse: 0.618;
-  
-  /* Premium Fluid Container System */
+  /* Premium container */
   .container-luxury {
     max-width: min(1400px, calc(100vw - 3rem));
     margin-inline: auto;
     padding-inline: clamp(1rem, 5vw, 3rem);
   }
   
-  .container-luxury-wide {
-    max-width: min(1600px, calc(100vw - 2rem));
-    margin-inline: auto;
-    padding-inline: clamp(1.5rem, 6vw, 4rem);
-  }
-  
-  .container-luxury-narrow {
-    max-width: min(1200px, calc(100vw - 4rem));
-    margin-inline: auto;
-    padding-inline: clamp(2rem, 8vw, 5rem);
-  }
-  
-  /* Golden Ratio Fluid Spacing System */
-  .space-golden-xs {
-    padding-block: clamp(1rem, 2vw, 1.618rem);
-  }
-  
-  .space-golden-sm {
-    padding-block: clamp(1.618rem, 3vw, 2.618rem);
-  }
-  
-  .space-golden-md {
-    padding-block: clamp(2.618rem, 5vw, 4.236rem);
-  }
-  
-  .space-golden-lg {
-    padding-block: clamp(4.236rem, 8vw, 6.854rem);
-  }
-  
-  .space-golden-xl {
-    padding-block: clamp(6.854rem, 12vw, 11.09rem);
-  }
-  
-  .space-golden-2xl {
-    padding-block: clamp(11.09rem, 16vw, 17.944rem);
-  }
-  
-  /* Legacy Luxury Spacing (Backwards Compatibility) */
+  /* Fluid spacing */
   .space-luxury-sm {
     padding: clamp(2rem, 5vw, 3rem);
   }
@@ -415,82 +374,6 @@
   
   .space-luxury-xl {
     padding: clamp(6rem, 12vw, 12rem);
-  }
-  
-  /* Breathing Room Utilities */
-  .breathe-sm {
-    margin-block: clamp(1rem, 3vw, 2rem);
-  }
-  
-  .breathe-md {
-    margin-block: clamp(2rem, 5vw, 4rem);
-  }
-  
-  .breathe-lg {
-    margin-block: clamp(3rem, 8vw, 6rem);
-  }
-  
-  .breathe-xl {
-    margin-block: clamp(4rem, 10vw, 8rem);
-  }
-  
-  /* Optimal Reading Width */
-  .reading-width {
-    max-width: 65ch;
-    margin-inline: auto;
-  }
-  
-  .reading-width-narrow {
-    max-width: 45ch;
-    margin-inline: auto;
-  }
-  
-  .reading-width-wide {
-    max-width: 85ch;
-    margin-inline: auto;
-  }
-  
-  /* Perfect Grid Gaps */
-  .gap-golden {
-    gap: clamp(1rem, 2vw, 1.618rem);
-  }
-  
-  .gap-golden-lg {
-    gap: clamp(1.618rem, 4vw, 2.618rem);
-  }
-  
-  .gap-golden-xl {
-    gap: clamp(2.618rem, 6vw, 4.236rem);
-  }
-  
-  /* Golden Ratio Y-Axis Spacing */
-  .space-y-golden-xs > * + * {
-    margin-top: clamp(1rem, 2vw, 1.618rem);
-  }
-
-  .space-y-golden-sm > * + * {
-    margin-top: clamp(1.618rem, 3vw, 2.618rem);
-  }
-
-  .space-y-golden-md > * + * {
-    margin-top: clamp(2.618rem, 5vw, 4.236rem);
-  }
-
-  .space-y-golden-lg > * + * {
-    margin-top: clamp(4.236rem, 8vw, 6.854rem);
-  }
-
-  .space-y-golden-xl > * + * {
-    margin-top: clamp(6.854rem, 12vw, 11.09rem);
-  }
-  
-  /* Golden Ratio X-Axis Spacing */
-  .space-x-golden > * + * {
-    margin-left: clamp(1rem, 2vw, 1.618rem);
-  }
-
-  .space-x-golden-lg > * + * {
-    margin-left: clamp(1.618rem, 4vw, 2.618rem);
   }
   
   /* Typography utilities */
