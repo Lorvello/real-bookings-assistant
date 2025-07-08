@@ -6,7 +6,7 @@ import Solution from "@/components/Solution";
 import Features from "@/components/Features";
 import SocialProof from "@/components/SocialProof";
 import { Pricing } from "@/components/Pricing";
-import EnhancedScrollSection from "@/components/EnhancedScrollSection";
+import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 import { Clock, PhoneOff, MessageSquareX } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -72,54 +72,34 @@ const Index = () => {
       <Navbar />
       <Hero />
       
-      {/* Pain Points Section - Luxury Enhanced */}
-      <EnhancedScrollSection 
-        animationType="stagger" 
-        delay={200}
-        enableCursorGradient={true}
-      >
-        <section className="space-luxury-lg bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
-          {/* Enhanced background with depth layers */}
-          <div className="absolute inset-0">
-            <div className="absolute top-20 left-10 w-96 h-96 bg-red-500/8 rounded-full blur-3xl animate-breathe"></div>
-            <div className="absolute bottom-20 right-10 w-[28rem] h-[28rem] bg-orange-500/6 rounded-full blur-3xl animate-breathe delay-luxury-2"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-400/4 rounded-full blur-3xl"></div>
-          </div>
-          
-          {/* Luxury grid pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.08)_1px,transparent_1px)] bg-[size:80px_80px] opacity-30"></div>
-          
-          <div className="container-luxury relative z-10">
-            <div className="text-center mb-16 md:mb-24">
-              <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white mb-6 md:mb-8 text-balance">
-                Do you recognize this <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-500 bg-clip-text text-transparent">problem</span>?
+      {/* Pain Points Section - Increased mobile padding */}
+      <ScrollAnimatedSection>
+        <section className="py-16 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-6 md:mb-16">
+              <h2 className="text-lg md:text-5xl font-bold text-white mb-2 md:mb-6">
+                Do you recognize this <span className="text-red-400">problem</span>?
               </h2>
-              <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto font-light leading-relaxed text-pretty">
+              <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
                 These daily frustrations cost you time, money and customers. It's time for a solution.
               </p>
             </div>
             
-            {/* Desktop: Enhanced grid layout with staggered animations */}
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+            {/* Desktop: Grid layout */}
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
               {painPoints.map((painPoint, index) => (
-                <EnhancedScrollSection key={index} delay={index * 200} animationType="stagger">
-                  <div className="group relative">
-                    {/* Luxury card background with glassmorphism */}
-                    <div className="absolute inset-0 glass-subtle rounded-3xl shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury"></div>
-                    <div className="relative p-8 md:p-10">
-                      <PainPoint
-                        icon={painPoint.icon}
-                        title={painPoint.title}
-                        description={painPoint.description}
-                        color={painPoint.color}
-                      />
-                    </div>
-                  </div>
-                </EnhancedScrollSection>
+                <ScrollAnimatedSection key={index} delay={index * 150}>
+                  <PainPoint
+                    icon={painPoint.icon}
+                    title={painPoint.title}
+                    description={painPoint.description}
+                    color={painPoint.color}
+                  />
+                </ScrollAnimatedSection>
               ))}
             </div>
 
-            {/* Mobile: Enhanced snapping carousel */}
+            {/* Mobile: Perfect snapping carousel */}
             <div className="md:hidden">
               <div 
                 ref={carouselRef}
@@ -130,32 +110,30 @@ const Index = () => {
                   WebkitOverflowScrolling: 'touch'
                 }}
               >
-                <div className="flex pb-6">
+                <div className="flex pb-4">
                   {painPoints.map((painPoint, index) => (
                     <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
-                      <div className="glass-subtle rounded-3xl p-6 shadow-luxury-sm">
-                        <PainPoint
-                          icon={painPoint.icon}
-                          title={painPoint.title}
-                          description={painPoint.description}
-                          color={painPoint.color}
-                        />
-                      </div>
+                      <PainPoint
+                        icon={painPoint.icon}
+                        title={painPoint.title}
+                        description={painPoint.description}
+                        color={painPoint.color}
+                      />
                     </div>
                   ))}
                 </div>
               </div>
               
-              {/* Enhanced carousel indicators */}
-              <div className="flex justify-center space-x-3 mt-8">
+              {/* Interactive carousel indicators */}
+              <div className="flex justify-center space-x-2 mt-4">
                 {painPoints.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => handleIndicatorClick(index)}
-                    className={`h-3 rounded-full transition-luxury ${
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
                       index === activeCarouselIndex
-                        ? 'bg-red-400 w-8 shadow-luxury-sm'
-                        : 'bg-slate-600 w-3 hover:bg-slate-500 hover:shadow-luxury-sm'
+                        ? 'bg-red-400 w-6'
+                        : 'bg-slate-600 hover:bg-slate-500'
                     }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -164,32 +142,34 @@ const Index = () => {
             </div>
           </div>
         </section>
-      </EnhancedScrollSection>
+      </ScrollAnimatedSection>
 
       {/* Solution Section - Increased mobile padding */}
-      <Solution />
+      <ScrollAnimatedSection delay={100}>
+        <Solution />
+      </ScrollAnimatedSection>
 
       {/* Process Section - Increased mobile padding */}
-      <EnhancedScrollSection delay={200} animationType="rotate">
+      <ScrollAnimatedSection delay={200}>
         <ProcessSection />
-      </EnhancedScrollSection>
+      </ScrollAnimatedSection>
 
       {/* Features Section - Increased mobile padding */}
-      <EnhancedScrollSection delay={100} enableCursorGradient={true}>
+      <ScrollAnimatedSection delay={100}>
         <Features />
-      </EnhancedScrollSection>
+      </ScrollAnimatedSection>
 
       {/* Social Proof Section - Increased mobile padding */}
-      <EnhancedScrollSection delay={200} animationType="stagger">
+      <ScrollAnimatedSection delay={200}>
         <SocialProof />
-      </EnhancedScrollSection>
+      </ScrollAnimatedSection>
 
       {/* Pricing Section - Increased mobile padding */}
-      <EnhancedScrollSection delay={100}>
+      <ScrollAnimatedSection delay={100}>
         <div id="pricing">
           <Pricing />
         </div>
-      </EnhancedScrollSection>
+      </ScrollAnimatedSection>
     </div>
   );
 };
