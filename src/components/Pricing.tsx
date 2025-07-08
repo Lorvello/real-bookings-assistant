@@ -65,7 +65,7 @@ export const Pricing = () => {
   ];
 
   return (
-    <section className="py-8 md:py-12 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+    <section className="py-16 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -75,23 +75,23 @@ export const Pricing = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
       
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-4 md:mb-8">
-          <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-4 md:py-2 mb-3 md:mb-4">
-            <Star className="w-3 h-3 md:w-4 md:h-4 text-emerald-400 mr-2" />
-            <span className="text-emerald-400 font-semibold text-xs md:text-sm">Simple Pricing</span>
+        <div className="text-center mb-8 md:mb-16">
+          <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
+            <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
+            <span className="text-emerald-400 font-semibold text-sm md:text-base">Simple Pricing</span>
           </div>
-          <h2 className="text-lg md:text-2xl font-bold text-white mb-2 md:mb-3 px-3 sm:px-0">
+          <h2 className="text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
             Choose Your <span className="text-emerald-400">Perfect Plan</span>
           </h2>
-          <p className="text-xs md:text-sm text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
             Start with our free trial and scale as you grow. No setup fees, no contracts.
           </p>
         </div>
 
         {/* Pricing toggle */}
-        <div className="flex items-center justify-center mb-4 md:mb-6">
+        <div className="flex items-center justify-center mb-8 md:mb-12">
           <div className="bg-slate-800/50 rounded-full p-1 border border-slate-700/50">
             <div className="flex">
               <button
@@ -122,11 +122,11 @@ export const Pricing = () => {
         </div>
 
         {/* Desktop: Grid layout */}
-        <div className="hidden md:grid md:grid-cols-3 gap-4">
+        <div className="hidden md:grid md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
             <div
               key={plan.name}
-              className={`relative rounded-2xl p-4 border transition-all duration-300 hover:scale-105 ${
+              className={`relative rounded-3xl p-8 border transition-all duration-300 hover:scale-105 ${
                 plan.isEnterprise
                   ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
                   : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
@@ -140,45 +140,45 @@ export const Pricing = () => {
                 </div>
               )}
 
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-bold text-white mb-2">{plan.name}</h3>
-                <p className="text-slate-400 mb-3 text-sm">{plan.description}</p>
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                <p className="text-slate-400 mb-6">{plan.description}</p>
                 
                 {plan.monthlyPrice ? (
-                  <div className="mb-3">
+                  <div className="mb-6">
                     <div className="flex items-center justify-center">
-                      <span className="text-2xl font-bold text-emerald-400">
+                      <span className="text-4xl font-bold text-emerald-400">
                         €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                       </span>
-                      <span className="text-slate-400 text-lg ml-2">/month</span>
+                      <span className="text-slate-400 text-xl ml-2">/month</span>
                     </div>
                     {isAnnual && (
-                      <div className="text-xs text-emerald-400 mt-1">
+                      <div className="text-sm text-emerald-400 mt-2">
                         Billed annually (€{plan.annualPrice * 12}/year)
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="mb-3">
-                    <div className="text-2xl font-bold text-white mb-1">Custom</div>
-                    <div className="text-slate-400 text-sm">Contact us for pricing</div>
+                  <div className="mb-6">
+                    <div className="text-4xl font-bold text-white mb-2">Custom</div>
+                    <div className="text-slate-400">Contact us for pricing</div>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-2 mb-4">
+              <div className="space-y-4 mb-8">
                 {plan.features.map((feature, idx) => (
-                  <div key={idx} className="flex items-start space-x-2">
-                    <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-2.5 h-2.5 text-white" />
+                  <div key={idx} className="flex items-start space-x-3">
+                    <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-white" />
                     </div>
-                    <span className="text-slate-300 text-xs">{feature}</span>
+                    <span className="text-slate-300 text-sm">{feature}</span>
                   </div>
                 ))}
               </div>
 
               <Button 
-                className={`w-full font-semibold py-2 px-4 rounded-xl text-sm shadow-lg hover:shadow-xl transition-all duration-300 group ${
+                className={`w-full font-semibold py-3 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
                   plan.isEnterprise
                     ? 'bg-white text-black hover:bg-gray-100'
                     : plan.popular
@@ -187,7 +187,7 @@ export const Pricing = () => {
                 }`}
               >
                 {plan.cta}
-                <ArrowRight className="ml-2 w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
           ))}
@@ -200,7 +200,7 @@ export const Pricing = () => {
               {plans.map((plan, index) => (
                 <div
                   key={plan.name}
-                  className={`w-[90vw] flex-none snap-start snap-always relative rounded-2xl p-4 border transition-all ${
+                  className={`w-[90vw] flex-none snap-start snap-always relative rounded-3xl p-6 border transition-all ${
                     plan.isEnterprise
                       ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
                       : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
@@ -214,17 +214,17 @@ export const Pricing = () => {
                      </div>
                    )}
 
-                  <div className="text-center mb-4">
-                    <h3 className="text-lg font-bold text-white mb-2">{plan.name}</h3>
-                    <p className="text-slate-400 text-xs mb-3">{plan.description}</p>
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                    <p className="text-slate-400 text-sm mb-4">{plan.description}</p>
                     
                     {plan.monthlyPrice ? (
-                      <div className="mb-3">
+                      <div className="mb-4">
                         <div className="flex items-center justify-center">
-                          <span className="text-2xl font-bold text-emerald-400">
+                          <span className="text-3xl font-bold text-emerald-400">
                             €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                           </span>
-                          <span className="text-slate-400 text-base ml-2">/month</span>
+                          <span className="text-slate-400 text-lg ml-2">/month</span>
                         </div>
                         {isAnnual && (
                           <div className="text-xs text-emerald-400 mt-1">
@@ -233,18 +233,18 @@ export const Pricing = () => {
                         )}
                       </div>
                     ) : (
-                      <div className="mb-3">
-                        <div className="text-2xl font-bold text-white mb-1">Custom</div>
-                        <div className="text-slate-400 text-xs">Contact us for pricing</div>
+                      <div className="mb-4">
+                        <div className="text-3xl font-bold text-white mb-1">Custom</div>
+                        <div className="text-slate-400 text-sm">Contact us for pricing</div>
                       </div>
                     )}
                   </div>
 
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-3 mb-6">
                     {plan.features.map((feature, idx) => (
                       <div key={idx} className="flex items-start space-x-2">
-                        <div className="w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Check className="w-2 h-2 text-white" />
+                        <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-2.5 h-2.5 text-white" />
                         </div>
                         <span className="text-slate-300 text-xs">{feature}</span>
                       </div>
@@ -252,7 +252,7 @@ export const Pricing = () => {
                   </div>
 
                   <Button 
-                    className={`w-full font-semibold py-2 px-3 rounded-xl text-xs shadow-lg transition-all duration-300 group ${
+                    className={`w-full font-semibold py-2.5 px-4 rounded-xl text-sm shadow-lg transition-all duration-300 group ${
                       plan.isEnterprise
                         ? 'bg-white text-black hover:bg-gray-100'
                         : plan.popular

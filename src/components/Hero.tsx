@@ -4,7 +4,7 @@ import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "l
 
 const Hero = () => {
   return (
-    <section className="relative min-h-[50vh] md:min-h-[70vh] bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 overflow-hidden flex items-center justify-center">
+    <section className="relative min-h-[60vh] md:min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 overflow-hidden flex items-center justify-center">
       {/* Animated background elements - Optimized for mobile */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -15,16 +15,16 @@ const Hero = () => {
       {/* Grid pattern overlay - Reduced opacity on mobile */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.2)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.4)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.4)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-30"></div>
       
-      <div className="relative max-w-6xl mx-auto px-4 md:px-4 sm:px-6 lg:px-8 text-center z-10">
+      <div className="relative max-w-7xl mx-auto px-4 md:px-4 sm:px-6 lg:px-8 text-center z-10">
         {/* Floating badge - Mobile optimized */}
-        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-4 md:py-2 mb-3 md:mb-4 animate-appear opacity-0">
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8 animate-appear opacity-0">
           <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
           <span className="text-emerald-300 text-xs md:text-sm font-medium">AI-Powered Booking Revolution</span>
         </div>
 
         {/* Main headline - Mobile optimized typography */}
-        <div className="space-y-3 md:space-y-4">
-          <h1 className="text-xl md:text-2xl xl:text-3xl 2xl:text-4xl font-extrabold text-white leading-tight md:leading-[0.95] tracking-tight animate-appear opacity-100">
+        <div className="space-y-4 md:space-y-8">
+          <h1 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-extrabold text-white leading-tight md:leading-[0.95] tracking-tight animate-appear opacity-100">
             <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
               Bookings
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
@@ -34,7 +34,7 @@ const Hero = () => {
             via WhatsApp
           </h1>
 
-          <p className="text-xs md:text-sm lg:text-base text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0">
+          <p className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0">
             <span className="md:hidden">AI books appointments 24/7 via WhatsApp. Zero missed opportunities.</span>
             <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-semibold">24/7 automation</span>,{" "}
@@ -43,20 +43,20 @@ const Hero = () => {
           </p>
 
           {/* CTA Section - Mobile optimized with proper touch targets */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 pt-4 md:pt-6 animate-appear opacity-100 delay-500 px-4 sm:px-0">
-            <Button className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 md:px-6 py-2 md:py-3 text-sm md:text-base font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[44px]">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-6 pt-6 md:pt-8 animate-appear opacity-100 delay-500 px-4 sm:px-0">
+            <Button className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 md:px-8 py-3 md:py-6 text-base md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[48px]">
               <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
               Start Free 7-Day Trial
             </Button>
             
-            <button className="w-full sm:w-auto text-slate-300 hover:text-white text-sm md:text-base font-medium flex items-center justify-center gap-2 group transition-colors min-h-[44px] px-4">
+            <button className="w-full sm:w-auto text-slate-300 hover:text-white text-base md:text-lg font-medium flex items-center justify-center gap-2 group transition-colors min-h-[48px] px-4">
               <Zap className="w-4 h-4 md:w-5 md:h-5 group-hover:text-emerald-400 transition-colors" />
               See how it works
             </button>
           </div>
 
           {/* Social proof - Mobile optimized */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-6 pt-4 md:pt-3 animate-appear opacity-100 delay-700 px-4 sm:px-0">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-8 pt-6 md:pt-4 animate-appear opacity-100 delay-700 px-4 sm:px-0">
             <div className="flex items-center gap-3 md:gap-3">
               <div className="flex -space-x-1 md:-space-x-2">
                 <div className="w-6 h-6 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
