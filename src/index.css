@@ -1,7 +1,31 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Luxury Design System Variables */
+@layer base {
+  :root {
+    /* Luxury Shadow System */
+    --luxury-shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.1);
+    --luxury-shadow-md: 0 8px 32px -8px rgba(0, 0, 0, 0.2);
+    --luxury-shadow-lg: 0 24px 64px -16px rgba(0, 0, 0, 0.25);
+    --luxury-shadow-xl: 0 32px 80px -24px rgba(0, 0, 0, 0.3);
+    
+    /* Luxury Transitions */
+    --luxury-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --luxury-transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Premium Gradients */
+    --gradient-luxury-primary: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+    --gradient-luxury-secondary: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    
+    /* Blur Effects */
+    --blur-glass: blur(16px);
+    --blur-subtle: blur(8px);
+  }
+}
 
 @layer base {
   :root {
@@ -76,12 +100,30 @@
   }
 }
 
+/* Luxury Base Styling */
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-variant-numeric: tabular-nums;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Improved scroll behavior */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 4rem;
+  }
+  
+  /* High-quality text rendering */
+  h1, h2, h3, h4, h5, h6 {
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern', 'liga', 'clig', 'calt';
   }
 }
 
@@ -266,5 +308,154 @@
   .perfect-snap-carousel > div > div {
     scroll-snap-align: center;
     scroll-snap-stop: always;
+  }
+}
+
+/* Luxury Utility Classes */
+@layer utilities {
+  /* Luxury shadows using CSS variables */
+  .shadow-luxury-sm {
+    box-shadow: var(--luxury-shadow-sm);
+  }
+  
+  .shadow-luxury-md {
+    box-shadow: var(--luxury-shadow-md);
+  }
+  
+  .shadow-luxury-lg {
+    box-shadow: var(--luxury-shadow-lg);
+  }
+  
+  .shadow-luxury-xl {
+    box-shadow: var(--luxury-shadow-xl);
+  }
+  
+  /* Glass morphism effects */
+  .glass-effect {
+    background: var(--gradient-glass);
+    backdrop-filter: var(--blur-glass);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: var(--blur-subtle);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Luxury transitions */
+  .transition-luxury {
+    transition: var(--luxury-transition);
+  }
+  
+  .transition-luxury-slow {
+    transition: var(--luxury-transition-slow);
+  }
+  
+  /* Premium container */
+  .container-luxury {
+    max-width: min(1400px, calc(100vw - 3rem));
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 5vw, 3rem);
+  }
+  
+  /* Fluid spacing */
+  .space-luxury-sm {
+    padding: clamp(2rem, 5vw, 3rem);
+  }
+  
+  .space-luxury-md {
+    padding: clamp(3rem, 8vw, 6rem);
+  }
+  
+  .space-luxury-lg {
+    padding: clamp(4rem, 10vw, 8rem);
+  }
+  
+  .space-luxury-xl {
+    padding: clamp(6rem, 12vw, 12rem);
+  }
+  
+  /* Typography utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
+
+/* Premium Animations */
+@layer utilities {
+  /* Subtle parallax scroll effect */
+  .parallax-slow {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  /* Luxury hover lift */
+  .hover-lift {
+    transition: var(--luxury-transition);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--luxury-shadow-lg);
+  }
+  
+  /* Smooth scale animation */
+  .hover-scale-luxury {
+    transition: var(--luxury-transition);
+  }
+  
+  .hover-scale-luxury:hover {
+    transform: scale(1.02);
+  }
+  
+  /* Advanced gradient animations */
+  .gradient-shift {
+    background: linear-gradient(45deg, #10b981, #059669, #047857, #10b981);
+    background-size: 300% 300%;
+    animation: gradientShift 6s ease infinite;
+  }
+  
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  /* Luxury fade in animation */
+  .animate-fade-in-luxury {
+    animation: fadeInLuxury 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  
+  @keyframes fadeInLuxury {
+    from {
+      opacity: 0;
+      transform: translateY(40px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  /* Staggered animation delays */
+  .delay-luxury-1 { animation-delay: 0.1s; }
+  .delay-luxury-2 { animation-delay: 0.2s; }
+  .delay-luxury-3 { animation-delay: 0.3s; }
+  .delay-luxury-4 { animation-delay: 0.4s; }
+  .delay-luxury-5 { animation-delay: 0.5s; }
+  
+  /* Subtle breathing animation */
+  .animate-breathe {
+    animation: breathe 4s ease-in-out infinite;
+  }
+  
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
   }
 }

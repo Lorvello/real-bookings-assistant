@@ -66,61 +66,70 @@ const Solution = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
-      {/* Background decoration */}
+    <section className="space-luxury-lg bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+      {/* Enhanced background with luxury depth */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-500/12 rounded-full blur-3xl animate-breathe"></div>
+        <div className="absolute bottom-20 right-10 w-[32rem] h-[32rem] bg-green-500/10 rounded-full blur-3xl animate-breathe delay-luxury-3"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-emerald-400/6 rounded-full blur-3xl"></div>
       </div>
       
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
+      {/* Premium grid pattern */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.08)_1px,transparent_1px)] bg-[size:80px_80px] opacity-25"></div>
       
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header - Compact mobile */}
-        <div className="text-center mb-8 md:mb-20">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-6 md:py-3 mb-3 md:mb-8 backdrop-blur-sm">
+      <div className="container-luxury relative z-10">
+        {/* Luxury header section */}
+        <div className="text-center mb-20 md:mb-32">
+          <div className="inline-flex items-center gap-3 glass-effect rounded-full px-6 py-3 md:px-8 md:py-4 mb-8 md:mb-12 shadow-luxury-sm">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <span className="text-emerald-300 text-xs md:text-sm font-medium">The Solution</span>
+            <span className="text-emerald-300 text-sm md:text-base font-medium tracking-wide">The Solution</span>
           </div>
           
-          <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
-            Meet Your <span className="text-emerald-400">24/7</span><br />
-            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white mb-8 md:mb-12 leading-tight text-balance">
+            Meet Your <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">24/7</span>
+            <br />
+            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent relative">
               Booking Assistant
+              <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/15 to-green-400/15 blur-2xl -z-10 animate-breathe"></div>
             </span>
           </h2>
-          <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
+          <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed font-light text-pretty">
             <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
             <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
             faster than any human could.</span>
           </p>
         </div>
         
-        {/* Desktop: Grid layout */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-16">
+        {/* Desktop: Enhanced grid layout with luxury styling */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-16">
           {features.map((feature, index) => (
-            <div key={index} className="group text-center transition-all duration-300 cursor-pointer px-4 md:px-0 hover:bg-gradient-to-b hover:from-slate-800/30 hover:to-slate-800/10 rounded-2xl py-6 hover:shadow-xl hover:-translate-y-2">
-              <div className="relative mb-4 md:mb-8 flex justify-center">
-                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-md group-hover:shadow-2xl transition-all duration-300 group-hover:shadow-emerald-500/25`}>
-                  <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
+            <div key={index} className="group relative animate-fade-in-luxury" style={{ animationDelay: `${index * 0.1}s` }}>
+              {/* Luxury card background */}
+              <div className="absolute inset-0 glass-subtle rounded-3xl shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury"></div>
+              <div className="relative text-center p-8 md:p-10 transition-luxury group-hover:-translate-y-2">
+                <div className="relative mb-8 md:mb-12 flex justify-center">
+                  <div className={`w-16 h-16 md:w-24 md:h-24 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-luxury-lg group-hover:shadow-luxury-xl transition-luxury group-hover:shadow-emerald-500/25`}>
+                    <feature.icon className="w-8 h-8 md:w-12 md:h-12 text-white group-hover:scale-110 transition-all duration-300" strokeWidth={1.5} />
+                  </div>
+                  {/* Subtle background glow */}
+                  <div className={`absolute inset-0 w-16 h-16 md:w-24 md:h-24 bg-gradient-to-br ${feature.color} rounded-full opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500`}></div>
                 </div>
-              </div>
-              <h3 className={`text-lg md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight group-hover:text-emerald-100 transition-colors duration-300`}>
-                {feature.title}
-              </h3>
-              <p className="text-slate-300 text-sm md:text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-100 transition-colors duration-300 mb-3 md:mb-6">
-                {feature.description}
-              </p>
-              <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs md:text-base group-hover:text-emerald-300 transition-colors duration-300">
-                <Clock className="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2 group-hover:rotate-12 transition-transform duration-300" />
-                <span>{feature.stat}</span>
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6 leading-tight group-hover:text-emerald-100 transition-colors duration-300 text-balance">
+                  {feature.title}
+                </h3>
+                <p className="text-slate-300 text-lg md:text-xl leading-relaxed group-hover:text-slate-100 transition-colors duration-300 mb-6 md:mb-8 text-pretty">
+                  {feature.description}
+                </p>
+                <div className="flex items-center justify-center text-emerald-400 font-semibold text-base md:text-lg group-hover:text-emerald-300 transition-colors duration-300">
+                  <Clock className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3 group-hover:rotate-12 transition-transform duration-300" />
+                  <span>{feature.stat}</span>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Mobile: Perfect centered snap-scroll carousel */}
+        {/* Mobile: Enhanced carousel with luxury styling */}
         <div className="md:hidden">
           <div 
             ref={solutionCarouselRef}
@@ -131,23 +140,23 @@ const Solution = () => {
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            <div className="flex pb-4">
+            <div className="flex pb-6">
               {features.map((feature, index) => (
                 <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
-                  <div className="bg-slate-800/50 rounded-2xl p-4 text-center h-full">
-                    <div className="relative mb-4 flex justify-center">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
-                        <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+                  <div className="glass-subtle rounded-3xl p-6 text-center h-full shadow-luxury-sm">
+                    <div className="relative mb-6 flex justify-center">
+                      <div className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-luxury-md`}>
+                        <feature.icon className="w-6 h-6 text-white" strokeWidth={1.5} />
                       </div>
                     </div>
-                    <h3 className="text-sm font-bold text-white mb-2 leading-tight">
+                    <h3 className="text-lg font-bold text-white mb-4 leading-tight">
                       {feature.title}
                     </h3>
-                    <p className="text-slate-300 text-xs leading-relaxed mb-3">
+                    <p className="text-slate-300 text-sm leading-relaxed mb-4">
                       {feature.mobileDescription || feature.description}
                     </p>
-                    <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs">
-                      <Clock className="w-3 h-3 mr-1" />
+                    <div className="flex items-center justify-center text-emerald-400 font-semibold text-sm">
+                      <Clock className="w-4 h-4 mr-2" />
                       <span>{feature.stat}</span>
                     </div>
                   </div>
@@ -155,16 +164,16 @@ const Solution = () => {
               ))}
             </div>
           </div>
-          {/* Carousel indicators */}
-          <div className="flex justify-center space-x-2 mt-6">
+          {/* Enhanced carousel indicators */}
+          <div className="flex justify-center space-x-3 mt-8">
             {features.map((_, index) => (
               <button
                 key={index}
                 onClick={() => handleSolutionIndicatorClick(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                className={`h-3 rounded-full transition-luxury ${
                   index === activeSolutionIndex
-                    ? 'bg-emerald-400 w-6'
-                    : 'bg-slate-600 hover:bg-slate-500'
+                    ? 'bg-emerald-400 w-8 shadow-luxury-sm'
+                    : 'bg-slate-600 w-3 hover:bg-slate-500 hover:shadow-luxury-sm'
                 }`}
                 aria-label={`Go to solution ${index + 1}`}
               />

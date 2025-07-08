@@ -137,55 +137,65 @@ const Features = () => {
   };
 
   return (
-    <section className="py-12 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
-      {/* Background decoration - Optimized for mobile */}
+    <section className="space-luxury-lg bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+      {/* Enhanced background with luxury depth */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-500/8 rounded-full blur-3xl animate-breathe"></div>
+        <div className="absolute bottom-20 right-10 w-[32rem] h-[32rem] bg-emerald-500/6 rounded-full blur-3xl animate-breathe delay-luxury-2"></div>
       </div>
       
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
+      {/* Premium grid pattern */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.06)_1px,transparent_1px)] bg-[size:80px_80px] opacity-25"></div>
       
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header - Mobile optimized */}
-        <div className="text-center mb-8 md:mb-20">
-          <h2 className="text-xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+      <div className="container-luxury relative z-10">
+        {/* Luxury header section */}
+        <div className="text-center mb-20 md:mb-32">
+          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white mb-8 md:mb-12 text-balance">
             Everything You Need To{" "}
-            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent relative">
               Automate Bookings
+              <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/10 to-green-400/10 blur-2xl -z-10 animate-breathe"></div>
             </span>
           </h2>
-          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+          <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto font-light leading-relaxed text-pretty">
             <span className="md:hidden">Features that maximize bookings and revenue</span>
             <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
           </p>
         </div>
         
-        {/* Desktop: Features grid */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12 mb-12 md:mb-32">
+        {/* Desktop: Enhanced masonry-style grid */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-20 md:mb-32">
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="group text-center transition-all duration-300 cursor-pointer px-4 md:px-0 hover:bg-slate-800/20 rounded-2xl py-6 hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-slate-700/50"
+              className={`group relative animate-fade-in-luxury ${
+                index % 3 === 0 ? 'lg:col-span-2' : ''
+              }`}
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <div className="relative mb-4 md:mb-8 flex justify-center">
-                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:ring-2 group-hover:ring-slate-600/30`}>
-                  <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white group-hover:scale-105 transition-transform duration-300" strokeWidth={1.5} />
+              {/* Luxury card background with gradient border */}
+              <div className="absolute inset-0 glass-subtle rounded-3xl shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-transparent to-blue-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative text-center p-6 md:p-8 transition-luxury group-hover:-translate-y-1">
+                <div className="relative mb-6 md:mb-8 flex justify-center">
+                  <div className={`w-14 h-14 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury group-hover:ring-2 group-hover:ring-emerald-500/20`}>
+                    <feature.icon className="w-7 h-7 md:w-10 md:h-10 text-white group-hover:scale-105 transition-transform duration-300" strokeWidth={1.5} />
+                  </div>
                 </div>
+                <h3 className="text-lg md:text-xl xl:text-2xl font-bold text-white mb-3 md:mb-4 leading-tight group-hover:text-slate-100 transition-colors duration-300 text-balance">
+                  {feature.title}
+                </h3>
+                <p className="text-slate-300 text-sm md:text-base xl:text-lg leading-relaxed group-hover:text-slate-200 transition-colors duration-300 text-pretty">
+                  {feature.description}
+                </p>
               </div>
-              <h3 className={`text-base md:text-xl font-bold text-white mb-2 md:mb-4 leading-tight group-hover:text-slate-100 transition-colors duration-300`}>
-                {feature.title}
-              </h3>
-              <p className="text-slate-300 text-xs md:text-base leading-relaxed group-hover:text-slate-200 transition-colors duration-300">
-                {feature.description}
-              </p>
             </div>
           ))}
         </div>
 
-        {/* Mobile: Perfect snapping features carousel */}
-        <div className="md:hidden mb-8">
+        {/* Mobile: Enhanced carousel */}
+        <div className="md:hidden mb-12">
           <div 
             ref={featuresCarouselRef}
             className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
@@ -195,19 +205,19 @@ const Features = () => {
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            <div className="flex pb-4">
+            <div className="flex pb-6">
               {features.map((feature, index) => (
                 <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
-                  <div className="bg-slate-800/50 rounded-2xl p-5 text-center h-full">
+                  <div className="glass-subtle rounded-3xl p-6 text-center h-full shadow-luxury-sm">
                     <div className="relative mb-4 flex justify-center">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
-                        <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+                      <div className={`w-12 h-12 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-luxury-sm`}>
+                        <feature.icon className="w-6 h-6 text-white" strokeWidth={1.5} />
                       </div>
                     </div>
-                    <h3 className="text-sm font-bold text-white mb-3 leading-tight">
+                    <h3 className="text-base font-bold text-white mb-3 leading-tight">
                       {feature.title}
                     </h3>
-                    <p className="text-slate-300 text-xs leading-relaxed">
+                    <p className="text-slate-300 text-sm leading-relaxed">
                       {feature.mobileDescription || feature.description}
                     </p>
                   </div>
@@ -216,16 +226,16 @@ const Features = () => {
             </div>
           </div>
           
-          {/* Enhanced features carousel indicators - All 8 indicators */}
-          <div className="flex justify-center space-x-1 mt-4 mb-8">
+          {/* Enhanced carousel indicators */}
+          <div className="flex justify-center space-x-2 mt-6 mb-12">
             {features.map((_, index) => (
               <button
                 key={index}
                 onClick={() => handleFeatureIndicatorClick(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                className={`h-2 rounded-full transition-luxury ${
                   index === activeFeatureIndex
-                    ? 'bg-emerald-400 w-4'
-                    : 'bg-slate-600 hover:bg-slate-500'
+                    ? 'bg-emerald-400 w-6 shadow-luxury-sm'
+                    : 'bg-slate-600 w-2 hover:bg-slate-500'
                 }`}
                 aria-label={`Go to feature ${index + 1}`}
               />
@@ -233,39 +243,49 @@ const Features = () => {
           </div>
         </div>
         
-        {/* CTA Section - Mobile optimized */}
-        <div className="text-center relative overflow-hidden pt-8 md:pt-16 pb-8 md:pb-20">
+        {/* Enhanced CTA Section with luxury styling */}
+        <div className="text-center relative overflow-hidden">
           {/* Background decoration for CTA */}
-          <div className="absolute top-0 right-0 w-48 h-48 md:w-64 md:h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 md:w-48 md:h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 md:w-80 md:h-80 bg-emerald-500/8 rounded-full blur-3xl animate-breathe"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 md:w-64 md:h-64 bg-emerald-500/6 rounded-full blur-3xl animate-breathe delay-luxury-2"></div>
           
-          <div className="relative z-10 px-3 sm:px-0">
-            <h3 className="text-xl md:text-4xl font-bold mb-4 md:mb-8 text-white">
+          <div className="relative z-10">
+            <h3 className="text-3xl md:text-5xl xl:text-6xl font-black mb-6 md:mb-12 text-white text-balance">
               Don't Let Revenue Sleep While You Do
             </h3>
-            <p className="text-sm md:text-xl text-slate-300 mb-8 md:mb-16 max-w-2xl mx-auto">
+            <p className="text-lg md:text-2xl text-slate-300 mb-12 md:mb-20 max-w-4xl mx-auto font-light leading-relaxed text-pretty">
               <span className="md:hidden">AI books while you work. Start free trial today.</span>
               <span className="hidden md:inline">While you're busy with customers, your AI agent is busy booking new ones. 
               Start your free trial and see the difference automation makes.</span>
             </p>
             
-            {/* Desktop: Stats section */}
-            <div className="hidden md:flex md:flex-row flex-wrap justify-center gap-6 md:gap-16">
+            {/* Desktop: Enhanced stats section */}
+            <div className="hidden md:flex md:flex-row flex-wrap justify-center gap-12 md:gap-20">
               {stats.map((stat, index) => (
-                <div key={index} className="group text-center hover:transform hover:scale-105 transition-all duration-300">
-                  <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">{stat.value}</div>
-                  <div className="text-slate-400 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">{stat.label}</div>
+                <div key={index} className="group text-center hover-lift cursor-pointer">
+                  <div className="glass-subtle rounded-2xl p-6 md:p-8 shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury">
+                    <div className="text-4xl md:text-6xl xl:text-7xl font-black mb-2 md:mb-4 bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
+                      {stat.value}
+                    </div>
+                    <div className="text-slate-400 text-sm md:text-base xl:text-lg uppercase tracking-wider group-hover:text-slate-300 transition-colors font-medium">
+                      {stat.label}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Mobile: Stats grid (replaced carousel) */}
+            {/* Mobile: Enhanced stats grid */}
             <div className="md:hidden">
               <div className="grid grid-cols-3 gap-4">
                 {stats.map((stat, index) => (
-                  <div key={index} className="text-center bg-slate-800/30 rounded-xl p-4">
-                    <div className="text-xl font-bold mb-1 text-emerald-400">{stat.value}</div>
-                    <div className="text-slate-400 text-xs uppercase tracking-wider">{stat.label}</div>
+                  <div key={index} className="text-center glass-subtle rounded-2xl p-4 shadow-luxury-sm">
+                    <div className="text-2xl font-black mb-1 bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+                      {stat.value}
+                    </div>
+                    <div className="text-slate-400 text-xs uppercase tracking-wider font-medium">
+                      {stat.label}
+                    </div>
                   </div>
                 ))}
               </div>
