@@ -107,27 +107,27 @@ const ProcessSection = () => {
               </div>
             </div>
 
-            {/* Step 3: AI Agent Test with premium styling */}
+            {/* Step 3: AI Agent Test with premium styling - REDUCED SPACING */}
             <div className="relative animate-fade-in-luxury delay-luxury-5">
               {/* Floating process number */}
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20">
+              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-20">
                 <div className="relative">
-                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center shadow-luxury-lg">
-                    <span className="text-white text-xl md:text-2xl font-black">3</span>
+                  <div className="w-14 h-14 md:w-18 md:h-18 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center shadow-luxury-lg">
+                    <span className="text-white text-lg md:text-xl font-black">3</span>
                   </div>
-                  <div className="absolute inset-0 w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full opacity-30 blur-xl animate-breathe delay-luxury-2"></div>
+                  <div className="absolute inset-0 w-14 h-14 md:w-18 md:h-18 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full opacity-30 blur-xl animate-breathe delay-luxury-2"></div>
                 </div>
               </div>
               
-              <div className="text-center mb-12 md:mb-16 pt-16">
-                <h3 className="text-2xl md:text-4xl font-bold text-white mb-6 md:mb-8">Test The AI Agent Yourself</h3>
-                <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-4xl mx-auto">
+              <div className="text-center breathe-md pt-12">
+                <h3 className="text-xl md:text-3xl font-bold text-white breathe-sm">Test The AI Agent Yourself</h3>
+                <p className="text-base md:text-lg text-slate-300 leading-relaxed reading-width mx-auto">
                   Try it yourself! Chat with our AI agent and experience how fast and natural 
                   the booking process is. No registration required.
                 </p>
               </div>
               
-              <div className="glass-subtle rounded-3xl p-6 md:p-10 shadow-luxury-xl">
+              <div className="glass-subtle rounded-3xl p-4 md:p-8 shadow-luxury-xl">
                 <AIAgentTestChat />
               </div>
             </div>

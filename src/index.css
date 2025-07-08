@@ -100,30 +100,55 @@
   }
 }
 
-/* Luxury Base Styling */
+/* Luxury Base Styling with Preload Optimization */
 @layer base {
   * {
     @apply border-border;
   }
+  
+  /* Prevent white flash on load */
+  html {
+    background-color: #1F2937; /* Dark background immediately */
+    scroll-behavior: smooth;
+    scroll-padding-top: 4rem;
+  }
+  
   body {
     @apply bg-background text-foreground;
+    background-color: #1F2937; /* Consistent dark background */
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     font-variant-numeric: tabular-nums;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Smooth loading transition */
+    opacity: 0;
+    animation: bodyFadeIn 0.5s ease-out forwards;
   }
   
-  /* Improved scroll behavior */
-  html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 4rem;
+  @keyframes bodyFadeIn {
+    to {
+      opacity: 1;
+    }
   }
   
-  /* High-quality text rendering */
+  /* High-quality text rendering with desktop-optimized sizing */
   h1, h2, h3, h4, h5, h6 {
     text-rendering: optimizeLegibility;
     font-feature-settings: 'kern', 'liga', 'clig', 'calt';
+  }
+  
+  /* Desktop Typography Scale Reduction (5-10% smaller) */
+  @media (min-width: 1024px) {
+    h1 { font-size: 0.92em; }
+    h2 { font-size: 0.94em; }
+    h3 { font-size: 0.95em; }
+    h4 { font-size: 0.96em; }
+    h5 { font-size: 0.97em; }
+    h6 { font-size: 0.98em; }
+    p { font-size: 0.95em; }
+    span { font-size: 0.95em; }
+    button { font-size: 0.94em; }
   }
 }
 
@@ -537,6 +562,23 @@
   .scroll-animate.visible {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+  
+  /* Pricing section specific fade-in */
+  .scroll-animate:not(.visible) {
+    opacity: 0;
+    animation: pricingFadeIn 1s ease-out 0.3s forwards;
+  }
+  
+  @keyframes pricingFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   
   .scroll-animate-stagger {

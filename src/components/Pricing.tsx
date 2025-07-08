@@ -1,10 +1,22 @@
 
 import { Check, Star, ArrowRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const Pricing = () => {
   const [isAnnual, setIsAnnual] = useState(false);
+  
+  // Pricing section auto fade-in on load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const pricingSection = document.querySelector('.scroll-animate');
+      if (pricingSection) {
+        pricingSection.classList.add('visible');
+      }
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const plans = [
     {
@@ -14,7 +26,7 @@ export const Pricing = () => {
       description: "Perfect for small businesses getting started",
       features: [
         "Up to 100 WhatsApp conversations/month",
-        "Basic AI booking assistant",
+        "Basic AI booking assistant", 
         "Calendar integration",
         "Email notifications",
         "Standard support"
@@ -24,14 +36,14 @@ export const Pricing = () => {
       color: "from-slate-600 to-slate-700"
     },
     {
-      name: "Professional",
+      name: "Professional", 
       monthlyPrice: 48,
       annualPrice: 38,
       description: "Best for growing businesses with high volume",
       features: [
         "Unlimited WhatsApp conversations",
         "Advanced AI booking assistant",
-        "Full calendar integration",
+        "Full calendar integration", 
         "Advanced dashboard & analytics",
         "Automatic reminders & confirmations",
         "Multi-language support",
@@ -40,7 +52,7 @@ export const Pricing = () => {
       ],
       popular: true,
       cta: "Start Free Trial",
-      color: "from-emerald-500 to-green-500"
+      color: "from-emerald-500 to-green-500" 
     },
     {
       name: "Enterprise",
@@ -65,7 +77,7 @@ export const Pricing = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+    <section className="space-golden-md bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden scroll-animate opacity-0">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -75,28 +87,30 @@ export const Pricing = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
       
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header */}
-        <div className="text-center mb-8 md:mb-16">
-          <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
-            <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
-            <span className="text-emerald-400 font-semibold text-sm md:text-base">Simple Pricing</span>
+      <div className="container-luxury relative z-10">
+        {/* Header - REDUCED TYPOGRAPHY */}
+        <div className="text-center space-golden-md">
+          <div className="flex justify-center breathe-sm">
+            <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1.5 md:px-5 md:py-2.5">
+              <Star className="w-3 h-3 md:w-4 md:h-4 text-emerald-400 mr-2" />
+              <span className="text-emerald-400 font-semibold text-xs md:text-sm">Simple Pricing</span>
+            </div>
           </div>
-          <h2 className="text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+          <h2 className="text-2xl md:text-4xl xl:text-5xl font-bold text-white breathe-sm reading-width-wide mx-auto">
             Choose Your <span className="text-emerald-400">Perfect Plan</span>
           </h2>
-          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+          <p className="text-sm md:text-lg text-slate-300 reading-width mx-auto">
             Start with our free trial and scale as you grow. No setup fees, no contracts.
           </p>
         </div>
 
-        {/* Pricing toggle */}
-        <div className="flex items-center justify-center mb-8 md:mb-12">
+        {/* Pricing toggle - REDUCED SIZE */}
+        <div className="flex items-center justify-center breathe-md">
           <div className="bg-slate-800/50 rounded-full p-1 border border-slate-700/50">
             <div className="flex">
               <button
                 onClick={() => setIsAnnual(false)}
-                className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 ${
+                className={`px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
                   !isAnnual
                     ? 'bg-emerald-500 text-white shadow-lg'
                     : 'text-slate-300 hover:text-white'
@@ -104,25 +118,25 @@ export const Pricing = () => {
               >
                 Monthly
               </button>
-                  <button
-                    onClick={() => setIsAnnual(true)}
-                    className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
-                      isAnnual
-                        ? 'bg-emerald-500 text-white shadow-lg'
-                        : 'text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    Annual
-                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                      Save 20%
-                    </span>
-                  </button>
+                <button
+                  onClick={() => setIsAnnual(true)}
+                  className={`px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-medium transition-all duration-300 relative ${
+                    isAnnual
+                      ? 'bg-emerald-500 text-white shadow-lg'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  Annual
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                    Save 20%
+                  </span>
+                </button>
             </div>
           </div>
         </div>
 
-        {/* Desktop: Grid layout */}
-        <div className="hidden md:grid md:grid-cols-3 gap-8">
+        {/* Desktop: Grid layout - REDUCED TYPOGRAPHY */}
+        <div className="hidden md:grid md:grid-cols-3 gap-golden-lg">
           {plans.map((plan, index) => (
             <div
               key={plan.name}
@@ -140,45 +154,45 @@ export const Pricing = () => {
                 </div>
               )}
 
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                <p className="text-slate-400 mb-6">{plan.description}</p>
+              <div className="text-center breathe-md">
+                <h3 className="text-lg md:text-xl font-bold text-white mb-2">{plan.name}</h3>
+                <p className="text-slate-400 text-sm mb-4">{plan.description}</p>
                 
                 {plan.monthlyPrice ? (
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <div className="flex items-center justify-center">
-                      <span className="text-4xl font-bold text-emerald-400">
+                      <span className="text-2xl md:text-3xl font-bold text-emerald-400">
                         €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                       </span>
-                      <span className="text-slate-400 text-xl ml-2">/month</span>
+                      <span className="text-slate-400 text-base md:text-lg ml-2">/month</span>
                     </div>
                     {isAnnual && (
-                      <div className="text-sm text-emerald-400 mt-2">
+                      <div className="text-xs text-emerald-400 mt-2">
                         Billed annually (€{plan.annualPrice * 12}/year)
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="mb-6">
-                    <div className="text-4xl font-bold text-white mb-2">Custom</div>
-                    <div className="text-slate-400">Contact us for pricing</div>
+                  <div className="mb-4">
+                    <div className="text-2xl md:text-3xl font-bold text-white mb-2">Custom</div>
+                    <div className="text-slate-400 text-sm">Contact us for pricing</div>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-4 mb-8">
+              <div className="space-y-3 mb-6">
                 {plan.features.map((feature, idx) => (
                   <div key={idx} className="flex items-start space-x-3">
-                    <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-white" />
+                    <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-2.5 h-2.5 text-white" />
                     </div>
-                    <span className="text-slate-300 text-sm">{feature}</span>
+                    <span className="text-slate-300 text-xs md:text-sm">{feature}</span>
                   </div>
                 ))}
               </div>
 
               <Button 
-                className={`w-full font-semibold py-3 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
+                className={`w-full font-semibold py-2.5 px-5 rounded-xl text-sm shadow-lg hover:shadow-xl transition-all duration-300 group ${
                   plan.isEnterprise
                     ? 'bg-white text-black hover:bg-gray-100'
                     : plan.popular
@@ -187,7 +201,7 @@ export const Pricing = () => {
                 }`}
               >
                 {plan.cta}
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 w-3 h-3 md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
           ))}
@@ -269,9 +283,9 @@ export const Pricing = () => {
           </div>
         </div>
 
-        {/* Additional info */}
-        <div className="text-center mt-8">
-          <p className="text-slate-500 text-sm">
+        {/* Additional info - REDUCED SIZE */}
+        <div className="text-center breathe-md">
+          <p className="text-slate-500 text-xs md:text-sm">
             30 days free trial • No credit card required • Cancel anytime
           </p>
         </div>
