@@ -69,7 +69,7 @@ const Solution = () => {
 
   return (
     <EnhancedScrollSection 
-      className="space-golden-md bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden"
+      className="space-luxury-lg bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden"
       enableCursorGradient={true}
       animationType="stagger"
       delay={100}
@@ -86,20 +86,21 @@ const Solution = () => {
       
       <div className="container-luxury relative z-10">
         {/* Luxury header section */}
-        <div className="text-center space-golden-sm">
-          <div className="inline-flex items-center gap-3 glass-effect rounded-full px-6 py-3 md:px-8 md:py-4 breathe-sm shadow-luxury-sm">
+        <div className="text-center space-golden-lg">
+          <div className="inline-flex items-center gap-3 glass-effect rounded-full px-6 py-3 md:px-8 md:py-4 breathe-md shadow-luxury-sm">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span className="text-emerald-300 text-sm md:text-base font-medium tracking-wide">The Solution</span>
           </div>
           
-          <h2 className="text-3xl md:text-5xl xl:text-6xl font-black text-white breathe-sm leading-tight text-balance reading-width-wide">
+          <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white breathe-md leading-tight text-balance reading-width-wide">
             Meet Your <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">24/7</span>
             <br />
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent relative">
               Booking Assistant
+              <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/15 to-green-400/15 blur-2xl -z-10 animate-breathe"></div>
             </span>
           </h2>
-          <p className="text-lg md:text-xl text-slate-300 reading-width leading-relaxed font-light text-pretty">
+          <p className="text-xl md:text-2xl text-slate-300 reading-width leading-relaxed font-light text-pretty">
             <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
             <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
             faster than any human could.</span>
@@ -112,23 +113,25 @@ const Solution = () => {
             <div key={index} className="group relative animate-fade-in-luxury" style={{ animationDelay: `${index * 0.15}s` }}>
               {/* Luxury card background */}
               <div className="absolute inset-0 glass-subtle rounded-3xl shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury"></div>
-              <div className="relative text-center p-6 md:p-8 transition-luxury group-hover:-translate-y-2 h-full flex flex-col">
-                <div className="relative mb-6 md:mb-8 flex justify-center flex-shrink-0">
-                  <div className={`w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-luxury-lg group-hover:shadow-luxury-xl transition-luxury group-hover:shadow-emerald-500/25`}>
-                    <feature.icon className="w-8 h-8 md:w-10 md:h-10 text-white group-hover:scale-110 transition-all duration-300" strokeWidth={1.5} />
+              <div className="relative text-center p-8 md:p-10 transition-luxury group-hover:-translate-y-2 h-full flex flex-col">
+                <div className="relative mb-8 md:mb-10 flex justify-center flex-shrink-0">
+                  <div className={`w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-luxury-lg group-hover:shadow-luxury-xl transition-luxury group-hover:shadow-emerald-500/25`}>
+                    <feature.icon className="w-10 h-10 md:w-12 md:h-12 text-white group-hover:scale-110 transition-all duration-300" strokeWidth={1.5} />
                   </div>
+                  {/* Subtle background glow */}
+                  <div className={`absolute inset-0 w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br ${feature.color} rounded-full opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500`}></div>
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4 leading-tight group-hover:text-emerald-100 transition-colors duration-300 text-balance">
+                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6 leading-tight group-hover:text-emerald-100 transition-colors duration-300 text-balance">
                       {feature.title}
                     </h3>
-                    <p className="text-slate-300 text-base md:text-lg leading-relaxed group-hover:text-slate-100 transition-colors duration-300 mb-4 md:mb-6 text-pretty">
+                    <p className="text-slate-300 text-lg md:text-xl leading-relaxed group-hover:text-slate-100 transition-colors duration-300 mb-6 md:mb-8 text-pretty">
                       {feature.description}
                     </p>
                   </div>
-                  <div className="flex items-center justify-center text-emerald-400 font-semibold text-sm md:text-base group-hover:text-emerald-300 transition-colors duration-300">
-                    <Clock className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform duration-300" />
+                  <div className="flex items-center justify-center text-emerald-400 font-semibold text-base md:text-lg group-hover:text-emerald-300 transition-colors duration-300">
+                    <Clock className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3 group-hover:rotate-12 transition-transform duration-300" />
                     <span>{feature.stat}</span>
                   </div>
                 </div>

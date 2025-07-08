@@ -34,28 +34,27 @@ const Hero = () => {
       {/* Refined grid pattern with depth */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.15)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.2)_1px,transparent_1px)] bg-[size:40px_40px] md:bg-[size:80px_80px] opacity-40"></div>
       
-      <div className="container-premium relative z-10 text-center">
-        {/* Premium floating badge with glassmorphism - CENTERED */}
-        <div className="flex justify-center mb-6 md:mb-8">
-          <div className="inline-flex items-center gap-2 md:gap-3 glass-effect rounded-full px-4 py-2 md:px-6 md:py-3 shadow-luxury-sm hover:shadow-luxury-md transition-luxury">
-            <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full"></div>
-            <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
-            <span className="text-emerald-300 text-xs md:text-sm font-medium tracking-wide">AI-Powered Booking Revolution</span>
-          </div>
+      <div className="container-luxury relative z-10">
+        {/* Premium floating badge with glassmorphism */}
+        <div className="inline-flex items-center gap-3 glass-effect rounded-full px-6 py-3 md:px-8 md:py-4 mb-8 md:mb-12 animate-fade-in-luxury shadow-luxury-sm hover:shadow-luxury-md transition-luxury">
+          <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+          <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
+          <span className="text-emerald-300 text-sm md:text-base font-medium tracking-wide">AI-Powered Booking Revolution</span>
         </div>
 
         {/* Premium headline with enhanced typography */}
-        <div className="breathe-sm">
-          <h1 className="text-display-lg text-4xl md:text-6xl xl:text-7xl text-white leading-[0.9] tracking-tight text-balance reading-width-wide mx-auto">
-            <span className="bg-gradient-to-r from-emerald-300 via-green-400 to-teal-400 bg-clip-text text-transparent relative inline-block hover-scale-luxury">
+        <div className="space-golden-md">
+          <h1 className="text-4xl md:text-6xl xl:text-7xl 2xl:text-8xl font-black text-white leading-[0.9] tracking-tight animate-fade-in-luxury delay-luxury-1 text-balance reading-width-wide">
+            <span className="bg-gradient-to-r from-emerald-300 via-green-400 to-teal-400 bg-clip-text text-transparent relative inline-block">
               Bookings
+              <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/20 via-green-400/15 to-teal-400/20 blur-2xl -z-10 animate-breathe"></div>
             </span>
             {" "}on Auto Pilot
             <br />
-            <span className="text-body text-slate-100 font-light">via WhatsApp</span>
+            <span className="text-slate-100 font-light">via WhatsApp</span>
           </h1>
 
-          <p className="text-body text-base md:text-lg lg:text-xl text-slate-300 reading-width leading-relaxed breathe-sm font-light text-pretty mx-auto">
+          <p className="text-lg md:text-xl lg:text-2xl text-slate-300 reading-width leading-relaxed animate-fade-in-luxury delay-luxury-2 breathe-md font-light text-pretty">
             <span className="md:hidden">AI books appointments 24/7 via WhatsApp. Zero missed opportunities.</span>
             <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-medium">24/7 automation</span>,{" "}
@@ -63,24 +62,24 @@ const Hero = () => {
             <span className="text-emerald-400 font-medium">zero missed opportunities</span>.</span>
           </p>
 
-          {/* Enhanced CTA Section with glassmorphism - CENTERED */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 breathe-md">
+          {/* Enhanced CTA Section with glassmorphism */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-golden breathe-lg animate-fade-in-luxury delay-luxury-3">
             <Button 
               ref={ctaRef}
-              className={`w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold rounded-2xl shadow-emerald-lg hover:shadow-emerald-xl border-0 transition-luxury hover-lift-context group min-h-[48px] md:min-h-[56px] ${magneticClassName}`}
+              className={`w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 md:px-10 py-4 md:py-6 text-lg md:text-xl font-semibold rounded-2xl shadow-luxury-lg shadow-emerald-500/25 border-0 transition-luxury hover-lift-context group min-h-[56px] md:min-h-[64px] ${magneticClassName}`}
             >
-              <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 icon-hover-intelligent transition-luxury" />
+              <MessageCircle className="w-5 h-5 md:w-6 md:h-6 mr-3 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" />
               Start Free 7-Day Trial
             </Button>
             
-            <button className="w-full sm:w-auto glass-premium text-slate-300 hover:text-white text-base md:text-lg font-medium flex items-center justify-center gap-2 md:gap-3 group transition-luxury hover-lift min-h-[48px] md:min-h-[56px] px-5 md:px-6 rounded-2xl">
-              <Zap className="w-4 h-4 md:w-5 md:h-5 icon-hover-intelligent transition-luxury" />
+            <button className="w-full sm:w-auto glass-subtle text-slate-300 hover:text-white text-lg md:text-xl font-medium flex items-center justify-center gap-3 group transition-luxury min-h-[56px] md:min-h-[64px] px-6 rounded-2xl hover:shadow-luxury-sm">
+              <Zap className="w-5 h-5 md:w-6 md:h-6 group-hover:text-emerald-400 group-hover:scale-110 transition-all duration-300" />
               See how it works
             </button>
           </div>
 
-          {/* Enhanced social proof with luxury styling - REDUCED SPACING */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-8 breathe-sm">
+          {/* Enhanced social proof with luxury styling */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-golden breathe-lg animate-fade-in-luxury delay-luxury-4">
             <div className="flex items-center gap-4">
               <div className="flex -space-x-3">
                 <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full border-2 border-slate-700 flex items-center justify-center shadow-luxury-sm">

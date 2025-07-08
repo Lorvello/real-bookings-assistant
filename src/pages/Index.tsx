@@ -78,7 +78,7 @@ const Index = () => {
         delay={200}
         enableCursorGradient={true}
       >
-        <section className="space-golden-sm bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+        <section className="space-luxury-lg bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
           {/* Enhanced background with depth layers */}
           <div className="absolute inset-0">
             <div className="absolute top-20 left-10 w-96 h-96 bg-red-500/8 rounded-full blur-3xl animate-breathe"></div>
@@ -89,24 +89,24 @@ const Index = () => {
           {/* Luxury grid pattern */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.08)_1px,transparent_1px)] bg-[size:80px_80px] opacity-30"></div>
           
-          <div className="container-premium relative z-10">
-            <div className="text-center breathe-sm">
-              <h2 className="text-display text-2xl md:text-4xl xl:text-5xl text-white breathe-sm text-balance reading-width-wide mx-auto">
-                Do you recognize this <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-500 bg-clip-text text-transparent hover-scale-luxury">problem</span>?
+          <div className="container-luxury relative z-10">
+            <div className="text-center mb-16 md:mb-24">
+              <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white mb-6 md:mb-8 text-balance">
+                Do you recognize this <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-500 bg-clip-text text-transparent">problem</span>?
               </h2>
-              <p className="text-body text-base md:text-lg text-slate-300 reading-width mx-auto font-light leading-relaxed text-pretty">
+              <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto font-light leading-relaxed text-pretty">
                 These daily frustrations cost you time, money and customers. It's time for a solution.
               </p>
             </div>
             
             {/* Desktop: Enhanced grid layout with staggered animations */}
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-golden-lg">
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
               {painPoints.map((painPoint, index) => (
                 <EnhancedScrollSection key={index} delay={index * 200} animationType="stagger">
                   <div className="group relative">
                     {/* Luxury card background with glassmorphism */}
                     <div className="absolute inset-0 glass-subtle rounded-3xl shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury"></div>
-                    <div className="relative p-4 md:p-6">
+                    <div className="relative p-8 md:p-10">
                       <PainPoint
                         icon={painPoint.icon}
                         title={painPoint.title}

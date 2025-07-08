@@ -18,11 +18,7 @@ export default {
 			}
 		},
 		extend: {
-      fontFamily: {
-        'sans': ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
-        'display': ['Playfair Display', 'Georgia', 'serif'],
-        'body': ['Inter', 'system-ui', 'sans-serif'],
-      },
+			fontFamily: {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
 				mono: ['JetBrains Mono', 'Monaco', 'Cascadia Code', 'SF Mono', 'Consolas', 'monospace'],
 			},
