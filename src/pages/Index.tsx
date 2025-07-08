@@ -90,7 +90,7 @@ const Index = () => {
           <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.08)_1px,transparent_1px)] bg-[size:80px_80px] opacity-30"></div>
           
           <div className="container-luxury relative z-10">
-            <div className="text-center mb-golden-lg text-spacing-golden">
+            <div className="text-center breathe-sm">
               <h2 className="text-2xl md:text-4xl xl:text-5xl font-black text-white breathe-sm text-balance reading-width-wide mx-auto">
                 Do you recognize this <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-500 bg-clip-text text-transparent">problem</span>?
               </h2>
