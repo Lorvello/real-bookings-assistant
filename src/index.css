@@ -35,6 +35,61 @@
     --border-soft: 1px solid rgba(255, 255, 255, 0.15);
     --border-glow: 1px solid rgba(16, 185, 129, 0.3);
     --border-gradient: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(52, 211, 153, 0.1));
+
+    /* Premium Typography System */
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'DM Sans', Inter, system-ui, sans-serif;
+    --font-ui: 'Inter', system-ui, sans-serif;
+    
+    /* Fluid Typography Scale */
+    --text-xs: clamp(0.75rem, 0.95vw, 0.875rem);
+    --text-sm: clamp(0.875rem, 1.1vw, 1rem);
+    --text-base: clamp(1rem, 1.25vw, 1.125rem);
+    --text-lg: clamp(1.125rem, 1.4vw, 1.25rem);
+    --text-xl: clamp(1.25rem, 1.6vw, 1.5rem);
+    --text-2xl: clamp(1.5rem, 2vw, 1.875rem);
+    --text-3xl: clamp(1.875rem, 2.5vw, 2.25rem);
+    --text-4xl: clamp(2.25rem, 3vw, 3rem);
+    --text-5xl: clamp(3rem, 4vw, 3.75rem);
+    --text-6xl: clamp(3.75rem, 5vw, 4.5rem);
+    --text-7xl: clamp(4.5rem, 6vw, 6rem);
+    
+    /* Sophisticated Spacing System */
+    --space-0: 0;
+    --space-px: 1px;
+    --space-0_5: 0.125rem;
+    --space-1: 0.25rem;
+    --space-1_5: 0.375rem;
+    --space-2: 0.5rem;
+    --space-2_5: 0.625rem;
+    --space-3: 0.75rem;
+    --space-3_5: 0.875rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-7: 1.75rem;
+    --space-8: 2rem;
+    --space-9: 2.25rem;
+    --space-10: 2.5rem;
+    --space-11: 2.75rem;
+    --space-12: 3rem;
+    --space-14: 3.5rem;
+    --space-16: 4rem;
+    --space-20: 5rem;
+    --space-24: 6rem;
+    --space-28: 7rem;
+    --space-32: 8rem;
+    --space-36: 9rem;
+    --space-40: 10rem;
+    --space-44: 11rem;
+    --space-48: 12rem;
+    --space-52: 13rem;
+    --space-56: 14rem;
+    --space-60: 15rem;
+    --space-64: 16rem;
+    --space-72: 18rem;
+    --space-80: 20rem;
+    --space-96: 24rem;
   }
 }
 
@@ -119,20 +174,19 @@
   
   /* Prevent white flash on load */
   html {
-    background-color: #1F2937; /* Dark background immediately */
+    background-color: #1F2937;
     scroll-behavior: smooth;
     scroll-padding-top: 4rem;
   }
   
   body {
     @apply bg-background text-foreground;
-    background-color: #1F2937; /* Consistent dark background */
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    background-color: #1F2937;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     font-variant-numeric: tabular-nums;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Smooth loading transition */
     opacity: 0;
     animation: bodyFadeIn 0.5s ease-out forwards;
   }
@@ -229,42 +283,10 @@
     transform: rotate(45deg);
     z-index: -1;
   }
-}
 
-/* Custom animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  33% {
-    transform: translateY(-20px) rotate(1deg);
-  }
-  66% {
-    transform: translateY(10px) rotate(-1deg);
-  }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-/* Compact Modern WhatsApp Chat Specific Styles */
-@layer components {
   .whatsapp-chat-bg {
     background-color: #f0f2f5;
-    background-image: 
-      radial-gradient(circle at 1px 1px, rgba(0,0,0,0.03) 1px, transparent 0);
+    background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.03) 1px, transparent 0);
     background-size: 16px 16px;
   }
 
@@ -329,12 +351,10 @@
     filter: drop-shadow(-1px 1px 1px rgba(0, 0, 0, 0.05));
   }
 
-  /* Custom WhatsApp green color */
   .bg-whatsapp {
     background-color: #25D366;
   }
 
-  /* Perfect carousel snapping */
   .perfect-snap-carousel {
     scroll-snap-type: x mandatory;
     scroll-snap-stop: always;
@@ -347,8 +367,97 @@
   }
 }
 
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-20px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(10px) rotate(-1deg);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
 /* Premium Shadow & Visual Depth System */
 @layer utilities {
+  /* Premium Container System */
+  .container-premium {
+    width: 100%;
+    max-width: 1440px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: clamp(1rem, 5vw, 3rem);
+    padding-right: clamp(1rem, 5vw, 3rem);
+  }
+  
+  .container-premium-wide {
+    width: 100%;
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: clamp(1.5rem, 6vw, 4rem);
+    padding-right: clamp(1.5rem, 6vw, 4rem);
+  }
+  
+  .container-premium-narrow {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: clamp(2rem, 8vw, 5rem);
+    padding-right: clamp(2rem, 8vw, 5rem);
+  }
+  
+  /* Typography Utilities */
+  .text-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  
+  .text-display-lg {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.025em;
+  }
+  
+  .text-body {
+    font-family: var(--font-body);
+    line-height: 1.6;
+  }
+  
+  .text-ui {
+    font-family: var(--font-ui);
+    line-height: 1.5;
+  }
+  
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
   /* Sophisticated Shadow Utilities */
   .shadow-luxury-xs { box-shadow: var(--shadow-xs); }
   .shadow-luxury-sm { box-shadow: var(--shadow-sm); }
@@ -417,130 +526,7 @@
   .transition-luxury-slow {
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
-}
 
-/* Premium Typography & Spacing System */
-@layer base {
-  :root {
-    /* Premium Typography System */
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-body: 'DM Sans', Inter, system-ui, sans-serif;
-    --font-ui: 'Inter', system-ui, sans-serif;
-    
-    /* Fluid Typography Scale */
-    --text-xs: clamp(0.75rem, 0.95vw, 0.875rem);
-    --text-sm: clamp(0.875rem, 1.1vw, 1rem);
-    --text-base: clamp(1rem, 1.25vw, 1.125rem);
-    --text-lg: clamp(1.125rem, 1.4vw, 1.25rem);
-    --text-xl: clamp(1.25rem, 1.6vw, 1.5rem);
-    --text-2xl: clamp(1.5rem, 2vw, 1.875rem);
-    --text-3xl: clamp(1.875rem, 2.5vw, 2.25rem);
-    --text-4xl: clamp(2.25rem, 3vw, 3rem);
-    --text-5xl: clamp(3rem, 4vw, 3.75rem);
-    --text-6xl: clamp(3.75rem, 5vw, 4.5rem);
-    --text-7xl: clamp(4.5rem, 6vw, 6rem);
-    
-    /* Sophisticated Spacing System */
-    --space-0: 0;
-    --space-px: 1px;
-    --space-0_5: 0.125rem;
-    --space-1: 0.25rem;
-    --space-1_5: 0.375rem;
-    --space-2: 0.5rem;
-    --space-2_5: 0.625rem;
-    --space-3: 0.75rem;
-    --space-3_5: 0.875rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    --space-7: 1.75rem;
-    --space-8: 2rem;
-    --space-9: 2.25rem;
-    --space-10: 2.5rem;
-    --space-11: 2.75rem;
-    --space-12: 3rem;
-    --space-14: 3.5rem;
-    --space-16: 4rem;
-    --space-20: 5rem;
-    --space-24: 6rem;
-    --space-28: 7rem;
-    --space-32: 8rem;
-    --space-36: 9rem;
-    --space-40: 10rem;
-    --space-44: 11rem;
-    --space-48: 12rem;
-    --space-52: 13rem;
-    --space-56: 14rem;
-    --space-60: 15rem;
-    --space-64: 16rem;
-    --space-72: 18rem;
-    --space-80: 20rem;
-    --space-96: 24rem;
-  }
-}
-
-@layer utilities {
-  /* Premium Container System */
-  .container-premium {
-    width: 100%;
-    max-width: 1440px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: clamp(1rem, 5vw, 3rem);
-    padding-right: clamp(1rem, 5vw, 3rem);
-  }
-  
-  .container-premium-wide {
-    width: 100%;
-    max-width: 1600px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: clamp(1.5rem, 6vw, 4rem);
-    padding-right: clamp(1.5rem, 6vw, 4rem);
-  }
-  
-  .container-premium-narrow {
-    width: 100%;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: clamp(2rem, 8vw, 5rem);
-    padding-right: clamp(2rem, 8vw, 5rem);
-  }
-  
-  /* Typography Utilities */
-  .text-display {
-    font-family: var(--font-display);
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-  }
-  
-  .text-display-lg {
-    font-family: var(--font-display);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.025em;
-  }
-  
-  .text-body {
-    font-family: var(--font-body);
-    line-height: 1.6;
-  }
-  
-  .text-ui {
-    font-family: var(--font-ui);
-    line-height: 1.5;
-  }
-  
-  /* Typography utilities */
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  .text-pretty {
-    text-wrap: pretty;
-  }
   /* GPU-accelerated base for 60fps performance */
   .gpu-accelerated {
     transform: translateZ(0);
