@@ -66,7 +66,7 @@ const Solution = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+    <section className="py-8 md:py-12 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"></div>
@@ -76,21 +76,21 @@ const Solution = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
       
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Header - Compact mobile */}
-        <div className="text-center mb-8 md:mb-20">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-6 md:py-3 mb-3 md:mb-8 backdrop-blur-sm">
+        <div className="text-center mb-4 md:mb-8">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-4 md:py-2 mb-3 md:mb-4 backdrop-blur-sm">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span className="text-emerald-300 text-xs md:text-sm font-medium">The Solution</span>
           </div>
           
-          <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
+          <h2 className="text-lg md:text-2xl xl:text-3xl font-bold text-white mb-2 md:mb-3 leading-tight px-2 md:px-0">
             Meet Your <span className="text-emerald-400">24/7</span><br />
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
               Booking Assistant
             </span>
           </h2>
-          <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
+          <p className="text-xs md:text-sm text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
             <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
             <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
             faster than any human could.</span>
@@ -98,22 +98,22 @@ const Solution = () => {
         </div>
         
         {/* Desktop: Grid layout */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-16">
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
           {features.map((feature, index) => (
             <div key={index} className="group text-center transition-all duration-300 cursor-pointer px-4 md:px-0 hover:bg-gradient-to-b hover:from-slate-800/30 hover:to-slate-800/10 rounded-2xl py-6 hover:shadow-xl hover:-translate-y-2">
-              <div className="relative mb-4 md:mb-8 flex justify-center">
-                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-md group-hover:shadow-2xl transition-all duration-300 group-hover:shadow-emerald-500/25`}>
-                  <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
+              <div className="relative mb-3 md:mb-4 flex justify-center">
+                <div className={`w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-md group-hover:shadow-2xl transition-all duration-300 group-hover:shadow-emerald-500/25`}>
+                  <feature.icon className="w-5 h-5 md:w-6 md:h-6 text-white group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
                 </div>
               </div>
-              <h3 className={`text-lg md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight group-hover:text-emerald-100 transition-colors duration-300`}>
+              <h3 className={`text-base md:text-xl font-bold text-white mb-2 md:mb-3 leading-tight group-hover:text-emerald-100 transition-colors duration-300`}>
                 {feature.title}
               </h3>
-              <p className="text-slate-300 text-sm md:text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-100 transition-colors duration-300 mb-3 md:mb-6">
+              <p className="text-slate-300 text-xs md:text-sm leading-relaxed max-w-sm mx-auto group-hover:text-slate-100 transition-colors duration-300 mb-2 md:mb-3">
                 {feature.description}
               </p>
-              <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs md:text-base group-hover:text-emerald-300 transition-colors duration-300">
-                <Clock className="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2 group-hover:rotate-12 transition-transform duration-300" />
+              <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs md:text-sm group-hover:text-emerald-300 transition-colors duration-300">
+                <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 group-hover:rotate-12 transition-transform duration-300" />
                 <span>{feature.stat}</span>
               </div>
             </div>
@@ -134,16 +134,16 @@ const Solution = () => {
             <div className="flex pb-4">
               {features.map((feature, index) => (
                 <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
-                  <div className="bg-slate-800/50 rounded-2xl p-4 text-center h-full">
-                    <div className="relative mb-4 flex justify-center">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
-                        <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+                  <div className="bg-slate-800/50 rounded-xl p-3 text-center h-full">
+                    <div className="relative mb-3 flex justify-center">
+                      <div className={`w-8 h-8 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
+                        <feature.icon className="w-4 h-4 text-white" strokeWidth={1.5} />
                       </div>
                     </div>
-                    <h3 className="text-sm font-bold text-white mb-2 leading-tight">
+                    <h3 className="text-xs font-bold text-white mb-2 leading-tight">
                       {feature.title}
                     </h3>
-                    <p className="text-slate-300 text-xs leading-relaxed mb-3">
+                    <p className="text-slate-300 text-xs leading-relaxed mb-2">
                       {feature.mobileDescription || feature.description}
                     </p>
                     <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs">

@@ -74,19 +74,19 @@ const Index = () => {
       
       {/* Pain Points Section - Increased mobile padding */}
       <ScrollAnimatedSection>
-        <section className="py-16 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-6 md:mb-16">
-              <h2 className="text-lg md:text-5xl font-bold text-white mb-2 md:mb-6">
-                Do you recognize this <span className="text-red-400">problem</span>?
-              </h2>
-              <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-                These daily frustrations cost you time, money and customers. It's time for a solution.
-              </p>
-            </div>
+        <section className="py-8 md:py-12 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-4 md:mb-8">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-4">
+            Do you recognize this <span className="text-red-400">problem</span>?
+          </h2>
+          <p className="text-xs md:text-sm text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+            These daily frustrations cost you time, money and customers. It's time for a solution.
+          </p>
+        </div>
             
             {/* Desktop: Grid layout */}
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12">
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {painPoints.map((painPoint, index) => (
                 <ScrollAnimatedSection key={index} delay={index * 150}>
                   <PainPoint
