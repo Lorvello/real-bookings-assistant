@@ -89,12 +89,12 @@ const Index = () => {
           {/* Luxury grid pattern */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.08)_1px,transparent_1px)] bg-[size:80px_80px] opacity-30"></div>
           
-          <div className="container-luxury relative z-10">
+          <div className="container-premium relative z-10">
             <div className="text-center breathe-sm">
-              <h2 className="text-2xl md:text-4xl xl:text-5xl font-black text-white breathe-sm text-balance reading-width-wide mx-auto">
-                Do you recognize this <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-500 bg-clip-text text-transparent">problem</span>?
+              <h2 className="text-display text-2xl md:text-4xl xl:text-5xl text-white breathe-sm text-balance reading-width-wide mx-auto">
+                Do you recognize this <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-500 bg-clip-text text-transparent hover-scale-luxury">problem</span>?
               </h2>
-              <p className="text-base md:text-lg text-slate-300 reading-width mx-auto font-light leading-relaxed text-pretty">
+              <p className="text-body text-base md:text-lg text-slate-300 reading-width mx-auto font-light leading-relaxed text-pretty">
                 These daily frustrations cost you time, money and customers. It's time for a solution.
               </p>
             </div>

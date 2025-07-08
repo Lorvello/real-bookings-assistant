@@ -34,7 +34,7 @@ const Hero = () => {
       {/* Refined grid pattern with depth */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.15)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.2)_1px,transparent_1px)] bg-[size:40px_40px] md:bg-[size:80px_80px] opacity-40"></div>
       
-      <div className="container-luxury relative z-10 text-center">
+      <div className="container-premium relative z-10 text-center">
         {/* Premium floating badge with glassmorphism - CENTERED */}
         <div className="flex justify-center mb-6 md:mb-8">
           <div className="inline-flex items-center gap-2 md:gap-3 glass-effect rounded-full px-4 py-2 md:px-6 md:py-3 shadow-luxury-sm hover:shadow-luxury-md transition-luxury">
@@ -46,16 +46,16 @@ const Hero = () => {
 
         {/* Premium headline with enhanced typography */}
         <div className="breathe-sm">
-          <h1 className="text-3xl md:text-5xl xl:text-6xl 2xl:text-7xl font-black text-white leading-[0.9] tracking-tight text-balance reading-width-wide mx-auto">
-            <span className="bg-gradient-to-r from-emerald-300 via-green-400 to-teal-400 bg-clip-text text-transparent relative inline-block">
+          <h1 className="text-display-lg text-4xl md:text-6xl xl:text-7xl text-white leading-[0.9] tracking-tight text-balance reading-width-wide mx-auto">
+            <span className="bg-gradient-to-r from-emerald-300 via-green-400 to-teal-400 bg-clip-text text-transparent relative inline-block hover-scale-luxury">
               Bookings
             </span>
             {" "}on Auto Pilot
             <br />
-            <span className="text-slate-100 font-light">via WhatsApp</span>
+            <span className="text-body text-slate-100 font-light">via WhatsApp</span>
           </h1>
 
-          <p className="text-base md:text-lg lg:text-xl text-slate-300 reading-width leading-relaxed breathe-sm font-light text-pretty mx-auto">
+          <p className="text-body text-base md:text-lg lg:text-xl text-slate-300 reading-width leading-relaxed breathe-sm font-light text-pretty mx-auto">
             <span className="md:hidden">AI books appointments 24/7 via WhatsApp. Zero missed opportunities.</span>
             <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-medium">24/7 automation</span>,{" "}
@@ -67,14 +67,14 @@ const Hero = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 breathe-md">
             <Button 
               ref={ctaRef}
-              className={`w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold rounded-2xl shadow-luxury-lg shadow-emerald-500/25 border-0 transition-luxury hover-lift-context group min-h-[48px] md:min-h-[56px] ${magneticClassName}`}
+              className={`w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold rounded-2xl shadow-emerald-lg hover:shadow-emerald-xl border-0 transition-luxury hover-lift-context group min-h-[48px] md:min-h-[56px] ${magneticClassName}`}
             >
-              <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" />
+              <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 icon-hover-intelligent transition-luxury" />
               Start Free 7-Day Trial
             </Button>
             
-            <button className="w-full sm:w-auto glass-subtle text-slate-300 hover:text-white text-base md:text-lg font-medium flex items-center justify-center gap-2 md:gap-3 group transition-luxury min-h-[48px] md:min-h-[56px] px-5 md:px-6 rounded-2xl hover:shadow-luxury-sm">
-              <Zap className="w-4 h-4 md:w-5 md:h-5 group-hover:text-emerald-400 group-hover:scale-110 transition-all duration-300" />
+            <button className="w-full sm:w-auto glass-premium text-slate-300 hover:text-white text-base md:text-lg font-medium flex items-center justify-center gap-2 md:gap-3 group transition-luxury hover-lift min-h-[48px] md:min-h-[56px] px-5 md:px-6 rounded-2xl">
+              <Zap className="w-4 h-4 md:w-5 md:h-5 icon-hover-intelligent transition-luxury" />
               See how it works
             </button>
           </div>
