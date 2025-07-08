@@ -65,15 +65,19 @@ export const Pricing = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
-      {/* Background decoration */}
+    <section className="py-16 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 relative overflow-hidden">
+      {/* Hero-style background elements - 60% intensity */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/6 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/6 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-emerald-400/3 rounded-full blur-3xl"></div>
       </div>
       
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
+      {/* Hero-style grid pattern overlay - 60% intensity */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.12)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.24)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.24)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-18"></div>
+      
+      {/* Smooth transition fade from previous section */}
+      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-slate-900/0 via-slate-900/50 to-transparent"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -275,6 +279,9 @@ export const Pricing = () => {
             30 days free trial • No credit card required • Cancel anytime
           </p>
         </div>
+        
+        {/* Smooth transition fade to next section */}
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-900/0 via-slate-900/50 to-transparent"></div>
       </div>
     </section>
   );

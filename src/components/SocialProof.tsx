@@ -113,6 +113,8 @@ const SocialProof = () => {
       
       {/* Hero-style grid pattern overlay - 40% opacity */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.08)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.16)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-12"></div>
+      {/* Smooth transition fade from previous section */}
+      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-slate-900/0 via-slate-900/50 to-transparent"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -287,6 +289,9 @@ const SocialProof = () => {
             ))}
           </div>
         </div>
+        
+        {/* Smooth transition fade to next section */}
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-900/0 via-slate-900/50 to-transparent"></div>
       </div>
     </section>
   );
