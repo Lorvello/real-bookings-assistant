@@ -102,7 +102,7 @@ const Index = () => {
             {/* Desktop: Enhanced grid layout with staggered animations */}
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
               {painPoints.map((painPoint, index) => (
-                <ScrollAnimatedSection key={index} delay={index * 200}>
+                <EnhancedScrollSection key={index} delay={index * 200} animationType="stagger">
                   <div className="group relative">
                     {/* Luxury card background with glassmorphism */}
                     <div className="absolute inset-0 glass-subtle rounded-3xl shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury"></div>
@@ -115,7 +115,7 @@ const Index = () => {
                       />
                     </div>
                   </div>
-                </ScrollAnimatedSection>
+                </EnhancedScrollSection>
               ))}
             </div>
 
