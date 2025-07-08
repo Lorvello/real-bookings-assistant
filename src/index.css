@@ -146,7 +146,7 @@
   /* High-quality text rendering with desktop-optimized sizing */
   h1, h2, h3, h4, h5, h6 {
     text-rendering: optimizeLegibility;
-    font-feature-settings: 'kern', 'liga', 'clig', 'calt';
+    font-feature-settings: "kern", "liga", "clig", "calt";
   }
   
   /* Desktop Typography Scale Reduction (5-10% smaller) */
@@ -541,10 +541,6 @@
   .text-pretty {
     text-wrap: pretty;
   }
-}
-
-/* Premium Micro-interactions & Animations - Step 3 */
-@layer utilities {
   /* GPU-accelerated base for 60fps performance */
   .gpu-accelerated {
     transform: translateZ(0);
