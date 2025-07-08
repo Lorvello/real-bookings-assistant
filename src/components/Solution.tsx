@@ -100,21 +100,20 @@ const Solution = () => {
         {/* Desktop: Grid layout */}
         <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-16">
           {features.map((feature, index) => (
-            <div key={index} className="group text-center hover:transform hover:scale-105 transition-all duration-300 cursor-pointer px-4 md:px-0">
+            <div key={index} className="group text-center transition-all duration-300 cursor-pointer px-4 md:px-0 hover:bg-gradient-to-b hover:from-slate-800/30 hover:to-slate-800/10 rounded-2xl py-6 hover:shadow-xl hover:-translate-y-2">
               <div className="relative mb-4 md:mb-8 flex justify-center">
-                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
-                  <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white" strokeWidth={1.5} />
+                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-md group-hover:shadow-2xl transition-all duration-300 group-hover:shadow-emerald-500/25`}>
+                  <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
                 </div>
-                <div className={`absolute inset-0 w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300`}></div>
               </div>
-              <h3 className={`text-lg md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight ${feature.hoverTextColor} transition-colors duration-300`}>
+              <h3 className={`text-lg md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight group-hover:text-emerald-100 transition-colors duration-300`}>
                 {feature.title}
               </h3>
-              <p className="text-slate-300 text-sm md:text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-200 transition-colors duration-300 mb-3 md:mb-6">
+              <p className="text-slate-300 text-sm md:text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-100 transition-colors duration-300 mb-3 md:mb-6">
                 {feature.description}
               </p>
-              <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs md:text-base">
-                <Clock className="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2" />
+              <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs md:text-base group-hover:text-emerald-300 transition-colors duration-300">
+                <Clock className="w-3 h-3 md:w-5 md:h-5 mr-1 md:mr-2 group-hover:rotate-12 transition-transform duration-300" />
                 <span>{feature.stat}</span>
               </div>
             </div>

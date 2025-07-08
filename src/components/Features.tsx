@@ -167,15 +167,14 @@ const Features = () => {
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="group text-center hover:transform hover:scale-105 transition-all duration-300 cursor-pointer px-4 md:px-0"
+              className="group text-center transition-all duration-300 cursor-pointer px-4 md:px-0 hover:bg-slate-800/20 rounded-2xl py-6 hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-slate-700/50"
             >
               <div className="relative mb-4 md:mb-8 flex justify-center">
-                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
-                  <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white" strokeWidth={1.5} />
+                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:ring-2 group-hover:ring-slate-600/30`}>
+                  <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white group-hover:scale-105 transition-transform duration-300" strokeWidth={1.5} />
                 </div>
-                <div className={`absolute inset-0 w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300`}></div>
               </div>
-              <h3 className={`text-base md:text-xl font-bold text-white mb-2 md:mb-4 leading-tight ${feature.hoverTextColor} transition-colors duration-300`}>
+              <h3 className={`text-base md:text-xl font-bold text-white mb-2 md:mb-4 leading-tight group-hover:text-slate-100 transition-colors duration-300`}>
                 {feature.title}
               </h3>
               <p className="text-slate-300 text-xs md:text-base leading-relaxed group-hover:text-slate-200 transition-colors duration-300">
