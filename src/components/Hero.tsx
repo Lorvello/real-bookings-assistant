@@ -34,18 +34,18 @@ const Hero = () => {
       {/* Refined grid pattern with depth */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.15)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.2)_1px,transparent_1px)] bg-[size:40px_40px] md:bg-[size:80px_80px] opacity-40"></div>
       
-      <div className="container-luxury relative z-10 text-center">
+      <div className="container-golden relative z-10 text-center">
         {/* Premium floating badge with glassmorphism - CENTERED */}
-        <div className="flex justify-center mb-6 md:mb-8">
-          <div className="inline-flex items-center gap-2 md:gap-3 glass-effect rounded-full px-4 py-2 md:px-6 md:py-3 shadow-luxury-sm hover:shadow-luxury-md transition-luxury">
+        <div className="flex justify-center mb-golden-md">
+          <div className="inline-flex items-center gap-2 md:gap-3 glass-effect rounded-full px-golden-md py-golden-sm shadow-luxury-sm hover:shadow-luxury-md transition-luxury">
             <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-400 rounded-full"></div>
             <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
             <span className="text-emerald-300 text-xs md:text-sm font-medium tracking-wide">AI-Powered Booking Revolution</span>
           </div>
         </div>
 
-        {/* Premium headline with enhanced typography - REDUCED SIZE */}
-        <div className="space-golden-sm">
+        {/* Premium headline with enhanced typography */}
+        <div className="text-spacing-golden-sm">
           <h1 className="text-3xl md:text-5xl xl:text-6xl 2xl:text-7xl font-black text-white leading-[0.9] tracking-tight text-balance reading-width-wide mx-auto">
             <span className="bg-gradient-to-r from-emerald-300 via-green-400 to-teal-400 bg-clip-text text-transparent relative inline-block">
               Bookings

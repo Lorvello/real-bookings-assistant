@@ -377,145 +377,112 @@
     transition: var(--luxury-transition-slow);
   }
   
-  /* Golden Ratio Constants (φ = 1.618) for Perfect Proportions */
+  /* Golden Ratio Spacing System (φ = 1.618) */
   --golden-ratio: 1.618;
-  --golden-ratio-inverse: 0.618;
+  --golden-base: 8px;
   
-  /* Premium Fluid Container System */
-  .container-luxury {
-    max-width: min(1400px, calc(100vw - 3rem));
+  /* Golden Ratio Spacing Scale */
+  --space-xs: 8px;        /* Base */
+  --space-sm: 13px;       /* 8 * 1.618 */
+  --space-md: 21px;       /* 13 * 1.618 */
+  --space-lg: 34px;       /* 21 * 1.618 */
+  --space-xl: 55px;       /* 34 * 1.618 */
+  --space-2xl: 89px;      /* 55 * 1.618 */
+  --space-3xl: 144px;     /* 89 * 1.618 */
+  
+  /* Responsive Container System */
+  .container-golden {
+    max-width: min(1440px, calc(100vw - 2rem));
     margin-inline: auto;
-    padding-inline: clamp(1rem, 5vw, 3rem);
+    padding-inline: clamp(var(--space-lg), 5vw, var(--space-2xl));
   }
   
-  .container-luxury-wide {
-    max-width: min(1600px, calc(100vw - 2rem));
-    margin-inline: auto;
-    padding-inline: clamp(1.5rem, 6vw, 4rem);
+  @media (min-width: 1024px) {
+    .container-golden {
+      padding-inline: var(--space-lg); /* 34px */
+    }
   }
   
-  .container-luxury-narrow {
-    max-width: min(1200px, calc(100vw - 4rem));
-    margin-inline: auto;
-    padding-inline: clamp(2rem, 8vw, 5rem);
+  @media (min-width: 1280px) {
+    .container-golden {
+      padding-inline: var(--space-xl); /* 55px */
+    }
   }
   
-  /* Golden Ratio Fluid Spacing System */
-  .space-golden-xs {
-    padding-block: clamp(1rem, 2vw, 1.618rem);
+  @media (min-width: 1440px) {
+    .container-golden {
+      padding-inline: var(--space-2xl); /* 89px */
+    }
   }
   
-  .space-golden-sm {
-    padding-block: clamp(1.618rem, 3vw, 2.618rem);
+  /* Golden Ratio Section Spacing */
+  .section-golden-xs {
+    padding-block: var(--space-lg); /* 34px */
   }
   
-  .space-golden-md {
-    padding-block: clamp(2.618rem, 5vw, 4.236rem);
+  .section-golden-sm {
+    padding-block: var(--space-xl); /* 55px */
   }
   
-  .space-golden-lg {
-    padding-block: clamp(4.236rem, 8vw, 6.854rem);
+  .section-golden-md {
+    padding-block: var(--space-2xl); /* 89px */
   }
   
-  .space-golden-xl {
-    padding-block: clamp(6.854rem, 12vw, 11.09rem);
+  .section-golden-lg {
+    padding-block: var(--space-3xl); /* 144px */
   }
   
-  .space-golden-2xl {
-    padding-block: clamp(11.09rem, 16vw, 17.944rem);
+  /* Golden Element Spacing */
+  .gap-golden-xs { gap: var(--space-xs); }    /* 8px */
+  .gap-golden-sm { gap: var(--space-sm); }    /* 13px */
+  .gap-golden-md { gap: var(--space-md); }    /* 21px */
+  .gap-golden-lg { gap: var(--space-lg); }    /* 34px */
+  .gap-golden-xl { gap: var(--space-xl); }    /* 55px */
+  
+  /* Golden Margin/Padding Utilities */
+  .p-golden-xs { padding: var(--space-xs); }
+  .p-golden-sm { padding: var(--space-sm); }
+  .p-golden-md { padding: var(--space-md); }
+  .p-golden-lg { padding: var(--space-lg); }
+  .p-golden-xl { padding: var(--space-xl); }
+  
+  .px-golden-xs { padding-inline: var(--space-xs); }
+  .px-golden-sm { padding-inline: var(--space-sm); }
+  .px-golden-md { padding-inline: var(--space-md); }
+  .px-golden-lg { padding-inline: var(--space-lg); }
+  .px-golden-xl { padding-inline: var(--space-xl); }
+  
+  .py-golden-xs { padding-block: var(--space-xs); }
+  .py-golden-sm { padding-block: var(--space-sm); }
+  .py-golden-md { padding-block: var(--space-md); }
+  .py-golden-lg { padding-block: var(--space-lg); }
+  .py-golden-xl { padding-block: var(--space-xl); }
+  
+  .m-golden-xs { margin: var(--space-xs); }
+  .m-golden-sm { margin: var(--space-sm); }
+  .m-golden-md { margin: var(--space-md); }
+  .m-golden-lg { margin: var(--space-lg); }
+  .m-golden-xl { margin: var(--space-xl); }
+  
+  .mb-golden-xs { margin-bottom: var(--space-xs); }
+  .mb-golden-sm { margin-bottom: var(--space-sm); }
+  .mb-golden-md { margin-bottom: var(--space-md); }
+  .mb-golden-lg { margin-bottom: var(--space-lg); }
+  .mb-golden-xl { margin-bottom: var(--space-xl); }
+  
+  .mt-golden-xs { margin-top: var(--space-xs); }
+  .mt-golden-sm { margin-top: var(--space-sm); }
+  .mt-golden-md { margin-top: var(--space-md); }
+  .mt-golden-lg { margin-top: var(--space-lg); }
+  .mt-golden-xl { margin-top: var(--space-xl); }
+  
+  /* Text spacing utilities */
+  .text-spacing-golden > * + * {
+    margin-top: var(--space-md);
   }
   
-  /* Legacy Luxury Spacing (Backwards Compatibility) */
-  .space-luxury-sm {
-    padding: clamp(2rem, 5vw, 3rem);
-  }
-  
-  .space-luxury-md {
-    padding: clamp(3rem, 8vw, 6rem);
-  }
-  
-  .space-luxury-lg {
-    padding: clamp(4rem, 10vw, 8rem);
-  }
-  
-  .space-luxury-xl {
-    padding: clamp(6rem, 12vw, 12rem);
-  }
-  
-  /* Breathing Room Utilities */
-  .breathe-sm {
-    margin-block: clamp(1rem, 3vw, 2rem);
-  }
-  
-  .breathe-md {
-    margin-block: clamp(2rem, 5vw, 4rem);
-  }
-  
-  .breathe-lg {
-    margin-block: clamp(3rem, 8vw, 6rem);
-  }
-  
-  .breathe-xl {
-    margin-block: clamp(4rem, 10vw, 8rem);
-  }
-  
-  /* Optimal Reading Width */
-  .reading-width {
-    max-width: 65ch;
-    margin-inline: auto;
-  }
-  
-  .reading-width-narrow {
-    max-width: 45ch;
-    margin-inline: auto;
-  }
-  
-  .reading-width-wide {
-    max-width: 85ch;
-    margin-inline: auto;
-  }
-  
-  /* Perfect Grid Gaps */
-  .gap-golden {
-    gap: clamp(1rem, 2vw, 1.618rem);
-  }
-  
-  .gap-golden-lg {
-    gap: clamp(1.618rem, 4vw, 2.618rem);
-  }
-  
-  .gap-golden-xl {
-    gap: clamp(2.618rem, 6vw, 4.236rem);
-  }
-  
-  /* Golden Ratio Y-Axis Spacing */
-  .space-y-golden-xs > * + * {
-    margin-top: clamp(1rem, 2vw, 1.618rem);
-  }
-
-  .space-y-golden-sm > * + * {
-    margin-top: clamp(1.618rem, 3vw, 2.618rem);
-  }
-
-  .space-y-golden-md > * + * {
-    margin-top: clamp(2.618rem, 5vw, 4.236rem);
-  }
-
-  .space-y-golden-lg > * + * {
-    margin-top: clamp(4.236rem, 8vw, 6.854rem);
-  }
-
-  .space-y-golden-xl > * + * {
-    margin-top: clamp(6.854rem, 12vw, 11.09rem);
-  }
-  
-  /* Golden Ratio X-Axis Spacing */
-  .space-x-golden > * + * {
-    margin-left: clamp(1rem, 2vw, 1.618rem);
-  }
-
-  .space-x-golden-lg > * + * {
-    margin-left: clamp(1.618rem, 4vw, 2.618rem);
+  .text-spacing-golden-sm > * + * {
+    margin-top: var(--space-sm);
   }
   
   /* Typography utilities */
