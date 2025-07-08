@@ -100,29 +100,33 @@ const Solution = () => {
           </p>
         </div>
         
-        {/* Desktop: Enhanced grid layout with luxury styling */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-16">
+        {/* Desktop: Enhanced grid layout with consistent sizing */}
+        <div className="hidden md:grid md:grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
           {features.map((feature, index) => (
-            <div key={index} className="group relative animate-fade-in-luxury" style={{ animationDelay: `${index * 0.1}s` }}>
+            <div key={index} className="group relative animate-fade-in-luxury" style={{ animationDelay: `${index * 0.15}s` }}>
               {/* Luxury card background */}
               <div className="absolute inset-0 glass-subtle rounded-3xl shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury"></div>
-              <div className="relative text-center p-8 md:p-10 transition-luxury group-hover:-translate-y-2">
-                <div className="relative mb-8 md:mb-12 flex justify-center">
-                  <div className={`w-16 h-16 md:w-24 md:h-24 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-luxury-lg group-hover:shadow-luxury-xl transition-luxury group-hover:shadow-emerald-500/25`}>
-                    <feature.icon className="w-8 h-8 md:w-12 md:h-12 text-white group-hover:scale-110 transition-all duration-300" strokeWidth={1.5} />
+              <div className="relative text-center p-8 md:p-10 transition-luxury group-hover:-translate-y-2 h-full flex flex-col">
+                <div className="relative mb-8 md:mb-10 flex justify-center flex-shrink-0">
+                  <div className={`w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-luxury-lg group-hover:shadow-luxury-xl transition-luxury group-hover:shadow-emerald-500/25`}>
+                    <feature.icon className="w-10 h-10 md:w-12 md:h-12 text-white group-hover:scale-110 transition-all duration-300" strokeWidth={1.5} />
                   </div>
                   {/* Subtle background glow */}
-                  <div className={`absolute inset-0 w-16 h-16 md:w-24 md:h-24 bg-gradient-to-br ${feature.color} rounded-full opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500`}></div>
+                  <div className={`absolute inset-0 w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br ${feature.color} rounded-full opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-500`}></div>
                 </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6 leading-tight group-hover:text-emerald-100 transition-colors duration-300 text-balance">
-                  {feature.title}
-                </h3>
-                <p className="text-slate-300 text-lg md:text-xl leading-relaxed group-hover:text-slate-100 transition-colors duration-300 mb-6 md:mb-8 text-pretty">
-                  {feature.description}
-                </p>
-                <div className="flex items-center justify-center text-emerald-400 font-semibold text-base md:text-lg group-hover:text-emerald-300 transition-colors duration-300">
-                  <Clock className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3 group-hover:rotate-12 transition-transform duration-300" />
-                  <span>{feature.stat}</span>
+                <div className="flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6 leading-tight group-hover:text-emerald-100 transition-colors duration-300 text-balance">
+                      {feature.title}
+                    </h3>
+                    <p className="text-slate-300 text-lg md:text-xl leading-relaxed group-hover:text-slate-100 transition-colors duration-300 mb-6 md:mb-8 text-pretty">
+                      {feature.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center text-emerald-400 font-semibold text-base md:text-lg group-hover:text-emerald-300 transition-colors duration-300">
+                    <Clock className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3 group-hover:rotate-12 transition-transform duration-300" />
+                    <span>{feature.stat}</span>
+                  </div>
                 </div>
               </div>
             </div>

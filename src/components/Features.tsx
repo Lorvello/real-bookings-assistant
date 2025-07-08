@@ -163,19 +163,17 @@ const Features = () => {
           </p>
         </div>
         
-        {/* Desktop: Enhanced masonry-style grid */}
+        {/* Desktop: Enhanced grid - Fixed layout */}
         <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-20 md:mb-32">
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className={`group relative animate-fade-in-luxury ${
-                index % 3 === 0 ? 'lg:col-span-2' : ''
-              }`}
+              className="group relative animate-fade-in-luxury"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               {/* Luxury card background with gradient border */}
               <div className="absolute inset-0 glass-subtle rounded-3xl shadow-luxury-md group-hover:shadow-luxury-lg transition-luxury"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-transparent to-blue-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-blue-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
               <div className="relative text-center p-6 md:p-8 transition-luxury group-hover:-translate-y-1">
                 <div className="relative mb-6 md:mb-8 flex justify-center">
