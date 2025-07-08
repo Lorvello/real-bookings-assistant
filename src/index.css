@@ -535,7 +535,6 @@
   .text-pretty {
     text-wrap: pretty;
   }
-}
 
 /* Premium Micro-interactions & Animations - Step 3 */
 @layer utilities {
