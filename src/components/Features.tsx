@@ -137,17 +137,26 @@ const Features = () => {
   };
 
   return (
-    <section className="py-12 md:py-24 px-3 md:px-4 relative overflow-hidden">
+    <section className="py-12 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
+      {/* Background decoration - Optimized for mobile */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
+      </div>
+      
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
+      
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header - Mobile optimized */}
         <div className="text-center mb-8 md:mb-20">
-          <h2 className="text-xl md:text-5xl font-bold text-slate-800 mb-4 md:mb-6 px-3 sm:px-0">
+          <h2 className="text-xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
             Everything You Need To{" "}
-            <span className="bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
               Automate Bookings
             </span>
           </h2>
-          <p className="text-sm md:text-xl text-slate-600 max-w-3xl mx-auto px-3 sm:px-0">
+          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
             <span className="md:hidden">Features that maximize bookings and revenue</span>
             <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
           </p>
@@ -158,17 +167,17 @@ const Features = () => {
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="group text-center transition-all duration-300 cursor-pointer px-4 md:px-0 hover:bg-white/10 rounded-2xl py-6 hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-gray-400/30"
+              className="group text-center transition-all duration-300 cursor-pointer px-4 md:px-0 hover:bg-slate-800/20 rounded-2xl py-6 hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-slate-700/50"
             >
               <div className="relative mb-4 md:mb-8 flex justify-center">
-                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:ring-2 group-hover:ring-gray-400/30`}>
+                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:ring-2 group-hover:ring-slate-600/30`}>
                   <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white group-hover:scale-105 transition-transform duration-300" strokeWidth={1.5} />
                 </div>
               </div>
-              <h3 className={`text-base md:text-xl font-bold text-slate-800 mb-2 md:mb-4 leading-tight group-hover:text-slate-700 transition-colors duration-300`}>
+              <h3 className={`text-base md:text-xl font-bold text-white mb-2 md:mb-4 leading-tight group-hover:text-slate-100 transition-colors duration-300`}>
                 {feature.title}
               </h3>
-              <p className="text-slate-600 text-xs md:text-base leading-relaxed group-hover:text-slate-500 transition-colors duration-300">
+              <p className="text-slate-300 text-xs md:text-base leading-relaxed group-hover:text-slate-200 transition-colors duration-300">
                 {feature.description}
               </p>
             </div>
@@ -189,16 +198,16 @@ const Features = () => {
             <div className="flex pb-4">
               {features.map((feature, index) => (
                 <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
-                   <div className="bg-slate-100 rounded-2xl p-5 text-center h-full">
-                     <div className="relative mb-4 flex justify-center">
-                       <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
-                         <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
-                       </div>
-                     </div>
-                     <h3 className="text-sm font-bold text-slate-800 mb-3 leading-tight">
-                       {feature.title}
-                     </h3>
-                     <p className="text-slate-600 text-xs leading-relaxed">
+                  <div className="bg-slate-800/50 rounded-2xl p-5 text-center h-full">
+                    <div className="relative mb-4 flex justify-center">
+                      <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
+                        <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
+                      </div>
+                    </div>
+                    <h3 className="text-sm font-bold text-white mb-3 leading-tight">
+                      {feature.title}
+                    </h3>
+                    <p className="text-slate-300 text-xs leading-relaxed">
                       {feature.mobileDescription || feature.description}
                     </p>
                   </div>
@@ -231,10 +240,10 @@ const Features = () => {
           <div className="absolute bottom-0 left-0 w-32 h-32 md:w-48 md:h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
           
           <div className="relative z-10 px-3 sm:px-0">
-            <h3 className="text-xl md:text-4xl font-bold mb-4 md:mb-8 text-slate-800">
+            <h3 className="text-xl md:text-4xl font-bold mb-4 md:mb-8 text-white">
               Don't Let Revenue Sleep While You Do
             </h3>
-            <p className="text-sm md:text-xl text-slate-600 mb-8 md:mb-16 max-w-2xl mx-auto">
+            <p className="text-sm md:text-xl text-slate-300 mb-8 md:mb-16 max-w-2xl mx-auto">
               <span className="md:hidden">AI books while you work. Start free trial today.</span>
               <span className="hidden md:inline">While you're busy with customers, your AI agent is busy booking new ones. 
               Start your free trial and see the difference automation makes.</span>
@@ -243,10 +252,10 @@ const Features = () => {
             {/* Desktop: Stats section */}
             <div className="hidden md:flex md:flex-row flex-wrap justify-center gap-6 md:gap-16">
               {stats.map((stat, index) => (
-                 <div key={index} className="group text-center hover:transform hover:scale-105 transition-all duration-300">
-                   <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-500 group-hover:text-emerald-400 transition-colors">{stat.value}</div>
-                   <div className="text-slate-500 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-400 transition-colors">{stat.label}</div>
-                 </div>
+                <div key={index} className="group text-center hover:transform hover:scale-105 transition-all duration-300">
+                  <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">{stat.value}</div>
+                  <div className="text-slate-400 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">{stat.label}</div>
+                </div>
               ))}
             </div>
 
@@ -254,10 +263,10 @@ const Features = () => {
             <div className="md:hidden">
               <div className="grid grid-cols-3 gap-4">
                 {stats.map((stat, index) => (
-                   <div key={index} className="text-center bg-white/80 rounded-xl p-4">
-                     <div className="text-xl font-bold mb-1 text-emerald-500">{stat.value}</div>
-                     <div className="text-slate-500 text-xs uppercase tracking-wider">{stat.label}</div>
-                   </div>
+                  <div key={index} className="text-center bg-slate-800/30 rounded-xl p-4">
+                    <div className="text-xl font-bold mb-1 text-emerald-400">{stat.value}</div>
+                    <div className="text-slate-400 text-xs uppercase tracking-wider">{stat.label}</div>
+                  </div>
                 ))}
               </div>
             </div>

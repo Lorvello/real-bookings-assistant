@@ -3,18 +3,8 @@ import { Button } from "@/components/ui/button";
 
 const CallToAction = () => {
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 text-white relative overflow-hidden">
-      {/* Hero-style background elements - CTA variation */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/8 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/8 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-emerald-400/4 rounded-full blur-3xl"></div>
-      </div>
-      
-      {/* Hero-style grid pattern overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.15)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.3)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-25"></div>
-      
-      <div className="max-w-4xl mx-auto text-center relative z-10">
+    <section className="py-20 px-4 bg-gradient-to-br from-green-600 to-blue-600 text-white">
+      <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-5xl font-bold mb-6">
           Automate Today with 1 Click
         </h2>

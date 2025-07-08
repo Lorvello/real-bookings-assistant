@@ -4,12 +4,16 @@ import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "l
 
 const Hero = () => {
   return (
-    <section className="relative min-h-[60vh] md:min-h-screen overflow-hidden flex items-center justify-center">
-      {/* Subtle accent elements for depth */}
+    <section className="relative min-h-[60vh] md:min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 overflow-hidden flex items-center justify-center">
+      {/* Animated background elements - Optimized for mobile */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-emerald-400/5 rounded-full blur-3xl"></div>
       </div>
+      
+      {/* Grid pattern overlay - Reduced opacity on mobile */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.2)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.4)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.4)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-30"></div>
       
       <div className="relative max-w-7xl mx-auto px-4 md:px-4 sm:px-6 lg:px-8 text-center z-10">
         {/* Floating badge - Mobile optimized */}
@@ -83,8 +87,8 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Bottom fade for smooth transition */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-black/10 to-transparent"></div>
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-slate-900 to-transparent"></div>
     </section>
   );
 };

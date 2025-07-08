@@ -68,19 +68,19 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-teal-900 via-slate-700 via-gray-600 to-gray-100">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <Hero />
       
       {/* Pain Points Section - Increased mobile padding */}
       <ScrollAnimatedSection>
-        <section className="py-16 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8">
+        <section className="py-16 md:py-20 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-6 md:mb-16">
               <h2 className="text-lg md:text-5xl font-bold text-white mb-2 md:mb-6">
                 Do you recognize this <span className="text-red-400">problem</span>?
               </h2>
-              <p className="text-sm md:text-xl text-slate-200 max-w-3xl mx-auto px-3 sm:px-0">
+              <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
                 These daily frustrations cost you time, money and customers. It's time for a solution.
               </p>
             </div>
