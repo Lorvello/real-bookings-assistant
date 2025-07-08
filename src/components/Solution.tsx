@@ -2,6 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Brain, Target, Clock, Users, TrendingUp } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import EnhancedScrollSection from "@/components/EnhancedScrollSection";
+import { useCursorGradient } from "@/hooks/useCursorGradient";
 
 const Solution = () => {
   const [activeSolutionIndex, setActiveSolutionIndex] = useState(0);
@@ -66,7 +68,12 @@ const Solution = () => {
   };
 
   return (
-    <section className="space-luxury-lg bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+    <EnhancedScrollSection 
+      className="space-luxury-lg bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden"
+      enableCursorGradient={true}
+      animationType="stagger"
+      delay={100}
+    >
       {/* Enhanced background with luxury depth */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-500/12 rounded-full blur-3xl animate-breathe"></div>
@@ -185,7 +192,7 @@ const Solution = () => {
           </div>
         </div>
       </div>
-    </section>
+    </EnhancedScrollSection>
   );
 };
 

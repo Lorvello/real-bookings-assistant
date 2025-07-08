@@ -6,7 +6,7 @@ import Solution from "@/components/Solution";
 import Features from "@/components/Features";
 import SocialProof from "@/components/SocialProof";
 import { Pricing } from "@/components/Pricing";
-import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
+import EnhancedScrollSection from "@/components/EnhancedScrollSection";
 import { Clock, PhoneOff, MessageSquareX } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -73,7 +73,11 @@ const Index = () => {
       <Hero />
       
       {/* Pain Points Section - Luxury Enhanced */}
-      <ScrollAnimatedSection>
+      <EnhancedScrollSection 
+        animationType="stagger" 
+        delay={200}
+        enableCursorGradient={true}
+      >
         <section className="space-luxury-lg bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
           {/* Enhanced background with depth layers */}
           <div className="absolute inset-0">
@@ -160,34 +164,32 @@ const Index = () => {
             </div>
           </div>
         </section>
-      </ScrollAnimatedSection>
+      </EnhancedScrollSection>
 
       {/* Solution Section - Increased mobile padding */}
-      <ScrollAnimatedSection delay={100}>
-        <Solution />
-      </ScrollAnimatedSection>
+      <Solution />
 
       {/* Process Section - Increased mobile padding */}
-      <ScrollAnimatedSection delay={200}>
+      <EnhancedScrollSection delay={200} animationType="rotate">
         <ProcessSection />
-      </ScrollAnimatedSection>
+      </EnhancedScrollSection>
 
       {/* Features Section - Increased mobile padding */}
-      <ScrollAnimatedSection delay={100}>
+      <EnhancedScrollSection delay={100} enableCursorGradient={true}>
         <Features />
-      </ScrollAnimatedSection>
+      </EnhancedScrollSection>
 
       {/* Social Proof Section - Increased mobile padding */}
-      <ScrollAnimatedSection delay={200}>
+      <EnhancedScrollSection delay={200} animationType="stagger">
         <SocialProof />
-      </ScrollAnimatedSection>
+      </EnhancedScrollSection>
 
       {/* Pricing Section - Increased mobile padding */}
-      <ScrollAnimatedSection delay={100}>
+      <EnhancedScrollSection delay={100}>
         <div id="pricing">
           <Pricing />
         </div>
-      </ScrollAnimatedSection>
+      </EnhancedScrollSection>
     </div>
   );
 };

@@ -1,10 +1,21 @@
 
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "lucide-react";
+import { useCursorGradient, useMagneticHover } from "@/hooks/useCursorGradient";
 
 const Hero = () => {
+  const { ref: heroRef, className: cursorClassName } = useCursorGradient({
+    enabled: true,
+    intensity: 0.15
+  });
+  
+  const { ref: ctaRef, className: magneticClassName } = useMagneticHover<HTMLButtonElement>(0.3);
+
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 overflow-hidden flex items-center justify-center">
+    <section 
+      ref={heroRef}
+      className={`relative min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 overflow-hidden flex items-center justify-center ${cursorClassName}`}
+    >
       {/* Enhanced animated background elements with multiple layers */}
       <div className="absolute inset-0">
         {/* Primary gradient orbs */}
@@ -53,7 +64,10 @@ const Hero = () => {
 
           {/* Enhanced CTA Section with glassmorphism */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-8 pt-12 md:pt-16 animate-fade-in-luxury delay-luxury-3">
-            <Button className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 md:px-10 py-4 md:py-6 text-lg md:text-xl font-semibold rounded-2xl shadow-luxury-lg shadow-emerald-500/25 border-0 transition-luxury hover-lift group min-h-[56px] md:min-h-[64px]">
+            <Button 
+              ref={ctaRef}
+              className={`w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 md:px-10 py-4 md:py-6 text-lg md:text-xl font-semibold rounded-2xl shadow-luxury-lg shadow-emerald-500/25 border-0 transition-luxury hover-lift-context group min-h-[56px] md:min-h-[64px] ${magneticClassName}`}
+            >
               <MessageCircle className="w-5 h-5 md:w-6 md:h-6 mr-3 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" />
               Start Free 7-Day Trial
             </Button>
