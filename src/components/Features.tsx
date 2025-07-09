@@ -155,7 +155,7 @@ const Features = () => {
           {/* Background accent elements */}
           <div className="absolute bottom-3 right-3 w-4 h-4 bg-blue-400/40 rounded-full" />
         </div>,
-    className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2"
+    className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-3"
   }, {
     Icon: CalendarIcon,
     name: "Advanced Dashboard & Own Calendar",
