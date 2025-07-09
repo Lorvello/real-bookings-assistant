@@ -664,7 +664,7 @@ const Features = () => {
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
                   </div>
                   <div className="bg-red-500/10 rounded px-2 py-1">
-                    <p className="text-red-300 text-[7px] leading-tight">"Wij zijn gesloten"</p>
+                    <p className="text-red-300 text-[7px] leading-tight">"We are closed"</p>
                   </div>
                 </div>
                 
@@ -674,7 +674,7 @@ const Features = () => {
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
                   </div>
                   <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"We zijn nu gesloten, maar morgen om 9:00 weer open. Zal ik een afspraak inplannen?"</p>
+                    <p className="text-emerald-300 text-[7px] leading-tight">"We are closed now, but open tomorrow at 9:00. Shall I schedule an appointment?"</p>
                   </div>
                 </div>
               </div>
@@ -687,7 +687,7 @@ const Features = () => {
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
                   </div>
                   <div className="bg-red-500/10 rounded px-2 py-1">
-                    <p className="text-red-300 text-[7px] leading-tight">"Kies een service"</p>
+                    <p className="text-red-300 text-[7px] leading-tight">"Choose a service"</p>
                   </div>
                 </div>
                 
@@ -697,7 +697,7 @@ const Features = () => {
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
                   </div>
                   <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"Op basis van je vorige bezoek (knippen) stel ik voor: knippen + wassen voor €40?"</p>
+                    <p className="text-emerald-300 text-[7px] leading-tight">"Based on your last visit (haircut), I suggest: haircut + wash for €40?"</p>
                   </div>
                 </div>
               </div>
@@ -710,7 +710,7 @@ const Features = () => {
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
                   </div>
                   <div className="bg-red-500/10 rounded px-2 py-1">
-                    <p className="text-red-300 text-[7px] leading-tight">"Kies een tijd"</p>
+                    <p className="text-red-300 text-[7px] leading-tight">"Choose a time"</p>
                   </div>
                 </div>
                 
@@ -720,7 +720,7 @@ const Features = () => {
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
                   </div>
                   <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"Je kwam vorige keer op donderdag 15:00. Zelfde tijd deze week?"</p>
+                    <p className="text-emerald-300 text-[7px] leading-tight">"You came last time on Thursday 3:00 PM. Same time this week?"</p>
                   </div>
                 </div>
               </div>
@@ -733,7 +733,7 @@ const Features = () => {
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
                   </div>
                   <div className="bg-red-500/10 rounded px-2 py-1">
-                    <p className="text-red-300 text-[7px] leading-tight">"Betaal na afspraak"</p>
+                    <p className="text-red-300 text-[7px] leading-tight">"Pay after appointment"</p>
                   </div>
                 </div>
                 
@@ -743,7 +743,7 @@ const Features = () => {
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
                   </div>
                   <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"Knippen €25, betalen kan contant of pin. Wil je direct bevestigen?"</p>
+                    <p className="text-emerald-300 text-[7px] leading-tight">"Haircut €25, payment by cash or card. Want to confirm directly?"</p>
                   </div>
                 </div>
               </div>
@@ -756,7 +756,7 @@ const Features = () => {
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
                   </div>
                   <div className="bg-red-500/10 rounded px-2 py-1">
-                    <p className="text-red-300 text-[7px] leading-tight">"Annuleren niet mogelijk"</p>
+                    <p className="text-red-300 text-[7px] leading-tight">"Cancellation not possible"</p>
                   </div>
                 </div>
                 
@@ -766,7 +766,7 @@ const Features = () => {
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
                   </div>
                   <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"Natuurlijk, welke afspraak wil je annuleren? Zal ik direct een nieuwe tijd voorstellen?"</p>
+                    <p className="text-emerald-300 text-[7px] leading-tight">"Of course, which appointment would you like to cancel? Shall I suggest a new time right away?"</p>
                   </div>
                 </div>
               </div>
@@ -779,7 +779,7 @@ const Features = () => {
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
                   </div>
                   <div className="bg-red-500/10 rounded px-2 py-1">
-                    <p className="text-red-300 text-[7px] leading-tight">"Maandag t/m vrijdag 9-17u"</p>
+                    <p className="text-red-300 text-[7px] leading-tight">"Monday to Friday 9-17h"</p>
                   </div>
                 </div>
                 
@@ -789,7 +789,7 @@ const Features = () => {
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
                   </div>
                   <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"We zijn vandaag open tot 17:00. Kan ik je nu nog inplannen of liever morgen?"</p>
+                    <p className="text-emerald-300 text-[7px] leading-tight">"We are open today until 17:00. Can I still schedule you now or would you prefer tomorrow?"</p>
                   </div>
                 </div>
               </div>
@@ -802,7 +802,7 @@ const Features = () => {
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
                   </div>
                   <div className="bg-red-500/10 rounded px-2 py-1">
-                    <p className="text-red-300 text-[7px] leading-tight">"Vul je gegevens in"</p>
+                    <p className="text-red-300 text-[7px] leading-tight">"Fill in your details"</p>
                   </div>
                 </div>
                 
@@ -812,7 +812,7 @@ const Features = () => {
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
                   </div>
                   <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"Hallo Sarah! Zelfde contactgegevens als vorige keer gebruiken?"</p>
+                    <p className="text-emerald-300 text-[7px] leading-tight">"Hello Sarah! Use the same contact details as last time?"</p>
                   </div>
                 </div>
               </div>
