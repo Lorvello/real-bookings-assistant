@@ -172,89 +172,64 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Modern Analytics Section - Top 45% */}
-          <div className="absolute top-2 left-2 right-2 h-[42%] bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm">
+          {/* Enhanced Analytics Section - Top 50% */}
+          <div className="absolute top-2 left-2 right-2 h-[48%] bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
             {/* Analytics Header */}
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-white text-[10px] font-semibold">Real-time Analytics</h4>
-              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-white text-[12px] font-semibold">Real-time Analytics</h4>
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
             </div>
             
-            {/* Analytics Cards Layout */}
-            <div className="flex items-center justify-between h-full">
-              {/* Left: Key Metrics */}
-              <div className="flex-1 space-y-2">
-                <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="text-blue-400 text-[8px]">⚡</div>
-                    <div className="text-white text-[9px] font-bold">2.3m</div>
-                  </div>
-                  <div className="text-blue-300 text-[6px]">Avg Response</div>
-                </div>
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="text-emerald-400 text-[8px]">📈</div>
-                    <div className="text-white text-[9px] font-bold">89%</div>
-                  </div>
-                  <div className="text-emerald-300 text-[6px]">Conversion</div>
-                </div>
+            {/* Main Analytics Grid */}
+            <div className="grid grid-cols-4 gap-3 mb-4">
+              {/* Response Time */}
+              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3 text-center">
+                <div className="text-blue-400 text-[10px] mb-1">⚡</div>
+                <div className="text-white text-[11px] font-bold">2.3m</div>
+                <div className="text-blue-300 text-[7px]">Response</div>
               </div>
               
-              {/* Center: Donut Chart */}
-              <div className="flex-1 flex items-center justify-center">
-                <div className="relative w-12 h-12">
-                  {/* Donut Chart */}
-                  <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      d="M18 2.0845
-                        a 15.9155 15.9155 0 0 1 0 31.831
-                        a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeDasharray="78, 100"
-                      className="text-emerald-500"
-                    />
-                    <path
-                      d="M18 2.0845
-                        a 15.9155 15.9155 0 0 1 0 31.831
-                        a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeDasharray="22, 100"
-                      strokeDashoffset="-78"
-                      className="text-slate-600"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white text-[8px] font-bold">78%</span>
-                  </div>
-                </div>
+              {/* Views */}
+              <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-3 text-center">
+                <div className="text-purple-400 text-[10px] mb-1">👁</div>
+                <div className="text-white text-[11px] font-bold">1.2k</div>
+                <div className="text-purple-300 text-[7px]">Views</div>
               </div>
               
-              {/* Right: Additional Metrics */}
-              <div className="flex-1 space-y-2">
-                <div className="bg-orange-600/20 border border-orange-500/30 rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="text-orange-400 text-[8px]">👁</div>
-                    <div className="text-white text-[9px] font-bold">1.2k</div>
-                  </div>
-                  <div className="text-orange-300 text-[6px]">Views</div>
+              {/* Conversion */}
+              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+                <div className="text-emerald-400 text-[10px] mb-1">📈</div>
+                <div className="text-white text-[11px] font-bold">89%</div>
+                <div className="text-emerald-300 text-[7px]">Convert</div>
+              </div>
+              
+              {/* No-shows */}
+              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-3 text-center">
+                <div className="text-red-400 text-[10px] mb-1">⚠</div>
+                <div className="text-white text-[11px] font-bold">8.5%</div>
+                <div className="text-red-300 text-[7px]">No-shows</div>
+              </div>
+            </div>
+            
+            {/* Performance Chart */}
+            <div className="bg-slate-700/50 rounded-lg p-2">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-slate-300 text-[7px]">Performance</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-1 h-1 bg-emerald-400 rounded-full"></div>
+                  <span className="text-emerald-300 text-[6px]">+12%</span>
                 </div>
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="text-red-400 text-[8px]">⚠</div>
-                    <div className="text-white text-[9px] font-bold">8.5%</div>
-                  </div>
-                  <div className="text-red-300 text-[6px]">No-shows</div>
-                </div>
+              </div>
+              <div className="flex items-end justify-between h-6 gap-0.5">
+                {[4, 7, 5, 8, 6, 9, 7, 10, 8, 11, 9, 12].map((height, i) => (
+                  <div key={i} className="bg-emerald-500/60 rounded-sm w-1" style={{ height: `${height * 2}px` }} />
+                ))}
               </div>
             </div>
           </div>
           
           {/* Modern Calendar Section - Bottom 50% */}
-          <div className="absolute top-[47%] left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm">
+          <div className="absolute top-[52%] left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm">
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
