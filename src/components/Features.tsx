@@ -266,7 +266,7 @@ const Features = () => {
                     <span className="text-xs">🤖</span>
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-[8px]">Hair Studio AI</h3>
+                    <h3 className="font-semibold text-[8px]">Dental Care AI</h3>
                     <p className="text-[6px] text-white/90">online</p>
                   </div>
                 </div>
@@ -277,49 +277,43 @@ const Features = () => {
                     {/* Customer message */}
                       <div className="flex justify-end">
                       <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Hello, I'd like to book an appointment for tomorrow</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Hi, I need to reschedule my appointment</p>
                       </div>
                   </div>
                   
                     {/* AI response 1 */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! Which service would you like? I have these options:</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! You have a cleaning scheduled for tomorrow at 2:00 PM. When would work better for you?</p>
                       </div>
                   </div>
                   
-                    {/* AI response 2 - services */}
-                    <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">💇‍♀️ Haircut - $25 (45 min)<br />💇‍♀️ Coloring - $65 (90 min)<br />💇‍♀️ Wash - $15 (20 min)</p>
-                      </div>
-                  </div>
                   
                     {/* Customer choice */}
                     <div className="flex justify-end">
                       <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Haircut please</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Can we move it to next week Friday?</p>
                       </div>
                   </div>
                   
                     {/* AI response 3 - time slots */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! When works for you? Tomorrow I have available:<br />🕐 10:00 AM<br />🕐 2:00 PM<br />🕐 4:30 PM</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! Here are available times for Friday:<br />🕐 9:00 AM<br />🕐 1:00 PM<br />🕐 4:00 PM</p>
                       </div>
                   </div>
                   
                     {/* Customer time choice */}
                     <div className="flex justify-end">
                       <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">2:00 PM works</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">4:00 PM works</p>
                       </div>
                   </div>
                   
                     {/* Final confirmation */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">You have an appointment tomorrow at 2 PM ✅</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Appointment rescheduled to Friday 4:00 PM ✅</p>
                       </div>
                     </div>
                     </div>
