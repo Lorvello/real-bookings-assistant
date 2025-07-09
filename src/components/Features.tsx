@@ -978,8 +978,8 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-slate-800/20" />
           
-          {/* Carousel Container */}
-          <div className="absolute top-4 left-4 right-4 bottom-10">
+          {/* Carousel Container - positioned to leave room for BentoCard footer */}
+          <div className="absolute top-2 left-3 right-3 bottom-24">
             <div className="h-full flex flex-col">
               {/* Carousel Content */}
               <div className="flex-1 relative overflow-hidden">
@@ -1064,7 +1064,7 @@ const Features = () => {
               </div>
 
               {/* Carousel Navigation */}
-              <div className="flex items-center justify-center mt-4">
+              <div className="flex items-center justify-center mt-3">
                 {/* Navigation Dots */}
                 <div className="flex gap-2">
                   {[0, 1, 2, 3, 4].map((index) => (
@@ -1093,10 +1093,10 @@ const Features = () => {
             />
           </div>
           
-          {/* Timestamp at Bottom */}
-          <div className="absolute bottom-2 left-4 right-4">
+          {/* Timestamp positioned in middle area between carousel and BentoCard footer */}
+          <div className="absolute bottom-14 left-4 right-4">
             <div className="text-center">
-              <span className="text-slate-400 text-[7px]">Last update {new Date().toLocaleTimeString('en-US')}</span>
+              <span className="text-slate-400 text-[10px]">Last update {new Date().toLocaleTimeString('en-US')}</span>
             </div>
           </div>
         </div>,
