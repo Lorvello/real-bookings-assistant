@@ -172,89 +172,79 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Dashboard Interface - Upper Section */}
-          <div className="absolute top-2 left-2 right-2 h-[45%] bg-slate-800/90 rounded-lg border border-slate-700/50 p-2 backdrop-blur-sm">
-            {/* Dashboard Header */}
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-white text-[8px] font-semibold">Dashboard Overview</h4>
-              <div className="flex items-center gap-1">
-                <div className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
-                <span className="text-emerald-400 text-[6px]">Live</span>
+          {/* Analytics Section - Top 35% */}
+          <div className="absolute top-2 left-2 right-2 h-[35%] bg-slate-800/90 rounded-lg border border-slate-700/50 p-2 backdrop-blur-sm">
+            {/* Analytics Header */}
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-white text-[7px] font-semibold">Analytics Overview</h4>
+              <div className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
+            </div>
+            
+            {/* Metric Cards */}
+            <div className="grid grid-cols-2 gap-1 mb-1">
+              <div className="bg-blue-600/80 rounded px-1 py-0.5">
+                <div className="text-white text-[6px] font-bold">2.3m</div>
+                <div className="text-blue-100 text-[4px]">Avg Response</div>
+              </div>
+              <div className="bg-blue-600/80 rounded px-1 py-0.5">
+                <div className="text-white text-[6px] font-bold">8.5%</div>
+                <div className="text-blue-100 text-[4px]">No-show Rate</div>
+              </div>
+              <div className="bg-blue-600/80 rounded px-1 py-0.5">
+                <div className="text-white text-[6px] font-bold">12.3%</div>
+                <div className="text-blue-100 text-[4px]">Cancellation</div>
+              </div>
+              <div className="bg-blue-600/80 rounded px-1 py-0.5">
+                <div className="text-white text-[6px] font-bold">67.8%</div>
+                <div className="text-blue-100 text-[4px]">Conversion</div>
               </div>
             </div>
             
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-1 mb-2">
-              <div className="bg-slate-700/60 rounded px-1 py-0.5 text-center">
-                <div className="text-emerald-400 text-[8px] font-bold">24</div>
-                <div className="text-slate-300 text-[5px]">Today</div>
-              </div>
-              <div className="bg-slate-700/60 rounded px-1 py-0.5 text-center">
-                <div className="text-blue-400 text-[8px] font-bold">156</div>
-                <div className="text-slate-300 text-[5px]">Week</div>
-              </div>
-              <div className="bg-slate-700/60 rounded px-1 py-0.5 text-center">
-                <div className="text-yellow-400 text-[8px] font-bold">€2.4k</div>
-                <div className="text-slate-300 text-[5px]">Revenue</div>
-              </div>
-            </div>
-            
-            {/* Recent Appointments */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[6px]">
-                <span className="text-slate-400">Recent Appointments</span>
-                <span className="text-emerald-400">View all</span>
-              </div>
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-1 bg-slate-700/40 rounded px-1 py-0.5">
-                  <div className="w-1 h-1 bg-emerald-400 rounded-full" />
-                  <span className="text-white text-[6px] flex-1">John D. - Haircut</span>
-                  <span className="text-slate-400 text-[5px]">14:00</span>
-                </div>
-                <div className="flex items-center gap-1 bg-slate-700/40 rounded px-1 py-0.5">
-                  <div className="w-1 h-1 bg-blue-400 rounded-full" />
-                  <span className="text-white text-[6px] flex-1">Sarah M. - Consultation</span>
-                  <span className="text-slate-400 text-[5px]">16:30</span>
-                </div>
-              </div>
+            {/* Peak Hours Chart */}
+            <div className="text-[5px] text-slate-400 mb-0.5">Peak Hours</div>
+            <div className="flex items-end gap-px h-3">
+              {[2, 3, 4, 6, 8, 12, 8, 4, 2].map((height, i) => (
+                <div key={i} className={`w-1 ${i === 4 ? 'bg-red-500' : 'bg-slate-600'} rounded-t-sm`} 
+                     style={{ height: `${height * 2}px` }} />
+              ))}
             </div>
           </div>
           
-          {/* Calendar Interface - Lower Section */}
-          <div className="absolute bottom-2 left-2 right-2 h-[50%] bg-slate-800/90 rounded-lg border border-slate-700/50 p-2 backdrop-blur-sm">
+          {/* Calendar Section - Middle 40% */}
+          <div className="absolute top-[37%] left-2 right-2 h-[40%] bg-slate-800/90 rounded-lg border border-slate-700/50 p-2 backdrop-blur-sm">
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1">
-                <button className="text-slate-400 text-[8px] hover:text-white">‹</button>
-                <span className="text-white text-[8px] font-semibold">July 2025</span>
-                <button className="text-slate-400 text-[8px] hover:text-white">›</button>
+                <button className="text-slate-400 text-[6px] hover:text-white">‹</button>
+                <span className="text-white text-[7px] font-semibold">July 2025</span>
+                <button className="text-slate-400 text-[6px] hover:text-white">›</button>
               </div>
               <div className="flex items-center gap-1">
-                <div className="flex text-[6px] bg-slate-700/60 rounded overflow-hidden">
-                  <button className="px-1 py-0.5 text-slate-400">M</button>
-                  <button className="px-1 py-0.5 bg-emerald-600 text-white">W</button>
-                  <button className="px-1 py-0.5 text-slate-400">Y</button>
+                <div className="flex text-[5px] bg-slate-700/60 rounded overflow-hidden">
+                  <button className="px-0.5 py-0.5 text-slate-400">M</button>
+                  <button className="px-0.5 py-0.5 bg-emerald-600 text-white">W</button>
+                  <button className="px-0.5 py-0.5 text-slate-400">Y</button>
                 </div>
-                <button className="bg-emerald-600 text-white text-[6px] px-1 py-0.5 rounded">+ New</button>
+                <button className="bg-emerald-600 text-white text-[5px] px-1 py-0.5 rounded">+ New</button>
               </div>
             </div>
             
             {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-px text-[5px]">
+            <div className="grid grid-cols-7 gap-px text-[4px]">
               {/* Day Headers */}
               {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => (
                 <div key={day} className="text-slate-400 text-center py-0.5 font-medium">{day}</div>
               ))}
               
               {/* Calendar Dates */}
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21].map((date) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28].map((date) => (
                 <div key={date} className="relative">
-                  <div className={`text-center py-0.5 h-3 flex items-center justify-center ${
-                    date === 9 ? 'bg-emerald-600 text-white rounded-sm' : 'text-slate-300 hover:bg-slate-700/50 rounded-sm'
+                  <div className={`text-center py-0.5 h-2 flex items-center justify-center text-[4px] ${
+                    [9, 15, 22].includes(date) ? 'bg-emerald-600 text-white rounded-sm' : 'text-slate-300 hover:bg-slate-700/50 rounded-sm'
                   }`}>
                     {date}
                   </div>
-                  {date === 9 && (
+                  {[9, 15, 22].includes(date) && (
                     <div className="absolute -bottom-0.5 left-0 right-0 h-px bg-emerald-400" />
                   )}
                 </div>
