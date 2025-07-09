@@ -170,10 +170,101 @@ const Features = () => {
     href: "/features/dashboard",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
-          <div className="absolute top-4 left-4 w-12 h-2 bg-emerald-500/30 rounded-full" />
-          <div className="absolute top-8 left-6 w-8 h-2 bg-emerald-400/40 rounded-full" />
-          <div className="absolute top-12 left-4 w-16 h-2 bg-emerald-300/20 rounded-full" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+          
+          {/* Dashboard Interface - Upper Section */}
+          <div className="absolute top-2 left-2 right-2 h-[45%] bg-slate-800/90 rounded-lg border border-slate-700/50 p-2 backdrop-blur-sm">
+            {/* Dashboard Header */}
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-white text-[8px] font-semibold">Dashboard Overview</h4>
+              <div className="flex items-center gap-1">
+                <div className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
+                <span className="text-emerald-400 text-[6px]">Live</span>
+              </div>
+            </div>
+            
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 gap-1 mb-2">
+              <div className="bg-slate-700/60 rounded px-1 py-0.5 text-center">
+                <div className="text-emerald-400 text-[8px] font-bold">24</div>
+                <div className="text-slate-300 text-[5px]">Today</div>
+              </div>
+              <div className="bg-slate-700/60 rounded px-1 py-0.5 text-center">
+                <div className="text-blue-400 text-[8px] font-bold">156</div>
+                <div className="text-slate-300 text-[5px]">Week</div>
+              </div>
+              <div className="bg-slate-700/60 rounded px-1 py-0.5 text-center">
+                <div className="text-yellow-400 text-[8px] font-bold">€2.4k</div>
+                <div className="text-slate-300 text-[5px]">Revenue</div>
+              </div>
+            </div>
+            
+            {/* Recent Appointments */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[6px]">
+                <span className="text-slate-400">Recent Appointments</span>
+                <span className="text-emerald-400">View all</span>
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1 bg-slate-700/40 rounded px-1 py-0.5">
+                  <div className="w-1 h-1 bg-emerald-400 rounded-full" />
+                  <span className="text-white text-[6px] flex-1">John D. - Haircut</span>
+                  <span className="text-slate-400 text-[5px]">14:00</span>
+                </div>
+                <div className="flex items-center gap-1 bg-slate-700/40 rounded px-1 py-0.5">
+                  <div className="w-1 h-1 bg-blue-400 rounded-full" />
+                  <span className="text-white text-[6px] flex-1">Sarah M. - Consultation</span>
+                  <span className="text-slate-400 text-[5px]">16:30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Calendar Interface - Lower Section */}
+          <div className="absolute bottom-2 left-2 right-2 h-[50%] bg-slate-800/90 rounded-lg border border-slate-700/50 p-2 backdrop-blur-sm">
+            {/* Calendar Header */}
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1">
+                <button className="text-slate-400 text-[8px] hover:text-white">‹</button>
+                <span className="text-white text-[8px] font-semibold">July 2025</span>
+                <button className="text-slate-400 text-[8px] hover:text-white">›</button>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex text-[6px] bg-slate-700/60 rounded overflow-hidden">
+                  <button className="px-1 py-0.5 text-slate-400">M</button>
+                  <button className="px-1 py-0.5 bg-emerald-600 text-white">W</button>
+                  <button className="px-1 py-0.5 text-slate-400">Y</button>
+                </div>
+                <button className="bg-emerald-600 text-white text-[6px] px-1 py-0.5 rounded">+ New</button>
+              </div>
+            </div>
+            
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-px text-[5px]">
+              {/* Day Headers */}
+              {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => (
+                <div key={day} className="text-slate-400 text-center py-0.5 font-medium">{day}</div>
+              ))}
+              
+              {/* Calendar Dates */}
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21].map((date) => (
+                <div key={date} className="relative">
+                  <div className={`text-center py-0.5 h-3 flex items-center justify-center ${
+                    date === 9 ? 'bg-emerald-600 text-white rounded-sm' : 'text-slate-300 hover:bg-slate-700/50 rounded-sm'
+                  }`}>
+                    {date}
+                  </div>
+                  {date === 9 && (
+                    <div className="absolute -bottom-0.5 left-0 right-0 h-px bg-emerald-400" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Background accent elements */}
+          <div className="absolute top-1 right-1 w-2 h-2 bg-emerald-500/20 rounded-full" />
+          <div className="absolute bottom-1 left-1 w-3 h-3 bg-slate-600/30 rounded-full" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-3"
   }, {
