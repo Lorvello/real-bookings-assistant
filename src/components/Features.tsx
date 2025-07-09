@@ -181,7 +181,7 @@ const Features = () => {
           <div className="absolute top-6 left-8 w-2 h-2 bg-blue-500/50 rounded-full" />
           <div className="absolute bottom-4 right-4 w-4 h-4 border border-blue-300/30 rounded" />
         </div>,
-    className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3 min-h-[20rem]"
+    className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-4"
   }, {
     Icon: BellIcon,
     name: "Automatic Reminders",
