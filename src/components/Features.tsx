@@ -172,109 +172,113 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Complete Analytics Section - Top 40% */}
-          <div className="absolute top-1 left-1 right-1 h-[40%] bg-slate-800/95 rounded-lg border border-slate-700/50 p-1.5 backdrop-blur-sm">
+          {/* Modern Analytics Section - Top 45% */}
+          <div className="absolute top-2 left-2 right-2 h-[42%] bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm">
             {/* Analytics Header */}
-            <div className="flex items-center justify-between mb-1">
-              <h4 className="text-white text-[7px] font-semibold">Analytics Dashboard</h4>
-              <div className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-white text-[10px] font-semibold">Real-time Analytics</h4>
+              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
             </div>
             
-            {/* Complete 4-Card Analytics Layout */}
-            <div className="grid grid-cols-2 gap-1 mb-1.5">
-              <div className="bg-blue-600/90 rounded px-1.5 py-1 relative">
-                <div className="flex items-center gap-1">
-                  <div className="text-blue-200 text-[6px]">🕐</div>
-                  <div className="text-white text-[6px] font-bold">2.3m</div>
+            {/* Analytics Cards Layout */}
+            <div className="flex items-center justify-between h-full">
+              {/* Left: Key Metrics */}
+              <div className="flex-1 space-y-2">
+                <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="text-blue-400 text-[8px]">⚡</div>
+                    <div className="text-white text-[9px] font-bold">2.3m</div>
+                  </div>
+                  <div className="text-blue-300 text-[6px]">Avg Response</div>
                 </div>
-                <div className="text-blue-100 text-[4px]">average WhatsApp</div>
-              </div>
-              <div className="bg-orange-600/90 rounded px-1.5 py-1">
-                <div className="flex items-center gap-1">
-                  <div className="text-orange-200 text-[6px]">⚠</div>
-                  <div className="text-white text-[6px] font-bold">8.5%</div>
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="text-emerald-400 text-[8px]">📈</div>
+                    <div className="text-white text-[9px] font-bold">89%</div>
+                  </div>
+                  <div className="text-emerald-300 text-[6px]">Conversion</div>
                 </div>
-                <div className="text-orange-100 text-[4px]">last 30 days</div>
               </div>
-              <div className="bg-red-600/90 rounded px-1.5 py-1">
-                <div className="flex items-center gap-1">
-                  <div className="text-red-200 text-[6px]">⚠</div>
-                  <div className="text-white text-[6px] font-bold">12.3%</div>
+              
+              {/* Center: Donut Chart */}
+              <div className="flex-1 flex items-center justify-center">
+                <div className="relative w-12 h-12">
+                  {/* Donut Chart */}
+                  <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeDasharray="78, 100"
+                      className="text-emerald-500"
+                    />
+                    <path
+                      d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeDasharray="22, 100"
+                      strokeDashoffset="-78"
+                      className="text-slate-600"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-white text-[8px] font-bold">78%</span>
+                  </div>
                 </div>
-                <div className="text-red-100 text-[4px]">last 30 days</div>
               </div>
-              <div className="bg-emerald-600/90 rounded px-1.5 py-1">
-                <div className="flex items-center gap-1">
-                  <div className="text-emerald-200 text-[6px]">💬</div>
-                  <div className="text-white text-[6px] font-bold">67.8%</div>
+              
+              {/* Right: Additional Metrics */}
+              <div className="flex-1 space-y-2">
+                <div className="bg-orange-600/20 border border-orange-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="text-orange-400 text-[8px]">👁</div>
+                    <div className="text-white text-[9px] font-bold">1.2k</div>
+                  </div>
+                  <div className="text-orange-300 text-[6px]">Views</div>
                 </div>
-                <div className="text-emerald-100 text-[4px]">WhatsApp → Booking</div>
-              </div>
-            </div>
-            
-            {/* Complete Peak Hours Analysis */}
-            <div className="mb-1">
-              <div className="text-[5px] text-slate-300 mb-0.5 font-medium">Peak Hours Analysis</div>
-              <div className="flex items-end gap-px h-4 mb-1">
-                {[
-                  { hour: '6', height: 2, color: 'bg-slate-600' },
-                  { hour: '7', height: 3, color: 'bg-slate-600' },
-                  { hour: '8', height: 4, color: 'bg-slate-600' },
-                  { hour: '9', height: 6, color: 'bg-green-600' },
-                  { hour: '10', height: 8, color: 'bg-green-600' },
-                  { hour: '11', height: 12, color: 'bg-red-500' },
-                  { hour: '12', height: 10, color: 'bg-yellow-500' },
-                  { hour: '13', height: 9, color: 'bg-yellow-500' },
-                  { hour: '14', height: 11, color: 'bg-orange-500' },
-                  { hour: '15', height: 10, color: 'bg-orange-500' },
-                  { hour: '16', height: 8, color: 'bg-green-600' },
-                  { hour: '17', height: 6, color: 'bg-green-600' },
-                  { hour: '18', height: 4, color: 'bg-slate-600' },
-                  { hour: '19', height: 3, color: 'bg-slate-600' },
-                  { hour: '20', height: 2, color: 'bg-slate-600' },
-                  { hour: '21', height: 2, color: 'bg-slate-600' },
-                  { hour: '22', height: 1, color: 'bg-slate-600' }
-                ].map((bar, i) => (
-                  <div key={i} className={`w-1 ${bar.color} rounded-t-sm`} 
-                       style={{ height: `${bar.height * 2}px` }} 
-                       title={`${bar.hour}:00`} />
-                ))}
-              </div>
-              <div className="flex justify-between text-[4px] text-slate-400">
-                <span>6:00</span>
-                <span>11:00</span>
-                <span>22:00</span>
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="text-red-400 text-[8px]">⚠</div>
+                    <div className="text-white text-[9px] font-bold">8.5%</div>
+                  </div>
+                  <div className="text-red-300 text-[6px]">No-shows</div>
+                </div>
               </div>
             </div>
           </div>
           
-          {/* Complete Calendar Section - Bottom 55% */}
-          <div className="absolute top-[42%] left-1 right-1 h-[55%] bg-slate-800/95 rounded-lg border border-slate-700/50 p-1.5 backdrop-blur-sm">
-            {/* Complete Calendar Header */}
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1">
-                <button className="text-slate-400 text-[7px] hover:text-white transition-colors">‹</button>
-                <span className="text-white text-[8px] font-semibold">July 2025</span>
-                <button className="text-slate-400 text-[7px] hover:text-white transition-colors">›</button>
+          {/* Modern Calendar Section - Bottom 50% */}
+          <div className="absolute top-[47%] left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm">
+            {/* Calendar Header */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <button className="text-slate-400 text-[9px] hover:text-white transition-colors">‹</button>
+                <span className="text-white text-[10px] font-semibold">July 2025</span>
+                <button className="text-slate-400 text-[9px] hover:text-white transition-colors">›</button>
               </div>
               <div className="flex items-center gap-1">
-                <div className="flex text-[5px] bg-slate-700/60 rounded overflow-hidden">
-                  <button className="px-1 py-0.5 text-slate-400 hover:text-white">Month</button>
-                  <button className="px-1 py-0.5 bg-emerald-600 text-white">Week</button>
-                  <button className="px-1 py-0.5 text-slate-400 hover:text-white">Year</button>
+                <div className="flex text-[6px] bg-slate-700/60 rounded overflow-hidden">
+                  <button className="px-1.5 py-0.5 text-slate-400 hover:text-white">Month</button>
+                  <button className="px-1.5 py-0.5 bg-emerald-600 text-white">Week</button>
                 </div>
-                <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-[5px] px-1.5 py-0.5 rounded transition-colors">+ New Appointment</button>
+                <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-[6px] px-2 py-0.5 rounded transition-colors ml-1">+ New</button>
               </div>
             </div>
             
-            {/* Complete Calendar Grid */}
-            <div className="grid grid-cols-7 gap-px text-[5px]">
-              {/* Complete Day Headers */}
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-0.5 text-[6px]">
+              {/* Day Headers */}
               {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => (
                 <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">{day}</div>
               ))}
               
-              {/* Complete Calendar Dates - Full Month View */}
+              {/* Calendar Dates */}
               {[
                 { date: 30, isOtherMonth: true }, { date: 1, isOtherMonth: false }, { date: 2, isOtherMonth: false }, { date: 3, isOtherMonth: false }, { date: 4, isOtherMonth: false }, { date: 5, isOtherMonth: false }, { date: 6, isOtherMonth: false },
                 { date: 7, isOtherMonth: false }, { date: 8, isOtherMonth: false }, { date: 9, isOtherMonth: false, hasAppointment: true }, { date: 10, isOtherMonth: false }, { date: 11, isOtherMonth: false }, { date: 12, isOtherMonth: false }, { date: 13, isOtherMonth: false },
@@ -283,26 +287,23 @@ const Features = () => {
                 { date: 28, isOtherMonth: false }, { date: 29, isOtherMonth: false }, { date: 30, isOtherMonth: false }, { date: 31, isOtherMonth: false }, { date: 1, isOtherMonth: true }, { date: 2, isOtherMonth: true }, { date: 3, isOtherMonth: true }
               ].map((day, index) => (
                 <div key={index} className="relative">
-                  <div className={`text-center py-1 h-4 flex items-center justify-center text-[5px] transition-colors ${
+                  <div className={`text-center py-1 h-5 flex items-center justify-center text-[6px] transition-colors rounded ${
                     day.hasAppointment 
-                      ? 'bg-emerald-600 text-white rounded-sm font-medium' 
+                      ? 'bg-emerald-600 text-white font-medium' 
                       : day.isOtherMonth 
-                        ? 'text-slate-500 hover:bg-slate-700/30 rounded-sm' 
-                        : 'text-slate-300 hover:bg-slate-700/50 rounded-sm'
+                        ? 'text-slate-500 hover:bg-slate-700/30' 
+                        : 'text-slate-300 hover:bg-slate-700/50'
                   }`}>
                     {day.date}
                   </div>
-                  {day.hasAppointment && (
-                    <div className="absolute -bottom-0.5 left-1 right-1 h-0.5 bg-emerald-400 rounded-full" />
-                  )}
                 </div>
               ))}
             </div>
           </div>
           
-          {/* Subtle background accent elements */}
-          <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-500/20 rounded-full" />
-          <div className="absolute bottom-1 left-1 w-2 h-2 bg-slate-600/20 rounded-full" />
+          {/* Subtle decorative elements */}
+          <div className="absolute top-2 right-2 w-2 h-2 bg-emerald-500/20 rounded-full" />
+          <div className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-slate-600/20 rounded-full" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-3"
   }, {
