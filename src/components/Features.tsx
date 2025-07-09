@@ -22,8 +22,95 @@ const Features = () => {
       background: (
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
-          <div className="absolute top-4 right-4 w-8 h-8 bg-emerald-500/20 rounded-full blur-xl" />
-          <div className="absolute bottom-6 left-6 text-emerald-400/30 text-6xl font-bold">24/7</div>
+          
+          {/* iPhone Mockup - positioned in upper 60% */}
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-[40%] max-w-[120px]">
+            <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.5rem] p-[2px] shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
+              {/* iPhone screen */}
+              <div className="bg-white rounded-[1.3rem] overflow-hidden relative">
+                {/* iPhone notch */}
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 bg-black rounded-b-lg z-10"></div>
+                
+                {/* WhatsApp header */}
+                <div className="bg-[#25D366] text-white px-2 py-1.5 flex items-center gap-1.5 pt-4">
+                  <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-xs">🤖</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-[8px]">Hair Studio AI</h3>
+                    <p className="text-[6px] text-white/90">online</p>
+                  </div>
+                </div>
+                
+                {/* Chat area */}
+                <div className="bg-[#e5ddd5] min-h-[100px] p-1.5 space-y-1 text-[6px]">
+                  {/* Customer message */}
+                  <div className="flex justify-end">
+                    <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                      <p className="text-gray-800">Hallo, ik wil een afspraak boeken voor morgen</p>
+                    </div>
+                  </div>
+                  
+                  {/* AI response 1 */}
+                  <div className="flex justify-start">
+                    <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                      <p className="text-gray-800">Natuurlijk! Voor welke service? Ik heb deze opties:</p>
+                    </div>
+                  </div>
+                  
+                  {/* AI response 2 - services */}
+                  <div className="flex justify-start">
+                    <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                      <p className="text-gray-800">💇‍♀️ Knippen - €25 (45 min)<br/>💇‍♀️ Kleuren - €65 (90 min)<br/>💇‍♀️ Wassen - €15 (20 min)</p>
+                    </div>
+                  </div>
+                  
+                  {/* Customer choice */}
+                  <div className="flex justify-end">
+                    <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                      <p className="text-gray-800">Knippen graag</p>
+                    </div>
+                  </div>
+                  
+                  {/* AI response 3 - time slots */}
+                  <div className="flex justify-start">
+                    <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                      <p className="text-gray-800">Perfect! Wanneer schikt het? Morgen heb ik vrij:<br/>🕐 10:00<br/>🕐 14:00<br/>🕐 16:30</p>
+                    </div>
+                  </div>
+                  
+                  {/* Customer time choice */}
+                  <div className="flex justify-end">
+                    <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                      <p className="text-gray-800">14:00 is prima</p>
+                    </div>
+                  </div>
+                  
+                  {/* Final confirmation */}
+                  <div className="flex justify-start">
+                    <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                      <p className="text-gray-800">✅ Afspraak geboekt!<br/>📅 Morgen 14:00<br/>💇‍♀️ Knippen (€25)<br/>📍 Hair Studio Centrum</p>
+                    </div>
+                  </div>
+                  
+                  {/* Typing indicator */}
+                  <div className="flex justify-start">
+                    <div className="bg-white rounded-lg px-2 py-1">
+                      <div className="flex gap-0.5">
+                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Background accent elements */}
+          <div className="absolute bottom-6 left-6 text-emerald-400/30 text-4xl font-bold">24/7</div>
+          <div className="absolute top-4 right-4 w-6 h-6 bg-emerald-500/20 rounded-full blur-lg" />
         </div>
       ),
       className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
