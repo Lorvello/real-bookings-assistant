@@ -248,87 +248,90 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
-          {/* iPhone Mockup - positioned in upper 70%, centered */}
-          <div className="absolute top-0 left-0 right-0 h-[75%] flex justify-center items-center">
-            <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
-              {/* iPhone outer frame */}
-              <div className="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-[2.5rem] p-[3px] shadow-2xl h-full border border-gray-700">
-                {/* iPhone screen bezel */}
-                <div className="relative bg-black rounded-[2.2rem] p-[4px] h-full">
-                  {/* iPhone screen */}
-                  <div className="bg-white rounded-[1.8rem] relative h-full flex flex-col overflow-hidden shadow-inner">
-                {/* iPhone notch */}
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 bg-black rounded-b-lg z-10"></div>
-                
-                {/* WhatsApp header */}
-                <div className="bg-[#25D366] text-white px-2 py-1.5 flex items-center gap-1.5 pt-4">
-                  <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-xs">🤖</span>
+          {/* Background container for iPhone mockup */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+            {/* iPhone Mockup - positioned in upper 70%, centered */}
+            <div className="absolute top-0 left-0 right-0 h-[75%] flex justify-center items-center">
+              <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
+                {/* iPhone outer frame */}
+                <div className="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-[2.5rem] p-[3px] shadow-2xl h-full border border-gray-700">
+                  {/* iPhone screen bezel */}
+                  <div className="relative bg-black rounded-[2.2rem] p-[4px] h-full">
+                    {/* iPhone screen */}
+                    <div className="bg-white rounded-[1.8rem] relative h-full flex flex-col overflow-hidden shadow-inner">
+                  {/* iPhone notch */}
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 bg-black rounded-b-lg z-10"></div>
+                  
+                  {/* WhatsApp header */}
+                  <div className="bg-[#25D366] text-white px-2 py-1.5 flex items-center gap-1.5 pt-4">
+                    <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-xs">🤖</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-[8px]">Dental Care AI</h3>
+                      <p className="text-[6px] text-white/90">online</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-[8px]">Dental Care AI</h3>
-                    <p className="text-[6px] text-white/90">online</p>
-                  </div>
-                </div>
-                
-                  {/* Chat area - fills exactly from header to input */}
-                  <div className="bg-[#e5ddd5] flex-1 flex flex-col justify-between p-2 py-3">
-                    <div className="space-y-2">
-                    {/* Customer message */}
+                  
+                    {/* Chat area - fills exactly from header to input */}
+                    <div className="bg-[#e5ddd5] flex-1 flex flex-col justify-between p-2 py-3">
+                      <div className="space-y-2">
+                      {/* Customer message */}
+                        <div className="flex justify-end">
+                        <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                          <p className="text-gray-800 text-[9px] font-medium leading-tight">Hi, I need to reschedule my appointment</p>
+                        </div>
+                    </div>
+                    
+                      {/* AI response 1 */}
+                      <div className="flex justify-start">
+                        <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                          <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! You have a cleaning scheduled for tomorrow at 2:00 PM. When would work better for you?</p>
+                        </div>
+                    </div>
+                    
+                    
+                      {/* Customer choice */}
                       <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Hi, I need to reschedule my appointment</p>
+                        <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                          <p className="text-gray-800 text-[9px] font-medium leading-tight">Can we move it to next week Friday?</p>
+                        </div>
+                    </div>
+                    
+                      {/* AI response 3 - time slots */}
+                      <div className="flex justify-start">
+                        <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                          <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! Here are available times for Friday:<br />🕐 9:00 AM<br />🕐 1:00 PM<br />🕐 4:00 PM</p>
+                        </div>
+                    </div>
+                    
+                      {/* Customer time choice */}
+                      <div className="flex justify-end">
+                        <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                          <p className="text-gray-800 text-[9px] font-medium leading-tight">4:00 PM works</p>
+                        </div>
+                    </div>
+                    
+                      {/* Final confirmation */}
+                      <div className="flex justify-start">
+                        <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                          <p className="text-gray-800 text-[9px] font-medium leading-tight">Appointment rescheduled to Friday 4:00 PM ✅</p>
+                        </div>
                       </div>
-                  </div>
-                  
-                    {/* AI response 1 */}
-                    <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! You have a cleaning scheduled for tomorrow at 2:00 PM. When would work better for you?</p>
                       </div>
-                  </div>
-                  
-                  
-                    {/* Customer choice */}
-                    <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Can we move it to next week Friday?</p>
-                      </div>
-                  </div>
-                  
-                    {/* AI response 3 - time slots */}
-                    <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! Here are available times for Friday:<br />🕐 9:00 AM<br />🕐 1:00 PM<br />🕐 4:00 PM</p>
-                      </div>
-                  </div>
-                  
-                    {/* Customer time choice */}
-                    <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">4:00 PM works</p>
-                      </div>
-                  </div>
-                  
-                    {/* Final confirmation */}
-                    <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Appointment rescheduled to Friday 4:00 PM ✅</p>
+                    </div>
+                    
+                    {/* WhatsApp Input Bar */}
+                    <div className="bg-gray-100 border-t border-gray-200 px-3 py-2">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-gray-500 text-sm">😊</span>
+                         <div className="flex-1 bg-white rounded-full px-2 py-1">
+                           <div className="text-[9px] text-gray-400 font-medium">Type a message</div>
+                         </div>
+                        <span className="text-gray-500 text-sm">🎤</span>
                       </div>
                     </div>
                     </div>
-                  </div>
-                  
-                  {/* WhatsApp Input Bar */}
-                  <div className="bg-gray-100 border-t border-gray-200 px-3 py-2">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-gray-500 text-sm">😊</span>
-                       <div className="flex-1 bg-white rounded-full px-2 py-1">
-                         <div className="text-[9px] text-gray-400 font-medium">Type a message</div>
-                       </div>
-                      <span className="text-gray-500 text-sm">🎤</span>
-                    </div>
-                  </div>
                   </div>
                 </div>
               </div>
@@ -336,7 +339,6 @@ const Features = () => {
           </div>
           
           {/* Background accent elements */}
-          
           <div className="absolute top-4 right-4 w-6 h-6 bg-emerald-500/20 rounded-full blur-lg" />
         </div>,
     className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
@@ -840,33 +842,35 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
-          {/* Dark WhatsApp Notification */}
-          <div className="absolute top-3 left-3 right-3 bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3">
-            {/* WhatsApp App Header */}
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                {/* Authentic WhatsApp Logo */}
-                <div className="w-4 h-4 bg-[#25D366] rounded-sm flex items-center justify-center">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="text-white">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.251" fill="currentColor"/>
-                  </svg>
+          {/* Background container for WhatsApp notification */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+            {/* Dark WhatsApp Notification */}
+            <div className="bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3">
+              {/* WhatsApp App Header */}
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  {/* Authentic WhatsApp Logo */}
+                  <div className="w-4 h-4 bg-[#25D366] rounded-sm flex items-center justify-center">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="text-white">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.251" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <span className="text-gray-400 text-xs uppercase font-medium tracking-wide">WhatsApp</span>
                 </div>
-                <span className="text-gray-400 text-xs uppercase font-medium tracking-wide">WhatsApp</span>
+                <span className="text-gray-500 text-xs">13m ago</span>
               </div>
-              <span className="text-gray-500 text-xs">13m ago</span>
-            </div>
-            
-            {/* Sender Name */}
-            <div className="mb-1">
-              <span className="text-white text-sm font-medium">Wellness Clinic</span>
-            </div>
-            
-            {/* Message Preview */}
-            <div className="text-gray-200 text-xs leading-relaxed">
-              🔔 Reminder: Your appointment is tomorrow at 2:00 PM.
+              
+              {/* Sender Name */}
+              <div className="mb-1">
+                <span className="text-white text-sm font-medium">Wellness Clinic</span>
+              </div>
+              
+              {/* Message Preview */}
+              <div className="text-gray-200 text-xs leading-relaxed">
+                🔔 Reminder: Your appointment is tomorrow at 2:00 PM.
+              </div>
             </div>
           </div>
-          
           
           <div className="absolute top-4 right-4 w-6 h-1 bg-emerald-500/40 rounded-full animate-pulse" />
         </div>,
