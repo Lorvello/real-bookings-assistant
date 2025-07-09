@@ -112,7 +112,7 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
           
           {/* Compact Settings Interface */}
-          <div className="absolute top-4 left-4 right-4 h-[60%] bg-slate-800/80 rounded-lg border border-slate-600/50 p-3 backdrop-blur-sm">
+          <div className="absolute top-4 left-4 right-4 h-[55%] bg-slate-800/80 rounded-lg border border-slate-600/50 p-3 backdrop-blur-sm">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-white text-xs font-semibold">Settings</h4>
@@ -181,7 +181,7 @@ const Features = () => {
           <div className="absolute top-6 left-8 w-2 h-2 bg-blue-500/50 rounded-full" />
           <div className="absolute bottom-4 right-4 w-4 h-4 border border-blue-300/30 rounded" />
         </div>,
-    className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3 min-h-[20rem]"
+    className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3"
   }, {
     Icon: BellIcon,
     name: "Automatic Reminders",
