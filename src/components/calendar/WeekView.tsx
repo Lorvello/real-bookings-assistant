@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { nl } from 'date-fns/locale';
 import { BookingDetailModal } from './BookingDetailModal';
 
 interface Booking {
@@ -166,7 +166,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
                 : 'hover:bg-accent/50'
             }`}>
               <div className="text-xs text-muted-foreground font-medium">
-                {format(day, 'EEE', { locale: enUS })}
+                {format(day, 'EEE', { locale: nl })}
               </div>
               <div className={`text-lg font-bold mt-0.5 ${
                 isToday(day) ? 'text-primary' : 'text-foreground'
@@ -174,7 +174,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
                 {format(day, 'd')}
               </div>
               <div className="text-xs text-muted-foreground">
-                {format(day, 'MMM', { locale: enUS })}
+                {format(day, 'MMM', { locale: nl })}
               </div>
             </div>
           ))}

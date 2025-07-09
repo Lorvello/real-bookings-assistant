@@ -1,6 +1,6 @@
 
 import { format } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { nl } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -26,11 +26,11 @@ export function CalendarHeader({
   const formatTitle = () => {
     switch (currentView) {
       case 'week':
-        return format(currentDate, "'Week of' MMMM d, yyyy", { locale: enUS });
+        return format(currentDate, "'Week van' d MMMM yyyy", { locale: nl });
       case 'year':
         return format(currentDate, 'yyyy');
       default:
-        return format(currentDate, 'MMMM yyyy', { locale: enUS });
+        return format(currentDate, 'MMMM yyyy', { locale: nl });
     }
   };
 
