@@ -181,29 +181,9 @@ const Features = () => {
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => {
-                    const newMonth = new Date(currentMonth);
-                    newMonth.setMonth(newMonth.getMonth() - 1);
-                    setCurrentMonth(newMonth);
-                  }}
-                  className="text-slate-400 text-[12px] hover:text-white transition-colors"
-                >
-                  ‹
-                </button>
                 <span className="text-white text-[12px] font-semibold">
                   {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </span>
-                <button 
-                  onClick={() => {
-                    const newMonth = new Date(currentMonth);
-                    newMonth.setMonth(newMonth.getMonth() + 1);
-                    setCurrentMonth(newMonth);
-                  }}
-                  className="text-slate-400 text-[12px] hover:text-white transition-colors"
-                >
-                  ›
-                </button>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex text-[7px] bg-slate-700/60 rounded overflow-hidden">
@@ -228,7 +208,6 @@ const Features = () => {
                     Week
                   </button>
                 </div>
-                <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-[7px] px-2 py-1 rounded transition-colors">+ New</button>
               </div>
             </div>
             
@@ -316,25 +295,41 @@ const Features = () => {
                   ))}
                 </div>
                 
-                {/* Time Slots */}
-                {['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'].map((time, timeIndex) => (
+                {/* Time Slots - Extended to 24 hours */}
+                {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map((time, timeIndex) => (
                   <div key={time} className="grid grid-cols-8 gap-1 text-[7px]">
                     <div className="text-slate-400 text-right py-1 pr-2">{time}</div>
                     {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
-                      <div key={dayIndex} className="border border-slate-700/30 h-5 rounded relative">
-                        {/* Add fitness appointments in week view */}
-                        {(timeIndex === 1 && dayIndex === 0) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">John PT</div>
-                        ) : (timeIndex === 3 && dayIndex === 2) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">Yoga</div>
-                        ) : (timeIndex === 5 && dayIndex === 1) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">Massage</div>
-                        ) : (timeIndex === 2 && dayIndex === 4) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">Pilates</div>
-                        ) : (timeIndex === 4 && dayIndex === 3) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">CrossFit</div>
-                        ) : (timeIndex === 6 && dayIndex === 5) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">Nutrition</div>
+                      <div key={dayIndex} className="border border-slate-700/30 h-4 rounded relative">
+                        {/* Add diverse fitness appointments throughout 24 hours */}
+                        {(timeIndex === 6 && dayIndex === 0) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Marcus HIIT</div>
+                        ) : (timeIndex === 8 && dayIndex === 1) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Jessica Zumba</div>
+                        ) : (timeIndex === 10 && dayIndex === 0) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">John PT</div>
+                        ) : (timeIndex === 12 && dayIndex === 2) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Nina Spin</div>
+                        ) : (timeIndex === 14 && dayIndex === 1) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Mike Massage</div>
+                        ) : (timeIndex === 16 && dayIndex === 4) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Emma Pilates</div>
+                        ) : (timeIndex === 17 && dayIndex === 3) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Tom CrossFit</div>
+                        ) : (timeIndex === 18 && dayIndex === 5) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Roberto Boxing</div>
+                        ) : (timeIndex === 19 && dayIndex === 0) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Anna Yoga</div>
+                        ) : (timeIndex === 20 && dayIndex === 6) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">David Weights</div>
+                        ) : (timeIndex === 11 && dayIndex === 3) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Lisa Nutrition</div>
+                        ) : (timeIndex === 15 && dayIndex === 2) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Sam Functional</div>
+                        ) : (timeIndex === 9 && dayIndex === 5) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Kate Cardio</div>
+                        ) : (timeIndex === 13 && dayIndex === 6) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Ben Strength</div>
                         ) : null}
                       </div>
                     ))}
@@ -385,34 +380,34 @@ const Features = () => {
           
           {/* Analytics Section */}
           <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm flex items-center justify-center">
-            {/* Main Analytics Grid - Expanded */}
-            <div className="grid grid-cols-2 gap-4 w-full">
+            {/* Main Analytics Grid - 4 Columns */}
+            <div className="grid grid-cols-4 gap-3 w-full">
               {/* Response Time */}
-              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 text-center">
-                <div className="text-blue-400 text-[16px] mb-2">⚡</div>
-                <div className="text-white text-[18px] font-bold mb-1">2.3m</div>
-                <div className="text-blue-300 text-[10px] uppercase tracking-wider">Response</div>
+              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3 text-center">
+                <div className="text-blue-400 text-[14px] mb-1">⚡</div>
+                <div className="text-white text-[16px] font-bold mb-1">2.3m</div>
+                <div className="text-blue-300 text-[8px] uppercase tracking-wider">Response</div>
               </div>
               
               {/* Views */}
-              <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-4 text-center">
-                <div className="text-purple-400 text-[16px] mb-2">👁</div>
-                <div className="text-white text-[18px] font-bold mb-1">1.2k</div>
-                <div className="text-purple-300 text-[10px] uppercase tracking-wider">Views</div>
+              <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-3 text-center">
+                <div className="text-purple-400 text-[14px] mb-1">👁</div>
+                <div className="text-white text-[16px] font-bold mb-1">1.2k</div>
+                <div className="text-purple-300 text-[8px] uppercase tracking-wider">Views</div>
               </div>
               
               {/* Conversion */}
-              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 text-center">
-                <div className="text-emerald-400 text-[16px] mb-2">📈</div>
-                <div className="text-white text-[18px] font-bold mb-1">89%</div>
-                <div className="text-emerald-300 text-[10px] uppercase tracking-wider">Convert</div>
+              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+                <div className="text-emerald-400 text-[14px] mb-1">📈</div>
+                <div className="text-white text-[16px] font-bold mb-1">89%</div>
+                <div className="text-emerald-300 text-[8px] uppercase tracking-wider">Convert</div>
               </div>
               
               {/* No-shows */}
-              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-4 text-center">
-                <div className="text-red-400 text-[16px] mb-2">⚠</div>
-                <div className="text-white text-[18px] font-bold mb-1">8.5%</div>
-                <div className="text-red-300 text-[10px] uppercase tracking-wider">No-shows</div>
+              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-3 text-center">
+                <div className="text-red-400 text-[14px] mb-1">⚠</div>
+                <div className="text-white text-[16px] font-bold mb-1">8.5%</div>
+                <div className="text-red-300 text-[8px] uppercase tracking-wider">No-shows</div>
               </div>
             </div>
           </div>
