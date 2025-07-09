@@ -2,7 +2,7 @@ import { LightningBoltIcon as BoltIcon, GearIcon, CalendarIcon, Link2Icon, BellI
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Check } from "lucide-react";
+import { X, Check, Calendar, Users, MessageCircle, Clock, CheckCircle, Activity } from "lucide-react";
 import { TranslationDemo } from "@/components/TranslationDemo";
 
 const Features = () => {
@@ -12,6 +12,11 @@ const Features = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const calendarRef = useRef<HTMLDivElement>(null);
+  
+  // Slideshow state for Real-time Dashboard Monitoring
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   // Extended booking data for both views
   const bookings = {
@@ -240,6 +245,34 @@ const Features = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showPopup]);
+
+  // Slideshow touch/swipe handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && currentSlide === 0) {
+      setCurrentSlide(1);
+    }
+    if (isRightSwipe && currentSlide === 1) {
+      setCurrentSlide(0);
+    }
+  };
+
+  const handleSlideToggle = () => {
+    setCurrentSlide(currentSlide === 0 ? 1 : 0);
+  };
   const bookingFeatures = [{
     Icon: BoltIcon,
     name: "100% Automatic Bookings",
@@ -942,111 +975,119 @@ const Features = () => {
     description: "View live bookings, performance and customer interactions",
     href: "/features/monitoring",
     cta: "Learn more",
-    background: <div className="absolute inset-0">
+     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-purple-700/20" />
           
-          {/* Live Operations Dashboard */}
-          <div className="absolute top-2 left-2 right-2 bottom-12 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
-            {/* Header Row */}
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-white text-[10px] font-semibold">Live Operations</h4>
-              <div className="flex items-center gap-1">
-                <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                <span className="text-emerald-400 text-[8px]">Real-time</span>
-              </div>
-            </div>
-            
-            {/* Top Stats Grid */}
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              {/* Today's Bookings */}
-              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
-                <div className="flex items-center gap-1 mb-1">
-                  <CalendarIcon className="w-2.5 h-2.5 text-emerald-400" />
-                  <span className="text-emerald-200 text-[8px] font-medium">Today</span>
-                </div>
-                <div className="text-white text-[16px] font-bold leading-none">5</div>
-                <div className="text-emerald-300 text-[7px] mt-0.5">confirmed, 2 pending</div>
-              </div>
-              
-              {/* Currently Active */}
-              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-2">
-                <div className="flex items-center gap-1 mb-1">
-                  <BoltIcon className="w-2.5 h-2.5 text-blue-400" />
-                  <span className="text-blue-200 text-[8px] font-medium">Active Now</span>
-                </div>
-                <div className="text-white text-[16px] font-bold leading-none">3</div>
-                <div className="text-blue-300 text-[7px] mt-0.5">ongoing appointments</div>
-              </div>
-            </div>
-            
-            {/* WhatsApp Activity */}
-            <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-2 mb-3">
-              <div className="flex items-center gap-1 mb-1">
-                <BellIcon className="w-2.5 h-2.5 text-green-400" />
-                <span className="text-green-200 text-[8px] font-medium">WhatsApp Live</span>
-              </div>
-              <div className="text-white text-[14px] font-bold leading-none">17</div>
-              <div className="text-green-300 text-[7px] mt-0.5">messages in the last hour</div>
-            </div>
-            
-            {/* Next Appointment */}
-            <div className="mb-3">
-              <div className="flex items-center gap-1 mb-1.5">
-                <CalendarIcon className="w-2 h-2 text-amber-400" />
-                <span className="text-slate-300 text-[8px] font-medium">Next Appointment</span>
-              </div>
-              <div className="text-white text-[10px] font-bold">Laura van Dijk</div>
-              <div className="text-amber-300 text-[7px]">09:30 today</div>
-            </div>
-            
-            {/* System Status */}
-            <div className="mb-3">
-              <span className="text-slate-300 text-[8px] font-medium mb-1.5 block">Live System Status</span>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-[7px]">
-                  <span className="text-slate-400 flex items-center gap-1">
-                    <div className="w-1 h-1 bg-emerald-400 rounded-full" />
-                    Calendar
-                  </span>
-                  <span className="text-emerald-400 font-semibold">Online</span>
-                </div>
-                <div className="flex items-center justify-between text-[7px]">
-                  <span className="text-slate-400 flex items-center gap-1">
-                    <Check className="w-2 h-2 text-emerald-400" />
-                    WhatsApp Bot
-                  </span>
-                  <span className="text-emerald-400 font-semibold">Active</span>
-                </div>
-                <div className="flex items-center justify-between text-[7px]">
-                  <span className="text-slate-400 flex items-center gap-1">
-                    <div className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
-                    Real-time Sync
-                  </span>
-                  <span className="text-emerald-400 font-semibold">Live</span>
+          {/* Slideshow Container */}
+          <div className="absolute top-2 left-2 right-2 bottom-12 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm overflow-hidden">
+            <div 
+              className="flex h-full transition-transform duration-300 ease-in-out"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            >
+              {/* Slide 1: Main Stats */}
+              <div className="w-full flex-shrink-0 pt-1">
+                {/* Main Stats Grid */}
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Today Stats */}
+                  <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+                    <Calendar className="h-4 w-4 text-emerald-400 mx-auto mb-1" />
+                    <div className="text-white text-[16px] font-bold">5</div>
+                    <div className="text-xs text-emerald-300">Today</div>
+                    <div className="text-[10px] text-emerald-400">5 confirmed, 2 pending</div>
+                  </div>
+
+                  {/* Currently Active */}
+                  <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+                    <Users className="h-4 w-4 text-emerald-400 mx-auto mb-1" />
+                    <div className="text-white text-[16px] font-bold">3</div>
+                    <div className="text-xs text-emerald-300">Active Now</div>
+                    <div className="text-[10px] text-emerald-400">ongoing appointments</div>
+                  </div>
+
+                  {/* WhatsApp Live */}
+                  <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+                    <MessageCircle className="h-4 w-4 text-emerald-400 mx-auto mb-1" />
+                    <div className="text-white text-[16px] font-bold">17</div>
+                    <div className="text-xs text-emerald-300">WhatsApp Live</div>
+                    <div className="text-[10px] text-emerald-400">messages last hour</div>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Today's Schedule */}
-            <div>
-              <span className="text-slate-300 text-[8px] font-medium mb-1 block">Today's Schedule</span>
-              <div className="space-y-1">
-                <div className="text-[7px] text-slate-400">
-                  <span className="text-white font-medium">09:30</span> – Laura van Dijk
+
+              {/* Slide 2: Detailed Information */}
+              <div className="w-full flex-shrink-0 pt-1">
+                {/* Next Appointment */}
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 mb-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4 text-emerald-400" />
+                    <span className="text-xs font-medium text-emerald-300">Next Appointment</span>
+                  </div>
+                  <div className="text-sm font-semibold text-white">Laura van Dijk</div>
+                  <div className="text-xs text-emerald-400">09:30 • Today</div>
                 </div>
-                <div className="text-[7px] text-slate-400">
-                  <span className="text-white font-medium">11:00</span> – Patrick Janssen
+
+                {/* System Status */}
+                <div className="space-y-2 mb-3">
+                  <div className="text-xs font-medium text-emerald-300 mb-2">System Status</div>
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-slate-300">Calendar</span>
+                    </div>
+                    <span className="text-green-400">Online</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-3 w-3 text-green-400" />
+                      <span className="text-slate-300">WhatsApp Bot</span>
+                    </div>
+                    <span className="text-green-400">Active</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-3 w-3 text-green-400 animate-pulse" />
+                      <span className="text-slate-300">Real-time Sync</span>
+                    </div>
+                    <span className="text-green-400">Live</span>
+                  </div>
                 </div>
-                <div className="text-[7px] text-slate-400">
-                  <span className="text-white font-medium">14:00</span> – Aisha Karim
+
+                {/* Today's Schedule */}
+                <div className="space-y-1 mb-3">
+                  <div className="text-xs font-medium text-emerald-300 mb-1">Today's Schedule</div>
+                  <div className="text-[10px] text-slate-300">09:30 – Laura van Dijk</div>
+                  <div className="text-[10px] text-slate-300">11:00 – Patrick Janssen</div>
+                  <div className="text-[10px] text-slate-300">14:00 – Aisha Karim</div>
                 </div>
               </div>
             </div>
+
+            {/* Slide Indicators */}
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2">
+              {[0, 1].map((index) => (
+                <button
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                    currentSlide === index ? 'bg-emerald-400' : 'bg-slate-600'
+                  }`}
+                  onClick={() => setCurrentSlide(index)}
+                />
+              ))}
+            </div>
+
+            {/* Touch/Swipe Area */}
+            <div 
+              className="absolute inset-0 cursor-pointer"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onClick={handleSlideToggle}
+            />
           </div>
-          
+
           {/* Bottom timestamp */}
           <div className="absolute bottom-2 left-2 right-2 text-center">
-            <span className="text-slate-400 text-[7px]">Last update 11:48:51 PM</span>
+            <span className="text-slate-400 text-[7px]">Last update {new Date().toLocaleTimeString('en-US')}</span>
           </div>
           
           {/* Background accent elements */}
