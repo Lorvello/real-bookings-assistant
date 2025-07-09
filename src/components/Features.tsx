@@ -23,8 +23,8 @@ const Features = () => {
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
-          {/* iPhone Mockup - repositioned to center-right */}
-          <div className="absolute top-1/2 left-[35%] transform -translate-y-1/2 w-[60%] max-w-[200px]">
+          {/* iPhone Mockup - positioned in upper 65%, centered */}
+          <div className="absolute top-[15%] left-1/2 transform -translate-x-1/2 w-[40%] max-w-[160px]">
             <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.5rem] p-[2px] shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
               {/* iPhone screen */}
               <div className="bg-white rounded-[1.3rem] overflow-hidden relative">

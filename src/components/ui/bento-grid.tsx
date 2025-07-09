@@ -58,8 +58,10 @@ const BentoCard = ({
   >
     <div>{background}</div>
     <div className={cn(
-      "pointer-events-none z-10 flex transform-gpu flex-col gap-2 p-6 transition-all duration-300 group-hover:-translate-y-2",
-      name === "100% Automatic Bookings" ? "w-[35%]" : ""
+      "pointer-events-none z-10 flex transform-gpu flex-col gap-2 transition-all duration-300 group-hover:-translate-y-2",
+      name === "100% Automatic Bookings" 
+        ? "absolute bottom-0 left-0 right-0 text-center p-6 pt-5" 
+        : "p-6"
     )}>
       <Icon className="h-12 w-12 origin-left transform-gpu text-emerald-400 transition-all duration-300 ease-in-out group-hover:scale-110 group-hover:text-emerald-300" />
       <h3 className={cn(
