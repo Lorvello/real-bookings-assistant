@@ -269,7 +269,7 @@ const Features = () => {
                   })()}
                 </div>
                 
-                {/* Booking Summary */}
+                 {/* Booking Summary */}
                 <div className="bg-slate-700/50 rounded-lg p-2 mt-2">
                   <div className="text-slate-300 text-[8px] font-medium mb-1">Today's Bookings</div>
                   <div className="space-y-1">
@@ -278,8 +278,20 @@ const Features = () => {
                       <span className="text-emerald-400">Confirmed</span>
                     </div>
                     <div className="flex justify-between items-center text-[7px]">
+                      <span className="text-slate-400">11:30 - Lisa (Yoga Class)</span>
+                      <span className="text-emerald-400">Confirmed</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[7px]">
                       <span className="text-slate-400">14:00 - Mike (Massage Therapy)</span>
-                      <span className="text-yellow-400">Pending</span>
+                      <span className="text-emerald-400">Confirmed</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[7px]">
+                      <span className="text-slate-400">16:30 - Sofia (Pilates)</span>
+                      <span className="text-emerald-400">Confirmed</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[7px]">
+                      <span className="text-slate-400">18:00 - David (Strength Training)</span>
+                      <span className="text-emerald-400">Confirmed</span>
                     </div>
                   </div>
                 </div>
@@ -300,7 +312,7 @@ const Features = () => {
                   <div key={time} className="grid grid-cols-8 gap-1 text-[7px]">
                     <div className="text-slate-400 text-right py-1 pr-2">{time}</div>
                     {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
-                      <div key={dayIndex} className="border border-slate-700/30 h-4 rounded relative">
+                      <div key={dayIndex} className="border border-slate-700/30 h-3 rounded relative">
                         {/* Add diverse fitness appointments throughout 24 hours */}
                         {(timeIndex === 6 && dayIndex === 0) ? (
                           <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Marcus HIIT</div>
@@ -379,7 +391,7 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
           {/* Analytics Section */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm flex items-center justify-center">
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm flex items-start justify-center pt-6">
             {/* Main Analytics Grid - 4 Columns */}
             <div className="grid grid-cols-4 gap-3 w-full">
               {/* Response Time */}
