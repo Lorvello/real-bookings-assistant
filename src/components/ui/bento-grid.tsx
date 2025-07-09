@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 interface BentoGridProps {
   children: ReactNode;
   className?: string;
-  rowHeight?: string;
 }
 
 interface BentoCardProps {
@@ -20,14 +19,13 @@ interface BentoCardProps {
   hideCta?: boolean;
 }
 
-const BentoGrid = ({ children, className, rowHeight = "22rem" }: BentoGridProps) => {
+const BentoGrid = ({ children, className }: BentoGridProps) => {
   return (
     <div
       className={cn(
-        "grid w-full grid-cols-1 gap-4 lg:grid-cols-3",
+        "grid w-full auto-rows-[22rem] grid-cols-1 gap-4 lg:grid-cols-3",
         className,
       )}
-      style={{ gridAutoRows: rowHeight }}
     >
       {children}
     </div>
