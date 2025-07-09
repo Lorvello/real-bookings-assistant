@@ -1,6 +1,7 @@
 import { LightningBoltIcon as BoltIcon, GearIcon, CalendarIcon, Link2Icon, BellIcon, BarChartIcon as BarChart3Icon, GlobeIcon, DesktopIcon as MonitorIcon } from "@radix-ui/react-icons";
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 const Features = () => {
@@ -182,17 +183,62 @@ const Features = () => {
 
   const handleBookingClick = (booking: any, event: React.MouseEvent) => {
     event.stopPropagation();
-    if (calendarRef.current) {
-      const rect = calendarRef.current.getBoundingClientRect();
-      const targetRect = (event.target as HTMLElement).getBoundingClientRect();
-      setPopupPosition({
-        x: targetRect.left - rect.left + targetRect.width / 2,
-        y: targetRect.top - rect.top - 10
-      });
+    const targetRect = (event.target as HTMLElement).getBoundingClientRect();
+    
+    // Calculate global position for fixed positioning
+    const x = targetRect.left + targetRect.width / 2;
+    const y = targetRect.top - 10;
+    
+    // Check viewport boundaries and adjust position
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const popupWidth = 280;
+    const popupHeight = 300;
+    
+    let adjustedX = x;
+    let adjustedY = y;
+    
+    // Flip horizontally if popup would go off-screen
+    if (x + popupWidth / 2 > viewportWidth - 20) {
+      adjustedX = viewportWidth - popupWidth / 2 - 20;
+    } else if (x - popupWidth / 2 < 20) {
+      adjustedX = popupWidth / 2 + 20;
     }
+    
+    // Flip vertically if popup would go off-screen
+    if (y - popupHeight < 20) {
+      adjustedY = targetRect.bottom + 10;
+    }
+    
+    setPopupPosition({ x: adjustedX, y: adjustedY });
     setSelectedBooking(booking);
     setShowPopup(true);
   };
+
+  // Handle escape key and click outside
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showPopup) {
+        setShowPopup(false);
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showPopup && !(e.target as Element).closest('[data-popup]')) {
+        setShowPopup(false);
+      }
+    };
+
+    if (showPopup) {
+      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showPopup]);
   const bookingFeatures = [{
     Icon: BoltIcon,
     name: "100% Automatic Bookings",
@@ -370,7 +416,7 @@ const Features = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-white text-[12px] font-semibold">
-                  {currentMonth.toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })}
+                  {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -521,10 +567,11 @@ const Features = () => {
               </div>
             )}
 
-            {/* Booking Popup */}
-            {showPopup && selectedBooking && (
+            {/* Booking Popup rendered via Portal */}
+            {showPopup && selectedBooking && createPortal(
               <div 
-                className="absolute z-50 bg-slate-900/95 border border-slate-600/50 rounded-lg p-3 backdrop-blur-sm shadow-2xl"
+                data-popup="true"
+                className="fixed z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg p-3 backdrop-blur-sm shadow-2xl"
                 style={{
                   left: `${popupPosition.x}px`,
                   top: `${popupPosition.y}px`,
@@ -578,7 +625,8 @@ const Features = () => {
                     </div>
                   )}
                 </div>
-              </div>
+              </div>,
+              document.body
             )}
           </div>
           
