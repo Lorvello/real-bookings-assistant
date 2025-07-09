@@ -753,6 +753,75 @@ const Features = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Comparison Row 5 */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <X className="w-2 h-2 text-red-400" />
+                    <span className="text-red-400 text-[7px] font-medium">Normal</span>
+                  </div>
+                  <div className="bg-red-500/10 rounded px-2 py-1">
+                    <p className="text-red-300 text-[7px] leading-tight">"Annuleren niet mogelijk"</p>
+                  </div>
+                </div>
+                
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Check className="w-2 h-2 text-emerald-400" />
+                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                  </div>
+                  <div className="bg-emerald-500/10 rounded px-2 py-1">
+                    <p className="text-emerald-300 text-[7px] leading-tight">"Natuurlijk, welke afspraak wil je annuleren? Zal ik direct een nieuwe tijd voorstellen?"</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Comparison Row 6 */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <X className="w-2 h-2 text-red-400" />
+                    <span className="text-red-400 text-[7px] font-medium">Normal</span>
+                  </div>
+                  <div className="bg-red-500/10 rounded px-2 py-1">
+                    <p className="text-red-300 text-[7px] leading-tight">"Maandag t/m vrijdag 9-17u"</p>
+                  </div>
+                </div>
+                
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Check className="w-2 h-2 text-emerald-400" />
+                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                  </div>
+                  <div className="bg-emerald-500/10 rounded px-2 py-1">
+                    <p className="text-emerald-300 text-[7px] leading-tight">"We zijn vandaag open tot 17:00. Kan ik je nu nog inplannen of liever morgen?"</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Comparison Row 7 */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <X className="w-2 h-2 text-red-400" />
+                    <span className="text-red-400 text-[7px] font-medium">Normal</span>
+                  </div>
+                  <div className="bg-red-500/10 rounded px-2 py-1">
+                    <p className="text-red-300 text-[7px] leading-tight">"Vul je gegevens in"</p>
+                  </div>
+                </div>
+                
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Check className="w-2 h-2 text-emerald-400" />
+                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                  </div>
+                  <div className="bg-emerald-500/10 rounded px-2 py-1">
+                    <p className="text-emerald-300 text-[7px] leading-tight">"Hallo Sarah! Zelfde contactgegevens als vorige keer gebruiken?"</p>
+                  </div>
+                </div>
+              </div>
             </div>
             
             {/* Bottom Feature Tags */}
