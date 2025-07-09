@@ -2,7 +2,7 @@ import { LightningBoltIcon as BoltIcon, GearIcon, CalendarIcon, Link2Icon, BellI
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 
 const Features = () => {
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
@@ -639,16 +639,133 @@ const Features = () => {
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-3"
   }, {
-    Icon: Link2Icon,
-    name: "Connect Your Existing Calendar",
-    description: "Integrate seamlessly with Google Calendar, Outlook, Calendly and more",
-    href: "/features/integration",
+    Icon: BoltIcon,
+    name: "Smart AI Responses",
+    description: "See how our AI provides intelligent, contextual responses",
+    href: "/features/ai-responses",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
-          <div className="absolute top-3 left-3 w-3 h-3 border border-blue-400/40 rounded-full" />
-          <div className="absolute top-6 left-8 w-2 h-2 bg-blue-500/50 rounded-full" />
-          <div className="absolute bottom-4 right-4 w-4 h-4 border border-blue-300/30 rounded" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          
+          {/* Smart AI Comparison Interface */}
+          <div className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-center mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-white text-[10px] font-semibold">Normal</span>
+                <div className="w-4 h-4 bg-emerald-500/30 rounded-full flex items-center justify-center">
+                  <span className="text-[8px] text-emerald-400">vs</span>
+                </div>
+                <span className="text-emerald-400 text-[10px] font-semibold">Smart AI</span>
+              </div>
+            </div>
+            
+            {/* Comparison Grid */}
+            <div className="flex-1 space-y-2">
+              {/* Comparison Row 1 */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <X className="w-2 h-2 text-red-400" />
+                    <span className="text-red-400 text-[7px] font-medium">Normal</span>
+                  </div>
+                  <div className="bg-red-500/10 rounded px-2 py-1">
+                    <p className="text-red-300 text-[7px] leading-tight">"Wij zijn gesloten"</p>
+                  </div>
+                </div>
+                
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Check className="w-2 h-2 text-emerald-400" />
+                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                  </div>
+                  <div className="bg-emerald-500/10 rounded px-2 py-1">
+                    <p className="text-emerald-300 text-[7px] leading-tight">"We zijn nu gesloten, maar morgen om 9:00 weer open. Zal ik een afspraak inplannen?"</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Comparison Row 2 */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <X className="w-2 h-2 text-red-400" />
+                    <span className="text-red-400 text-[7px] font-medium">Normal</span>
+                  </div>
+                  <div className="bg-red-500/10 rounded px-2 py-1">
+                    <p className="text-red-300 text-[7px] leading-tight">"Kies een service"</p>
+                  </div>
+                </div>
+                
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Check className="w-2 h-2 text-emerald-400" />
+                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                  </div>
+                  <div className="bg-emerald-500/10 rounded px-2 py-1">
+                    <p className="text-emerald-300 text-[7px] leading-tight">"Op basis van je vorige bezoek (knippen) stel ik voor: knippen + wassen voor €40?"</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Comparison Row 3 */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <X className="w-2 h-2 text-red-400" />
+                    <span className="text-red-400 text-[7px] font-medium">Normal</span>
+                  </div>
+                  <div className="bg-red-500/10 rounded px-2 py-1">
+                    <p className="text-red-300 text-[7px] leading-tight">"Kies een tijd"</p>
+                  </div>
+                </div>
+                
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Check className="w-2 h-2 text-emerald-400" />
+                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                  </div>
+                  <div className="bg-emerald-500/10 rounded px-2 py-1">
+                    <p className="text-emerald-300 text-[7px] leading-tight">"Je kwam vorige keer op donderdag 15:00. Zelfde tijd deze week?"</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Comparison Row 4 */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <X className="w-2 h-2 text-red-400" />
+                    <span className="text-red-400 text-[7px] font-medium">Normal</span>
+                  </div>
+                  <div className="bg-red-500/10 rounded px-2 py-1">
+                    <p className="text-red-300 text-[7px] leading-tight">"Betaal na afspraak"</p>
+                  </div>
+                </div>
+                
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Check className="w-2 h-2 text-emerald-400" />
+                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                  </div>
+                  <div className="bg-emerald-500/10 rounded px-2 py-1">
+                    <p className="text-emerald-300 text-[7px] leading-tight">"Knippen €25, betalen kan contant of pin. Wil je direct bevestigen?"</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Bottom Feature Tags */}
+            <div className="mt-2 pt-2 border-t border-slate-700/50">
+              <p className="text-slate-400 text-[7px] text-center">
+                Contextual understanding • Previous visit data • Intelligent suggestions
+              </p>
+            </div>
+          </div>
+          
+          {/* Background accent elements */}
+          <div className="absolute top-3 right-3 w-3 h-3 bg-emerald-500/20 rounded-full" />
+          <div className="absolute bottom-3 left-3 w-2 h-2 bg-emerald-400/20 rounded-full" />
         </div>,
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-4"
   }, {
