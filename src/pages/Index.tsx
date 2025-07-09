@@ -65,7 +65,29 @@ const Index = () => {
       
       {/* Pain Points Section - Increased mobile padding */}
       <ScrollAnimatedSection>
-        
+        <section className="py-24 px-4 bg-gradient-to-br from-red-50 to-orange-50">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                The Problems You Face Every Day
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Running a service business shouldn't feel like you're constantly fighting fires
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              {painPoints.map((point, index) => (
+                <PainPoint
+                  key={index}
+                  icon={point.icon}
+                  title={point.title}
+                  description={point.description}
+                  color={point.color}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
       </ScrollAnimatedSection>
 
       {/* Solution Section - Increased mobile padding */}
