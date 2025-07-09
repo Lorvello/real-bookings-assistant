@@ -975,119 +975,138 @@ const Features = () => {
     description: "View live bookings, performance and customer interactions",
     href: "/features/monitoring",
     cta: "Learn more",
-     background: <div className="absolute inset-0">
+    background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-purple-700/20" />
           
-          {/* Slideshow Container */}
-          <div className="absolute top-2 left-2 right-2 bottom-12 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm overflow-hidden">
-            <div 
-              className="flex h-full transition-transform duration-300 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-            >
-              {/* Slide 1: Main Stats */}
-              <div className="w-full flex-shrink-0 pt-1">
-                {/* Main Stats Grid */}
-                <div className="grid grid-cols-3 gap-2">
-                  {/* Today Stats */}
-                  <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
-                    <Calendar className="h-4 w-4 text-emerald-400 mx-auto mb-1" />
-                    <div className="text-white text-[16px] font-bold">5</div>
-                    <div className="text-xs text-emerald-300">Today</div>
-                    <div className="text-[10px] text-emerald-400">5 confirmed, 2 pending</div>
+          {/* Fixed Layout Slideshow Container */}
+          <div className="absolute top-3 left-3 right-3 bottom-6 bg-slate-800/50 rounded-lg border border-slate-700/50 backdrop-blur-sm">
+            {/* Main container with proper layout */}
+            <div className="h-full flex flex-col">
+              {/* Content area with controlled height */}
+              <div className="flex-1 min-h-0 p-4">
+                <div 
+                  className="flex h-full transition-transform duration-300 ease-in-out"
+                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                >
+                  {/* Slide 1: Main Stats - centered layout */}
+                  <div className="w-full flex-shrink-0 flex items-center justify-center">
+                    <div className="grid grid-cols-3 gap-4 w-full max-w-sm">
+                      {/* Today Stats */}
+                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+                        <Calendar className="h-4 w-4 text-emerald-400 mx-auto mb-2" />
+                        <div className="text-white text-lg font-bold">5</div>
+                        <div className="text-xs text-emerald-300">Today</div>
+                        <div className="text-[9px] text-emerald-400 mt-1">5 confirmed, 2 pending</div>
+                      </div>
+
+                      {/* Currently Active */}
+                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+                        <Users className="h-4 w-4 text-emerald-400 mx-auto mb-2" />
+                        <div className="text-white text-lg font-bold">3</div>
+                        <div className="text-xs text-emerald-300">Active Now</div>
+                        <div className="text-[9px] text-emerald-400 mt-1">ongoing appointments</div>
+                      </div>
+
+                      {/* WhatsApp Live */}
+                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+                        <MessageCircle className="h-4 w-4 text-emerald-400 mx-auto mb-2" />
+                        <div className="text-white text-lg font-bold">17</div>
+                        <div className="text-xs text-emerald-300">WhatsApp Live</div>
+                        <div className="text-[9px] text-emerald-400 mt-1">messages last hour</div>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Currently Active */}
-                  <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
-                    <Users className="h-4 w-4 text-emerald-400 mx-auto mb-1" />
-                    <div className="text-white text-[16px] font-bold">3</div>
-                    <div className="text-xs text-emerald-300">Active Now</div>
-                    <div className="text-[10px] text-emerald-400">ongoing appointments</div>
-                  </div>
+                  {/* Slide 2: Detailed Information - scrollable layout */}
+                  <div className="w-full flex-shrink-0 py-2">
+                    <div className="h-full overflow-y-auto space-y-3 pr-2">
+                      {/* Next Appointment */}
+                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="h-4 w-4 text-emerald-400" />
+                          <span className="text-xs font-medium text-emerald-300">Next Appointment</span>
+                        </div>
+                        <div className="text-sm font-semibold text-white">Laura van Dijk</div>
+                        <div className="text-xs text-emerald-400">09:30 • Today</div>
+                      </div>
 
-                  {/* WhatsApp Live */}
-                  <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
-                    <MessageCircle className="h-4 w-4 text-emerald-400 mx-auto mb-1" />
-                    <div className="text-white text-[16px] font-bold">17</div>
-                    <div className="text-xs text-emerald-300">WhatsApp Live</div>
-                    <div className="text-[10px] text-emerald-400">messages last hour</div>
+                      {/* System Status */}
+                      <div className="space-y-2">
+                        <div className="text-xs font-medium text-emerald-300">System Status</div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                              <span className="text-slate-300">Calendar</span>
+                            </div>
+                            <span className="text-green-400">Online</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-3 w-3 text-green-400" />
+                              <span className="text-slate-300">WhatsApp Bot</span>
+                            </div>
+                            <span className="text-green-400">Active</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <Activity className="h-3 w-3 text-green-400 animate-pulse" />
+                              <span className="text-slate-300">Real-time Sync</span>
+                            </div>
+                            <span className="text-green-400">Live</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Today's Schedule */}
+                      <div className="space-y-2">
+                        <div className="text-xs font-medium text-emerald-300">Today's Schedule</div>
+                        <div className="space-y-1">
+                          <div className="text-[10px] text-slate-300">09:30 – Laura van Dijk</div>
+                          <div className="text-[10px] text-slate-300">11:00 – Patrick Janssen</div>
+                          <div className="text-[10px] text-slate-300">14:00 – Aisha Karim</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Slide 2: Detailed Information */}
-              <div className="w-full flex-shrink-0 pt-1">
-                {/* Next Appointment */}
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 mb-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-4 w-4 text-emerald-400" />
-                    <span className="text-xs font-medium text-emerald-300">Next Appointment</span>
-                  </div>
-                  <div className="text-sm font-semibold text-white">Laura van Dijk</div>
-                  <div className="text-xs text-emerald-400">09:30 • Today</div>
+              {/* Bottom section with indicators and timestamp */}
+              <div className="px-4 pb-3">
+                {/* Slide Indicators */}
+                <div className="flex justify-center gap-2 mb-2">
+                  {[0, 1].map((index) => (
+                    <button
+                      key={index}
+                      className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                        currentSlide === index ? 'bg-emerald-400' : 'bg-slate-600'
+                      }`}
+                      onClick={() => setCurrentSlide(index)}
+                    />
+                  ))}
                 </div>
-
-                {/* System Status */}
-                <div className="space-y-2 mb-3">
-                  <div className="text-xs font-medium text-emerald-300 mb-2">System Status</div>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span className="text-slate-300">Calendar</span>
-                    </div>
-                    <span className="text-green-400">Online</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-3 w-3 text-green-400" />
-                      <span className="text-slate-300">WhatsApp Bot</span>
-                    </div>
-                    <span className="text-green-400">Active</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <Activity className="h-3 w-3 text-green-400 animate-pulse" />
-                      <span className="text-slate-300">Real-time Sync</span>
-                    </div>
-                    <span className="text-green-400">Live</span>
-                  </div>
-                </div>
-
-                {/* Today's Schedule */}
-                <div className="space-y-1 mb-3">
-                  <div className="text-xs font-medium text-emerald-300 mb-1">Today's Schedule</div>
-                  <div className="text-[10px] text-slate-300">09:30 – Laura van Dijk</div>
-                  <div className="text-[10px] text-slate-300">11:00 – Patrick Janssen</div>
-                  <div className="text-[10px] text-slate-300">14:00 – Aisha Karim</div>
+                
+                {/* Timestamp */}
+                <div className="text-center">
+                  <span className="text-slate-400 text-[7px]">Last update {new Date().toLocaleTimeString('en-US')}</span>
                 </div>
               </div>
             </div>
 
-            {/* Slide Indicators */}
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2">
-              {[0, 1].map((index) => (
-                <button
-                  key={index}
-                  className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-                    currentSlide === index ? 'bg-emerald-400' : 'bg-slate-600'
-                  }`}
-                  onClick={() => setCurrentSlide(index)}
-                />
-              ))}
-            </div>
-
-            {/* Touch/Swipe Area */}
+            {/* Touch/Swipe Area - covers entire content area */}
             <div 
-              className="absolute inset-0 cursor-pointer"
+              className="absolute inset-0 z-10"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               onClick={handleSlideToggle}
+              style={{ 
+                cursor: 'pointer',
+                // Allow interaction with buttons in indicators area
+                paddingBottom: '60px'
+              }}
             />
-          </div>
-
-          {/* Bottom timestamp */}
-          <div className="absolute bottom-2 left-2 right-2 text-center">
-            <span className="text-slate-400 text-[7px]">Last update {new Date().toLocaleTimeString('en-US')}</span>
           </div>
           
           {/* Background accent elements */}
@@ -1140,4 +1159,5 @@ const Features = () => {
       </div>
     </section>;
 };
+
 export default Features;
