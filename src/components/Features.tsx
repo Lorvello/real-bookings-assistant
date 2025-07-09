@@ -961,35 +961,54 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
-          {/* Full background container */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
-            <div className="absolute top-4 left-4 text-emerald-400/30 text-2xl">🌍</div>
-            <div className="absolute bottom-4 right-4 w-3 h-3 bg-emerald-500/40 rounded-full" />
-            
-            {/* Language showcase container */}
-            <div className="absolute bottom-3 left-3 right-3 bg-slate-700/30 rounded-lg border border-slate-600/30 p-3">
-              <div className="space-y-2">
-                {/* Language flags */}
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-white">🇺🇸 English</span>
-                  <span className="text-emerald-400">Active</span>
+          {/* Multi-language Chat Demo */}
+          <div className="absolute top-4 left-4 right-4 space-y-3">
+            {/* Dutch Conversation */}
+            <div className="space-y-1">
+              <div className="flex justify-end">
+                <div className="bg-gray-600/80 text-white text-xs px-2 py-1 rounded-lg max-w-[75%]">
+                  🇳🇱 Hallo, ik wil graag een afspraak
                 </div>
-                
-                {/* Translation examples */}
-                <div className="space-y-1">
-                  <div className="text-[8px] text-slate-300">🇳🇱 "Uw afspraak is bevestigd"</div>
-                  <div className="text-[8px] text-slate-300">🇩🇪 "Ihr Termin ist bestätigt"</div>
-                  <div className="text-[8px] text-slate-300">🇫🇷 "Votre rendez-vous est confirmé"</div>
+              </div>
+              <div className="flex justify-start">
+                <div className="bg-[#25D366]/90 text-white text-xs px-2 py-1 rounded-lg max-w-[75%]">
+                  🤖 Hallo! Voor welke behandeling?
                 </div>
-                
-                {/* Language detection indicator */}
-                <div className="flex items-center gap-1 text-[8px] text-emerald-400">
-                  <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span>Auto-detected: Dutch</span>
+              </div>
+            </div>
+
+            {/* English Conversation */}
+            <div className="space-y-1">
+              <div className="flex justify-end">
+                <div className="bg-gray-600/80 text-white text-xs px-2 py-1 rounded-lg max-w-[75%]">
+                  🇬🇧 Hello, I need an appointment
+                </div>
+              </div>
+              <div className="flex justify-start">
+                <div className="bg-[#25D366]/90 text-white text-xs px-2 py-1 rounded-lg max-w-[75%]">
+                  🤖 Hello! What service would you like?
+                </div>
+              </div>
+            </div>
+
+            {/* Arabic Conversation */}
+            <div className="space-y-1">
+              <div className="flex justify-end">
+                <div className="bg-gray-600/80 text-white text-xs px-2 py-1 rounded-lg max-w-[75%] text-right" dir="rtl">
+                  🇸🇦 مرحبا، أريد موعدا
+                </div>
+              </div>
+              <div className="flex justify-start">
+                <div className="bg-[#25D366]/90 text-white text-xs px-2 py-1 rounded-lg max-w-[75%] text-right" dir="rtl">
+                  🤖 مرحبا! ما الخدمة التي تريدها؟
                 </div>
               </div>
             </div>
           </div>
+          
+          {/* Globe icon and background accent elements */}
+          <div className="absolute bottom-4 left-4 text-emerald-400/30 text-2xl">🌍</div>
+          <div className="absolute bottom-4 right-4 w-3 h-3 bg-emerald-500/40 rounded-full" />
         </div>,
     className: "lg:col-start-1 lg:col-end-3 lg:row-start-4 lg:row-end-5"
   }, {
