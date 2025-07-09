@@ -24,9 +24,9 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
           {/* iPhone Mockup - positioned in upper 70%, centered */}
-          <div className="absolute top-0 left-0 right-0 h-[70%] flex justify-center items-start pt-8">
-            <div className="w-48 transform rotate-3">
-            <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.5rem] p-[2px] shadow-2xl hover:rotate-0 transition-transform duration-500">
+          <div className="absolute top-0 left-0 right-0 h-[70%] flex justify-center items-start pt-6">
+            <div className="w-60 transform rotate-3">
+              <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.5rem] p-[2px] shadow-2xl hover:rotate-0 transition-transform duration-500">
               {/* iPhone screen */}
               <div className="bg-white rounded-[1.3rem] overflow-hidden relative">
                 {/* iPhone notch */}
