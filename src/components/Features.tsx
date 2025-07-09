@@ -155,7 +155,7 @@ const Features = () => {
           {/* Background accent elements */}
           <div className="absolute bottom-3 right-3 w-4 h-4 bg-blue-400/40 rounded-full" />
         </div>,
-    className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-3"
+    className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2"
   }, {
     Icon: CalendarIcon,
     name: "Advanced Dashboard & Own Calendar",
@@ -181,7 +181,7 @@ const Features = () => {
           <div className="absolute top-6 left-8 w-2 h-2 bg-blue-500/50 rounded-full" />
           <div className="absolute bottom-4 right-4 w-4 h-4 border border-blue-300/30 rounded" />
         </div>,
-    className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-4"
+    className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3"
   }, {
     Icon: BellIcon,
     name: "Automatic Reminders",
@@ -269,7 +269,7 @@ const Features = () => {
         
         {/* Bento Grid Features */}
         <div className="mb-12 md:mb-32">
-          <BentoGrid>
+          <BentoGrid rowHeight="33rem">
             {bookingFeatures.map((feature, idx) => <BentoCard key={idx} {...feature} />)}
           </BentoGrid>
         </div>
