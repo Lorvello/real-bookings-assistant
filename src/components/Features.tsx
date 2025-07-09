@@ -943,14 +943,114 @@ const Features = () => {
     href: "/features/monitoring",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-purple-700/20" />
           
-          {/* Full background container */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
-            <div className="absolute top-3 right-3 w-2 h-2 bg-blue-500/60 rounded-full animate-pulse" />
-            <div className="absolute bottom-4 left-4 w-6 h-6 border border-blue-400/30 rounded" />
+          {/* Live Operations Dashboard */}
+          <div className="absolute top-2 left-2 right-2 bottom-12 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+            {/* Header Row */}
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-white text-[10px] font-semibold">Live Operations</h4>
+              <div className="flex items-center gap-1">
+                <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                <span className="text-emerald-400 text-[8px]">Real-time</span>
+              </div>
+            </div>
             
+            {/* Top Stats Grid */}
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {/* Today's Bookings */}
+              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                <div className="flex items-center gap-1 mb-1">
+                  <CalendarIcon className="w-2.5 h-2.5 text-emerald-400" />
+                  <span className="text-emerald-200 text-[8px] font-medium">Today</span>
+                </div>
+                <div className="text-white text-[16px] font-bold leading-none">5</div>
+                <div className="text-emerald-300 text-[7px] mt-0.5">confirmed, 2 pending</div>
+              </div>
+              
+              {/* Currently Active */}
+              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-2">
+                <div className="flex items-center gap-1 mb-1">
+                  <BoltIcon className="w-2.5 h-2.5 text-blue-400" />
+                  <span className="text-blue-200 text-[8px] font-medium">Active Now</span>
+                </div>
+                <div className="text-white text-[16px] font-bold leading-none">3</div>
+                <div className="text-blue-300 text-[7px] mt-0.5">ongoing appointments</div>
+              </div>
+            </div>
+            
+            {/* WhatsApp Activity */}
+            <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-2 mb-3">
+              <div className="flex items-center gap-1 mb-1">
+                <BellIcon className="w-2.5 h-2.5 text-green-400" />
+                <span className="text-green-200 text-[8px] font-medium">WhatsApp Live</span>
+              </div>
+              <div className="text-white text-[14px] font-bold leading-none">17</div>
+              <div className="text-green-300 text-[7px] mt-0.5">messages in the last hour</div>
+            </div>
+            
+            {/* Next Appointment */}
+            <div className="mb-3">
+              <div className="flex items-center gap-1 mb-1.5">
+                <CalendarIcon className="w-2 h-2 text-amber-400" />
+                <span className="text-slate-300 text-[8px] font-medium">Next Appointment</span>
+              </div>
+              <div className="text-white text-[10px] font-bold">Laura van Dijk</div>
+              <div className="text-amber-300 text-[7px]">09:30 today</div>
+            </div>
+            
+            {/* System Status */}
+            <div className="mb-3">
+              <span className="text-slate-300 text-[8px] font-medium mb-1.5 block">Live System Status</span>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[7px]">
+                  <span className="text-slate-400 flex items-center gap-1">
+                    <div className="w-1 h-1 bg-emerald-400 rounded-full" />
+                    Calendar
+                  </span>
+                  <span className="text-emerald-400 font-semibold">Online</span>
+                </div>
+                <div className="flex items-center justify-between text-[7px]">
+                  <span className="text-slate-400 flex items-center gap-1">
+                    <Check className="w-2 h-2 text-emerald-400" />
+                    WhatsApp Bot
+                  </span>
+                  <span className="text-emerald-400 font-semibold">Active</span>
+                </div>
+                <div className="flex items-center justify-between text-[7px]">
+                  <span className="text-slate-400 flex items-center gap-1">
+                    <div className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
+                    Real-time Sync
+                  </span>
+                  <span className="text-emerald-400 font-semibold">Live</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Today's Schedule */}
+            <div>
+              <span className="text-slate-300 text-[8px] font-medium mb-1 block">Today's Schedule</span>
+              <div className="space-y-1">
+                <div className="text-[7px] text-slate-400">
+                  <span className="text-white font-medium">09:30</span> – Laura van Dijk
+                </div>
+                <div className="text-[7px] text-slate-400">
+                  <span className="text-white font-medium">11:00</span> – Patrick Janssen
+                </div>
+                <div className="text-[7px] text-slate-400">
+                  <span className="text-white font-medium">14:00</span> – Aisha Karim
+                </div>
+              </div>
+            </div>
           </div>
+          
+          {/* Bottom timestamp */}
+          <div className="absolute bottom-2 left-2 right-2 text-center">
+            <span className="text-slate-400 text-[7px]">Last update 11:48:51 PM</span>
+          </div>
+          
+          {/* Background accent elements */}
+          <div className="absolute top-4 right-4 w-6 h-6 bg-purple-500/20 rounded-full blur-lg" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-4 lg:row-end-5"
   }];
