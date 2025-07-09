@@ -24,11 +24,11 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
           {/* iPhone Mockup - positioned in upper 70%, centered */}
-          <div className="absolute top-0 left-0 right-0 h-[70%] flex justify-center items-start pt-6">
-            <div className="w-60 transform rotate-3">
-              <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.5rem] p-[2px] shadow-2xl hover:rotate-0 transition-transform duration-500">
-              {/* iPhone screen */}
-              <div className="bg-white rounded-[1.3rem] overflow-hidden relative">
+          <div className="absolute top-0 left-0 right-0 h-[75%] flex justify-center items-center">
+            <div className="w-60 h-[85%] transform rotate-3">
+              <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.5rem] p-[2px] shadow-2xl hover:rotate-0 transition-transform duration-500 h-full">
+                {/* iPhone screen */}
+                <div className="bg-white rounded-[1.3rem] overflow-hidden relative h-full flex flex-col">
                 {/* iPhone notch */}
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 bg-black rounded-b-lg z-10"></div>
                 
@@ -43,8 +43,8 @@ const Features = () => {
                   </div>
                 </div>
                 
-                {/* Chat area */}
-                <div className="bg-[#e5ddd5] min-h-[100px] p-1.5 space-y-1 text-[6px]">
+                  {/* Chat area */}
+                  <div className="bg-[#e5ddd5] flex-1 p-1.5 space-y-1 text-[6px] overflow-y-auto">
                   {/* Customer message */}
                   <div className="flex justify-end">
                     <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
