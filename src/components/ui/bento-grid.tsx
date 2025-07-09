@@ -50,23 +50,23 @@ const BentoCard = ({
       "bg-slate-800/80 border border-slate-700/50",
       // Enhanced hover effects with glow
       "hover:bg-slate-800/90 hover:border-emerald-500/30 hover:scale-[1.02]",
-      "shadow-lg shadow-emerald-500/10 hover:shadow-2xl hover:shadow-emerald-500/20",
-      "transition-all duration-300 transform-gpu",
+      "shadow-lg shadow-emerald-500/10 hover:shadow-xl hover:shadow-emerald-500/20",
+      "transition-all duration-300 ease-out transform-gpu",
       "backdrop-blur-sm",
       className,
     )}
   >
     <div>{background}</div>
     <div className={cn(
-      "pointer-events-none z-10 flex transform-gpu flex-col gap-2 transition-all duration-300 group-hover:-translate-y-2",
+      "pointer-events-none z-10 flex transform-gpu flex-col gap-2 transition-all duration-300",
       name === "100% Automatic Bookings" 
-        ? "absolute bottom-0 left-0 right-0 text-center pb-6 px-6 items-center" 
-        : "p-6"
+        ? "absolute bottom-6 left-6 right-6 text-left" 
+        : "p-6 group-hover:-translate-y-2"
     )}>
       <Icon className="h-12 w-12 origin-left transform-gpu text-emerald-400 transition-all duration-300 ease-in-out group-hover:scale-110 group-hover:text-emerald-300" />
       <h3 className={cn(
         "text-xl font-semibold text-white mb-2",
-        name === "100% Automatic Bookings" ? "text-3xl font-bold" : ""
+        name === "100% Automatic Bookings" ? "" : ""
       )}>
         {name}
       </h3>

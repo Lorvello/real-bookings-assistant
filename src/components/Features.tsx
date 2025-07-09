@@ -25,7 +25,7 @@ const Features = () => {
           
           {/* iPhone Mockup - positioned in upper 70%, centered */}
           <div className="absolute top-0 left-0 right-0 h-[75%] flex justify-center items-center">
-            <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 hover:scale-105 transition-transform duration-500 ease-in-out">
+            <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
               <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.5rem] p-[2px] shadow-2xl h-full">
                 {/* iPhone screen */}
                 <div className="bg-white rounded-[1.3rem] overflow-hidden relative h-full flex flex-col">
