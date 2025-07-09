@@ -984,37 +984,6 @@ const Features = () => {
             <div className="absolute top-3 right-3 w-2 h-2 bg-blue-500/60 rounded-full animate-pulse" />
             <div className="absolute bottom-4 left-4 w-6 h-6 border border-blue-400/30 rounded" />
             
-            {/* Dashboard metrics container */}
-            <div className="absolute bottom-3 left-3 right-3 bg-slate-700/30 rounded-lg border border-slate-600/30 p-3">
-              <div className="grid grid-cols-3 gap-2">
-                {/* Active Users */}
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <span className="text-white text-[10px] font-medium">12</span>
-                  </div>
-                  <div className="text-emerald-400 text-[7px] uppercase tracking-wider">Active</div>
-                </div>
-                
-                {/* Success Rate */}
-                <div className="text-center">
-                  <div className="text-blue-400 text-[10px] font-medium mb-1">98%</div>
-                  <div className="text-blue-300 text-[7px] uppercase tracking-wider">Success</div>
-                </div>
-                
-                {/* Response Time */}
-                <div className="text-center">
-                  <div className="text-purple-400 text-[10px] font-medium mb-1">1.2s</div>
-                  <div className="text-purple-300 text-[7px] uppercase tracking-wider">Response</div>
-                </div>
-              </div>
-              
-              {/* Live status indicator */}
-              <div className="flex items-center justify-center gap-1 mt-2 text-[8px] text-slate-300">
-                <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span>Live monitoring active</span>
-              </div>
-            </div>
           </div>
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-4 lg:row-end-5"
