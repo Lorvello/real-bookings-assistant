@@ -138,7 +138,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
   
   const weekDays = getWeekDays(currentDate);
-  const timeSlots = generateTimeSlots(7, 22, 30); // 7:00 - 22:00, 30 min slots for better space utilization
+  const timeSlots = generateTimeSlots(6, 23, 30); // 6:00 - 23:00, 30 min slots for maximum coverage
 
   const handleBookingClick = (booking: Booking) => {
     setSelectedBooking(booking);
