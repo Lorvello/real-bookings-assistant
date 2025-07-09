@@ -976,81 +976,81 @@ const Features = () => {
     href: "/features/monitoring",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-purple-700/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
           {/* Fixed Layout Slideshow Container */}
-          <div className="absolute top-3 left-3 right-3 bottom-6 bg-slate-800/50 rounded-lg border border-slate-700/50 backdrop-blur-sm">
+          <div className="absolute top-3 left-3 right-3 bottom-20 bg-slate-800/50 rounded-lg border border-slate-700/50 backdrop-blur-sm">
             {/* Main container with proper layout */}
             <div className="h-full flex flex-col">
               {/* Content area with controlled height */}
-              <div className="flex-1 min-h-0 p-4">
+              <div className="flex-1 min-h-0 p-3">
                 <div 
                   className="flex h-full transition-transform duration-300 ease-in-out"
                   style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                 >
                   {/* Slide 1: Main Stats - centered layout */}
-                  <div className="w-full flex-shrink-0 flex items-center justify-center">
-                    <div className="grid grid-cols-3 gap-4 w-full max-w-sm">
+                  <div className="w-full flex-shrink-0 flex items-start justify-center pt-2">
+                    <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
                       {/* Today Stats */}
-                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
-                        <Calendar className="h-4 w-4 text-emerald-400 mx-auto mb-2" />
+                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2.5 text-center">
+                        <Calendar className="h-4 w-4 text-emerald-400 mx-auto mb-1.5" />
                         <div className="text-white text-lg font-bold">5</div>
                         <div className="text-xs text-emerald-300">Today</div>
-                        <div className="text-[9px] text-emerald-400 mt-1">5 confirmed, 2 pending</div>
+                        <div className="text-[8px] text-emerald-400 mt-1">5 confirmed, 2 pending</div>
                       </div>
 
                       {/* Currently Active */}
-                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
-                        <Users className="h-4 w-4 text-emerald-400 mx-auto mb-2" />
+                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2.5 text-center">
+                        <Users className="h-4 w-4 text-emerald-400 mx-auto mb-1.5" />
                         <div className="text-white text-lg font-bold">3</div>
                         <div className="text-xs text-emerald-300">Active Now</div>
-                        <div className="text-[9px] text-emerald-400 mt-1">ongoing appointments</div>
+                        <div className="text-[8px] text-emerald-400 mt-1">ongoing appointments</div>
                       </div>
 
                       {/* WhatsApp Live */}
-                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
-                        <MessageCircle className="h-4 w-4 text-emerald-400 mx-auto mb-2" />
+                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2.5 text-center">
+                        <MessageCircle className="h-4 w-4 text-emerald-400 mx-auto mb-1.5" />
                         <div className="text-white text-lg font-bold">17</div>
                         <div className="text-xs text-emerald-300">WhatsApp Live</div>
-                        <div className="text-[9px] text-emerald-400 mt-1">messages last hour</div>
+                        <div className="text-[8px] text-emerald-400 mt-1">messages last hour</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Slide 2: Detailed Information - scrollable layout */}
-                  <div className="w-full flex-shrink-0 py-2">
-                    <div className="h-full overflow-y-auto space-y-3 pr-2">
+                  <div className="w-full flex-shrink-0 pt-2">
+                    <div className="h-full overflow-y-auto space-y-2.5 pr-2">
                       {/* Next Appointment */}
-                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Clock className="h-4 w-4 text-emerald-400" />
-                          <span className="text-xs font-medium text-emerald-300">Next Appointment</span>
+                      <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2.5">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Clock className="h-3.5 w-3.5 text-emerald-400" />
+                          <span className="text-[10px] font-medium text-emerald-300">Next Appointment</span>
                         </div>
                         <div className="text-sm font-semibold text-white">Laura van Dijk</div>
-                        <div className="text-xs text-emerald-400">09:30 • Today</div>
+                        <div className="text-[11px] text-emerald-400">09:30 • Today</div>
                       </div>
 
                       {/* System Status */}
-                      <div className="space-y-2">
-                        <div className="text-xs font-medium text-emerald-300">System Status</div>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] font-medium text-emerald-300">System Status</div>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
                               <span className="text-slate-300">Calendar</span>
                             </div>
                             <span className="text-green-400">Online</span>
                           </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2">
-                              <CheckCircle className="h-3 w-3 text-green-400" />
+                          <div className="flex items-center justify-between text-[10px]">
+                            <div className="flex items-center gap-1.5">
+                              <CheckCircle className="h-2.5 w-2.5 text-green-400" />
                               <span className="text-slate-300">WhatsApp Bot</span>
                             </div>
                             <span className="text-green-400">Active</span>
                           </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2">
-                              <Activity className="h-3 w-3 text-green-400 animate-pulse" />
+                          <div className="flex items-center justify-between text-[10px]">
+                            <div className="flex items-center gap-1.5">
+                              <Activity className="h-2.5 w-2.5 text-green-400 animate-pulse" />
                               <span className="text-slate-300">Real-time Sync</span>
                             </div>
                             <span className="text-green-400">Live</span>
@@ -1059,12 +1059,12 @@ const Features = () => {
                       </div>
 
                       {/* Today's Schedule */}
-                      <div className="space-y-2">
-                        <div className="text-xs font-medium text-emerald-300">Today's Schedule</div>
+                      <div className="space-y-1.5">
+                        <div className="text-[10px] font-medium text-emerald-300">Today's Schedule</div>
                         <div className="space-y-1">
-                          <div className="text-[10px] text-slate-300">09:30 – Laura van Dijk</div>
-                          <div className="text-[10px] text-slate-300">11:00 – Patrick Janssen</div>
-                          <div className="text-[10px] text-slate-300">14:00 – Aisha Karim</div>
+                          <div className="text-[9px] text-slate-300">09:30 – Laura van Dijk</div>
+                          <div className="text-[9px] text-slate-300">11:00 – Patrick Janssen</div>
+                          <div className="text-[9px] text-slate-300">14:00 – Aisha Karim</div>
                         </div>
                       </div>
                     </div>
@@ -1072,24 +1072,19 @@ const Features = () => {
                 </div>
               </div>
 
-              {/* Bottom section with indicators and timestamp */}
-              <div className="px-4 pb-3">
+              {/* Bottom section with indicators */}
+              <div className="px-3 pb-2">
                 {/* Slide Indicators */}
-                <div className="flex justify-center gap-2 mb-2">
+                <div className="flex justify-center gap-2">
                   {[0, 1].map((index) => (
                     <button
                       key={index}
-                      className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                      className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 ${
                         currentSlide === index ? 'bg-emerald-400' : 'bg-slate-600'
                       }`}
                       onClick={() => setCurrentSlide(index)}
                     />
                   ))}
-                </div>
-                
-                {/* Timestamp */}
-                <div className="text-center">
-                  <span className="text-slate-400 text-[7px]">Last update {new Date().toLocaleTimeString('en-US')}</span>
                 </div>
               </div>
             </div>
@@ -1104,13 +1099,20 @@ const Features = () => {
               style={{ 
                 cursor: 'pointer',
                 // Allow interaction with buttons in indicators area
-                paddingBottom: '60px'
+                paddingBottom: '40px'
               }}
             />
           </div>
           
-          {/* Background accent elements */}
-          <div className="absolute top-4 right-4 w-6 h-6 bg-purple-500/20 rounded-full blur-lg" />
+          {/* Timestamp fixed at bottom */}
+          <div className="absolute bottom-2 left-4 right-4">
+            <div className="text-center">
+              <span className="text-slate-400 text-[7px]">Last update {new Date().toLocaleTimeString('en-US')}</span>
+            </div>
+          </div>
+          
+          {/* Background accent elements - changed to green */}
+          <div className="absolute top-4 right-4 w-6 h-6 bg-emerald-500/20 rounded-full blur-lg" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-4 lg:row-end-5"
   }];
