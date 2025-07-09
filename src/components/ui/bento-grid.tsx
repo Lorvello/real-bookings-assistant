@@ -16,6 +16,7 @@ interface BentoCardProps {
   description: string;
   href: string;
   cta: string;
+  hideCta?: boolean;
 }
 
 const BentoGrid = ({ children, className }: BentoGridProps) => {
@@ -39,6 +40,7 @@ const BentoCard = ({
   description,
   href,
   cta,
+  hideCta = false,
 }: BentoCardProps) => (
   <div
     key={name}
@@ -63,23 +65,25 @@ const BentoCard = ({
       <p className="max-w-lg text-slate-300 leading-relaxed">{description}</p>
     </div>
 
-    <div
-      className={cn(
-        "pointer-events-none absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100",
-      )}
-    >
-      <Button 
-        variant="ghost" 
-        asChild 
-        size="sm" 
-        className="pointer-events-auto text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+    {!hideCta && (
+      <div
+        className={cn(
+          "pointer-events-none absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100",
+        )}
       >
-        <a href={href}>
-          {cta}
-          <ArrowRightIcon className="ml-2 h-4 w-4" />
-        </a>
-      </Button>
-    </div>
+        <Button 
+          variant="ghost" 
+          asChild 
+          size="sm" 
+          className="pointer-events-auto text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+        >
+          <a href={href}>
+            {cta}
+            <ArrowRightIcon className="ml-2 h-4 w-4" />
+          </a>
+        </Button>
+      </div>
+    )}
     <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-gradient-to-br group-hover:from-emerald-500/5 group-hover:to-emerald-600/10" />
   </div>
 );

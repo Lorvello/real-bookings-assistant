@@ -24,7 +24,7 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
           {/* iPhone Mockup - positioned in upper 60% */}
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-[40%] max-w-[120px]">
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-[60%] max-w-[160px]">
             <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.5rem] p-[2px] shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
               {/* iPhone screen */}
               <div className="bg-white rounded-[1.3rem] overflow-hidden relative">
@@ -47,49 +47,49 @@ const Features = () => {
                   {/* Customer message */}
                   <div className="flex justify-end">
                     <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                      <p className="text-gray-800">Hallo, ik wil een afspraak boeken voor morgen</p>
+                      <p className="text-gray-800">Hello, I'd like to book an appointment for tomorrow</p>
                     </div>
                   </div>
                   
                   {/* AI response 1 */}
                   <div className="flex justify-start">
                     <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                      <p className="text-gray-800">Natuurlijk! Voor welke service? Ik heb deze opties:</p>
+                      <p className="text-gray-800">Of course! Which service would you like? I have these options:</p>
                     </div>
                   </div>
                   
                   {/* AI response 2 - services */}
                   <div className="flex justify-start">
                     <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                      <p className="text-gray-800">💇‍♀️ Knippen - €25 (45 min)<br/>💇‍♀️ Kleuren - €65 (90 min)<br/>💇‍♀️ Wassen - €15 (20 min)</p>
+                      <p className="text-gray-800">💇‍♀️ Haircut - $25 (45 min)<br/>💇‍♀️ Coloring - $65 (90 min)<br/>💇‍♀️ Wash - $15 (20 min)</p>
                     </div>
                   </div>
                   
                   {/* Customer choice */}
                   <div className="flex justify-end">
                     <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                      <p className="text-gray-800">Knippen graag</p>
+                      <p className="text-gray-800">Haircut please</p>
                     </div>
                   </div>
                   
                   {/* AI response 3 - time slots */}
                   <div className="flex justify-start">
                     <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                      <p className="text-gray-800">Perfect! Wanneer schikt het? Morgen heb ik vrij:<br/>🕐 10:00<br/>🕐 14:00<br/>🕐 16:30</p>
+                      <p className="text-gray-800">Perfect! When works for you? Tomorrow I have available:<br/>🕐 10:00 AM<br/>🕐 2:00 PM<br/>🕐 4:30 PM</p>
                     </div>
                   </div>
                   
                   {/* Customer time choice */}
                   <div className="flex justify-end">
                     <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                      <p className="text-gray-800">14:00 is prima</p>
+                      <p className="text-gray-800">2:00 PM works</p>
                     </div>
                   </div>
                   
                   {/* Final confirmation */}
                   <div className="flex justify-start">
                     <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                      <p className="text-gray-800">✅ Afspraak geboekt!<br/>📅 Morgen 14:00<br/>💇‍♀️ Knippen (€25)<br/>📍 Hair Studio Centrum</p>
+                      <p className="text-gray-800">✅ Appointment booked!<br/>📅 Tomorrow 2:00 PM<br/>💇‍♀️ Haircut ($25)<br/>📍 Hair Studio Downtown</p>
                     </div>
                   </div>
                   
@@ -114,6 +114,7 @@ const Features = () => {
         </div>
       ),
       className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
+      hideCta: true,
     },
     {
       Icon: GearIcon,
