@@ -44,21 +44,23 @@ const BentoCard = ({
     key={name}
     className={cn(
       "group relative col-span-1 flex flex-col justify-between overflow-hidden rounded-xl",
-      // light styles
-      "bg-white [box-shadow:0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)]",
-      // dark styles
-      "transform-gpu dark:bg-slate-800/50 dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]",
-      "hover:-translate-y-1 hover:shadow-lg transition-all duration-300",
+      // Base styling with slate theme
+      "bg-slate-800/80 border border-slate-700/50",
+      // Enhanced hover effects with glow
+      "hover:bg-slate-800/90 hover:border-emerald-500/30 hover:scale-[1.02]",
+      "shadow-lg shadow-emerald-500/10 hover:shadow-2xl hover:shadow-emerald-500/20",
+      "transition-all duration-300 transform-gpu",
+      "backdrop-blur-sm",
       className,
     )}
   >
     <div>{background}</div>
-    <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-6 transition-all duration-300 group-hover:-translate-y-10">
-      <Icon className="h-12 w-12 origin-left transform-gpu text-slate-700 transition-all duration-300 ease-in-out group-hover:scale-75 dark:text-slate-200" />
-      <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+    <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-2 p-6 transition-all duration-300 group-hover:-translate-y-2">
+      <Icon className="h-12 w-12 origin-left transform-gpu text-emerald-400 transition-all duration-300 ease-in-out group-hover:scale-110 group-hover:text-emerald-300" />
+      <h3 className="text-xl font-semibold text-white mb-2">
         {name}
       </h3>
-      <p className="max-w-lg text-slate-600 dark:text-slate-400">{description}</p>
+      <p className="max-w-lg text-slate-300 leading-relaxed">{description}</p>
     </div>
 
     <div
@@ -66,14 +68,19 @@ const BentoCard = ({
         "pointer-events-none absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100",
       )}
     >
-      <Button variant="ghost" asChild size="sm" className="pointer-events-auto">
+      <Button 
+        variant="ghost" 
+        asChild 
+        size="sm" 
+        className="pointer-events-auto text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+      >
         <a href={href}>
           {cta}
           <ArrowRightIcon className="ml-2 h-4 w-4" />
         </a>
       </Button>
     </div>
-    <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-slate-800/[.01] group-hover:dark:bg-slate-50/[.01]" />
+    <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-gradient-to-br group-hover:from-emerald-500/5 group-hover:to-emerald-600/10" />
   </div>
 );
 

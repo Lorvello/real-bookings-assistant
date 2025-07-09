@@ -19,7 +19,13 @@ const Features = () => {
       description: "No manual intervention needed. Books, confirms and reschedules automatically",
       href: "/features/automation",
       cta: "Learn more",
-      background: <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-600/20" />,
+      background: (
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          <div className="absolute top-4 right-4 w-8 h-8 bg-emerald-500/20 rounded-full blur-xl" />
+          <div className="absolute bottom-6 left-6 text-emerald-400/30 text-6xl font-bold">24/7</div>
+        </div>
+      ),
       className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
     },
     {
@@ -28,7 +34,13 @@ const Features = () => {
       description: "Customize the AI Agent to your services, FAQs and booking logic",
       href: "/features/personalization",
       cta: "Learn more",
-      background: <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-600/20" />,
+      background: (
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
+          <div className="absolute top-3 right-3 w-6 h-6 bg-blue-500/30 rounded-full" />
+          <div className="absolute bottom-3 right-3 w-4 h-4 bg-blue-400/40 rounded-full" />
+        </div>
+      ),
       className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2",
     },
     {
@@ -37,7 +49,14 @@ const Features = () => {
       description: "Get your own professional calendar with advanced dashboard for complete control",
       href: "/features/dashboard",
       cta: "Learn more",
-      background: <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-600/20" />,
+      background: (
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          <div className="absolute top-4 left-4 w-12 h-2 bg-emerald-500/30 rounded-full" />
+          <div className="absolute top-8 left-6 w-8 h-2 bg-emerald-400/40 rounded-full" />
+          <div className="absolute top-12 left-4 w-16 h-2 bg-emerald-300/20 rounded-full" />
+        </div>
+      ),
       className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-3",
     },
     {
@@ -46,7 +65,14 @@ const Features = () => {
       description: "Integrate seamlessly with Google Calendar, Outlook, Calendly and more",
       href: "/features/integration",
       cta: "Learn more",
-      background: <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-600/20" />,
+      background: (
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
+          <div className="absolute top-3 left-3 w-3 h-3 border border-blue-400/40 rounded-full" />
+          <div className="absolute top-6 left-8 w-2 h-2 bg-blue-500/50 rounded-full" />
+          <div className="absolute bottom-4 right-4 w-4 h-4 border border-blue-300/30 rounded" />
+        </div>
+      ),
       className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-4",
     },
     {
@@ -55,7 +81,13 @@ const Features = () => {
       description: "Sends confirmation and reminder messages to reduce no-shows",
       href: "/features/reminders",
       cta: "Learn more",
-      background: <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-600/20" />,
+      background: (
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          <div className="absolute top-4 right-4 w-6 h-1 bg-emerald-500/40 rounded-full animate-pulse" />
+          <div className="absolute bottom-6 left-4 text-emerald-400/20 text-4xl">📧</div>
+        </div>
+      ),
       className: "lg:row-start-3 lg:row-end-4 lg:col-start-1 lg:col-end-2",
     },
     {
@@ -64,7 +96,14 @@ const Features = () => {
       description: "Track booking rates, popular times and generated revenue",
       href: "/features/analytics",
       cta: "Learn more",
-      background: <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-600/20" />,
+      background: (
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
+          <div className="absolute top-4 left-4 w-8 h-1 bg-blue-500/40 rounded" />
+          <div className="absolute top-7 left-6 w-6 h-1 bg-blue-400/50 rounded" />
+          <div className="absolute top-10 left-4 w-10 h-1 bg-blue-300/30 rounded" />
+        </div>
+      ),
       className: "lg:col-start-3 lg:col-end-4 lg:row-start-3 lg:row-end-4",
     },
     {
@@ -73,7 +112,13 @@ const Features = () => {
       description: "Automatically communicates in your customers' preferred language",
       href: "/features/multilingual",
       cta: "Learn more",
-      background: <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-600/20" />,
+      background: (
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          <div className="absolute top-4 left-4 text-emerald-400/30 text-2xl">🌍</div>
+          <div className="absolute bottom-4 right-4 w-3 h-3 bg-emerald-500/40 rounded-full" />
+        </div>
+      ),
       className: "lg:col-start-1 lg:col-end-3 lg:row-start-4 lg:row-end-5",
     },
     {
@@ -82,7 +127,13 @@ const Features = () => {
       description: "View live bookings, performance and customer interactions",
       href: "/features/monitoring",
       cta: "Learn more",
-      background: <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-600/20" />,
+      background: (
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
+          <div className="absolute top-3 right-3 w-2 h-2 bg-blue-500/60 rounded-full animate-pulse" />
+          <div className="absolute bottom-4 left-4 w-6 h-6 border border-blue-400/30 rounded" />
+        </div>
+      ),
       className: "lg:col-start-3 lg:col-end-4 lg:row-start-4 lg:row-end-5",
     },
   ];
