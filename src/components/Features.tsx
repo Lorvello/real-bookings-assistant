@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 
 const Features = () => {
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
-  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 6)); // July 2025
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [showPopup, setShowPopup] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
@@ -370,7 +370,7 @@ const Features = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-white text-[12px] font-semibold">
-                  {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  {currentMonth.toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -473,11 +473,16 @@ const Features = () => {
                 {/* Week Headers */}
                 <div className="grid grid-cols-8 gap-1 text-[7px]">
                   <div className="text-slate-400 text-center py-1 font-medium">Time</div>
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-                    <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">
-                      {day} {index + 1}
-                    </div>
-                  ))}
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                    // Get the date for this day in the current month
+                    const weekStartDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 7); // Start from 7th
+                    const dayDate = weekStartDate.getDate() + index;
+                    return (
+                      <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">
+                        {day} {dayDate}
+                      </div>
+                    );
+                  })}
                 </div>
                 
                 {/* Time Slots */}
@@ -486,19 +491,13 @@ const Features = () => {
                     <div key={time} className="grid grid-cols-8 gap-1 text-[7px]">
                       <div className="text-slate-400 text-center py-1 font-medium">{time}</div>
                       {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => {
-                        // Week view bookings matching month view data
-                        const weekBookings = {
-                          '0-09:00': bookings[2], // Monday - John Personal Training
-                          '1-10:00': bookings[24], // Tuesday - Mia Nutrition
-                          '2-14:00': bookings[7], // Wednesday - Mike Massage
-                          '3-11:00': bookings[9], // Thursday - Emma Pilates
-                          '4-16:00': bookings[11], // Friday - Tom CrossFit
-                          '5-13:00': bookings[14], // Saturday - Lisa Nutrition (adjusted time)
-                          '6-18:00': bookings[17] // Sunday - Anna Yoga
-                        };
+                        // Calculate the actual date for this day
+                        const weekStartDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 7);
+                        const dayDate = weekStartDate.getDate() + dayIndex;
                         
-                        const bookingKey = `${dayIndex}-${time}`;
-                        const booking = weekBookings[bookingKey as keyof typeof weekBookings];
+                        // Get booking for this date and time
+                        const dayBooking = bookings[dayDate as keyof typeof bookings];
+                        const booking = dayBooking && dayBooking.time === time ? dayBooking : null;
                         
                         return (
                           <div key={dayIndex} className={`py-1 px-1 rounded text-center transition-colors ${
