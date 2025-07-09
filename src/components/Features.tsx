@@ -867,10 +867,6 @@ const Features = () => {
             </div>
           </div>
           
-          {/* Empty Container */}
-          <div className="absolute bottom-3 left-3 right-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-4 backdrop-blur-sm">
-            {/* Empty container - similar to detailed analytics */}
-          </div>
           
           <div className="absolute top-4 right-4 w-6 h-1 bg-emerald-500/40 rounded-full animate-pulse" />
         </div>,
@@ -933,6 +929,30 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           <div className="absolute top-4 left-4 text-emerald-400/30 text-2xl">🌍</div>
           <div className="absolute bottom-4 right-4 w-3 h-3 bg-emerald-500/40 rounded-full" />
+          
+          {/* Language showcase container */}
+          <div className="absolute bottom-3 left-3 right-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+            <div className="space-y-2">
+              {/* Language flags */}
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-white">🇺🇸 English</span>
+                <span className="text-emerald-400">Active</span>
+              </div>
+              
+              {/* Translation examples */}
+              <div className="space-y-1">
+                <div className="text-[8px] text-slate-300">🇳🇱 "Uw afspraak is bevestigd"</div>
+                <div className="text-[8px] text-slate-300">🇩🇪 "Ihr Termin ist bestätigt"</div>
+                <div className="text-[8px] text-slate-300">🇫🇷 "Votre rendez-vous est confirmé"</div>
+              </div>
+              
+              {/* Language detection indicator */}
+              <div className="flex items-center gap-1 text-[8px] text-emerald-400">
+                <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span>Auto-detected: Dutch</span>
+              </div>
+            </div>
+          </div>
         </div>,
     className: "lg:col-start-1 lg:col-end-3 lg:row-start-4 lg:row-end-5"
   }, {
@@ -945,6 +965,38 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
           <div className="absolute top-3 right-3 w-2 h-2 bg-blue-500/60 rounded-full animate-pulse" />
           <div className="absolute bottom-4 left-4 w-6 h-6 border border-blue-400/30 rounded" />
+          
+          {/* Dashboard metrics container */}
+          <div className="absolute bottom-3 left-3 right-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+            <div className="grid grid-cols-3 gap-2">
+              {/* Active Users */}
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="text-white text-[10px] font-medium">12</span>
+                </div>
+                <div className="text-emerald-400 text-[7px] uppercase tracking-wider">Active</div>
+              </div>
+              
+              {/* Success Rate */}
+              <div className="text-center">
+                <div className="text-blue-400 text-[10px] font-medium mb-1">98%</div>
+                <div className="text-blue-300 text-[7px] uppercase tracking-wider">Success</div>
+              </div>
+              
+              {/* Response Time */}
+              <div className="text-center">
+                <div className="text-purple-400 text-[10px] font-medium mb-1">1.2s</div>
+                <div className="text-purple-300 text-[7px] uppercase tracking-wider">Response</div>
+              </div>
+            </div>
+            
+            {/* Live status indicator */}
+            <div className="flex items-center justify-center gap-1 mt-2 text-[8px] text-slate-300">
+              <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span>Live monitoring active</span>
+            </div>
+          </div>
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-4 lg:row-end-5"
   }];
