@@ -71,13 +71,14 @@ const translateText = async (text: string, targetLang: string): Promise<string> 
 
     if (error) {
       console.error('Translation error:', error);
-      return `Translation error: ${error.message}`;
+      return `Unable to translate: ${error.message}`;
     }
 
-    return data.translatedText || text;
+    return data?.translatedText || `[${targetLang.toUpperCase()}] ${text}`;
   } catch (error) {
     console.error('Translation request failed:', error);
-    return `Translation failed: ${error.message}`;
+    // Fallback to showing the target language code with original text
+    return `[${targetLang.toUpperCase()}] ${text}`;
   }
 };
 
