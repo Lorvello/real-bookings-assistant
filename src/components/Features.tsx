@@ -821,12 +821,6 @@ const Features = () => {
               </div>
             </div>
             
-            {/* Bottom Feature Tags */}
-            <div className="mt-2 pt-2 border-t border-slate-700/50">
-              <p className="text-slate-400 text-[7px] text-center">
-                Contextual understanding • Previous visit data • Intelligent suggestions
-              </p>
-            </div>
           </div>
           
           {/* Background accent elements */}
