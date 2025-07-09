@@ -867,30 +867,9 @@ const Features = () => {
             </div>
           </div>
           
-          {/* Metrics Container */}
-          <div className="absolute bottom-3 left-3 right-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3">
-            <div className="grid grid-cols-3 gap-2">
-              {/* Delivery Rate */}
-              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 text-center">
-                <div className="text-emerald-400 text-[12px] mb-1">✅</div>
-                <div className="text-white text-[14px] font-bold mb-1">95%</div>
-                <div className="text-emerald-300 text-[7px] uppercase tracking-wider">Delivery</div>
-              </div>
-              
-              {/* Response Time */}
-              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-2 text-center">
-                <div className="text-blue-400 text-[12px] mb-1">⚡</div>
-                <div className="text-white text-[14px] font-bold mb-1">2.1s</div>
-                <div className="text-blue-300 text-[7px] uppercase tracking-wider">Response</div>
-              </div>
-              
-              {/* No-shows Reduction */}
-              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 text-center">
-                <div className="text-red-400 text-[12px] mb-1">📉</div>
-                <div className="text-white text-[14px] font-bold mb-1">-60%</div>
-                <div className="text-red-300 text-[7px] uppercase tracking-wider">No-shows</div>
-              </div>
-            </div>
+          {/* Empty Container */}
+          <div className="absolute bottom-3 left-3 right-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-4 backdrop-blur-sm">
+            {/* Empty container - similar to detailed analytics */}
           </div>
           
           <div className="absolute top-4 right-4 w-6 h-1 bg-emerald-500/40 rounded-full animate-pulse" />
