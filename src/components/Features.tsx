@@ -983,12 +983,9 @@ const Features = () => {
             <div className="h-full flex flex-col">
               {/* Carousel Content */}
               <div className="flex-1 relative overflow-hidden">
-                <div 
-                  className="flex h-full transition-transform duration-300 ease-in-out"
-                  style={{ transform: `translateX(-${currentSlide * 20}%)` }}
-                >
-                  {/* Slide 1: Today Stats */}
-                  <div className="w-1/5 flex-shrink-0 px-2">
+                <div className="flex h-full gap-3 px-2">
+                  {/* Today Stats */}
+                  <div className="flex-1">
                     <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col items-center justify-center text-center">
                       <Calendar className="h-6 w-6 text-emerald-400 mb-3" />
                       <div className="text-white text-2xl font-bold mb-1">5</div>
@@ -998,8 +995,8 @@ const Features = () => {
                     </div>
                   </div>
 
-                  {/* Slide 2: Active Now */}
-                  <div className="w-1/5 flex-shrink-0 px-2">
+                  {/* Active Now */}
+                  <div className="flex-1">
                     <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col items-center justify-center text-center">
                       <Users className="h-6 w-6 text-emerald-400 mb-3" />
                       <div className="text-white text-2xl font-bold mb-1">3</div>
@@ -1009,8 +1006,8 @@ const Features = () => {
                     </div>
                   </div>
 
-                  {/* Slide 3: WhatsApp Live */}
-                  <div className="w-1/5 flex-shrink-0 px-2">
+                  {/* WhatsApp Live */}
+                  <div className="flex-1">
                     <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col items-center justify-center text-center">
                       <MessageCircle className="h-6 w-6 text-emerald-400 mb-3" />
                       <div className="text-white text-2xl font-bold mb-1">17</div>
@@ -1019,78 +1016,10 @@ const Features = () => {
                       <div className="text-emerald-400 text-xs">last hour</div>
                     </div>
                   </div>
-
-                  {/* Slide 4: Next Appointment */}
-                  <div className="w-1/5 flex-shrink-0 px-2">
-                    <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col items-center justify-center text-center">
-                      <Clock className="h-6 w-6 text-emerald-400 mb-3" />
-                      <div className="text-emerald-300 text-sm font-medium mb-2">Next Appointment</div>
-                      <div className="text-white text-sm font-semibold mb-1">Laura van Dijk</div>
-                      <div className="text-emerald-400 text-xs">09:30</div>
-                      <div className="text-emerald-400 text-xs">Today</div>
-                    </div>
-                  </div>
-
-                  {/* Slide 5: System Status */}
-                  <div className="w-1/5 flex-shrink-0 px-2">
-                    <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col justify-center">
-                      <div className="text-emerald-300 text-sm font-medium mb-3 text-center">System Status</div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                            <span className="text-slate-300">Calendar</span>
-                          </div>
-                          <span className="text-green-400">Online</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="h-3 w-3 text-green-400" />
-                            <span className="text-slate-300">WhatsApp</span>
-                          </div>
-                          <span className="text-green-400">Active</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <Activity className="h-3 w-3 text-green-400 animate-pulse" />
-                            <span className="text-slate-300">Sync</span>
-                          </div>
-                          <span className="text-green-400">Live</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Carousel Navigation */}
-              <div className="flex items-center justify-center mt-3">
-                {/* Navigation Dots */}
-                <div className="flex gap-2">
-                  {[0, 1, 2, 3, 4].map((index) => (
-                    <button
-                      key={index}
-                      className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-                        currentSlide === index ? 'bg-emerald-400' : 'bg-slate-600'
-                      }`}
-                      onClick={() => setCurrentSlide(index)}
-                    />
-                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Touch/Swipe Area */}
-            <div 
-              className="absolute inset-0 z-10"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              onClick={handleSlideToggle}
-              style={{ 
-                cursor: 'pointer'
-              }}
-            />
           </div>
           
           {/* Timestamp positioned in middle area between carousel and BentoCard footer */}
