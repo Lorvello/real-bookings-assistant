@@ -44,7 +44,7 @@ const Features = () => {
                 </div>
                 
                   {/* Chat area */}
-                  <div className="bg-[#e5ddd5] flex-1 p-1.5 space-y-3 text-[6px] overflow-y-auto pb-12">
+                  <div className="bg-[#e5ddd5] flex-1 p-1.5 space-y-3 text-[6px] overflow-hidden">
                   {/* Customer message */}
                   <div className="flex justify-end">
                     <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
@@ -90,28 +90,7 @@ const Features = () => {
                     {/* Final confirmation */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                        <p className="text-gray-800">✅ Appointment booked!<br/>📅 Tomorrow 2:00 PM<br/>💇‍♀️ Haircut ($25)<br/>📍 Hair Studio Downtown</p>
-                      </div>
-                    </div>
-                    
-                    {/* AI confirmation message */}
-                    <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                        <p className="text-gray-800">Bevestiging verstuurd naar je WhatsApp ✅</p>
-                      </div>
-                    </div>
-                    
-                    {/* Customer thank you */}
-                    <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                        <p className="text-gray-800">Perfect, dank je wel!</p>
-                      </div>
-                    </div>
-                    
-                    {/* AI goodbye */}
-                    <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                        <p className="text-gray-800">Graag gedaan! Tot morgen om 2:00 PM 👋</p>
+                        <p className="text-gray-800">You have an appointment tomorrow at 2 PM ✅</p>
                       </div>
                     </div>
                   </div>
