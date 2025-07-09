@@ -839,6 +839,28 @@ const Features = () => {
     cta: "Learn more",
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          
+          {/* WhatsApp Notification Mockup */}
+          <div className="absolute top-3 left-3 right-3 bg-white rounded-lg shadow-lg p-3">
+            {/* WhatsApp Header */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">W</span>
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900 text-xs">Wellness Clinic</h4>
+                </div>
+              </div>
+              <span className="text-gray-500 text-xs">2 min ago</span>
+            </div>
+            
+            {/* Notification Content */}
+            <div className="text-gray-800 text-xs leading-relaxed">
+              🔔 Reminder: Your appointment is tomorrow at 2:00 PM. Please confirm by replying YES.
+            </div>
+          </div>
+          
           <div className="absolute top-4 right-4 w-6 h-1 bg-emerald-500/40 rounded-full animate-pulse" />
           <div className="absolute bottom-6 left-4 text-emerald-400/20 text-4xl">📧</div>
         </div>,
