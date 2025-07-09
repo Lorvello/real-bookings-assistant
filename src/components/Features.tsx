@@ -1,10 +1,198 @@
 import { LightningBoltIcon as BoltIcon, GearIcon, CalendarIcon, Link2Icon, BellIcon, BarChartIcon as BarChart3Icon, GlobeIcon, DesktopIcon as MonitorIcon } from "@radix-ui/react-icons";
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { X } from "lucide-react";
 
 const Features = () => {
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
   const [currentMonth, setCurrentMonth] = useState(new Date(2025, 6)); // July 2025
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const calendarRef = useRef<HTMLDivElement>(null);
+
+  // Extended booking data for both views
+  const bookings = {
+    2: { 
+      id: 1, 
+      name: "John Peterson", 
+      service: "Personal Training", 
+      time: "9:00", 
+      duration: "60 min",
+      phone: "+31 6 1234 5678",
+      email: "john@example.com",
+      status: "confirmed",
+      notes: "Focuses on strength training and weight loss"
+    },
+    4: { 
+      id: 2, 
+      name: "Sarah Johnson", 
+      service: "Yoga Class", 
+      time: "10:30", 
+      duration: "90 min",
+      phone: "+31 6 2345 6789",
+      email: "sarah@example.com",
+      status: "confirmed",
+      notes: "Beginner level, prefers morning sessions"
+    },
+    7: { 
+      id: 3, 
+      name: "Mike Williams", 
+      service: "Massage Therapy", 
+      time: "14:00", 
+      duration: "45 min",
+      phone: "+31 6 3456 7890",
+      email: "mike@example.com",
+      status: "confirmed",
+      notes: "Deep tissue massage for sports recovery"
+    },
+    9: { 
+      id: 4, 
+      name: "Emma Davis", 
+      service: "Pilates Session", 
+      time: "11:00", 
+      duration: "60 min",
+      phone: "+31 6 4567 8901",
+      email: "emma@example.com",
+      status: "pending",
+      notes: "Rehabilitation exercises for lower back"
+    },
+    11: { 
+      id: 5, 
+      name: "Tom Brown", 
+      service: "CrossFit Training", 
+      time: "16:00", 
+      duration: "75 min",
+      phone: "+31 6 5678 9012",
+      email: "tom@example.com",
+      status: "confirmed",
+      notes: "High intensity workout, experienced athlete"
+    },
+    14: { 
+      id: 6, 
+      name: "Lisa Garcia", 
+      service: "Nutrition Consultation", 
+      time: "13:30", 
+      duration: "45 min",
+      phone: "+31 6 6789 0123",
+      email: "lisa@example.com",
+      status: "confirmed",
+      notes: "Weight management and meal planning"
+    },
+    15: { 
+      id: 7, 
+      name: "Dave Miller", 
+      service: "Personal Training", 
+      time: "8:00", 
+      duration: "60 min",
+      phone: "+31 6 7890 1234",
+      email: "dave@example.com",
+      status: "confirmed",
+      notes: "Early morning session, cardio focus"
+    },
+    17: { 
+      id: 8, 
+      name: "Anna Wilson", 
+      service: "Evening Yoga", 
+      time: "18:00", 
+      duration: "90 min",
+      phone: "+31 6 8901 2345",
+      email: "anna@example.com",
+      status: "confirmed",
+      notes: "Relaxation and stress relief session"
+    },
+    18: { 
+      id: 9, 
+      name: "Chris Martinez", 
+      service: "Sports Massage", 
+      time: "15:30", 
+      duration: "60 min",
+      phone: "+31 6 9012 3456",
+      email: "chris@example.com",
+      status: "confirmed",
+      notes: "Pre-competition preparation massage"
+    },
+    21: { 
+      id: 10, 
+      name: "Kate Thompson", 
+      service: "Pilates Mat Class", 
+      time: "12:00", 
+      duration: "60 min",
+      phone: "+31 6 0123 4567",
+      email: "kate@example.com",
+      status: "confirmed",
+      notes: "Core strengthening and flexibility"
+    },
+    22: { 
+      id: 11, 
+      name: "Ben Anderson", 
+      service: "CrossFit WOD", 
+      time: "17:00", 
+      duration: "60 min",
+      phone: "+31 6 1234 5670",
+      email: "ben@example.com",
+      status: "confirmed",
+      notes: "Workout of the day, group session"
+    },
+    24: { 
+      id: 12, 
+      name: "Mia Taylor", 
+      service: "Nutrition & Lifestyle", 
+      time: "10:00", 
+      duration: "60 min",
+      phone: "+31 6 2345 6701",
+      email: "mia@example.com",
+      status: "pending",
+      notes: "First consultation, weight loss goals"
+    },
+    25: { 
+      id: 13, 
+      name: "Sam Rodriguez", 
+      service: "Strength Training", 
+      time: "14:30", 
+      duration: "75 min",
+      phone: "+31 6 3456 7012",
+      email: "sam@example.com",
+      status: "confirmed",
+      notes: "Powerlifting focused training session"
+    },
+    28: { 
+      id: 14, 
+      name: "Alex Moore", 
+      service: "Yin Yoga", 
+      time: "19:00", 
+      duration: "90 min",
+      phone: "+31 6 4567 0123",
+      email: "alex@example.com",
+      status: "confirmed",
+      notes: "Restorative yoga for deep relaxation"
+    },
+    30: { 
+      id: 15, 
+      name: "Zoe White", 
+      service: "Therapeutic Massage", 
+      time: "11:30", 
+      duration: "60 min",
+      phone: "+31 6 5670 1234",
+      email: "zoe@example.com",
+      status: "confirmed",
+      notes: "Injury recovery and pain management"
+    }
+  };
+
+  const handleBookingClick = (booking: any, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (calendarRef.current) {
+      const rect = calendarRef.current.getBoundingClientRect();
+      const targetRect = (event.target as HTMLElement).getBoundingClientRect();
+      setPopupPosition({
+        x: targetRect.left - rect.left + targetRect.width / 2,
+        y: targetRect.top - rect.top - 10
+      });
+    }
+    setSelectedBooking(booking);
+    setShowPopup(true);
+  };
   const bookingFeatures = [{
     Icon: BoltIcon,
     name: "100% Automatic Bookings",
@@ -177,7 +365,7 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
           {/* Full Calendar Section */}
-          <div className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col">
+          <div ref={calendarRef} className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col">
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -222,24 +410,6 @@ const Features = () => {
                   
                   {/* Calendar Dates with detailed bookings */}
                   {(() => {
-                    const bookings = {
-                      2: { name: "John", service: "Personal Training", time: "9:00" },
-                      4: { name: "Sarah", service: "Yoga", time: "10:30" },
-                      7: { name: "Mike", service: "Massage", time: "14:00" },
-                      9: { name: "Emma", service: "Pilates", time: "11:00" },
-                      11: { name: "Tom", service: "CrossFit", time: "16:00" },
-                      14: { name: "Lisa", service: "Nutrition", time: "13:30" },
-                      15: { name: "Dave", service: "Personal Training", time: "8:00" },
-                      17: { name: "Anna", service: "Yoga", time: "18:00" },
-                      18: { name: "Chris", service: "Massage", time: "15:30" },
-                      21: { name: "Kate", service: "Pilates", time: "12:00" },
-                      22: { name: "Ben", service: "CrossFit", time: "17:00" },
-                      24: { name: "Mia", service: "Nutrition", time: "10:00" },
-                      25: { name: "Sam", service: "Personal Training", time: "14:30" },
-                      28: { name: "Alex", service: "Yoga", time: "19:00" },
-                      30: { name: "Zoe", service: "Massage", time: "11:30" }
-                    };
-                    
                     return [
                       { date: 30, isOtherMonth: true }, { date: 1, isOtherMonth: false }, { date: 2, isOtherMonth: false, booking: bookings[2] }, { date: 3, isOtherMonth: false }, { date: 4, isOtherMonth: false, booking: bookings[4] }, { date: 5, isOtherMonth: false }, { date: 6, isOtherMonth: false },
                       { date: 7, isOtherMonth: false, booking: bookings[7] }, { date: 8, isOtherMonth: false }, { date: 9, isOtherMonth: false, booking: bookings[9] }, { date: 10, isOtherMonth: false }, { date: 11, isOtherMonth: false, booking: bookings[11] }, { date: 12, isOtherMonth: false }, { date: 13, isOtherMonth: false },
@@ -250,15 +420,16 @@ const Features = () => {
                       <div key={index} className="relative">
                         <div className={`text-center py-1 h-14 flex flex-col items-center justify-start text-[7px] transition-colors rounded ${
                           day.booking 
-                            ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50' 
+                            ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/90 hover:scale-105 transition-all duration-200' 
                             : day.isOtherMonth 
                               ? 'text-slate-500 hover:bg-slate-700/30' 
                               : 'text-slate-300 hover:bg-slate-700/50'
-                        }`}>
+                        }`}
+                        onClick={day.booking ? (e) => handleBookingClick(day.booking, e) : undefined}>
                           <div className="font-medium">{day.date}</div>
                           {day.booking && (
                             <div className="text-[6px] mt-1 px-1 leading-tight">
-                              <div className="text-emerald-200">{day.booking.name}</div>
+                              <div className="text-emerald-200">{day.booking.name.split(' ')[0]}</div>
                               <div className="text-emerald-100">{day.booking.service}</div>
                               <div className="text-emerald-300">{day.booking.time}</div>
                             </div>
@@ -301,52 +472,113 @@ const Features = () => {
               <div className="space-y-1 flex-1">
                 {/* Week Headers */}
                 <div className="grid grid-cols-8 gap-1 text-[7px]">
-                  <div className="text-slate-400 text-center py-1 font-medium"></div>
-                  {['Mon 7', 'Tue 8', 'Wed 9', 'Thu 10', 'Fri 11', 'Sat 12', 'Sun 13'].map((day) => (
-                    <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">{day}</div>
+                  <div className="text-slate-400 text-center py-1 font-medium">Time</div>
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
+                    <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">
+                      {day} {index + 1}
+                    </div>
                   ))}
                 </div>
                 
-                {/* Time Slots - Extended to 24 hours */}
-                {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map((time, timeIndex) => (
-                  <div key={time} className="grid grid-cols-8 gap-1 text-[7px]">
-                    <div className="text-slate-400 text-right py-1 pr-2">{time}</div>
-                    {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
-                      <div key={dayIndex} className="border border-slate-700/30 h-3 rounded relative">
-                        {/* Add diverse fitness appointments throughout 24 hours */}
-                        {(timeIndex === 6 && dayIndex === 0) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Marcus HIIT</div>
-                        ) : (timeIndex === 8 && dayIndex === 1) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Jessica Zumba</div>
-                        ) : (timeIndex === 10 && dayIndex === 0) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">John PT</div>
-                        ) : (timeIndex === 12 && dayIndex === 2) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Nina Spin</div>
-                        ) : (timeIndex === 14 && dayIndex === 1) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Mike Massage</div>
-                        ) : (timeIndex === 16 && dayIndex === 4) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Emma Pilates</div>
-                        ) : (timeIndex === 17 && dayIndex === 3) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Tom CrossFit</div>
-                        ) : (timeIndex === 18 && dayIndex === 5) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Roberto Boxing</div>
-                        ) : (timeIndex === 19 && dayIndex === 0) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Anna Yoga</div>
-                        ) : (timeIndex === 20 && dayIndex === 6) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">David Weights</div>
-                        ) : (timeIndex === 11 && dayIndex === 3) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Lisa Nutrition</div>
-                        ) : (timeIndex === 15 && dayIndex === 2) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Sam Functional</div>
-                        ) : (timeIndex === 9 && dayIndex === 5) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Kate Cardio</div>
-                        ) : (timeIndex === 13 && dayIndex === 6) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[4px] flex items-center justify-center">Ben Strength</div>
-                        ) : null}
-                      </div>
-                    ))}
+                {/* Time Slots */}
+                <div className="space-y-1">
+                  {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'].map((time) => (
+                    <div key={time} className="grid grid-cols-8 gap-1 text-[7px]">
+                      <div className="text-slate-400 text-center py-1 font-medium">{time}</div>
+                      {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => {
+                        // Week view bookings matching month view data
+                        const weekBookings = {
+                          '0-09:00': bookings[2], // Monday - John Personal Training
+                          '1-10:00': bookings[24], // Tuesday - Mia Nutrition
+                          '2-14:00': bookings[7], // Wednesday - Mike Massage
+                          '3-11:00': bookings[9], // Thursday - Emma Pilates
+                          '4-16:00': bookings[11], // Friday - Tom CrossFit
+                          '5-13:00': bookings[14], // Saturday - Lisa Nutrition (adjusted time)
+                          '6-18:00': bookings[17] // Sunday - Anna Yoga
+                        };
+                        
+                        const bookingKey = `${dayIndex}-${time}`;
+                        const booking = weekBookings[bookingKey as keyof typeof weekBookings];
+                        
+                        return (
+                          <div key={dayIndex} className={`py-1 px-1 rounded text-center transition-colors ${
+                            booking 
+                              ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/90 hover:scale-105 transition-all duration-200' 
+                              : 'hover:bg-slate-700/30'
+                          }`}
+                          onClick={booking ? (e) => handleBookingClick(booking, e) : undefined}>
+                            {booking && (
+                              <div className="text-[6px] leading-tight">
+                                <div className="text-emerald-200">{booking.name.split(' ')[0]}</div>
+                                <div className="text-emerald-100">{booking.service}</div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Booking Popup */}
+            {showPopup && selectedBooking && (
+              <div 
+                className="absolute z-50 bg-slate-900/95 border border-slate-600/50 rounded-lg p-3 backdrop-blur-sm shadow-2xl"
+                style={{
+                  left: `${popupPosition.x}px`,
+                  top: `${popupPosition.y}px`,
+                  transform: 'translateX(-50%) translateY(-100%)',
+                  minWidth: '240px',
+                  maxWidth: '280px'
+                }}
+              >
+                {/* Close button */}
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="absolute top-1 right-1 text-slate-400 hover:text-white transition-colors"
+                >
+                  <X size={12} />
+                </button>
+                
+                {/* Booking details */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${
+                      selectedBooking.status === 'confirmed' ? 'bg-emerald-400' : 'bg-yellow-400'
+                    }`} />
+                    <span className="text-white text-[10px] font-semibold">
+                      {selectedBooking.status === 'confirmed' ? 'Confirmed' : 'Pending'}
+                    </span>
                   </div>
-                ))}
+                  
+                  <div>
+                    <h4 className="text-white text-[11px] font-semibold">{selectedBooking.name}</h4>
+                    <p className="text-emerald-400 text-[9px] font-medium">{selectedBooking.service}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-[8px]">
+                      <span className="text-slate-400">Time:</span>
+                      <span className="text-white">{selectedBooking.time} ({selectedBooking.duration})</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[8px]">
+                      <span className="text-slate-400">Phone:</span>
+                      <span className="text-white">{selectedBooking.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[8px]">
+                      <span className="text-slate-400">Email:</span>
+                      <span className="text-white">{selectedBooking.email}</span>
+                    </div>
+                  </div>
+                  
+                  {selectedBooking.notes && (
+                    <div className="border-t border-slate-700/50 pt-2">
+                      <p className="text-slate-300 text-[8px] leading-relaxed">{selectedBooking.notes}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
