@@ -1030,41 +1030,6 @@ const Features = () => {
           </BentoGrid>
         </div>
         
-        {/* CTA Section - Mobile optimized */}
-        <div className="text-center relative overflow-hidden pt-8 md:pt-16 pb-8 md:pb-20">
-          {/* Background decoration for CTA */}
-          <div className="absolute top-0 right-0 w-48 h-48 md:w-64 md:h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 md:w-48 md:h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
-          
-          <div className="relative z-10 px-3 sm:px-0">
-            <h3 className="text-xl md:text-4xl font-bold mb-4 md:mb-8 text-white">
-              Don't Let Revenue Sleep While You Do
-            </h3>
-            <p className="text-sm md:text-xl text-slate-300 mb-8 md:mb-16 max-w-2xl mx-auto">
-              <span className="md:hidden">AI books while you work. Start free trial today.</span>
-              <span className="hidden md:inline">While you're busy with customers, your AI agent is busy booking new ones. 
-              Start your free trial and see the difference automation makes.</span>
-            </p>
-            
-            {/* Desktop: Stats section */}
-            <div className="hidden md:flex md:flex-row flex-wrap justify-center gap-6 md:gap-16">
-              {stats.map((stat, index) => <div key={index} className="group text-center hover:transform hover:scale-105 transition-all duration-300">
-                  <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">{stat.value}</div>
-                  <div className="text-slate-400 text-xs md:text-sm uppercase tracking-wider group-hover:text-slate-300 transition-colors">{stat.label}</div>
-                </div>)}
-            </div>
-
-            {/* Mobile: Stats grid (replaced carousel) */}
-            <div className="md:hidden">
-              <div className="grid grid-cols-3 gap-4">
-                {stats.map((stat, index) => <div key={index} className="text-center bg-slate-800/30 rounded-xl p-4">
-                    <div className="text-xl font-bold mb-1 text-emerald-400">{stat.value}</div>
-                    <div className="text-slate-400 text-xs uppercase tracking-wider">{stat.label}</div>
-                  </div>)}
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>;
 };
