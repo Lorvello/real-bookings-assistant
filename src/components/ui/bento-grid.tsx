@@ -57,12 +57,21 @@ const BentoCard = ({
     )}
   >
     <div>{background}</div>
-    <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-2 p-6 transition-all duration-300 group-hover:-translate-y-2">
+    <div className={cn(
+      "pointer-events-none z-10 flex transform-gpu flex-col gap-2 p-6 transition-all duration-300 group-hover:-translate-y-2",
+      name === "100% Automatic Bookings" ? "w-[35%]" : ""
+    )}>
       <Icon className="h-12 w-12 origin-left transform-gpu text-emerald-400 transition-all duration-300 ease-in-out group-hover:scale-110 group-hover:text-emerald-300" />
-      <h3 className="text-xl font-semibold text-white mb-2">
+      <h3 className={cn(
+        "text-xl font-semibold text-white mb-2",
+        name === "100% Automatic Bookings" ? "text-lg" : ""
+      )}>
         {name}
       </h3>
-      <p className="max-w-lg text-slate-300 leading-relaxed">{description}</p>
+      <p className={cn(
+        "max-w-lg text-slate-300 leading-relaxed",
+        name === "100% Automatic Bookings" ? "text-sm" : ""
+      )}>{description}</p>
     </div>
 
     {!hideCta && (
