@@ -44,53 +44,53 @@ const Features = () => {
                 </div>
                 
                   {/* Chat area */}
-                  <div className="bg-[#e5ddd5] flex-1 p-3 space-y-4 text-base">
+                  <div className="bg-[#e5ddd5] flex-1 p-2.5 space-y-2.5 text-base max-h-[70%] overflow-y-auto">
                     {/* Customer message */}
                       <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-3 py-2.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[10px] font-medium leading-normal">Hello, I'd like to book an appointment for tomorrow</p>
+                      <div className="bg-[#dcf8c6] rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[11px] font-medium leading-snug">Hello, I'd like to book an appointment for tomorrow</p>
                       </div>
                   </div>
                   
                     {/* AI response 1 */}
                     <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-3 py-2.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[10px] font-medium leading-normal">Of course! Which service would you like? I have these options:</p>
+                      <div className="bg-white rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[11px] font-medium leading-snug">Of course! Which service would you like? I have these options:</p>
                       </div>
                   </div>
                   
                     {/* AI response 2 - services */}
                     <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-3 py-2.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[10px] font-medium leading-normal">💇‍♀️ Haircut - $25 (45 min)<br/>💇‍♀️ Coloring - $65 (90 min)<br/>💇‍♀️ Wash - $15 (20 min)</p>
+                      <div className="bg-white rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[11px] font-medium leading-snug">💇‍♀️ Haircut - $25 (45 min)<br/>💇‍♀️ Coloring - $65 (90 min)<br/>💇‍♀️ Wash - $15 (20 min)</p>
                       </div>
                   </div>
                   
                     {/* Customer choice */}
                     <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-3 py-2.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[10px] font-medium leading-normal">Haircut please</p>
+                      <div className="bg-[#dcf8c6] rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[11px] font-medium leading-snug">Haircut please</p>
                       </div>
                   </div>
                   
                     {/* AI response 3 - time slots */}
                     <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-3 py-2.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[10px] font-medium leading-normal">Perfect! When works for you? Tomorrow I have available:<br/>🕐 10:00 AM<br/>🕐 2:00 PM<br/>🕐 4:30 PM</p>
+                      <div className="bg-white rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[11px] font-medium leading-snug">Perfect! When works for you? Tomorrow I have available:<br/>🕐 10:00 AM<br/>🕐 2:00 PM<br/>🕐 4:30 PM</p>
                       </div>
                   </div>
                   
                     {/* Customer time choice */}
                     <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-3 py-2.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[10px] font-medium leading-normal">2:00 PM works</p>
+                      <div className="bg-[#dcf8c6] rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[11px] font-medium leading-snug">2:00 PM works</p>
                       </div>
                   </div>
                   
                     {/* Final confirmation */}
                     <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-3 py-2.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[10px] font-medium leading-normal">You have an appointment tomorrow at 2 PM ✅</p>
+                      <div className="bg-white rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[11px] font-medium leading-snug">You have an appointment tomorrow at 2 PM ✅</p>
                       </div>
                     </div>
                   </div>
