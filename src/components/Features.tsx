@@ -872,7 +872,7 @@ const Features = () => {
             </div>
 
             {/* Second WhatsApp Notification (Partially Visible) */}
-            <div className="bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3">
+            <div className="absolute bottom-0 left-0 right-0 bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3 transform translate-y-16">
               {/* WhatsApp App Header */}
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
