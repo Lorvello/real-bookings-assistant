@@ -871,9 +871,9 @@ const Features = () => {
               </div>
             </div>
 
-            {/* Second WhatsApp Notification (Partially Visible) - Container with fixed height */}
-            <div className="h-6 overflow-hidden -mt-1">
-              <div className="bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3">
+            {/* Second WhatsApp Notification (Partially Visible) - Realistic Stack */}
+            <div className="h-4 overflow-hidden -mt-2">
+              <div className="bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3 opacity-90">
                 {/* WhatsApp App Header */}
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
