@@ -44,7 +44,7 @@ const Features = () => {
                 </div>
                 
                   {/* Chat area */}
-                  <div className="bg-[#e5ddd5] flex-1 p-1.5 space-y-1 text-[6px] overflow-y-auto">
+                  <div className="bg-[#e5ddd5] flex-1 p-1.5 space-y-3 text-[6px] overflow-y-auto pb-12">
                   {/* Customer message */}
                   <div className="flex justify-end">
                     <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
@@ -87,23 +87,44 @@ const Features = () => {
                     </div>
                   </div>
                   
-                  {/* Final confirmation */}
-                  <div className="flex justify-start">
-                    <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
-                      <p className="text-gray-800">✅ Appointment booked!<br/>📅 Tomorrow 2:00 PM<br/>💇‍♀️ Haircut ($25)<br/>📍 Hair Studio Downtown</p>
+                    {/* Final confirmation */}
+                    <div className="flex justify-start">
+                      <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                        <p className="text-gray-800">✅ Appointment booked!<br/>📅 Tomorrow 2:00 PM<br/>💇‍♀️ Haircut ($25)<br/>📍 Hair Studio Downtown</p>
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Typing indicator */}
-                  <div className="flex justify-start">
-                    <div className="bg-white rounded-lg px-2 py-1">
-                      <div className="flex gap-0.5">
-                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    
+                    {/* AI confirmation message */}
+                    <div className="flex justify-start">
+                      <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                        <p className="text-gray-800">Bevestiging verstuurd naar je WhatsApp ✅</p>
+                      </div>
+                    </div>
+                    
+                    {/* Customer thank you */}
+                    <div className="flex justify-end">
+                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                        <p className="text-gray-800">Perfect, dank je wel!</p>
+                      </div>
+                    </div>
+                    
+                    {/* AI goodbye */}
+                    <div className="flex justify-start">
+                      <div className="bg-white rounded-lg px-2 py-1 max-w-[70%] shadow-sm">
+                        <p className="text-gray-800">Graag gedaan! Tot morgen om 2:00 PM 👋</p>
                       </div>
                     </div>
                   </div>
+                  
+                  {/* WhatsApp Input Bar */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gray-100 border-t border-gray-200 px-2 py-1.5">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-500 text-[8px]">😊</span>
+                      <div className="flex-1 bg-white rounded-full px-2 py-1">
+                        <div className="text-[6px] text-gray-400">Type a message</div>
+                      </div>
+                      <span className="text-gray-500 text-[8px]">🎤</span>
+                    </div>
                 </div>
               </div>
             </div>
