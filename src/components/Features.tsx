@@ -976,24 +976,11 @@ const Features = () => {
     href: "/features/monitoring",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-          
-          {/* Header Section - Icon, Title, Subtitle */}
-          <div className="absolute top-3 left-3 right-3 z-20">
-            <div className="flex items-start gap-3 p-3 bg-slate-800/60 rounded-lg border border-slate-700/30 backdrop-blur-sm">
-              <div className="flex-shrink-0">
-                <MonitorIcon className="h-5 w-5 text-emerald-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-white text-sm font-semibold mb-1">Real-time Dashboard Monitoring</h3>
-                <p className="text-slate-300 text-xs leading-relaxed">View live bookings, performance and customer interactions</p>
-              </div>
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-slate-800/20" />
           
           {/* Carousel Container */}
-          <div className="absolute top-20 left-3 right-3 bottom-8 bg-slate-800/50 rounded-lg border border-slate-700/30 backdrop-blur-sm">
-            <div className="h-full flex flex-col p-4">
+          <div className="absolute top-4 left-4 right-4 bottom-10">
+            <div className="h-full flex flex-col">
               {/* Carousel Content */}
               <div className="flex-1 relative overflow-hidden">
                 <div 
@@ -1077,9 +1064,9 @@ const Features = () => {
               </div>
 
               {/* Carousel Navigation */}
-              <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center justify-center mt-4">
                 {/* Navigation Dots */}
-                <div className="flex justify-center gap-2 flex-1">
+                <div className="flex gap-2">
                   {[0, 1, 2, 3, 4].map((index) => (
                     <button
                       key={index}
