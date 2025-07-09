@@ -26,9 +26,12 @@ const Features = () => {
           {/* iPhone Mockup - positioned in upper 70%, centered */}
           <div className="absolute top-0 left-0 right-0 h-[75%] flex justify-center items-center">
             <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
-              <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.5rem] p-[2px] shadow-2xl h-full">
-                {/* iPhone screen */}
-                <div className="bg-white rounded-[1.3rem] relative h-full flex flex-col">
+              {/* iPhone outer frame */}
+              <div className="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-[2.5rem] p-[3px] shadow-2xl h-full border border-gray-700">
+                {/* iPhone screen bezel */}
+                <div className="relative bg-black rounded-[2.2rem] p-[4px] h-full">
+                  {/* iPhone screen */}
+                  <div className="bg-white rounded-[1.8rem] relative h-full flex flex-col overflow-hidden shadow-inner">
                 {/* iPhone notch */}
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 bg-black rounded-b-lg z-10"></div>
                 
@@ -106,10 +109,11 @@ const Features = () => {
                        </div>
                       <span className="text-gray-500 text-sm">🎤</span>
                     </div>
+                  </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           </div>
           
           {/* Background accent elements */}
