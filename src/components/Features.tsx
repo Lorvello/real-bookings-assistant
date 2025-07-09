@@ -1,78 +1,90 @@
 
-import { Check, Calendar, Globe, BarChart3, Bell, Settings, Zap, Monitor, Link } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { 
+  LightningBoltIcon as BoltIcon,
+  GearIcon,
+  CalendarIcon,
+  Link2Icon,
+  BellIcon,
+  BarChartIcon as BarChart3Icon,
+  GlobeIcon,
+  DesktopIcon as MonitorIcon
+} from "@radix-ui/react-icons";
+import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 
 const Features = () => {
-  const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
-  const [activeStatsIndex, setActiveStatsIndex] = useState(0);
-  const featuresCarouselRef = useRef<HTMLDivElement>(null);
-  const statsCarouselRef = useRef<HTMLDivElement>(null);
-
-  const features = [
+  const bookingFeatures = [
     {
-      icon: Zap,
-      title: "100% Automatic Bookings",
+      Icon: BoltIcon,
+      name: "100% Automatic Bookings",
       description: "No manual intervention needed. Books, confirms and reschedules automatically",
-      mobileDescription: "Fully automatic booking system",
-      color: "from-emerald-500 to-emerald-600",
-      hoverTextColor: "group-hover:text-emerald-300"
+      href: "/features/automation",
+      cta: "Learn more",
+      background: <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-600/20" />,
+      className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
     },
     {
-      icon: Settings,
-      title: "Fully Personalized",
-      description: "Customize the AI Agent to your services, FAQs and booking logic, from custom hairstyles to business-specific questions",
-      mobileDescription: "Customize AI to your business needs",
-      color: "from-blue-500 to-blue-600",
-      hoverTextColor: "group-hover:text-blue-300"
+      Icon: GearIcon,
+      name: "Fully Personalized",
+      description: "Customize the AI Agent to your services, FAQs and booking logic",
+      href: "/features/personalization",
+      cta: "Learn more",
+      background: <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-600/20" />,
+      className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2",
     },
     {
-      icon: Calendar,
-      title: "Advanced Dashboard & Own Calendar",
-      description: "Get your own professional calendar with a highly advanced dashboard for complete control over your bookings",
-      mobileDescription: "Professional calendar with advanced dashboard",
-      color: "from-green-400 to-green-500",
-      hoverTextColor: "group-hover:text-green-300"
+      Icon: CalendarIcon,
+      name: "Advanced Dashboard & Own Calendar",
+      description: "Get your own professional calendar with advanced dashboard for complete control",
+      href: "/features/dashboard",
+      cta: "Learn more",
+      background: <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-600/20" />,
+      className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-3",
     },
     {
-      icon: Link,
-      title: "Connect Your Existing Calendar",
-      description: "Integrate seamlessly with Google Calendar, Outlook, Calendly and more, maintain your current workflow",
-      mobileDescription: "Connects to Google, Outlook, Calendly",
-      color: "from-blue-400 to-blue-500",
-      hoverTextColor: "group-hover:text-blue-300"
+      Icon: Link2Icon,
+      name: "Connect Your Existing Calendar",
+      description: "Integrate seamlessly with Google Calendar, Outlook, Calendly and more",
+      href: "/features/integration",
+      cta: "Learn more",
+      background: <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-600/20" />,
+      className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-4",
     },
     {
-      icon: Bell,
-      title: "Automatic Reminders",
+      Icon: BellIcon,
+      name: "Automatic Reminders",
       description: "Sends confirmation and reminder messages to reduce no-shows",
-      mobileDescription: "Auto confirmations and reminders",
-      color: "from-emerald-600 to-green-600",
-      hoverTextColor: "group-hover:text-emerald-300"
+      href: "/features/reminders",
+      cta: "Learn more",
+      background: <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-600/20" />,
+      className: "lg:row-start-3 lg:row-end-4 lg:col-start-1 lg:col-end-2",
     },
     {
-      icon: BarChart3,
-      title: "Detailed Analytics",
-      description: "Track booking rates, popular times and generated revenue in your personal dashboard",
-      mobileDescription: "Track rates, times, revenue",
-      color: "from-blue-600 to-indigo-600",
-      hoverTextColor: "group-hover:text-blue-300"
+      Icon: BarChart3Icon,
+      name: "Detailed Analytics",
+      description: "Track booking rates, popular times and generated revenue",
+      href: "/features/analytics",
+      cta: "Learn more",
+      background: <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-600/20" />,
+      className: "lg:col-start-3 lg:col-end-4 lg:row-start-3 lg:row-end-4",
     },
     {
-      icon: Globe,
-      title: "Multi-language Support",
+      Icon: GlobeIcon,
+      name: "Multi-language Support",
       description: "Automatically communicates in your customers' preferred language",
-      mobileDescription: "Speaks your customers' language",
-      color: "from-green-500 to-emerald-500",
-      hoverTextColor: "group-hover:text-green-300"
+      href: "/features/multilingual",
+      cta: "Learn more",
+      background: <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-600/20" />,
+      className: "lg:col-start-1 lg:col-end-3 lg:row-start-4 lg:row-end-5",
     },
     {
-      icon: Monitor,
-      title: "Real-time Dashboard Monitoring",
-      description: "View live bookings, performance and customer interactions in your advanced control panel",
-      mobileDescription: "Live monitoring and insights",
-      color: "from-blue-500 to-indigo-500",
-      hoverTextColor: "group-hover:text-blue-300"
-    }
+      Icon: MonitorIcon,
+      name: "Real-time Dashboard Monitoring",
+      description: "View live bookings, performance and customer interactions",
+      href: "/features/monitoring",
+      cta: "Learn more",
+      background: <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-600/20" />,
+      className: "lg:col-start-3 lg:col-end-4 lg:row-start-4 lg:row-end-5",
+    },
   ];
 
   const stats = [
@@ -80,61 +92,6 @@ const Features = () => {
     { value: "∞", label: "Unlimited Capacity" },
     { value: "0%", label: "Human Errors" }
   ];
-
-  // Handle features carousel scroll
-  useEffect(() => {
-    const carousel = featuresCarouselRef.current;
-    if (!carousel) return;
-
-    const handleScroll = () => {
-      const scrollLeft = carousel.scrollLeft;
-      const itemWidth = carousel.children[0]?.clientWidth || 0;
-      const newIndex = Math.round(scrollLeft / itemWidth);
-      setActiveFeatureIndex(newIndex);
-    };
-
-    carousel.addEventListener('scroll', handleScroll, { passive: true });
-    return () => carousel.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Handle stats carousel scroll
-  useEffect(() => {
-    const carousel = statsCarouselRef.current;
-    if (!carousel) return;
-
-    const handleScroll = () => {
-      const scrollLeft = carousel.scrollLeft;
-      const itemWidth = carousel.children[0]?.clientWidth || 0;
-      const newIndex = Math.round(scrollLeft / itemWidth);
-      setActiveStatsIndex(newIndex);
-    };
-
-    carousel.addEventListener('scroll', handleScroll, { passive: true });
-    return () => carousel.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Handle carousel indicator clicks
-  const handleFeatureIndicatorClick = (index: number) => {
-    const carousel = featuresCarouselRef.current;
-    if (!carousel) return;
-    
-    const itemWidth = carousel.children[0]?.clientWidth || 0;
-    carousel.scrollTo({
-      left: index * itemWidth,
-      behavior: 'smooth'
-    });
-  };
-
-  const handleStatsIndicatorClick = (index: number) => {
-    const carousel = statsCarouselRef.current;
-    if (!carousel) return;
-    
-    const itemWidth = carousel.children[0]?.clientWidth || 0;
-    carousel.scrollTo({
-      left: index * itemWidth,
-      behavior: 'smooth'
-    });
-  };
 
   return (
     <section className="py-12 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
@@ -162,75 +119,13 @@ const Features = () => {
           </p>
         </div>
         
-        {/* Desktop: Features grid */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12 mb-12 md:mb-32">
-          {features.map((feature, index) => (
-            <div 
-              key={index} 
-              className="group text-center transition-all duration-300 cursor-pointer px-4 md:px-0 hover:bg-slate-800/20 rounded-2xl py-6 hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-slate-700/50"
-            >
-              <div className="relative mb-4 md:mb-8 flex justify-center">
-                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:ring-2 group-hover:ring-slate-600/30`}>
-                  <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white group-hover:scale-105 transition-transform duration-300" strokeWidth={1.5} />
-                </div>
-              </div>
-              <h3 className={`text-base md:text-xl font-bold text-white mb-2 md:mb-4 leading-tight group-hover:text-slate-100 transition-colors duration-300`}>
-                {feature.title}
-              </h3>
-              <p className="text-slate-300 text-xs md:text-base leading-relaxed group-hover:text-slate-200 transition-colors duration-300">
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Mobile: Perfect snapping features carousel */}
-        <div className="md:hidden mb-8">
-          <div 
-            ref={featuresCarouselRef}
-            className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            <div className="flex pb-4">
-              {features.map((feature, index) => (
-                <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
-                  <div className="bg-slate-800/50 rounded-2xl p-5 text-center h-full">
-                    <div className="relative mb-4 flex justify-center">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
-                        <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
-                      </div>
-                    </div>
-                    <h3 className="text-sm font-bold text-white mb-3 leading-tight">
-                      {feature.title}
-                    </h3>
-                    <p className="text-slate-300 text-xs leading-relaxed">
-                      {feature.mobileDescription || feature.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Enhanced features carousel indicators - All 8 indicators */}
-          <div className="flex justify-center space-x-1 mt-4 mb-8">
-            {features.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => handleFeatureIndicatorClick(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === activeFeatureIndex
-                    ? 'bg-emerald-400 w-4'
-                    : 'bg-slate-600 hover:bg-slate-500'
-                }`}
-                aria-label={`Go to feature ${index + 1}`}
-              />
+        {/* Bento Grid Features */}
+        <div className="mb-12 md:mb-32">
+          <BentoGrid>
+            {bookingFeatures.map((feature, idx) => (
+              <BentoCard key={idx} {...feature} />
             ))}
-          </div>
+          </BentoGrid>
         </div>
         
         {/* CTA Section - Mobile optimized */}
