@@ -16,44 +16,44 @@ const languages = [
 
 const chatMessages = {
   en: {
-    customer: "Hi, I need an appointment",
-    ai: "Hello! I'd be happy to help. What service would you like?"
+    customer: "I want to cancel my appointment",
+    ai: "I see you have an appointment next Tuesday at 2 PM. I'll cancel that for you."
   },
   es: {
-    customer: "Hola, necesito una cita",
-    ai: "¡Hola! Estaré encantado de ayudarte. ¿Qué servicio te gustaría?"
+    customer: "Quiero cancelar mi cita",
+    ai: "Veo que tienes una cita el próximo martes a las 2 PM. La cancelaré por ti."
   },
   fr: {
-    customer: "Bonjour, j'ai besoin d'un rendez-vous",
-    ai: "Bonjour! Je serai ravi de vous aider. Quel service souhaitez-vous?"
+    customer: "Je veux annuler mon rendez-vous",
+    ai: "Je vois que tu as un rendez-vous mardi prochain à 14h. Je vais l'annuler pour toi."
   },
   de: {
-    customer: "Hallo, ich brauche einen Termin",
-    ai: "Hallo! Gerne helfe ich Ihnen. Welche Behandlung möchten Sie?"
+    customer: "Ich möchte meinen Termin stornieren",
+    ai: "Ich sehe, dass Sie einen Termin nächsten Dienstag um 14 Uhr haben. Ich werde ihn für Sie stornieren."
   },
   nl: {
-    customer: "Hallo, ik wil een afspraak",
-    ai: "Hallo! Graag help ik je. Voor welke behandeling?"
+    customer: "Ik wil mijn afspraak annuleren",
+    ai: "Ik zie dat je een afspraak hebt volgende week dinsdag om 14:00. Ik zal hem voor je annuleren."
   },
   it: {
-    customer: "Ciao, ho bisogno di un appuntamento",
-    ai: "Ciao! Sarò felice di aiutarti. Che servizio vorresti?"
+    customer: "Voglio cancellare il mio appuntamento",
+    ai: "Vedo che hai un appuntamento martedì prossimo alle 14. Lo cancellerò per te."
   },
   pt: {
-    customer: "Olá, preciso de um agendamento",
-    ai: "Olá! Ficarei feliz em ajudar. Que serviço você gostaria?"
+    customer: "Quero cancelar minha consulta",
+    ai: "Vejo que você tem uma consulta na próxima terça-feira às 14h. Vou cancelá-la para você."
   },
   ar: {
-    customer: "مرحبا، أحتاج إلى موعد",
-    ai: "مرحبا! سأكون سعيدا لمساعدتك. ما الخدمة التي تريدها؟"
+    customer: "أريد إلغاء موعدي",
+    ai: "أرى أن لديك موعداً يوم الثلاثاء القادم في الساعة 2 مساءً. سأقوم بإلغائه لك."
   },
   zh: {
-    customer: "你好，我需要预约",
-    ai: "你好！我很乐意帮助您。您想要什么服务？"
+    customer: "我想取消我的预约",
+    ai: "我看到您下周二下午2点有一个预约。我将为您取消。"
   },
   ja: {
-    customer: "こんにちは、予約が必要です",
-    ai: "こんにちは！喜んでお手伝いします。どのようなサービスをご希望ですか？"
+    customer: "予約をキャンセルしたいです",
+    ai: "来週火曜日の午後2時にご予約がありますね。キャンセルいたします。"
   }
 };
 
