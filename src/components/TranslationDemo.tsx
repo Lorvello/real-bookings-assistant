@@ -493,16 +493,6 @@ export function TranslationDemo() {
           </div>
         </div>
 
-        {/* Live indicator */}
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center gap-1 text-xs text-emerald-400">
-            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-            <span>Live chat support</span>
-          </div>
-          <div className="text-xs text-slate-400">
-            AI responds in customer's language
-          </div>
-        </div>
       </div>
     </div>
   );
