@@ -184,7 +184,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
       <div className="relative">
         {/* Time slots */}
         {timeSlots.map((timeSlot, index) => (
-          <div key={timeSlot} className={`grid grid-cols-8 gap-px ${
+          <div key={timeSlot} className={`grid grid-cols-8 gap-px border-b border-border/20 ${
             index % 2 === 0 ? 'bg-muted/20' : 'bg-transparent'
           }`}>
             {/* Time label */}
