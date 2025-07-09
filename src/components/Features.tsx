@@ -46,42 +46,35 @@ const Features = () => {
                     {/* AI response 1 */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! You have a cleaning scheduled for tomorrow at 2:00 PM. Would you like to keep the same service or change it?</p>
-                      </div>
-                  </div>
-                  
-                    {/* AI response 2 - services */}
-                    <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">🦷 Cleaning - €75 (60 min)<br />🔍 Check-up - €50 (30 min)<br />💉 Treatment - €120 (90 min)</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! You have a cleaning scheduled for tomorrow at 2:00 PM. When would work better for you?</p>
                       </div>
                   </div>
                   
                     {/* Customer choice */}
                     <div className="flex justify-end">
                       <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Keep cleaning, just different time</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Can we move it to next week Friday?</p>
                       </div>
                   </div>
                   
-                    {/* AI response 3 - time slots */}
+                    {/* AI response 2 - time slots */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! Here are available times for cleaning:<br />🕐 10:00 AM<br />🕐 2:00 PM<br />🕐 4:30 PM</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! Here are available times for next week Friday:<br />🕐 9:00 AM<br />🕐 1:00 PM<br />🕐 4:00 PM</p>
                       </div>
                   </div>
                   
                     {/* Customer time choice */}
                     <div className="flex justify-end">
                       <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">2:00 PM works</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">4:00 PM works</p>
                       </div>
                   </div>
                   
                     {/* Final confirmation */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Appointment rescheduled for 2 PM ✅</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Appointment rescheduled to next week Friday 4:00 PM ✅</p>
                       </div>
                     </div>
                     </div>
