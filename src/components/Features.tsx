@@ -28,7 +28,7 @@ const Features = () => {
             <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
               <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.5rem] p-[2px] shadow-2xl h-full">
                 {/* iPhone screen */}
-                <div className="bg-white rounded-[1.3rem] overflow-hidden relative h-full flex flex-col">
+                <div className="bg-white rounded-[1.3rem] relative h-full flex flex-col">
                 {/* iPhone notch */}
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 bg-black rounded-b-lg z-10"></div>
                 
@@ -43,64 +43,66 @@ const Features = () => {
                   </div>
                 </div>
                 
-                  {/* Chat area */}
-                  <div className="bg-[#e5ddd5] flex-1 p-2.5 space-y-2.5 text-base max-h-[70%] overflow-y-auto">
+                  {/* Chat area - fills exactly from header to input */}
+                  <div className="bg-[#e5ddd5] flex-1 flex flex-col justify-between p-2 py-3">
+                    <div className="space-y-2">
                     {/* Customer message */}
                       <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[11px] font-medium leading-snug">Hello, I'd like to book an appointment for tomorrow</p>
+                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Hello, I'd like to book an appointment for tomorrow</p>
                       </div>
                   </div>
                   
                     {/* AI response 1 */}
                     <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[11px] font-medium leading-snug">Of course! Which service would you like? I have these options:</p>
+                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! Which service would you like? I have these options:</p>
                       </div>
                   </div>
                   
                     {/* AI response 2 - services */}
                     <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[11px] font-medium leading-snug">💇‍♀️ Haircut - $25 (45 min)<br/>💇‍♀️ Coloring - $65 (90 min)<br/>💇‍♀️ Wash - $15 (20 min)</p>
+                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">💇‍♀️ Haircut - $25 (45 min)<br/>💇‍♀️ Coloring - $65 (90 min)<br/>💇‍♀️ Wash - $15 (20 min)</p>
                       </div>
                   </div>
                   
                     {/* Customer choice */}
                     <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[11px] font-medium leading-snug">Haircut please</p>
+                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Haircut please</p>
                       </div>
                   </div>
                   
                     {/* AI response 3 - time slots */}
                     <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[11px] font-medium leading-snug">Perfect! When works for you? Tomorrow I have available:<br/>🕐 10:00 AM<br/>🕐 2:00 PM<br/>🕐 4:30 PM</p>
+                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! When works for you? Tomorrow I have available:<br/>🕐 10:00 AM<br/>🕐 2:00 PM<br/>🕐 4:30 PM</p>
                       </div>
                   </div>
                   
                     {/* Customer time choice */}
                     <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[11px] font-medium leading-snug">2:00 PM works</p>
+                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">2:00 PM works</p>
                       </div>
                   </div>
                   
                     {/* Final confirmation */}
                     <div className="flex justify-start">
-                      <div className="bg-white rounded-lg px-2.5 py-2 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[11px] font-medium leading-snug">You have an appointment tomorrow at 2 PM ✅</p>
+                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">You have an appointment tomorrow at 2 PM ✅</p>
                       </div>
+                    </div>
                     </div>
                   </div>
                   
                   {/* WhatsApp Input Bar */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gray-100 border-t border-gray-200 px-3 py-2">
+                  <div className="bg-gray-100 border-t border-gray-200 px-3 py-2">
                     <div className="flex items-center space-x-3">
                       <span className="text-gray-500 text-sm">😊</span>
                        <div className="flex-1 bg-white rounded-full px-2 py-1">
-                         <div className="text-[10px] text-gray-400 font-medium">Type a message</div>
+                         <div className="text-[9px] text-gray-400 font-medium">Type a message</div>
                        </div>
                       <span className="text-gray-500 text-sm">🎤</span>
                     </div>
