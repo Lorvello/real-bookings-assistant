@@ -184,11 +184,11 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
       <div className="relative">
         {/* Time slots */}
         {timeSlots.map((timeSlot, index) => (
-          <div key={timeSlot} className={`grid grid-cols-8 gap-px border-b border-border/60 ${
+          <div key={timeSlot} className={`grid grid-cols-8 gap-px border-b border-border ${
             index % 2 === 0 ? 'bg-muted/20' : 'bg-transparent'
           }`}>
             {/* Time label */}
-            <div className="w-16 py-3 px-2 text-xs font-medium text-muted-foreground text-right border-r border-border/40">
+            <div className="w-16 py-3 px-2 text-xs font-medium text-muted-foreground text-right border-r border-border">
               {timeSlot}
             </div>
             
@@ -200,7 +200,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
               return (
                 <div
                   key={`${day.toISOString()}-${timeSlot}`}
-                   className={`relative transition-colors min-h-[50px] border-r border-border/60 ${
+                   className={`relative transition-colors min-h-[50px] border-r border-border ${
                      isToday(day) 
                        ? 'bg-primary/5 hover:bg-primary/10' 
                        : 'bg-card/50 hover:bg-accent/30'
