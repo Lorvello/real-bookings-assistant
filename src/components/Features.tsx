@@ -119,41 +119,41 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
           
           {/* Compact Settings Interface */}
-          <div className="absolute top-4 left-4 right-4 h-[65%] bg-slate-800/80 rounded-lg border border-slate-600/50 p-3 backdrop-blur-sm">
+          <div className="absolute top-3 left-3 right-3 h-[45%] bg-slate-800/80 rounded-lg border border-slate-600/50 p-2 backdrop-blur-sm">
             {/* Header */}
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-white text-xs font-semibold">Settings</h4>
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-white text-[10px] font-semibold">Settings</h4>
+              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
             </div>
             
             {/* Service Types Section */}
-            <div className="mb-4">
-              <p className="text-slate-300 text-[10px] font-medium mb-2">Services</p>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between bg-slate-700/60 rounded px-2 py-1">
-                  <span className="text-white text-[9px]">📅 Consultation - €50</span>
-                  <button className="text-emerald-400 text-[8px] hover:text-emerald-300">Edit</button>
+            <div className="mb-2">
+              <p className="text-slate-300 text-[8px] font-medium mb-1">Services</p>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between bg-slate-700/60 rounded px-1.5 py-0.5">
+                  <span className="text-white text-[7px]">📅 Consultation - €50</span>
+                  <button className="text-emerald-400 text-[6px] hover:text-emerald-300">Edit</button>
                 </div>
-                <div className="flex items-center justify-between bg-slate-700/60 rounded px-2 py-1">
-                  <span className="text-white text-[9px]">🔧 Service Call - €75</span>
-                  <button className="text-emerald-400 text-[8px] hover:text-emerald-300">Edit</button>
+                <div className="flex items-center justify-between bg-slate-700/60 rounded px-1.5 py-0.5">
+                  <span className="text-white text-[7px]">🔧 Service Call - €75</span>
+                  <button className="text-emerald-400 text-[6px] hover:text-emerald-300">Edit</button>
                 </div>
               </div>
-              <button className="mt-2 text-emerald-400 text-[9px] font-medium hover:text-emerald-300">+ Add Service</button>
+              <button className="mt-1 text-emerald-400 text-[7px] font-medium hover:text-emerald-300">+ Add Service</button>
             </div>
             
             {/* Quick Toggles */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-slate-300 text-[10px]">Auto confirmations</span>
-                <div className="w-6 h-3 bg-emerald-500 rounded-full relative">
-                  <div className="w-2.5 h-2.5 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
+                <span className="text-slate-300 text-[8px]">Auto confirmations</span>
+                <div className="w-5 h-2.5 bg-emerald-500 rounded-full relative">
+                  <div className="w-2 h-2 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-300 text-[10px]">Send reminders</span>
-                <div className="w-6 h-3 bg-emerald-500 rounded-full relative">
-                  <div className="w-2.5 h-2.5 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
+                <span className="text-slate-300 text-[8px]">Send reminders</span>
+                <div className="w-5 h-2.5 bg-emerald-500 rounded-full relative">
+                  <div className="w-2 h-2 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
                 </div>
               </div>
             </div>
