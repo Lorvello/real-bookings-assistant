@@ -4,6 +4,7 @@ import { useState } from "react";
 
 const Features = () => {
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
+  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 6)); // July 2025
   const bookingFeatures = [{
     Icon: BoltIcon,
     name: "100% Automatic Bookings",
@@ -176,16 +177,36 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
           {/* Full Calendar Section */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
+          <div className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col">
             {/* Calendar Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <button className="text-slate-400 text-[12px] hover:text-white transition-colors">‹</button>
-                <span className="text-white text-[14px] font-semibold">July 2025</span>
-                <button className="text-slate-400 text-[12px] hover:text-white transition-colors">›</button>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => {
+                    const newMonth = new Date(currentMonth);
+                    newMonth.setMonth(newMonth.getMonth() - 1);
+                    setCurrentMonth(newMonth);
+                  }}
+                  className="text-slate-400 text-[12px] hover:text-white transition-colors"
+                >
+                  ‹
+                </button>
+                <span className="text-white text-[12px] font-semibold">
+                  {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </span>
+                <button 
+                  onClick={() => {
+                    const newMonth = new Date(currentMonth);
+                    newMonth.setMonth(newMonth.getMonth() + 1);
+                    setCurrentMonth(newMonth);
+                  }}
+                  className="text-slate-400 text-[12px] hover:text-white transition-colors"
+                >
+                  ›
+                </button>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex text-[8px] bg-slate-700/60 rounded overflow-hidden">
+                <div className="flex text-[7px] bg-slate-700/60 rounded overflow-hidden">
                   <button 
                     onClick={() => setCalendarView('month')}
                     className={`px-2 py-1 transition-colors ${
@@ -207,59 +228,113 @@ const Features = () => {
                     Week
                   </button>
                 </div>
-                <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-[8px] px-3 py-1 rounded transition-colors ml-2">+ New</button>
+                <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-[7px] px-2 py-1 rounded transition-colors">+ New</button>
               </div>
             </div>
             
             {/* Calendar Grid */}
             {calendarView === 'month' ? (
-              <div className="grid grid-cols-7 gap-1 text-[8px]">
-                {/* Day Headers */}
-                {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => (
-                  <div key={day} className="text-slate-400 text-center py-2 font-medium border-b border-slate-700/30">{day}</div>
-                ))}
+              <div className="flex-1 flex flex-col">
+                <div className="grid grid-cols-7 gap-1 text-[7px] mb-2">
+                  {/* Day Headers */}
+                  {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => (
+                    <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">{day}</div>
+                  ))}
+                  
+                  {/* Calendar Dates with detailed bookings */}
+                  {(() => {
+                    const bookings = {
+                      2: { name: "John", service: "Personal Training", time: "9:00" },
+                      4: { name: "Sarah", service: "Yoga", time: "10:30" },
+                      7: { name: "Mike", service: "Massage", time: "14:00" },
+                      9: { name: "Emma", service: "Pilates", time: "11:00" },
+                      11: { name: "Tom", service: "CrossFit", time: "16:00" },
+                      14: { name: "Lisa", service: "Nutrition", time: "13:30" },
+                      15: { name: "Dave", service: "Personal Training", time: "8:00" },
+                      17: { name: "Anna", service: "Yoga", time: "18:00" },
+                      18: { name: "Chris", service: "Massage", time: "15:30" },
+                      21: { name: "Kate", service: "Pilates", time: "12:00" },
+                      22: { name: "Ben", service: "CrossFit", time: "17:00" },
+                      24: { name: "Mia", service: "Nutrition", time: "10:00" },
+                      25: { name: "Sam", service: "Personal Training", time: "14:30" },
+                      28: { name: "Alex", service: "Yoga", time: "19:00" },
+                      30: { name: "Zoe", service: "Massage", time: "11:30" }
+                    };
+                    
+                    return [
+                      { date: 30, isOtherMonth: true }, { date: 1, isOtherMonth: false }, { date: 2, isOtherMonth: false, booking: bookings[2] }, { date: 3, isOtherMonth: false }, { date: 4, isOtherMonth: false, booking: bookings[4] }, { date: 5, isOtherMonth: false }, { date: 6, isOtherMonth: false },
+                      { date: 7, isOtherMonth: false, booking: bookings[7] }, { date: 8, isOtherMonth: false }, { date: 9, isOtherMonth: false, booking: bookings[9] }, { date: 10, isOtherMonth: false }, { date: 11, isOtherMonth: false, booking: bookings[11] }, { date: 12, isOtherMonth: false }, { date: 13, isOtherMonth: false },
+                      { date: 14, isOtherMonth: false, booking: bookings[14] }, { date: 15, isOtherMonth: false, booking: bookings[15] }, { date: 16, isOtherMonth: false }, { date: 17, isOtherMonth: false, booking: bookings[17] }, { date: 18, isOtherMonth: false, booking: bookings[18] }, { date: 19, isOtherMonth: false }, { date: 20, isOtherMonth: false },
+                      { date: 21, isOtherMonth: false, booking: bookings[21] }, { date: 22, isOtherMonth: false, booking: bookings[22] }, { date: 23, isOtherMonth: false }, { date: 24, isOtherMonth: false, booking: bookings[24] }, { date: 25, isOtherMonth: false, booking: bookings[25] }, { date: 26, isOtherMonth: false }, { date: 27, isOtherMonth: false },
+                      { date: 28, isOtherMonth: false, booking: bookings[28] }, { date: 29, isOtherMonth: false }, { date: 30, isOtherMonth: false, booking: bookings[30] }, { date: 31, isOtherMonth: false }, { date: 1, isOtherMonth: true }, { date: 2, isOtherMonth: true }, { date: 3, isOtherMonth: true }
+                    ].map((day, index) => (
+                      <div key={index} className="relative">
+                        <div className={`text-center py-1 h-14 flex flex-col items-center justify-start text-[7px] transition-colors rounded ${
+                          day.booking 
+                            ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50' 
+                            : day.isOtherMonth 
+                              ? 'text-slate-500 hover:bg-slate-700/30' 
+                              : 'text-slate-300 hover:bg-slate-700/50'
+                        }`}>
+                          <div className="font-medium">{day.date}</div>
+                          {day.booking && (
+                            <div className="text-[6px] mt-1 px-1 leading-tight">
+                              <div className="text-emerald-200">{day.booking.name}</div>
+                              <div className="text-emerald-100">{day.booking.service}</div>
+                              <div className="text-emerald-300">{day.booking.time}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
                 
-                {/* Calendar Dates with more appointments */}
-                {[
-                  { date: 30, isOtherMonth: true }, { date: 1, isOtherMonth: false }, { date: 2, isOtherMonth: false, hasAppointment: true }, { date: 3, isOtherMonth: false }, { date: 4, isOtherMonth: false, hasAppointment: true }, { date: 5, isOtherMonth: false }, { date: 6, isOtherMonth: false },
-                  { date: 7, isOtherMonth: false, hasAppointment: true }, { date: 8, isOtherMonth: false }, { date: 9, isOtherMonth: false, hasAppointment: true }, { date: 10, isOtherMonth: false }, { date: 11, isOtherMonth: false, hasAppointment: true }, { date: 12, isOtherMonth: false }, { date: 13, isOtherMonth: false },
-                  { date: 14, isOtherMonth: false, hasAppointment: true }, { date: 15, isOtherMonth: false, hasAppointment: true }, { date: 16, isOtherMonth: false }, { date: 17, isOtherMonth: false, hasAppointment: true }, { date: 18, isOtherMonth: false, hasAppointment: true }, { date: 19, isOtherMonth: false }, { date: 20, isOtherMonth: false },
-                  { date: 21, isOtherMonth: false, hasAppointment: true }, { date: 22, isOtherMonth: false, hasAppointment: true }, { date: 23, isOtherMonth: false }, { date: 24, isOtherMonth: false, hasAppointment: true }, { date: 25, isOtherMonth: false, hasAppointment: true }, { date: 26, isOtherMonth: false }, { date: 27, isOtherMonth: false },
-                  { date: 28, isOtherMonth: false, hasAppointment: true }, { date: 29, isOtherMonth: false }, { date: 30, isOtherMonth: false, hasAppointment: true }, { date: 31, isOtherMonth: false }, { date: 1, isOtherMonth: true }, { date: 2, isOtherMonth: true }, { date: 3, isOtherMonth: true }
-                ].map((day, index) => (
-                  <div key={index} className="relative">
-                    <div className={`text-center py-2 h-8 flex items-center justify-center text-[8px] transition-colors rounded ${
-                      day.hasAppointment 
-                        ? 'bg-emerald-600 text-white font-medium' 
-                        : day.isOtherMonth 
-                          ? 'text-slate-500 hover:bg-slate-700/30' 
-                          : 'text-slate-300 hover:bg-slate-700/50'
-                    }`}>
-                      {day.date}
+                {/* Booking Summary */}
+                <div className="bg-slate-700/50 rounded-lg p-2 mt-2">
+                  <div className="text-slate-300 text-[8px] font-medium mb-1">Today's Bookings</div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-[7px]">
+                      <span className="text-slate-400">09:00 - John (Personal Training)</span>
+                      <span className="text-emerald-400">Confirmed</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[7px]">
+                      <span className="text-slate-400">14:00 - Mike (Massage Therapy)</span>
+                      <span className="text-yellow-400">Pending</span>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
             ) : (
               /* Week View */
-              <div className="space-y-1">
+              <div className="space-y-1 flex-1">
                 {/* Week Headers */}
-                <div className="grid grid-cols-8 gap-1 text-[8px]">
-                  <div className="text-slate-400 text-center py-2 font-medium"></div>
+                <div className="grid grid-cols-8 gap-1 text-[7px]">
+                  <div className="text-slate-400 text-center py-1 font-medium"></div>
                   {['Mon 7', 'Tue 8', 'Wed 9', 'Thu 10', 'Fri 11', 'Sat 12', 'Sun 13'].map((day) => (
-                    <div key={day} className="text-slate-400 text-center py-2 font-medium border-b border-slate-700/30">{day}</div>
+                    <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">{day}</div>
                   ))}
                 </div>
                 
                 {/* Time Slots */}
                 {['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'].map((time, timeIndex) => (
-                  <div key={time} className="grid grid-cols-8 gap-1 text-[8px]">
-                    <div className="text-slate-400 text-right py-2 pr-2">{time}</div>
+                  <div key={time} className="grid grid-cols-8 gap-1 text-[7px]">
+                    <div className="text-slate-400 text-right py-1 pr-2">{time}</div>
                     {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
-                      <div key={dayIndex} className="border border-slate-700/30 h-6 rounded relative">
-                        {/* Add some appointments in week view */}
-                        {(timeIndex === 1 && dayIndex === 0) || (timeIndex === 3 && dayIndex === 2) || (timeIndex === 5 && dayIndex === 1) || (timeIndex === 2 && dayIndex === 4) || (timeIndex === 4 && dayIndex === 3) || (timeIndex === 6 && dayIndex === 5) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[6px] flex items-center justify-center">App</div>
+                      <div key={dayIndex} className="border border-slate-700/30 h-5 rounded relative">
+                        {/* Add fitness appointments in week view */}
+                        {(timeIndex === 1 && dayIndex === 0) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">John PT</div>
+                        ) : (timeIndex === 3 && dayIndex === 2) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">Yoga</div>
+                        ) : (timeIndex === 5 && dayIndex === 1) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">Massage</div>
+                        ) : (timeIndex === 2 && dayIndex === 4) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">Pilates</div>
+                        ) : (timeIndex === 4 && dayIndex === 3) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">CrossFit</div>
+                        ) : (timeIndex === 6 && dayIndex === 5) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">Nutrition</div>
                         ) : null}
                       </div>
                     ))}
@@ -308,64 +383,36 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Real-time Analytics Section */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
-            {/* Analytics Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-white text-[12px] font-semibold">Real-time Analytics</h4>
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-            </div>
-            
-            {/* Main Analytics Grid */}
-            <div className="grid grid-cols-4 gap-2 mb-4">
+          {/* Analytics Section */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm flex items-center justify-center">
+            {/* Main Analytics Grid - Expanded */}
+            <div className="grid grid-cols-2 gap-4 w-full">
               {/* Response Time */}
-              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3 text-center">
-                <div className="text-blue-400 text-[10px] mb-1">⚡</div>
-                <div className="text-white text-[12px] font-bold">2.3m</div>
-                <div className="text-blue-300 text-[7px]">Response</div>
+              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 text-center">
+                <div className="text-blue-400 text-[16px] mb-2">⚡</div>
+                <div className="text-white text-[18px] font-bold mb-1">2.3m</div>
+                <div className="text-blue-300 text-[10px] uppercase tracking-wider">Response</div>
               </div>
               
               {/* Views */}
-              <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-3 text-center">
-                <div className="text-purple-400 text-[10px] mb-1">👁</div>
-                <div className="text-white text-[12px] font-bold">1.2k</div>
-                <div className="text-purple-300 text-[7px]">Views</div>
+              <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-4 text-center">
+                <div className="text-purple-400 text-[16px] mb-2">👁</div>
+                <div className="text-white text-[18px] font-bold mb-1">1.2k</div>
+                <div className="text-purple-300 text-[10px] uppercase tracking-wider">Views</div>
               </div>
               
               {/* Conversion */}
-              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
-                <div className="text-emerald-400 text-[10px] mb-1">📈</div>
-                <div className="text-white text-[12px] font-bold">89%</div>
-                <div className="text-emerald-300 text-[7px]">Convert</div>
+              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 text-center">
+                <div className="text-emerald-400 text-[16px] mb-2">📈</div>
+                <div className="text-white text-[18px] font-bold mb-1">89%</div>
+                <div className="text-emerald-300 text-[10px] uppercase tracking-wider">Convert</div>
               </div>
               
               {/* No-shows */}
-              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-3 text-center">
-                <div className="text-red-400 text-[10px] mb-1">⚠</div>
-                <div className="text-white text-[12px] font-bold">8.5%</div>
-                <div className="text-red-300 text-[7px]">No-shows</div>
-              </div>
-            </div>
-            
-            {/* Performance Chart - Full Size */}
-            <div className="bg-slate-700/50 rounded-lg p-3 flex-1">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-slate-300 text-[9px]">Performance</span>
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
-                  <span className="text-emerald-300 text-[8px]">+12%</span>
-                </div>
-              </div>
-              <div className="flex items-end justify-between h-12 gap-0.5">
-                {[4, 7, 5, 8, 6, 9, 7, 10, 8, 11, 9, 12, 6, 8, 10, 7, 9, 11, 8, 10, 12, 9, 11, 8].map((height, i) => (
-                  <div key={i} className="bg-emerald-500/60 rounded-sm flex-1" style={{ height: `${height * 3}px` }} />
-                ))}
-              </div>
-              <div className="flex items-center justify-between mt-3">
-                <span className="text-slate-400 text-[7px]">6AM</span>
-                <span className="text-slate-400 text-[7px]">12PM</span>
-                <span className="text-slate-400 text-[7px]">6PM</span>
-                <span className="text-slate-400 text-[7px]">12AM</span>
+              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-4 text-center">
+                <div className="text-red-400 text-[16px] mb-2">⚠</div>
+                <div className="text-white text-[18px] font-bold mb-1">8.5%</div>
+                <div className="text-red-300 text-[10px] uppercase tracking-wider">No-shows</div>
               </div>
             </div>
           </div>
