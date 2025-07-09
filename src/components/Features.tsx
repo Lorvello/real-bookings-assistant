@@ -46,7 +46,7 @@ const Features = () => {
                     {/* AI response 1 */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! You have a cleaning scheduled for tomorrow at 2:00 PM. When would work better?</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! You have a cleaning scheduled for tomorrow at 2:00 PM. Would you like to keep the same service or change it?</p>
                       </div>
                   </div>
                   
@@ -60,14 +60,14 @@ const Features = () => {
                     {/* Customer choice */}
                     <div className="flex justify-end">
                       <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Cleaning please, but different time</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Keep cleaning, just different time</p>
                       </div>
                   </div>
                   
                     {/* AI response 3 - time slots */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! When works for you? I have available:<br />🕐 10:00 AM<br />🕐 2:00 PM<br />🕐 4:30 PM</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! Here are available times for cleaning:<br />🕐 10:00 AM<br />🕐 2:00 PM<br />🕐 4:30 PM</p>
                       </div>
                   </div>
                   
