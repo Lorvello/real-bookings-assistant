@@ -117,7 +117,49 @@ const Features = () => {
     cta: "Learn more",
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
-          <div className="absolute top-3 right-3 w-6 h-6 bg-blue-500/30 rounded-full" />
+          
+          {/* Compact Settings Interface */}
+          <div className="absolute top-4 left-4 right-4 h-[65%] bg-slate-800/80 rounded-lg border border-slate-600/50 p-3 backdrop-blur-sm">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-white text-xs font-semibold">Settings</h4>
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+            </div>
+            
+            {/* Service Types Section */}
+            <div className="mb-4">
+              <p className="text-slate-300 text-[10px] font-medium mb-2">Services</p>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between bg-slate-700/60 rounded px-2 py-1">
+                  <span className="text-white text-[9px]">📅 Consultation - €50</span>
+                  <button className="text-emerald-400 text-[8px] hover:text-emerald-300">Edit</button>
+                </div>
+                <div className="flex items-center justify-between bg-slate-700/60 rounded px-2 py-1">
+                  <span className="text-white text-[9px]">🔧 Service Call - €75</span>
+                  <button className="text-emerald-400 text-[8px] hover:text-emerald-300">Edit</button>
+                </div>
+              </div>
+              <button className="mt-2 text-emerald-400 text-[9px] font-medium hover:text-emerald-300">+ Add Service</button>
+            </div>
+            
+            {/* Quick Toggles */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-300 text-[10px]">Auto confirmations</span>
+                <div className="w-6 h-3 bg-emerald-500 rounded-full relative">
+                  <div className="w-2.5 h-2.5 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-300 text-[10px]">Send reminders</span>
+                <div className="w-6 h-3 bg-emerald-500 rounded-full relative">
+                  <div className="w-2.5 h-2.5 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Background accent elements */}
           <div className="absolute bottom-3 right-3 w-4 h-4 bg-blue-400/40 rounded-full" />
         </div>,
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2"
