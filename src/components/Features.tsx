@@ -168,88 +168,27 @@ const Features = () => {
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2"
   }, {
     Icon: CalendarIcon,
-    name: "Advanced Dashboard & Own Calendar",
-    description: "Get your own professional calendar with advanced dashboard for complete control",
+    name: "Own Calendar",
+    description: "Get your own professional calendar with complete control",
     href: "/features/dashboard",
     cta: "Learn more",
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Enhanced Analytics Section - Top 50% */}
-          <div className="absolute top-2 left-2 right-2 h-[48%] bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm">
-            {/* Analytics Header */}
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-white text-[11px] font-semibold">Real-time Analytics</h4>
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-            </div>
-            
-            {/* Main Analytics Grid */}
-            <div className="grid grid-cols-4 gap-2 mb-3">
-              {/* Response Time */}
-              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-2 text-center">
-                <div className="text-blue-400 text-[9px] mb-1">⚡</div>
-                <div className="text-white text-[10px] font-bold">2.3m</div>
-                <div className="text-blue-300 text-[6px]">Response</div>
-              </div>
-              
-              {/* Views */}
-              <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-2 text-center">
-                <div className="text-purple-400 text-[9px] mb-1">👁</div>
-                <div className="text-white text-[10px] font-bold">1.2k</div>
-                <div className="text-purple-300 text-[6px]">Views</div>
-              </div>
-              
-              {/* Conversion */}
-              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 text-center">
-                <div className="text-emerald-400 text-[9px] mb-1">📈</div>
-                <div className="text-white text-[10px] font-bold">89%</div>
-                <div className="text-emerald-300 text-[6px]">Convert</div>
-              </div>
-              
-              {/* No-shows */}
-              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 text-center">
-                <div className="text-red-400 text-[9px] mb-1">⚠</div>
-                <div className="text-white text-[10px] font-bold">8.5%</div>
-                <div className="text-red-300 text-[6px]">No-shows</div>
-              </div>
-            </div>
-            
-            {/* Performance Chart - Expanded */}
-            <div className="bg-slate-700/50 rounded-lg p-2 flex-1">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-slate-300 text-[7px]">Performance</span>
-                <div className="flex items-center gap-1">
-                  <div className="w-1 h-1 bg-emerald-400 rounded-full"></div>
-                  <span className="text-emerald-300 text-[6px]">+12%</span>
-                </div>
-              </div>
-              <div className="flex items-end justify-between h-8 gap-0.5">
-                {[4, 7, 5, 8, 6, 9, 7, 10, 8, 11, 9, 12, 6, 8, 10, 7, 9, 11, 8, 10].map((height, i) => (
-                  <div key={i} className="bg-emerald-500/60 rounded-sm flex-1" style={{ height: `${height * 2.5}px` }} />
-                ))}
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-slate-400 text-[6px]">6AM</span>
-                <span className="text-slate-400 text-[6px]">12PM</span>
-                <span className="text-slate-400 text-[6px]">6PM</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Modern Calendar Section - Bottom 50% */}
-          <div className="absolute top-[52%] left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm">
+          {/* Full Calendar Section */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
             {/* Calendar Header */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <button className="text-slate-400 text-[9px] hover:text-white transition-colors">‹</button>
-                <span className="text-white text-[10px] font-semibold">July 2025</span>
-                <button className="text-slate-400 text-[9px] hover:text-white transition-colors">›</button>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <button className="text-slate-400 text-[12px] hover:text-white transition-colors">‹</button>
+                <span className="text-white text-[14px] font-semibold">July 2025</span>
+                <button className="text-slate-400 text-[12px] hover:text-white transition-colors">›</button>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="flex text-[6px] bg-slate-700/60 rounded overflow-hidden">
+              <div className="flex items-center gap-2">
+                <div className="flex text-[8px] bg-slate-700/60 rounded overflow-hidden">
                   <button 
                     onClick={() => setCalendarView('month')}
-                    className={`px-1.5 py-0.5 transition-colors ${
+                    className={`px-2 py-1 transition-colors ${
                       calendarView === 'month' 
                         ? 'bg-emerald-600 text-white' 
                         : 'text-slate-400 hover:text-white'
@@ -259,7 +198,7 @@ const Features = () => {
                   </button>
                   <button 
                     onClick={() => setCalendarView('week')}
-                    className={`px-1.5 py-0.5 transition-colors ${
+                    className={`px-2 py-1 transition-colors ${
                       calendarView === 'week' 
                         ? 'bg-emerald-600 text-white' 
                         : 'text-slate-400 hover:text-white'
@@ -268,16 +207,16 @@ const Features = () => {
                     Week
                   </button>
                 </div>
-                <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-[6px] px-2 py-0.5 rounded transition-colors ml-1">+ New</button>
+                <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-[8px] px-3 py-1 rounded transition-colors ml-2">+ New</button>
               </div>
             </div>
             
             {/* Calendar Grid */}
             {calendarView === 'month' ? (
-              <div className="grid grid-cols-7 gap-0.5 text-[6px]">
+              <div className="grid grid-cols-7 gap-1 text-[8px]">
                 {/* Day Headers */}
                 {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => (
-                  <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">{day}</div>
+                  <div key={day} className="text-slate-400 text-center py-2 font-medium border-b border-slate-700/30">{day}</div>
                 ))}
                 
                 {/* Calendar Dates with more appointments */}
@@ -289,7 +228,7 @@ const Features = () => {
                   { date: 28, isOtherMonth: false, hasAppointment: true }, { date: 29, isOtherMonth: false }, { date: 30, isOtherMonth: false, hasAppointment: true }, { date: 31, isOtherMonth: false }, { date: 1, isOtherMonth: true }, { date: 2, isOtherMonth: true }, { date: 3, isOtherMonth: true }
                 ].map((day, index) => (
                   <div key={index} className="relative">
-                    <div className={`text-center py-1 h-5 flex items-center justify-center text-[6px] transition-colors rounded ${
+                    <div className={`text-center py-2 h-8 flex items-center justify-center text-[8px] transition-colors rounded ${
                       day.hasAppointment 
                         ? 'bg-emerald-600 text-white font-medium' 
                         : day.isOtherMonth 
@@ -305,22 +244,22 @@ const Features = () => {
               /* Week View */
               <div className="space-y-1">
                 {/* Week Headers */}
-                <div className="grid grid-cols-8 gap-0.5 text-[6px]">
-                  <div className="text-slate-400 text-center py-1 font-medium"></div>
+                <div className="grid grid-cols-8 gap-1 text-[8px]">
+                  <div className="text-slate-400 text-center py-2 font-medium"></div>
                   {['Mon 7', 'Tue 8', 'Wed 9', 'Thu 10', 'Fri 11', 'Sat 12', 'Sun 13'].map((day) => (
-                    <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">{day}</div>
+                    <div key={day} className="text-slate-400 text-center py-2 font-medium border-b border-slate-700/30">{day}</div>
                   ))}
                 </div>
                 
                 {/* Time Slots */}
-                {['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'].map((time, timeIndex) => (
-                  <div key={time} className="grid grid-cols-8 gap-0.5 text-[6px]">
-                    <div className="text-slate-400 text-right py-1 pr-1">{time}</div>
+                {['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'].map((time, timeIndex) => (
+                  <div key={time} className="grid grid-cols-8 gap-1 text-[8px]">
+                    <div className="text-slate-400 text-right py-2 pr-2">{time}</div>
                     {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
-                      <div key={dayIndex} className="border border-slate-700/30 h-4 rounded relative">
+                      <div key={dayIndex} className="border border-slate-700/30 h-6 rounded relative">
                         {/* Add some appointments in week view */}
-                        {(timeIndex === 1 && dayIndex === 0) || (timeIndex === 3 && dayIndex === 2) || (timeIndex === 5 && dayIndex === 1) || (timeIndex === 2 && dayIndex === 4) ? (
-                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[5px] flex items-center justify-center">App</div>
+                        {(timeIndex === 1 && dayIndex === 0) || (timeIndex === 3 && dayIndex === 2) || (timeIndex === 5 && dayIndex === 1) || (timeIndex === 2 && dayIndex === 4) || (timeIndex === 4 && dayIndex === 3) || (timeIndex === 6 && dayIndex === 5) ? (
+                          <div className="absolute inset-0 bg-emerald-600 rounded text-white text-[6px] flex items-center justify-center">App</div>
                         ) : null}
                       </div>
                     ))}
@@ -331,8 +270,8 @@ const Features = () => {
           </div>
           
           {/* Subtle decorative elements */}
-          <div className="absolute top-2 right-2 w-2 h-2 bg-emerald-500/20 rounded-full" />
-          <div className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-slate-600/20 rounded-full" />
+          <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-500/20 rounded-full" />
+          <div className="absolute bottom-3 left-3 w-1.5 h-1.5 bg-slate-600/20 rounded-full" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-3"
   }, {
@@ -367,10 +306,73 @@ const Features = () => {
     href: "/features/analytics",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
-          <div className="absolute top-4 left-4 w-8 h-1 bg-blue-500/40 rounded" />
-          <div className="absolute top-7 left-6 w-6 h-1 bg-blue-400/50 rounded" />
-          <div className="absolute top-10 left-4 w-10 h-1 bg-blue-300/30 rounded" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+          
+          {/* Real-time Analytics Section */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm">
+            {/* Analytics Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-white text-[12px] font-semibold">Real-time Analytics</h4>
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+            </div>
+            
+            {/* Main Analytics Grid */}
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {/* Response Time */}
+              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3 text-center">
+                <div className="text-blue-400 text-[10px] mb-1">⚡</div>
+                <div className="text-white text-[12px] font-bold">2.3m</div>
+                <div className="text-blue-300 text-[7px]">Response</div>
+              </div>
+              
+              {/* Views */}
+              <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-3 text-center">
+                <div className="text-purple-400 text-[10px] mb-1">👁</div>
+                <div className="text-white text-[12px] font-bold">1.2k</div>
+                <div className="text-purple-300 text-[7px]">Views</div>
+              </div>
+              
+              {/* Conversion */}
+              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+                <div className="text-emerald-400 text-[10px] mb-1">📈</div>
+                <div className="text-white text-[12px] font-bold">89%</div>
+                <div className="text-emerald-300 text-[7px]">Convert</div>
+              </div>
+              
+              {/* No-shows */}
+              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-3 text-center">
+                <div className="text-red-400 text-[10px] mb-1">⚠</div>
+                <div className="text-white text-[12px] font-bold">8.5%</div>
+                <div className="text-red-300 text-[7px]">No-shows</div>
+              </div>
+            </div>
+            
+            {/* Performance Chart - Full Size */}
+            <div className="bg-slate-700/50 rounded-lg p-3 flex-1">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-slate-300 text-[9px]">Performance</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                  <span className="text-emerald-300 text-[8px]">+12%</span>
+                </div>
+              </div>
+              <div className="flex items-end justify-between h-12 gap-0.5">
+                {[4, 7, 5, 8, 6, 9, 7, 10, 8, 11, 9, 12, 6, 8, 10, 7, 9, 11, 8, 10, 12, 9, 11, 8].map((height, i) => (
+                  <div key={i} className="bg-emerald-500/60 rounded-sm flex-1" style={{ height: `${height * 3}px` }} />
+                ))}
+              </div>
+              <div className="flex items-center justify-between mt-3">
+                <span className="text-slate-400 text-[7px]">6AM</span>
+                <span className="text-slate-400 text-[7px]">12PM</span>
+                <span className="text-slate-400 text-[7px]">6PM</span>
+                <span className="text-slate-400 text-[7px]">12AM</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Subtle decorative elements */}
+          <div className="absolute top-3 right-3 w-2 h-2 bg-blue-500/20 rounded-full" />
+          <div className="absolute bottom-3 left-3 w-1.5 h-1.5 bg-slate-600/20 rounded-full" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-3 lg:row-end-4"
   }, {
