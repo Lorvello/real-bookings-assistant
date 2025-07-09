@@ -3,6 +3,7 @@ import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Check } from "lucide-react";
+import { TranslationDemo } from "@/components/TranslationDemo";
 
 const Features = () => {
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
@@ -961,50 +962,8 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
-          {/* Multi-language Chat Demo */}
-          <div className="absolute top-4 left-4 right-4 space-y-3">
-            {/* Dutch Conversation */}
-            <div className="space-y-1">
-              <div className="flex justify-end">
-                <div className="bg-gray-600/80 text-white text-xs px-2 py-1 rounded-lg max-w-[75%]">
-                  🇳🇱 Hallo, ik wil graag een afspraak
-                </div>
-              </div>
-              <div className="flex justify-start">
-                <div className="bg-[#25D366]/90 text-white text-xs px-2 py-1 rounded-lg max-w-[75%]">
-                  🤖 Hallo! Voor welke behandeling?
-                </div>
-              </div>
-            </div>
-
-            {/* English Conversation */}
-            <div className="space-y-1">
-              <div className="flex justify-end">
-                <div className="bg-gray-600/80 text-white text-xs px-2 py-1 rounded-lg max-w-[75%]">
-                  🇬🇧 Hello, I need an appointment
-                </div>
-              </div>
-              <div className="flex justify-start">
-                <div className="bg-[#25D366]/90 text-white text-xs px-2 py-1 rounded-lg max-w-[75%]">
-                  🤖 Hello! What service would you like?
-                </div>
-              </div>
-            </div>
-
-            {/* Arabic Conversation */}
-            <div className="space-y-1">
-              <div className="flex justify-end">
-                <div className="bg-gray-600/80 text-white text-xs px-2 py-1 rounded-lg max-w-[75%] text-right" dir="rtl">
-                  🇸🇦 مرحبا، أريد موعدا
-                </div>
-              </div>
-              <div className="flex justify-start">
-                <div className="bg-[#25D366]/90 text-white text-xs px-2 py-1 rounded-lg max-w-[75%] text-right" dir="rtl">
-                  🤖 مرحبا! ما الخدمة التي تريدها؟
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Translation Demo Interface */}
+          <TranslationDemo />
           
           {/* Globe icon and background accent elements */}
           <div className="absolute bottom-4 left-4 text-emerald-400/30 text-2xl">🌍</div>
