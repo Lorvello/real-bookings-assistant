@@ -533,7 +533,10 @@ const Features = () => {
                 
                 {/* Time Slots */}
                 <div className="space-y-1">
-                  {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'].map((time) => (
+                  {Array.from({ length: 18 }, (_, i) => {
+                    const hour = 6 + i;
+                    return hour.toString().padStart(2, '0') + ':00';
+                  }).map((time) => (
                     <div key={time} className="grid grid-cols-8 gap-1 text-[7px]">
                       <div className="text-slate-400 text-center py-1 font-medium">{time}</div>
                       {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => {
