@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
-import { nl } from 'date-fns/locale';
 import { BookingDetailModal } from './BookingDetailModal';
 
 interface Booking {
@@ -139,7 +138,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
   
   const weekDays = getWeekDays(currentDate);
-  const timeSlots = generateTimeSlots(8, 20, 30); // 8:00 - 20:00, 30 min slots (reduced from 7-22)
+  const timeSlots = generateTimeSlots(7, 22, 30); // 7:00 - 22:00, 30 min slots for better space utilization
 
   const handleBookingClick = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -166,7 +165,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
                 : 'hover:bg-accent/50'
             }`}>
               <div className="text-xs text-muted-foreground font-medium">
-                {format(day, 'EEE', { locale: nl })}
+                {format(day, 'EEE')}
               </div>
               <div className={`text-lg font-bold mt-0.5 ${
                 isToday(day) ? 'text-primary' : 'text-foreground'
@@ -174,7 +173,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
                 {format(day, 'd')}
               </div>
               <div className="text-xs text-muted-foreground">
-                {format(day, 'MMM', { locale: nl })}
+                {format(day, 'MMM')}
               </div>
             </div>
           ))}
