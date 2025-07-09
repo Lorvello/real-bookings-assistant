@@ -353,7 +353,7 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
           
           {/* Compact Settings Interface */}
-          <div className="absolute top-3 left-3 right-3 h-[45%] bg-slate-800/80 rounded-lg border border-slate-600/50 p-2 backdrop-blur-sm">
+          <div className="absolute top-3 left-3 right-3 h-[45%] bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
             {/* Header */}
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-white text-[10px] font-semibold">Settings</h4>
