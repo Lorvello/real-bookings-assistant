@@ -25,115 +25,91 @@ const Features = () => {
           
           {/* iPhone Mockup - positioned in upper 70%, centered */}
           <div className="absolute top-0 left-0 right-0 h-[75%] flex justify-center items-center">
-            <div className="w-72 h-[90%] transform rotate-2 hover:rotate-0 transition-transform duration-500 ease-in-out">
-              {/* iPhone outer frame with realistic proportions */}
-              <div className="relative bg-gradient-to-b from-gray-900 via-gray-700 to-gray-900 rounded-[3rem] p-[2px] shadow-2xl h-full border border-gray-600">
+            <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
+              {/* iPhone outer frame */}
+              <div className="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-[2.5rem] p-[3px] shadow-2xl h-full border border-gray-700">
                 {/* iPhone screen bezel */}
-                <div className="relative bg-black rounded-[2.8rem] p-[2px] h-full">
+                <div className="relative bg-black rounded-[2.2rem] p-[4px] h-full">
                   {/* iPhone screen */}
-                  <div className="bg-white rounded-[2.6rem] relative h-full flex flex-col overflow-hidden shadow-inner">
-                    {/* iPhone notch - more realistic */}
-                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-black rounded-b-xl z-10"></div>
-                    
-                    {/* WhatsApp header with better styling */}
-                    <div className="bg-[#25D366] text-white px-3 py-2 flex items-center gap-2 pt-5 shadow-sm">
-                      {/* Profile picture with gradient */}
-                      <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
-                        <span className="text-xs">🤖</span>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-[10px] leading-tight">Hair Studio AI</h3>
-                        <p className="text-[7px] text-white/80 leading-tight">online</p>
-                      </div>
-                      {/* WhatsApp header icons */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs opacity-80">📹</span>
-                        <span className="text-xs opacity-80">📞</span>
-                        <span className="text-xs opacity-80">⋮</span>
-                      </div>
-                    </div>
+                  <div className="bg-white rounded-[1.8rem] relative h-full flex flex-col overflow-hidden shadow-inner">
+                {/* iPhone notch */}
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 bg-black rounded-b-lg z-10"></div>
                 
-                    {/* Chat area with WhatsApp background pattern */}
-                    <div className="bg-[#e5ddd5] flex-1 flex flex-col justify-between p-3 py-4 relative">
-                      {/* Subtle WhatsApp background pattern */}
-                      <div className="absolute inset-0 opacity-5 bg-repeat" style={{backgroundImage: "url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"2\" fill=\"%23000\"/></svg>')", backgroundSize: "20px 20px"}}></div>
-                      
-                      <div className="space-y-3 relative z-10">
-                        {/* Customer message */}
-                        <div className="flex justify-end">
-                          <div className="bg-[#dcf8c6] rounded-2xl rounded-br-md px-3 py-2 max-w-[75%] shadow-md relative">
-                            <p className="text-gray-800 text-[10px] leading-relaxed">Hello, I'd like to book an appointment for tomorrow</p>
-                            <div className="text-[6px] text-gray-500 text-right mt-1">12:30 PM ✓✓</div>
-                          </div>
-                        </div>
-                        
-                        {/* AI response 1 */}
-                        <div className="flex justify-start">
-                          <div className="bg-white rounded-2xl rounded-bl-md px-3 py-2 max-w-[75%] shadow-md relative">
-                            <p className="text-gray-800 text-[10px] leading-relaxed">Of course! Which service would you like? I have these options:</p>
-                            <div className="text-[6px] text-gray-500 mt-1">12:31 PM</div>
-                          </div>
-                        </div>
-                        
-                        {/* AI response 2 - services */}
-                        <div className="flex justify-start">
-                          <div className="bg-white rounded-2xl rounded-bl-md px-3 py-2 max-w-[75%] shadow-md">
-                            <p className="text-gray-800 text-[10px] leading-relaxed">💇‍♀️ Haircut - $25 (45 min)<br/>💇‍♀️ Coloring - $65 (90 min)<br/>💇‍♀️ Wash - $15 (20 min)</p>
-                            <div className="text-[6px] text-gray-500 mt-1">12:31 PM</div>
-                          </div>
-                        </div>
-                        
-                        {/* Customer choice */}
-                        <div className="flex justify-end">
-                          <div className="bg-[#dcf8c6] rounded-2xl rounded-br-md px-3 py-2 max-w-[75%] shadow-md">
-                            <p className="text-gray-800 text-[10px] leading-relaxed">Haircut please</p>
-                            <div className="text-[6px] text-gray-500 text-right mt-1">12:32 PM ✓✓</div>
-                          </div>
-                        </div>
-                        
-                        {/* AI response 3 - time slots */}
-                        <div className="flex justify-start">
-                          <div className="bg-white rounded-2xl rounded-bl-md px-3 py-2 max-w-[75%] shadow-md">
-                            <p className="text-gray-800 text-[10px] leading-relaxed">Perfect! When works for you? Tomorrow I have available:<br/>🕐 10:00 AM<br/>🕐 2:00 PM<br/>🕐 4:30 PM</p>
-                            <div className="text-[6px] text-gray-500 mt-1">12:32 PM</div>
-                          </div>
-                        </div>
-                        
-                        {/* Customer time choice */}
-                        <div className="flex justify-end">
-                          <div className="bg-[#dcf8c6] rounded-2xl rounded-br-md px-3 py-2 max-w-[75%] shadow-md">
-                            <p className="text-gray-800 text-[10px] leading-relaxed">2:00 PM works</p>
-                            <div className="text-[6px] text-gray-500 text-right mt-1">12:33 PM ✓✓</div>
-                          </div>
-                        </div>
-                        
-                        {/* Final confirmation */}
-                        <div className="flex justify-start">
-                          <div className="bg-white rounded-2xl rounded-bl-md px-3 py-2 max-w-[75%] shadow-md">
-                            <p className="text-gray-800 text-[10px] leading-relaxed">Perfect! Your appointment is confirmed for tomorrow at 2:00 PM ✅</p>
-                            <div className="text-[6px] text-gray-500 mt-1">12:33 PM</div>
-                          </div>
-                        </div>
+                {/* WhatsApp header */}
+                <div className="bg-[#25D366] text-white px-2 py-1.5 flex items-center gap-1.5 pt-4">
+                  <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-xs">🤖</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-[8px]">Hair Studio AI</h3>
+                    <p className="text-[6px] text-white/90">online</p>
+                  </div>
+                </div>
+                
+                  {/* Chat area - fills exactly from header to input */}
+                  <div className="bg-[#e5ddd5] flex-1 flex flex-col justify-between p-2 py-3">
+                    <div className="space-y-2">
+                    {/* Customer message */}
+                      <div className="flex justify-end">
+                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Hello, I'd like to book an appointment for tomorrow</p>
+                      </div>
+                  </div>
+                  
+                    {/* AI response 1 */}
+                    <div className="flex justify-start">
+                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! Which service would you like? I have these options:</p>
+                      </div>
+                  </div>
+                  
+                    {/* AI response 2 - services */}
+                    <div className="flex justify-start">
+                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">💇‍♀️ Haircut - $25 (45 min)<br/>💇‍♀️ Coloring - $65 (90 min)<br/>💇‍♀️ Wash - $15 (20 min)</p>
+                      </div>
+                  </div>
+                  
+                    {/* Customer choice */}
+                    <div className="flex justify-end">
+                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Haircut please</p>
+                      </div>
+                  </div>
+                  
+                    {/* AI response 3 - time slots */}
+                    <div className="flex justify-start">
+                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! When works for you? Tomorrow I have available:<br/>🕐 10:00 AM<br/>🕐 2:00 PM<br/>🕐 4:30 PM</p>
+                      </div>
+                  </div>
+                  
+                    {/* Customer time choice */}
+                    <div className="flex justify-end">
+                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">2:00 PM works</p>
+                      </div>
+                  </div>
+                  
+                    {/* Final confirmation */}
+                    <div className="flex justify-start">
+                      <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">You have an appointment tomorrow at 2 PM ✅</p>
                       </div>
                     </div>
-                    
-                    {/* Modern WhatsApp Input Bar */}
-                    <div className="bg-[#f0f0f0] border-t border-gray-200 px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <button className="text-gray-500 hover:text-gray-700 p-1">
-                          <span className="text-lg">😊</span>
-                        </button>
-                        <button className="text-gray-500 hover:text-gray-700 p-1">
-                          <span className="text-lg">📎</span>
-                        </button>
-                        <div className="flex-1 bg-white rounded-full px-3 py-2 border border-gray-200 shadow-sm">
-                          <div className="text-[10px] text-gray-400">Type a message</div>
-                        </div>
-                        <button className="text-gray-500 hover:text-gray-700 p-1">
-                          <span className="text-lg">🎤</span>
-                        </button>
-                      </div>
                     </div>
+                  </div>
+                  
+                  {/* WhatsApp Input Bar */}
+                  <div className="bg-gray-100 border-t border-gray-200 px-3 py-2">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-gray-500 text-sm">😊</span>
+                       <div className="flex-1 bg-white rounded-full px-2 py-1">
+                         <div className="text-[9px] text-gray-400 font-medium">Type a message</div>
+                       </div>
+                      <span className="text-gray-500 text-sm">🎤</span>
+                    </div>
+                  </div>
                   </div>
                 </div>
               </div>
