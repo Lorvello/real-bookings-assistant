@@ -17,7 +17,7 @@ export default function TestAIAgent() {
           </div>
 
           {/* AI Agent Test Chat with Clean Styling */}
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl">
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl min-h-[600px] md:min-h-[700px]">
             <AIAgentTestChat />
           </div>
         </div>
