@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Input } from "@/components/ui/input";
 import { ChevronDown, Search } from "lucide-react";
 
@@ -362,6 +363,8 @@ interface SearchableSelectProps {
 function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0, width: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const filteredLanguages = languages.filter(lang =>
@@ -370,24 +373,53 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
 
   const selectedLang = languages.find(lang => lang.code === selectedLanguage);
 
+  const updateButtonPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setButtonPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  };
+
   const handleToggle = () => {
+    if (!isOpen) {
+      updateButtonPosition();
+    }
     setIsOpen(!isOpen);
   };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setSearchTerm('');
       }
     }
 
+    function handleResize() {
+      if (isOpen) {
+        updateButtonPosition();
+      }
+    }
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('scroll', handleResize);
     }
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleResize);
     };
   }, [isOpen]);
 
@@ -397,9 +429,60 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
     setSearchTerm('');
   };
 
+  const dropdownContent = isOpen && (
+    <div 
+      ref={dropdownRef}
+      className="bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-64 overflow-hidden"
+      style={{
+        position: 'fixed',
+        top: `${buttonPosition.top + 4}px`,
+        left: `${buttonPosition.left}px`,
+        width: `${buttonPosition.width}px`,
+        zIndex: 9999
+      }}
+    >
+      <div className="p-2 border-b border-slate-700">
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="Search languages..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8 h-7 text-xs bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
+            autoFocus
+          />
+        </div>
+      </div>
+      
+      <div className="max-h-48 overflow-y-auto">
+        {filteredLanguages.length > 0 ? (
+          filteredLanguages.map((lang) => (
+            <button
+              key={lang.code}
+              type="button"
+              onClick={() => handleSelect(lang.code)}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-slate-700 focus:bg-slate-700 focus:outline-none ${
+                selectedLanguage === lang.code ? 'bg-slate-700 text-emerald-400' : 'text-white'
+              }`}
+            >
+              <span>{lang.flag}</span>
+              <span>{lang.name}</span>
+            </button>
+          ))
+        ) : (
+          <div className="px-3 py-2 text-xs text-slate-400 text-center">
+            No languages found
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={handleToggle}
         className="w-full flex items-center justify-between gap-2 px-3 py-2 h-8 bg-slate-700/50 border border-slate-600 rounded-md text-white text-xs hover:bg-slate-700/70 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -411,48 +494,7 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
         <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {isOpen && (
-        <div 
-          ref={dropdownRef}
-          className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg z-50 max-h-64 overflow-hidden"
-        >
-          <div className="p-2 border-b border-slate-700">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-slate-400" />
-              <Input
-                type="text"
-                placeholder="Search languages..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 h-7 text-xs bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-                autoFocus
-              />
-            </div>
-          </div>
-          
-          <div className="max-h-48 overflow-y-auto">
-            {filteredLanguages.length > 0 ? (
-              filteredLanguages.map((lang) => (
-                <button
-                  key={lang.code}
-                  type="button"
-                  onClick={() => handleSelect(lang.code)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-slate-700 focus:bg-slate-700 focus:outline-none ${
-                    selectedLanguage === lang.code ? 'bg-slate-700 text-emerald-400' : 'text-white'
-                  }`}
-                >
-                  <span>{lang.flag}</span>
-                  <span>{lang.name}</span>
-                </button>
-              ))
-            ) : (
-              <div className="px-3 py-2 text-xs text-slate-400 text-center">
-                No languages found
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {typeof document !== 'undefined' && createPortal(dropdownContent, document.body)}
     </div>
   );
 }
