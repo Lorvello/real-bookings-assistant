@@ -377,10 +377,10 @@ const Features = () => {
     href: "/features/automation",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
           {/* Background container for iPhone mockup */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
             {/* iPhone Mockup - positioned in upper 70%, centered */}
             <div className="absolute top-0 left-0 right-0 h-[75%] flex justify-center items-center">
               <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
@@ -481,10 +481,10 @@ const Features = () => {
     href: "/features/personalization",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
           {/* AI Agent Customization Interface */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
             {/* AI Personality Section */}
             <div className="mb-3">
               <p className="text-slate-300 text-[8px] font-medium mb-2">AI Personality & Tone</p>
@@ -899,7 +899,7 @@ const Features = () => {
     href: "/features/ai-responses",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
           {/* Smart AI Comparison Interface */}
           <div className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col">
@@ -1092,10 +1092,10 @@ const Features = () => {
     href: "/features/reminders",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
           {/* Background container for WhatsApp notifications */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm overflow-hidden">
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm overflow-hidden">
             {/* First WhatsApp Notification */}
             <div className="bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3 cursor-pointer transition-all duration-300 ease-out hover:scale-105 hover:bg-gray-800 hover:border-gray-600/70 hover:shadow-lg hover:shadow-emerald-500/20 transform">
               {/* WhatsApp App Header */}
@@ -1183,7 +1183,7 @@ const Features = () => {
     href: "/features/multilingual",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
           {/* Translation Demo Interface */}
           <TranslationDemo />
@@ -1200,7 +1200,7 @@ const Features = () => {
     href: "/features/monitoring",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-slate-800/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
           {/* Carousel Container - positioned to leave room for BentoCard footer */}
           <div className="absolute top-2 left-3 right-3 bottom-24">

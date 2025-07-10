@@ -46,9 +46,9 @@ const BentoCard = ({
     key={name}
       className={cn(
         "group relative col-span-1 flex flex-col justify-between overflow-hidden rounded-xl",
-        // Consistent dark theme styling
+        // Uniform flat background - no default glow
         "bg-background/90 border border-muted/30",
-        // Green hover effects with glow
+        // Card hover effects only - unified green glow
         "hover:bg-background/95 hover:border-primary/50",
         "shadow-lg shadow-black/20 hover:shadow-2xl hover:shadow-primary/40",
         "transition-all duration-300 ease-out",
