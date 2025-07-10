@@ -46,11 +46,11 @@ const BentoCard = ({
     key={name}
       className={cn(
         "group relative col-span-1 flex flex-col justify-between overflow-hidden rounded-xl",
-        // Base styling with slate theme
-        "bg-slate-800/80 border border-slate-700/50",
-        // Enhanced hover effects with more prominent glow
-        "hover:bg-slate-800/95 hover:border-emerald-400/50",
-        "shadow-lg shadow-emerald-500/10 hover:shadow-2xl hover:shadow-emerald-400/40",
+        // Consistent dark theme styling
+        "bg-background/90 border border-muted/30",
+        // Subtle hover effects maintaining dark theme
+        "hover:bg-background/95 hover:border-muted/50",
+        "shadow-lg shadow-black/20 hover:shadow-2xl hover:shadow-black/40",
         "hover:scale-[1.02] transition-all duration-300 ease-out",
         "backdrop-blur-sm",
         className,
@@ -63,15 +63,15 @@ const BentoCard = ({
         ? "absolute bottom-6 left-6 right-6 text-left" 
         : "p-6"
     )}>
-      <Icon className="h-12 w-12 text-emerald-400" />
+      <Icon className="h-12 w-12 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
       <h3 className={cn(
-        "text-xl font-semibold text-white mb-2",
+        "text-xl font-semibold text-foreground mb-2",
         name === "100% Automatic Bookings" ? "" : ""
       )}>
         {name}
       </h3>
       <p className={cn(
-        "max-w-lg text-slate-300 leading-relaxed",
+        "max-w-lg text-muted-foreground leading-relaxed group-hover:text-foreground/80 transition-colors duration-300",
         name === "100% Automatic Bookings" ? "text-sm" : ""
       )}>{description}</p>
     </div>
