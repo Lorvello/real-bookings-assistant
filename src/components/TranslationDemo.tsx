@@ -414,7 +414,7 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
       {isOpen && (
         <div 
           ref={dropdownRef}
-          className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg z-50 max-h-64 overflow-hidden"
+          className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg z-[9999] max-h-64 overflow-hidden"
         >
           <div className="p-2 border-b border-slate-700">
             <div className="relative">
