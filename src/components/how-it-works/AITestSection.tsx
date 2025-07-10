@@ -31,7 +31,7 @@ const AITestSection = () => {
             </p>
           </div>
           
-          <div className="bg-slate-800/70 backdrop-blur-sm border border-slate-700/50 rounded-2xl md:rounded-3xl p-3 md:p-12 shadow-2xl max-w-5xl mx-auto min-h-[600px] md:min-h-[700px]">
+          <div className="bg-slate-800/70 backdrop-blur-sm border border-slate-700/50 rounded-2xl md:rounded-3xl p-3 md:p-12 shadow-2xl max-w-5xl mx-auto h-[600px] md:h-[700px]">
             <AIAgentTestChat />
           </div>
         </div>
