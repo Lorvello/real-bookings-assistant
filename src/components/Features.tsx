@@ -388,13 +388,12 @@ const Features = () => {
           
           {/* AI Agent Customization Interface */}
           <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-white text-[10px] font-semibold">AI Agent Setup</h4>
+            {/* Status Indicator */}
+            <div className="flex justify-end mb-2">
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
             </div>
             
-            {/* AI Personality Section - Top 40% */}
+            {/* AI Personality Section */}
             <div className="mb-3">
               <p className="text-slate-300 text-[8px] font-medium mb-2">AI Personality & Tone</p>
               
