@@ -4,17 +4,15 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Check, Calendar, Users, MessageCircle, Clock, CheckCircle, Activity } from "lucide-react";
 import { TranslationDemo } from "@/components/TranslationDemo";
+
 const Features = () => {
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [showPopup, setShowPopup] = useState(false);
-  const [popupPosition, setPopupPosition] = useState({
-    x: 0,
-    y: 0
-  });
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const calendarRef = useRef<HTMLDivElement>(null);
-
+  
   // Slideshow state for Real-time Dashboard Monitoring
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
@@ -22,165 +20,165 @@ const Features = () => {
 
   // Extended booking data for both views
   const bookings = {
-    2: {
-      id: 1,
-      name: "John Peterson",
-      service: "Personal Training",
-      time: "9:00",
+    2: { 
+      id: 1, 
+      name: "John Peterson", 
+      service: "Personal Training", 
+      time: "9:00", 
       duration: "60 min",
       phone: "+31 6 1234 5678",
       email: "john@example.com",
       status: "confirmed",
       notes: "Focuses on strength training and weight loss"
     },
-    4: {
-      id: 2,
-      name: "Sarah Johnson",
-      service: "Yoga Class",
-      time: "10:30",
+    4: { 
+      id: 2, 
+      name: "Sarah Johnson", 
+      service: "Yoga Class", 
+      time: "10:30", 
       duration: "90 min",
       phone: "+31 6 2345 6789",
       email: "sarah@example.com",
       status: "confirmed",
       notes: "Beginner level, prefers morning sessions"
     },
-    7: {
-      id: 3,
-      name: "Mike Williams",
-      service: "Massage Therapy",
-      time: "14:00",
+    7: { 
+      id: 3, 
+      name: "Mike Williams", 
+      service: "Massage Therapy", 
+      time: "14:00", 
       duration: "45 min",
       phone: "+31 6 3456 7890",
       email: "mike@example.com",
       status: "confirmed",
       notes: "Deep tissue massage for sports recovery"
     },
-    9: {
-      id: 4,
-      name: "Emma Davis",
-      service: "Pilates Session",
-      time: "11:00",
+    9: { 
+      id: 4, 
+      name: "Emma Davis", 
+      service: "Pilates Session", 
+      time: "11:00", 
       duration: "60 min",
       phone: "+31 6 4567 8901",
       email: "emma@example.com",
       status: "pending",
       notes: "Rehabilitation exercises for lower back"
     },
-    11: {
-      id: 5,
-      name: "Tom Brown",
-      service: "CrossFit Training",
-      time: "16:00",
+    11: { 
+      id: 5, 
+      name: "Tom Brown", 
+      service: "CrossFit Training", 
+      time: "16:00", 
       duration: "75 min",
       phone: "+31 6 5678 9012",
       email: "tom@example.com",
       status: "confirmed",
       notes: "High intensity workout, experienced athlete"
     },
-    14: {
-      id: 6,
-      name: "Lisa Garcia",
-      service: "Nutrition Consultation",
-      time: "13:30",
+    14: { 
+      id: 6, 
+      name: "Lisa Garcia", 
+      service: "Nutrition Consultation", 
+      time: "13:30", 
       duration: "45 min",
       phone: "+31 6 6789 0123",
       email: "lisa@example.com",
       status: "confirmed",
       notes: "Weight management and meal planning"
     },
-    15: {
-      id: 7,
-      name: "Dave Miller",
-      service: "Personal Training",
-      time: "8:00",
+    15: { 
+      id: 7, 
+      name: "Dave Miller", 
+      service: "Personal Training", 
+      time: "8:00", 
       duration: "60 min",
       phone: "+31 6 7890 1234",
       email: "dave@example.com",
       status: "confirmed",
       notes: "Early morning session, cardio focus"
     },
-    17: {
-      id: 8,
-      name: "Anna Wilson",
-      service: "Evening Yoga",
-      time: "18:00",
+    17: { 
+      id: 8, 
+      name: "Anna Wilson", 
+      service: "Evening Yoga", 
+      time: "18:00", 
       duration: "90 min",
       phone: "+31 6 8901 2345",
       email: "anna@example.com",
       status: "confirmed",
       notes: "Relaxation and stress relief session"
     },
-    18: {
-      id: 9,
-      name: "Chris Martinez",
-      service: "Sports Massage",
-      time: "15:30",
+    18: { 
+      id: 9, 
+      name: "Chris Martinez", 
+      service: "Sports Massage", 
+      time: "15:30", 
       duration: "60 min",
       phone: "+31 6 9012 3456",
       email: "chris@example.com",
       status: "confirmed",
       notes: "Pre-competition preparation massage"
     },
-    21: {
-      id: 10,
-      name: "Kate Thompson",
-      service: "Pilates Mat Class",
-      time: "12:00",
+    21: { 
+      id: 10, 
+      name: "Kate Thompson", 
+      service: "Pilates Mat Class", 
+      time: "12:00", 
       duration: "60 min",
       phone: "+31 6 0123 4567",
       email: "kate@example.com",
       status: "confirmed",
       notes: "Core strengthening and flexibility"
     },
-    22: {
-      id: 11,
-      name: "Ben Anderson",
-      service: "CrossFit WOD",
-      time: "17:00",
+    22: { 
+      id: 11, 
+      name: "Ben Anderson", 
+      service: "CrossFit WOD", 
+      time: "17:00", 
       duration: "60 min",
       phone: "+31 6 1234 5670",
       email: "ben@example.com",
       status: "confirmed",
       notes: "Workout of the day, group session"
     },
-    24: {
-      id: 12,
-      name: "Mia Taylor",
-      service: "Nutrition & Lifestyle",
-      time: "10:00",
+    24: { 
+      id: 12, 
+      name: "Mia Taylor", 
+      service: "Nutrition & Lifestyle", 
+      time: "10:00", 
       duration: "60 min",
       phone: "+31 6 2345 6701",
       email: "mia@example.com",
       status: "pending",
       notes: "First consultation, weight loss goals"
     },
-    25: {
-      id: 13,
-      name: "Sam Rodriguez",
-      service: "Strength Training",
-      time: "14:30",
+    25: { 
+      id: 13, 
+      name: "Sam Rodriguez", 
+      service: "Strength Training", 
+      time: "14:30", 
       duration: "75 min",
       phone: "+31 6 3456 7012",
       email: "sam@example.com",
       status: "confirmed",
       notes: "Powerlifting focused training session"
     },
-    28: {
-      id: 14,
-      name: "Alex Moore",
-      service: "Yin Yoga",
-      time: "19:00",
+    28: { 
+      id: 14, 
+      name: "Alex Moore", 
+      service: "Yin Yoga", 
+      time: "19:00", 
       duration: "90 min",
       phone: "+31 6 4567 0123",
       email: "alex@example.com",
       status: "confirmed",
       notes: "Restorative yoga for deep relaxation"
     },
-    30: {
-      id: 15,
-      name: "Zoe White",
-      service: "Therapeutic Massage",
-      time: "11:30",
+    30: { 
+      id: 15, 
+      name: "Zoe White", 
+      service: "Therapeutic Massage", 
+      time: "11:30", 
       duration: "60 min",
       phone: "+31 6 5670 1234",
       email: "zoe@example.com",
@@ -188,37 +186,37 @@ const Features = () => {
       notes: "Injury recovery and pain management"
     }
   };
+
   const handleBookingClick = (booking: any, event: React.MouseEvent) => {
     event.stopPropagation();
     const targetRect = (event.target as HTMLElement).getBoundingClientRect();
-
+    
     // Calculate global position for fixed positioning
     const x = targetRect.left + targetRect.width / 2;
     const y = targetRect.top - 10;
-
+    
     // Check viewport boundaries and adjust position
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     const popupWidth = 280;
     const popupHeight = 300;
+    
     let adjustedX = x;
     let adjustedY = y;
-
+    
     // Flip horizontally if popup would go off-screen
     if (x + popupWidth / 2 > viewportWidth - 20) {
       adjustedX = viewportWidth - popupWidth / 2 - 20;
     } else if (x - popupWidth / 2 < 20) {
       adjustedX = popupWidth / 2 + 20;
     }
-
+    
     // Flip vertically if popup would go off-screen
     if (y - popupHeight < 20) {
       adjustedY = targetRect.bottom + 10;
     }
-    setPopupPosition({
-      x: adjustedX,
-      y: adjustedY
-    });
+    
+    setPopupPosition({ x: adjustedX, y: adjustedY });
     setSelectedBooking(booking);
     setShowPopup(true);
   };
@@ -230,15 +228,18 @@ const Features = () => {
         setShowPopup(false);
       }
     };
+
     const handleClickOutside = (e: MouseEvent) => {
       if (showPopup && !(e.target as Element).closest('[data-popup]')) {
         setShowPopup(false);
       }
     };
+
     if (showPopup) {
       document.addEventListener('keydown', handleEscape);
       document.addEventListener('mousedown', handleClickOutside);
     }
+
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('mousedown', handleClickOutside);
@@ -249,14 +250,18 @@ const Features = () => {
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
   };
+
   const handleTouchMove = (e: React.TouchEvent) => {
     setTouchEnd(e.targetTouches[0].clientX);
   };
+
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
+    
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
+
     if (isLeftSwipe && currentSlide === 0) {
       setCurrentSlide(1);
     }
@@ -264,6 +269,7 @@ const Features = () => {
       setCurrentSlide(0);
     }
   };
+
   const handleSlideToggle = () => {
     setCurrentSlide(currentSlide === 0 ? 1 : 0);
   };
@@ -380,43 +386,83 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
           
-          {/* Compact Settings Interface */}
-          <div className="absolute top-3 left-3 right-3 h-[45%] bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+          {/* AI Agent Customization Interface */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
             {/* Header */}
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-white text-[10px] font-semibold">AI Agent Setup</h4>
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+            </div>
+            
+            {/* AI Personality Section - Top 40% */}
+            <div className="mb-3">
+              <p className="text-slate-300 text-[8px] font-medium mb-2">AI Personality & Tone</p>
               
-              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-            </div>
-            
-            {/* Service Types Section */}
-            <div className="mb-2">
-              <p className="text-slate-300 text-[8px] font-medium mb-1">Services</p>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between bg-slate-700/60 rounded px-1.5 py-0.5">
-                  <span className="text-white text-[7px]">📅 Consultation - €50</span>
-                  <button className="text-emerald-400 text-[6px] hover:text-emerald-300">Edit</button>
+              {/* Tone Slider */}
+              <div className="mb-2">
+                <div className="flex justify-between text-[6px] text-slate-400 mb-1">
+                  <span>Professional</span>
+                  <span>Friendly</span>
+                  <span>Casual</span>
                 </div>
-                <div className="flex items-center justify-between bg-slate-700/60 rounded px-1.5 py-0.5">
-                  <span className="text-white text-[7px]">🔧 Service Call - €75</span>
-                  <button className="text-emerald-400 text-[6px] hover:text-emerald-300">Edit</button>
+                <div className="relative h-1 bg-slate-600 rounded-full">
+                  <div className="absolute left-1/3 w-2 h-2 bg-blue-400 rounded-full -top-0.5 shadow-sm" />
                 </div>
               </div>
-              <button className="mt-1 text-emerald-400 text-[7px] font-medium hover:text-emerald-300">+ Add Service</button>
-            </div>
-            
-            {/* Quick Toggles */}
-            <div className="space-y-1">
+              
+              {/* Language Toggle */}
               <div className="flex items-center justify-between">
-                <span className="text-slate-300 text-[8px]">Auto confirmations</span>
-                <div className="w-5 h-2.5 bg-emerald-500 rounded-full relative">
-                  <div className="w-2 h-2 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
+                <span className="text-slate-300 text-[7px]">🌐 Multi-language</span>
+                <div className="w-4 h-2 bg-blue-500 rounded-full relative">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300 text-[8px]">Send reminders</span>
-                <div className="w-5 h-2.5 bg-emerald-500 rounded-full relative">
-                  <div className="w-2 h-2 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
+            </div>
+            
+            {/* Smart Features Section - Bottom 60% in 2x2 Grid */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* FAQ Management */}
+              <div className="bg-slate-700/40 rounded p-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white text-[7px] font-medium">📚 Smart FAQ</span>
+                  <div className="w-3 h-1.5 bg-emerald-500 rounded-full relative">
+                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 right-0.25" />
+                  </div>
                 </div>
+                <p className="text-slate-400 text-[6px]">Auto-answers common questions</p>
+              </div>
+              
+              {/* Booking Logic */}
+              <div className="bg-slate-700/40 rounded p-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white text-[7px] font-medium">🧠 Smart Booking</span>
+                  <div className="w-3 h-1.5 bg-emerald-500 rounded-full relative">
+                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 right-0.25" />
+                  </div>
+                </div>
+                <p className="text-slate-400 text-[6px]">Upselling & rebooking</p>
+              </div>
+              
+              {/* Context Awareness */}
+              <div className="bg-slate-700/40 rounded p-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white text-[7px] font-medium">🎯 Context AI</span>
+                  <div className="w-3 h-1.5 bg-blue-500 rounded-full relative">
+                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 right-0.25" />
+                  </div>
+                </div>
+                <p className="text-slate-400 text-[6px]">Remembers preferences</p>
+              </div>
+              
+              {/* Proactive Engagement */}
+              <div className="bg-slate-700/40 rounded p-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white text-[7px] font-medium">⚡ Proactive</span>
+                  <div className="w-3 h-1.5 bg-slate-500 rounded-full relative">
+                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 left-0.25" />
+                  </div>
+                </div>
+                <p className="text-slate-400 text-[6px]">Sends follow-ups</p>
               </div>
             </div>
           </div>
@@ -440,18 +486,29 @@ const Features = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-white text-[12px] font-semibold">
-                  {currentMonth.toLocaleDateString('en-US', {
-                month: 'long',
-                year: 'numeric'
-              })}
+                  {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex text-[7px] bg-slate-700/60 rounded overflow-hidden">
-                  <button onClick={() => setCalendarView('month')} className={`px-2 py-1 transition-colors ${calendarView === 'month' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                  <button 
+                    onClick={() => setCalendarView('month')}
+                    className={`px-2 py-1 transition-colors ${
+                      calendarView === 'month' 
+                        ? 'bg-emerald-600 text-white' 
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
                     Month
                   </button>
-                  <button onClick={() => setCalendarView('week')} className={`px-2 py-1 transition-colors ${calendarView === 'week' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                  <button 
+                    onClick={() => setCalendarView('week')}
+                    className={`px-2 py-1 transition-colors ${
+                      calendarView === 'week' 
+                        ? 'bg-emerald-600 text-white' 
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
                     Week
                   </button>
                 </div>
@@ -459,144 +516,44 @@ const Features = () => {
             </div>
             
             {/* Calendar Grid */}
-            {calendarView === 'month' ? <div className="flex-1 flex flex-col">
+            {calendarView === 'month' ? (
+              <div className="flex-1 flex flex-col">
                 <div className="grid grid-cols-7 gap-1 text-[7px] mb-2">
                   {/* Day Headers */}
-                  {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(day => <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">{day}</div>)}
+                  {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => (
+                    <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">{day}</div>
+                  ))}
                   
                   {/* Calendar Dates with detailed bookings */}
                   {(() => {
-              return [{
-                date: 30,
-                isOtherMonth: true
-              }, {
-                date: 1,
-                isOtherMonth: false
-              }, {
-                date: 2,
-                isOtherMonth: false,
-                booking: bookings[2]
-              }, {
-                date: 3,
-                isOtherMonth: false
-              }, {
-                date: 4,
-                isOtherMonth: false,
-                booking: bookings[4]
-              }, {
-                date: 5,
-                isOtherMonth: false
-              }, {
-                date: 6,
-                isOtherMonth: false
-              }, {
-                date: 7,
-                isOtherMonth: false,
-                booking: bookings[7]
-              }, {
-                date: 8,
-                isOtherMonth: false
-              }, {
-                date: 9,
-                isOtherMonth: false,
-                booking: bookings[9]
-              }, {
-                date: 10,
-                isOtherMonth: false
-              }, {
-                date: 11,
-                isOtherMonth: false,
-                booking: bookings[11]
-              }, {
-                date: 12,
-                isOtherMonth: false
-              }, {
-                date: 13,
-                isOtherMonth: false
-              }, {
-                date: 14,
-                isOtherMonth: false,
-                booking: bookings[14]
-              }, {
-                date: 15,
-                isOtherMonth: false,
-                booking: bookings[15]
-              }, {
-                date: 16,
-                isOtherMonth: false
-              }, {
-                date: 17,
-                isOtherMonth: false,
-                booking: bookings[17]
-              }, {
-                date: 18,
-                isOtherMonth: false,
-                booking: bookings[18]
-              }, {
-                date: 19,
-                isOtherMonth: false
-              }, {
-                date: 20,
-                isOtherMonth: false
-              }, {
-                date: 21,
-                isOtherMonth: false,
-                booking: bookings[21]
-              }, {
-                date: 22,
-                isOtherMonth: false,
-                booking: bookings[22]
-              }, {
-                date: 23,
-                isOtherMonth: false
-              }, {
-                date: 24,
-                isOtherMonth: false,
-                booking: bookings[24]
-              }, {
-                date: 25,
-                isOtherMonth: false,
-                booking: bookings[25]
-              }, {
-                date: 26,
-                isOtherMonth: false
-              }, {
-                date: 27,
-                isOtherMonth: false
-              }, {
-                date: 28,
-                isOtherMonth: false,
-                booking: bookings[28]
-              }, {
-                date: 29,
-                isOtherMonth: false
-              }, {
-                date: 30,
-                isOtherMonth: false,
-                booking: bookings[30]
-              }, {
-                date: 31,
-                isOtherMonth: false
-              }, {
-                date: 1,
-                isOtherMonth: true
-              }, {
-                date: 2,
-                isOtherMonth: true
-              }, {
-                date: 3,
-                isOtherMonth: true
-              }].map((day, index) => <div key={index} className="relative">
-                        <div className={`text-center py-1 h-14 flex flex-col items-center justify-start text-[7px] transition-colors rounded ${day.booking ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/90 hover:scale-105 transition-all duration-200' : day.isOtherMonth ? 'text-slate-500 hover:bg-slate-700/30' : 'text-slate-300 hover:bg-slate-700/50'}`} onClick={day.booking ? e => handleBookingClick(day.booking, e) : undefined}>
+                    return [
+                      { date: 30, isOtherMonth: true }, { date: 1, isOtherMonth: false }, { date: 2, isOtherMonth: false, booking: bookings[2] }, { date: 3, isOtherMonth: false }, { date: 4, isOtherMonth: false, booking: bookings[4] }, { date: 5, isOtherMonth: false }, { date: 6, isOtherMonth: false },
+                      { date: 7, isOtherMonth: false, booking: bookings[7] }, { date: 8, isOtherMonth: false }, { date: 9, isOtherMonth: false, booking: bookings[9] }, { date: 10, isOtherMonth: false }, { date: 11, isOtherMonth: false, booking: bookings[11] }, { date: 12, isOtherMonth: false }, { date: 13, isOtherMonth: false },
+                      { date: 14, isOtherMonth: false, booking: bookings[14] }, { date: 15, isOtherMonth: false, booking: bookings[15] }, { date: 16, isOtherMonth: false }, { date: 17, isOtherMonth: false, booking: bookings[17] }, { date: 18, isOtherMonth: false, booking: bookings[18] }, { date: 19, isOtherMonth: false }, { date: 20, isOtherMonth: false },
+                      { date: 21, isOtherMonth: false, booking: bookings[21] }, { date: 22, isOtherMonth: false, booking: bookings[22] }, { date: 23, isOtherMonth: false }, { date: 24, isOtherMonth: false, booking: bookings[24] }, { date: 25, isOtherMonth: false, booking: bookings[25] }, { date: 26, isOtherMonth: false }, { date: 27, isOtherMonth: false },
+                      { date: 28, isOtherMonth: false, booking: bookings[28] }, { date: 29, isOtherMonth: false }, { date: 30, isOtherMonth: false, booking: bookings[30] }, { date: 31, isOtherMonth: false }, { date: 1, isOtherMonth: true }, { date: 2, isOtherMonth: true }, { date: 3, isOtherMonth: true }
+                    ].map((day, index) => (
+                      <div key={index} className="relative">
+                        <div className={`text-center py-1 h-14 flex flex-col items-center justify-start text-[7px] transition-colors rounded ${
+                          day.booking 
+                            ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/90 hover:scale-105 transition-all duration-200' 
+                            : day.isOtherMonth 
+                              ? 'text-slate-500 hover:bg-slate-700/30' 
+                              : 'text-slate-300 hover:bg-slate-700/50'
+                        }`}
+                        onClick={day.booking ? (e) => handleBookingClick(day.booking, e) : undefined}>
                           <div className="font-medium">{day.date}</div>
-                          {day.booking && <div className="text-[6px] mt-1 px-1 leading-tight">
+                          {day.booking && (
+                            <div className="text-[6px] mt-1 px-1 leading-tight">
                               <div className="text-emerald-200">{day.booking.name.split(' ')[0]}</div>
                               <div className="text-emerald-100">{day.booking.service}</div>
                               <div className="text-emerald-300">{day.booking.time}</div>
-                            </div>}
+                            </div>
+                          )}
                         </div>
-                      </div>);
-            })()}
+                      </div>
+                    ));
+                  })()}
                 </div>
                 
                  {/* Booking Summary */}
@@ -625,66 +582,91 @@ const Features = () => {
                     </div>
                   </div>
                 </div>
-              </div> : (/* Week View */
-        <div className="space-y-1 flex-1">
+              </div>
+            ) : (
+              /* Week View */
+              <div className="space-y-1 flex-1">
                 {/* Week Headers */}
                 <div className="grid grid-cols-8 gap-1 text-[7px]">
                   <div className="text-slate-400 text-center py-1 font-medium">Time</div>
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
-              // Get the date for this day in the current month
-              const weekStartDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 7); // Start from 7th
-              const dayDate = weekStartDate.getDate() + index;
-              return <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">
+                    // Get the date for this day in the current month
+                    const weekStartDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 7); // Start from 7th
+                    const dayDate = weekStartDate.getDate() + index;
+                    return (
+                      <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">
                         {day} {dayDate}
-                      </div>;
-            })}
+                      </div>
+                    );
+                  })}
                 </div>
                 
                 {/* Time Slots */}
                 <div className="space-y-1">
-                  {Array.from({
-              length: 18
-            }, (_, i) => {
-              const hour = 6 + i;
-              return hour.toString().padStart(2, '0') + ':00';
-            }).map(time => <div key={time} className="grid grid-cols-8 gap-1 text-[7px]">
+                  {Array.from({ length: 18 }, (_, i) => {
+                    const hour = 6 + i;
+                    return hour.toString().padStart(2, '0') + ':00';
+                  }).map((time) => (
+                    <div key={time} className="grid grid-cols-8 gap-1 text-[7px]">
                       <div className="text-slate-400 text-center py-1 font-medium">{time}</div>
-                      {[0, 1, 2, 3, 4, 5, 6].map(dayIndex => {
-                // Calculate the actual date for this day
-                const weekStartDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 7);
-                const dayDate = weekStartDate.getDate() + dayIndex;
-
-                // Get booking for this date and time
-                const dayBooking = bookings[dayDate as keyof typeof bookings];
-                const booking = dayBooking && dayBooking.time === time ? dayBooking : null;
-                return <div key={dayIndex} className={`py-1 px-1 rounded text-center transition-colors ${booking ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/90 hover:scale-105 transition-all duration-200' : 'hover:bg-slate-700/30'}`} onClick={booking ? e => handleBookingClick(booking, e) : undefined}>
-                            {booking && <div className="text-[6px] leading-tight">
+                      {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => {
+                        // Calculate the actual date for this day
+                        const weekStartDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 7);
+                        const dayDate = weekStartDate.getDate() + dayIndex;
+                        
+                        // Get booking for this date and time
+                        const dayBooking = bookings[dayDate as keyof typeof bookings];
+                        const booking = dayBooking && dayBooking.time === time ? dayBooking : null;
+                        
+                        return (
+                          <div key={dayIndex} className={`py-1 px-1 rounded text-center transition-colors ${
+                            booking 
+                              ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/90 hover:scale-105 transition-all duration-200' 
+                              : 'hover:bg-slate-700/30'
+                          }`}
+                          onClick={booking ? (e) => handleBookingClick(booking, e) : undefined}>
+                            {booking && (
+                              <div className="text-[6px] leading-tight">
                                 <div className="text-emerald-200">{booking.name.split(' ')[0]}</div>
                                 <div className="text-emerald-100">{booking.service}</div>
-                              </div>}
-                          </div>;
-              })}
-                    </div>)}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
-              </div>)}
+              </div>
+            )}
 
             {/* Booking Popup rendered via Portal */}
-            {showPopup && selectedBooking && createPortal(<div data-popup="true" className="fixed z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg p-3 backdrop-blur-sm shadow-2xl" style={{
-          left: `${popupPosition.x}px`,
-          top: `${popupPosition.y}px`,
-          transform: 'translateX(-50%) translateY(-100%)',
-          minWidth: '240px',
-          maxWidth: '280px'
-        }}>
+            {showPopup && selectedBooking && createPortal(
+              <div 
+                data-popup="true"
+                className="fixed z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg p-3 backdrop-blur-sm shadow-2xl"
+                style={{
+                  left: `${popupPosition.x}px`,
+                  top: `${popupPosition.y}px`,
+                  transform: 'translateX(-50%) translateY(-100%)',
+                  minWidth: '240px',
+                  maxWidth: '280px'
+                }}
+              >
                 {/* Close button */}
-                <button onClick={() => setShowPopup(false)} className="absolute top-1 right-1 text-slate-400 hover:text-white transition-colors">
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="absolute top-1 right-1 text-slate-400 hover:text-white transition-colors"
+                >
                   <X size={12} />
                 </button>
                 
                 {/* Booking details */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${selectedBooking.status === 'confirmed' ? 'bg-emerald-400' : 'bg-yellow-400'}`} />
+                    <div className={`w-2 h-2 rounded-full ${
+                      selectedBooking.status === 'confirmed' ? 'bg-emerald-400' : 'bg-yellow-400'
+                    }`} />
                     <span className="text-white text-[10px] font-semibold">
                       {selectedBooking.status === 'confirmed' ? 'Confirmed' : 'Pending'}
                     </span>
@@ -710,11 +692,15 @@ const Features = () => {
                     </div>
                   </div>
                   
-                  {selectedBooking.notes && <div className="border-t border-slate-700/50 pt-2">
+                  {selectedBooking.notes && (
+                    <div className="border-t border-slate-700/50 pt-2">
                       <p className="text-slate-300 text-[8px] leading-relaxed">{selectedBooking.notes}</p>
-                    </div>}
+                    </div>
+                  )}
                 </div>
-              </div>, document.body)}
+              </div>,
+              document.body
+            )}
           </div>
           
           {/* Subtle decorative elements */}
@@ -934,7 +920,7 @@ const Features = () => {
                   {/* Authentic WhatsApp Logo */}
                   <div className="w-4 h-4 bg-[#25D366] rounded-sm flex items-center justify-center">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="text-white">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.251" fill="currentColor" />
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.251" fill="currentColor"/>
                     </svg>
                   </div>
                   <span className="text-gray-400 text-xs uppercase font-medium tracking-wide">WhatsApp</span>
@@ -1037,40 +1023,65 @@ const Features = () => {
             <div className="h-full flex flex-col">
               {/* Carousel Content */}
               <div className="flex-1 relative overflow-hidden">
-                <div className="flex h-full gap-3 px-2">
-                  {/* Today Stats */}
-                  <div className="flex-1">
-                    <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col items-center justify-center text-center">
-                      <Calendar className="h-6 w-6 text-emerald-400 mb-3" />
-                      <div className="text-white text-2xl font-bold mb-1">5</div>
-                      <div className="text-emerald-300 text-sm font-medium mb-2">Today</div>
-                      <div className="text-emerald-400 text-xs">5 confirmed</div>
-                      <div className="text-emerald-400 text-xs">2 pending</div>
+              <div className="flex h-20 gap-3 px-2 mt-4">
+                {/* Today Stats - Enhanced */}
+                <div className="flex-1">
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:bg-emerald-600/30 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Calendar className="h-3 w-3 text-emerald-400" />
+                      <div className="text-white text-lg font-bold">5</div>
+                      <div className="text-emerald-300 text-[6px] opacity-70 group-hover:opacity-100">+2</div>
                     </div>
-                  </div>
-
-                  {/* Active Now */}
-                  <div className="flex-1">
-                    <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col items-center justify-center text-center">
-                      <Users className="h-6 w-6 text-emerald-400 mb-3" />
-                      <div className="text-white text-2xl font-bold mb-1">3</div>
-                      <div className="text-emerald-300 text-sm font-medium mb-2">Active Now</div>
-                      <div className="text-emerald-400 text-xs">ongoing</div>
-                      <div className="text-emerald-400 text-xs">appointments</div>
+                    <div className="text-emerald-300 text-xs font-medium mb-1">Today</div>
+                    <div className="w-full bg-emerald-800/30 rounded-full h-1">
+                      <div className="bg-emerald-400 h-1 rounded-full transition-all duration-300 group-hover:bg-emerald-300" style={{width: '60%'}}></div>
                     </div>
-                  </div>
-
-                  {/* WhatsApp Live */}
-                  <div className="flex-1">
-                    <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col items-center justify-center text-center">
-                      <MessageCircle className="h-6 w-6 text-emerald-400 mb-3" />
-                      <div className="text-white text-2xl font-bold mb-1">17</div>
-                      <div className="text-emerald-300 text-sm font-medium mb-2">WhatsApp Live</div>
-                      <div className="text-emerald-400 text-xs">messages</div>
-                      <div className="text-emerald-400 text-xs">last hour</div>
-                    </div>
+                    <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100">€375 revenue</div>
                   </div>
                 </div>
+
+                {/* Active Now - Enhanced */}
+                <div className="flex-1">
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:bg-emerald-600/30 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-1 mb-1">
+                      <div className="relative">
+                        <Users className="h-3 w-3 text-emerald-400" />
+                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                      </div>
+                      <div className="text-white text-lg font-bold">3</div>
+                      <CheckCircle className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100" />
+                    </div>
+                    <div className="text-emerald-300 text-xs font-medium mb-1">Active Now</div>
+                    <div className="flex gap-1">
+                      <div className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                      <div className="w-1 h-2 bg-emerald-400/70 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                      <div className="w-1 h-2 bg-emerald-400/50 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                    </div>
+                    <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100">2 confirmed</div>
+                  </div>
+                </div>
+
+                {/* WhatsApp Live - Enhanced */}
+                <div className="flex-1">
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:bg-emerald-600/30 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-1 mb-1">
+                      <div className="relative">
+                        <MessageCircle className="h-3 w-3 text-emerald-400" />
+                        <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce"></div>
+                      </div>
+                      <div className="text-white text-lg font-bold">17</div>
+                      <Activity className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100" />
+                    </div>
+                    <div className="text-emerald-300 text-xs font-medium mb-1">WhatsApp</div>
+                    <div className="flex justify-center gap-0.5">
+                      <div className="text-emerald-400 text-[6px]">12 in</div>
+                      <div className="text-emerald-300 text-[6px]">•</div>
+                      <div className="text-emerald-400 text-[6px]">5 out</div>
+                    </div>
+                    <div className="text-emerald-400 text-[6px] opacity-70 group-hover:opacity-100">2m avg response</div>
+                  </div>
+                </div>
+              </div>
               </div>
             </div>
 
@@ -1130,4 +1141,5 @@ const Features = () => {
       </div>
     </section>;
 };
+
 export default Features;
