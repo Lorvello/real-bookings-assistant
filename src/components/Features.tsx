@@ -1210,59 +1210,59 @@ const Features = () => {
               <div className="flex h-20 gap-3 px-2 mt-4">
                 {/* Today Stats - Enhanced */}
                 <div className="flex-1">
-                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:bg-emerald-600/30 transition-all cursor-pointer group">
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/40 hover:border-emerald-500/60 hover:shadow-lg hover:shadow-emerald-500/25 transform group">
                     <div className="flex items-center gap-1 mb-1">
-                      <Calendar className="h-3 w-3 text-emerald-400" />
-                      <div className="text-white text-lg font-bold">5</div>
-                      <div className="text-emerald-300 text-[6px] opacity-70 group-hover:opacity-100">+2</div>
+                      <Calendar className="h-3 w-3 text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
+                      <div className="text-white text-lg font-bold group-hover:text-emerald-100 transition-colors duration-300">5</div>
+                      <div className="text-emerald-300 text-[6px] opacity-70 group-hover:opacity-100 group-hover:text-emerald-200 transition-all duration-300">+2</div>
                     </div>
-                    <div className="text-emerald-300 text-xs font-medium mb-1">Today</div>
+                    <div className="text-emerald-300 text-xs font-medium mb-1 group-hover:text-emerald-200 transition-colors duration-300">Today</div>
                     <div className="w-full bg-emerald-800/30 rounded-full h-1">
                       <div className="bg-emerald-400 h-1 rounded-full transition-all duration-300 group-hover:bg-emerald-300" style={{width: '60%'}}></div>
                     </div>
-                    <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100">€375 revenue</div>
+                    <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300">€375 revenue</div>
                   </div>
                 </div>
 
                 {/* Active Now - Enhanced */}
                 <div className="flex-1">
-                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:bg-emerald-600/30 transition-all cursor-pointer group">
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/40 hover:border-emerald-500/60 hover:shadow-lg hover:shadow-emerald-500/25 transform group">
                     <div className="flex items-center gap-1 mb-1">
                       <div className="relative">
-                        <Users className="h-3 w-3 text-emerald-400" />
-                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                        <Users className="h-3 w-3 text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
+                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full animate-pulse group-hover:bg-emerald-300 transition-colors duration-300"></div>
                       </div>
-                      <div className="text-white text-lg font-bold">3</div>
-                      <CheckCircle className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100" />
+                      <div className="text-white text-lg font-bold group-hover:text-emerald-100 transition-colors duration-300">3</div>
+                      <CheckCircle className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300" />
                     </div>
-                    <div className="text-emerald-300 text-xs font-medium mb-1">Active Now</div>
+                    <div className="text-emerald-300 text-xs font-medium mb-1 group-hover:text-emerald-200 transition-colors duration-300">Active Now</div>
                     <div className="flex gap-1">
-                      <div className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                      <div className="w-1 h-2 bg-emerald-400/70 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                      <div className="w-1 h-2 bg-emerald-400/50 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                      <div className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse group-hover:bg-emerald-300 transition-colors duration-300"></div>
+                      <div className="w-1 h-2 bg-emerald-400/70 rounded-full animate-pulse group-hover:bg-emerald-300/70 transition-colors duration-300" style={{animationDelay: '0.2s'}}></div>
+                      <div className="w-1 h-2 bg-emerald-400/50 rounded-full animate-pulse group-hover:bg-emerald-300/50 transition-colors duration-300" style={{animationDelay: '0.4s'}}></div>
                     </div>
-                    <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100">2 confirmed</div>
+                    <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300">2 confirmed</div>
                   </div>
                 </div>
 
                 {/* WhatsApp Live - Enhanced */}
                 <div className="flex-1">
-                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:bg-emerald-600/30 transition-all cursor-pointer group">
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/40 hover:border-emerald-500/60 hover:shadow-lg hover:shadow-emerald-500/25 transform group">
                     <div className="flex items-center gap-1 mb-1">
                       <div className="relative">
-                        <MessageCircle className="h-3 w-3 text-emerald-400" />
-                        <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce"></div>
+                        <MessageCircle className="h-3 w-3 text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
+                        <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce group-hover:bg-red-300 transition-colors duration-300"></div>
                       </div>
-                      <div className="text-white text-lg font-bold">17</div>
-                      <Activity className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100" />
+                      <div className="text-white text-lg font-bold group-hover:text-emerald-100 transition-colors duration-300">17</div>
+                      <Activity className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300" />
                     </div>
-                    <div className="text-emerald-300 text-xs font-medium mb-1">WhatsApp</div>
+                    <div className="text-emerald-300 text-xs font-medium mb-1 group-hover:text-emerald-200 transition-colors duration-300">WhatsApp</div>
                     <div className="flex justify-center gap-0.5">
-                      <div className="text-emerald-400 text-[6px]">12 in</div>
-                      <div className="text-emerald-300 text-[6px]">•</div>
-                      <div className="text-emerald-400 text-[6px]">5 out</div>
+                      <div className="text-emerald-400 text-[6px] group-hover:text-emerald-300 transition-colors duration-300">12 in</div>
+                      <div className="text-emerald-300 text-[6px] group-hover:text-emerald-200 transition-colors duration-300">•</div>
+                      <div className="text-emerald-400 text-[6px] group-hover:text-emerald-300 transition-colors duration-300">5 out</div>
                     </div>
-                    <div className="text-emerald-400 text-[6px] opacity-70 group-hover:opacity-100">2m avg response</div>
+                    <div className="text-emerald-400 text-[6px] opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300">2m avg response</div>
                   </div>
                 </div>
               </div>
