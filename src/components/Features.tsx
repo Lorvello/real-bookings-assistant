@@ -983,40 +983,34 @@ const Features = () => {
             <div className="h-full flex flex-col">
               {/* Carousel Content */}
               <div className="flex-1 relative overflow-hidden">
-                <div className="flex h-full gap-3 px-2">
-                  {/* Today Stats */}
-                  <div className="flex-1">
-                    <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col items-center justify-center text-center">
-                      <Calendar className="h-6 w-6 text-emerald-400 mb-3" />
-                      <div className="text-white text-2xl font-bold mb-1">5</div>
-                      <div className="text-emerald-300 text-sm font-medium mb-2">Today</div>
-                      <div className="text-emerald-400 text-xs">5 confirmed</div>
-                      <div className="text-emerald-400 text-xs">2 pending</div>
-                    </div>
-                  </div>
-
-                  {/* Active Now */}
-                  <div className="flex-1">
-                    <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col items-center justify-center text-center">
-                      <Users className="h-6 w-6 text-emerald-400 mb-3" />
-                      <div className="text-white text-2xl font-bold mb-1">3</div>
-                      <div className="text-emerald-300 text-sm font-medium mb-2">Active Now</div>
-                      <div className="text-emerald-400 text-xs">ongoing</div>
-                      <div className="text-emerald-400 text-xs">appointments</div>
-                    </div>
-                  </div>
-
-                  {/* WhatsApp Live */}
-                  <div className="flex-1">
-                    <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-4 flex flex-col items-center justify-center text-center">
-                      <MessageCircle className="h-6 w-6 text-emerald-400 mb-3" />
-                      <div className="text-white text-2xl font-bold mb-1">17</div>
-                      <div className="text-emerald-300 text-sm font-medium mb-2">WhatsApp Live</div>
-                      <div className="text-emerald-400 text-xs">messages</div>
-                      <div className="text-emerald-400 text-xs">last hour</div>
-                    </div>
+              <div className="flex h-20 gap-3 px-2">
+                {/* Today Stats */}
+                <div className="flex-1">
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
+                    <Calendar className="h-4 w-4 text-emerald-400 mb-2" />
+                    <div className="text-white text-lg font-bold mb-1">5</div>
+                    <div className="text-emerald-300 text-xs font-medium">Today</div>
                   </div>
                 </div>
+
+                {/* Active Now */}
+                <div className="flex-1">
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
+                    <Users className="h-4 w-4 text-emerald-400 mb-2" />
+                    <div className="text-white text-lg font-bold mb-1">3</div>
+                    <div className="text-emerald-300 text-xs font-medium">Active Now</div>
+                  </div>
+                </div>
+
+                {/* WhatsApp Live */}
+                <div className="flex-1">
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
+                    <MessageCircle className="h-4 w-4 text-emerald-400 mb-2" />
+                    <div className="text-white text-lg font-bold mb-1">17</div>
+                    <div className="text-emerald-300 text-xs font-medium">WhatsApp Live</div>
+                  </div>
+                </div>
+              </div>
               </div>
             </div>
 
