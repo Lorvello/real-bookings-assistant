@@ -468,9 +468,6 @@ const Features = () => {
               </div>
             </div>
           </div>
-          
-          {/* Background accent elements */}
-          <div className="absolute top-4 right-4 w-6 h-6 bg-emerald-500/20 rounded-full blur-lg" />
         </div>,
     className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
     hideCta: true
@@ -552,13 +549,13 @@ const Features = () => {
              <div className="grid grid-cols-2 gap-2">
                 {/* FAQ Management */}
                 <div className={`bg-slate-700/40 rounded p-1.5 transition-all duration-200 hover:bg-slate-700/60 ${
-                  smartFAQ ? 'border border-emerald-500/30' : 'border border-slate-600/30'
+                  smartFAQ ? 'border border-primary/30' : 'border border-slate-600/30'
                 }`}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-white text-[7px] font-medium">📚 Smart FAQ</span>
                     <div 
                       className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
-                        smartFAQ ? 'bg-emerald-500 shadow-lg shadow-emerald-500/40' : 'bg-slate-500'
+                        smartFAQ ? 'bg-primary shadow-lg shadow-primary/40' : 'bg-slate-500'
                       }`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -571,19 +568,19 @@ const Features = () => {
                     </div>
                   </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
-                   smartFAQ ? 'text-emerald-300' : 'text-slate-400'
+                   smartFAQ ? 'text-primary' : 'text-slate-400'
                  }`}>Auto-answers common questions</p>
                </div>
                
                 {/* Booking Logic */}
                 <div className={`bg-slate-700/40 rounded p-1.5 transition-all duration-200 hover:bg-slate-700/60 ${
-                  smartBooking ? 'border border-emerald-500/30' : 'border border-slate-600/30'
+                  smartBooking ? 'border border-primary/30' : 'border border-slate-600/30'
                 }`}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-white text-[7px] font-medium">🧠 Smart Booking</span>
                     <div 
                       className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
-                        smartBooking ? 'bg-emerald-500 shadow-lg shadow-emerald-500/40' : 'bg-slate-500'
+                        smartBooking ? 'bg-primary shadow-lg shadow-primary/40' : 'bg-slate-500'
                       }`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -596,7 +593,7 @@ const Features = () => {
                     </div>
                   </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
-                   smartBooking ? 'text-emerald-300' : 'text-slate-400'
+                   smartBooking ? 'text-primary' : 'text-slate-400'
                  }`}>Upselling & rebooking</p>
                </div>
                
@@ -651,9 +648,6 @@ const Features = () => {
                </div>
              </div>
           </div>
-          
-          {/* Background accent elements */}
-          {/* Background accent elements - removed blue dot */}
         </div>,
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2"
   }, {
@@ -663,10 +657,10 @@ const Features = () => {
     href: "/features/dashboard",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
           {/* Full Calendar Section */}
-          <div ref={calendarRef} className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col relative">
+          <div ref={calendarRef} className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/50 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col relative">
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -680,7 +674,7 @@ const Features = () => {
                     onClick={() => setCalendarView('month')}
                     className={`px-2 py-1 transition-colors ${
                       calendarView === 'month' 
-                        ? 'bg-emerald-600 text-white' 
+                        ? 'bg-primary text-white' 
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -690,7 +684,7 @@ const Features = () => {
                     onClick={() => setCalendarView('week')}
                     className={`px-2 py-1 transition-colors ${
                       calendarView === 'week' 
-                        ? 'bg-emerald-600 text-white' 
+                        ? 'bg-primary text-white' 
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -721,7 +715,7 @@ const Features = () => {
                       <div key={index} className="relative">
                         <div className={`text-center py-1 h-14 flex flex-col items-center justify-start text-[7px] transition-colors rounded ${
                           day.booking 
-                            ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/95 hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 ease-out transform' 
+                            ? 'bg-primary/80 text-white font-medium border border-primary/50 cursor-pointer hover:bg-primary/95 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 ease-out' 
                             : day.isOtherMonth 
                               ? 'text-slate-500 hover:bg-slate-700/30' 
                               : 'text-slate-300 hover:bg-slate-700/50'
@@ -730,9 +724,9 @@ const Features = () => {
                           <div className="font-medium">{day.date}</div>
                           {day.booking && (
                             <div className="text-[6px] mt-1 px-1 leading-tight">
-                              <div className="text-emerald-200">{day.booking.name.split(' ')[0]}</div>
-                              <div className="text-emerald-100">{day.booking.service}</div>
-                              <div className="text-emerald-300">{day.booking.time}</div>
+                              <div className="text-white/90">{day.booking.name.split(' ')[0]}</div>
+                              <div className="text-white/80">{day.booking.service}</div>
+                              <div className="text-white">{day.booking.time}</div>
                             </div>
                           )}
                         </div>
@@ -747,23 +741,23 @@ const Features = () => {
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-[7px]">
                       <span className="text-slate-400">09:00 - John (Personal Training)</span>
-                      <span className="text-emerald-400">Confirmed</span>
+                      <span className="text-primary">Confirmed</span>
                     </div>
                     <div className="flex justify-between items-center text-[7px]">
                       <span className="text-slate-400">11:30 - Lisa (Yoga Class)</span>
-                      <span className="text-emerald-400">Confirmed</span>
+                      <span className="text-primary">Confirmed</span>
                     </div>
                     <div className="flex justify-between items-center text-[7px]">
                       <span className="text-slate-400">14:00 - Mike (Massage Therapy)</span>
-                      <span className="text-emerald-400">Confirmed</span>
+                      <span className="text-primary">Confirmed</span>
                     </div>
                     <div className="flex justify-between items-center text-[7px]">
                       <span className="text-slate-400">16:30 - Sofia (Pilates)</span>
-                      <span className="text-emerald-400">Confirmed</span>
+                      <span className="text-primary">Confirmed</span>
                     </div>
                     <div className="flex justify-between items-center text-[7px]">
                       <span className="text-slate-400">18:00 - David (Strength Training)</span>
-                      <span className="text-emerald-400">Confirmed</span>
+                      <span className="text-primary">Confirmed</span>
                     </div>
                   </div>
                 </div>
@@ -806,14 +800,14 @@ const Features = () => {
                         return (
                           <div key={dayIndex} className={`py-1 px-1 rounded text-center transition-colors ${
                             booking 
-                              ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/95 hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 ease-out transform' 
+                              ? 'bg-primary/80 text-white font-medium border border-primary/50 cursor-pointer hover:bg-primary/95 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 ease-out' 
                               : 'hover:bg-slate-700/30'
                           }`}
                           onClick={booking ? (e) => handleBookingClick(booking, e) : undefined}>
                             {booking && (
                               <div className="text-[6px] leading-tight">
-                                <div className="text-emerald-200">{booking.name.split(' ')[0]}</div>
-                                <div className="text-emerald-100">{booking.service}</div>
+                                <div className="text-white/90">{booking.name.split(' ')[0]}</div>
+                                <div className="text-white/80">{booking.service}</div>
                               </div>
                             )}
                           </div>
@@ -850,7 +844,7 @@ const Features = () => {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${
-                      selectedBooking.status === 'confirmed' ? 'bg-emerald-400' : 'bg-yellow-400'
+                      selectedBooking.status === 'confirmed' ? 'bg-primary' : 'bg-yellow-400'
                     }`} />
                     <span className="text-white text-[10px] font-semibold">
                       {selectedBooking.status === 'confirmed' ? 'Confirmed' : 'Pending'}
@@ -859,7 +853,7 @@ const Features = () => {
                   
                   <div>
                     <h4 className="text-white text-[11px] font-semibold">{selectedBooking.name}</h4>
-                    <p className="text-emerald-400 text-[9px] font-medium">{selectedBooking.service}</p>
+                    <p className="text-primary text-[9px] font-medium">{selectedBooking.service}</p>
                   </div>
                   
                   <div className="space-y-1">
@@ -886,10 +880,6 @@ const Features = () => {
               </div>
             )}
           </div>
-          
-          {/* Subtle decorative elements */}
-          <div className="absolute top-3 right-3 w-2 h-2 bg-emerald-500/20 rounded-full" />
-          <div className="absolute bottom-3 left-3 w-1.5 h-1.5 bg-slate-600/20 rounded-full" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-3"
   }, {
@@ -918,7 +908,7 @@ const Features = () => {
             <div className="flex-1 space-y-2">
               {/* Comparison Row 1 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -928,20 +918,20 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
+                <div className="bg-primary/20 border border-primary/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
-                    <Check className="w-2 h-2 text-emerald-400" />
-                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                    <Check className="w-2 h-2 text-primary" />
+                    <span className="text-primary text-[7px] font-medium">Smart AI</span>
                   </div>
-                  <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"We are closed now, but open tomorrow at 9:00. Shall I schedule an appointment?"</p>
+                  <div className="bg-primary/10 rounded px-2 py-1">
+                    <p className="text-primary text-[7px] leading-tight">"We are closed now, but open tomorrow at 9:00. Shall I schedule an appointment?"</p>
                   </div>
                 </div>
               </div>
               
               {/* Comparison Row 2 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -951,20 +941,20 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
+                <div className="bg-primary/20 border border-primary/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
-                    <Check className="w-2 h-2 text-emerald-400" />
-                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                    <Check className="w-2 h-2 text-primary" />
+                    <span className="text-primary text-[7px] font-medium">Smart AI</span>
                   </div>
-                  <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"Based on your last visit (haircut), I suggest: haircut + wash for €40?"</p>
+                  <div className="bg-primary/10 rounded px-2 py-1">
+                    <p className="text-primary text-[7px] leading-tight">"Based on your last visit (haircut), I suggest: haircut + wash for €40?"</p>
                   </div>
                 </div>
               </div>
               
               {/* Comparison Row 3 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -974,20 +964,20 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
+                <div className="bg-primary/20 border border-primary/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
-                    <Check className="w-2 h-2 text-emerald-400" />
-                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                    <Check className="w-2 h-2 text-primary" />
+                    <span className="text-primary text-[7px] font-medium">Smart AI</span>
                   </div>
-                  <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"You came last time on Thursday 3:00 PM. Same time this week?"</p>
+                  <div className="bg-primary/10 rounded px-2 py-1">
+                    <p className="text-primary text-[7px] leading-tight">"You came last time on Thursday 3:00 PM. Same time this week?"</p>
                   </div>
                 </div>
               </div>
               
               {/* Comparison Row 4 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -997,20 +987,20 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
+                <div className="bg-primary/20 border border-primary/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
-                    <Check className="w-2 h-2 text-emerald-400" />
-                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                    <Check className="w-2 h-2 text-primary" />
+                    <span className="text-primary text-[7px] font-medium">Smart AI</span>
                   </div>
-                  <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"Haircut €25, payment by cash or card. Want to confirm directly?"</p>
+                  <div className="bg-primary/10 rounded px-2 py-1">
+                    <p className="text-primary text-[7px] leading-tight">"Haircut €25, payment by cash or card. Want to confirm directly?"</p>
                   </div>
                 </div>
               </div>
               
               {/* Comparison Row 5 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -1020,20 +1010,20 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
+                <div className="bg-primary/20 border border-primary/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
-                    <Check className="w-2 h-2 text-emerald-400" />
-                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                    <Check className="w-2 h-2 text-primary" />
+                    <span className="text-primary text-[7px] font-medium">Smart AI</span>
                   </div>
-                  <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"Of course, which appointment would you like to cancel? Shall I suggest a new time right away?"</p>
+                  <div className="bg-primary/10 rounded px-2 py-1">
+                    <p className="text-primary text-[7px] leading-tight">"Of course, which appointment would you like to cancel? Shall I suggest a new time right away?"</p>
                   </div>
                 </div>
               </div>
               
               {/* Comparison Row 6 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -1043,20 +1033,20 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
+                <div className="bg-primary/20 border border-primary/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
-                    <Check className="w-2 h-2 text-emerald-400" />
-                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                    <Check className="w-2 h-2 text-primary" />
+                    <span className="text-primary text-[7px] font-medium">Smart AI</span>
                   </div>
-                  <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"We are open today until 17:00. Can I still schedule you now or would you prefer tomorrow?"</p>
+                  <div className="bg-primary/10 rounded px-2 py-1">
+                    <p className="text-primary text-[7px] leading-tight">"We are open today until 17:00. Can I still schedule you now or would you prefer tomorrow?"</p>
                   </div>
                 </div>
               </div>
               
               {/* Comparison Row 7 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -1066,23 +1056,19 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
+                <div className="bg-primary/20 border border-primary/30 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-1">
-                    <Check className="w-2 h-2 text-emerald-400" />
-                    <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                    <Check className="w-2 h-2 text-primary" />
+                    <span className="text-primary text-[7px] font-medium">Smart AI</span>
                   </div>
-                  <div className="bg-emerald-500/10 rounded px-2 py-1">
-                    <p className="text-emerald-300 text-[7px] leading-tight">"Hello Sarah! Use the same contact details as last time?"</p>
+                  <div className="bg-primary/10 rounded px-2 py-1">
+                    <p className="text-primary text-[7px] leading-tight">"Hello Sarah! Use the same contact details as last time?"</p>
                   </div>
                 </div>
               </div>
             </div>
             
           </div>
-          
-          {/* Background accent elements */}
-          <div className="absolute top-3 right-3 w-3 h-3 bg-emerald-500/20 rounded-full" />
-          <div className="absolute bottom-3 left-3 w-2 h-2 bg-emerald-400/20 rounded-full" />
         </div>,
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-4"
   }, {
@@ -1097,7 +1083,7 @@ const Features = () => {
           {/* Background container for WhatsApp notifications */}
           <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm overflow-hidden">
             {/* First WhatsApp Notification */}
-            <div className="bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3 cursor-pointer transition-all duration-300 ease-out hover:scale-105 hover:bg-gray-800 hover:border-gray-600/70 hover:shadow-lg hover:shadow-emerald-500/20 transform">
+            <div className="bg-slate-700/50 rounded-lg shadow-sm border border-slate-600/50 p-3">
               {/* WhatsApp App Header */}
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
@@ -1124,8 +1110,6 @@ const Features = () => {
             </div>
 
           </div>
-          
-          <div className="absolute top-4 right-4 w-6 h-1 bg-emerald-500/40 rounded-full animate-pulse" />
         </div>,
     className: "lg:row-start-3 lg:row-end-4 lg:col-start-1 lg:col-end-2"
   }, {
@@ -1135,45 +1119,41 @@ const Features = () => {
     href: "/features/analytics",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
           {/* Analytics Section */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm flex items-start justify-center pt-6">
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm flex items-start justify-center pt-6">
             {/* Main Analytics Grid - 4 Columns */}
             <div className="grid grid-cols-4 gap-3 w-full">
               {/* Response Time */}
-              <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-primary/30 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/25 transform group">
-                <div className="text-primary text-[14px] mb-1 group-hover:text-primary/80 transition-colors duration-300">⚡</div>
-                <div className="text-white text-[16px] font-bold mb-1 group-hover:text-primary/90 transition-colors duration-300">2.3m</div>
-                <div className="text-primary/80 text-[8px] uppercase tracking-wider group-hover:text-primary/70 transition-colors duration-300">Response</div>
+              <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center">
+                <div className="text-primary text-[14px] mb-1">⚡</div>
+                <div className="text-white text-[16px] font-bold mb-1">2.3m</div>
+                <div className="text-primary/80 text-[8px] uppercase tracking-wider">Response</div>
               </div>
               
               {/* Views */}
-              <div className="bg-secondary/20 border border-secondary/30 rounded-lg p-3 text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-secondary/30 hover:border-secondary/50 hover:shadow-lg hover:shadow-secondary/25 transform group">
-                <div className="text-secondary text-[14px] mb-1 group-hover:text-secondary/80 transition-colors duration-300">👁</div>
-                <div className="text-white text-[16px] font-bold mb-1 group-hover:text-secondary/90 transition-colors duration-300">1.2k</div>
-                <div className="text-secondary/80 text-[8px] uppercase tracking-wider group-hover:text-secondary/70 transition-colors duration-300">Views</div>
+              <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center">
+                <div className="text-primary text-[14px] mb-1">👁</div>
+                <div className="text-white text-[16px] font-bold mb-1">1.2k</div>
+                <div className="text-primary/80 text-[8px] uppercase tracking-wider">Views</div>
               </div>
               
               {/* Conversion */}
-              <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/25 transform group">
-                <div className="text-emerald-400 text-[14px] mb-1 group-hover:text-emerald-300 transition-colors duration-300">📈</div>
-                <div className="text-white text-[16px] font-bold mb-1 group-hover:text-emerald-100 transition-colors duration-300">89%</div>
-                <div className="text-emerald-300 text-[8px] uppercase tracking-wider group-hover:text-emerald-200 transition-colors duration-300">Convert</div>
+              <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center">
+                <div className="text-primary text-[14px] mb-1">📈</div>
+                <div className="text-white text-[16px] font-bold mb-1">89%</div>
+                <div className="text-primary/80 text-[8px] uppercase tracking-wider">Convert</div>
               </div>
               
               {/* No-shows */}
-              <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-3 text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/25 transform group">
-                <div className="text-red-400 text-[14px] mb-1 group-hover:text-red-300 transition-colors duration-300">⚠</div>
-                <div className="text-white text-[16px] font-bold mb-1 group-hover:text-red-100 transition-colors duration-300">8.5%</div>
-                <div className="text-red-300 text-[8px] uppercase tracking-wider group-hover:text-red-200 transition-colors duration-300">No-shows</div>
+              <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center">
+                <div className="text-primary text-[14px] mb-1">⚠</div>
+                <div className="text-white text-[16px] font-bold mb-1">8.5%</div>
+                <div className="text-primary/80 text-[8px] uppercase tracking-wider">No-shows</div>
               </div>
             </div>
           </div>
-          
-          {/* Subtle decorative elements */}
-          {/* Subtle decorative elements - removed blue dot */}
-          <div className="absolute bottom-3 left-3 w-1.5 h-1.5 bg-slate-600/20 rounded-full" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-3 lg:row-end-4"
   }, {
@@ -1210,57 +1190,57 @@ const Features = () => {
               <div className="flex h-20 gap-3 px-2 mt-4">
                 {/* Today Stats - Enhanced */}
                 <div className="flex-1">
-                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/40 hover:border-emerald-500/60 hover:shadow-lg hover:shadow-emerald-500/25 transform group">
+                  <div className="h-full bg-primary/20 border border-primary/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
                     <div className="flex items-center gap-1 mb-1">
-                      <Calendar className="h-3 w-3 text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
-                      <div className="text-white text-lg font-bold group-hover:text-emerald-100 transition-colors duration-300">5</div>
-                      <div className="text-emerald-300 text-[6px] opacity-70 group-hover:opacity-100 group-hover:text-emerald-200 transition-all duration-300">+2</div>
+                      <Calendar className="h-3 w-3 text-primary" />
+                      <div className="text-white text-lg font-bold">5</div>
+                      <div className="text-primary text-[6px] opacity-70">+2</div>
                     </div>
-                    <div className="text-emerald-300 text-xs font-medium mb-1 group-hover:text-emerald-200 transition-colors duration-300">Today</div>
-                    <div className="w-full bg-emerald-800/30 rounded-full h-1">
-                      <div className="bg-emerald-400 h-1 rounded-full transition-all duration-300 group-hover:bg-emerald-300" style={{width: '60%'}}></div>
+                    <div className="text-primary text-xs font-medium mb-1">Today</div>
+                    <div className="w-full bg-primary/30 rounded-full h-1">
+                      <div className="bg-primary h-1 rounded-full" style={{width: '60%'}}></div>
                     </div>
-                    <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300">€375 revenue</div>
+                    <div className="text-primary text-[6px] mt-1 opacity-70">€375 revenue</div>
                   </div>
                 </div>
 
                 {/* Active Now - Enhanced */}
                 <div className="flex-1">
-                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/40 hover:border-emerald-500/60 hover:shadow-lg hover:shadow-emerald-500/25 transform group">
+                  <div className="h-full bg-primary/20 border border-primary/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
                     <div className="flex items-center gap-1 mb-1">
                       <div className="relative">
-                        <Users className="h-3 w-3 text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
+                        <Users className="h-3 w-3 text-primary" />
                       </div>
-                      <div className="text-white text-lg font-bold group-hover:text-emerald-100 transition-colors duration-300">3</div>
-                      <CheckCircle className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300" />
+                      <div className="text-white text-lg font-bold">3</div>
+                      <CheckCircle className="h-2 w-2 text-primary opacity-70" />
                     </div>
-                    <div className="text-emerald-300 text-xs font-medium mb-1 group-hover:text-emerald-200 transition-colors duration-300">Active Now</div>
+                    <div className="text-primary text-xs font-medium mb-1">Active Now</div>
                     <div className="flex gap-1">
-                      <div className="w-1 h-2 bg-emerald-400 rounded-full group-hover:bg-emerald-300 transition-colors duration-300"></div>
-                      <div className="w-1 h-2 bg-emerald-400/70 rounded-full group-hover:bg-emerald-300/70 transition-colors duration-300"></div>
-                      <div className="w-1 h-2 bg-emerald-400/50 rounded-full group-hover:bg-emerald-300/50 transition-colors duration-300"></div>
+                      <div className="w-1 h-2 bg-primary rounded-full"></div>
+                      <div className="w-1 h-2 bg-primary/70 rounded-full"></div>
+                      <div className="w-1 h-2 bg-primary/50 rounded-full"></div>
                     </div>
-                    <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300">2 confirmed</div>
+                    <div className="text-primary text-[6px] mt-1 opacity-70">2 confirmed</div>
                   </div>
                 </div>
 
                 {/* WhatsApp Live - Enhanced */}
                 <div className="flex-1">
-                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/40 hover:border-emerald-500/60 hover:shadow-lg hover:shadow-emerald-500/25 transform group">
+                  <div className="h-full bg-primary/20 border border-primary/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
                     <div className="flex items-center gap-1 mb-1">
                       <div className="relative">
-                        <MessageCircle className="h-3 w-3 text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
+                        <MessageCircle className="h-3 w-3 text-primary" />
                       </div>
-                      <div className="text-white text-lg font-bold group-hover:text-emerald-100 transition-colors duration-300">17</div>
-                      <Activity className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300" />
+                      <div className="text-white text-lg font-bold">17</div>
+                      <Activity className="h-2 w-2 text-primary opacity-70" />
                     </div>
-                    <div className="text-emerald-300 text-xs font-medium mb-1 group-hover:text-emerald-200 transition-colors duration-300">WhatsApp</div>
+                    <div className="text-primary text-xs font-medium mb-1">WhatsApp</div>
                     <div className="flex justify-center gap-0.5">
-                      <div className="text-emerald-400 text-[6px] group-hover:text-emerald-300 transition-colors duration-300">12 in</div>
-                      <div className="text-emerald-300 text-[6px] group-hover:text-emerald-200 transition-colors duration-300">•</div>
-                      <div className="text-emerald-400 text-[6px] group-hover:text-emerald-300 transition-colors duration-300">5 out</div>
+                      <div className="text-primary text-[6px]">12 in</div>
+                      <div className="text-primary text-[6px]">•</div>
+                      <div className="text-primary text-[6px]">5 out</div>
                     </div>
-                    <div className="text-emerald-400 text-[6px] opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300">2m avg response</div>
+                    <div className="text-primary text-[6px] opacity-70">2m avg response</div>
                   </div>
                 </div>
               </div>
