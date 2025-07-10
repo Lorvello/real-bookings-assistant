@@ -1,6 +1,6 @@
 import { LightningBoltIcon as BoltIcon, GearIcon, CalendarIcon, Link2Icon, BellIcon, BarChartIcon as BarChart3Icon, GlobeIcon, DesktopIcon as MonitorIcon } from "@radix-ui/react-icons";
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { X, Check, Calendar, Users, MessageCircle, Clock, CheckCircle, Activity } from "lucide-react";
 import { TranslationDemo } from "@/components/TranslationDemo";
@@ -16,6 +16,9 @@ const Features = () => {
   
   // Slider drag functionality
   const [isDragging, setIsDragging] = useState(false);
+  const [dragStartPosition, setDragStartPosition] = useState(0);
+  const animationFrameRef = useRef<number>();
+  const sliderRef = useRef<HTMLDivElement>(null);
   
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -28,6 +31,85 @@ const Features = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+
+  // Smooth slider dragging with global event listeners and requestAnimationFrame
+  const updateSliderPosition = useCallback((clientX: number) => {
+    if (sliderRef.current) {
+      const rect = sliderRef.current.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const percentage = (x / rect.width) * 100;
+      const clampedPercentage = Math.max(0, Math.min(100, percentage));
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      
+      animationFrameRef.current = requestAnimationFrame(() => {
+        setTonePosition(clampedPercentage);
+      });
+    }
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+      updateSliderPosition(e.clientX);
+    }
+  }, [isDragging, updateSliderPosition]);
+
+  const handleSliderTouchMove = useCallback((e: TouchEvent) => {
+    if (isDragging && e.touches[0]) {
+      e.preventDefault();
+      updateSliderPosition(e.touches[0].clientX);
+    }
+  }, [isDragging, updateSliderPosition]);
+
+  const handleSliderMouseUp = useCallback(() => {
+    if (isDragging) {
+      setIsDragging(false);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    }
+  }, [isDragging]);
+
+  const handleSliderTouchEnd = useCallback(() => {
+    if (isDragging) {
+      setIsDragging(false);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    }
+  }, [isDragging]);
+
+  // Global event listeners for smooth dragging
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove, { passive: false });
+      document.addEventListener('mouseup', handleSliderMouseUp);
+      document.addEventListener('touchmove', handleSliderTouchMove, { passive: false });
+      document.addEventListener('touchend', handleSliderTouchEnd);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleSliderMouseUp);
+        document.removeEventListener('touchmove', handleSliderTouchMove);
+        document.removeEventListener('touchend', handleSliderTouchEnd);
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+      };
+    }
+  }, [isDragging, handleMouseMove, handleSliderMouseUp, handleSliderTouchMove, handleSliderTouchEnd]);
+
+  // Cleanup animation frame on unmount
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
 
   // Extended booking data for both views
   const bookings = {
@@ -410,47 +492,34 @@ const Features = () => {
                    <span>Friendly</span>
                    <span>Casual</span>
                  </div>
-                  <div 
-                    className="relative h-1 bg-slate-600 rounded-full cursor-pointer"
-                    onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const x = e.clientX - rect.left;
-                      const percentage = (x / rect.width) * 100;
-                      setTonePosition(Math.max(0, Math.min(100, percentage)));
-                    }}
-                    onMouseDown={(e) => {
-                      setIsDragging(true);
-                      e.preventDefault();
-                    }}
-                    onMouseMove={(e) => {
-                      if (isDragging) {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const percentage = (x / rect.width) * 100;
-                        setTonePosition(Math.max(0, Math.min(100, percentage)));
-                      }
-                    }}
-                    onMouseUp={() => setIsDragging(false)}
-                    onMouseLeave={() => setIsDragging(false)}
-                    onTouchStart={(e) => {
-                      setIsDragging(true);
-                      e.preventDefault();
-                    }}
-                    onTouchMove={(e) => {
-                      if (isDragging) {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const touch = e.touches[0];
-                        const x = touch.clientX - rect.left;
-                        const percentage = (x / rect.width) * 100;
-                        setTonePosition(Math.max(0, Math.min(100, percentage)));
-                      }
-                    }}
-                    onTouchEnd={() => setIsDragging(false)}
-                  >
-                    <div 
-                      className="absolute w-2 h-2 bg-blue-400 rounded-full -top-0.5 shadow-sm transition-all duration-200 hover:scale-110 cursor-pointer" 
-                      style={{ left: `${tonePosition}%`, transform: 'translateX(-50%)' }}
-                    />
+                   <div 
+                     ref={sliderRef}
+                     className="relative h-1 bg-slate-600 rounded-full cursor-pointer"
+                     onClick={(e) => {
+                       if (!isDragging) {
+                         const rect = e.currentTarget.getBoundingClientRect();
+                         const x = e.clientX - rect.left;
+                         const percentage = (x / rect.width) * 100;
+                         setTonePosition(Math.max(0, Math.min(100, percentage)));
+                       }
+                     }}
+                     onMouseDown={(e) => {
+                       setIsDragging(true);
+                       setDragStartPosition(e.clientX);
+                       e.preventDefault();
+                     }}
+                     onTouchStart={(e) => {
+                       setIsDragging(true);
+                       setDragStartPosition(e.touches[0].clientX);
+                       e.preventDefault();
+                     }}
+                   >
+                     <div 
+                       className={`absolute w-2 h-2 bg-blue-400 rounded-full -top-0.5 shadow-sm cursor-pointer ${
+                         isDragging ? 'scale-110 transition-none' : 'transition-all duration-200 hover:scale-110'
+                       }`}
+                       style={{ left: `${tonePosition}%`, transform: 'translateX(-50%)' }}
+                     />
                   </div>
                </div>
                
