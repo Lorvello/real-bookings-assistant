@@ -48,10 +48,10 @@ const BentoCard = ({
         "group relative col-span-1 flex flex-col justify-between overflow-hidden rounded-xl",
         // Base styling with slate theme
         "bg-slate-800/80 border border-slate-700/50",
-        // Subtle hover effects with glow only
-        "hover:bg-slate-800/90 hover:border-emerald-500/30",
-        "shadow-lg shadow-emerald-500/10 hover:shadow-lg hover:shadow-emerald-500/30",
-        "transition-all duration-300 ease-out",
+        // Enhanced hover effects with more prominent glow
+        "hover:bg-slate-800/95 hover:border-emerald-400/50",
+        "shadow-lg shadow-emerald-500/10 hover:shadow-2xl hover:shadow-emerald-400/40",
+        "hover:scale-[1.02] transition-all duration-300 ease-out",
         "backdrop-blur-sm",
         className,
       )}
