@@ -481,7 +481,7 @@ const Features = () => {
     href: "/features/personalization",
     cta: "Learn more",
     background: <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-emerald-700/20" />
           
           {/* AI Agent Customization Interface */}
           <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
@@ -519,7 +519,7 @@ const Features = () => {
                      }}
                    >
                      <div 
-                       className={`absolute w-2 h-2 bg-blue-400 rounded-full -top-0.5 shadow-sm cursor-pointer ${
+                       className={`absolute w-2 h-2 bg-primary rounded-full -top-0.5 shadow-sm cursor-pointer ${
                          isDragging ? 'scale-110 transition-none' : 'transition-all duration-200 hover:scale-110'
                        }`}
                        style={{ left: `${tonePosition}%`, transform: 'translateX(-50%)' }}
@@ -532,7 +532,7 @@ const Features = () => {
                   <span className="text-slate-300 text-[7px]">🌐 Multi-language</span>
                   <div 
                     className={`w-4 h-2 rounded-full relative cursor-pointer transition-all duration-300 hover:scale-110 ${
-                      multiLanguage ? 'bg-blue-500 shadow-lg shadow-blue-500/40' : 'bg-slate-500'
+                      multiLanguage ? 'bg-primary shadow-lg shadow-primary/40' : 'bg-slate-500'
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -602,13 +602,13 @@ const Features = () => {
                
                 {/* Context Awareness */}
                 <div className={`bg-slate-700/40 rounded p-1.5 transition-all duration-200 hover:bg-slate-700/60 ${
-                  contextAI ? 'border border-blue-500/30' : 'border border-slate-600/30'
+                  contextAI ? 'border border-primary/30' : 'border border-slate-600/30'
                 }`}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-white text-[7px] font-medium">🎯 Context AI</span>
                     <div 
                       className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
-                        contextAI ? 'bg-blue-500 shadow-lg shadow-blue-500/40' : 'bg-slate-500'
+                        contextAI ? 'bg-primary shadow-lg shadow-primary/40' : 'bg-slate-500'
                       }`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -621,19 +621,19 @@ const Features = () => {
                     </div>
                   </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
-                   contextAI ? 'text-blue-300' : 'text-slate-400'
+                   contextAI ? 'text-primary' : 'text-slate-400'
                  }`}>Remembers preferences</p>
                </div>
                
                 {/* Proactive Engagement */}
                 <div className={`bg-slate-700/40 rounded p-1.5 transition-all duration-200 hover:bg-slate-700/60 ${
-                  proactiveMode ? 'border border-yellow-500/30' : 'border border-slate-600/30'
+                  proactiveMode ? 'border border-primary/30' : 'border border-slate-600/30'
                 }`}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-white text-[7px] font-medium">⚡ Proactive</span>
                     <div 
                       className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
-                        proactiveMode ? 'bg-yellow-500 shadow-lg shadow-yellow-500/40' : 'bg-slate-500'
+                        proactiveMode ? 'bg-primary shadow-lg shadow-primary/40' : 'bg-slate-500'
                       }`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -646,14 +646,14 @@ const Features = () => {
                     </div>
                   </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
-                   proactiveMode ? 'text-yellow-300' : 'text-slate-400'
+                   proactiveMode ? 'text-primary' : 'text-slate-400'
                  }`}>Sends follow-ups</p>
                </div>
              </div>
           </div>
           
           {/* Background accent elements */}
-          <div className="absolute bottom-3 right-3 w-4 h-4 bg-blue-400/40 rounded-full" />
+          {/* Background accent elements - removed blue dot */}
         </div>,
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2"
   }, {
@@ -1142,17 +1142,17 @@ const Features = () => {
             {/* Main Analytics Grid - 4 Columns */}
             <div className="grid grid-cols-4 gap-3 w-full">
               {/* Response Time */}
-              <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3 text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-blue-600/30 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/25 transform group">
-                <div className="text-blue-400 text-[14px] mb-1 group-hover:text-blue-300 transition-colors duration-300">⚡</div>
-                <div className="text-white text-[16px] font-bold mb-1 group-hover:text-blue-100 transition-colors duration-300">2.3m</div>
-                <div className="text-blue-300 text-[8px] uppercase tracking-wider group-hover:text-blue-200 transition-colors duration-300">Response</div>
+              <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-primary/30 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/25 transform group">
+                <div className="text-primary text-[14px] mb-1 group-hover:text-primary/80 transition-colors duration-300">⚡</div>
+                <div className="text-white text-[16px] font-bold mb-1 group-hover:text-primary/90 transition-colors duration-300">2.3m</div>
+                <div className="text-primary/80 text-[8px] uppercase tracking-wider group-hover:text-primary/70 transition-colors duration-300">Response</div>
               </div>
               
               {/* Views */}
-              <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg p-3 text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-purple-600/30 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/25 transform group">
-                <div className="text-purple-400 text-[14px] mb-1 group-hover:text-purple-300 transition-colors duration-300">👁</div>
-                <div className="text-white text-[16px] font-bold mb-1 group-hover:text-purple-100 transition-colors duration-300">1.2k</div>
-                <div className="text-purple-300 text-[8px] uppercase tracking-wider group-hover:text-purple-200 transition-colors duration-300">Views</div>
+              <div className="bg-secondary/20 border border-secondary/30 rounded-lg p-3 text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-secondary/30 hover:border-secondary/50 hover:shadow-lg hover:shadow-secondary/25 transform group">
+                <div className="text-secondary text-[14px] mb-1 group-hover:text-secondary/80 transition-colors duration-300">👁</div>
+                <div className="text-white text-[16px] font-bold mb-1 group-hover:text-secondary/90 transition-colors duration-300">1.2k</div>
+                <div className="text-secondary/80 text-[8px] uppercase tracking-wider group-hover:text-secondary/70 transition-colors duration-300">Views</div>
               </div>
               
               {/* Conversion */}
@@ -1172,7 +1172,7 @@ const Features = () => {
           </div>
           
           {/* Subtle decorative elements */}
-          <div className="absolute top-3 right-3 w-2 h-2 bg-blue-500/20 rounded-full" />
+          {/* Subtle decorative elements - removed blue dot */}
           <div className="absolute bottom-3 left-3 w-1.5 h-1.5 bg-slate-600/20 rounded-full" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-3 lg:row-end-4"
