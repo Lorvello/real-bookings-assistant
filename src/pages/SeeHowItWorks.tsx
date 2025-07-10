@@ -22,7 +22,7 @@ const SeeHowItWorks = () => {
         {/* Grid pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
         
-        <div className="max-w-7xl mx-auto text-center relative z-10">
+        <div className="max-w-6xl mx-auto text-center relative z-10 px-4 md:px-6 lg:px-8">
           <h1 className="text-2xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
             How does <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">it work?</span>
           </h1>
