@@ -1097,7 +1097,7 @@ const Features = () => {
           {/* Background container for WhatsApp notifications */}
           <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm overflow-hidden">
             {/* First WhatsApp Notification */}
-            <div className="bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3">
+            <div className="bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3 cursor-pointer transition-all duration-300 ease-out hover:scale-105 hover:bg-gray-800 hover:border-gray-600/70 hover:shadow-lg hover:shadow-emerald-500/20 transform">
               {/* WhatsApp App Header */}
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
