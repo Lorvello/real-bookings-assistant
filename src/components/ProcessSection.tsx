@@ -109,7 +109,7 @@ const ProcessSection = () => {
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-4xl w-full h-[70vh] md:h-[75vh] p-0 bg-slate-900 border-slate-700">
-                <div className="h-full p-1 md:p-2">
+                <div className="h-full pt-1 px-1 md:pt-2 md:px-2">
                   <AIAgentTestChat />
                 </div>
               </DialogContent>
