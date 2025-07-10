@@ -56,7 +56,10 @@ const Solution = () => {
       behavior: 'smooth'
     });
   };
-  return <section className="py-16 md:py-24 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+  return <section className="relative py-8 md:py-16 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 overflow-hidden">
+      {/* Smooth top transition overlay */}
+      <div className="absolute top-0 left-0 right-0 h-16 md:h-24 bg-gradient-to-b from-gray-900 via-slate-900/80 to-transparent z-10"></div>
+      
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"></div>
@@ -66,9 +69,9 @@ const Solution = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
       
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header - Compact mobile */}
-        <div className="text-center mb-8 md:mb-20">
+      <div className="max-w-7xl mx-auto relative z-20">
+        {/* Header - Compact mobile with improved spacing */}
+        <div className="text-center mb-6 md:mb-16 pt-4 md:pt-8">
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-6 md:py-3 mb-3 md:mb-8 backdrop-blur-sm">
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             <span className="text-emerald-300 text-xs md:text-sm font-medium">The Solution</span>

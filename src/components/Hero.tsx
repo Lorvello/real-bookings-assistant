@@ -87,8 +87,8 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 md:h-32 bg-gradient-to-t from-slate-900 to-transparent"></div>
+      {/* Bottom fade - Extended for smooth transition */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 md:h-48 bg-gradient-to-t from-gray-900 via-slate-900 to-transparent"></div>
     </section>
   );
 };
