@@ -1,8 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import WhatsAppChat from './WhatsAppChat';
 import CalendarMockup from './CalendarMockup';
 import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Bot, Sparkles } from 'lucide-react';
 
 const ProcessSection = () => {
   return (
@@ -93,8 +96,24 @@ const ProcessSection = () => {
             </p>
           </div>
           
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-3 md:p-8 mx-3 sm:mx-0">
-            <AIAgentTestChat />
+          <div className="flex justify-center">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  size="lg" 
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-base md:text-lg px-8 md:px-12 py-4 md:py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                >
+                  <Bot className="mr-3 h-5 w-5 md:h-6 md:w-6" />
+                  Try AI Agent Demo
+                  <Sparkles className="ml-3 h-5 w-5 md:h-6 md:w-6" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl w-full h-[80vh] md:h-[85vh] p-0 bg-slate-900 border-slate-700">
+                <div className="h-full p-4 md:p-6">
+                  <AIAgentTestChat />
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
