@@ -370,7 +370,6 @@ const Features = () => {
   const handleSlideToggle = () => {
     setCurrentSlide(currentSlide === 0 ? 1 : 0);
   };
-
   const bookingFeatures = [{
     Icon: BoltIcon,
     name: "100% Automatic Bookings",
@@ -380,8 +379,10 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* iPhone Mockup - positioned in upper 70%, centered */}
-          <div className="absolute top-6 left-6 right-6 h-[75%] flex justify-center items-center">
+          {/* Background container for iPhone mockup */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+            {/* iPhone Mockup - positioned in upper 70%, centered */}
+            <div className="absolute top-0 left-0 right-0 h-[75%] flex justify-center items-center">
               <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
                 {/* iPhone outer frame */}
                 <div className="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-[2.5rem] p-[3px] shadow-2xl h-full border border-gray-700">
@@ -466,6 +467,7 @@ const Features = () => {
                 </div>
               </div>
             </div>
+          </div>
           
           {/* Background accent elements */}
           <div className="absolute top-4 right-4 w-6 h-6 bg-emerald-500/20 rounded-full blur-lg" />
@@ -481,8 +483,8 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* AI Agent Customization Interface - directly on card background */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 p-3">
+          {/* AI Agent Customization Interface */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
             {/* AI Personality Section */}
             <div className="mb-3">
               <p className="text-slate-300 text-[8px] font-medium mb-2">AI Personality & Tone</p>
@@ -649,6 +651,9 @@ const Features = () => {
                </div>
              </div>
           </div>
+          
+          {/* Background accent elements */}
+          {/* Background accent elements - removed blue dot */}
         </div>,
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2"
   }, {
@@ -896,8 +901,8 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Smart AI Comparison Interface - directly on card background */}
-          <div className="absolute top-2 left-2 right-2 bottom-2 p-3 flex flex-col">
+          {/* Smart AI Comparison Interface */}
+          <div className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-center mb-3">
               <div className="flex items-center gap-2">
@@ -1072,6 +1077,7 @@ const Features = () => {
                 </div>
               </div>
             </div>
+            
           </div>
           
           {/* Background accent elements */}
@@ -1088,9 +1094,9 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* WhatsApp notification - directly on card background */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 p-3 overflow-hidden">
-            {/* WhatsApp Notification */}
+          {/* Background container for WhatsApp notifications */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm overflow-hidden">
+            {/* First WhatsApp Notification */}
             <div className="bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3 cursor-pointer transition-all duration-300 ease-out hover:scale-105 hover:bg-gray-800 hover:border-gray-600/70 hover:shadow-lg hover:shadow-emerald-500/20 transform">
               {/* WhatsApp App Header */}
               <div className="flex items-center justify-between mb-1">
@@ -1116,6 +1122,7 @@ const Features = () => {
                 🔔 Reminder: Your appointment is tomorrow at 2:00 PM.
               </div>
             </div>
+
           </div>
           
           <div className="absolute top-4 right-4 w-6 h-1 bg-emerald-500/40 rounded-full animate-pulse" />
@@ -1130,8 +1137,8 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Analytics Section - directly on card background */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 p-4 flex items-start justify-center pt-6">
+          {/* Analytics Section */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm flex items-start justify-center pt-6">
             {/* Main Analytics Grid - 4 Columns */}
             <div className="grid grid-cols-4 gap-3 w-full">
               {/* Response Time */}
@@ -1165,6 +1172,7 @@ const Features = () => {
           </div>
           
           {/* Subtle decorative elements */}
+          {/* Subtle decorative elements - removed blue dot */}
           <div className="absolute bottom-3 left-3 w-1.5 h-1.5 bg-slate-600/20 rounded-full" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-3 lg:row-end-4"
@@ -1177,7 +1185,7 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Translation Demo Interface - directly on card background */}
+          {/* Translation Demo Interface */}
           <TranslationDemo />
           
           {/* Globe icon and background accent elements */}
@@ -1258,6 +1266,7 @@ const Features = () => {
               </div>
               </div>
             </div>
+
           </div>
           
           {/* Timestamp positioned in middle area between carousel and BentoCard footer */}
@@ -1269,7 +1278,6 @@ const Features = () => {
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-4 lg:row-end-5"
   }];
-
   const stats = [{
     value: "24/7",
     label: "Always Working"
@@ -1280,7 +1288,6 @@ const Features = () => {
     value: "0%",
     label: "Human Errors"
   }];
-
   return <section className="py-12 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
       {/* Background decoration - Optimized for mobile */}
       <div className="absolute inset-0">
@@ -1293,30 +1300,26 @@ const Features = () => {
       
       <div className="max-w-6xl mx-auto relative z-10 px-6 md:px-8 lg:px-12">
         {/* Header - Mobile optimized */}
-        <div className="text-center mb-12 md:mb-20">
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 md:mb-6 tracking-tight">
-            Features That Drive Results
+        <div className="text-center mb-8 md:mb-20">
+          <h2 className="text-xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            Everything You Need To{" "}
+            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+              Automate Bookings
+            </span>
           </h2>
-          <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Every feature designed to automate your booking process and grow your business
+          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+            <span className="md:hidden">Features that maximize bookings and revenue</span>
+            <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
           </p>
         </div>
-
-        <BentoGrid className="auto-rows-[400px] lg:auto-rows-[460px] mb-12 md:mb-20">
-          {bookingFeatures.map((feature) => (
-            <BentoCard key={feature.name} {...feature} />
-          ))}
-        </BentoGrid>
-
-        {/* Stats Section - Mobile optimized */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-12">
-          {stats.map((stat, index) => (
-            <div key={index} className="text-center p-6 md:p-8 rounded-2xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
-              <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-emerald-400 mb-2 md:mb-4">{stat.value}</div>
-              <div className="text-lg md:text-xl text-slate-300 font-medium">{stat.label}</div>
-            </div>
-          ))}
+        
+        {/* Bento Grid Features */}
+        <div className="mb-12 md:mb-32">
+          <BentoGrid>
+            {bookingFeatures.map((feature, idx) => <BentoCard key={idx} {...feature} />)}
+          </BentoGrid>
         </div>
+        
       </div>
     </section>;
 };
