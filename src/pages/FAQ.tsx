@@ -298,7 +298,7 @@ const FAQ = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-12 md:py-24 px-3 md:px-4 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-12 md:py-24 px-4 md:px-6 lg:px-8 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -308,12 +308,12 @@ const FAQ = () => {
         {/* Grid pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
         
-        <div className="max-w-7xl mx-auto text-center relative z-10">
+        <div className="max-w-6xl mx-auto text-center relative z-10">
           <ScrollAnimatedSection>
-            <h1 className="text-2xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            <h1 className="text-2xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6">
               Frequently Asked <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Questions</span>
             </h1>
-            <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto mb-8 md:mb-16 px-3 sm:px-0">
+            <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto mb-8 md:mb-16">
               Everything you need to know about our AI-powered WhatsApp booking platform. 
               Can't find what you're looking for? <strong className="text-emerald-400">Contact our support team</strong>.
             </p>
@@ -321,7 +321,7 @@ const FAQ = () => {
 
           {/* Quick Stats */}
           <ScrollAnimatedSection delay={200}>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-16 px-3 md:px-0">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-16">
               {quickStats.map((stat, index) => (
                 <div key={index} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-3 md:p-6 hover:bg-slate-800/70 transition-all duration-300">
                   <div className="w-8 h-8 md:w-12 md:h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-2 md:mb-4 mx-auto">
@@ -337,7 +337,7 @@ const FAQ = () => {
       </section>
 
       {/* Search Section */}
-      <section className="py-12 px-4 bg-slate-800/20">
+      <section className="py-12 px-4 md:px-6 lg:px-8 bg-slate-800/20">
         <div className="max-w-4xl mx-auto">
           <ScrollAnimatedSection>
             {/* Search Bar */}
@@ -381,8 +381,8 @@ const FAQ = () => {
       </section>
 
       {/* FAQ Sections */}
-      <section className="py-20 px-4">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-20 px-4 md:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
           {filteredSections.length === 0 ? (
             <ScrollAnimatedSection>
               <div className="text-center py-16">
@@ -443,7 +443,7 @@ const FAQ = () => {
       </section>
 
       {/* Contact CTA */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4 bg-slate-800/20">
+      <ScrollAnimatedSection as="section" className="py-20 px-4 md:px-6 lg:px-8 bg-slate-800/20">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 backdrop-blur-sm rounded-2xl p-12 border border-emerald-500/20">
             <h3 className="text-3xl font-bold text-white mb-6">
