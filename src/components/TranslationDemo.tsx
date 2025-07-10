@@ -389,7 +389,7 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative z-50" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -403,7 +403,7 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg z-50 max-h-64 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg z-[100] max-h-64 overflow-hidden">
           <div className="p-2 border-b border-slate-700">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-slate-400" />
