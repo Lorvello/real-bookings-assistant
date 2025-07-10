@@ -423,101 +423,124 @@ const Features = () => {
                  </div>
                </div>
                
-               {/* Language Toggle */}
-               <div className="flex items-center justify-between">
-                 <span className="text-slate-300 text-[7px]">🌐 Multi-language</span>
-                 <div 
-                   className={`w-4 h-2 rounded-full relative cursor-pointer transition-all duration-200 hover:scale-105 ${
-                     multiLanguage ? 'bg-blue-500' : 'bg-slate-500'
-                   }`}
-                   onClick={() => setMultiLanguage(!multiLanguage)}
-                 >
-                   <div 
-                     className={`w-1.5 h-1.5 bg-white rounded-full absolute top-0.25 shadow-sm transition-all duration-200 ${
-                       multiLanguage ? 'right-0.25' : 'left-0.25'
-                     }`} 
-                   />
-                 </div>
-               </div>
+                {/* Language Toggle */}
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 text-[7px]">🌐 Multi-language</span>
+                  <div 
+                    className={`w-4 h-2 rounded-full relative cursor-pointer transition-all duration-300 hover:scale-110 ${
+                      multiLanguage ? 'bg-blue-500 shadow-lg shadow-blue-500/40' : 'bg-slate-500'
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMultiLanguage(!multiLanguage);
+                    }}
+                  >
+                    <div 
+                      className={`w-1.5 h-1.5 bg-white rounded-full absolute top-0.25 shadow-sm transition-all duration-300 transform ${
+                        multiLanguage ? 'right-0.25' : 'left-0.25'
+                      }`} 
+                    />
+                  </div>
+                </div>
             </div>
             
              {/* Smart Features Section - Bottom 60% in 2x2 Grid */}
              <div className="grid grid-cols-2 gap-2">
-               {/* FAQ Management */}
-               <div className={`bg-slate-700/40 rounded p-1.5 cursor-pointer transition-all duration-200 hover:bg-slate-700/60 ${
-                 smartFAQ ? 'border border-emerald-500/30' : 'border border-slate-600/30'
-               }`}
-               onClick={() => setSmartFAQ(!smartFAQ)}>
-                 <div className="flex items-center justify-between mb-1">
-                   <span className="text-white text-[7px] font-medium">📚 Smart FAQ</span>
-                   <div className={`w-3 h-1.5 rounded-full relative transition-all duration-200 hover:scale-105 ${
-                     smartFAQ ? 'bg-emerald-500' : 'bg-slate-500'
-                   }`}>
-                     <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-200 ${
-                       smartFAQ ? 'right-0.25' : 'left-0.25'
-                     }`} />
-                   </div>
-                 </div>
+                {/* FAQ Management */}
+                <div className={`bg-slate-700/40 rounded p-1.5 transition-all duration-200 hover:bg-slate-700/60 ${
+                  smartFAQ ? 'border border-emerald-500/30' : 'border border-slate-600/30'
+                }`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-white text-[7px] font-medium">📚 Smart FAQ</span>
+                    <div 
+                      className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
+                        smartFAQ ? 'bg-emerald-500 shadow-lg shadow-emerald-500/40' : 'bg-slate-500'
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSmartFAQ(!smartFAQ);
+                      }}
+                    >
+                      <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 transform ${
+                        smartFAQ ? 'right-0.25 shadow-sm' : 'left-0.25'
+                      }`} />
+                    </div>
+                  </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
                    smartFAQ ? 'text-emerald-300' : 'text-slate-400'
                  }`}>Auto-answers common questions</p>
                </div>
                
-               {/* Booking Logic */}
-               <div className={`bg-slate-700/40 rounded p-1.5 cursor-pointer transition-all duration-200 hover:bg-slate-700/60 ${
-                 smartBooking ? 'border border-emerald-500/30' : 'border border-slate-600/30'
-               }`}
-               onClick={() => setSmartBooking(!smartBooking)}>
-                 <div className="flex items-center justify-between mb-1">
-                   <span className="text-white text-[7px] font-medium">🧠 Smart Booking</span>
-                   <div className={`w-3 h-1.5 rounded-full relative transition-all duration-200 hover:scale-105 ${
-                     smartBooking ? 'bg-emerald-500' : 'bg-slate-500'
-                   }`}>
-                     <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-200 ${
-                       smartBooking ? 'right-0.25' : 'left-0.25'
-                     }`} />
-                   </div>
-                 </div>
+                {/* Booking Logic */}
+                <div className={`bg-slate-700/40 rounded p-1.5 transition-all duration-200 hover:bg-slate-700/60 ${
+                  smartBooking ? 'border border-emerald-500/30' : 'border border-slate-600/30'
+                }`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-white text-[7px] font-medium">🧠 Smart Booking</span>
+                    <div 
+                      className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
+                        smartBooking ? 'bg-emerald-500 shadow-lg shadow-emerald-500/40' : 'bg-slate-500'
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSmartBooking(!smartBooking);
+                      }}
+                    >
+                      <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 transform ${
+                        smartBooking ? 'right-0.25 shadow-sm' : 'left-0.25'
+                      }`} />
+                    </div>
+                  </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
                    smartBooking ? 'text-emerald-300' : 'text-slate-400'
                  }`}>Upselling & rebooking</p>
                </div>
                
-               {/* Context Awareness */}
-               <div className={`bg-slate-700/40 rounded p-1.5 cursor-pointer transition-all duration-200 hover:bg-slate-700/60 ${
-                 contextAI ? 'border border-blue-500/30' : 'border border-slate-600/30'
-               }`}
-               onClick={() => setContextAI(!contextAI)}>
-                 <div className="flex items-center justify-between mb-1">
-                   <span className="text-white text-[7px] font-medium">🎯 Context AI</span>
-                   <div className={`w-3 h-1.5 rounded-full relative transition-all duration-200 hover:scale-105 ${
-                     contextAI ? 'bg-blue-500' : 'bg-slate-500'
-                   }`}>
-                     <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-200 ${
-                       contextAI ? 'right-0.25' : 'left-0.25'
-                     }`} />
-                   </div>
-                 </div>
+                {/* Context Awareness */}
+                <div className={`bg-slate-700/40 rounded p-1.5 transition-all duration-200 hover:bg-slate-700/60 ${
+                  contextAI ? 'border border-blue-500/30' : 'border border-slate-600/30'
+                }`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-white text-[7px] font-medium">🎯 Context AI</span>
+                    <div 
+                      className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
+                        contextAI ? 'bg-blue-500 shadow-lg shadow-blue-500/40' : 'bg-slate-500'
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setContextAI(!contextAI);
+                      }}
+                    >
+                      <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 transform ${
+                        contextAI ? 'right-0.25 shadow-sm' : 'left-0.25'
+                      }`} />
+                    </div>
+                  </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
                    contextAI ? 'text-blue-300' : 'text-slate-400'
                  }`}>Remembers preferences</p>
                </div>
                
-               {/* Proactive Engagement */}
-               <div className={`bg-slate-700/40 rounded p-1.5 cursor-pointer transition-all duration-200 hover:bg-slate-700/60 ${
-                 proactiveMode ? 'border border-yellow-500/30' : 'border border-slate-600/30'
-               }`}
-               onClick={() => setProactiveMode(!proactiveMode)}>
-                 <div className="flex items-center justify-between mb-1">
-                   <span className="text-white text-[7px] font-medium">⚡ Proactive</span>
-                   <div className={`w-3 h-1.5 rounded-full relative transition-all duration-200 hover:scale-105 ${
-                     proactiveMode ? 'bg-yellow-500' : 'bg-slate-500'
-                   }`}>
-                     <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-200 ${
-                       proactiveMode ? 'right-0.25' : 'left-0.25'
-                     }`} />
-                   </div>
-                 </div>
+                {/* Proactive Engagement */}
+                <div className={`bg-slate-700/40 rounded p-1.5 transition-all duration-200 hover:bg-slate-700/60 ${
+                  proactiveMode ? 'border border-yellow-500/30' : 'border border-slate-600/30'
+                }`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-white text-[7px] font-medium">⚡ Proactive</span>
+                    <div 
+                      className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
+                        proactiveMode ? 'bg-yellow-500 shadow-lg shadow-yellow-500/40' : 'bg-slate-500'
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProactiveMode(!proactiveMode);
+                      }}
+                    >
+                      <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 transform ${
+                        proactiveMode ? 'right-0.25 shadow-sm' : 'left-0.25'
+                      }`} />
+                    </div>
+                  </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
                    proactiveMode ? 'text-yellow-300' : 'text-slate-400'
                  }`}>Sends follow-ups</p>
