@@ -51,7 +51,7 @@ const BentoCard = ({
         // Subtle hover effects maintaining dark theme
         "hover:bg-background/95 hover:border-muted/50",
         "shadow-lg shadow-black/20 hover:shadow-2xl hover:shadow-black/40",
-        "hover:scale-[1.02] transition-all duration-300 ease-out",
+        "transition-all duration-300 ease-out",
         "backdrop-blur-sm",
         className,
       )}
