@@ -108,7 +108,7 @@ const ProcessSection = () => {
                   <Sparkles className="ml-3 h-5 w-5 md:h-6 md:w-6" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl w-full h-[80vh] max-h-[600px] p-0 bg-slate-900 border-slate-700">
+              <DialogContent className="max-w-2xl w-full h-[80vh] max-h-[600px] p-0 bg-slate-900 border-slate-700 data-[state=open]:animate-in data-[state=open]:fade-in-100 data-[state=open]:scale-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:scale-out-95 duration-300">
                 <AIAgentTestChat />
               </DialogContent>
             </Dialog>
