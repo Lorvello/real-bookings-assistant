@@ -15,7 +15,7 @@ const Hero = () => {
       {/* Grid pattern overlay - Reduced opacity on mobile */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.2)_1px,transparent_1px)] md:bg-[linear-gradient(rgba(15,23,42,0.4)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.4)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-30"></div>
       
-      <div className="relative max-w-7xl mx-auto px-4 md:px-4 sm:px-6 lg:px-8 text-center z-10">
+      <div className="relative max-w-6xl mx-auto px-6 md:px-8 lg:px-12 text-center z-10">
         {/* Floating badge - Mobile optimized */}
         <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8 animate-appear opacity-0">
           <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
