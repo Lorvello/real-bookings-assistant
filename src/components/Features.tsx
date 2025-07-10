@@ -918,7 +918,7 @@ const Features = () => {
             <div className="flex-1 space-y-2">
               {/* Comparison Row 1 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -928,7 +928,7 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <Check className="w-2 h-2 text-emerald-400" />
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
@@ -941,7 +941,7 @@ const Features = () => {
               
               {/* Comparison Row 2 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -951,7 +951,7 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <Check className="w-2 h-2 text-emerald-400" />
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
@@ -964,7 +964,7 @@ const Features = () => {
               
               {/* Comparison Row 3 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -974,7 +974,7 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <Check className="w-2 h-2 text-emerald-400" />
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
@@ -987,7 +987,7 @@ const Features = () => {
               
               {/* Comparison Row 4 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -997,7 +997,7 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <Check className="w-2 h-2 text-emerald-400" />
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
@@ -1010,7 +1010,7 @@ const Features = () => {
               
               {/* Comparison Row 5 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -1020,7 +1020,7 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <Check className="w-2 h-2 text-emerald-400" />
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
@@ -1033,7 +1033,7 @@ const Features = () => {
               
               {/* Comparison Row 6 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -1043,7 +1043,7 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <Check className="w-2 h-2 text-emerald-400" />
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
@@ -1056,7 +1056,7 @@ const Features = () => {
               
               {/* Comparison Row 7 */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <X className="w-2 h-2 text-red-400" />
                     <span className="text-red-400 text-[7px] font-medium">Normal</span>
@@ -1066,7 +1066,7 @@ const Features = () => {
                   </div>
                 </div>
                 
-                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2">
+                <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
                   <div className="flex items-center gap-1 mb-1">
                     <Check className="w-2 h-2 text-emerald-400" />
                     <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
