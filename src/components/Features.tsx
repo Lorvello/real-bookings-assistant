@@ -721,7 +721,7 @@ const Features = () => {
                       <div key={index} className="relative">
                         <div className={`text-center py-1 h-14 flex flex-col items-center justify-start text-[7px] transition-colors rounded ${
                           day.booking 
-                            ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/90 hover:scale-105 transition-all duration-200' 
+                            ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/95 hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 ease-out transform' 
                             : day.isOtherMonth 
                               ? 'text-slate-500 hover:bg-slate-700/30' 
                               : 'text-slate-300 hover:bg-slate-700/50'
@@ -806,7 +806,7 @@ const Features = () => {
                         return (
                           <div key={dayIndex} className={`py-1 px-1 rounded text-center transition-colors ${
                             booking 
-                              ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/90 hover:scale-105 transition-all duration-200' 
+                              ? 'bg-emerald-600/80 text-white font-medium border border-emerald-500/50 cursor-pointer hover:bg-emerald-600/95 hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 ease-out transform' 
                               : 'hover:bg-slate-700/30'
                           }`}
                           onClick={booking ? (e) => handleBookingClick(booking, e) : undefined}>
