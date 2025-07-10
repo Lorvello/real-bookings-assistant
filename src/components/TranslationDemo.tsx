@@ -364,6 +364,7 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [positionCalculated, setPositionCalculated] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -376,19 +377,29 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
   const updateButtonPosition = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      setButtonPosition({
+      console.log('Button rect:', rect);
+      const position = {
         top: rect.bottom + window.scrollY + 4,
         left: rect.left + window.scrollX,
         width: rect.width
-      });
+      };
+      console.log('Setting position:', position);
+      setButtonPosition(position);
+      setPositionCalculated(true);
     }
   };
 
   const handleToggle = () => {
+    console.log('Toggle clicked, isOpen:', isOpen);
     if (!isOpen) {
       updateButtonPosition();
+      // Small delay to ensure position is calculated
+      setTimeout(() => {
+        setIsOpen(true);
+      }, 0);
+    } else {
+      setIsOpen(false);
     }
-    setIsOpen(!isOpen);
   };
 
   useEffect(() => {
@@ -440,14 +451,14 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
         <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {isOpen && createPortal(
+      {isOpen && positionCalculated && createPortal(
         <div 
           ref={dropdownRef}
           className="fixed bg-slate-800 border border-slate-700 rounded-md shadow-lg z-[9999] max-h-64 overflow-hidden"
           style={{
-            top: buttonPosition.top,
-            left: buttonPosition.left,
-            width: Math.max(buttonPosition.width, 200)
+            top: buttonPosition.top || 100,
+            left: buttonPosition.left || 0,
+            width: Math.max(buttonPosition.width || 200, 200)
           }}
         >
           <div className="p-2 border-b border-slate-700">
