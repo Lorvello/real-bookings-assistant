@@ -1230,16 +1230,15 @@ const Features = () => {
                     <div className="flex items-center gap-1 mb-1">
                       <div className="relative">
                         <Users className="h-3 w-3 text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
-                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full animate-pulse group-hover:bg-emerald-300 transition-colors duration-300"></div>
                       </div>
                       <div className="text-white text-lg font-bold group-hover:text-emerald-100 transition-colors duration-300">3</div>
                       <CheckCircle className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300" />
                     </div>
                     <div className="text-emerald-300 text-xs font-medium mb-1 group-hover:text-emerald-200 transition-colors duration-300">Active Now</div>
                     <div className="flex gap-1">
-                      <div className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse group-hover:bg-emerald-300 transition-colors duration-300"></div>
-                      <div className="w-1 h-2 bg-emerald-400/70 rounded-full animate-pulse group-hover:bg-emerald-300/70 transition-colors duration-300" style={{animationDelay: '0.2s'}}></div>
-                      <div className="w-1 h-2 bg-emerald-400/50 rounded-full animate-pulse group-hover:bg-emerald-300/50 transition-colors duration-300" style={{animationDelay: '0.4s'}}></div>
+                      <div className="w-1 h-2 bg-emerald-400 rounded-full group-hover:bg-emerald-300 transition-colors duration-300"></div>
+                      <div className="w-1 h-2 bg-emerald-400/70 rounded-full group-hover:bg-emerald-300/70 transition-colors duration-300"></div>
+                      <div className="w-1 h-2 bg-emerald-400/50 rounded-full group-hover:bg-emerald-300/50 transition-colors duration-300"></div>
                     </div>
                     <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300">2 confirmed</div>
                   </div>
@@ -1251,7 +1250,6 @@ const Features = () => {
                     <div className="flex items-center gap-1 mb-1">
                       <div className="relative">
                         <MessageCircle className="h-3 w-3 text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
-                        <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce group-hover:bg-red-300 transition-colors duration-300"></div>
                       </div>
                       <div className="text-white text-lg font-bold group-hover:text-emerald-100 transition-colors duration-300">17</div>
                       <Activity className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300" />
