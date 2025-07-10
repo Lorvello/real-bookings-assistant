@@ -983,7 +983,7 @@ const Features = () => {
             <div className="h-full flex flex-col">
               {/* Carousel Content */}
               <div className="flex-1 relative overflow-hidden">
-              <div className="flex h-20 gap-3 px-2">
+              <div className="flex h-20 gap-3 px-2 mt-4">
                 {/* Today Stats */}
                 <div className="flex-1">
                   <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
