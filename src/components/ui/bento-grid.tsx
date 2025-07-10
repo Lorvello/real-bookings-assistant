@@ -63,7 +63,7 @@ const BentoCard = ({
         ? "absolute bottom-6 left-6 right-6 text-left" 
         : "p-6"
     )}>
-      <Icon className="h-12 w-12 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
+      <Icon className="h-8 w-8 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
       <h3 className={cn(
         "text-xl font-semibold text-foreground mb-2",
         name === "100% Automatic Bookings" ? "" : ""
