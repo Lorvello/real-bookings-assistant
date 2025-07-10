@@ -310,17 +310,17 @@ export default function AIAgentTestPage() {
   };
 
   return (
-    <div className="min-h-0 bg-gradient-to-br from-[#111827] via-[#1F2937] to-[#111827] text-white">
+    <div className="h-full bg-gradient-to-br from-[#111827] via-[#1F2937] to-[#111827] text-white flex flex-col">
       {/* Chat Interface */}
-      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
+      <div className="flex-1 flex flex-col px-2 sm:px-4">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="w-full max-w-4xl mx-auto"
+          className="w-full h-full flex flex-col"
         >
           {/* Chat Container */}
-          <div className="bg-[#1F2937]/50 backdrop-blur-sm border border-[#10B981]/20 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-[#1F2937]/50 backdrop-blur-sm border border-[#10B981]/20 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col h-full">
             {/* Chat Header */}
             <div className="bg-gradient-to-r from-[#1F2937] to-[#111827] px-3 sm:px-6 py-3 sm:py-4 border-b border-[#10B981]/20">
               <div className="flex items-center gap-2 sm:gap-3">
