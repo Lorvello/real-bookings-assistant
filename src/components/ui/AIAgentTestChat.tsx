@@ -312,7 +312,7 @@ export default function AIAgentTestPage() {
   return (
     <div className="min-h-0 bg-gradient-to-br from-[#111827] via-[#1F2937] to-[#111827] text-white">
       {/* Chat Interface */}
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -404,7 +404,7 @@ export default function AIAgentTestPage() {
             </div>
 
             {/* Input - Compactere padding voor mobiel */}
-            <div className="p-2 sm:p-4 md:p-6 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
+            <div className="p-2 sm:p-3 md:p-4 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
               <PlaceholdersAndVanishInput
                 placeholders={placeholders}
                 onChange={handleInputChange}
