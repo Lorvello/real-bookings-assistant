@@ -383,7 +383,7 @@ const Features = () => {
           <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
             {/* iPhone Mockup - positioned in upper 70%, centered */}
             <div className="absolute top-0 left-0 right-0 h-[75%] flex justify-center items-center">
-              <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
+              <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out hover:scale-105">
                 {/* iPhone outer frame */}
                 <div className="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-[2.5rem] p-[3px] shadow-2xl h-full border border-gray-700">
                   {/* iPhone screen bezel */}
@@ -1083,7 +1083,7 @@ const Features = () => {
           {/* Background container for WhatsApp notifications */}
           <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm overflow-hidden">
             {/* First WhatsApp Notification */}
-            <div className="bg-slate-700/50 rounded-lg shadow-sm border border-slate-600/50 p-3">
+            <div className="bg-slate-700/50 rounded-lg shadow-sm border border-slate-600/50 p-3 cursor-pointer transition-all duration-300 ease-out hover:scale-105 hover:bg-slate-700/70 hover:border-slate-600/70 hover:shadow-lg hover:shadow-primary/20 transform">
               {/* WhatsApp App Header */}
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
@@ -1140,14 +1140,14 @@ const Features = () => {
               </div>
               
               {/* Conversion */}
-              <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center">
+              <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-primary/30 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/25 transform group">
                 <div className="text-primary text-[14px] mb-1">📈</div>
                 <div className="text-white text-[16px] font-bold mb-1">89%</div>
                 <div className="text-primary/80 text-[8px] uppercase tracking-wider">Convert</div>
               </div>
               
               {/* No-shows */}
-              <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center">
+              <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-primary/30 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/25 transform group">
                 <div className="text-primary text-[14px] mb-1">⚠</div>
                 <div className="text-white text-[16px] font-bold mb-1">8.5%</div>
                 <div className="text-primary/80 text-[8px] uppercase tracking-wider">No-shows</div>
@@ -1206,7 +1206,7 @@ const Features = () => {
 
                 {/* Active Now - Enhanced */}
                 <div className="flex-1">
-                  <div className="h-full bg-primary/20 border border-primary/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
+                  <div className="h-full bg-primary/20 border border-primary/30 rounded-lg p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-primary/40 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/25 transform group">
                     <div className="flex items-center gap-1 mb-1">
                       <div className="relative">
                         <Users className="h-3 w-3 text-primary" />
