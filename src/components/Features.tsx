@@ -284,29 +284,33 @@ const Features = () => {
     event.stopPropagation();
     const targetRect = (event.target as HTMLElement).getBoundingClientRect();
     
-    // Calculate global position for fixed positioning
-    const x = targetRect.left + targetRect.width / 2;
-    const y = targetRect.top - 10;
+    // Get calendar container bounds for relative positioning
+    const calendarRect = calendarRef.current?.getBoundingClientRect();
+    if (!calendarRect) return;
     
-    // Check viewport boundaries and adjust position
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    // Calculate position relative to calendar container
+    const x = targetRect.left + targetRect.width / 2 - calendarRect.left;
+    const y = targetRect.top - 10 - calendarRect.top;
+    
+    // Check calendar boundaries and adjust position
+    const calendarWidth = calendarRect.width;
+    const calendarHeight = calendarRect.height;
     const popupWidth = 280;
     const popupHeight = 300;
     
     let adjustedX = x;
     let adjustedY = y;
     
-    // Flip horizontally if popup would go off-screen
-    if (x + popupWidth / 2 > viewportWidth - 20) {
-      adjustedX = viewportWidth - popupWidth / 2 - 20;
+    // Flip horizontally if popup would go off calendar
+    if (x + popupWidth / 2 > calendarWidth - 20) {
+      adjustedX = calendarWidth - popupWidth / 2 - 20;
     } else if (x - popupWidth / 2 < 20) {
       adjustedX = popupWidth / 2 + 20;
     }
     
-    // Flip vertically if popup would go off-screen
+    // Flip vertically if popup would go off calendar
     if (y - popupHeight < 20) {
-      adjustedY = targetRect.bottom + 10;
+      adjustedY = targetRect.bottom - calendarRect.top + 10;
     }
     
     setPopupPosition({ x: adjustedX, y: adjustedY });
@@ -662,7 +666,7 @@ const Features = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
           {/* Full Calendar Section */}
-          <div ref={calendarRef} className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col">
+          <div ref={calendarRef} className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col relative">
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -821,11 +825,11 @@ const Features = () => {
               </div>
             )}
 
-            {/* Booking Popup rendered via Portal */}
-            {showPopup && selectedBooking && createPortal(
+            {/* Booking Popup */}
+            {showPopup && selectedBooking && (
               <div 
                 data-popup="true"
-                className="fixed z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg p-3 backdrop-blur-sm shadow-2xl"
+                className="absolute z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg p-3 backdrop-blur-sm shadow-2xl"
                 style={{
                   left: `${popupPosition.x}px`,
                   top: `${popupPosition.y}px`,
@@ -879,8 +883,7 @@ const Features = () => {
                     </div>
                   )}
                 </div>
-              </div>,
-              document.body
+              </div>
             )}
           </div>
           
