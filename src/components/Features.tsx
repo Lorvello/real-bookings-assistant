@@ -386,43 +386,83 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-600/30 to-blue-700/20" />
           
-          {/* Compact Settings Interface */}
-          <div className="absolute top-3 left-3 right-3 h-[45%] bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+          {/* AI Agent Customization Interface */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/50 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
             {/* Header */}
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-white text-[10px] font-semibold">Settings</h4>
-              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-white text-[10px] font-semibold">AI Agent Setup</h4>
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
             </div>
             
-            {/* Service Types Section */}
-            <div className="mb-2">
-              <p className="text-slate-300 text-[8px] font-medium mb-1">Services</p>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between bg-slate-700/60 rounded px-1.5 py-0.5">
-                  <span className="text-white text-[7px]">📅 Consultation - €50</span>
-                  <button className="text-emerald-400 text-[6px] hover:text-emerald-300">Edit</button>
+            {/* AI Personality Section - Top 40% */}
+            <div className="mb-3">
+              <p className="text-slate-300 text-[8px] font-medium mb-2">AI Personality & Tone</p>
+              
+              {/* Tone Slider */}
+              <div className="mb-2">
+                <div className="flex justify-between text-[6px] text-slate-400 mb-1">
+                  <span>Professional</span>
+                  <span>Friendly</span>
+                  <span>Casual</span>
                 </div>
-                <div className="flex items-center justify-between bg-slate-700/60 rounded px-1.5 py-0.5">
-                  <span className="text-white text-[7px]">🔧 Service Call - €75</span>
-                  <button className="text-emerald-400 text-[6px] hover:text-emerald-300">Edit</button>
+                <div className="relative h-1 bg-slate-600 rounded-full">
+                  <div className="absolute left-1/3 w-2 h-2 bg-blue-400 rounded-full -top-0.5 shadow-sm" />
                 </div>
               </div>
-              <button className="mt-1 text-emerald-400 text-[7px] font-medium hover:text-emerald-300">+ Add Service</button>
+              
+              {/* Language Toggle */}
+              <div className="flex items-center justify-between">
+                <span className="text-slate-300 text-[7px]">🌐 Multi-language</span>
+                <div className="w-4 h-2 bg-blue-500 rounded-full relative">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
+                </div>
+              </div>
             </div>
             
-            {/* Quick Toggles */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300 text-[8px]">Auto confirmations</span>
-                <div className="w-5 h-2.5 bg-emerald-500 rounded-full relative">
-                  <div className="w-2 h-2 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
+            {/* Smart Features Section - Bottom 60% in 2x2 Grid */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* FAQ Management */}
+              <div className="bg-slate-700/40 rounded p-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white text-[7px] font-medium">📚 Smart FAQ</span>
+                  <div className="w-3 h-1.5 bg-emerald-500 rounded-full relative">
+                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 right-0.25" />
+                  </div>
                 </div>
+                <p className="text-slate-400 text-[6px]">Auto-answers common questions</p>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300 text-[8px]">Send reminders</span>
-                <div className="w-5 h-2.5 bg-emerald-500 rounded-full relative">
-                  <div className="w-2 h-2 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
+              
+              {/* Booking Logic */}
+              <div className="bg-slate-700/40 rounded p-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white text-[7px] font-medium">🧠 Smart Booking</span>
+                  <div className="w-3 h-1.5 bg-emerald-500 rounded-full relative">
+                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 right-0.25" />
+                  </div>
                 </div>
+                <p className="text-slate-400 text-[6px]">Upselling & rebooking</p>
+              </div>
+              
+              {/* Context Awareness */}
+              <div className="bg-slate-700/40 rounded p-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white text-[7px] font-medium">🎯 Context AI</span>
+                  <div className="w-3 h-1.5 bg-blue-500 rounded-full relative">
+                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 right-0.25" />
+                  </div>
+                </div>
+                <p className="text-slate-400 text-[6px]">Remembers preferences</p>
+              </div>
+              
+              {/* Proactive Engagement */}
+              <div className="bg-slate-700/40 rounded p-1.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white text-[7px] font-medium">⚡ Proactive</span>
+                  <div className="w-3 h-1.5 bg-slate-500 rounded-full relative">
+                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 left-0.25" />
+                  </div>
+                </div>
+                <p className="text-slate-400 text-[6px]">Sends follow-ups</p>
               </div>
             </div>
           </div>
