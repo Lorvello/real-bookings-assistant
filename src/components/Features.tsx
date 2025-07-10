@@ -6,6 +6,14 @@ import { X, Check, Calendar, Users, MessageCircle, Clock, CheckCircle, Activity 
 import { TranslationDemo } from "@/components/TranslationDemo";
 
 const Features = () => {
+  // AI Agent Personalization State
+  const [tonePosition, setTonePosition] = useState(33); // 33% for "Friendly"
+  const [multiLanguage, setMultiLanguage] = useState(true);
+  const [smartFAQ, setSmartFAQ] = useState(true);
+  const [smartBooking, setSmartBooking] = useState(true);
+  const [contextAI, setContextAI] = useState(true);
+  const [proactiveMode, setProactiveMode] = useState(false);
+  
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -392,73 +400,129 @@ const Features = () => {
             <div className="mb-3">
               <p className="text-slate-300 text-[8px] font-medium mb-2">AI Personality & Tone</p>
               
-              {/* Tone Slider */}
-              <div className="mb-2">
-                <div className="flex justify-between text-[6px] text-slate-400 mb-1">
-                  <span>Professional</span>
-                  <span>Friendly</span>
-                  <span>Casual</span>
-                </div>
-                <div className="relative h-1 bg-slate-600 rounded-full">
-                  <div className="absolute left-1/3 w-2 h-2 bg-blue-400 rounded-full -top-0.5 shadow-sm" />
-                </div>
-              </div>
-              
-              {/* Language Toggle */}
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300 text-[7px]">🌐 Multi-language</span>
-                <div className="w-4 h-2 bg-blue-500 rounded-full relative">
-                  <div className="w-1.5 h-1.5 bg-white rounded-full absolute top-0.25 right-0.25 shadow-sm" />
-                </div>
-              </div>
+               {/* Tone Slider */}
+               <div className="mb-2">
+                 <div className="flex justify-between text-[6px] text-slate-400 mb-1">
+                   <span>Professional</span>
+                   <span>Friendly</span>
+                   <span>Casual</span>
+                 </div>
+                 <div 
+                   className="relative h-1 bg-slate-600 rounded-full cursor-pointer"
+                   onClick={(e) => {
+                     const rect = e.currentTarget.getBoundingClientRect();
+                     const x = e.clientX - rect.left;
+                     const percentage = (x / rect.width) * 100;
+                     setTonePosition(Math.max(0, Math.min(100, percentage)));
+                   }}
+                 >
+                   <div 
+                     className="absolute w-2 h-2 bg-blue-400 rounded-full -top-0.5 shadow-sm transition-all duration-200 hover:scale-110 cursor-pointer" 
+                     style={{ left: `${tonePosition}%`, transform: 'translateX(-50%)' }}
+                   />
+                 </div>
+               </div>
+               
+               {/* Language Toggle */}
+               <div className="flex items-center justify-between">
+                 <span className="text-slate-300 text-[7px]">🌐 Multi-language</span>
+                 <div 
+                   className={`w-4 h-2 rounded-full relative cursor-pointer transition-all duration-200 hover:scale-105 ${
+                     multiLanguage ? 'bg-blue-500' : 'bg-slate-500'
+                   }`}
+                   onClick={() => setMultiLanguage(!multiLanguage)}
+                 >
+                   <div 
+                     className={`w-1.5 h-1.5 bg-white rounded-full absolute top-0.25 shadow-sm transition-all duration-200 ${
+                       multiLanguage ? 'right-0.25' : 'left-0.25'
+                     }`} 
+                   />
+                 </div>
+               </div>
             </div>
             
-            {/* Smart Features Section - Bottom 60% in 2x2 Grid */}
-            <div className="grid grid-cols-2 gap-2">
-              {/* FAQ Management */}
-              <div className="bg-slate-700/40 rounded p-1.5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-white text-[7px] font-medium">📚 Smart FAQ</span>
-                  <div className="w-3 h-1.5 bg-emerald-500 rounded-full relative">
-                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 right-0.25" />
-                  </div>
-                </div>
-                <p className="text-slate-400 text-[6px]">Auto-answers common questions</p>
-              </div>
-              
-              {/* Booking Logic */}
-              <div className="bg-slate-700/40 rounded p-1.5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-white text-[7px] font-medium">🧠 Smart Booking</span>
-                  <div className="w-3 h-1.5 bg-emerald-500 rounded-full relative">
-                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 right-0.25" />
-                  </div>
-                </div>
-                <p className="text-slate-400 text-[6px]">Upselling & rebooking</p>
-              </div>
-              
-              {/* Context Awareness */}
-              <div className="bg-slate-700/40 rounded p-1.5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-white text-[7px] font-medium">🎯 Context AI</span>
-                  <div className="w-3 h-1.5 bg-blue-500 rounded-full relative">
-                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 right-0.25" />
-                  </div>
-                </div>
-                <p className="text-slate-400 text-[6px]">Remembers preferences</p>
-              </div>
-              
-              {/* Proactive Engagement */}
-              <div className="bg-slate-700/40 rounded p-1.5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-white text-[7px] font-medium">⚡ Proactive</span>
-                  <div className="w-3 h-1.5 bg-slate-500 rounded-full relative">
-                    <div className="w-1 h-1 bg-white rounded-full absolute top-0.25 left-0.25" />
-                  </div>
-                </div>
-                <p className="text-slate-400 text-[6px]">Sends follow-ups</p>
-              </div>
-            </div>
+             {/* Smart Features Section - Bottom 60% in 2x2 Grid */}
+             <div className="grid grid-cols-2 gap-2">
+               {/* FAQ Management */}
+               <div className={`bg-slate-700/40 rounded p-1.5 cursor-pointer transition-all duration-200 hover:bg-slate-700/60 ${
+                 smartFAQ ? 'border border-emerald-500/30' : 'border border-slate-600/30'
+               }`}
+               onClick={() => setSmartFAQ(!smartFAQ)}>
+                 <div className="flex items-center justify-between mb-1">
+                   <span className="text-white text-[7px] font-medium">📚 Smart FAQ</span>
+                   <div className={`w-3 h-1.5 rounded-full relative transition-all duration-200 hover:scale-105 ${
+                     smartFAQ ? 'bg-emerald-500' : 'bg-slate-500'
+                   }`}>
+                     <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-200 ${
+                       smartFAQ ? 'right-0.25' : 'left-0.25'
+                     }`} />
+                   </div>
+                 </div>
+                 <p className={`text-[6px] transition-colors duration-200 ${
+                   smartFAQ ? 'text-emerald-300' : 'text-slate-400'
+                 }`}>Auto-answers common questions</p>
+               </div>
+               
+               {/* Booking Logic */}
+               <div className={`bg-slate-700/40 rounded p-1.5 cursor-pointer transition-all duration-200 hover:bg-slate-700/60 ${
+                 smartBooking ? 'border border-emerald-500/30' : 'border border-slate-600/30'
+               }`}
+               onClick={() => setSmartBooking(!smartBooking)}>
+                 <div className="flex items-center justify-between mb-1">
+                   <span className="text-white text-[7px] font-medium">🧠 Smart Booking</span>
+                   <div className={`w-3 h-1.5 rounded-full relative transition-all duration-200 hover:scale-105 ${
+                     smartBooking ? 'bg-emerald-500' : 'bg-slate-500'
+                   }`}>
+                     <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-200 ${
+                       smartBooking ? 'right-0.25' : 'left-0.25'
+                     }`} />
+                   </div>
+                 </div>
+                 <p className={`text-[6px] transition-colors duration-200 ${
+                   smartBooking ? 'text-emerald-300' : 'text-slate-400'
+                 }`}>Upselling & rebooking</p>
+               </div>
+               
+               {/* Context Awareness */}
+               <div className={`bg-slate-700/40 rounded p-1.5 cursor-pointer transition-all duration-200 hover:bg-slate-700/60 ${
+                 contextAI ? 'border border-blue-500/30' : 'border border-slate-600/30'
+               }`}
+               onClick={() => setContextAI(!contextAI)}>
+                 <div className="flex items-center justify-between mb-1">
+                   <span className="text-white text-[7px] font-medium">🎯 Context AI</span>
+                   <div className={`w-3 h-1.5 rounded-full relative transition-all duration-200 hover:scale-105 ${
+                     contextAI ? 'bg-blue-500' : 'bg-slate-500'
+                   }`}>
+                     <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-200 ${
+                       contextAI ? 'right-0.25' : 'left-0.25'
+                     }`} />
+                   </div>
+                 </div>
+                 <p className={`text-[6px] transition-colors duration-200 ${
+                   contextAI ? 'text-blue-300' : 'text-slate-400'
+                 }`}>Remembers preferences</p>
+               </div>
+               
+               {/* Proactive Engagement */}
+               <div className={`bg-slate-700/40 rounded p-1.5 cursor-pointer transition-all duration-200 hover:bg-slate-700/60 ${
+                 proactiveMode ? 'border border-yellow-500/30' : 'border border-slate-600/30'
+               }`}
+               onClick={() => setProactiveMode(!proactiveMode)}>
+                 <div className="flex items-center justify-between mb-1">
+                   <span className="text-white text-[7px] font-medium">⚡ Proactive</span>
+                   <div className={`w-3 h-1.5 rounded-full relative transition-all duration-200 hover:scale-105 ${
+                     proactiveMode ? 'bg-yellow-500' : 'bg-slate-500'
+                   }`}>
+                     <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-200 ${
+                       proactiveMode ? 'right-0.25' : 'left-0.25'
+                     }`} />
+                   </div>
+                 </div>
+                 <p className={`text-[6px] transition-colors duration-200 ${
+                   proactiveMode ? 'text-yellow-300' : 'text-slate-400'
+                 }`}>Sends follow-ups</p>
+               </div>
+             </div>
           </div>
           
           {/* Background accent elements */}
