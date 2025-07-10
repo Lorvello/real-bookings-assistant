@@ -338,8 +338,8 @@ export default function AIAgentTestPage() {
               </div>
             </div>
 
-            {/* Messages - Compactere hoogte voor mobiel */}
-            <div className="h-48 sm:h-64 md:h-80 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-[#111827]/30 to-[#1F2937]/30">
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-[#111827]/30 to-[#1F2937]/30 min-h-0">
               <AnimatePresence>
                 {messages.map((message) => (
                   <motion.div
@@ -403,8 +403,8 @@ export default function AIAgentTestPage() {
               )}
             </div>
 
-            {/* Input - Compactere padding voor mobiel */}
-            <div className="p-2 sm:p-3 md:p-4 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
+            {/* Input */}
+            <div className="p-3 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
               <PlaceholdersAndVanishInput
                 placeholders={placeholders}
                 onChange={handleInputChange}
