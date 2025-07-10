@@ -14,6 +14,9 @@ const Features = () => {
   const [contextAI, setContextAI] = useState(true);
   const [proactiveMode, setProactiveMode] = useState(false);
   
+  // Slider drag functionality
+  const [isDragging, setIsDragging] = useState(false);
+  
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -407,20 +410,48 @@ const Features = () => {
                    <span>Friendly</span>
                    <span>Casual</span>
                  </div>
-                 <div 
-                   className="relative h-1 bg-slate-600 rounded-full cursor-pointer"
-                   onClick={(e) => {
-                     const rect = e.currentTarget.getBoundingClientRect();
-                     const x = e.clientX - rect.left;
-                     const percentage = (x / rect.width) * 100;
-                     setTonePosition(Math.max(0, Math.min(100, percentage)));
-                   }}
-                 >
-                   <div 
-                     className="absolute w-2 h-2 bg-blue-400 rounded-full -top-0.5 shadow-sm transition-all duration-200 hover:scale-110 cursor-pointer" 
-                     style={{ left: `${tonePosition}%`, transform: 'translateX(-50%)' }}
-                   />
-                 </div>
+                  <div 
+                    className="relative h-1 bg-slate-600 rounded-full cursor-pointer"
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const percentage = (x / rect.width) * 100;
+                      setTonePosition(Math.max(0, Math.min(100, percentage)));
+                    }}
+                    onMouseDown={(e) => {
+                      setIsDragging(true);
+                      e.preventDefault();
+                    }}
+                    onMouseMove={(e) => {
+                      if (isDragging) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const percentage = (x / rect.width) * 100;
+                        setTonePosition(Math.max(0, Math.min(100, percentage)));
+                      }
+                    }}
+                    onMouseUp={() => setIsDragging(false)}
+                    onMouseLeave={() => setIsDragging(false)}
+                    onTouchStart={(e) => {
+                      setIsDragging(true);
+                      e.preventDefault();
+                    }}
+                    onTouchMove={(e) => {
+                      if (isDragging) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const touch = e.touches[0];
+                        const x = touch.clientX - rect.left;
+                        const percentage = (x / rect.width) * 100;
+                        setTonePosition(Math.max(0, Math.min(100, percentage)));
+                      }
+                    }}
+                    onTouchEnd={() => setIsDragging(false)}
+                  >
+                    <div 
+                      className="absolute w-2 h-2 bg-blue-400 rounded-full -top-0.5 shadow-sm transition-all duration-200 hover:scale-110 cursor-pointer" 
+                      style={{ left: `${tonePosition}%`, transform: 'translateX(-50%)' }}
+                    />
+                  </div>
                </div>
                
                 {/* Language Toggle */}
@@ -436,8 +467,8 @@ const Features = () => {
                     }}
                   >
                     <div 
-                      className={`w-1.5 h-1.5 bg-white rounded-full absolute top-0.25 shadow-sm transition-all duration-300 transform ${
-                        multiLanguage ? 'right-0.25' : 'left-0.25'
+                      className={`w-1.5 h-1.5 bg-white rounded-full absolute top-0.25 shadow-sm transition-all duration-300 ${
+                        multiLanguage ? 'translate-x-2' : 'translate-x-0'
                       }`} 
                     />
                   </div>
@@ -461,9 +492,9 @@ const Features = () => {
                         setSmartFAQ(!smartFAQ);
                       }}
                     >
-                      <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 transform ${
-                        smartFAQ ? 'right-0.25 shadow-sm' : 'left-0.25'
-                      }`} />
+                       <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 ${
+                         smartFAQ ? 'translate-x-1.5 shadow-sm' : 'translate-x-0'
+                       }`} />
                     </div>
                   </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
@@ -486,9 +517,9 @@ const Features = () => {
                         setSmartBooking(!smartBooking);
                       }}
                     >
-                      <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 transform ${
-                        smartBooking ? 'right-0.25 shadow-sm' : 'left-0.25'
-                      }`} />
+                       <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 ${
+                         smartBooking ? 'translate-x-1.5 shadow-sm' : 'translate-x-0'
+                       }`} />
                     </div>
                   </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
@@ -511,9 +542,9 @@ const Features = () => {
                         setContextAI(!contextAI);
                       }}
                     >
-                      <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 transform ${
-                        contextAI ? 'right-0.25 shadow-sm' : 'left-0.25'
-                      }`} />
+                       <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 ${
+                         contextAI ? 'translate-x-1.5 shadow-sm' : 'translate-x-0'
+                       }`} />
                     </div>
                   </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
@@ -536,9 +567,9 @@ const Features = () => {
                         setProactiveMode(!proactiveMode);
                       }}
                     >
-                      <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 transform ${
-                        proactiveMode ? 'right-0.25 shadow-sm' : 'left-0.25'
-                      }`} />
+                       <div className={`w-1 h-1 bg-white rounded-full absolute top-0.25 transition-all duration-300 ${
+                         proactiveMode ? 'translate-x-1.5 shadow-sm' : 'translate-x-0'
+                       }`} />
                     </div>
                   </div>
                  <p className={`text-[6px] transition-colors duration-200 ${
