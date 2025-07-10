@@ -481,8 +481,8 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* AI Agent Customization Interface */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+          {/* AI Agent Customization Interface - directly on card background */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 p-3">
             {/* AI Personality Section */}
             <div className="mb-3">
               <p className="text-slate-300 text-[8px] font-medium mb-2">AI Personality & Tone</p>
@@ -649,9 +649,6 @@ const Features = () => {
                </div>
              </div>
           </div>
-          
-          {/* Background accent elements */}
-          {/* Background accent elements - removed blue dot */}
         </div>,
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2"
   }, {
@@ -695,7 +692,8 @@ const Features = () => {
                     Week
                   </button>
                 </div>
-          </div>
+              </div>
+            </div>
             
             {/* Calendar Grid */}
             {calendarView === 'month' ? (
@@ -898,8 +896,8 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Smart AI Comparison Interface */}
-          <div className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col">
+          {/* Smart AI Comparison Interface - directly on card background */}
+          <div className="absolute top-2 left-2 right-2 bottom-2 p-3 flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-center mb-3">
               <div className="flex items-center gap-2">
@@ -908,7 +906,8 @@ const Features = () => {
                   <span className="text-[8px] text-emerald-400">vs</span>
                 </div>
                 <span className="text-emerald-400 text-[10px] font-semibold">Smart AI</span>
-          </div>
+              </div>
+            </div>
             
             {/* Comparison Grid */}
             <div className="flex-1 space-y-2">
@@ -955,7 +954,8 @@ const Features = () => {
                   <div className="bg-emerald-500/10 rounded px-2 py-1">
                     <p className="text-emerald-300 text-[7px] leading-tight">"Based on your last visit (haircut), I suggest: haircut + wash for €40?"</p>
                   </div>
-          </div>
+                </div>
+              </div>
               
               {/* Comparison Row 3 */}
               <div className="grid grid-cols-2 gap-2">
@@ -1072,7 +1072,6 @@ const Features = () => {
                 </div>
               </div>
             </div>
-            
           </div>
           
           {/* Background accent elements */}
@@ -1089,9 +1088,9 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Background container for WhatsApp notifications */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm overflow-hidden">
-            {/* First WhatsApp Notification */}
+          {/* WhatsApp notification - directly on card background */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 p-3 overflow-hidden">
+            {/* WhatsApp Notification */}
             <div className="bg-gray-800/90 rounded-lg shadow-sm border border-gray-700/50 p-3 cursor-pointer transition-all duration-300 ease-out hover:scale-105 hover:bg-gray-800 hover:border-gray-600/70 hover:shadow-lg hover:shadow-emerald-500/20 transform">
               {/* WhatsApp App Header */}
               <div className="flex items-center justify-between mb-1">
@@ -1117,7 +1116,6 @@ const Features = () => {
                 🔔 Reminder: Your appointment is tomorrow at 2:00 PM.
               </div>
             </div>
-
           </div>
           
           <div className="absolute top-4 right-4 w-6 h-1 bg-emerald-500/40 rounded-full animate-pulse" />
@@ -1132,8 +1130,8 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Analytics Section */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm flex items-start justify-center pt-6">
+          {/* Analytics Section - directly on card background */}
+          <div className="absolute top-3 left-3 right-3 bottom-3 p-4 flex items-start justify-center pt-6">
             {/* Main Analytics Grid - 4 Columns */}
             <div className="grid grid-cols-4 gap-3 w-full">
               {/* Response Time */}
@@ -1167,7 +1165,6 @@ const Features = () => {
           </div>
           
           {/* Subtle decorative elements */}
-          {/* Subtle decorative elements - removed blue dot */}
           <div className="absolute bottom-3 left-3 w-1.5 h-1.5 bg-slate-600/20 rounded-full" />
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-3 lg:row-end-4"
@@ -1180,7 +1177,7 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Translation Demo Interface */}
+          {/* Translation Demo Interface - directly on card background */}
           <TranslationDemo />
           
           {/* Globe icon and background accent elements */}
@@ -1261,17 +1258,18 @@ const Features = () => {
               </div>
               </div>
             </div>
-
           </div>
           
           {/* Timestamp positioned in middle area between carousel and BentoCard footer */}
           <div className="absolute bottom-14 left-4 right-4">
             <div className="text-center">
               <span className="text-slate-400 text-[10px]">Last update {new Date().toLocaleTimeString('en-US')}</span>
+            </div>
           </div>
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-4 lg:row-end-5"
   }];
+
   const stats = [{
     value: "24/7",
     label: "Always Working"
@@ -1282,6 +1280,7 @@ const Features = () => {
     value: "0%",
     label: "Human Errors"
   }];
+
   return <section className="py-12 md:py-24 px-3 md:px-4 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
       {/* Background decoration - Optimized for mobile */}
       <div className="absolute inset-0">
