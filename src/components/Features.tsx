@@ -984,30 +984,61 @@ const Features = () => {
               {/* Carousel Content */}
               <div className="flex-1 relative overflow-hidden">
               <div className="flex h-20 gap-3 px-2 mt-4">
-                {/* Today Stats */}
+                {/* Today Stats - Enhanced */}
                 <div className="flex-1">
-                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
-                    <Calendar className="h-4 w-4 text-emerald-400 mb-2" />
-                    <div className="text-white text-lg font-bold mb-1">5</div>
-                    <div className="text-emerald-300 text-xs font-medium">Today</div>
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:bg-emerald-600/30 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Calendar className="h-3 w-3 text-emerald-400" />
+                      <div className="text-white text-lg font-bold">5</div>
+                      <div className="text-emerald-300 text-[6px] opacity-70 group-hover:opacity-100">+2</div>
+                    </div>
+                    <div className="text-emerald-300 text-xs font-medium mb-1">Today</div>
+                    <div className="w-full bg-emerald-800/30 rounded-full h-1">
+                      <div className="bg-emerald-400 h-1 rounded-full transition-all duration-300 group-hover:bg-emerald-300" style={{width: '60%'}}></div>
+                    </div>
+                    <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100">€375 revenue</div>
                   </div>
                 </div>
 
-                {/* Active Now */}
+                {/* Active Now - Enhanced */}
                 <div className="flex-1">
-                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
-                    <Users className="h-4 w-4 text-emerald-400 mb-2" />
-                    <div className="text-white text-lg font-bold mb-1">3</div>
-                    <div className="text-emerald-300 text-xs font-medium">Active Now</div>
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:bg-emerald-600/30 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-1 mb-1">
+                      <div className="relative">
+                        <Users className="h-3 w-3 text-emerald-400" />
+                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                      </div>
+                      <div className="text-white text-lg font-bold">3</div>
+                      <CheckCircle className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100" />
+                    </div>
+                    <div className="text-emerald-300 text-xs font-medium mb-1">Active Now</div>
+                    <div className="flex gap-1">
+                      <div className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                      <div className="w-1 h-2 bg-emerald-400/70 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                      <div className="w-1 h-2 bg-emerald-400/50 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                    </div>
+                    <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100">2 confirmed</div>
                   </div>
                 </div>
 
-                {/* WhatsApp Live */}
+                {/* WhatsApp Live - Enhanced */}
                 <div className="flex-1">
-                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center">
-                    <MessageCircle className="h-4 w-4 text-emerald-400 mb-2" />
-                    <div className="text-white text-lg font-bold mb-1">17</div>
-                    <div className="text-emerald-300 text-xs font-medium">WhatsApp Live</div>
+                  <div className="h-full bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-3 flex flex-col items-center justify-center text-center hover:bg-emerald-600/30 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-1 mb-1">
+                      <div className="relative">
+                        <MessageCircle className="h-3 w-3 text-emerald-400" />
+                        <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce"></div>
+                      </div>
+                      <div className="text-white text-lg font-bold">17</div>
+                      <Activity className="h-2 w-2 text-emerald-400 opacity-70 group-hover:opacity-100" />
+                    </div>
+                    <div className="text-emerald-300 text-xs font-medium mb-1">WhatsApp</div>
+                    <div className="flex justify-center gap-0.5">
+                      <div className="text-emerald-400 text-[6px]">12 in</div>
+                      <div className="text-emerald-300 text-[6px]">•</div>
+                      <div className="text-emerald-400 text-[6px]">5 out</div>
+                    </div>
+                    <div className="text-emerald-400 text-[6px] opacity-70 group-hover:opacity-100">2m avg response</div>
                   </div>
                 </div>
               </div>
