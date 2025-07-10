@@ -370,6 +370,7 @@ const Features = () => {
   const handleSlideToggle = () => {
     setCurrentSlide(currentSlide === 0 ? 1 : 0);
   };
+
   const bookingFeatures = [{
     Icon: BoltIcon,
     name: "100% Automatic Bookings",
@@ -379,10 +380,8 @@ const Features = () => {
     background: <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
           
-          {/* Background container for iPhone mockup */}
-          <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
-            {/* iPhone Mockup - positioned in upper 70%, centered */}
-            <div className="absolute top-0 left-0 right-0 h-[75%] flex justify-center items-center">
+          {/* iPhone Mockup - positioned in upper 70%, centered */}
+          <div className="absolute top-6 left-6 right-6 h-[75%] flex justify-center items-center">
               <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
                 {/* iPhone outer frame */}
                 <div className="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-[2.5rem] p-[3px] shadow-2xl h-full border border-gray-700">
@@ -467,7 +466,6 @@ const Features = () => {
                 </div>
               </div>
             </div>
-          </div>
           
           {/* Background accent elements */}
           <div className="absolute top-4 right-4 w-6 h-6 bg-emerald-500/20 rounded-full blur-lg" />
@@ -697,8 +695,7 @@ const Features = () => {
                     Week
                   </button>
                 </div>
-              </div>
-            </div>
+          </div>
             
             {/* Calendar Grid */}
             {calendarView === 'month' ? (
@@ -911,8 +908,7 @@ const Features = () => {
                   <span className="text-[8px] text-emerald-400">vs</span>
                 </div>
                 <span className="text-emerald-400 text-[10px] font-semibold">Smart AI</span>
-              </div>
-            </div>
+          </div>
             
             {/* Comparison Grid */}
             <div className="flex-1 space-y-2">
@@ -959,8 +955,7 @@ const Features = () => {
                   <div className="bg-emerald-500/10 rounded px-2 py-1">
                     <p className="text-emerald-300 text-[7px] leading-tight">"Based on your last visit (haircut), I suggest: haircut + wash for €40?"</p>
                   </div>
-                </div>
-              </div>
+          </div>
               
               {/* Comparison Row 3 */}
               <div className="grid grid-cols-2 gap-2">
@@ -1273,7 +1268,6 @@ const Features = () => {
           <div className="absolute bottom-14 left-4 right-4">
             <div className="text-center">
               <span className="text-slate-400 text-[10px]">Last update {new Date().toLocaleTimeString('en-US')}</span>
-            </div>
           </div>
         </div>,
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-4 lg:row-end-5"
@@ -1300,26 +1294,30 @@ const Features = () => {
       
       <div className="max-w-6xl mx-auto relative z-10 px-6 md:px-8 lg:px-12">
         {/* Header - Mobile optimized */}
-        <div className="text-center mb-8 md:mb-20">
-          <h2 className="text-xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-            Everything You Need To{" "}
-            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-              Automate Bookings
-            </span>
+        <div className="text-center mb-12 md:mb-20">
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 md:mb-6 tracking-tight">
+            Features That Drive Results
           </h2>
-          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-            <span className="md:hidden">Features that maximize bookings and revenue</span>
-            <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
+          <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            Every feature designed to automate your booking process and grow your business
           </p>
         </div>
-        
-        {/* Bento Grid Features */}
-        <div className="mb-12 md:mb-32">
-          <BentoGrid>
-            {bookingFeatures.map((feature, idx) => <BentoCard key={idx} {...feature} />)}
-          </BentoGrid>
+
+        <BentoGrid className="auto-rows-[400px] lg:auto-rows-[460px] mb-12 md:mb-20">
+          {bookingFeatures.map((feature) => (
+            <BentoCard key={feature.name} {...feature} />
+          ))}
+        </BentoGrid>
+
+        {/* Stats Section - Mobile optimized */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-12">
+          {stats.map((stat, index) => (
+            <div key={index} className="text-center p-6 md:p-8 rounded-2xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-emerald-400 mb-2 md:mb-4">{stat.value}</div>
+              <div className="text-lg md:text-xl text-slate-300 font-medium">{stat.label}</div>
+            </div>
+          ))}
         </div>
-        
       </div>
     </section>;
 };

@@ -513,7 +513,7 @@ export function TranslationDemo() {
   const messages = chatMessages[selectedLanguage as keyof typeof chatMessages] || chatMessages.en;
 
   return (
-    <div className="absolute inset-3 bg-slate-800/60 rounded-lg border border-slate-700/50 backdrop-blur-sm p-3">
+    <div className="absolute inset-6 p-3">
       {/* Badge */}
       <div className="absolute -top-2 -right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
         200+ Languages
