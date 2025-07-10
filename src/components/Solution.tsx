@@ -57,8 +57,8 @@ const Solution = () => {
     });
   };
   return <section className="relative py-8 md:py-16 px-3 md:px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 overflow-hidden">
-      {/* Smooth top transition overlay */}
-      <div className="absolute top-0 left-0 right-0 h-16 md:h-24 bg-gradient-to-b from-gray-900 via-slate-900/80 to-transparent z-10"></div>
+      {/* Light top transition overlay */}
+      <div className="absolute top-0 left-0 right-0 h-12 md:h-16 bg-gradient-to-b from-slate-800/40 to-transparent z-10"></div>
       
       {/* Background decoration */}
       <div className="absolute inset-0">
