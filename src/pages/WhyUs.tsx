@@ -305,11 +305,11 @@ const WhyUs = () => {
         
         <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
         
-        <div className="max-w-7xl mx-auto text-center relative z-10">
-          <h1 className="text-2xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+        <div className="max-w-6xl mx-auto text-center relative z-10 px-4 md:px-6 lg:px-8">
+          <h1 className="text-2xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6">
             Why 10,000+ Businesses <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Choose WhatsApp Over Email</span>
           </h1>
-          <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto mb-8 md:mb-16 px-3 sm:px-0">
+          <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto mb-8 md:mb-16">
             <span className="md:hidden">
               <strong className="text-emerald-400">95% higher open rates, 18x faster responses, 50% fewer no-shows</strong>. 
               Smart businesses switch to WhatsApp.
@@ -320,7 +320,7 @@ const WhyUs = () => {
             </span>
           </p>
           
-          <div className="border border-emerald-500/20 rounded-2xl p-4 md:p-8 max-w-3xl mx-auto mx-3 sm:mx-auto">
+          <div className="border border-emerald-500/20 rounded-2xl p-4 md:p-8 max-w-3xl mx-auto">
             <p className="text-sm md:text-xl font-semibold text-emerald-300">
               <span className="md:hidden">
                 ✅ 1000+ case studies • 85% prefer messaging • Results in 24h
@@ -333,8 +333,8 @@ const WhyUs = () => {
         </div>
         
          {/* Social Proof Stats - More compact */}
-         <div className="max-w-6xl mx-auto mt-8 md:mt-16 relative z-10">
-           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 px-3 md:px-0">
+         <div className="max-w-6xl mx-auto mt-8 md:mt-16 relative z-10 px-4 md:px-6 lg:px-8">
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
              {proofPoints.map((stat, index) => (
                <ScrollAnimatedSection 
                  key={index} 
@@ -353,8 +353,8 @@ const WhyUs = () => {
       </section>
 
        {/* Complete WhatsApp vs Email Statistics */}
-       <ScrollAnimatedSection as="section" className="py-8 md:py-16 px-3 md:px-4">
-         <div className="max-w-6xl mx-auto">
+       <ScrollAnimatedSection as="section" className="py-8 md:py-16">
+         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
            <div className="text-center mb-6 md:mb-12">
              <h2 className="text-lg md:text-3xl font-bold text-white mb-3 md:mb-4 px-3 sm:px-0">
                <span className="text-green-400">Scientific Facts</span>: WhatsApp vs Email
@@ -435,8 +435,8 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Psychological Benefits Section */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4 bg-slate-800/20">
-        <div className="max-w-7xl mx-auto">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20 bg-slate-800/20">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               Why WhatsApp Works <span className="text-green-400">
@@ -479,8 +479,8 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Detailed Sector Case Studies */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               <span className="text-green-400">Proven Results</span> Across All Sectors
@@ -638,8 +638,8 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Competitive Advantages */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4 bg-slate-800/20">
-        <div className="max-w-7xl mx-auto">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20 bg-slate-800/20">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               Why We're Different From <span className="text-emerald-400">All Others</span>
@@ -722,8 +722,8 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Social Proof - Testimonials */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               <span className="md:hidden">Why Businesses Switch To Us</span>
@@ -821,8 +821,8 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Digital Transformation Conclusion */}
-      <ScrollAnimatedSection as="section" className="py-6 md:py-20 px-3 md:px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
-        <div className="max-w-7xl mx-auto">
+      <ScrollAnimatedSection as="section" className="py-6 md:py-20 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-4 md:mb-16">
             <h2 className="text-lg md:text-4xl font-bold text-white mb-2 md:mb-6 px-3 sm:px-0">
               The Future is <span className="text-green-400">Mobile-First</span>
