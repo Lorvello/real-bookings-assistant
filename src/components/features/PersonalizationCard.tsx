@@ -1,4 +1,3 @@
-
 import { GearIcon } from "@radix-ui/react-icons";
 import { useState, useRef, useCallback, useEffect } from "react";
 
@@ -98,8 +97,8 @@ export const PersonalizationCard = () => {
     <div className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
       
-      {/* AI Agent Customization Interface */}
-      <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-lg border border-slate-700/50 p-3 backdrop-blur-sm">
+      {/* AI Agent Customization Interface - placed directly on card background */}
+      <div className="absolute inset-3 flex flex-col">
         {/* AI Personality Section */}
         <div className="mb-3">
           <p className="text-slate-300 text-[8px] font-medium mb-2">AI Personality & Tone</p>

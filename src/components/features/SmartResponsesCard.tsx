@@ -6,8 +6,8 @@ export const SmartResponsesCard = () => {
     <div className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
       
-      {/* Smart AI Comparison Interface */}
-      <div className="absolute top-2 left-2 right-2 bottom-2 bg-slate-800/95 rounded-xl border border-slate-700/50 p-3 backdrop-blur-sm flex flex-col">
+      {/* Smart AI Comparison Interface - placed directly on card background */}
+      <div className="absolute top-2 left-2 right-2 bottom-2 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-center mb-3">
           <div className="flex items-center gap-2">

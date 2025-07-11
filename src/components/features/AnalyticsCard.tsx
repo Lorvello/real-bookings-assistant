@@ -4,8 +4,8 @@ export const AnalyticsCard = () => {
     <div className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
       
-      {/* Analytics Section */}
-      <div className="absolute top-3 left-3 right-3 bottom-3 bg-slate-800/95 rounded-xl border border-slate-700/50 p-4 backdrop-blur-sm flex items-start justify-center pt-6">
+      {/* Analytics Section - placed directly on card background */}
+      <div className="absolute top-3 left-3 right-3 bottom-3 flex items-start justify-center pt-6">
         {/* Main Analytics Grid - 4 Columns */}
         <div className="grid grid-cols-4 gap-3 w-full">
           {/* Response Time */}
