@@ -1,4 +1,4 @@
-import Navbar from "@/components/Navbar";
+import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import ProcessSection from "@/components/ProcessSection";
 import PainPoint from "@/components/PainPoint";
@@ -62,7 +62,7 @@ const Index = () => {
   return <div className="min-h-screen" style={{
     backgroundColor: 'hsl(217, 35%, 12%)'
   }}>
-      <Navbar />
+      <Header />
       <Hero />
       
 

@@ -1,0 +1,113 @@
+import React, { useState } from 'react';
+import { Menu, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { useAuth } from '@/hooks/useAuth';
+
+const Header = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const navItems = [
+    { name: 'Home', path: '/' },
+    { name: 'How it Works', path: '/how-it-works' },
+    { name: 'Why Us', path: '/why-us' },
+    { name: 'Pricing', path: '/#pricing' },
+    { name: 'FAQ', path: '/faq' }
+  ];
+
+  const handleNavClick = () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleGetStarted = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/signup');
+    }
+  };
+
+  return (
+    <header className="w-full pt-4 px-4 sm:px-6 lg:px-8">
+      <nav 
+        className="max-w-7xl mx-auto rounded-2xl px-8 py-4 shadow-lg"
+        style={{ backgroundColor: '#1E293B' }}
+      >
+        <div className="flex justify-between items-center">
+          {/* Logo/Brand */}
+          <Link 
+            to="/" 
+            onClick={handleNavClick}
+            className="text-white font-bold text-lg sm:text-xl hover:opacity-90 transition-opacity"
+          >
+            Bookings Assistant
+          </Link>
+          
+          {/* Desktop Navigation Links */}
+          <div className="hidden lg:flex items-center space-x-8">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.path}
+                onClick={handleNavClick}
+                className="text-slate-300 hover:text-white transition-colors text-base font-medium"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+          
+          {/* Desktop CTA Button */}
+          <div className="hidden lg:block">
+            <Button 
+              onClick={handleGetStarted}
+              className="bg-green-500 hover:bg-green-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            >
+              {user ? 'Dashboard' : 'Get Started'}
+            </Button>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="lg:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-slate-300 hover:text-white transition-colors p-2 -m-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Toggle mobile menu"
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden mt-4 pt-4 border-t border-slate-600">
+            <div className="flex flex-col space-y-4">
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  onClick={handleNavClick}
+                  className="text-slate-300 hover:text-white transition-colors text-base font-medium py-2"
+                >
+                  {item.name}
+                </Link>
+              ))}
+              <Button 
+                onClick={handleGetStarted}
+                className="bg-green-500 hover:bg-green-400 text-white px-6 py-2 rounded-lg font-medium transition-colors mt-4 w-full"
+              >
+                {user ? 'Dashboard' : 'Get Started'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </nav>
+    </header>
+  );
+};
+
+export default Header;
