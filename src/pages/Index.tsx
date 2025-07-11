@@ -10,10 +10,15 @@ import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 
 const Index = () => {
   return (
-    <BackgroundProvider preset="hero">
-      {/* Hero Section */}
-      <Header />
-      <HeroSection />
+    <BackgroundProvider preset="clean">
+      {/* Hero Section with green gradient background */}
+      <div className="relative">
+        <BackgroundProvider preset="hero" className="absolute inset-0 -z-10">
+          <div></div>
+        </BackgroundProvider>
+        <Header />
+        <HeroSection />
+      </div>
 
       {/* Solution Section */}
       <ScrollAnimatedSection delay={100}>
