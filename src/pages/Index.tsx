@@ -11,12 +11,14 @@ import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 const Index = () => {
   return (
     <div className="min-h-screen">
-      {/* All content with consistent dark background */}
-      <BackgroundProvider variant="dark">
+      {/* Hero Section with special gradient background */}
+      <BackgroundProvider variant="hero">
         <Header />
         <HeroSection />
-        
-        {/* Rest of content */}
+      </BackgroundProvider>
+
+      {/* Rest of content with consistent dark background */}
+      <BackgroundProvider variant="dark">
         {/* Solution Section */}
         <ScrollAnimatedSection delay={100}>
           <Solution />
