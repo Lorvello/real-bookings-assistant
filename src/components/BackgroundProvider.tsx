@@ -15,7 +15,7 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
     switch (variant) {
       case 'hero':
         return {
-          backgroundColor: '#0B1426',
+          backgroundColor: 'hsl(217, 35%, 12%)',
           background: `
             radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0),
             radial-gradient(ellipse 60% 40% at center top, rgba(34, 197, 94, 0.8), transparent 75%),
@@ -26,11 +26,11 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
         };
       case 'dark':
         return {
-          backgroundColor: '#0B1426'
+          backgroundColor: 'hsl(217, 35%, 12%)'
         };
       default:
         return {
-          backgroundColor: '#0B1426'
+          backgroundColor: 'hsl(217, 35%, 12%)'
         };
     }
   };
