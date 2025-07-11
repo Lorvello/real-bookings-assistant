@@ -16,21 +16,23 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
       case 'hero':
         return {
           background: `
-            radial-gradient(circle at center top, rgba(34, 197, 94, 0.8), transparent 30%),
-            radial-gradient(circle at top left, rgba(16, 185, 129, 0.6), transparent 40%),
-            radial-gradient(circle at top right, rgba(5, 150, 105, 0.6), transparent 40%),
+            radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0),
+            radial-gradient(circle at center top, rgba(34, 197, 94, 0.9), transparent 25%),
+            radial-gradient(circle at top left, rgba(16, 185, 129, 0.7), transparent 35%),
+            radial-gradient(circle at top right, rgba(5, 150, 105, 0.7), transparent 35%),
             linear-gradient(180deg, 
               #22C55E 0%,
-              #16A34A 5%,
-              #059669 10%,
-              #047857 15%,
-              #0F766E 20%,
-              #1E40AF 25%,
-              #1E293B 30%,
-              #0F172A 35%,
+              #16A34A 8%,
+              #059669 12%,
+              #047857 16%,
+              #064E3B 18%,
+              #1F2937 20%,
+              #111827 22%,
+              #0F172A 25%,
               #0F172A 100%
             )
-          `
+          `,
+          backgroundSize: '40px 40px, cover, cover, cover, cover'
         };
       case 'dark':
         return {
