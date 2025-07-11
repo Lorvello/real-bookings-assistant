@@ -26,7 +26,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
         ref={ref}
         className={cn("flex flex-col items-center", className)}
         style={{
-          background: "linear-gradient(to bottom, hsl(160, 84%, 39%) 0%, hsl(160, 84%, 39%) 30%, hsl(217, 35%, 12%) 70%, hsl(217, 35%, 12%) 100%)"
+          background: "linear-gradient(to bottom, hsl(160, 84%, 39%) 0%, hsl(160, 84%, 39%) 10%, hsl(217, 35%, 12%) 15%, hsl(217, 35%, 12%) 100%)"
         }}
         {...props}
       >
