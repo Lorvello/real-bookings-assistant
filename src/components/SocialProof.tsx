@@ -103,17 +103,7 @@ const SocialProof = () => {
   };
 
   return (
-    <section className="py-12 md:py-24 relative overflow-hidden" style={{
-      backgroundColor: 'hsl(217, 35%, 12%)'
-    }}>
-      {/* Background decoration */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
-      </div>
-      
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
+    <section className="py-12 md:py-24 relative overflow-hidden">
       
       <div className="max-w-6xl mx-auto relative z-10 px-6 md:px-8 lg:px-12">
         {/* Header */}

@@ -1,45 +1,78 @@
 import React from 'react';
+import { backgroundPresets, generateGradientCSS, generateEffectCSS, generateEffectSizes } from '@/config/theme';
 
 interface BackgroundProviderProps {
-  variant?: 'hero' | 'page' | 'dark';
+  preset?: keyof typeof backgroundPresets;
+  baseColor?: string;
+  gradients?: any[];
+  effects?: any[];
+  decorations?: any[];
   children: React.ReactNode;
   className?: string;
 }
 
 const BackgroundProvider: React.FC<BackgroundProviderProps> = ({ 
-  variant = 'dark', 
+  preset,
+  baseColor,
+  gradients = [],
+  effects = [],
+  decorations = [],
   children,
   className = ""
 }) => {
+  // Use preset if provided, otherwise use individual props
+  const config = preset ? backgroundPresets[preset] : {
+    baseColor: baseColor || 'hsl(217, 35%, 12%)',
+    gradients,
+    effects,
+    decorations
+  };
+
   const getBackgroundStyle = () => {
-    switch (variant) {
-      case 'hero':
-        return {
-          backgroundColor: 'hsl(217, 35%, 12%)',
-          background: `
-            radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0),
-            radial-gradient(ellipse 60% 40% at center top, rgba(34, 197, 94, 0.8), transparent 75%),
-            radial-gradient(ellipse 50% 60% at top left, rgba(34, 197, 94, 0.6), transparent 65%),
-            radial-gradient(ellipse 50% 60% at top right, rgba(34, 197, 94, 0.6), transparent 65%)
-          `,
-          backgroundSize: '40px 40px, cover, cover, cover'
-        };
-      case 'dark':
-        return {
-          backgroundColor: 'hsl(217, 35%, 12%)'
-        };
-      default:
-        return {
-          backgroundColor: 'hsl(217, 35%, 12%)'
-        };
+    const style: React.CSSProperties = {
+      backgroundColor: config.baseColor
+    };
+
+    // Add gradients and effects if they exist
+    if (config.gradients.length > 0 || config.effects.length > 0) {
+      const backgroundImages = [];
+      const backgroundSizes = [];
+
+      // Add effects first (they should be on top)
+      if (config.effects.length > 0) {
+        backgroundImages.push(generateEffectCSS(config.effects));
+        backgroundSizes.push(generateEffectSizes(config.effects));
+      }
+
+      // Add gradients
+      if (config.gradients.length > 0) {
+        backgroundImages.push(generateGradientCSS(config.gradients));
+        backgroundSizes.push('cover');
+      }
+
+      if (backgroundImages.length > 0) {
+        style.background = backgroundImages.join(', ');
+        style.backgroundSize = backgroundSizes.join(', ');
+      }
     }
+
+    return style;
   };
 
   return (
     <div 
-      className={`min-h-screen ${className}`}
+      className={`min-h-screen relative ${className}`}
       style={getBackgroundStyle()}
     >
+      {/* Render decorative elements */}
+      {config.decorations.map((decoration, index) => (
+        <div
+          key={index}
+          className={`absolute ${decoration.position} ${decoration.size} ${decoration.color ? '' : 'bg-emerald-500/5'} rounded-full blur-${decoration.blur}`}
+          style={decoration.color ? { backgroundColor: decoration.color } : {}}
+        />
+      ))}
+      
       {children}
     </div>
   );
