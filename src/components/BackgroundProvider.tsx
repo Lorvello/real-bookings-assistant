@@ -17,18 +17,17 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
         return {
           background: `
             radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0),
-            radial-gradient(circle at center top, rgba(34, 197, 94, 0.9), transparent 25%),
-            radial-gradient(circle at top left, rgba(16, 185, 129, 0.7), transparent 35%),
-            radial-gradient(circle at top right, rgba(5, 150, 105, 0.7), transparent 35%),
+            radial-gradient(ellipse 80% 60% at center top, rgba(34, 197, 94, 0.6), transparent 70%),
+            radial-gradient(ellipse 70% 50% at top left, rgba(16, 185, 129, 0.4), transparent 65%),
+            radial-gradient(ellipse 70% 50% at top right, rgba(5, 150, 105, 0.4), transparent 65%),
             linear-gradient(180deg, 
               #22C55E 0%,
-              #16A34A 8%,
-              #059669 12%,
-              #047857 16%,
-              #064E3B 18%,
-              #1F2937 20%,
-              #111827 22%,
-              #0F172A 25%,
+              #16A34A 12%,
+              #059669 25%,
+              #047857 40%,
+              #065F46 55%,
+              #064E3B 70%,
+              #1F2937 85%,
               #0F172A 100%
             )
           `,
