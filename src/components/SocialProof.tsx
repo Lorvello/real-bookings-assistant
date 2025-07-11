@@ -103,7 +103,9 @@ const SocialProof = () => {
   };
 
   return (
-    <section className="py-12 md:py-24 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+    <section className="py-12 md:py-24 relative overflow-hidden" style={{
+      backgroundColor: 'hsl(217, 35%, 12%)'
+    }}>
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
