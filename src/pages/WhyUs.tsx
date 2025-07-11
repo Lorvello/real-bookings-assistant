@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
+import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown, Mail, BarChart3, Timer, UserCheck, Heart, Brain, Smartphone, Gauge } from 'lucide-react';
 import { Pricing } from '@/components/Pricing';
@@ -293,7 +293,7 @@ const WhyUs = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
-      <Navbar />
+      <Header />
       
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-12 md:py-24 px-3 md:px-4 relative overflow-hidden">

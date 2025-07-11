@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import Navbar from '@/components/Navbar';
+import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import {
   Accordion,
@@ -295,7 +295,7 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
-      <Navbar />
+      <Header />
       
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-12 md:py-24 px-4 md:px-6 lg:px-8 relative overflow-hidden">

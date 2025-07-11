@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Navbar from '@/components/Navbar';
+import Header from '@/components/Header';
 import ProcessHighlights from '@/components/how-it-works/ProcessHighlights';
 import AITestSection from '@/components/how-it-works/AITestSection';
 import { Pricing } from '@/components/Pricing';
@@ -9,7 +9,7 @@ import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 const SeeHowItWorks = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
-      <Navbar />
+      <Header />
       
       {/* Hero Section - Increased mobile padding */}
       <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-12 md:py-24 px-3 md:px-4 relative overflow-hidden">
