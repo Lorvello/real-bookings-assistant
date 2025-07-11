@@ -1,6 +1,6 @@
 
 import { ArrowRight } from "lucide-react";
-import globalNetworkImage from "@/assets/whatsapp-global-network.jpg";
+const globalNetworkImage = "/lovable-uploads/a19bc752-d6ec-4498-944d-aa62ff083b1f.png";
 import automationImage from "@/assets/whatsapp-24-7-automation.jpg";
 import paymentSuccessImage from "@/assets/whatsapp-payment-success.jpg";
 
