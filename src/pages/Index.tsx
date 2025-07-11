@@ -60,7 +60,7 @@ const Index = () => {
     setIsAutoScrolling(false);
   };
   return <div className="min-h-screen bg-gradient-to-b from-emerald-500 via-emerald-500 to-slate-900" style={{
-    backgroundImage: 'linear-gradient(to bottom, hsl(160, 84%, 39%) 0%, hsl(160, 84%, 39%) 20%, hsl(160, 84%, 39%) 30%, hsl(217, 33%, 17%) 60%, hsl(222, 84%, 5%) 100%)'
+    backgroundImage: 'linear-gradient(to bottom, hsl(160, 84%, 39%) 0%, hsl(160, 84%, 39%) 15%, hsl(217, 33%, 17%) 25%, hsl(222, 84%, 5%) 100%)'
   }}>
       <Navbar />
       <Hero />
