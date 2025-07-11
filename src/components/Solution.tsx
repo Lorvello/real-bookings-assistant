@@ -93,9 +93,11 @@ const Solution = () => {
         </div>
       </div>
       
-      {/* WhatsApp Benefits Component */}
-      <div className="animate-fade-in" style={{ animationDelay: '1s', animationFillMode: 'both' }}>
-        <WhatsAppBenefits className="pt-8 md:pt-16" />
+      {/* Enhanced Benefits Section with Visual Separation */}
+      <div className="relative mt-8 md:mt-16">
+        {/* Visual separator with subtle gradient */}
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent"></div>
+        <WhatsAppBenefits className="pt-12 md:pt-20" />
       </div>
     </section>
   );
