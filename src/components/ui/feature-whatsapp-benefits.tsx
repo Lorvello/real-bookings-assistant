@@ -2,7 +2,7 @@
 import { ArrowRight } from "lucide-react";
 const globalNetworkImage = "/lovable-uploads/a19bc752-d6ec-4498-944d-aa62ff083b1f.png";
 const automationImage = "/lovable-uploads/c4bcff68-784e-45d1-9ab5-01bf16fcdf6a.png";
-import paymentSuccessImage from "@/assets/whatsapp-payment-success.jpg";
+const paymentSuccessImage = "/lovable-uploads/ca02afe5-2602-415b-8d13-928d829aa206.png";
 
 interface Benefit {
   id: string;
