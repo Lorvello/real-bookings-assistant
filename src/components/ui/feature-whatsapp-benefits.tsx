@@ -58,7 +58,7 @@ export const WhatsAppBenefits = ({
   // Use the benefits directly with the imported images - no need for dynamic generation
   const enhancedBenefits = benefits;
   return (
-    <section className={`bg-slate-900 ${className}`}>
+    <section className={className}>
       <div className="container max-w-5xl mx-auto px-8 lg:px-16">
         <div className="grid gap-4 md:grid-cols-2 lg:gap-6">
           {enhancedBenefits[0] && (

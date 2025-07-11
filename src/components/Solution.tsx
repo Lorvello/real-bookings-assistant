@@ -75,27 +75,28 @@ const Solution = () => {
       <div className="max-w-6xl mx-auto relative z-20 px-4 md:px-6 lg:px-8">
         {/* Header - Compact mobile with improved spacing */}
         <div className="text-center mb-6 md:mb-16 pt-4 md:pt-8">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 md:px-6 md:py-3 mb-3 md:mb-8 backdrop-blur-sm">
-            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <span className="text-emerald-300 text-xs md:text-sm font-medium">The Solution</span>
-          </div>
-          
           <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
             Meet Your <span className="text-emerald-400">24/7</span><br />
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
               Booking Assistant
             </span>
           </h2>
-          <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
+          <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
             <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
             <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
             faster than any human could.</span>
+          </p>
+          
+          <p className="text-sm md:text-lg text-emerald-400 font-semibold tracking-tight">
+            Here's what makes it revolutionary:
           </p>
         </div>
       </div>
       
       {/* WhatsApp Benefits Component */}
-      <WhatsAppBenefits className="pt-8 md:pt-16" />
+      <div className="animate-fade-in" style={{ animationDelay: '1s', animationFillMode: 'both' }}>
+        <WhatsAppBenefits className="pt-8 md:pt-16" />
+      </div>
     </section>
   );
 };
