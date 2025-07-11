@@ -33,7 +33,7 @@ const Header = () => {
   return (
     <header className="w-full pt-4 px-4 sm:px-6 lg:px-8">
       <nav 
-        className="max-w-7xl mx-auto rounded-2xl px-8 py-4 shadow-lg"
+        className="max-w-7xl mx-auto mx-6 rounded-3xl px-8 py-4 shadow-lg"
         style={{ backgroundColor: '#1E293B' }}
       >
         <div className="flex justify-between items-center">
@@ -64,7 +64,7 @@ const Header = () => {
           <div className="hidden lg:block">
             <Button 
               onClick={handleGetStarted}
-              className="bg-green-500 hover:bg-green-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
             >
               {user ? 'Dashboard' : 'Get Started'}
             </Button>
@@ -98,7 +98,7 @@ const Header = () => {
               ))}
               <Button 
                 onClick={handleGetStarted}
-                className="bg-green-500 hover:bg-green-400 text-white px-6 py-2 rounded-lg font-medium transition-colors mt-4 w-full"
+                className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl mt-4 w-full"
               >
                 {user ? 'Dashboard' : 'Get Started'}
               </Button>
