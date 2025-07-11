@@ -69,7 +69,23 @@ export const WhatsAppBenefits = ({
         <div ref={ref} className="container max-w-5xl mx-auto px-8 lg:px-16 relative z-10">
           <div className="grid gap-4 md:grid-cols-2 lg:gap-6">
             {enhancedBenefits[0] && (
-              <div className={`group md:col-span-2 flex flex-col md:flex-row overflow-hidden rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-xl shadow-black/30 transition-all duration-500 ease-out hover:scale-[1.05] hover:-translate-y-4 hover:shadow-2xl hover:shadow-emerald-500/40 hover:border-emerald-400/80 hover:from-slate-800/95 hover:to-slate-900/85 hover:bg-red-500/20 will-change-transform cursor-pointer ${isVisible ? 'animate-card-fade-1' : 'opacity-0'}`}>
+              <div 
+                className={`group md:col-span-2 flex flex-col md:flex-row overflow-hidden rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-xl shadow-black/30 transition-all duration-300 ease-out cursor-pointer ${isVisible ? 'animate-card-fade-1' : 'opacity-0'}`}
+                style={{
+                  transform: 'scale(1)',
+                  transformStyle: 'preserve-3d',
+                  backfaceVisibility: 'hidden',
+                  willChange: 'transform'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.03) !important';
+                  e.currentTarget.style.outline = '2px solid red';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.outline = 'none';
+                }}
+              >
                 <div className="md:flex-1 md:min-h-[16rem] lg:min-h-[18rem] xl:min-h-[20rem] overflow-hidden rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
                   <img
                     src={enhancedBenefits[0].image}
@@ -90,7 +106,22 @@ export const WhatsAppBenefits = ({
             {enhancedBenefits.slice(1).map((benefit, index) => (
               <div
                 key={benefit.id}
-                className={`group flex flex-col overflow-hidden rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-lg shadow-black/30 transition-all duration-500 ease-out hover:scale-[1.05] hover:-translate-y-4 hover:shadow-xl hover:shadow-emerald-500/40 hover:border-emerald-400/80 hover:from-slate-800/95 hover:to-slate-900/85 hover:bg-blue-500/20 will-change-transform cursor-pointer ${isVisible ? (index === 0 ? 'animate-card-fade-2' : 'animate-card-fade-3') : 'opacity-0'}`}
+                className={`group flex flex-col overflow-hidden rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-lg shadow-black/30 transition-all duration-300 ease-out cursor-pointer ${isVisible ? (index === 0 ? 'animate-card-fade-2' : 'animate-card-fade-3') : 'opacity-0'}`}
+                style={{
+                  transform: 'scale(1)',
+                  transformStyle: 'preserve-3d',
+                  backfaceVisibility: 'hidden',
+                  willChange: 'transform'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.03) !important';
+                  e.currentTarget.style.outline = '2px solid blue';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.outline = 'none';
+                }}
+              
               >
                 <div className="overflow-hidden h-52 md:h-56 lg:h-60 rounded-t-xl">
                   <img
