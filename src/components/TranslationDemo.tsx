@@ -217,8 +217,8 @@ const chatMessages = {
     ai: "వచ్చే మంగళవారం మధ్యాహ్నం 2 గంటలకు మీ అపాయింట్‌మెంట్ ఉందని చూస్తున్నాను. దాన్ని మీ కోసం రద్దు చేస్తాను."
   },
   ml: {
-    customer: "എനിക്ക് എന്റെ അപോയിന്റ്മെന്റ് റദ്ദാക്കണം",
-    ai: "അടുത്ത ചൊവ്വാഴ്ച ഉച്ചകഴിഞ്ഞ് 2 മണിക്ക് നിങ്ങളുടെ അപോയിന്റ്മെന്റ് ഉണ്ടെന്ന് കാണുന്നു. ഞാൻ അത് നിങ്ങൾക്കായി റദ്ദാക്കാം."
+    customer: "എനിക്ക് എന്റെ അപ്പോയിന്റ്മെന്റ് റദ്ദാക്കണം",
+    ai: "അടുത്ത ചൊവ്വാഴ്ച ഉച്ചകഴിഞ്ഞ് 2 മണിക്ക് നിങ്ങളുടെ അപ്പോയിന്റ്മെന്റ് ഉണ്ടെന്ന് കാണുന്നു. ഞാൻ അത് നിങ്ങൾക്കായി റദ്ദാക്കാം."
   },
   kn: {
     customer: "ನನ್ನ ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್ ರದ್ದುಮಾಡಲು ಬಯಸುತ್ತೇನೆ",
@@ -226,7 +226,7 @@ const chatMessages = {
   },
   gu: {
     customer: "હું મારી અપોઇન્ટમેન્ટ રદ કરવા માંગુ છું",
-    ai: "હું જોઉં છું કે અગલે મંગળવારે બપોરે 2 વાગ્યે તમારી અપોઇન્ટમેન્ટ છે. હું તમારા માટે તેને રદ કરીશ."
+    ai: "હું જોઉં છું કે આવતા મંગળવારે બપોરે 2 વાગ્યે તમારી અપોઇન્ટમેન્ટ છે. હું તમારા માટે તેને રદ કરીશ."
   },
   pa: {
     customer: "ਮੈਂ ਆਪਣੀ ਮੁਲਾਕਾਤ ਰੱਦ ਕਰਨਾ ਚਾਹੁੰਦਾ ਹਾਂ",
@@ -513,7 +513,7 @@ export function TranslationDemo() {
   const messages = chatMessages[selectedLanguage as keyof typeof chatMessages] || chatMessages.en;
 
   return (
-    <div className="absolute inset-3 p-3">
+    <div className="absolute inset-3 bg-slate-800/60 rounded-lg border border-slate-700/50 backdrop-blur-sm p-3">
       {/* Badge */}
       <div className="absolute -top-2 -right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
         200+ Languages
