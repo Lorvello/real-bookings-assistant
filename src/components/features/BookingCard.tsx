@@ -1,5 +1,5 @@
 
-import { BoltIcon } from "@radix-ui/react-icons";
+import { LightningBoltIcon as BoltIcon } from "@radix-ui/react-icons";
 
 export const BookingCard = () => {
   return (
