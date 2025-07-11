@@ -9,11 +9,13 @@ import { Bot, Sparkles } from 'lucide-react';
 
 const ProcessSection = () => {
   return (
-    <section className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-16 md:py-20 relative overflow-hidden">
+    <section className="py-16 md:py-20 relative overflow-hidden" style={{
+      backgroundColor: 'hsl(217, 35%, 12%)'
+    }}>
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
       </div>
       
       {/* Grid pattern overlay */}
