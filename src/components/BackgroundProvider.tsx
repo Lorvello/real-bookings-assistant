@@ -19,8 +19,8 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
           background: `
             radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0),
             radial-gradient(ellipse 60% 40% at center top, rgba(34, 197, 94, 0.8), transparent 70%),
-            radial-gradient(ellipse 48% 38% at top left, rgba(16, 185, 129, 0.8), transparent 65%),
-            radial-gradient(ellipse 48% 38% at top right, rgba(5, 150, 105, 0.8), transparent 65%)
+            radial-gradient(ellipse 48% 38% at top left, rgba(16, 185, 129, 0.9), transparent 65%),
+            radial-gradient(ellipse 48% 38% at top right, rgba(5, 150, 105, 0.9), transparent 65%)
           `,
           backgroundSize: '40px 40px, cover, cover, cover'
         };
