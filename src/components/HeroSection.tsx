@@ -4,7 +4,10 @@ import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "l
 
 const HeroSection: React.FC = () => {
   return (
-    <section className="relative min-h-screen overflow-hidden flex items-center justify-center">
+    <section 
+      className="relative min-h-screen overflow-hidden flex items-center justify-center"
+      style={{ backgroundColor: 'hsl(217, 35%, 12%)' }}
+    >
       
       <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center z-10">
         {/* Floating badge */}
