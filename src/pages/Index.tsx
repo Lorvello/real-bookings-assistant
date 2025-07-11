@@ -59,7 +59,9 @@ const Index = () => {
     setActiveCarouselIndex(index);
     setIsAutoScrolling(false);
   };
-  return <div className="min-h-screen bg-slate-900">
+  return <div className="min-h-screen" style={{
+    backgroundColor: 'hsl(220, 39%, 4%)'
+  }}>
       <Navbar />
       <Hero />
       
