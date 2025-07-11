@@ -5,7 +5,22 @@ import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "l
 const Hero = () => {
   return (
     <section className="relative min-h-[60vh] md:min-h-screen overflow-hidden flex items-center justify-center" style={{
-      backgroundImage: 'linear-gradient(to bottom, hsl(160, 84%, 39%) 0%, hsl(158, 75%, 35%) 15%, hsl(155, 65%, 30%) 30%, hsl(150, 50%, 25%) 50%, hsl(220, 45%, 20%) 70%, hsl(217, 35%, 12%) 100%)'
+      background: `
+        radial-gradient(circle at top-left, rgba(34, 197, 94, 0.4), transparent 50%),
+        radial-gradient(circle at top-right, rgba(16, 185, 129, 0.3), transparent 50%),
+        radial-gradient(circle at bottom-left, rgba(30, 64, 175, 0.2), transparent 60%),
+        radial-gradient(circle at bottom-right, rgba(15, 23, 42, 0.3), transparent 60%),
+        linear-gradient(180deg, 
+          #22C55E 0%,
+          #16A34A 8%,
+          #059669 15%,
+          #0D9488 25%,
+          #0F766E 35%,
+          #1E40AF 50%,
+          #1E293B 70%,
+          #0F172A 100%
+        )
+      `
     }}>
       {/* Animated background elements - Optimized for mobile */}
       <div className="absolute inset-0">
