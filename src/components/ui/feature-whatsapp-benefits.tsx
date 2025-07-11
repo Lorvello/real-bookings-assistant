@@ -48,19 +48,6 @@ export const WhatsAppBenefits = ({
   return (
     <section className="py-32 bg-slate-900">
       <div className="container flex flex-col gap-16 lg:px-16">
-        <div className="lg:max-w-sm">
-          <h2 className="mb-3 text-xl font-semibold text-white md:mb-4 md:text-4xl lg:mb-6">
-            {heading}
-          </h2>
-          <p className="mb-8 text-slate-400 lg:text-lg">{description}</p>
-          <a
-            href={linkUrl}
-            className="group flex items-center text-xs font-medium text-emerald-400 hover:text-emerald-300 md:text-base lg:text-lg"
-          >
-            {linkText}
-            <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
-          </a>
-        </div>
         <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
           {benefits[0] && (
             <div className="flex flex-col overflow-clip rounded-xl border border-slate-700 bg-slate-800 md:col-span-2 md:grid md:grid-cols-2 md:gap-6 lg:gap-8">
