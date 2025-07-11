@@ -59,9 +59,7 @@ const Index = () => {
     setActiveCarouselIndex(index);
     setIsAutoScrolling(false);
   };
-  return <div className="min-h-screen bg-gradient-to-b from-emerald-500 via-emerald-500 to-slate-900" style={{
-    backgroundImage: 'linear-gradient(to bottom, hsl(160, 84%, 39%) 0%, hsl(160, 84%, 39%) 8%, hsl(217, 33%, 17%) 18%, hsl(222, 84%, 5%) 100%)'
-  }}>
+  return <div className="min-h-screen bg-slate-900">
       <Navbar />
       <Hero />
       

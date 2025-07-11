@@ -4,7 +4,9 @@ import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "l
 
 const Hero = () => {
   return (
-    <section className="relative min-h-[60vh] md:min-h-screen overflow-hidden flex items-center justify-center">
+    <section className="relative min-h-[60vh] md:min-h-screen overflow-hidden flex items-center justify-center" style={{
+      backgroundImage: 'linear-gradient(to bottom, hsl(160, 84%, 39%) 0%, hsl(160, 84%, 39%) 30%, hsl(217, 33%, 17%) 70%, hsl(222, 84%, 5%) 100%)'
+    }}>
       {/* Animated background elements - Optimized for mobile */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl animate-pulse"></div>
