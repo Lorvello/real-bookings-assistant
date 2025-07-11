@@ -59,7 +59,7 @@ const Solution = () => {
     });
   };
   return (
-    <section className="relative py-8 md:py-16 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 overflow-hidden">
+    <section className="relative py-8 md:py-16 bg-gradient-to-b from-slate-800 via-slate-900 via-emerald-900/30 to-slate-900 overflow-hidden">
       {/* Light top transition overlay */}
       <div className="absolute top-0 left-0 right-0 h-12 md:h-16 bg-gradient-to-b from-slate-800/40 to-transparent z-10"></div>
       

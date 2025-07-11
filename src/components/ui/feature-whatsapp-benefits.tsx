@@ -92,7 +92,7 @@ export const WhatsAppBenefits = ({
             {enhancedBenefits.slice(1).map((benefit, index) => (
               <div
                 key={benefit.id}
-                className={`group flex flex-col overflow-hidden rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-800/90 to-slate-900/80 backdrop-blur-lg shadow-lg shadow-black/20 transition-all duration-500 ease-out hover:scale-[1.03] hover:-translate-y-2 hover:shadow-xl hover:shadow-emerald-500/20 hover:border-emerald-400/50 hover:from-slate-800/95 hover:to-slate-900/85 ${isVisible ? (index === 0 ? 'animate-card-fade-2' : 'animate-card-fade-3') : 'opacity-0'}`}
+                className={`group flex flex-col overflow-hidden rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-800/90 to-slate-900/80 backdrop-blur-lg shadow-lg shadow-black/20 transition-all duration-500 ease-out hover:scale-[1.02] hover:-translate-y-2 hover:shadow-xl hover:shadow-emerald-500/20 hover:border-emerald-400/50 hover:from-slate-800/95 hover:to-slate-900/85 ${isVisible ? (index === 0 ? 'animate-card-fade-2' : 'animate-card-fade-3') : 'opacity-0'}`}
               >
                 <div className="overflow-hidden h-52 md:h-56 lg:h-60 rounded-t-xl">
                   <img
