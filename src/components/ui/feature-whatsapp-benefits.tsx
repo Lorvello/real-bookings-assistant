@@ -57,23 +57,23 @@ export const WhatsAppBenefits = ({
   // Use the benefits directly with the imported images - no need for dynamic generation
   const enhancedBenefits = benefits;
   return (
-    <section className="py-32 bg-slate-900">
-      <div className="container flex flex-col gap-16 lg:px-16">
-        <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
+    <section className="py-24 bg-slate-900">
+      <div className="container max-w-5xl mx-auto px-8 lg:px-16">
+        <div className="grid gap-4 md:grid-cols-2 lg:gap-6">
           {enhancedBenefits[0] && (
-            <div className="group flex flex-col overflow-clip rounded-xl border border-slate-700 bg-slate-800 md:col-span-2 md:grid md:grid-cols-2 md:gap-6 lg:gap-8 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/10">
-              <div className="md:min-h-[24rem] lg:min-h-[28rem] xl:min-h-[32rem] overflow-hidden">
+            <div className="group flex flex-col overflow-hidden rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-800/80 to-slate-800/60 backdrop-blur-sm md:col-span-2 md:grid md:grid-cols-2 md:gap-4 lg:gap-6 transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/20 hover:border-emerald-400/50">
+              <div className="md:min-h-[16rem] lg:min-h-[18rem] xl:min-h-[20rem] overflow-hidden">
                 <img
                   src={enhancedBenefits[0].image}
                   alt={enhancedBenefits[0].title}
-                  className="aspect-[16/9] h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                  className="aspect-[16/9] h-full w-full object-cover object-center transition-all duration-500 ease-out group-hover:scale-110 group-hover:brightness-110"
                 />
               </div>
-              <div className="flex flex-col justify-center px-6 py-8 md:px-8 md:py-10 lg:px-10 lg:py-12">
-                <h3 className="mb-3 text-lg font-semibold text-white md:mb-4 md:text-2xl lg:mb-6 transition-colors duration-300 group-hover:text-emerald-300">
+              <div className="flex flex-col justify-center px-5 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
+                <h3 className="mb-2 text-lg font-semibold text-white md:mb-3 md:text-xl lg:mb-4 lg:text-2xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-sm">
                   {enhancedBenefits[0].title}
                 </h3>
-                <p className="text-slate-400 lg:text-lg transition-colors duration-300 group-hover:text-slate-300">
+                <p className="text-slate-400 text-sm md:text-base lg:text-lg leading-relaxed transition-all duration-300 group-hover:text-slate-300">
                   {enhancedBenefits[0].description}
                 </p>
               </div>
@@ -82,20 +82,20 @@ export const WhatsAppBenefits = ({
           {enhancedBenefits.slice(1).map((benefit) => (
             <div
               key={benefit.id}
-              className="group flex flex-col overflow-clip rounded-xl border border-slate-700 bg-slate-800 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/10"
+              className="group flex flex-col overflow-hidden rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-800/80 to-slate-800/60 backdrop-blur-sm transition-all duration-300 ease-out hover:scale-[1.05] hover:-translate-y-2 hover:shadow-xl hover:shadow-emerald-500/15 hover:border-emerald-400/40"
             >
-              <div className="overflow-hidden">
+              <div className="overflow-hidden h-48 md:h-52">
                 <img
                   src={benefit.image}
                   alt={benefit.title}
-                  className="aspect-[16/9] h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                  className="h-full w-full object-cover object-center transition-all duration-500 ease-out group-hover:scale-110 group-hover:brightness-110"
                 />
               </div>
-              <div className="px-6 py-8 md:px-8 md:py-10 lg:px-10 lg:py-12">
-                <h3 className="mb-3 text-lg font-semibold text-white md:mb-4 md:text-2xl lg:mb-6 transition-colors duration-300 group-hover:text-emerald-300">
+              <div className="px-5 py-6 md:px-6 md:py-7 lg:px-7 lg:py-8">
+                <h3 className="mb-2 text-lg font-semibold text-white md:mb-3 md:text-xl lg:mb-4 transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-sm">
                   {benefit.title}
                 </h3>
-                <p className="text-slate-400 lg:text-lg transition-colors duration-300 group-hover:text-slate-300">
+                <p className="text-slate-400 text-sm md:text-base leading-relaxed transition-all duration-300 group-hover:text-slate-300">
                   {benefit.description}
                 </p>
               </div>
