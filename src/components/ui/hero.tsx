@@ -27,9 +27,20 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
         className={cn("flex flex-col items-center", className)}
         style={{
           background: `
-            radial-gradient(ellipse 15% 8% at top left, hsl(160, 84%, 39%) 0%, transparent 10%),
-            radial-gradient(ellipse 15% 8% at top right, hsl(160, 84%, 39%) 0%, transparent 10%),
-            hsl(217, 35%, 12%)
+            radial-gradient(circle at center top, rgba(34, 197, 94, 0.8), transparent 30%),
+            radial-gradient(circle at top left, rgba(16, 185, 129, 0.6), transparent 40%),
+            radial-gradient(circle at top right, rgba(5, 150, 105, 0.6), transparent 40%),
+            linear-gradient(180deg, 
+              #22C55E 0%,
+              #16A34A 5%,
+              #059669 10%,
+              #047857 15%,
+              #0F766E 20%,
+              #1E40AF 25%,
+              #1E293B 30%,
+              #0F172A 35%,
+              #0F172A 100%
+            )
           `
         }}
         {...props}
