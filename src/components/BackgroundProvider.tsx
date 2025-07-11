@@ -7,7 +7,7 @@ interface BackgroundProviderProps {
 }
 
 const BackgroundProvider: React.FC<BackgroundProviderProps> = ({ 
-  variant = 'page', 
+  variant = 'dark', 
   children,
   className = ""
 }) => {
