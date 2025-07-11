@@ -95,7 +95,7 @@ const Solution = () => {
       </div>
       
       {/* WhatsApp Benefits Component */}
-      <WhatsAppBenefits />
+      <WhatsAppBenefits className="pt-8 md:pt-16" />
     </section>
   );
 };
