@@ -10,43 +10,37 @@ import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section with special gradient background */}
-      <BackgroundProvider variant="hero">
-        <Header />
-        <HeroSection />
-      </BackgroundProvider>
+    <BackgroundProvider variant="dark">
+      <Header />
+      <HeroSection />
+      
+      {/* Solution Section */}
+      <ScrollAnimatedSection delay={100}>
+        <Solution />
+      </ScrollAnimatedSection>
 
-      {/* Rest of content with consistent dark background */}
-      <BackgroundProvider variant="dark">
-        {/* Solution Section */}
-        <ScrollAnimatedSection delay={100}>
-          <Solution />
-        </ScrollAnimatedSection>
+      {/* Process Section */}
+      <ScrollAnimatedSection delay={200}>
+        <ProcessSection />
+      </ScrollAnimatedSection>
 
-        {/* Process Section */}
-        <ScrollAnimatedSection delay={200}>
-          <ProcessSection />
-        </ScrollAnimatedSection>
+      {/* Features Section */}
+      <ScrollAnimatedSection delay={100}>
+        <Features />
+      </ScrollAnimatedSection>
 
-        {/* Features Section */}
-        <ScrollAnimatedSection delay={100}>
-          <Features />
-        </ScrollAnimatedSection>
+      {/* Social Proof Section */}
+      <ScrollAnimatedSection delay={200}>
+        <SocialProof />
+      </ScrollAnimatedSection>
 
-        {/* Social Proof Section */}
-        <ScrollAnimatedSection delay={200}>
-          <SocialProof />
-        </ScrollAnimatedSection>
-
-        {/* Pricing Section */}
-        <ScrollAnimatedSection delay={100}>
-          <div id="pricing">
-            <Pricing />
-          </div>
-        </ScrollAnimatedSection>
-      </BackgroundProvider>
-    </div>
+      {/* Pricing Section */}
+      <ScrollAnimatedSection delay={100}>
+        <div id="pricing">
+          <Pricing />
+        </div>
+      </ScrollAnimatedSection>
+    </BackgroundProvider>
   );
 };
 
