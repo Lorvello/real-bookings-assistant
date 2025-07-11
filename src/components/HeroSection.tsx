@@ -4,7 +4,18 @@ import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "l
 
 const HeroSection: React.FC = () => {
   return (
-    <section className="relative min-h-screen overflow-hidden flex items-center justify-center">
+    <section 
+      className="relative min-h-screen overflow-hidden flex items-center justify-center"
+      style={{
+        background: `
+          radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0),
+          radial-gradient(ellipse 60% 40% at center top, rgba(34, 197, 94, 0.8), transparent 75%),
+          radial-gradient(ellipse 50% 60% at top left, rgba(34, 197, 94, 0.6), transparent 65%),
+          radial-gradient(ellipse 50% 60% at top right, rgba(34, 197, 94, 0.6), transparent 65%)
+        `,
+        backgroundSize: '40px 40px, cover, cover, cover'
+      }}
+    >
       
       <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center z-10">
         {/* Floating badge */}
