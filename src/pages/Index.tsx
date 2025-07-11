@@ -10,9 +10,15 @@ import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 
 const Index = () => {
   return (
-    <BackgroundProvider variant="dark">
-      <Header />
-      <HeroSection />
+    <div className="min-h-screen">
+      {/* Hero Section with Webfluin-style gradient */}
+      <BackgroundProvider variant="hero">
+        <Header />
+        <HeroSection />
+      </BackgroundProvider>
+      
+      {/* Rest of content with consistent dark background */}
+      <BackgroundProvider variant="dark">
       
       {/* Solution Section */}
       <ScrollAnimatedSection delay={100}>
@@ -34,13 +40,14 @@ const Index = () => {
         <SocialProof />
       </ScrollAnimatedSection>
 
-      {/* Pricing Section */}
-      <ScrollAnimatedSection delay={100}>
-        <div id="pricing">
-          <Pricing />
-        </div>
-      </ScrollAnimatedSection>
-    </BackgroundProvider>
+        {/* Pricing Section */}
+        <ScrollAnimatedSection delay={100}>
+          <div id="pricing">
+            <Pricing />
+          </div>
+        </ScrollAnimatedSection>
+      </BackgroundProvider>
+    </div>
   );
 };
 
