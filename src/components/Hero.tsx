@@ -4,12 +4,12 @@ import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "l
 
 const Hero = () => {
   return (
-    <section className="relative min-h-[60vh] md:min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 via-emerald-900 to-slate-800 overflow-hidden flex items-center justify-center">
+    <section className="relative min-h-[60vh] md:min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 overflow-hidden flex items-center justify-center">
       {/* Animated background elements - Optimized for mobile */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-emerald-400/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-emerald-400/3 rounded-full blur-3xl"></div>
       </div>
       
       {/* Grid pattern overlay - Reduced opacity on mobile */}

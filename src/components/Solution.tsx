@@ -59,14 +59,14 @@ const Solution = () => {
     });
   };
   return (
-    <section className="relative py-8 md:py-16 bg-gradient-to-b from-slate-800 via-slate-900 via-emerald-900/30 to-slate-900 overflow-hidden">
+    <section className="relative py-8 md:py-16 bg-gradient-to-b from-slate-800 via-slate-900 to-slate-900 overflow-hidden">
       {/* Light top transition overlay */}
       <div className="absolute top-0 left-0 right-0 h-12 md:h-16 bg-gradient-to-b from-slate-800/40 to-transparent z-10"></div>
       
       {/* Background decoration */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
       </div>
       
       {/* Grid pattern overlay */}
@@ -74,7 +74,7 @@ const Solution = () => {
       
       <div className="max-w-6xl mx-auto relative z-20 px-4 md:px-6 lg:px-8">
         {/* Header - Compact mobile with improved spacing */}
-        <div className="text-center mb-6 md:mb-16 pt-4 md:pt-8">
+        <div className="text-center mb-6 md:mb-16 pt-12 md:pt-20">
           <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
             Meet Your <span className="text-emerald-400">24/7</span><br />
             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
