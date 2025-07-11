@@ -60,7 +60,7 @@ const Index = () => {
     setIsAutoScrolling(false);
   };
   return <div className="min-h-screen" style={{
-    backgroundColor: 'hsl(220, 39%, 4%)'
+    backgroundColor: 'hsl(217, 35%, 12%)'
   }}>
       <Navbar />
       <Hero />

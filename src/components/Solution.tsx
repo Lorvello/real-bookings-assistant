@@ -60,7 +60,7 @@ const Solution = () => {
   };
   return (
     <section className="relative py-8 md:py-16 overflow-hidden" style={{
-      backgroundColor: 'hsl(220, 39%, 4%)'
+      backgroundColor: 'hsl(217, 35%, 12%)'
     }}>
       {/* Light top transition overlay */}
       <div className="absolute top-0 left-0 right-0 h-12 md:h-16 bg-gradient-to-b from-slate-800/40 to-transparent z-10"></div>
