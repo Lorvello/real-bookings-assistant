@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
+import { WhatsAppBenefits } from "@/components/ui/feature-whatsapp-benefits";
 import { MessageCircle, Brain, Target, Clock, Users, TrendingUp } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+
 const Solution = () => {
   const [activeSolutionIndex, setActiveSolutionIndex] = useState(0);
   const solutionCarouselRef = useRef<HTMLDivElement>(null);
@@ -56,7 +58,8 @@ const Solution = () => {
       behavior: 'smooth'
     });
   };
-  return <section className="relative py-8 md:py-16 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 overflow-hidden">
+  return (
+    <section className="relative py-8 md:py-16 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 overflow-hidden">
       {/* Light top transition overlay */}
       <div className="absolute top-0 left-0 right-0 h-12 md:h-16 bg-gradient-to-b from-slate-800/40 to-transparent z-10"></div>
       
@@ -89,60 +92,12 @@ const Solution = () => {
             faster than any human could.</span>
           </p>
         </div>
-        
-        {/* Desktop: Grid layout */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-16">
-          {features.map((feature, index) => <div key={index} className="group text-center transition-all duration-300 cursor-pointer px-4 md:px-0 hover:bg-gradient-to-b hover:from-slate-800/30 hover:to-slate-800/10 rounded-2xl py-6 hover:shadow-xl hover:-translate-y-2">
-              <div className="relative mb-4 md:mb-8 flex justify-center">
-                <div className={`w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-md group-hover:shadow-2xl transition-all duration-300 group-hover:shadow-emerald-500/25`}>
-                  <feature.icon className="w-6 h-6 md:w-10 md:h-10 text-white group-hover:scale-110 transition-transform duration-300" strokeWidth={1.5} />
-                </div>
-              </div>
-              <h3 className={`text-lg md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight group-hover:text-emerald-100 transition-colors duration-300`}>
-                {feature.title}
-              </h3>
-              <p className="text-slate-300 text-sm md:text-lg leading-relaxed max-w-sm mx-auto group-hover:text-slate-100 transition-colors duration-300 mb-3 md:mb-6">
-                {feature.description}
-              </p>
-              
-            </div>)}
-        </div>
-
-        {/* Mobile: Perfect centered snap-scroll carousel */}
-        <div className="md:hidden">
-          <div ref={solutionCarouselRef} className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain" style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch'
-        }}>
-            <div className="flex pb-4">
-              {features.map((feature, index) => <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
-                  <div className="bg-slate-800/50 rounded-2xl p-4 text-center h-full">
-                    <div className="relative mb-4 flex justify-center">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center shadow-lg`}>
-                        <feature.icon className="w-5 h-5 text-white" strokeWidth={1.5} />
-                      </div>
-                    </div>
-                    <h3 className="text-sm font-bold text-white mb-2 leading-tight">
-                      {feature.title}
-                    </h3>
-                    <p className="text-slate-300 text-xs leading-relaxed mb-3">
-                      {feature.mobileDescription || feature.description}
-                    </p>
-                    <div className="flex items-center justify-center text-emerald-400 font-semibold text-xs">
-                      <Clock className="w-3 h-3 mr-1" />
-                      <span>{feature.stat}</span>
-                    </div>
-                  </div>
-                </div>)}
-            </div>
-          </div>
-          {/* Carousel indicators */}
-          <div className="flex justify-center space-x-2 mt-6">
-            {features.map((_, index) => <button key={index} onClick={() => handleSolutionIndicatorClick(index)} className={`w-2 h-2 rounded-full transition-all duration-300 ${index === activeSolutionIndex ? 'bg-emerald-400 w-6' : 'bg-slate-600 hover:bg-slate-500'}`} aria-label={`Go to solution ${index + 1}`} />)}
-          </div>
-        </div>
       </div>
-    </section>;
+      
+      {/* WhatsApp Benefits Component */}
+      <WhatsAppBenefits />
+    </section>
+  );
 };
+
 export default Solution;
