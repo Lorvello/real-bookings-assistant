@@ -15,21 +15,14 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
     switch (variant) {
       case 'hero':
         return {
+          backgroundColor: '#0F172A',
           background: `
             radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0),
-            radial-gradient(ellipse 50% 30% at center top, rgba(34, 197, 94, 0.9), transparent 35%),
-            radial-gradient(ellipse 40% 25% at top left, rgba(16, 185, 129, 0.8), transparent 30%),
-            radial-gradient(ellipse 40% 25% at top right, rgba(5, 150, 105, 0.8), transparent 30%),
-            linear-gradient(180deg, 
-              #22C55E 0%,
-              #16A34A 8%,
-              #059669 12%,
-              #047857 15%,
-              #0F172A 20%,
-              #0F172A 100%
-            )
+            radial-gradient(ellipse 60% 40% at center top, rgba(34, 197, 94, 0.8), transparent 70%),
+            radial-gradient(ellipse 40% 30% at top left, rgba(16, 185, 129, 0.6), transparent 60%),
+            radial-gradient(ellipse 40% 30% at top right, rgba(5, 150, 105, 0.6), transparent 60%)
           `,
-          backgroundSize: '40px 40px, cover, cover, cover, cover'
+          backgroundSize: '40px 40px, cover, cover, cover'
         };
       case 'dark':
         return {
