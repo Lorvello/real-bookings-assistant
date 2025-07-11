@@ -4,7 +4,7 @@ import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "l
 
 const Hero = () => {
   return (
-    <section className="relative min-h-[60vh] md:min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 overflow-hidden flex items-center justify-center">
+    <section className="relative min-h-[60vh] md:min-h-screen bg-transparent overflow-hidden flex items-center justify-center">
       {/* Animated background elements - Optimized for mobile */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl animate-pulse"></div>
