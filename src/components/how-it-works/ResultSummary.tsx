@@ -59,22 +59,22 @@ const ResultSummary = () => {
   return (
     <div className="relative">
       <div className="relative rounded-3xl p-3 md:p-8">
-        {/* Single elegant header */}
+        {/* Powerful direct header */}
         <div className="text-center mb-20 md:mb-24">
           <h2 className="text-2xl md:text-3xl font-light text-slate-200 tracking-wide">
-            Drive exceptional results across every business metric
+            Proven results that transform businesses
           </h2>
         </div>
         
-        {/* Desktop: Premium grid layout */}
-        <div className="hidden md:grid sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16">
+        {/* Desktop: Premium square grid layout */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             
             return (
               <div 
                 key={index} 
-                className="group relative bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-3xl p-12 lg:p-16 text-center transition-all duration-700 hover:scale-105 hover:-translate-y-3"
+                className="group relative aspect-square bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-8 lg:p-10 text-center transition-all duration-700 hover:scale-105 hover:-translate-y-3 flex flex-col justify-center"
                 style={{
                   boxShadow: `
                     0 25px 50px -12px rgba(0, 0, 0, 0.25),
@@ -86,19 +86,19 @@ const ResultSummary = () => {
                 }}
               >
                 {/* Enhanced glassmorphism overlay */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-emerald-500/10 via-emerald-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700" />
-                <div className="absolute inset-0 rounded-3xl bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-all duration-700" />
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-emerald-500/10 via-emerald-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700" />
+                <div className="absolute inset-0 rounded-2xl bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-all duration-700" />
                 
-                <div className="relative z-10">
-                  <div className="mb-10">
-                    <Icon className="w-14 h-14 mx-auto text-emerald-400 drop-shadow-xl group-hover:drop-shadow-2xl transition-all duration-700 group-hover:scale-110" />
+                <div className="relative z-10 flex flex-col items-center justify-center h-full">
+                  <div className="mb-6">
+                    <Icon className="w-12 h-12 mx-auto text-emerald-400 drop-shadow-xl group-hover:drop-shadow-2xl transition-all duration-700 group-hover:scale-110" />
                   </div>
                   
-                  <div className="text-6xl lg:text-7xl font-black text-emerald-400 mb-8 tracking-tighter drop-shadow-xl group-hover:drop-shadow-2xl transition-all duration-700">
+                  <div className="text-5xl lg:text-6xl font-black text-emerald-400 mb-6 tracking-tighter drop-shadow-xl group-hover:drop-shadow-2xl transition-all duration-700">
                     {stat.value}
                   </div>
                   
-                  <div className="text-base lg:text-lg text-slate-300 leading-relaxed font-light tracking-wide">
+                  <div className="text-sm lg:text-base text-slate-300 leading-snug font-light tracking-wide">
                     {stat.label}
                   </div>
                 </div>
@@ -107,66 +107,39 @@ const ResultSummary = () => {
           })}
         </div>
 
-        {/* Mobile: Improved horizontal slideshow */}
-        <div className="md:hidden">
-          <div 
-            ref={statsCarouselRef}
-            className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            <div className="flex gap-4 pb-4 px-2">
-              {stats.map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                  <div key={index} className="w-[85vw] flex-none snap-start snap-always">
-                    <div 
-                      className="bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-3xl p-10 text-center h-full"
-                      style={{
-                        boxShadow: `
-                          0 20px 40px -10px rgba(0, 0, 0, 0.2),
-                          0 25px 50px -12px rgba(0, 0, 0, 0.15),
-                          0 0 0 1px rgba(16, 185, 129, 0.05),
-                          inset 0 1px 0 rgba(255, 255, 255, 0.1)
-                        `
-                      }}
-                    >
-                      <div className="mb-8">
-                        <Icon className="w-10 h-10 mx-auto text-emerald-400 drop-shadow-xl" />
-                      </div>
-                      
-                      <div className="text-4xl font-black text-emerald-400 mb-6 tracking-tighter drop-shadow-xl">
-                        {stat.value}
-                      </div>
-                      
-                      <div className="text-sm text-slate-300 leading-relaxed font-light tracking-wide">
-                        {stat.label}
-                      </div>
-                    </div>
+        {/* Mobile: Square grid layout */}
+        <div className="md:hidden grid grid-cols-2 gap-4">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div 
+                key={index} 
+                className="aspect-square bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 text-center flex flex-col justify-center"
+                style={{
+                  boxShadow: `
+                    0 20px 40px -10px rgba(0, 0, 0, 0.2),
+                    0 25px 50px -12px rgba(0, 0, 0, 0.15),
+                    0 0 0 1px rgba(16, 185, 129, 0.05),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1)
+                  `
+                }}
+              >
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div className="mb-4">
+                    <Icon className="w-8 h-8 mx-auto text-emerald-400 drop-shadow-xl" />
                   </div>
-                );
-              })}
-            </div>
-          </div>
-          
-          {/* Interactive carousel indicators */}
-          <div className="flex justify-center space-x-2 mt-4">
-            {stats.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => handleStatIndicatorClick(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === activeStatIndex
-                    ? 'bg-emerald-400 w-6'
-                    : 'bg-slate-600 hover:bg-slate-500'
-                }`}
-                aria-label={`Go to stat ${index + 1}`}
-              />
-            ))}
-          </div>
+                  
+                  <div className="text-3xl font-black text-emerald-400 mb-4 tracking-tighter drop-shadow-xl">
+                    {stat.value}
+                  </div>
+                  
+                  <div className="text-xs text-slate-300 leading-snug font-light tracking-wide">
+                    {stat.label}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
