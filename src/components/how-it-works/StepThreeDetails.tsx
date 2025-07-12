@@ -4,92 +4,94 @@ import { MessageCircle, Calendar, Users, CheckCircle, Bot, Sparkles } from 'luci
 
 const StepThreeDetails = () => {
   return (
-    <div className="grid md:grid-cols-2 gap-8 items-center">
+    <div className="grid md:grid-cols-2 gap-8 items-center shadow-lg rounded-xl p-6 border border-slate-700/50" style={{
+      backgroundColor: 'hsl(217, 35%, 12%)'
+    }}>
       {/* Step badge and content */}
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+          <div className="w-6 h-6 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-bold">3</span>
           </div>
-          <span className="text-purple-600 font-medium text-sm uppercase tracking-wide">Step Three</span>
+          <span className="text-emerald-400 font-medium text-sm uppercase tracking-wide">Step Three</span>
         </div>
         
-        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight">
-          Your AI assistant goes live
+        <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 leading-tight">
+          Your system goes live immediately
         </h3>
         
-        <p className="text-gray-600 text-base mb-6 leading-relaxed">
-          That's it! Your WhatsApp AI assistant is now active and ready to help your customers 
-          book appointments automatically, 24/7.
+        <p className="text-slate-300 text-base mb-6 leading-relaxed">
+          That's it! Your entire booking system is instantly active and ready to serve customers 24/7. 
+          You can adjust settings anytime, but everything works perfectly from day one.
         </p>
         
         <div className="space-y-3 mb-6">
           <div className="flex items-start gap-3">
-            <Bot className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+            <Bot className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-gray-900 text-sm">Automated booking</h4>
-              <p className="text-gray-600 text-sm">Customers can schedule, reschedule, or cancel appointments</p>
+              <h4 className="font-semibold text-white text-sm">Instant activation</h4>
+              <p className="text-slate-300 text-sm">Everything works immediately after account creation</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+            <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-gray-900 text-sm">Smart responses</h4>
-              <p className="text-gray-600 text-sm">AI understands context and responds naturally</p>
+              <h4 className="font-semibold text-white text-sm">Optional customization</h4>
+              <p className="text-slate-300 text-sm">Adjust settings anytime to match your preferences</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-gray-900 text-sm">Always available</h4>
-              <p className="text-gray-600 text-sm">Works 24/7 without breaks or holidays</p>
+              <h4 className="font-semibold text-white text-sm">24/7 ready to serve</h4>
+              <p className="text-slate-300 text-sm">Your customers can book immediately via WhatsApp</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
+        <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-            <span className="text-purple-700 font-semibold text-sm">Live Status</span>
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            <span className="text-emerald-300 font-semibold text-sm">Live Status</span>
           </div>
-          <p className="text-purple-600 text-sm">
-            Your assistant is active and ready to handle customer inquiries
+          <p className="text-emerald-200 text-sm">
+            Your complete booking system is active and serving customers
           </p>
         </div>
       </div>
       
       {/* Visual representation */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
         <div className="space-y-4">
           <div className="text-center mb-4">
             <div className="relative mb-3">
-              <MessageCircle className="w-12 h-12 text-purple-500 mx-auto" />
-              <div className="absolute -inset-1 bg-purple-100 rounded-full opacity-50"></div>
+              <MessageCircle className="w-12 h-12 text-emerald-400 mx-auto" />
+              <div className="absolute -inset-1 bg-emerald-400/20 rounded-full opacity-50"></div>
             </div>
-            <h4 className="text-lg font-semibold text-gray-900">AI Assistant Active</h4>
+            <h4 className="text-lg font-semibold text-white">System Active</h4>
           </div>
           
           <div className="space-y-3">
-            <div className="bg-white border border-gray-200 rounded-lg p-3">
+            <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
-                <Calendar className="w-4 h-4 text-purple-500" />
-                <span className="text-gray-900 font-medium text-sm">Smart Scheduling</span>
+                <Calendar className="w-4 h-4 text-emerald-400" />
+                <span className="text-white font-medium text-sm">Calendar Live</span>
               </div>
-              <p className="text-gray-600 text-xs">Automatically finds available slots</p>
+              <p className="text-slate-300 text-xs">Accepting bookings instantly</p>
             </div>
             
-            <div className="bg-white border border-gray-200 rounded-lg p-3">
+            <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
-                <Users className="w-4 h-4 text-purple-500" />
-                <span className="text-gray-900 font-medium text-sm">Customer Care</span>
+                <Users className="w-4 h-4 text-emerald-400" />
+                <span className="text-white font-medium text-sm">AI Assistant</span>
               </div>
-              <p className="text-gray-600 text-xs">Instant support and answers</p>
+              <p className="text-slate-300 text-xs">Ready to help customers</p>
             </div>
             
-            <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-lg">
+            <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-lg">
               <div className="flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-emerald-700 font-medium text-sm">Live and active</span>
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span className="text-emerald-300 font-medium text-sm">Live and serving</span>
               </div>
             </div>
           </div>
