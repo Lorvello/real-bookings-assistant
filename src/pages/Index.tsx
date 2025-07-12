@@ -11,8 +11,10 @@ import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 const Index = () => {
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <Header />
+      {/* Header with same gradient background as hero */}
+      <BackgroundProvider variant="hero">
+        <Header />
+      </BackgroundProvider>
       
       {/* Hero Section with radial gradient lights */}
       <BackgroundProvider variant="hero">
