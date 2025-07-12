@@ -18,9 +18,9 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
           backgroundColor: 'hsl(217, 35%, 12%)',
           backgroundImage: `
             radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0),
-            radial-gradient(ellipse 800px 400px at 50% 0%, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0.2) 25%, transparent 50%),
-            radial-gradient(ellipse 600px 300px at 0% 0%, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.1) 30%, transparent 60%),
-            radial-gradient(ellipse 600px 300px at 100% 0%, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.1) 30%, transparent 60%)
+            radial-gradient(ellipse 1400px 800px at 50% 0%, rgba(16, 185, 129, 0.8) 0%, rgba(16, 185, 129, 0.4) 40%, transparent 80%),
+            radial-gradient(ellipse 1000px 600px at 0% 0%, rgba(34, 197, 94, 0.6) 0%, rgba(34, 197, 94, 0.3) 50%, transparent 80%),
+            radial-gradient(ellipse 1000px 600px at 100% 0%, rgba(52, 211, 153, 0.6) 0%, rgba(52, 211, 153, 0.3) 50%, transparent 80%)
           `,
           backgroundSize: '40px 40px, cover, cover, cover',
           backgroundRepeat: 'repeat, no-repeat, no-repeat, no-repeat'
