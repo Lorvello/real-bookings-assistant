@@ -59,46 +59,48 @@ const ResultSummary = () => {
   return (
     <div className="relative">
       <div className="relative rounded-3xl p-3 md:p-8">
-        {/* Header - much smaller on mobile */}
-        <div className="text-center mb-1 md:mb-3">
-          <div className="flex items-center justify-center gap-2 md:gap-4 mb-2 md:mb-4">
-            <CheckCircle className="w-5 h-5 md:w-8 md:h-8 text-emerald-400" />
-            <span className="text-base md:text-lg font-bold text-white">3 Steps. 5 Minutes. Done.</span>
-            <Sparkles className="w-4 h-4 md:w-6 md:h-6 text-emerald-400 animate-pulse" />
-          </div>
+        {/* Single elegant header */}
+        <div className="text-center mb-16 md:mb-20">
+          <h2 className="text-2xl md:text-3xl font-light text-slate-200 tracking-wide">
+            Transform your business with these
+            <span className="text-emerald-400 font-medium"> results</span>
+          </h2>
         </div>
         
-        {/* Main description - cleaner text formatting */}
-        <div className="max-w-4xl mx-auto text-center mb-1 md:mb-3">
-          <p className="text-sm md:text-xl text-slate-200 leading-relaxed mb-3 md:mb-6">
-            You{' '}
-            <span className="text-red-400 font-bold">never again</span>
-            {' '}waste time on appointment messaging.
-          </p>
-          
-          <p className="text-xs md:text-lg text-slate-200">
-            Get{' '}
-            <span className="text-emerald-400 font-bold">more bookings</span>,{' '}
-            <span className="text-emerald-400 font-bold">happier customers</span>, and{' '}
-            <span className="text-emerald-400 font-bold">more time</span>.
-          </p>
-        </div>
-        
-        {/* Desktop: Grid layout - keep existing */}
-        <div className="hidden md:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        {/* Desktop: Premium grid layout */}
+        <div className="hidden md:grid sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             
             return (
-              <div key={index} className="border border-slate-600 rounded-2xl p-8 lg:p-10 text-center">
-                <Icon className="w-8 h-8 mx-auto text-emerald-400 mb-6" />
+              <div 
+                key={index} 
+                className="group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-3xl p-10 lg:p-12 text-center transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+                style={{
+                  boxShadow: `
+                    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                    0 0 0 1px rgba(255, 255, 255, 0.05),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1)
+                  `
+                }}
+              >
+                {/* Subtle gradient overlay */}
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
-                <div className="text-4xl lg:text-5xl font-bold text-emerald-400 mb-4">
-                  {stat.value}
-                </div>
-                
-                <div className="text-sm lg:text-base text-slate-300 leading-tight">
-                  {stat.label}
+                <div className="relative z-10">
+                  <div className="mb-8">
+                    <Icon className="w-12 h-12 mx-auto text-emerald-400 drop-shadow-lg" />
+                  </div>
+                  
+                  <div className="text-5xl lg:text-6xl font-bold text-emerald-400 mb-6 tracking-tight drop-shadow-lg">
+                    {stat.value}
+                  </div>
+                  
+                  <div className="text-base lg:text-lg text-slate-300 leading-relaxed font-light tracking-wide">
+                    {stat.label}
+                  </div>
                 </div>
               </div>
             );
@@ -121,14 +123,26 @@ const ResultSummary = () => {
                 const Icon = stat.icon;
                 return (
                   <div key={index} className="w-[85vw] flex-none snap-start snap-always">
-                    <div className="border border-slate-600 rounded-2xl p-6 text-center h-full">
-                      <Icon className="w-6 h-6 mx-auto text-emerald-400 mb-4" />
+                    <div 
+                      className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-3xl p-8 text-center h-full"
+                      style={{
+                        boxShadow: `
+                          0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                          0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                          0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                          0 0 0 1px rgba(255, 255, 255, 0.05)
+                        `
+                      }}
+                    >
+                      <div className="mb-6">
+                        <Icon className="w-8 h-8 mx-auto text-emerald-400 drop-shadow-lg" />
+                      </div>
                       
-                      <div className="text-2xl font-bold text-emerald-400 mb-3">
+                      <div className="text-3xl font-bold text-emerald-400 mb-4 tracking-tight drop-shadow-lg">
                         {stat.value}
                       </div>
                       
-                      <div className="text-xs text-slate-300 leading-tight">
+                      <div className="text-sm text-slate-300 leading-relaxed font-light">
                         {stat.label}
                       </div>
                     </div>
