@@ -47,7 +47,7 @@ const ProcessHighlights = () => {
 
   return (
     <ScrollAnimatedSection>
-      <div className="max-w-7xl mx-auto mt-4 md:mt-8 px-4 md:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto mt-4 md:mt-8 px-4 md:px-6 lg:px-8">
         <div className="space-y-6 md:space-y-12">
           <StepIndicator />
           
