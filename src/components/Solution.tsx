@@ -72,7 +72,11 @@ const Solution = () => {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
       
       <div className="max-w-6xl mx-auto relative z-20 px-4 md:px-6 lg:px-8">
-        <StaggeredAnimationContainer staggerDelay={150} className="space-y-8 md:space-y-16">
+        <StaggeredAnimationContainer 
+          staggerDelay={300} 
+          variant="hero"
+          className="space-y-8 md:space-y-16"
+        >
           {/* Header - Compact mobile with improved spacing */}
           <div className="text-center pt-12 md:pt-20">
             <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">

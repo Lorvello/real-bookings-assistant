@@ -208,15 +208,71 @@
 }
 
 /* Staggered animation styles */
+/* Enhanced Staggered Scroll Animations */
 .scroll-animate-stagger {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  transform: translateY(30px) scale(0.98);
+  transition: opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .scroll-animate-stagger.visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+}
+
+/* Section-specific animation variants */
+.scroll-animate-stagger.hero {
+  transform: translateY(40px) scale(0.95);
+  transition: opacity 1.2s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.scroll-animate-stagger.process {
+  transform: translateY(35px) scale(0.97);
+  transition: opacity 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              transform 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.scroll-animate-stagger.features {
+  transform: translateY(30px) scale(0.98) rotateX(5deg);
+  transition: opacity 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              transform 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.scroll-animate-stagger.features.visible {
+  transform: translateY(0) scale(1) rotateX(0deg);
+}
+
+/* Responsive animation adjustments */
+@media (max-width: 768px) {
+  .scroll-animate-stagger {
+    transition-duration: 0.6s;
+  }
+  
+  .scroll-animate-stagger.hero {
+    transition-duration: 0.9s;
+  }
+  
+  .scroll-animate-stagger.process {
+    transition-duration: 0.75s;
+  }
+  
+  .scroll-animate-stagger.features {
+    transition-duration: 0.68s;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-animate-stagger {
+    transition: opacity 0.3s ease-out;
+    transform: none !important;
+  }
+  
+  .scroll-animate-stagger.visible {
+    transform: none !important;
+  }
 }
 
 /* Compact Modern WhatsApp Chat Specific Styles */

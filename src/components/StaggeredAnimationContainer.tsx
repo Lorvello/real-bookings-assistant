@@ -7,6 +7,7 @@ interface StaggeredAnimationContainerProps {
   staggerDelay?: number;
   threshold?: number;
   as?: keyof JSX.IntrinsicElements;
+  variant?: 'default' | 'hero' | 'process' | 'features';
 }
 
 const StaggeredAnimationContainer: React.FC<StaggeredAnimationContainerProps> = ({
@@ -14,7 +15,8 @@ const StaggeredAnimationContainer: React.FC<StaggeredAnimationContainerProps> = 
   className = '',
   staggerDelay = 200,
   threshold = 0.1,
-  as = 'div'
+  as = 'div',
+  variant = 'default'
 }) => {
   const { containerRef, visibleChildren } = useStaggeredScrollAnimation({
     threshold,
@@ -31,12 +33,12 @@ const StaggeredAnimationContainer: React.FC<StaggeredAnimationContainerProps> = 
       return cloneElement(child, {
         ...child.props,
         'data-animate': true,
-        className: `${child.props.className || ''} scroll-animate-stagger ${
+        className: `${child.props.className || ''} scroll-animate-stagger ${variant} ${
           isVisible ? 'visible' : ''
         }`.trim(),
         style: {
           ...child.props.style,
-          transitionDelay: `${index * 100}ms` // Additional fine-tuning delay
+          transitionDelay: `${index * 50}ms` // Reduced fine-tuning delay for smoother flow
         }
       });
     }
