@@ -1,6 +1,6 @@
 
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { Clock, User, Phone, Mail } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -29,7 +29,7 @@ interface DayBookingsModalProps {
   onClose: () => void;
   date: Date | null;
   bookings: Booking[];
-  onBookingClick?: (booking: Booking) => void;
+  onBookingClick?: (booking: Booking, event?: React.MouseEvent) => void;
 }
 
 export function DayBookingsModal({ open, onClose, date, bookings, onBookingClick }: DayBookingsModalProps) {
@@ -51,14 +51,14 @@ export function DayBookingsModal({ open, onClose, date, bookings, onBookingClick
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Afspraken voor {format(date, 'EEEE d MMMM yyyy', { locale: nl })}
+            Appointments for {format(date, 'EEEE d MMMM yyyy', { locale: enUS })}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
           {sortedBookings.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Geen afspraken voor deze dag
+              No appointments for this day
             </div>
           ) : (
             sortedBookings.map((booking) => (
@@ -77,16 +77,16 @@ export function DayBookingsModal({ open, onClose, date, bookings, onBookingClick
                         }}
                       />
                       <h3 className="font-semibold text-foreground">
-                        {booking.service_types?.name || booking.service_name || 'Afspraak'}
+                        {booking.service_types?.name || booking.service_name || 'Appointment'}
                       </h3>
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                         booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                         booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {booking.status === 'confirmed' ? 'Bevestigd' :
-                         booking.status === 'pending' ? 'In behandeling' :
-                         'Geannuleerd'}
+                        {booking.status === 'confirmed' ? 'Confirmed' :
+                         booking.status === 'pending' ? 'Pending' :
+                         'Cancelled'}
                       </div>
                     </div>
 
@@ -122,7 +122,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, onBookingClick
                 </div>
                 
                 <div className="mt-3 text-xs text-muted-foreground text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  Klik voor meer details
+                  Click for more details
                 </div>
               </div>
             ))

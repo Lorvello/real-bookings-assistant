@@ -1,20 +1,46 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
-import { generateSampleBookings } from './calendar/utils/sampleBookings';
+import { generateEnglishSampleBookings } from './calendar/utils/englishSampleBookings';
+import { DayBookingsModal } from './calendar/DayBookingsModal';
+import { BookingDetailModal } from './calendar/BookingDetailModal';
+
+interface Booking {
+  id: string;
+  start_time: string;
+  end_time: string;
+  customer_name: string;
+  customer_phone?: string;
+  customer_email?: string;
+  status: string;
+  service_name?: string;
+  notes?: string;
+  internal_notes?: string;
+  total_price?: number;
+  service_types?: {
+    name: string;
+    color: string;
+    duration: number;
+    description?: string;
+  } | null;
+}
 
 const CalendarMockup = () => {
-  const currentDate = new Date(2025, 4, 14); // May 14, 2025
+  const currentDate = new Date(2025, 6, 14); // July 14, 2025
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  const weekDays = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   // Get sample bookings for this month
-  const sampleBookings = generateSampleBookings(currentDate);
+  const sampleBookings = generateEnglishSampleBookings(currentDate);
 
   const getBookingsForDay = (day: Date) => {
     return sampleBookings.filter(booking => 
@@ -22,13 +48,36 @@ const CalendarMockup = () => {
     );
   };
 
+  const handleDayClick = (day: Date, dayBookings: Booking[]) => {
+    if (dayBookings.length > 1) {
+      setSelectedDate(day);
+      setModalOpen(true);
+    }
+  };
+
+  const handleBookingClick = (booking: Booking, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedBooking(booking);
+    setBookingDetailOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setSelectedDate(null);
+  };
+
+  const closeBookingDetail = () => {
+    setBookingDetailOpen(false);
+    setSelectedBooking(null);
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto bg-card/20 backdrop-blur-sm rounded-xl shadow-sm overflow-hidden border border-border/20">
       {/* Compact Header */}
       <div className="bg-card/30 backdrop-blur-sm p-2 border-b border-border/20">
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-foreground">Mei 2025</h3>
-          <p className="text-xs text-muted-foreground">Agenda Overzicht</p>
+          <h3 className="text-lg font-semibold text-foreground">July 2025</h3>
+          <p className="text-xs text-muted-foreground">Calendar Overview</p>
         </div>
       </div>
 
@@ -54,13 +103,14 @@ const CalendarMockup = () => {
             return (
               <div
                 key={day.toISOString()}
-                className={`rounded-lg p-1.5 min-h-[70px] sm:h-[60px] flex flex-col transition-all duration-200 relative ${
+                className={`rounded-lg p-1.5 min-h-[70px] sm:h-[60px] flex flex-col transition-all duration-200 relative cursor-pointer ${
                   isCurrentMonth 
                     ? isDayToday
                       ? 'bg-primary/10 border border-primary/30'
                       : 'bg-card/30 backdrop-blur-sm border border-border/20 hover:bg-card/40'
                     : 'bg-muted/20 border border-border/10 opacity-50'
-                }`}
+                } ${dayBookings.length > 1 ? 'hover:shadow-md' : ''}`}
+                onClick={() => handleDayClick(day, dayBookings)}
               >
                 {/* Day Number - Verbeterd voor mobiel */}
                 <div className={`text-xs sm:text-xs font-medium mb-1 ${
@@ -74,7 +124,10 @@ const CalendarMockup = () => {
                 {/* Booking Content - Verbeterd voor mobiel */}
                 <div className="flex-1 flex flex-col justify-start space-y-0.5">
                   {dayBookings.length === 1 && (
-                    <div className="w-full px-1.5 py-1 rounded-md bg-emerald-600/80 backdrop-blur-sm border border-emerald-500/30 relative">
+                    <div 
+                      className="w-full px-1.5 py-1 rounded-md bg-emerald-600/80 backdrop-blur-sm border border-emerald-500/30 relative cursor-pointer hover:bg-emerald-700/80 transition-colors"
+                      onClick={(e) => handleBookingClick(dayBookings[0], e)}
+                    >
                       {/* Verbeterde tekst voor mobiel */}
                       <div className="text-[9px] sm:text-[8px] text-white font-medium truncate text-left">
                         {format(new Date(dayBookings[0].start_time), 'HH:mm')}
@@ -86,12 +139,12 @@ const CalendarMockup = () => {
                   )}
                   
                   {dayBookings.length > 1 && (
-                    <div className="w-full px-1.5 py-1 rounded-md bg-blue-600/80 backdrop-blur-sm border border-blue-500/30">
+                    <div className="w-full px-1.5 py-1 rounded-md bg-blue-600/80 backdrop-blur-sm border border-blue-500/30 hover:bg-blue-700/80 transition-colors">
                       <div className="text-[9px] sm:text-[8px] text-white font-medium text-left">
                         {dayBookings.length}
                       </div>
                       <div className="text-[8px] sm:text-[7px] text-white/90 text-left leading-tight">
-                        afspraken
+                        appointments
                       </div>
                     </div>
                   )}
@@ -108,14 +161,28 @@ const CalendarMockup = () => {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-              <span className="text-muted-foreground">Afspraken</span>
+              <span className="text-muted-foreground">Appointments</span>
             </div>
           </div>
           <div className="text-muted-foreground">
-            {sampleBookings.length} afspraken
+            {sampleBookings.length} appointments
           </div>
         </div>
       </div>
+
+      <DayBookingsModal
+        open={modalOpen}
+        onClose={closeModal}
+        date={selectedDate}
+        bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
+        onBookingClick={handleBookingClick}
+      />
+
+      <BookingDetailModal
+        open={bookingDetailOpen}
+        onClose={closeBookingDetail}
+        booking={selectedBooking}
+      />
     </div>
   );
 };
