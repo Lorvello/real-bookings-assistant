@@ -36,6 +36,17 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showDetail, setShowDetail] = useState(false);
 
+  // Auto-show detail view for single bookings
+  useEffect(() => {
+    if (bookings.length === 1) {
+      setSelectedBooking(bookings[0]);
+      setShowDetail(true);
+    } else {
+      setSelectedBooking(null);
+      setShowDetail(false);
+    }
+  }, [bookings]);
+
   if (!date || !open) return null;
 
   const sortedBookings = [...bookings].sort(

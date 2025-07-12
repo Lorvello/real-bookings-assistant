@@ -49,7 +49,7 @@ const CalendarMockup = () => {
   };
 
   const handleDayClick = (day: Date, dayBookings: Booking[], event: React.MouseEvent) => {
-    if (dayBookings.length > 1) {
+    if (dayBookings.length >= 1) {
       const targetRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
       
       // Get calendar container bounds for relative positioning
