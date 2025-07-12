@@ -8,7 +8,7 @@ const StepTwoDetails = () => {
       {/* Premium card with multiple shadow layers */}
       <div className="grid md:grid-cols-2 gap-8 items-center relative overflow-hidden
                     bg-gradient-to-br from-[hsl(217,35%,12%)] via-[hsl(217,35%,10%)] to-[hsl(217,35%,14%)]
-                    rounded-2xl p-6
+                    rounded-2xl p-4
                     shadow-2xl shadow-black/50
                     before:absolute before:inset-0 before:bg-gradient-to-r before:from-emerald-500/5 before:to-transparent before:rounded-2xl
                     after:absolute after:inset-px after:bg-gradient-to-br after:from-white/5 after:to-transparent after:rounded-2xl after:pointer-events-none
@@ -42,13 +42,13 @@ const StepTwoDetails = () => {
           Get your WhatsApp number instantly
         </h3>
         
-        <p className="text-slate-300 text-lg mb-8 leading-relaxed font-light">
+        <p className="text-slate-300 text-lg mb-6 leading-relaxed font-light">
           Your account comes with an instant WhatsApp number assignment. You can also choose to 
           connect your existing business number if you prefer.
         </p>
         
         {/* Enhanced Options */}
-        <div className="space-y-4 mb-8">
+        <div className="space-y-4 mb-6">
           <div className="bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-emerald-600/5 
                         border border-emerald-400/30 p-6 rounded-xl backdrop-blur-sm
                         shadow-lg shadow-emerald-500/10 relative overflow-hidden
@@ -98,7 +98,7 @@ const StepTwoDetails = () => {
       {/* Premium Visual Section */}
       <div className="relative z-10">
         <div className="bg-gradient-to-br from-slate-800/60 via-slate-800/40 to-slate-900/60 
-                      border border-slate-600/50 rounded-2xl p-8 backdrop-blur-sm
+                      border border-slate-600/50 rounded-2xl p-6 backdrop-blur-sm
                       shadow-inner shadow-black/20
                       before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:rounded-2xl">
           <div className="text-center relative z-10">

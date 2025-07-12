@@ -14,7 +14,7 @@ const StepIndicator = () => {
       
       <div className="relative z-10">
         {/* Premium Step indicators with enhanced animations */}
-        <div className="inline-flex items-center gap-6 md:gap-16 mb-12 md:mb-20">
+        <div className="inline-flex items-center gap-6 md:gap-16 mb-6 md:mb-10">
           {[
             { number: '1', delay: '0ms', title: 'Connect' },
             { number: '2', delay: '200ms', title: 'Setup' },
@@ -81,7 +81,7 @@ const StepIndicator = () => {
               </svg>
             </div>
             
-            <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-emerald-300 via-emerald-200 to-emerald-400 bg-clip-text text-transparent drop-shadow-2xl tracking-tight">
+            <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-emerald-300 via-emerald-200 to-emerald-400 bg-clip-text text-transparent drop-shadow-2xl tracking-tight">
               3 Steps. 5 Minutes. Done.
             </h3>
             
@@ -93,8 +93,8 @@ const StepIndicator = () => {
             </div>
           </div>
           
-          <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto font-light leading-relaxed">
-            Our intelligent system handles everything automatically, so you can focus on what matters most — 
+          <p className="text-base md:text-lg text-slate-300 max-w-3xl mx-auto font-light leading-relaxed">
+            Our intelligent system handles everything automatically, so you can focus on what matters most, 
             <span className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent font-semibold"> serving your customers</span>.
           </p>
         </div>
