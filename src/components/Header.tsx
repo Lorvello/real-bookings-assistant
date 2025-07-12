@@ -31,7 +31,7 @@ const Header = () => {
   };
 
   return (
-    <header className="w-full pt-4 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: 'hsl(217, 35%, 12%)' }}>
+    <header className="w-full pt-4 px-4 sm:px-6 lg:px-8">
       <nav 
         className="max-w-7xl mx-auto mx-6 rounded-3xl px-8 py-4 shadow-lg"
         style={{ backgroundColor: '#1E293B' }}
