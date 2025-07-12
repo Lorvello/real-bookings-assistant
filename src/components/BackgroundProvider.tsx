@@ -16,7 +16,7 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
       case 'hero':
         return {
           backgroundColor: 'hsl(217, 35%, 12%)',
-          background: `
+          backgroundImage: `
             radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0),
             radial-gradient(ellipse 100% 80% at center 20%, 
               rgba(52, 211, 153, 0.8) 0%, 
@@ -32,7 +32,8 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
               rgba(34, 197, 94, 0.3) 40%, 
               transparent 80%)
           `,
-          backgroundSize: '40px 40px, cover, cover, cover'
+          backgroundSize: '40px 40px, cover, cover, cover',
+          backgroundRepeat: 'repeat, no-repeat, no-repeat, no-repeat'
         };
       case 'dark':
         return {
