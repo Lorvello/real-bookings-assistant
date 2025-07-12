@@ -102,12 +102,11 @@ const ProcessSection = () => {
             <Dialog>
               <DialogTrigger asChild>
                 <Button 
-                  size="lg" 
-                  className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold text-base md:text-lg px-8 md:px-12 py-4 md:py-6 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-emerald-400/20"
+                  size="default"
+                  className="bg-white hover:bg-gray-50 text-gray-900 font-medium text-sm md:text-base px-6 md:px-8 py-3 md:py-4 h-auto rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
                 >
-                  <Bot className="mr-3 h-5 w-5 md:h-6 md:w-6" />
+                  <Bot className="mr-2 h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                   Try AI Agent Demo
-                  <Sparkles className="ml-3 h-5 w-5 md:h-6 md:w-6" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl w-full h-[80vh] max-h-[600px] p-0 bg-slate-900 border-slate-700 data-[state=open]:animate-in data-[state=open]:fade-in-100 data-[state=open]:scale-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:scale-out-95 duration-300">

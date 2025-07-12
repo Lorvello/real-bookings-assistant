@@ -47,32 +47,71 @@ const ProcessHighlights = () => {
 
   return (
     <ScrollAnimatedSection>
-      <div className="max-w-6xl mx-auto mt-8 md:mt-20 px-4 md:px-6 lg:px-8">
-        <div className="space-y-8 md:space-y-16">
+      <div className="max-w-7xl mx-auto mt-12 md:mt-32 px-4 md:px-6 lg:px-8">
+        <div className="space-y-16 md:space-y-32">
           <StepIndicator />
           
-          {/* Desktop: Vertical layout */}
+          {/* Desktop: Sequential animated layout with elevated cards */}
           <div className="hidden md:block">
-            <div className="space-y-16">
-              <StepOneDetails />
-              <StepTwoDetails />
-              <StepThreeDetails />
+            <div className="space-y-32">
+              <div 
+                className="animate-fade-in bg-slate-800/20 backdrop-blur-sm border border-slate-700/30 rounded-3xl p-12 shadow-2xl hover:shadow-slate-500/10 transition-all duration-500"
+                style={{
+                  animationDelay: '600ms',
+                  animationFillMode: 'both'
+                }}
+              >
+                <StepOneDetails />
+              </div>
+              <div 
+                className="animate-fade-in bg-slate-800/20 backdrop-blur-sm border border-slate-700/30 rounded-3xl p-12 shadow-2xl hover:shadow-slate-500/10 transition-all duration-500"
+                style={{
+                  animationDelay: '900ms',
+                  animationFillMode: 'both'
+                }}
+              >
+                <StepTwoDetails />
+              </div>
+              <div 
+                className="animate-fade-in bg-slate-800/20 backdrop-blur-sm border border-slate-700/30 rounded-3xl p-12 shadow-2xl hover:shadow-slate-500/10 transition-all duration-500"
+                style={{
+                  animationDelay: '1200ms',
+                  animationFillMode: 'both'
+                }}
+              >
+                <StepThreeDetails />
+              </div>
             </div>
           </div>
 
-          {/* Mobile: Vertical layout with increased spacing */}
-          <div className="md:hidden space-y-16">
+          {/* Mobile: Enhanced vertical layout with premium cards */}
+          <div className="md:hidden space-y-12">
             {steps.map((step, index) => {
               const StepComponent = step.component;
               return (
-                <div key={index} className="bg-slate-800/30 rounded-2xl p-6">
+                <div 
+                  key={index} 
+                  className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/40 rounded-2xl p-8 shadow-xl"
+                  style={{
+                    animationDelay: `${600 + index * 300}ms`,
+                    animationFillMode: 'both'
+                  }}
+                >
                   <StepComponent />
                 </div>
               );
             })}
           </div>
           
-          <ResultSummary />
+          <div 
+            className="animate-fade-in"
+            style={{
+              animationDelay: '1500ms',
+              animationFillMode: 'both'
+            }}
+          >
+            <ResultSummary />
+          </div>
         </div>
       </div>
     </ScrollAnimatedSection>

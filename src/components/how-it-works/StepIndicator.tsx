@@ -5,52 +5,69 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 const StepIndicator = () => {
   return (
     <div className="text-center relative">
-      {/* Background decoration - subtle like hero */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl"></div>
+      {/* Enhanced Background decoration */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-r from-slate-700/5 to-slate-600/5 rounded-full blur-3xl"></div>
       
       <div className="relative z-10">
-        {/* Step indicators - much smaller on mobile */}
-        <div className="inline-flex items-center gap-3 md:gap-8 mb-4 md:mb-12">
+        {/* Sophisticated Step indicators with animations */}
+        <div className="inline-flex items-center gap-4 md:gap-12 mb-8 md:mb-16">
           {[
-            { number: '1', color: 'emerald' },
-            { number: '2', color: 'emerald' },
-            { number: '3', color: 'emerald' }
+            { number: '1', delay: '0ms' },
+            { number: '2', delay: '150ms' },
+            { number: '3', delay: '300ms' }
           ].map((step, index) => (
             <React.Fragment key={index}>
-              <div className="relative group">
-                {/* Main circle - much smaller on mobile */}
-                <div className="w-8 h-8 md:w-16 md:h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg group-hover:bg-emerald-600 transition-colors duration-300">
-                  <span className="text-white text-sm md:text-xl font-bold">{step.number}</span>
+              <div 
+                className="relative group animate-fade-in"
+                style={{
+                  animationDelay: step.delay,
+                  animationFillMode: 'both'
+                }}
+              >
+                {/* Glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-600 to-slate-700 rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
+                
+                {/* Main circle with sophisticated gradient */}
+                <div className="relative w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 rounded-full flex items-center justify-center shadow-2xl group-hover:shadow-slate-500/25 transition-all duration-300 border border-slate-500/20">
+                  {/* Inner highlight */}
+                  <div className="absolute inset-1 bg-gradient-to-br from-slate-500/20 to-transparent rounded-full"></div>
+                  <span className="relative text-white text-base md:text-2xl font-bold z-10">{step.number}</span>
                 </div>
               </div>
               
               {index < 2 && (
-                <div className="flex items-center gap-2">
-                  <ArrowRight className="w-3 h-3 md:w-6 md:h-6 text-slate-400" />
-                  <div className="w-6 md:w-12 h-0.5 bg-slate-600"></div>
+                <div 
+                  className="flex items-center gap-2 animate-fade-in"
+                  style={{
+                    animationDelay: `${150 + index * 150}ms`,
+                    animationFillMode: 'both'
+                  }}
+                >
+                  <ArrowRight className="w-4 h-4 md:w-8 md:h-8 text-slate-400" />
+                  <div className="w-8 md:w-16 h-0.5 bg-gradient-to-r from-slate-600 to-slate-500"></div>
                 </div>
               )}
             </React.Fragment>
           ))}
         </div>
         
-        {/* Title - much smaller on mobile */}
+        {/* Enhanced Title with sophisticated typography */}
         <div className="relative">
-          <h3 className="text-lg md:text-4xl lg:text-6xl font-bold text-white mb-3 md:mb-8 leading-tight">
+          <h3 className="text-2xl md:text-6xl lg:text-7xl font-bold text-white mb-6 md:mb-12 leading-tight tracking-tight">
             3 steps.{' '}
-            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-300 to-slate-100 bg-clip-text text-transparent">
               5 minutes.
             </span>
             {' '}
-            <span className="inline-flex items-center gap-1 md:gap-3">
-              <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+            <span className="inline-flex items-center gap-2 md:gap-4">
+              <span className="bg-gradient-to-r from-slate-300 to-slate-100 bg-clip-text text-transparent">
                 Done.
               </span>
-              <Sparkles className="w-4 h-4 md:w-8 md:h-8 text-emerald-400" />
+              <Sparkles className="w-6 h-6 md:w-10 md:h-10 text-slate-400 animate-pulse" />
             </span>
           </h3>
           
-          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto">
+          <p className="text-base md:text-2xl text-slate-300 max-w-4xl mx-auto font-light leading-relaxed">
             From first contact to fully working AI assistant in less than 5 minutes
           </p>
         </div>

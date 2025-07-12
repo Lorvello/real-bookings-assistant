@@ -8,15 +8,16 @@ const StepTwoDetails = () => {
       <div className="grid lg:grid-cols-2 gap-6 md:gap-12 items-center">
         {/* Left side - Content */}
         <div className="space-y-4 md:space-y-6">
-          <div className="flex items-center gap-3 md:gap-4">
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-sm md:text-lg font-bold">2</span>
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="w-8 h-8 md:w-14 md:h-14 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 rounded-2xl flex items-center justify-center shadow-2xl border border-slate-500/20">
+              <div className="absolute inset-1 bg-gradient-to-br from-slate-500/20 to-transparent rounded-xl"></div>
+              <span className="relative text-white text-sm md:text-xl font-bold">2</span>
             </div>
             <div>
-              <h3 className="text-lg md:text-2xl lg:text-3xl font-bold text-white mb-1">Choose WhatsApp Option</h3>
-              <div className="flex items-center gap-2 text-emerald-400">
-                <MessageSquare className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="text-xs md:text-sm font-medium">Two simple options</span>
+              <h3 className="text-xl md:text-4xl lg:text-5xl font-bold text-white mb-2 tracking-tight">Choose WhatsApp Option</h3>
+              <div className="flex items-center gap-2 text-slate-300">
+                <MessageSquare className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="text-sm md:text-lg font-medium">Two simple options</span>
               </div>
             </div>
           </div>
