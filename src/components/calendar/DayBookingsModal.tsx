@@ -47,97 +47,78 @@ export function DayBookingsModal({ open, onClose, date, bookings, onBookingClick
     }
   };
 
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    if (open) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }
-  }, [open, onClose]);
-
   return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 z-40"
-        onClick={onClose}
-      />
-      
-      {/* Popover */}
-      <div
-        className="absolute z-50 w-72 bg-card/95 backdrop-blur-sm border border-border/40 rounded-lg shadow-lg"
-        style={{
-          left: position?.x || 0,
-          top: position?.y || 0,
-          transform: 'translate(-50%, -100%)',
-        }}
-      >
-        {/* Header */}
-        <div className="p-3 border-b border-border/20">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground">
-              {format(date, 'EEE d MMM', { locale: enUS })}
-            </h3>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-muted/50 rounded-sm transition-colors"
-            >
-              <X className="w-3 h-3 text-muted-foreground" />
-            </button>
-          </div>
+    <div 
+      data-popup="true"
+      className="absolute z-50 bg-card/95 backdrop-blur-sm border border-border/40 rounded-lg shadow-lg"
+      style={{
+        left: `${position?.x || 0}px`,
+        top: `${position?.y || 0}px`,
+        transform: 'translateX(-50%) translateY(-100%)',
+        minWidth: '240px',
+        maxWidth: '280px',
+      }}
+    >
+      {/* Header */}
+      <div className="p-3 border-b border-border/20">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground">
+            {format(date, 'EEE d MMM', { locale: enUS })}
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-muted/50 rounded-sm transition-colors"
+          >
+            <X className="w-3 h-3 text-muted-foreground" />
+          </button>
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="p-3 max-h-64 overflow-y-auto">
-          {sortedBookings.length === 0 ? (
-            <div className="text-center py-4 text-muted-foreground text-xs">
-              No appointments
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {sortedBookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="p-2 rounded-md border border-border/30 bg-card/30 hover:bg-card/50 transition-colors cursor-pointer"
-                  onClick={() => handleBookingClick(booking)}
-                >
-                  <div className="flex items-start gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
-                      style={{
-                        backgroundColor: booking.service_types?.color || '#3B82F6'
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-foreground truncate">
-                        {booking.service_types?.name || booking.service_name || 'Appointment'}
-                      </div>
-                      <div className="flex items-center gap-1 mt-1">
-                        <Clock className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(booking.start_time), 'HH:mm')} - 
-                          {format(new Date(booking.end_time), 'HH:mm')}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 mt-1">
-                        <User className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground truncate">
-                          {booking.customer_name}
-                        </span>
-                      </div>
+      {/* Content */}
+      <div className="p-3 max-h-64 overflow-y-auto">
+        {sortedBookings.length === 0 ? (
+          <div className="text-center py-4 text-muted-foreground text-xs">
+            No appointments
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {sortedBookings.map((booking) => (
+              <div
+                key={booking.id}
+                className="p-2 rounded-md border border-border/30 bg-card/30 hover:bg-card/50 transition-colors cursor-pointer"
+                onClick={() => handleBookingClick(booking)}
+              >
+                <div className="flex items-start gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
+                    style={{
+                      backgroundColor: booking.service_types?.color || '#3B82F6'
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium text-foreground truncate">
+                      {booking.service_types?.name || booking.service_name || 'Appointment'}
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Clock className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(booking.start_time), 'HH:mm')} - 
+                        {format(new Date(booking.end_time), 'HH:mm')}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                      <User className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground truncate">
+                        {booking.customer_name}
+                      </span>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { generateEnglishSampleBookings } from './calendar/utils/englishSampleBookings';
 import { DayBookingsModal } from './calendar/DayBookingsModal';
@@ -32,6 +32,7 @@ const CalendarMockup = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
   const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>();
+  const calendarRef = useRef<HTMLDivElement>(null);
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -51,11 +52,38 @@ const CalendarMockup = () => {
 
   const handleDayClick = (day: Date, dayBookings: Booking[], event: React.MouseEvent) => {
     if (dayBookings.length > 1) {
-      const rect = event.currentTarget.getBoundingClientRect();
-      setModalPosition({
-        x: rect.left + rect.width / 2,
-        y: rect.top - 8
-      });
+      const targetRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      
+      // Get calendar container bounds for relative positioning
+      const calendarRect = calendarRef.current?.getBoundingClientRect();
+      if (!calendarRect) return;
+      
+      // Calculate position relative to calendar container
+      const x = targetRect.left + targetRect.width / 2 - calendarRect.left;
+      const y = targetRect.top - 10 - calendarRect.top;
+      
+      // Check calendar boundaries and adjust position
+      const calendarWidth = calendarRect.width;
+      const calendarHeight = calendarRect.height;
+      const popupWidth = 280;
+      const popupHeight = 300;
+      
+      let adjustedX = x;
+      let adjustedY = y;
+      
+      // Flip horizontally if popup would go off calendar
+      if (x + popupWidth / 2 > calendarWidth - 20) {
+        adjustedX = calendarWidth - popupWidth / 2 - 20;
+      } else if (x - popupWidth / 2 < 20) {
+        adjustedX = popupWidth / 2 + 20;
+      }
+      
+      // Flip vertically if popup would go off calendar
+      if (y - popupHeight < 20) {
+        adjustedY = targetRect.bottom - calendarRect.top + 10;
+      }
+      
+      setModalPosition({ x: adjustedX, y: adjustedY });
       setSelectedDate(day);
       setModalOpen(true);
     }
@@ -77,8 +105,33 @@ const CalendarMockup = () => {
     setSelectedBooking(null);
   };
 
+  // Handle escape key and click outside
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && modalOpen) {
+        closeModal();
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modalOpen && !(e.target as Element).closest('[data-popup]')) {
+        closeModal();
+      }
+    };
+
+    if (modalOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [modalOpen]);
+
   return (
-    <div className="w-full max-w-3xl mx-auto bg-card/20 backdrop-blur-sm rounded-xl shadow-sm overflow-hidden border border-border/20">
+    <div ref={calendarRef} className="w-full max-w-3xl mx-auto bg-card/20 backdrop-blur-sm rounded-xl shadow-sm overflow-hidden border border-border/20 relative">
       {/* Compact Header */}
       <div className="bg-card/30 backdrop-blur-sm p-2 border-b border-border/20">
         <div className="text-center">
