@@ -1,15 +1,17 @@
 import React from 'react';
 
 interface BackgroundProviderProps {
-  variant?: 'hero' | 'page' | 'dark';
+  variant?: 'hero' | 'page' | 'dark' | 'gridded' | 'gridded-dense' | 'gridded-sparse';
   children: React.ReactNode;
   className?: string;
+  gridFade?: boolean;
 }
 
 const BackgroundProvider: React.FC<BackgroundProviderProps> = ({ 
   variant = 'dark', 
   children,
-  className = ""
+  className = "",
+  gridFade = false
 }) => {
   const getBackgroundStyle = () => {
     switch (variant) {
@@ -32,6 +34,42 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
           backgroundSize: '40px 40px, cover, cover, cover, cover, cover, cover, cover, cover, cover, cover',
           backgroundRepeat: 'repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat'
         };
+      case 'gridded':
+        return {
+          backgroundColor: 'hsl(217, 35%, 12%)',
+          backgroundImage: `
+            linear-gradient(rgba(71, 85, 105, 0.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(71, 85, 105, 0.08) 1px, transparent 1px)
+          `,
+          backgroundSize: '32px 32px',
+          '@media (min-width: 768px)': {
+            backgroundSize: '64px 64px'
+          }
+        };
+      case 'gridded-dense':
+        return {
+          backgroundColor: 'hsl(217, 35%, 12%)',
+          backgroundImage: `
+            linear-gradient(rgba(71, 85, 105, 0.12) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(71, 85, 105, 0.12) 1px, transparent 1px)
+          `,
+          backgroundSize: '24px 24px',
+          '@media (min-width: 768px)': {
+            backgroundSize: '48px 48px'
+          }
+        };
+      case 'gridded-sparse':
+        return {
+          backgroundColor: 'hsl(217, 35%, 12%)',
+          backgroundImage: `
+            linear-gradient(rgba(71, 85, 105, 0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(71, 85, 105, 0.06) 1px, transparent 1px)
+          `,
+          backgroundSize: '48px 48px',
+          '@media (min-width: 768px)': {
+            backgroundSize: '96px 96px'
+          }
+        };
       case 'dark':
         return {
           backgroundColor: 'hsl(217, 35%, 12%)'
@@ -43,10 +81,29 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
     }
   };
 
+  const getGridClasses = () => {
+    if (!variant.includes('gridded')) return '';
+    
+    const baseClasses = 'bg-[linear-gradient(rgba(71,85,105,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(71,85,105,0.08)_1px,transparent_1px)]';
+    
+    switch (variant) {
+      case 'gridded':
+        return `${baseClasses} bg-[size:32px_32px] md:bg-[size:64px_64px]`;
+      case 'gridded-dense':
+        return `${baseClasses.replace('0.08', '0.12')} bg-[size:24px_24px] md:bg-[size:48px_48px]`;
+      case 'gridded-sparse':
+        return `${baseClasses.replace('0.08', '0.06')} bg-[size:48px_48px] md:bg-[size:96px_96px]`;
+      default:
+        return baseClasses;
+    }
+  };
+
+  const fadeClasses = gridFade ? 'animate-fade-in' : '';
+
   return (
     <div 
-      className={`min-h-screen ${className}`}
-      style={getBackgroundStyle()}
+      className={`min-h-screen ${getGridClasses()} ${fadeClasses} ${className}`}
+      style={variant.includes('gridded') ? { backgroundColor: 'hsl(217, 35%, 12%)' } : getBackgroundStyle()}
     >
       {children}
     </div>

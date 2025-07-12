@@ -17,8 +17,8 @@ const Index = () => {
         <HeroSection />
       </BackgroundProvider>
       
-      {/* All other sections with pure dark blue background */}
-      <BackgroundProvider variant="dark">
+      {/* All other sections with grid background */}
+      <BackgroundProvider variant="gridded" gridFade={true}>
         {/* Solution Section */}
         <ScrollAnimatedSection delay={100}>
           <Solution />
