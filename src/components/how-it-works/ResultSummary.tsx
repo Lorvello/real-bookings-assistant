@@ -60,16 +60,16 @@ const ResultSummary = () => {
     <div className="relative">
       <div className="relative rounded-3xl p-3 md:p-8">
         {/* Header - much smaller on mobile */}
-        <div className="text-center mb-4 md:mb-8">
-          <div className="flex items-center justify-center gap-2 md:gap-4 mb-3 md:mb-6">
+        <div className="text-center mb-2 md:mb-6">
+          <div className="flex items-center justify-center gap-2 md:gap-4 mb-2 md:mb-4">
             <CheckCircle className="w-5 h-5 md:w-8 md:h-8 text-emerald-400" />
-            <span className="text-lg md:text-3xl font-bold text-white">The result:</span>
-            <Sparkles className="w-4 h-4 md:w-6 md:h-6 text-emerald-400" />
+            <span className="text-base md:text-lg font-bold text-white">3 Steps. 5 Minutes. Done.</span>
+            <Sparkles className="w-4 h-4 md:w-6 md:h-6 text-emerald-400 animate-pulse" />
           </div>
         </div>
         
         {/* Main description - cleaner text formatting */}
-        <div className="max-w-4xl mx-auto text-center mb-4 md:mb-12">
+        <div className="max-w-4xl mx-auto text-center mb-2 md:mb-6">
           <p className="text-sm md:text-xl text-slate-200 leading-relaxed mb-3 md:mb-6">
             You{' '}
             <span className="text-red-400 font-bold">never again</span>

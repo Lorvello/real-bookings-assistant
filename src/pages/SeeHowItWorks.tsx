@@ -49,7 +49,7 @@ const SeeHowItWorks = () => {
           </h1>
 
           {/* Enhanced Subtitle */}
-          <p className="text-lg md:text-xl text-slate-300 max-w-4xl mx-auto mb-12 md:mb-16 px-3 sm:px-0 leading-relaxed font-light animate-fade-in" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
+          <p className="text-lg md:text-xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light animate-fade-in" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
             Step by step explanation of how easy it is to get started with our system. 
             <br className="hidden md:block" />
             <span className="text-emerald-300">No complicated installation, no tech hassle</span> — just go live immediately.

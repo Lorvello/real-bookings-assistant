@@ -8,7 +8,7 @@ const StepThreeDetails = () => {
       {/* Premium card with multiple shadow layers */}
       <div className="grid md:grid-cols-2 gap-8 items-center relative overflow-hidden
                     bg-gradient-to-br from-[hsl(217,35%,12%)] via-[hsl(217,35%,10%)] to-[hsl(217,35%,14%)]
-                    rounded-2xl p-8
+                    rounded-2xl p-6
                     shadow-2xl shadow-black/50
                     before:absolute before:inset-0 before:bg-gradient-to-r before:from-emerald-500/5 before:to-transparent before:rounded-2xl
                     after:absolute after:inset-px after:bg-gradient-to-br after:from-white/5 after:to-transparent after:rounded-2xl after:pointer-events-none
