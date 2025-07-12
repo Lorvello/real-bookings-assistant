@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { DayBookingsModal } from './DayBookingsModal';
-import { BookingDetailModal } from './BookingDetailModal';
+
 import { CalendarWeekHeader } from './components/CalendarWeekHeader';
 import { CalendarDayCell } from './components/CalendarDayCell';
 import { GradientContainer } from '@/components/ui/GradientContainer';
@@ -35,8 +35,6 @@ interface ModernMonthViewProps {
 export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -59,19 +57,9 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
     }
   };
 
-  const handleBookingClick = (booking: Booking) => {
-    setSelectedBooking(booking);
-    setBookingDetailOpen(true);
-  };
-
   const closeModal = () => {
     setModalOpen(false);
     setSelectedDate(null);
-  };
-
-  const closeBookingDetail = () => {
-    setBookingDetailOpen(false);
-    setSelectedBooking(null);
   };
 
   return (
@@ -93,7 +81,7 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
                   currentDate={currentDate}
                   dayBookings={dayBookings}
                   onDayClick={handleDayClick}
-                  onBookingClick={handleBookingClick}
+                  
                 />
               );
             })}
@@ -106,13 +94,6 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
         onClose={closeModal}
         date={selectedDate}
         bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
-        onBookingClick={handleBookingClick}
-      />
-
-      <BookingDetailModal
-        open={bookingDetailOpen}
-        onClose={closeBookingDetail}
-        booking={selectedBooking}
       />
     </div>
   );

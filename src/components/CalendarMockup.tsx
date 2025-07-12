@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { generateEnglishSampleBookings } from './calendar/utils/englishSampleBookings';
 import { DayBookingsModal } from './calendar/DayBookingsModal';
-import { BookingDetailModal } from './calendar/BookingDetailModal';
+
 
 interface Booking {
   id: string;
@@ -29,8 +29,6 @@ const CalendarMockup = () => {
   const currentDate = new Date(2025, 6, 14); // July 14, 2025
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
   const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>();
   const calendarRef = useRef<HTMLDivElement>(null);
   const monthStart = startOfMonth(currentDate);
@@ -89,20 +87,9 @@ const CalendarMockup = () => {
     }
   };
 
-  const handleBookingClick = (booking: Booking, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setSelectedBooking(booking);
-    setBookingDetailOpen(true);
-  };
-
   const closeModal = () => {
     setModalOpen(false);
     setSelectedDate(null);
-  };
-
-  const closeBookingDetail = () => {
-    setBookingDetailOpen(false);
-    setSelectedBooking(null);
   };
 
   // Handle escape key and click outside
@@ -182,10 +169,9 @@ const CalendarMockup = () => {
 
                 {/* Booking Content - Verbeterd voor mobiel */}
                 <div className="flex-1 flex flex-col justify-start space-y-0.5">
-                  {dayBookings.length === 1 && (
+                   {dayBookings.length === 1 && (
                     <div 
                       className="w-full px-1.5 py-1 rounded-md bg-emerald-600/80 backdrop-blur-sm border border-emerald-500/30 relative cursor-pointer hover:bg-emerald-700/80 transition-colors"
-                      onClick={(e) => handleBookingClick(dayBookings[0], e)}
                     >
                       {/* Verbeterde tekst voor mobiel */}
                       <div className="text-[9px] sm:text-[8px] text-white font-medium truncate text-left">
@@ -234,14 +220,7 @@ const CalendarMockup = () => {
         onClose={closeModal}
         date={selectedDate}
         bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
-        onBookingClick={handleBookingClick}
         position={modalPosition}
-      />
-
-      <BookingDetailModal
-        open={bookingDetailOpen}
-        onClose={closeBookingDetail}
-        booking={selectedBooking}
       />
     </div>
   );

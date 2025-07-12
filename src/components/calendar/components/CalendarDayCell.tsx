@@ -26,15 +26,13 @@ interface CalendarDayCellProps {
   currentDate: Date;
   dayBookings: Booking[];
   onDayClick: (day: Date, dayBookings: Booking[]) => void;
-  onBookingClick: (booking: Booking) => void;
 }
 
 export function CalendarDayCell({ 
   day, 
   currentDate, 
   dayBookings, 
-  onDayClick, 
-  onBookingClick 
+  onDayClick
 }: CalendarDayCellProps) {
   const isCurrentMonth = isSameMonth(day, currentDate);
   const isToday = isSameDay(day, new Date());
@@ -87,10 +85,6 @@ export function CalendarDayCell({
               backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`
             }}
             title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name} (${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'})`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onBookingClick(dayBookings[0]);
-            }}
           >
             <div className="flex items-center justify-between">
               <div className="text-white text-xs font-semibold">
