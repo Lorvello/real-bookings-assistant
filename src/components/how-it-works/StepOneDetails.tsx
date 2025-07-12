@@ -7,7 +7,7 @@ const StepOneDetails = () => {
       {/* Premium card with multiple shadow layers */}
       <div className="grid md:grid-cols-2 gap-8 items-center relative overflow-hidden
                     bg-gradient-to-br from-[hsl(217,35%,12%)] via-[hsl(217,35%,10%)] to-[hsl(217,35%,14%)]
-                    rounded-2xl p-4
+                    rounded-2xl p-3
                     shadow-2xl shadow-black/50
                     before:absolute before:inset-0 before:bg-gradient-to-r before:from-emerald-500/5 before:to-transparent before:rounded-2xl
                     after:absolute after:inset-px after:bg-gradient-to-br after:from-white/5 after:to-transparent after:rounded-2xl after:pointer-events-none
@@ -36,18 +36,18 @@ const StepOneDetails = () => {
         </div>
         
         {/* Premium Typography */}
-        <h3 className="text-3xl md:text-4xl font-bold mb-6 leading-tight tracking-tight
+        <h3 className="text-2xl md:text-3xl font-bold mb-4 leading-tight tracking-tight
                      bg-gradient-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
           Create account & get your professional calendar
         </h3>
         
-        <p className="text-slate-300 text-lg mb-6 leading-relaxed font-light">
+        <p className="text-slate-300 text-base mb-4 leading-relaxed font-light">
           Simply create your account and get instant access to your professional calendar system. 
           You can also connect your existing calendar if you prefer.
         </p>
         
         {/* Enhanced Feature List */}
-        <div className="space-y-4">
+        <div className="space-y-2">
           <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
                         transition-all duration-300 hover:bg-white/10 hover:border-emerald-400/30">
             <div className="relative">
@@ -56,7 +56,7 @@ const StepOneDetails = () => {
             </div>
             <span className="text-slate-100 font-medium">Instant professional calendar setup</span>
           </div>
-          <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
+           <div className="flex items-center gap-4 p-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
                         transition-all duration-300 hover:bg-white/10 hover:border-emerald-400/30">
             <div className="relative">
               <CheckCircle className="w-5 h-5 text-emerald-400 drop-shadow-sm" />
@@ -64,7 +64,7 @@ const StepOneDetails = () => {
             </div>
             <span className="text-slate-100 font-medium">Option to connect existing calendar</span>
           </div>
-          <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
+           <div className="flex items-center gap-4 p-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
                         transition-all duration-300 hover:bg-white/10 hover:border-emerald-400/30">
             <div className="relative">
               <CheckCircle className="w-5 h-5 text-emerald-400 drop-shadow-sm" />

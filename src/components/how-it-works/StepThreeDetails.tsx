@@ -8,7 +8,7 @@ const StepThreeDetails = () => {
       {/* Premium card with multiple shadow layers */}
       <div className="grid md:grid-cols-2 gap-8 items-center relative overflow-hidden
                     bg-gradient-to-br from-[hsl(217,35%,12%)] via-[hsl(217,35%,10%)] to-[hsl(217,35%,14%)]
-                    rounded-2xl p-4
+                    rounded-2xl p-3
                     shadow-2xl shadow-black/50
                     before:absolute before:inset-0 before:bg-gradient-to-r before:from-emerald-500/5 before:to-transparent before:rounded-2xl
                     after:absolute after:inset-px after:bg-gradient-to-br after:from-white/5 after:to-transparent after:rounded-2xl after:pointer-events-none
@@ -37,19 +37,19 @@ const StepThreeDetails = () => {
         </div>
         
         {/* Premium Typography */}
-        <h3 className="text-3xl md:text-4xl font-bold mb-6 leading-tight tracking-tight
+        <h3 className="text-2xl md:text-3xl font-bold mb-4 leading-tight tracking-tight
                      bg-gradient-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
           Your system goes live immediately
         </h3>
         
-        <p className="text-slate-300 text-lg mb-6 leading-relaxed font-light">
+        <p className="text-slate-300 text-base mb-4 leading-relaxed font-light">
           That's it! Your entire booking system is instantly active and ready to serve customers 24/7. 
           You can adjust settings anytime, but everything works perfectly from day one.
         </p>
         
         {/* Enhanced Feature List */}
-        <div className="space-y-4 mb-6">
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
+        <div className="space-y-2 mb-4">
+           <div className="flex items-start gap-4 p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
                         transition-all duration-300 hover:bg-white/10 hover:border-emerald-400/30">
             <div className="relative mt-1">
               <Bot className="w-6 h-6 text-emerald-400 drop-shadow-sm" />
@@ -61,7 +61,7 @@ const StepThreeDetails = () => {
             </div>
           </div>
           
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
+           <div className="flex items-start gap-4 p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
                         transition-all duration-300 hover:bg-white/10 hover:border-emerald-400/30">
             <div className="relative mt-1">
               <Sparkles className="w-6 h-6 text-emerald-400 drop-shadow-sm" />
@@ -73,7 +73,7 @@ const StepThreeDetails = () => {
             </div>
           </div>
           
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
+           <div className="flex items-start gap-4 p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
                         transition-all duration-300 hover:bg-white/10 hover:border-emerald-400/30">
             <div className="relative mt-1">
               <CheckCircle className="w-6 h-6 text-emerald-400 drop-shadow-sm" />
@@ -88,7 +88,7 @@ const StepThreeDetails = () => {
         
         {/* Live Status Banner */}
         <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-500/15 to-emerald-600/10 
-                      border border-emerald-400/40 p-6 rounded-xl
+                      border border-emerald-400/40 p-4 rounded-xl
                       shadow-lg shadow-emerald-500/10
                       relative overflow-hidden">
           <div className="relative z-10">

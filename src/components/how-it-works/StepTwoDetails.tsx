@@ -8,7 +8,7 @@ const StepTwoDetails = () => {
       {/* Premium card with multiple shadow layers */}
       <div className="grid md:grid-cols-2 gap-8 items-center relative overflow-hidden
                     bg-gradient-to-br from-[hsl(217,35%,12%)] via-[hsl(217,35%,10%)] to-[hsl(217,35%,14%)]
-                    rounded-2xl p-4
+                    rounded-2xl p-3
                     shadow-2xl shadow-black/50
                     before:absolute before:inset-0 before:bg-gradient-to-r before:from-emerald-500/5 before:to-transparent before:rounded-2xl
                     after:absolute after:inset-px after:bg-gradient-to-br after:from-white/5 after:to-transparent after:rounded-2xl after:pointer-events-none
@@ -37,20 +37,20 @@ const StepTwoDetails = () => {
         </div>
         
         {/* Premium Typography */}
-        <h3 className="text-3xl md:text-4xl font-bold mb-6 leading-tight tracking-tight
+        <h3 className="text-2xl md:text-3xl font-bold mb-4 leading-tight tracking-tight
                      bg-gradient-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
           Get your WhatsApp number instantly
         </h3>
         
-        <p className="text-slate-300 text-lg mb-6 leading-relaxed font-light">
+        <p className="text-slate-300 text-base mb-4 leading-relaxed font-light">
           Your account comes with an instant WhatsApp number assignment. You can also choose to 
           connect your existing business number if you prefer.
         </p>
         
         {/* Enhanced Options */}
-        <div className="space-y-4 mb-6">
+        <div className="space-y-3 mb-4">
           <div className="bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-emerald-600/5 
-                        border border-emerald-400/30 p-6 rounded-xl backdrop-blur-sm
+                        border border-emerald-400/30 p-4 rounded-xl backdrop-blur-sm
                         shadow-lg shadow-emerald-500/10 relative overflow-hidden
                         transition-all duration-300 hover:shadow-emerald-500/20 hover:border-emerald-400/50">
             <div className="absolute top-4 right-4">
@@ -75,7 +75,7 @@ const StepTwoDetails = () => {
           </div>
           
           <div className="bg-gradient-to-r from-slate-700/60 via-slate-700/40 to-slate-800/60 
-                        border border-slate-500/30 p-6 rounded-xl backdrop-blur-sm
+                        border border-slate-500/30 p-4 rounded-xl backdrop-blur-sm
                         shadow-lg shadow-black/20 relative overflow-hidden
                         transition-all duration-300 hover:shadow-emerald-500/10 hover:border-emerald-500/30">
             <div className="relative z-10">
