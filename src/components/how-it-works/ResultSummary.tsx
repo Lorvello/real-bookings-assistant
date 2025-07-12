@@ -35,23 +35,23 @@ const ResultSummary = () => {
 
   const stats = [
     { 
-      value: '95%', 
-      label: 'Less time on administration', 
+      value: '98%', 
+      label: 'Higher open rates vs email', 
       icon: Clock
     },
     { 
-      value: '24/7', 
-      label: 'Available for customers', 
+      value: '40%', 
+      label: 'Reduction in service costs', 
       icon: Users
     },
     { 
-      value: '0', 
-      label: 'Missed appointments', 
+      value: '10x', 
+      label: 'Return on investment potential', 
       icon: TrendingUp
     },
     { 
-      value: '∞', 
-      label: 'Simultaneous conversations', 
+      value: '24/7', 
+      label: 'Automated availability', 
       icon: Zap
     }
   ];
@@ -60,41 +60,41 @@ const ResultSummary = () => {
     <div className="relative">
       <div className="relative rounded-3xl p-3 md:p-8">
         {/* Single elegant header */}
-        <div className="text-center mb-16 md:mb-20">
+        <div className="text-center mb-20 md:mb-24">
           <h2 className="text-2xl md:text-3xl font-light text-slate-200 tracking-wide">
-            Transform your business with these
-            <span className="text-emerald-400 font-medium"> results</span>
+            Drive exceptional results across every business metric
           </h2>
         </div>
         
         {/* Desktop: Premium grid layout */}
-        <div className="hidden md:grid sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="hidden md:grid sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             
             return (
               <div 
                 key={index} 
-                className="group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-3xl p-10 lg:p-12 text-center transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+                className="group relative bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-3xl p-12 lg:p-16 text-center transition-all duration-700 hover:scale-105 hover:-translate-y-3"
                 style={{
                   boxShadow: `
-                    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-                    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-                    0 0 0 1px rgba(255, 255, 255, 0.05),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.1)
+                    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                    0 35px 75px -15px rgba(0, 0, 0, 0.15),
+                    0 0 0 1px rgba(16, 185, 129, 0.05),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                    0 0 40px rgba(16, 185, 129, 0.1)
                   `
                 }}
               >
-                {/* Subtle gradient overlay */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                {/* Enhanced glassmorphism overlay */}
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-emerald-500/10 via-emerald-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700" />
+                <div className="absolute inset-0 rounded-3xl bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-all duration-700" />
                 
                 <div className="relative z-10">
-                  <div className="mb-8">
-                    <Icon className="w-12 h-12 mx-auto text-emerald-400 drop-shadow-lg" />
+                  <div className="mb-10">
+                    <Icon className="w-14 h-14 mx-auto text-emerald-400 drop-shadow-xl group-hover:drop-shadow-2xl transition-all duration-700 group-hover:scale-110" />
                   </div>
                   
-                  <div className="text-5xl lg:text-6xl font-bold text-emerald-400 mb-6 tracking-tight drop-shadow-lg">
+                  <div className="text-6xl lg:text-7xl font-black text-emerald-400 mb-8 tracking-tighter drop-shadow-xl group-hover:drop-shadow-2xl transition-all duration-700">
                     {stat.value}
                   </div>
                   
@@ -118,31 +118,31 @@ const ResultSummary = () => {
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            <div className="flex gap-3 pb-4 px-2">
+            <div className="flex gap-4 pb-4 px-2">
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
                   <div key={index} className="w-[85vw] flex-none snap-start snap-always">
                     <div 
-                      className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-3xl p-8 text-center h-full"
+                      className="bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-3xl p-10 text-center h-full"
                       style={{
                         boxShadow: `
-                          0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                          0 10px 15px -3px rgba(0, 0, 0, 0.1),
-                          0 20px 25px -5px rgba(0, 0, 0, 0.1),
-                          0 0 0 1px rgba(255, 255, 255, 0.05)
+                          0 20px 40px -10px rgba(0, 0, 0, 0.2),
+                          0 25px 50px -12px rgba(0, 0, 0, 0.15),
+                          0 0 0 1px rgba(16, 185, 129, 0.05),
+                          inset 0 1px 0 rgba(255, 255, 255, 0.1)
                         `
                       }}
                     >
-                      <div className="mb-6">
-                        <Icon className="w-8 h-8 mx-auto text-emerald-400 drop-shadow-lg" />
+                      <div className="mb-8">
+                        <Icon className="w-10 h-10 mx-auto text-emerald-400 drop-shadow-xl" />
                       </div>
                       
-                      <div className="text-3xl font-bold text-emerald-400 mb-4 tracking-tight drop-shadow-lg">
+                      <div className="text-4xl font-black text-emerald-400 mb-6 tracking-tighter drop-shadow-xl">
                         {stat.value}
                       </div>
                       
-                      <div className="text-sm text-slate-300 leading-relaxed font-light">
+                      <div className="text-sm text-slate-300 leading-relaxed font-light tracking-wide">
                         {stat.label}
                       </div>
                     </div>
