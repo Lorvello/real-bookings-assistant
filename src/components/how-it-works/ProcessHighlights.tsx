@@ -55,7 +55,7 @@ const ProcessHighlights = () => {
           <div className="hidden md:block">
             <div className="space-y-16">
               <div 
-                className="animate-fade-in bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-500"
+                className="animate-fade-in shadow-lg hover:shadow-xl transition-all duration-500"
                 style={{
                   animationDelay: '600ms',
                   animationFillMode: 'both'
@@ -64,7 +64,7 @@ const ProcessHighlights = () => {
                 <StepOneDetails />
               </div>
               <div 
-                className="animate-fade-in bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-500"
+                className="animate-fade-in shadow-lg hover:shadow-xl transition-all duration-500"
                 style={{
                   animationDelay: '900ms',
                   animationFillMode: 'both'
@@ -73,7 +73,7 @@ const ProcessHighlights = () => {
                 <StepTwoDetails />
               </div>
               <div 
-                className="animate-fade-in bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-500"
+                className="animate-fade-in shadow-lg hover:shadow-xl transition-all duration-500"
                 style={{
                   animationDelay: '1200ms',
                   animationFillMode: 'both'
@@ -91,7 +91,7 @@ const ProcessHighlights = () => {
               return (
                 <div 
                   key={index} 
-                  className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-lg"
+                  className="shadow-lg"
                   style={{
                     animationDelay: `${600 + index * 300}ms`,
                     animationFillMode: 'both'
