@@ -1,8 +1,8 @@
 
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { Clock, User, Phone, Mail } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Clock, User, Phone, Mail, X } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface Booking {
   id: string;
@@ -30,10 +30,11 @@ interface DayBookingsModalProps {
   date: Date | null;
   bookings: Booking[];
   onBookingClick?: (booking: Booking, event?: React.MouseEvent) => void;
+  position?: { x: number; y: number };
 }
 
-export function DayBookingsModal({ open, onClose, date, bookings, onBookingClick }: DayBookingsModalProps) {
-  if (!date) return null;
+export function DayBookingsModal({ open, onClose, date, bookings, onBookingClick, position }: DayBookingsModalProps) {
+  if (!date || !open) return null;
 
   const sortedBookings = [...bookings].sort(
     (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
@@ -46,89 +47,97 @@ export function DayBookingsModal({ open, onClose, date, bookings, onBookingClick
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
-            Appointments for {format(date, 'EEEE d MMMM yyyy', { locale: enUS })}
-          </DialogTitle>
-        </DialogHeader>
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    if (open) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [open, onClose]);
 
-        <div className="space-y-4 mt-4">
+  return (
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 z-40"
+        onClick={onClose}
+      />
+      
+      {/* Popover */}
+      <div
+        className="absolute z-50 w-72 bg-card/95 backdrop-blur-sm border border-border/40 rounded-lg shadow-lg"
+        style={{
+          left: position?.x || 0,
+          top: position?.y || 0,
+          transform: 'translate(-50%, -100%)',
+        }}
+      >
+        {/* Header */}
+        <div className="p-3 border-b border-border/20">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">
+              {format(date, 'EEE d MMM', { locale: enUS })}
+            </h3>
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-muted/50 rounded-sm transition-colors"
+            >
+              <X className="w-3 h-3 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-3 max-h-64 overflow-y-auto">
           {sortedBookings.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No appointments for this day
+            <div className="text-center py-4 text-muted-foreground text-xs">
+              No appointments
             </div>
           ) : (
-            sortedBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="p-4 rounded-lg border border-border/60 bg-card/50 hover:bg-card/80 transition-colors cursor-pointer hover:shadow-md"
-                onClick={() => handleBookingClick(booking)}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{
-                          backgroundColor: booking.service_types?.color || '#3B82F6'
-                        }}
-                      />
-                      <h3 className="font-semibold text-foreground">
+            <div className="space-y-2">
+              {sortedBookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  className="p-2 rounded-md border border-border/30 bg-card/30 hover:bg-card/50 transition-colors cursor-pointer"
+                  onClick={() => handleBookingClick(booking)}
+                >
+                  <div className="flex items-start gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
+                      style={{
+                        backgroundColor: booking.service_types?.color || '#3B82F6'
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium text-foreground truncate">
                         {booking.service_types?.name || booking.service_name || 'Appointment'}
-                      </h3>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                        booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {booking.status === 'confirmed' ? 'Confirmed' :
-                         booking.status === 'pending' ? 'Pending' :
-                         'Cancelled'}
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="w-4 h-4" />
-                        <span>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Clock className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
                           {format(new Date(booking.start_time), 'HH:mm')} - 
                           {format(new Date(booking.end_time), 'HH:mm')}
                         </span>
                       </div>
-
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <User className="w-4 h-4" />
-                        <span>{booking.customer_name}</span>
+                      <div className="flex items-center gap-1 mt-1">
+                        <User className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground truncate">
+                          {booking.customer_name}
+                        </span>
                       </div>
-
-                      {booking.customer_phone && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="w-4 h-4" />
-                          <span>{booking.customer_phone}</span>
-                        </div>
-                      )}
-
-                      {booking.customer_email && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="w-4 h-4" />
-                          <span className="truncate">{booking.customer_email}</span>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
-                
-                <div className="mt-3 text-xs text-muted-foreground text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  Click for more details
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }

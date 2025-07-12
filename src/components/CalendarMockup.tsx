@@ -31,6 +31,7 @@ const CalendarMockup = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
+  const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>();
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -48,8 +49,13 @@ const CalendarMockup = () => {
     );
   };
 
-  const handleDayClick = (day: Date, dayBookings: Booking[]) => {
+  const handleDayClick = (day: Date, dayBookings: Booking[], event: React.MouseEvent) => {
     if (dayBookings.length > 1) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      setModalPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top - 8
+      });
       setSelectedDate(day);
       setModalOpen(true);
     }
@@ -110,7 +116,7 @@ const CalendarMockup = () => {
                       : 'bg-card/30 backdrop-blur-sm border border-border/20 hover:bg-card/40'
                     : 'bg-muted/20 border border-border/10 opacity-50'
                 } ${dayBookings.length > 1 ? 'hover:shadow-md' : ''}`}
-                onClick={() => handleDayClick(day, dayBookings)}
+                onClick={(e) => handleDayClick(day, dayBookings, e)}
               >
                 {/* Day Number - Verbeterd voor mobiel */}
                 <div className={`text-xs sm:text-xs font-medium mb-1 ${
@@ -176,6 +182,7 @@ const CalendarMockup = () => {
         date={selectedDate}
         bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
         onBookingClick={handleBookingClick}
+        position={modalPosition}
       />
 
       <BookingDetailModal
