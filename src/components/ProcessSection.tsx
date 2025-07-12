@@ -63,7 +63,7 @@ const ProcessSection = () => {
           <div className="flex flex-col lg:flex-row-reverse items-center gap-4 md:gap-12">
             <div className="flex-1 space-y-3 md:space-y-6 text-center lg:text-left">
               <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
-                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-blue-500 to-indigo-500">
+                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   2
                 </div>
                 <h3 className="text-sm md:text-2xl font-bold text-white">Appointment Automatically Booked</h3>
@@ -87,7 +87,7 @@ const ProcessSection = () => {
         <div className="mt-32 md:mt-24 space-y-3 md:space-y-8">
           <div className="text-center">
             <div className="flex items-center gap-2 md:gap-4 justify-center mb-3 md:mb-6">
-              <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-purple-500 to-pink-500">
+              <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                 3
               </div>
               <h3 className="text-sm md:text-2xl font-bold text-white">Test The AI Agent Yourself</h3>
@@ -103,9 +103,9 @@ const ProcessSection = () => {
               <DialogTrigger asChild>
                 <Button 
                   size="default"
-                  className="bg-white hover:bg-gray-50 text-gray-900 font-medium text-sm md:text-base px-6 md:px-8 py-3 md:py-4 h-auto rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm md:text-base px-6 md:px-8 py-3 md:py-4 h-auto rounded-lg border border-slate-700 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
                 >
-                  <Bot className="mr-2 h-4 w-4 md:h-5 md:w-5 text-gray-600" />
+                  <Bot className="mr-2 h-4 w-4 md:h-5 md:w-5 text-white" />
                   Try AI Agent Demo
                 </Button>
               </DialogTrigger>

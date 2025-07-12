@@ -25,12 +25,12 @@ const StepIndicator = () => {
                 }}
               >
                 {/* Glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-600 to-slate-700 rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
                 
                 {/* Main circle with sophisticated gradient */}
-                <div className="relative w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-700 rounded-full flex items-center justify-center shadow-2xl group-hover:shadow-slate-500/25 transition-all duration-300 border border-slate-500/20">
+                <div className="relative w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center shadow-2xl group-hover:shadow-emerald-500/25 transition-all duration-300 border border-emerald-500/20">
                   {/* Inner highlight */}
-                  <div className="absolute inset-1 bg-gradient-to-br from-slate-500/20 to-transparent rounded-full"></div>
+                  <div className="absolute inset-1 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-full"></div>
                   <span className="relative text-white text-base md:text-2xl font-bold z-10">{step.number}</span>
                 </div>
               </div>
