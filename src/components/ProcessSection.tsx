@@ -49,9 +49,6 @@ const ProcessSection = () => {
                 responds immediately with intelligent questions to understand their preferences 
                 and find the perfect appointment time.
               </p>
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2 md:p-4 backdrop-blur-sm mx-3 lg:mx-0">
-                <p className="font-medium text-emerald-400 text-xs md:text-base">✨ No apps to download, no complex forms to fill out</p>
-              </div>
             </div>
             
             <div className="flex-1 animate-appear opacity-100 delay-300 w-full max-w-[280px] md:max-w-sm lg:max-w-none">
@@ -68,13 +65,9 @@ const ProcessSection = () => {
                 </div>
                 <h3 className="text-sm md:text-2xl font-bold text-white">Appointment Automatically Booked</h3>
               </div>
-              <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
-                The AI confirms the appointment details and adds it directly to your calendar. 
-                Both you and your customer receive confirmation messages with all details.
-              </p>
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-2 md:p-4 backdrop-blur-sm mx-3 lg:mx-0">
-                <p className="font-medium text-blue-400 text-xs md:text-base">📅 Syncs with Google Calendar, Outlook and more</p>
-              </div>
+               <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
+                 Integrate with your existing calendar system, or use our professional high-end calendar solution designed for optimal appointment management.
+               </p>
             </div>
             
             <div className="flex-1 animate-appear opacity-100 delay-700 w-full max-w-[280px] md:max-w-sm lg:max-w-none">
