@@ -207,6 +207,18 @@
   transform: translateY(0);
 }
 
+/* Staggered animation styles */
+.scroll-animate-stagger {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.scroll-animate-stagger.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Compact Modern WhatsApp Chat Specific Styles */
 @layer components {
   .whatsapp-chat-bg {

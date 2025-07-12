@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { WhatsAppBenefits } from "@/components/ui/feature-whatsapp-benefits";
 import { MessageCircle, Brain, Target, Clock, Users, TrendingUp } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 
 const Solution = () => {
   const [activeSolutionIndex, setActiveSolutionIndex] = useState(0);
@@ -71,31 +72,35 @@ const Solution = () => {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20"></div>
       
       <div className="max-w-6xl mx-auto relative z-20 px-4 md:px-6 lg:px-8">
-        {/* Header - Compact mobile with improved spacing */}
-        <div className="text-center mb-6 md:mb-16 pt-12 md:pt-20">
-          <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
-            Meet Your <span className="text-emerald-400">24/7</span><br />
-            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-              Booking Assistant
-            </span>
-          </h2>
-          <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
-            <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
-            <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
-            faster than any human could.</span>
-          </p>
+        <StaggeredAnimationContainer staggerDelay={150} className="space-y-8 md:space-y-16">
+          {/* Header - Compact mobile with improved spacing */}
+          <div className="text-center pt-12 md:pt-20">
+            <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
+              Meet Your <span className="text-emerald-400">24/7</span><br />
+              <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+                Booking Assistant
+              </span>
+            </h2>
+            <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
+              <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
+              <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
+              faster than any human could.</span>
+            </p>
+            
+            <p className="text-sm md:text-lg text-emerald-400 font-semibold tracking-tight">
+              Here's what makes it revolutionary:
+            </p>
+          </div>
           
-          <p className="text-sm md:text-lg text-emerald-400 font-semibold tracking-tight">
-            Here's what makes it revolutionary:
-          </p>
-        </div>
-      </div>
-      
-      {/* Enhanced Benefits Section with Visual Separation */}
-      <div className="relative mt-8 md:mt-16">
-        {/* Visual separator with subtle gradient */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent"></div>
-        <WhatsAppBenefits className="pt-12 md:pt-20" />
+          {/* Enhanced Benefits Section with Visual Separation */}
+          <div className="relative">
+            {/* Visual separator with subtle gradient */}
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent"></div>
+            <div className="pt-12 md:pt-20">
+              <WhatsAppBenefits />
+            </div>
+          </div>
+        </StaggeredAnimationContainer>
       </div>
     </section>
   );
