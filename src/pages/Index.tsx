@@ -10,36 +10,34 @@ import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 
 const Index = () => {
   return (
-    <BackgroundProvider variant="hero">
-      <div className="min-h-screen">
-        {/* Header */}
+    <>
+      {/* Hero Section with green effects */}
+      <BackgroundProvider variant="hero">
         <Header />
-        
-        {/* Hero Section */}
         <HeroSection />
-        
-        {/* Rest of content with consistent dark background */}
-        <BackgroundProvider variant="dark">
+      </BackgroundProvider>
       
-      {/* Solution Section */}
-      <ScrollAnimatedSection delay={100}>
-        <Solution />
-      </ScrollAnimatedSection>
+      {/* All other sections with pure dark blue background */}
+      <BackgroundProvider variant="dark">
+        {/* Solution Section */}
+        <ScrollAnimatedSection delay={100}>
+          <Solution />
+        </ScrollAnimatedSection>
 
-      {/* Process Section */}
-      <ScrollAnimatedSection delay={200}>
-        <ProcessSection />
-      </ScrollAnimatedSection>
+        {/* Process Section */}
+        <ScrollAnimatedSection delay={200}>
+          <ProcessSection />
+        </ScrollAnimatedSection>
 
-      {/* Features Section */}
-      <ScrollAnimatedSection delay={100}>
-        <Features />
-      </ScrollAnimatedSection>
+        {/* Features Section */}
+        <ScrollAnimatedSection delay={100}>
+          <Features />
+        </ScrollAnimatedSection>
 
-      {/* Social Proof Section */}
-      <ScrollAnimatedSection delay={200}>
-        <SocialProof />
-      </ScrollAnimatedSection>
+        {/* Social Proof Section */}
+        <ScrollAnimatedSection delay={200}>
+          <SocialProof />
+        </ScrollAnimatedSection>
 
         {/* Pricing Section */}
         <ScrollAnimatedSection delay={100}>
@@ -47,9 +45,8 @@ const Index = () => {
             <Pricing />
           </div>
         </ScrollAnimatedSection>
-        </BackgroundProvider>
-      </div>
-    </BackgroundProvider>
+      </BackgroundProvider>
+    </>
   );
 };
 
