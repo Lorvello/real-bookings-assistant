@@ -47,15 +47,15 @@ const ProcessHighlights = () => {
 
   return (
     <ScrollAnimatedSection>
-      <div className="max-w-7xl mx-auto mt-12 md:mt-32 px-4 md:px-6 lg:px-8">
-        <div className="space-y-16 md:space-y-32">
+      <div className="max-w-7xl mx-auto mt-8 md:mt-16 px-4 md:px-6 lg:px-8">
+        <div className="space-y-12 md:space-y-20">
           <StepIndicator />
           
-          {/* Desktop: Sequential animated layout with elevated cards */}
+          {/* Desktop: Sequential animated layout with clean cards */}
           <div className="hidden md:block">
-            <div className="space-y-32">
+            <div className="space-y-16">
               <div 
-                className="animate-fade-in bg-slate-800/20 backdrop-blur-sm border border-slate-700/30 rounded-3xl p-12 shadow-2xl hover:shadow-slate-500/10 transition-all duration-500"
+                className="animate-fade-in bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-500"
                 style={{
                   animationDelay: '600ms',
                   animationFillMode: 'both'
@@ -64,7 +64,7 @@ const ProcessHighlights = () => {
                 <StepOneDetails />
               </div>
               <div 
-                className="animate-fade-in bg-slate-800/20 backdrop-blur-sm border border-slate-700/30 rounded-3xl p-12 shadow-2xl hover:shadow-slate-500/10 transition-all duration-500"
+                className="animate-fade-in bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-500"
                 style={{
                   animationDelay: '900ms',
                   animationFillMode: 'both'
@@ -73,7 +73,7 @@ const ProcessHighlights = () => {
                 <StepTwoDetails />
               </div>
               <div 
-                className="animate-fade-in bg-slate-800/20 backdrop-blur-sm border border-slate-700/30 rounded-3xl p-12 shadow-2xl hover:shadow-slate-500/10 transition-all duration-500"
+                className="animate-fade-in bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-500"
                 style={{
                   animationDelay: '1200ms',
                   animationFillMode: 'both'
@@ -84,14 +84,14 @@ const ProcessHighlights = () => {
             </div>
           </div>
 
-          {/* Mobile: Enhanced vertical layout with premium cards */}
-          <div className="md:hidden space-y-12">
+          {/* Mobile: Clean vertical layout with modern cards */}
+          <div className="md:hidden space-y-8">
             {steps.map((step, index) => {
               const StepComponent = step.component;
               return (
                 <div 
                   key={index} 
-                  className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/40 rounded-2xl p-8 shadow-xl"
+                  className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-lg"
                   style={{
                     animationDelay: `${600 + index * 300}ms`,
                     animationFillMode: 'both'

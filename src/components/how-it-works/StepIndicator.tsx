@@ -28,10 +28,10 @@ const StepIndicator = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
                 
                 {/* Main circle with sophisticated gradient */}
-                <div className="relative w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center shadow-2xl group-hover:shadow-emerald-500/25 transition-all duration-300 border border-emerald-500/20">
+                <div className="relative w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center shadow-2xl group-hover:shadow-emerald-500/25 transition-all duration-300 border border-emerald-500/20">
                   {/* Inner highlight */}
                   <div className="absolute inset-1 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-full"></div>
-                  <span className="relative text-white text-base md:text-2xl font-bold z-10">{step.number}</span>
+                  <span className="relative text-white text-sm md:text-base font-bold z-10">{step.number}</span>
                 </div>
               </div>
               
@@ -53,21 +53,21 @@ const StepIndicator = () => {
         
         {/* Enhanced Title with sophisticated typography */}
         <div className="relative">
-          <h3 className="text-2xl md:text-6xl lg:text-7xl font-bold text-white mb-6 md:mb-12 leading-tight tracking-tight">
+          <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 md:mb-6 leading-tight tracking-tight">
             3 steps.{' '}
             <span className="bg-gradient-to-r from-slate-300 to-slate-100 bg-clip-text text-transparent">
               5 minutes.
             </span>
             {' '}
-            <span className="inline-flex items-center gap-2 md:gap-4">
+            <span className="inline-flex items-center gap-2">
               <span className="bg-gradient-to-r from-slate-300 to-slate-100 bg-clip-text text-transparent">
                 Done.
               </span>
-              <Sparkles className="w-6 h-6 md:w-10 md:h-10 text-slate-400 animate-pulse" />
+              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-slate-400 animate-pulse" />
             </span>
           </h3>
           
-          <p className="text-base md:text-2xl text-slate-300 max-w-4xl mx-auto font-light leading-relaxed">
+          <p className="text-sm md:text-base text-slate-300 max-w-3xl mx-auto font-light leading-relaxed">
             From first contact to fully working AI assistant in less than 5 minutes
           </p>
         </div>
