@@ -61,13 +61,13 @@ const ResultSummary = () => {
       <div className="relative rounded-3xl p-3 md:p-8">
         {/* Powerful direct header */}
         <div className="text-center mb-20 md:mb-24">
-          <h2 className="text-2xl md:text-3xl font-light text-slate-200 tracking-wide">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-200 tracking-wider leading-tight drop-shadow-lg">
             Proven results that transform businesses
           </h2>
         </div>
         
-        {/* Desktop: Premium 2x2 square grid layout */}
-        <div className="hidden md:grid grid-cols-2 gap-16 lg:gap-20 max-w-4xl mx-auto">
+        {/* Desktop: Premium 4-card horizontal row layout */}
+        <div className="hidden md:grid grid-cols-4 gap-12 lg:gap-16 max-w-7xl mx-auto">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             
