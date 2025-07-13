@@ -155,8 +155,8 @@ const ResultSummary = () => {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-emerald-500/15 via-emerald-400/8 to-transparent" />
                     <div className="absolute inset-0 rounded-2xl bg-white/[0.03]" />
                     
-                    <div className="relative z-10 flex items-center justify-center h-full w-full p-2">
-                      {/* Detailed text with larger font and left aligned - no icon */}
+                    <div className="relative z-10 flex items-start justify-start h-full w-full p-2">
+                      {/* Detailed text with larger font and top-left aligned - no icon */}
                       <div className="text-[11px] lg:text-[12px] text-slate-300/90 leading-tight font-light tracking-wide text-left">
                         {stat.detailText}
                       </div>
@@ -237,8 +237,8 @@ const ResultSummary = () => {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-emerald-500/15 via-emerald-400/8 to-transparent" />
                     <div className="absolute inset-0 rounded-2xl bg-white/[0.03]" />
                     
-                    <div className="relative z-10 flex items-center justify-center h-full w-full p-2">
-                      {/* Detailed text with larger font and left aligned for mobile - no icon */}
+                    <div className="relative z-10 flex items-start justify-start h-full w-full p-2">
+                      {/* Detailed text with larger font and top-left aligned for mobile - no icon */}
                       <div className="text-[10px] text-slate-300/90 leading-tight font-light tracking-wide text-left">
                         {stat.detailText}
                       </div>
