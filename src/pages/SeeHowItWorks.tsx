@@ -85,11 +85,9 @@ const SeeHowItWorks = () => {
       </ScrollAnimatedSection>
 
       {/* Pricing Section */}
-      <ScrollAnimatedSection animation="scale" delay={200}>
-        <div id="pricing">
-          <Pricing />
-        </div>
-      </ScrollAnimatedSection>
+      <div id="pricing">
+        <Pricing />
+      </div>
     </div>
   );
 };
