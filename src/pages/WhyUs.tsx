@@ -415,13 +415,13 @@ const WhyUs = () => {
                         backfaceVisibility: 'hidden'
                       }}
                     >
-                       <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-3 md:mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
-                         <stat.icon className="w-7 h-7 md:w-8 md:h-8 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
+                       <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-4 md:mb-5 mx-auto group-hover:scale-110 transition-transform duration-300">
+                         <stat.icon className="w-8 h-8 md:w-10 md:h-10 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
                        </div>
-                       <div className="text-xl md:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-2 md:mb-3 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
+                       <div className="text-2xl md:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-2 md:mb-3 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
                          {stat.number}
                        </div>
-                       <div className="text-xs md:text-sm font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300 leading-tight">{stat.label}</div>
+                       <div className="text-sm md:text-base font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300 leading-tight">{stat.label}</div>
                     </div>
                     
                     {/* Back Side */}
