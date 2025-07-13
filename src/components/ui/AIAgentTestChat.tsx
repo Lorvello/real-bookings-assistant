@@ -312,7 +312,7 @@ export default function AIAgentTestPage() {
   return (
     <div className="h-full bg-gradient-to-br from-[#111827] via-[#1F2937] to-[#111827] text-white flex flex-col">
       {/* Chat Interface */}
-      <div className="flex-1 flex flex-col px-2 sm:px-4">
+      <div className="flex-1 flex flex-col">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
