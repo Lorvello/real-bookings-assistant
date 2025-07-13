@@ -454,7 +454,7 @@ const WhyUs = () => {
          <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
            <div className="text-center mb-12 md:mb-20">
              <ScrollAnimatedSection delay={100}>
-                 <h2 className="text-2xl md:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
+                 <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-6 md:mb-8 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
                    WhatsApp vs Traditional Booking
                  </h2>
              </ScrollAnimatedSection>
@@ -466,27 +466,27 @@ const WhyUs = () => {
              </ScrollAnimatedSection>
            </div>
           
-           {/* Desktop: Clean Professional Table */}
-           <ScrollAnimatedSection className="hidden md:block backdrop-blur-sm bg-black/20 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.3)] border border-slate-700/20 mb-16 overflow-hidden" delay={300}>
+           {/* Desktop: Premium Professional Table */}
+           <ScrollAnimatedSection className="hidden md:block backdrop-blur-sm bg-black/30 rounded-3xl shadow-[0_32px_64px_rgba(0,0,0,0.4),0_16px_32px_rgba(0,0,0,0.25)] border border-slate-600/30 mb-16 overflow-hidden hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] transition-all duration-500" delay={300}>
              <div className="overflow-x-auto">
                <table className="w-full">
                  <thead>
-                   <tr className="bg-slate-800/40 border-b border-slate-600/30">
-                     <th className="text-left py-6 px-8 text-slate-200 text-lg font-semibold">Metric</th>
-                     <th className="text-center py-6 px-8 text-slate-400 text-lg font-semibold">Phone Calls</th>
-                     <th className="text-center py-6 px-8 text-slate-400 text-lg font-semibold">Website Forms</th>
-                     <th className="text-center py-6 px-8 text-green-400 text-lg font-semibold">WhatsApp</th>
-                     <th className="text-center py-6 px-8 text-emerald-400 text-lg font-semibold">Improvement</th>
+                   <tr className="bg-slate-800/50 border-b border-slate-600/40">
+                     <th className="text-left py-8 px-10 text-slate-100 text-xl font-bold tracking-tight">Metric</th>
+                     <th className="text-center py-8 px-10 text-slate-400 text-xl font-bold tracking-tight">Phone Calls</th>
+                     <th className="text-center py-8 px-10 text-slate-400 text-xl font-bold tracking-tight">Website Forms</th>
+                     <th className="text-center py-8 px-10 text-green-400 text-xl font-bold tracking-tight">WhatsApp</th>
+                     <th className="text-center py-8 px-10 text-emerald-400 text-xl font-bold tracking-tight">Improvement</th>
                    </tr>
                  </thead>
                  <tbody>
                    {whatsappVsTraditionalStats.map((stat, index) => (
-                     <tr key={index} className="border-b border-slate-700/20 hover:bg-slate-800/20 transition-colors duration-200">
-                       <td className="py-5 px-8 text-white font-medium text-base">{stat.metric}</td>
-                       <td className="py-5 px-8 text-center text-slate-300 text-base">{stat.phoneCalls}</td>
-                       <td className="py-5 px-8 text-center text-slate-300 text-base">{stat.websiteForms}</td>
-                       <td className="py-5 px-8 text-center text-green-400 font-semibold text-base">{stat.whatsapp}</td>
-                       <td className="py-5 px-8 text-center text-emerald-400 font-semibold text-base">{stat.improvement}</td>
+                     <tr key={index} className={`border-b border-slate-700/30 hover:bg-slate-800/30 transition-all duration-300 ${index % 2 === 0 ? 'bg-slate-900/20' : 'bg-transparent'}`}>
+                       <td className="py-7 px-10 text-white font-semibold text-lg tracking-tight">{stat.metric}</td>
+                       <td className="py-7 px-10 text-center text-slate-300 text-lg font-medium">{stat.phoneCalls}</td>
+                       <td className="py-7 px-10 text-center text-slate-300 text-lg font-medium">{stat.websiteForms}</td>
+                       <td className="py-7 px-10 text-center text-green-400 font-bold text-lg">{stat.whatsapp}</td>
+                       <td className="py-7 px-10 text-center text-emerald-400 font-bold text-lg">{stat.improvement}</td>
                      </tr>
                    ))}
                  </tbody>
@@ -494,36 +494,36 @@ const WhyUs = () => {
              </div>
            </ScrollAnimatedSection>
 
-            {/* Mobile: Clean Cards */}
-            <div className="md:hidden space-y-4 mb-8">
+            {/* Mobile: Premium Cards */}
+            <div className="md:hidden space-y-5 mb-8">
              {whatsappVsTraditionalStats.slice(0, 3).map((stat, index) => (
                  <ScrollAnimatedSection 
                    key={index} 
-                   className="bg-slate-800/30 border border-slate-700/30 rounded-xl p-5 shadow-lg transition-all duration-300"
+                   className="bg-slate-800/40 border border-slate-600/40 rounded-2xl p-6 shadow-[0_16px_32px_rgba(0,0,0,0.3)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300"
                    delay={300 + index * 100}
                  >
-                   <div className="flex items-center gap-3 mb-4">
-                     <div className="w-8 h-8 bg-slate-700/50 rounded-lg flex items-center justify-center">
-                       <stat.icon className="w-4 h-4 text-slate-300" />
+                   <div className="flex items-center gap-4 mb-5">
+                     <div className="w-10 h-10 bg-slate-700/60 rounded-xl flex items-center justify-center border border-slate-600/50">
+                       <stat.icon className="w-5 h-5 text-slate-200" />
                      </div>
-                     <h3 className="text-white font-semibold text-base">{stat.metric}</h3>
+                     <h3 className="text-white font-bold text-lg tracking-tight">{stat.metric}</h3>
                    </div>
-                   <div className="space-y-3">
-                     <div className="flex justify-between items-center py-2">
-                       <span className="text-slate-400 text-sm">Phone Calls</span>
-                       <span className="text-slate-300 font-medium">{stat.phoneCalls}</span>
+                   <div className="space-y-4">
+                     <div className="flex justify-between items-center py-3 border-b border-slate-700/30">
+                       <span className="text-slate-400 text-base font-medium">Phone Calls</span>
+                       <span className="text-slate-300 font-semibold text-base">{stat.phoneCalls}</span>
                      </div>
-                     <div className="flex justify-between items-center py-2">
-                       <span className="text-slate-400 text-sm">Website Forms</span>
-                       <span className="text-slate-300 font-medium">{stat.websiteForms}</span>
+                     <div className="flex justify-between items-center py-3 border-b border-slate-700/30">
+                       <span className="text-slate-400 text-base font-medium">Website Forms</span>
+                       <span className="text-slate-300 font-semibold text-base">{stat.websiteForms}</span>
                      </div>
-                     <div className="flex justify-between items-center py-2">
-                       <span className="text-green-400 text-sm">WhatsApp</span>
-                       <span className="text-green-400 font-semibold">{stat.whatsapp}</span>
+                     <div className="flex justify-between items-center py-3 border-b border-slate-700/30">
+                       <span className="text-green-400 text-base font-medium">WhatsApp</span>
+                       <span className="text-green-400 font-bold text-base">{stat.whatsapp}</span>
                      </div>
-                     <div className="flex justify-between items-center py-2 border-t border-slate-600/30 pt-3">
-                       <span className="text-emerald-400 text-sm font-medium">Improvement</span>
-                       <span className="text-emerald-400 font-semibold">{stat.improvement}</span>
+                     <div className="flex justify-between items-center py-3 pt-4">
+                       <span className="text-emerald-400 text-base font-bold">Improvement</span>
+                       <span className="text-emerald-400 font-bold text-base">{stat.improvement}</span>
                      </div>
                    </div>
                  </ScrollAnimatedSection>
