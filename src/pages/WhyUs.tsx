@@ -433,7 +433,6 @@ const WhyUs = () => {
                       }}
                     >
                       <div className="text-left">
-                        <h4 className="text-sm md:text-base font-bold text-emerald-300 mb-2 md:mb-3">{cardBackContent[index].title}</h4>
                         <p className="text-[11px] md:text-[13px] lg:text-[14px] text-slate-300 leading-relaxed">{cardBackContent[index].content}</p>
                       </div>
                     </div>
