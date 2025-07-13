@@ -18,13 +18,32 @@ const AITestSection = () => {
         
         <div className="max-w-6xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-20">
-            <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-8 px-3 sm:px-0">
-              Test Our AI Assistant
+            {/* Floating Badge */}
+            <div className="animate-fade-in mb-6 md:mb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span className="text-emerald-300 text-sm md:text-base font-medium tracking-wide">✨ Try It Now</span>
+              </div>
+            </div>
+
+            {/* Main Title with Professional Styling */}
+            <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+              <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
+                Test Our{' '}
+              </span>
+              <br className="md:hidden" />
+              <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
+                AI Assistant
+              </span>
             </h2>
-            <p className="text-sm md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed px-3 sm:px-0">
-              Experience how quickly and naturally our AI handles booking conversations. 
-              <br className="hidden md:block" />
-              <strong className="text-white">No registration required, try it right now!</strong>
+
+            {/* Enhanced Subtitle */}
+            <p className="text-lg md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed font-light animate-fade-in px-3 sm:px-0" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
+              <span className="md:hidden">Experience how quickly our AI handles booking conversations. No registration required!</span>
+              <span className="hidden md:inline">Experience how quickly and naturally our AI handles booking conversations.{" "}
+              <br />
+              <span className="text-emerald-400 font-semibold">No registration required</span>,{" "}
+              <span className="text-emerald-400 font-semibold">try it right now!</span></span>
             </p>
           </div>
           
