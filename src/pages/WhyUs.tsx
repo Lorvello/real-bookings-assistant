@@ -466,43 +466,27 @@ const WhyUs = () => {
              </ScrollAnimatedSection>
            </div>
           
-           {/* Desktop: Premium Glassmorphism Table */}
-           <ScrollAnimatedSection className="hidden md:block backdrop-blur-lg bg-black/40 rounded-3xl shadow-[0_32px_64px_rgba(0,0,0,0.4),0_8px_32px_rgba(0,0,0,0.2),0_4px_16px_rgba(16,185,129,0.1)] border-2 border-slate-700/30 mb-16 hover:scale-[1.01] transition-all duration-400 overflow-hidden" delay={300}>
+           {/* Desktop: Clean Professional Table */}
+           <ScrollAnimatedSection className="hidden md:block backdrop-blur-sm bg-black/20 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.3)] border border-slate-700/20 mb-16 overflow-hidden" delay={300}>
              <div className="overflow-x-auto">
                <table className="w-full">
                  <thead>
-                   <tr className="bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 backdrop-blur-sm border-b border-white/10">
-                     <th className="text-left py-10 px-10 text-white text-2xl font-bold tracking-wide">Metric</th>
-                     <th className="text-center py-10 px-10 text-slate-400 text-2xl font-bold tracking-wide">Phone Calls</th>
-                     <th className="text-center py-10 px-10 text-slate-300 text-2xl font-bold tracking-wide">Website Forms</th>
-                     <th className="text-center py-10 px-10 text-green-400 text-2xl font-bold tracking-wide">WhatsApp</th>
-                     <th className="text-center py-10 px-10 text-emerald-400 text-2xl font-bold tracking-wide">Improvement</th>
+                   <tr className="bg-slate-800/40 border-b border-slate-600/30">
+                     <th className="text-left py-6 px-8 text-slate-200 text-lg font-semibold">Metric</th>
+                     <th className="text-center py-6 px-8 text-slate-400 text-lg font-semibold">Phone Calls</th>
+                     <th className="text-center py-6 px-8 text-slate-400 text-lg font-semibold">Website Forms</th>
+                     <th className="text-center py-6 px-8 text-green-400 text-lg font-semibold">WhatsApp</th>
+                     <th className="text-center py-6 px-8 text-emerald-400 text-lg font-semibold">Improvement</th>
                    </tr>
                  </thead>
                  <tbody>
                    {whatsappVsTraditionalStats.map((stat, index) => (
-                     <tr key={index} className="border-b border-white/10 hover:bg-white/5 hover:shadow-lg transition-all duration-400 hover:backdrop-blur-md group">
-                       <td className="py-8 px-10 text-white font-bold text-xl tracking-wide">{stat.metric}</td>
-                       <td className="py-8 px-10 text-center">
-                         <div className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-slate-500/20 border border-slate-500/30 group-hover:shadow-md transition-all duration-400">
-                           <span className="text-xl font-bold text-slate-400 tracking-wide">{stat.phoneCalls}</span>
-                         </div>
-                       </td>
-                       <td className="py-8 px-10 text-center">
-                         <div className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-slate-400/20 border border-slate-400/30 group-hover:shadow-md transition-all duration-400">
-                           <span className="text-xl font-bold text-slate-300 tracking-wide">{stat.websiteForms}</span>
-                         </div>
-                       </td>
-                       <td className="py-8 px-10 text-center">
-                         <div className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-green-500/20 border border-green-500/30 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-400">
-                           <span className="text-xl font-bold text-green-400 tracking-wide">{stat.whatsapp}</span>
-                         </div>
-                       </td>
-                       <td className="py-8 px-10 text-center">
-                         <div className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all duration-400">
-                           <span className="text-xl font-bold text-emerald-400 tracking-wide">{stat.improvement}</span>
-                         </div>
-                       </td>
+                     <tr key={index} className="border-b border-slate-700/20 hover:bg-slate-800/20 transition-colors duration-200">
+                       <td className="py-5 px-8 text-white font-medium text-base">{stat.metric}</td>
+                       <td className="py-5 px-8 text-center text-slate-300 text-base">{stat.phoneCalls}</td>
+                       <td className="py-5 px-8 text-center text-slate-300 text-base">{stat.websiteForms}</td>
+                       <td className="py-5 px-8 text-center text-green-400 font-semibold text-base">{stat.whatsapp}</td>
+                       <td className="py-5 px-8 text-center text-emerald-400 font-semibold text-base">{stat.improvement}</td>
                      </tr>
                    ))}
                  </tbody>
@@ -510,35 +494,36 @@ const WhyUs = () => {
              </div>
            </ScrollAnimatedSection>
 
-            {/* Mobile: Premium Glassmorphism Cards */}
+            {/* Mobile: Clean Cards */}
             <div className="md:hidden space-y-4 mb-8">
              {whatsappVsTraditionalStats.slice(0, 3).map((stat, index) => (
                  <ScrollAnimatedSection 
                    key={index} 
-                   className="backdrop-blur-lg bg-black/40 border-2 border-slate-700/30 rounded-2xl p-6 shadow-[0_16px_32px_rgba(0,0,0,0.3),0_4px_16px_rgba(0,0,0,0.15)] hover:border-emerald-500/30 transition-all duration-400"
+                   className="bg-slate-800/30 border border-slate-700/30 rounded-xl p-5 shadow-lg transition-all duration-300"
                    delay={300 + index * 100}
                  >
                    <div className="flex items-center gap-3 mb-4">
-                     <div className="w-10 h-10 bg-gradient-to-br from-slate-600/30 to-slate-700/30 rounded-xl flex items-center justify-center border border-white/10">
-                       <stat.icon className="w-5 h-5 text-white" />
+                     <div className="w-8 h-8 bg-slate-700/50 rounded-lg flex items-center justify-center">
+                       <stat.icon className="w-4 h-4 text-slate-300" />
                      </div>
-                     <h3 className="text-white font-bold text-lg tracking-wide">{stat.metric}</h3>
+                     <h3 className="text-white font-semibold text-base">{stat.metric}</h3>
                    </div>
-                   <div className="grid grid-cols-4 gap-3 text-xs">
-                     <div className="bg-slate-500/10 backdrop-blur-sm border border-slate-500/20 rounded-xl p-3 shadow-md">
-                       <div className="text-slate-400 font-bold mb-1 tracking-wide">Phone</div>
-                       <div className="text-slate-400 font-bold text-xs tracking-wide">{stat.phoneCalls}</div>
+                   <div className="space-y-3">
+                     <div className="flex justify-between items-center py-2">
+                       <span className="text-slate-400 text-sm">Phone Calls</span>
+                       <span className="text-slate-300 font-medium">{stat.phoneCalls}</span>
                      </div>
-                     <div className="bg-slate-400/10 backdrop-blur-sm border border-slate-400/20 rounded-xl p-3 shadow-md">
-                       <div className="text-slate-300 font-bold mb-1 tracking-wide">Web</div>
-                       <div className="text-slate-300 font-bold text-xs tracking-wide">{stat.websiteForms}</div>
+                     <div className="flex justify-between items-center py-2">
+                       <span className="text-slate-400 text-sm">Website Forms</span>
+                       <span className="text-slate-300 font-medium">{stat.websiteForms}</span>
                      </div>
-                     <div className="bg-green-500/10 backdrop-blur-sm border border-green-500/20 rounded-xl p-3 shadow-[0_4px_16px_rgba(16,185,129,0.15)]">
-                       <div className="text-green-400 font-bold mb-1 tracking-wide">WhatsApp</div>
-                       <div className="text-green-400 font-bold text-xs tracking-wide">{stat.whatsapp}</div>
+                     <div className="flex justify-between items-center py-2">
+                       <span className="text-green-400 text-sm">WhatsApp</span>
+                       <span className="text-green-400 font-semibold">{stat.whatsapp}</span>
                      </div>
-                     <div className="bg-emerald-500/10 backdrop-blur-sm border border-emerald-500/20 rounded-xl p-3 flex items-center justify-center shadow-[0_4px_16px_rgba(16,185,129,0.1)]">
-                       <div className="text-emerald-400 font-bold text-center text-xs tracking-wide">{stat.improvement}</div>
+                     <div className="flex justify-between items-center py-2 border-t border-slate-600/30 pt-3">
+                       <span className="text-emerald-400 text-sm font-medium">Improvement</span>
+                       <span className="text-emerald-400 font-semibold">{stat.improvement}</span>
                      </div>
                    </div>
                  </ScrollAnimatedSection>
