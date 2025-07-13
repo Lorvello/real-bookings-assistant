@@ -138,7 +138,7 @@ const ResultSummary = () => {
 
                   {/* Back Side */}
                   <div 
-                    className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-4 lg:p-6 text-center flex flex-col justify-center items-center"
+                    className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-1 text-center flex flex-col justify-center items-center overflow-hidden"
                     style={{
                       backfaceVisibility: 'hidden',
                       transform: 'rotateY(180deg)',
@@ -155,14 +155,9 @@ const ResultSummary = () => {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-emerald-500/15 via-emerald-400/8 to-transparent" />
                     <div className="absolute inset-0 rounded-2xl bg-white/[0.03]" />
                     
-                    <div className="relative z-10 flex flex-col items-center justify-center h-full w-full p-2">
-                      {/* Small icon on back */}
-                      <div className="mb-3">
-                        <Icon className="w-6 h-6 mx-auto text-emerald-400/80" />
-                      </div>
-                      
-                      {/* Detailed text with very small font */}
-                      <div className="text-[10px] lg:text-[11px] text-slate-300/90 leading-tight font-light tracking-wide text-center overflow-y-auto max-h-full">
+                    <div className="relative z-10 flex items-center justify-center h-full w-full p-1">
+                      {/* Detailed text with very small font - no icon */}
+                      <div className="text-[7px] lg:text-[8px] text-slate-300/90 leading-none font-light tracking-wide text-center">
                         {stat.detailText}
                       </div>
                     </div>
@@ -226,7 +221,7 @@ const ResultSummary = () => {
 
                   {/* Mobile Back Side */}
                   <div 
-                    className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-4 text-center flex flex-col justify-center items-center"
+                    className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-1 text-center flex flex-col justify-center items-center overflow-hidden"
                     style={{
                       backfaceVisibility: 'hidden',
                       transform: 'rotateY(180deg)',
@@ -242,14 +237,9 @@ const ResultSummary = () => {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-emerald-500/15 via-emerald-400/8 to-transparent" />
                     <div className="absolute inset-0 rounded-2xl bg-white/[0.03]" />
                     
-                    <div className="relative z-10 flex flex-col items-center justify-center h-full w-full p-2">
-                      {/* Small icon on mobile back */}
-                      <div className="mb-2">
-                        <Icon className="w-5 h-5 mx-auto text-emerald-400/80" />
-                      </div>
-                      
-                      {/* Detailed text with very small font for mobile */}
-                      <div className="text-[9px] text-slate-300/90 leading-tight font-light tracking-wide text-center overflow-y-auto max-h-full">
+                    <div className="relative z-10 flex items-center justify-center h-full w-full p-1">
+                      {/* Detailed text with very small font for mobile - no icon */}
+                      <div className="text-[6px] text-slate-300/90 leading-none font-light tracking-wide text-center">
                         {stat.detailText}
                       </div>
                     </div>
