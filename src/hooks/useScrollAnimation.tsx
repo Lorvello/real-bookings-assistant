@@ -1,22 +1,33 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-export const useScrollAnimation = (threshold = 0.1) => {
+export interface AnimationConfig {
+  threshold?: number;
+  rootMargin?: string;
+  triggerOnce?: boolean;
+}
+
+export const useScrollAnimation = (config: AnimationConfig = {}) => {
+  const { threshold = 0.1, rootMargin = '0px 0px -50px 0px', triggerOnce = true } = config;
   const ref = useRef<any>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !isVisible) {
+        if (entry.isIntersecting && (!triggerOnce || !isVisible)) {
           setIsVisible(true);
-          // Once animated, we don't need to observe anymore
-          if (ref.current) {
+          if (triggerOnce && ref.current) {
             observer.unobserve(ref.current);
           }
+        } else if (!entry.isIntersecting && !triggerOnce) {
+          setIsVisible(false);
         }
       },
-      { threshold }
+      { 
+        threshold,
+        rootMargin
+      }
     );
 
     if (ref.current) {
@@ -28,7 +39,7 @@ export const useScrollAnimation = (threshold = 0.1) => {
         observer.unobserve(ref.current);
       }
     };
-  }, [threshold, isVisible]);
+  }, [threshold, rootMargin, triggerOnce, isVisible]);
 
   return { ref, isVisible };
 };

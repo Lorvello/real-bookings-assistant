@@ -56,7 +56,7 @@ export const WhatsAppBenefits = ({
   benefits = defaultBenefits,
   className = "",
 }: WhatsAppBenefitsProps & { className?: string }) => {
-  const { ref, isVisible } = useScrollAnimation(0.1);
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
   const enhancedBenefits = benefits;
   
   return (

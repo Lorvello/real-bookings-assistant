@@ -5,8 +5,7 @@ import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 
 const AITestSection = () => {
   return (
-    <ScrollAnimatedSection>
-      <section className="py-12 md:py-32 px-3 md:px-4 relative overflow-hidden">
+    <section className="py-12 md:py-32 px-3 md:px-4 relative overflow-hidden">
         {/* Enhanced Background decoration with emerald accents - identical to hero */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-gradient-to-r from-emerald-600/20 via-slate-600/10 to-emerald-500/15 rounded-full blur-3xl animate-pulse"></div>
@@ -23,10 +22,10 @@ const AITestSection = () => {
         </div>
         
         <div className="max-w-6xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
-          <div className="text-center mb-8 md:mb-20">
+          <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-8 md:mb-20">
 
             {/* Main Title with Professional Styling */}
-            <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+            <ScrollAnimatedSection animation="fade-up" delay={200} as="h2" className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight">
               <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
                 Test Our{' '}
               </span>
@@ -34,24 +33,23 @@ const AITestSection = () => {
               <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
                 AI Assistant
               </span>
-            </h2>
+            </ScrollAnimatedSection>
 
             {/* Enhanced Subtitle */}
-            <p className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed font-light animate-fade-in px-3 sm:px-0" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
+            <ScrollAnimatedSection animation="fade-up" delay={400} as="p" className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed font-light px-3 sm:px-0">
               <span className="md:hidden">Experience how quickly our AI handles booking conversations. No registration required!</span>
               <span className="hidden md:inline">Experience how quickly and naturally our AI handles booking conversations.{" "}
               <br />
               <span className="text-emerald-400 font-semibold">No registration required</span>,{" "}
               <span className="text-emerald-400 font-semibold">try it right now!</span></span>
-            </p>
-          </div>
+            </ScrollAnimatedSection>
+          </ScrollAnimatedSection>
           
-          <div className="max-w-6xl mx-auto h-[650px] md:h-[750px]">
+          <ScrollAnimatedSection animation="scale" delay={600} className="max-w-6xl mx-auto h-[650px] md:h-[750px]">
             <AIAgentTestChat />
-          </div>
+          </ScrollAnimatedSection>
         </div>
       </section>
-    </ScrollAnimatedSection>
   );
 };
 
