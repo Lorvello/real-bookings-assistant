@@ -18,13 +18,6 @@ const AITestSection = () => {
         
         <div className="max-w-6xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-20">
-            {/* Floating Badge */}
-            <div className="animate-fade-in mb-6 md:mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                <span className="text-emerald-300 text-sm md:text-base font-medium tracking-wide">✨ Try It Now</span>
-              </div>
-            </div>
 
             {/* Main Title with Professional Styling */}
             <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
