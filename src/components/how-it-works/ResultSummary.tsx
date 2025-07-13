@@ -61,7 +61,7 @@ const ResultSummary = () => {
       <div className="relative rounded-3xl p-3 md:p-8">
         {/* Powerful direct header */}
         <div className="text-center mb-20 md:mb-24">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-200 tracking-wider leading-tight drop-shadow-lg">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-white via-slate-100 to-emerald-200 bg-clip-text text-transparent tracking-wide leading-tight drop-shadow-2xl">
             Proven results that transform businesses
           </h2>
         </div>
