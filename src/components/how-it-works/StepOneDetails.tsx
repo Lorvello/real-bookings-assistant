@@ -81,11 +81,11 @@ const StepOneDetails = () => {
                       border border-slate-600/50 rounded-2xl p-6 backdrop-blur-sm
                       shadow-inner shadow-black/20
                       before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:rounded-2xl">
-          <div className="text-center relative z-10">
+          <div className="text-left relative z-10">
             {/* Enhanced Icon */}
             <div className="relative mb-6 inline-block">
               <div className="relative">
-                <Calendar className="w-16 h-16 text-emerald-400 mx-auto drop-shadow-lg" />
+                <Calendar className="w-16 h-16 text-emerald-400 drop-shadow-lg" />
                 <div className="absolute -inset-2 bg-emerald-400/30 rounded-full opacity-60 blur-md animate-pulse"></div>
                 <div className="absolute -inset-4 bg-emerald-400/10 rounded-full opacity-40 blur-lg"></div>
               </div>
@@ -111,7 +111,7 @@ const StepOneDetails = () => {
                             border border-emerald-400/40 p-4 rounded-xl
                             shadow-lg shadow-emerald-500/10
                             relative overflow-hidden">
-                <div className="flex items-center justify-center gap-3 relative z-10">
+                <div className="flex items-center justify-start gap-3 relative z-10">
                   <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
                   <span className="text-emerald-200 text-sm font-semibold tracking-wide">Instantly Active</span>
                 </div>
