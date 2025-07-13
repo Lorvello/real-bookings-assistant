@@ -157,7 +157,7 @@ const ResultSummary = () => {
                     
                     <div className="relative z-10 flex items-start justify-start h-full w-full p-2">
                       {/* Detailed text with larger font and top-left aligned - no icon */}
-                      <div className="text-[11px] lg:text-[12px] text-slate-300/90 leading-tight font-light tracking-wide text-left">
+                      <div className="text-[13px] lg:text-[14px] text-slate-300/90 leading-tight font-light tracking-wide text-left">
                         {stat.detailText}
                       </div>
                     </div>
@@ -239,7 +239,7 @@ const ResultSummary = () => {
                     
                     <div className="relative z-10 flex items-start justify-start h-full w-full p-2">
                       {/* Detailed text with larger font and top-left aligned for mobile - no icon */}
-                      <div className="text-[10px] text-slate-300/90 leading-tight font-light tracking-wide text-left">
+                      <div className="text-[12px] text-slate-300/90 leading-tight font-light tracking-wide text-left">
                         {stat.detailText}
                       </div>
                     </div>
