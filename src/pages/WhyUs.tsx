@@ -367,7 +367,7 @@ const WhyUs = () => {
             animation="fade-up" 
             delay={200}
             as="h1" 
-            className="text-xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
+            className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
           >
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               Why{' '}
@@ -454,9 +454,9 @@ const WhyUs = () => {
          <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
            <div className="text-center mb-12 md:mb-20">
              <ScrollAnimatedSection delay={100}>
-                 <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-6 md:mb-8 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
-                   WhatsApp vs Traditional Booking
-                 </h2>
+                  <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-center mb-6 md:mb-8 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
+                    WhatsApp vs Traditional Booking
+                  </h2>
              </ScrollAnimatedSection>
              <ScrollAnimatedSection delay={200}>
                 <p className="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
@@ -537,7 +537,7 @@ const WhyUs = () => {
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-12 md:mb-20">
             <ScrollAnimatedSection delay={100}>
-              <h2 className="text-2xl md:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
+              <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
                 Why WhatsApp Works{" "}
                 <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent">
                   <span className="md:hidden">Better</span>
@@ -586,7 +586,7 @@ const WhyUs = () => {
       <ScrollAnimatedSection as="section" className="py-12 md:py-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               <span className="text-green-400">Proven Results</span> Across All Sectors
             </h2>
             <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
@@ -745,7 +745,7 @@ const WhyUs = () => {
       <ScrollAnimatedSection as="section" className="py-12 md:py-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               Why We're Different From <span className="text-emerald-400">All Others</span>
             </h2>
             <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
@@ -829,7 +829,7 @@ const WhyUs = () => {
       <ScrollAnimatedSection as="section" className="py-12 md:py-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               <span className="md:hidden">Why Businesses Switch To Us</span>
               <span className="hidden md:inline">Why Businesses Switch From Competitors To Us</span>
             </h2>
@@ -928,7 +928,7 @@ const WhyUs = () => {
       <ScrollAnimatedSection as="section" className="py-6 md:py-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-4 md:mb-16">
-            <h2 className="text-lg md:text-4xl font-bold text-white mb-2 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-white mb-2 md:mb-6 px-3 sm:px-0">
               The Future is <span className="text-green-400">Mobile-First</span>
             </h2>
             <p className="text-xs md:text-xl text-slate-300 max-w-4xl mx-auto leading-relaxed px-3 sm:px-0">
