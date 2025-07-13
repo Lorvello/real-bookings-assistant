@@ -8,7 +8,7 @@ export interface AnimationConfig {
 }
 
 export const useScrollAnimation = (config: AnimationConfig = {}) => {
-  const { threshold = 0.1, rootMargin = '0px 0px -50px 0px', triggerOnce = true } = config;
+  const { threshold = 0.2, rootMargin = '100px 0px 0px 0px', triggerOnce = true } = config;
   const ref = useRef<any>(null);
   const [isVisible, setIsVisible] = useState(false);
 

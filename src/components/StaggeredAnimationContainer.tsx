@@ -13,15 +13,15 @@ interface StaggeredAnimationContainerProps {
 const StaggeredAnimationContainer: React.FC<StaggeredAnimationContainerProps> = ({
   children,
   className = '',
-  staggerDelay = 200,
-  threshold = 0.1,
+  staggerDelay = 150,
+  threshold = 0.25,
   as = 'div',
   variant = 'default'
 }) => {
   const { containerRef, visibleChildren } = useStaggeredScrollAnimation({
     threshold,
     staggerDelay,
-    rootMargin: '50px 0px -50px 0px'
+    rootMargin: '100px 0px 0px 0px'
   });
 
   const Component = as as React.ElementType;
