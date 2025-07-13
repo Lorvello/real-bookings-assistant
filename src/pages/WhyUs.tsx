@@ -742,7 +742,7 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Competitive Advantages */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20 bg-slate-800/20">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
@@ -925,7 +925,7 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Digital Transformation Conclusion */}
-      <ScrollAnimatedSection as="section" className="py-6 md:py-20 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
+      <ScrollAnimatedSection as="section" className="py-6 md:py-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-4 md:mb-16">
             <h2 className="text-lg md:text-4xl font-bold text-white mb-2 md:mb-6 px-3 sm:px-0">
