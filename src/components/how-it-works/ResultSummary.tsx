@@ -91,17 +91,17 @@ const ResultSummary = () => {
                 
                 <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
                   {/* Prominent icon */}
-                  <div className="mb-6">
-                    <Icon className="w-12 h-12 lg:w-14 lg:h-14 mx-auto text-emerald-400 drop-shadow-2xl group-hover:drop-shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-700 group-hover:scale-110" />
+                  <div className="mb-4">
+                    <Icon className="w-8 h-8 lg:w-10 lg:h-10 mx-auto text-emerald-400 drop-shadow-2xl group-hover:drop-shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-700 group-hover:scale-110" />
                   </div>
                   
                   {/* Large prominent statistic */}
-                  <div className="text-4xl lg:text-5xl xl:text-6xl font-black text-emerald-400 mb-4 lg:mb-6 tracking-tighter drop-shadow-2xl group-hover:drop-shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-all duration-700">
+                  <div className="text-2xl lg:text-3xl xl:text-4xl font-black text-emerald-400 mb-3 lg:mb-4 tracking-tighter drop-shadow-2xl group-hover:drop-shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-all duration-700">
                     {stat.value}
                   </div>
                   
                   {/* Subtle descriptive text */}
-                  <div className="text-xs lg:text-sm text-slate-300/90 leading-snug font-light tracking-wide text-center max-w-full">
+                  <div className="text-xs lg:text-xs text-slate-300/90 leading-tight font-light tracking-wide text-center max-w-full">
                     {stat.label}
                   </div>
                 </div>
