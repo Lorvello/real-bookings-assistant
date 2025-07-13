@@ -26,7 +26,7 @@ const AITestSection = () => {
           <div className="text-center mb-8 md:mb-20">
 
             {/* Main Title with Professional Styling */}
-            <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+            <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
               <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
                 Test Our{' '}
               </span>
@@ -37,7 +37,7 @@ const AITestSection = () => {
             </h2>
 
             {/* Enhanced Subtitle */}
-            <p className="text-lg md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed font-light animate-fade-in px-3 sm:px-0" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
+            <p className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed font-light animate-fade-in px-3 sm:px-0" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
               <span className="md:hidden">Experience how quickly our AI handles booking conversations. No registration required!</span>
               <span className="hidden md:inline">Experience how quickly and naturally our AI handles booking conversations.{" "}
               <br />
