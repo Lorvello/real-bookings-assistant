@@ -5,7 +5,9 @@ import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 
 const AITestSection = () => {
   return (
-    <section className="py-8 md:py-16 px-3 md:px-4 relative overflow-hidden bg-gradient-to-b from-slate-800 via-slate-900 to-slate-900">
+    <section className="py-8 md:py-16 px-3 md:px-4 relative overflow-hidden" style={{
+      backgroundColor: 'hsl(217, 35%, 12%)'
+    }}>
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
