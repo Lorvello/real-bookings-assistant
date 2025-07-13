@@ -7,9 +7,9 @@ interface UseStaggeredScrollAnimationProps {
 }
 
 export const useStaggeredScrollAnimation = ({
-  threshold = 0.1,
+  threshold = 0.3,
   staggerDelay = 200,
-  rootMargin = '0px'
+  rootMargin = '50px 0px -50px 0px'
 }: UseStaggeredScrollAnimationProps = {}) => {
   const containerRef = useRef<HTMLElement>(null);
   const [visibleChildren, setVisibleChildren] = useState<Set<number>>(new Set());

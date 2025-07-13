@@ -20,7 +20,8 @@ const StaggeredAnimationContainer: React.FC<StaggeredAnimationContainerProps> = 
 }) => {
   const { containerRef, visibleChildren } = useStaggeredScrollAnimation({
     threshold,
-    staggerDelay
+    staggerDelay,
+    rootMargin: '50px 0px -50px 0px'
   });
 
   const Component = as as React.ElementType;
@@ -38,7 +39,7 @@ const StaggeredAnimationContainer: React.FC<StaggeredAnimationContainerProps> = 
         }`.trim(),
         style: {
           ...child.props.style,
-          transitionDelay: `${index * 50}ms` // Reduced fine-tuning delay for smoother flow
+          transitionDelay: `${index * 30}ms` // Optimized fine-tuning delay for faster flow
         }
       });
     }

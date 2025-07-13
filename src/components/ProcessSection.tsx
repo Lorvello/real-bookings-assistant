@@ -24,7 +24,8 @@ const ProcessSection = () => {
       
       <div className="max-w-6xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
         <StaggeredAnimationContainer 
-          staggerDelay={400} 
+          staggerDelay={200} 
+          threshold={0.3}
           variant="process"
           className="space-y-32 md:space-y-24"
         >
