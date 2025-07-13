@@ -372,7 +372,7 @@ const WhyUs = () => {
             </span>
             <br className="md:hidden" />
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
-              {' '}Choose WhatsApp Over Traditional Booking Methods
+              {' '}Choose WhatsApp
             </span>
           </ScrollAnimatedSection>
 
@@ -383,7 +383,7 @@ const WhyUs = () => {
             as="p" 
             className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
           >
-            95% higher response rates vs phone calls, 18x faster than web forms, 50% fewer no-shows than manual booking. Discover why smart businesses are switching from outdated methods.
+            95% higher response rates vs phone calls, 18x faster than web forms, 50% fewer no-shows than manual booking.
           </ScrollAnimatedSection>
           
           {/* Premium Social Proof Stats */}
@@ -392,7 +392,7 @@ const WhyUs = () => {
             delay={600}
             className="mt-16 md:mt-24"
           >
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6" style={{ perspective: '1000px' }}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4" style={{ perspective: '1000px' }}>
               {proofPoints.map((stat, index) => (
                 <ScrollAnimatedSection 
                   key={index} 
@@ -410,23 +410,23 @@ const WhyUs = () => {
                   >
                     {/* Front Side */}
                     <div 
-                      className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-4 md:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] hover:scale-[1.02] transform transition-all duration-500 group"
+                      className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-3 md:p-4 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] hover:scale-[1.02] transform transition-all duration-500 group"
                       style={{
                         backfaceVisibility: 'hidden'
                       }}
                     >
-                      <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-3 md:mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
-                        <stat.icon className="w-6 h-6 md:w-7 md:h-7 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
-                      </div>
-                      <div className="text-xl md:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-2 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
-                        {stat.number}
-                      </div>
-                      <div className="text-xs md:text-sm font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300 leading-tight">{stat.label}</div>
+                       <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-2 md:mb-3 mx-auto group-hover:scale-110 transition-transform duration-300">
+                         <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
+                       </div>
+                       <div className="text-lg md:text-xl xl:text-2xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-1 md:mb-2 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
+                         {stat.number}
+                       </div>
+                       <div className="text-[10px] md:text-xs font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300 leading-tight">{stat.label}</div>
                     </div>
                     
                     {/* Back Side */}
                     <div 
-                      className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-4 md:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] transform transition-all duration-500 flex flex-col justify-center"
+                      className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-3 md:p-4 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] transform transition-all duration-500 flex flex-col justify-center"
                       style={{
                         backfaceVisibility: 'hidden',
                         transform: 'rotateY(180deg)'
