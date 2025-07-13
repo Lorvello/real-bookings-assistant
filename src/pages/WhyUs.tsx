@@ -516,23 +516,9 @@ const WhyUs = () => {
                  </div>
                </ScrollAnimatedSection>
              ))}
-           </div>
-
-           {/* Premium Key Insight Box */}
-           <ScrollAnimatedSection className="bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-3xl p-6 md:p-10 text-center mx-3 md:mx-0 shadow-2xl shadow-green-500/20" delay={600}>
-             <div className="flex items-center justify-center gap-3 mb-4 md:mb-6">
-               <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-green-400/30 to-emerald-400/30 rounded-2xl flex items-center justify-center">
-                 <Gauge className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-               </div>
-               <h3 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">Key Finding</h3>
-             </div>
-             <p className="text-base md:text-xl text-green-300 max-w-4xl mx-auto leading-relaxed">
-               <span className="md:hidden">85% prefer messaging • 53% more likely to buy from chat businesses</span>
-               <span className="hidden md:inline">85% prefer messaging over email • 53% more likely to purchase from chat-enabled businesses</span>
-             </p>
-           </ScrollAnimatedSection>
-        </div>
-      </ScrollAnimatedSection>
+            </div>
+         </div>
+       </ScrollAnimatedSection>
 
       {/* Premium Psychological Benefits Section */}
       <ScrollAnimatedSection as="section" className="py-16 md:py-24">
