@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
+import BackgroundProvider from '@/components/BackgroundProvider';
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown, Mail, BarChart3, Timer, UserCheck, Heart, Brain, Smartphone, Gauge } from 'lucide-react';
 import { Pricing } from '@/components/Pricing';
 
@@ -292,98 +293,118 @@ const WhyUs = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+    <BackgroundProvider variant="hero">
       <Header />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-12 md:py-24 px-3 md:px-4 relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/5 rounded-full blur-3xl"></div>
+      <section className="py-16 md:py-32 px-4 md:px-6 lg:px-8 relative overflow-hidden">
+        {/* Additional premium blur decorations */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-green-400/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
         </div>
         
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
-        
-        <div className="max-w-6xl mx-auto text-center relative z-10 px-4 md:px-6 lg:px-8">
-          <h1 className="text-2xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6">
-            Why 10,000+ Businesses <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Choose WhatsApp Over Email</span>
-          </h1>
-          <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto mb-8 md:mb-16">
-            <span className="md:hidden">
-              <strong className="text-emerald-400">95% higher open rates, 18x faster responses, 50% fewer no-shows</strong>. 
-              Smart businesses switch to WhatsApp.
-            </span>
-            <span className="hidden md:inline">
-              Scientifically proven results: <strong className="text-emerald-400">95% higher open rates, 18x faster responses, 50% fewer no-shows</strong>. 
-              Discover why smart businesses are switching en masse.
-            </span>
-          </p>
+        <div className="max-w-6xl mx-auto text-center relative z-10">
+          <ScrollAnimatedSection delay={100}>
+            <h1 className="text-3xl md:text-6xl xl:text-7xl font-bold text-white mb-6 md:mb-8">
+              Why 10,000+ Businesses{" "}
+              <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
+                Choose WhatsApp Over Email
+              </span>
+            </h1>
+          </ScrollAnimatedSection>
           
-          <div className="border border-emerald-500/20 rounded-2xl p-4 md:p-8 max-w-3xl mx-auto">
-            <p className="text-sm md:text-xl font-semibold text-emerald-300">
+          <ScrollAnimatedSection delay={200}>
+            <p className="text-lg md:text-2xl text-slate-300 max-w-5xl mx-auto mb-12 md:mb-16 leading-relaxed">
               <span className="md:hidden">
-                ✅ 1000+ case studies • 85% prefer messaging • Results in 24h
+                <strong className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+                  95% higher open rates, 18x faster responses, 50% fewer no-shows
+                </strong>. 
+                Smart businesses switch to WhatsApp.
               </span>
               <span className="hidden md:inline">
-                ✅ Proven by 1000+ case studies • 85% of customers prefer messaging • Results within 24 hours
+                Scientifically proven results: <strong className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+                  95% higher open rates, 18x faster responses, 50% fewer no-shows
+                </strong>. 
+                Discover why smart businesses are switching en masse.
               </span>
             </p>
-          </div>
+          </ScrollAnimatedSection>
+          
+          <ScrollAnimatedSection delay={300}>
+            <div className="bg-slate-800/80 backdrop-blur-sm border border-emerald-500/30 rounded-3xl p-6 md:p-10 max-w-4xl mx-auto shadow-2xl shadow-emerald-500/20">
+              <p className="text-lg md:text-2xl font-semibold text-emerald-300">
+                <span className="md:hidden">
+                  ✅ 1000+ case studies • 85% prefer messaging • Results in 24h
+                </span>
+                <span className="hidden md:inline">
+                  ✅ Proven by 1000+ case studies • 85% of customers prefer messaging • Results within 24 hours
+                </span>
+              </p>
+            </div>
+          </ScrollAnimatedSection>
         </div>
         
-         {/* Social Proof Stats - More compact */}
-         <div className="max-w-6xl mx-auto mt-8 md:mt-16 relative z-10 px-4 md:px-6 lg:px-8">
-           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-             {proofPoints.map((stat, index) => (
-               <ScrollAnimatedSection 
-                 key={index} 
-                 className="text-center"
-                 delay={index * 100}
-               >
-                 <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-2 md:mb-3 mx-auto">
-                   <stat.icon className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
-                 </div>
-                 <div className="text-lg md:text-2xl font-bold text-white mb-1">{stat.number}</div>
-                 <div className="text-xs md:text-sm text-slate-400">{stat.label}</div>
-               </ScrollAnimatedSection>
-             ))}
-           </div>
-         </div>
+        {/* Premium Social Proof Stats */}
+        <div className="max-w-6xl mx-auto mt-16 md:mt-24 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            {proofPoints.map((stat, index) => (
+              <ScrollAnimatedSection 
+                key={index} 
+                className="text-center"
+                delay={400 + index * 100}
+              >
+                <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 md:p-8 hover:bg-slate-800/80 hover:border-emerald-500/30 transition-all duration-300 shadow-lg hover:shadow-emerald-500/20">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                    <stat.icon className="w-6 h-6 md:w-8 md:h-8 text-emerald-400" />
+                  </div>
+                  <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent mb-2">
+                    {stat.number}
+                  </div>
+                  <div className="text-sm md:text-base text-slate-400">{stat.label}</div>
+                </div>
+              </ScrollAnimatedSection>
+            ))}
+          </div>
+        </div>
       </section>
 
-       {/* Complete WhatsApp vs Email Statistics */}
-       <ScrollAnimatedSection as="section" className="py-8 md:py-16">
+       {/* Premium WhatsApp vs Email Statistics */}
+       <ScrollAnimatedSection as="section" className="py-16 md:py-24">
          <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
-           <div className="text-center mb-6 md:mb-12">
-             <h2 className="text-lg md:text-3xl font-bold text-white mb-3 md:mb-4 px-3 sm:px-0">
-               <span className="text-green-400">Scientific Facts</span>: WhatsApp vs Email
-             </h2>
-             <p className="text-xs md:text-lg text-slate-300 max-w-2xl mx-auto px-3 sm:px-0">
-               <span className="md:hidden">Research from thousands of businesses</span>
-               <span className="hidden md:inline">Research among thousands of businesses worldwide</span>
-             </p>
+           <div className="text-center mb-12 md:mb-20">
+             <ScrollAnimatedSection delay={100}>
+               <h2 className="text-2xl md:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
+                 <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent">Scientific Facts</span>: WhatsApp vs Email
+               </h2>
+             </ScrollAnimatedSection>
+             <ScrollAnimatedSection delay={200}>
+               <p className="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+                 <span className="md:hidden">Research from thousands of businesses</span>
+                 <span className="hidden md:inline">Research among thousands of businesses worldwide</span>
+               </p>
+             </ScrollAnimatedSection>
            </div>
           
-          {/* Desktop: Table */}
-          <ScrollAnimatedSection className="hidden md:block border border-slate-700/30 rounded-2xl p-8 mb-12" delay={200}>
+          {/* Desktop: Premium Glassmorphism Table */}
+          <ScrollAnimatedSection className="hidden md:block bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-10 mb-16 shadow-2xl hover:bg-slate-800/80 hover:border-emerald-500/30 transition-all duration-500" delay={300}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-700/50">
-                    <th className="text-left py-6 px-6 text-slate-300 text-lg">Metric</th>
-                    <th className="text-center py-6 px-6 text-red-400 text-lg">Email</th>
-                    <th className="text-center py-6 px-6 text-green-400 text-lg">WhatsApp</th>
-                    <th className="text-center py-6 px-6 text-emerald-400 text-lg">Improvement</th>
+                    <th className="text-left py-8 px-8 text-slate-300 text-xl font-semibold">Metric</th>
+                    <th className="text-center py-8 px-8 text-red-400 text-xl font-semibold">Email</th>
+                    <th className="text-center py-8 px-8 text-green-400 text-xl font-semibold">WhatsApp</th>
+                    <th className="text-center py-8 px-8 text-emerald-400 text-xl font-semibold">Improvement</th>
                   </tr>
                 </thead>
                 <tbody>
                   {whatsappVsEmailStats.map((stat, index) => (
-                    <tr key={index} className="border-b border-slate-700/30">
-                      <td className="py-4 px-6 text-white font-medium">{stat.metric}</td>
-                      <td className="py-4 px-6 text-center text-red-300">{stat.email}</td>
-                      <td className="py-4 px-6 text-center text-green-400 font-bold">{stat.whatsapp}</td>
-                      <td className="py-4 px-6 text-center text-emerald-400 font-bold">{stat.improvement}</td>
+                    <tr key={index} className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors duration-200">
+                      <td className="py-6 px-8 text-white font-medium text-lg">{stat.metric}</td>
+                      <td className="py-6 px-8 text-center text-red-300 text-lg">{stat.email}</td>
+                      <td className="py-6 px-8 text-center text-green-400 font-bold text-lg">{stat.whatsapp}</td>
+                      <td className="py-6 px-8 text-center text-emerald-400 font-bold text-lg">{stat.improvement}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -391,28 +412,30 @@ const WhyUs = () => {
             </div>
           </ScrollAnimatedSection>
 
-           {/* Mobile: Compact Cards - Show only first 3 */}
-           <div className="md:hidden space-y-3 mb-6">
+           {/* Mobile: Premium Glassmorphism Cards */}
+           <div className="md:hidden space-y-4 mb-8">
              {whatsappVsEmailStats.slice(0, 3).map((stat, index) => (
                <ScrollAnimatedSection 
                  key={index} 
-                 className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-3"
-                 delay={index * 100}
+                 className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 shadow-lg hover:bg-slate-800/80 hover:border-emerald-500/30 transition-all duration-300"
+                 delay={300 + index * 100}
                >
-                 <div className="flex items-center gap-2 mb-2">
-                   <stat.icon className="w-4 h-4 text-emerald-400" />
-                   <h3 className="text-white font-bold text-xs">{stat.metric}</h3>
+                 <div className="flex items-center gap-3 mb-3">
+                   <div className="w-8 h-8 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl flex items-center justify-center">
+                     <stat.icon className="w-4 h-4 text-emerald-400" />
+                   </div>
+                   <h3 className="text-white font-bold text-sm">{stat.metric}</h3>
                  </div>
-                 <div className="grid grid-cols-3 gap-2 text-xs">
-                   <div className="bg-red-500/10 border border-red-500/20 rounded p-2">
-                     <div className="text-red-400 font-semibold mb-0.5">Email</div>
+                 <div className="grid grid-cols-3 gap-3 text-xs">
+                   <div className="bg-red-500/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-3">
+                     <div className="text-red-400 font-semibold mb-1">Email</div>
                      <div className="text-red-300">{stat.email}</div>
                    </div>
-                   <div className="bg-green-500/10 border border-green-500/20 rounded p-2">
-                     <div className="text-green-400 font-semibold mb-0.5">WhatsApp</div>
+                   <div className="bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-3">
+                     <div className="text-green-400 font-semibold mb-1">WhatsApp</div>
                      <div className="text-green-400 font-bold">{stat.whatsapp}</div>
                    </div>
-                   <div className="bg-emerald-500/10 border border-emerald-500/20 rounded p-2 flex items-center justify-center">
+                   <div className="bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30 rounded-xl p-3 flex items-center justify-center">
                      <div className="text-emerald-400 font-bold text-center">{stat.improvement}</div>
                    </div>
                  </div>
@@ -420,13 +443,15 @@ const WhyUs = () => {
              ))}
            </div>
 
-           {/* Key Insight Box */}
-           <ScrollAnimatedSection className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-3 md:p-6 text-center mx-3 md:mx-0" delay={300}>
-             <div className="flex items-center justify-center gap-2 mb-2 md:mb-3">
-               <Gauge className="w-4 h-4 md:w-6 md:h-6 text-green-400" />
-               <h3 className="text-sm md:text-xl font-bold text-white">Key Finding</h3>
+           {/* Premium Key Insight Box */}
+           <ScrollAnimatedSection className="bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-3xl p-6 md:p-10 text-center mx-3 md:mx-0 shadow-2xl shadow-green-500/20" delay={600}>
+             <div className="flex items-center justify-center gap-3 mb-4 md:mb-6">
+               <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-green-400/30 to-emerald-400/30 rounded-2xl flex items-center justify-center">
+                 <Gauge className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
+               </div>
+               <h3 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">Key Finding</h3>
              </div>
-             <p className="text-xs md:text-lg text-green-300 max-w-3xl mx-auto leading-relaxed">
+             <p className="text-base md:text-xl text-green-300 max-w-4xl mx-auto leading-relaxed">
                <span className="md:hidden">85% prefer messaging • 53% more likely to buy from chat businesses</span>
                <span className="hidden md:inline">85% prefer messaging over email • 53% more likely to purchase from chat-enabled businesses</span>
              </p>
@@ -434,40 +459,46 @@ const WhyUs = () => {
         </div>
       </ScrollAnimatedSection>
 
-      {/* Psychological Benefits Section */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20 bg-slate-800/20">
+      {/* Premium Psychological Benefits Section */}
+      <ScrollAnimatedSection as="section" className="py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
-          <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-xl md:text-4xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              Why WhatsApp Works <span className="text-green-400">
-                <span className="md:hidden">Better</span>
-                <span className="hidden md:inline">Psychologically</span>
-              </span> Better
-            </h2>
-            <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-              <span className="md:hidden">How people feel and behave matters</span>
-              <span className="hidden md:inline">It's not just about numbers - it's about how people feel and behave</span>
-            </p>
+          <div className="text-center mb-12 md:mb-20">
+            <ScrollAnimatedSection delay={100}>
+              <h2 className="text-2xl md:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
+                Why WhatsApp Works{" "}
+                <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent">
+                  <span className="md:hidden">Better</span>
+                  <span className="hidden md:inline">Psychologically</span>
+                </span>{" "}
+                Better
+              </h2>
+            </ScrollAnimatedSection>
+            <ScrollAnimatedSection delay={200}>
+              <p className="text-lg md:text-2xl text-slate-300 max-w-4xl mx-auto px-3 sm:px-0">
+                <span className="md:hidden">How people feel and behave matters</span>
+                <span className="hidden md:inline">It's not just about numbers - it's about how people feel and behave</span>
+              </p>
+            </ScrollAnimatedSection>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
             {psychologicalBenefits.map((benefit, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 md:p-8 hover:bg-slate-800/70 transition-all duration-300"
-                delay={index * 150}
+                className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-6 md:p-10 hover:bg-slate-800/80 hover:border-emerald-500/30 transition-all duration-300 shadow-xl hover:shadow-emerald-500/20"
+                delay={300 + index * 150}
               >
                 <div className="flex items-start space-x-4 md:space-x-6">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center flex-shrink-0">
-                    <benefit.icon className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
+                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-3xl flex items-center justify-center flex-shrink-0">
+                    <benefit.icon className="w-8 h-8 md:w-10 md:h-10 text-green-400" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-3">{benefit.title}</h3>
-                    <p className="text-slate-300 mb-3 md:mb-4 text-sm md:text-base">
+                    <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent mb-3 md:mb-4">{benefit.title}</h3>
+                    <p className="text-slate-300 mb-4 md:mb-6 text-base md:text-lg leading-relaxed">
                       <span className="md:hidden">{benefit.mobileDescription}</span>
                       <span className="hidden md:inline">{benefit.description}</span>
                     </p>
-                    <div className="bg-green-500/10 text-green-400 px-3 md:px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold inline-block border border-green-500/20">
+                    <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-sm border border-green-500/30 text-green-400 px-4 md:px-6 py-2 md:py-3 rounded-full text-sm md:text-base font-bold inline-block shadow-lg">
                       {benefit.stat}
                     </div>
                   </div>
@@ -888,7 +919,7 @@ const WhyUs = () => {
       <ScrollAnimatedSection delay={200}>
         <Pricing />
       </ScrollAnimatedSection>
-    </div>
+    </BackgroundProvider>
   );
 };
 
