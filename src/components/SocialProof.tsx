@@ -1,7 +1,6 @@
 
 import { Star, Quote, MapPin, Calendar, Clock, User } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import ScrollAnimatedSection from './ScrollAnimatedSection';
 
 const SocialProof = () => {
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(0);
@@ -117,46 +116,36 @@ const SocialProof = () => {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
       
       <div className="max-w-6xl mx-auto relative z-10 px-6 md:px-8 lg:px-12">
-        <div className="space-y-12 md:space-y-24">
-          {/* Header */}
-          <ScrollAnimatedSection 
-            animation="fade-up" 
-            config={{ threshold: 0.3 }}
-            className="text-center"
-          >
-            <h2 className="text-xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Proven Results
-              </span>{" "}
-              That Transform Businesses
-            </h2>
-            <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-              <span className="md:hidden">Real metrics from businesses using our AI booking assistant</span>
-              <span className="hidden md:inline">See the real impact our AI booking assistant has on businesses just like yours</span>
-            </p>
-          </ScrollAnimatedSection>
+        {/* Header */}
+        <div className="text-center mb-8 md:mb-20">
+          <h2 className="text-xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            Trusted by <span className="text-emerald-400">10,000+</span> Businesses
+          </h2>
+          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+            <span className="md:hidden">Thousands trust our booking automation</span>
+            <span className="hidden md:inline">Join thousands of business owners who've revolutionized their booking process</span>
+          </p>
+        </div>
 
-          {/* Stats Grid - Desktop */}
-          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {stats.map((stat, index) => (
-              <ScrollAnimatedSection
-                key={index}
-                animation={
-                  index % 4 === 0 ? 'fade-up' :
-                  index % 4 === 1 ? 'slide-left' :
-                  index % 4 === 2 ? 'slide-right' :
-                  'scale'
-                }
-                delay={index * 200}
-                config={{ threshold: 0.2 }}
-              >
-                <div className="text-center p-6 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                  <div className="text-2xl lg:text-4xl font-bold text-emerald-400 mb-2">{stat.value}</div>
-                  <div className="text-sm lg:text-base text-slate-300">{stat.label}</div>
+        {/* Desktop: Stats grid */}
+        <div className="hidden md:flex justify-center gap-8 md:gap-16 mb-12 md:mb-20">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div key={index} className="text-center group hover:transform hover:scale-105 transition-all duration-300">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center mb-4 mx-auto shadow-lg group-hover:shadow-xl transition-all duration-300">
+                  <Icon className="w-8 h-8 md:w-10 md:h-10 text-white" />
                 </div>
-              </ScrollAnimatedSection>
-            ))}
-          </div>
+                <div className="text-2xl md:text-4xl font-bold text-emerald-400 mb-2 group-hover:text-emerald-300 transition-colors">
+                  {stat.value}
+                </div>
+                <div className="text-slate-400 text-sm md:text-base group-hover:text-slate-300 transition-colors">
+                  {stat.label}
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
         {/* Mobile: Stats grid (replaced carousel) */}
         <div className="md:hidden mb-8">
@@ -180,61 +169,50 @@ const SocialProof = () => {
           </div>
         </div>
 
-          {/* Desktop: Testimonials grid */}
-          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {testimonials.map((testimonial, index) => (
-              <ScrollAnimatedSection
-                key={index}
-                animation={
-                  index % 3 === 0 ? 'fade-up' :
-                  index % 3 === 1 ? 'slide-left' :
-                  'slide-right'
-                }
-                delay={index * 200}
-                config={{ threshold: 0.2 }}
-              >
-                <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 md:p-8 hover:transform hover:scale-105 transition-all duration-300 cursor-pointer">
-                  <div className="flex items-center mb-4 md:mb-6">
-                    <img 
-                      src={testimonial.image} 
-                      alt={testimonial.name}
-                      className="w-12 h-12 md:w-16 md:h-16 rounded-full mr-4 object-cover"
-                    />
-                    <div className="flex-1">
-                      <h4 className="text-white font-semibold text-sm md:text-base">{testimonial.name}</h4>
-                      <p className="text-slate-400 text-xs md:text-sm">{testimonial.business}</p>
-                      <div className="flex items-center mt-1">
-                        <MapPin className="w-3 h-3 text-slate-500 mr-1" />
-                        <span className="text-slate-500 text-xs">{testimonial.location}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center mb-3 md:mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                    ))}
-                    <span className="ml-2 text-emerald-400 font-semibold text-xs md:text-sm">
-                      {testimonial.stats}
-                    </span>
-                  </div>
-                  
-                  <div className="relative">
-                    <Quote className="absolute -top-2 -left-2 w-6 h-6 text-emerald-400/30" />
-                    <p className="text-slate-300 text-xs md:text-sm leading-relaxed pl-4">
-                      {testimonial.testimonial}
-                    </p>
-                  </div>
-                  
-                  <div className="mt-4 pt-4 border-t border-slate-700/50">
-                    <span className="text-emerald-400 text-xs font-medium">
-                      {testimonial.service}
-                    </span>
+        {/* Desktop: Testimonials grid */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {testimonials.map((testimonial, index) => (
+            <div key={index} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 md:p-8 hover:transform hover:scale-105 transition-all duration-300 cursor-pointer">
+              <div className="flex items-center mb-4 md:mb-6">
+                <img 
+                  src={testimonial.image} 
+                  alt={testimonial.name}
+                  className="w-12 h-12 md:w-16 md:h-16 rounded-full mr-4 object-cover"
+                />
+                <div className="flex-1">
+                  <h4 className="text-white font-semibold text-sm md:text-base">{testimonial.name}</h4>
+                  <p className="text-slate-400 text-xs md:text-sm">{testimonial.business}</p>
+                  <div className="flex items-center mt-1">
+                    <MapPin className="w-3 h-3 text-slate-500 mr-1" />
+                    <span className="text-slate-500 text-xs">{testimonial.location}</span>
                   </div>
                 </div>
-              </ScrollAnimatedSection>
-            ))}
-          </div>
+              </div>
+              
+              <div className="flex items-center mb-3 md:mb-4">
+                {[...Array(testimonial.rating)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                ))}
+                <span className="ml-2 text-emerald-400 font-semibold text-xs md:text-sm">
+                  {testimonial.stats}
+                </span>
+              </div>
+              
+              <div className="relative">
+                <Quote className="absolute -top-2 -left-2 w-6 h-6 text-emerald-400/30" />
+                <p className="text-slate-300 text-xs md:text-sm leading-relaxed pl-4">
+                  {testimonial.testimonial}
+                </p>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t border-slate-700/50">
+                <span className="text-emerald-400 text-xs font-medium">
+                  {testimonial.service}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
 
         {/* Mobile: Testimonials carousel */}
         <div className="md:hidden">
@@ -308,8 +286,7 @@ const SocialProof = () => {
                 aria-label={`Go to testimonial ${index + 1}`}
               />
             ))}
-        </div>
-        </div>
+          </div>
         </div>
       </div>
     </section>
