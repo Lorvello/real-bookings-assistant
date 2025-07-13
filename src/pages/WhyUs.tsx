@@ -38,41 +38,46 @@ const WhyUs = () => {
     }
   ];
 
-  const whatsappVsEmailStats = [
+  const whatsappVsTraditionalStats = [
     {
-      metric: "Open Rate",
-      email: "~20%",
-      whatsapp: "95-99%",
-      improvement: "5x higher",
-      icon: MessageCircle
-    },
-    {
-      metric: "Time until read",
-      email: "Often only after hours",
-      whatsapp: "80% within 5 minutes",
-      improvement: "18x faster",
-      icon: Timer
-    },
-    {
-      metric: "Average response time",
-      email: "~90 minutes",
-      whatsapp: "Within minutes",
-      improvement: "18x faster",
+      metric: "Response Time",
+      phoneCalls: "24-48 hours",
+      websiteForms: "12-24 hours",
+      whatsapp: "Under 30 seconds",
+      improvement: "50x faster",
       icon: Clock
     },
     {
-      metric: "Response rate",
-      email: "~6%",
-      whatsapp: "40-45%",
-      improvement: "7x more responses",
-      icon: UserCheck
+      metric: "Availability",
+      phoneCalls: "Business hours only",
+      websiteForms: "24/7 but delays",
+      whatsapp: "Instant 24/7",
+      improvement: "Always available",
+      icon: Shield
     },
     {
-      metric: "No-show percentage",
-      email: "~35%",
+      metric: "Booking Completion",
+      phoneCalls: "~25%",
+      websiteForms: "~15%",
+      whatsapp: "85-95%",
+      improvement: "4x higher success",
+      icon: Target
+    },
+    {
+      metric: "Customer Satisfaction",
+      phoneCalls: "~60%",
+      websiteForms: "~45%",
+      whatsapp: "95%+",
+      improvement: "40% improvement",
+      icon: Heart
+    },
+    {
+      metric: "No-Show Rate",
+      phoneCalls: "~35%",
+      websiteForms: "~40%",
       whatsapp: "<20%",
-      improvement: "50% less",
-      icon: Calendar
+      improvement: "50% reduction",
+      icon: UserCheck
     }
   ];
 
@@ -449,15 +454,15 @@ const WhyUs = () => {
          <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
            <div className="text-center mb-12 md:mb-20">
              <ScrollAnimatedSection delay={100}>
-               <h2 className="text-2xl md:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
-                 <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent">Scientific Facts</span>: WhatsApp vs Email
-               </h2>
+                <h2 className="text-2xl md:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
+                  <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent">Proven Performance</span>: WhatsApp vs Traditional Booking
+                </h2>
              </ScrollAnimatedSection>
              <ScrollAnimatedSection delay={200}>
-               <p className="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-                 <span className="md:hidden">Research from thousands of businesses</span>
-                 <span className="hidden md:inline">Research among thousands of businesses worldwide</span>
-               </p>
+                <p className="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+                  <span className="md:hidden">Data from thousands of businesses</span>
+                  <span className="hidden md:inline">Data-driven comparison across thousands of businesses worldwide</span>
+                </p>
              </ScrollAnimatedSection>
            </div>
           
@@ -468,16 +473,18 @@ const WhyUs = () => {
                 <thead>
                   <tr className="border-b border-slate-700/50">
                     <th className="text-left py-8 px-8 text-slate-300 text-xl font-semibold">Metric</th>
-                    <th className="text-center py-8 px-8 text-red-400 text-xl font-semibold">Email</th>
+                    <th className="text-center py-8 px-8 text-orange-400 text-xl font-semibold">Phone Calls</th>
+                    <th className="text-center py-8 px-8 text-blue-400 text-xl font-semibold">Website Forms</th>
                     <th className="text-center py-8 px-8 text-green-400 text-xl font-semibold">WhatsApp</th>
                     <th className="text-center py-8 px-8 text-emerald-400 text-xl font-semibold">Improvement</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {whatsappVsEmailStats.map((stat, index) => (
+                  {whatsappVsTraditionalStats.map((stat, index) => (
                     <tr key={index} className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors duration-200">
                       <td className="py-6 px-8 text-white font-medium text-lg">{stat.metric}</td>
-                      <td className="py-6 px-8 text-center text-red-300 text-lg">{stat.email}</td>
+                      <td className="py-6 px-8 text-center text-orange-300 text-lg">{stat.phoneCalls}</td>
+                      <td className="py-6 px-8 text-center text-blue-300 text-lg">{stat.websiteForms}</td>
                       <td className="py-6 px-8 text-center text-green-400 font-bold text-lg">{stat.whatsapp}</td>
                       <td className="py-6 px-8 text-center text-emerald-400 font-bold text-lg">{stat.improvement}</td>
                     </tr>
@@ -489,33 +496,37 @@ const WhyUs = () => {
 
            {/* Mobile: Premium Glassmorphism Cards */}
            <div className="md:hidden space-y-4 mb-8">
-             {whatsappVsEmailStats.slice(0, 3).map((stat, index) => (
-               <ScrollAnimatedSection 
-                 key={index} 
-                 className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 shadow-lg hover:bg-slate-800/80 hover:border-emerald-500/30 transition-all duration-300"
-                 delay={300 + index * 100}
-               >
-                 <div className="flex items-center gap-3 mb-3">
-                   <div className="w-8 h-8 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl flex items-center justify-center">
-                     <stat.icon className="w-4 h-4 text-emerald-400" />
-                   </div>
-                   <h3 className="text-white font-bold text-sm">{stat.metric}</h3>
-                 </div>
-                 <div className="grid grid-cols-3 gap-3 text-xs">
-                   <div className="bg-red-500/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-3">
-                     <div className="text-red-400 font-semibold mb-1">Email</div>
-                     <div className="text-red-300">{stat.email}</div>
-                   </div>
-                   <div className="bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-3">
-                     <div className="text-green-400 font-semibold mb-1">WhatsApp</div>
-                     <div className="text-green-400 font-bold">{stat.whatsapp}</div>
-                   </div>
-                   <div className="bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30 rounded-xl p-3 flex items-center justify-center">
-                     <div className="text-emerald-400 font-bold text-center">{stat.improvement}</div>
-                   </div>
-                 </div>
-               </ScrollAnimatedSection>
-             ))}
+            {whatsappVsTraditionalStats.slice(0, 3).map((stat, index) => (
+                <ScrollAnimatedSection 
+                  key={index} 
+                  className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 shadow-lg hover:bg-slate-800/80 hover:border-emerald-500/30 transition-all duration-300"
+                  delay={300 + index * 100}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl flex items-center justify-center">
+                      <stat.icon className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <h3 className="text-white font-bold text-sm">{stat.metric}</h3>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 text-xs">
+                    <div className="bg-orange-500/20 backdrop-blur-sm border border-orange-500/30 rounded-xl p-2">
+                      <div className="text-orange-400 font-semibold mb-1">Phone</div>
+                      <div className="text-orange-300 text-[10px]">{stat.phoneCalls}</div>
+                    </div>
+                    <div className="bg-blue-500/20 backdrop-blur-sm border border-blue-500/30 rounded-xl p-2">
+                      <div className="text-blue-400 font-semibold mb-1">Web</div>
+                      <div className="text-blue-300 text-[10px]">{stat.websiteForms}</div>
+                    </div>
+                    <div className="bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-2">
+                      <div className="text-green-400 font-semibold mb-1">WhatsApp</div>
+                      <div className="text-green-400 font-bold text-[10px]">{stat.whatsapp}</div>
+                    </div>
+                    <div className="bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30 rounded-xl p-2 flex items-center justify-center">
+                      <div className="text-emerald-400 font-bold text-center text-[10px]">{stat.improvement}</div>
+                    </div>
+                  </div>
+                </ScrollAnimatedSection>
+              ))}
             </div>
          </div>
        </ScrollAnimatedSection>
