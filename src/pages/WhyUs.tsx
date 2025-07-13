@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
-import BackgroundProvider from '@/components/BackgroundProvider';
+
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown, Mail, BarChart3, Timer, UserCheck, Heart, Brain, Smartphone, Gauge } from 'lucide-react';
 import { Pricing } from '@/components/Pricing';
 
@@ -293,67 +293,104 @@ const WhyUs = () => {
   };
 
   return (
-    <BackgroundProvider variant="hero">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
       <Header />
       
-      {/* Hero Section */}
-      <section className="py-16 md:py-24 px-6 relative overflow-hidden">
-        {/* Additional premium blur decorations */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-green-400/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+      {/* Hero Section - Premium Design */}
+      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-16 md:py-24 px-3 md:px-4 relative overflow-hidden">
+        {/* Enhanced Background decoration with emerald accents */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-gradient-to-r from-emerald-600/20 via-slate-600/10 to-emerald-500/15 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-gradient-to-l from-emerald-500/15 via-slate-600/10 to-emerald-600/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-r from-emerald-700/10 via-slate-700/5 to-emerald-600/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-32 right-1/4 w-32 h-32 bg-gradient-to-r from-emerald-400/20 to-emerald-600/15 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-emerald-600/15 to-emerald-500/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
         </div>
         
-        <div className="max-w-6xl mx-auto text-center relative z-10">
-          <ScrollAnimatedSection delay={100}>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-12">
-              Why{" "}
-              <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
-                10,000+ Businesses
-              </span>{" "}
-              Choose WhatsApp Over Email
-            </h1>
+        {/* Advanced Grid pattern overlay */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(16_185_129,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(16_185_129,0.05)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-40"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.08)_1px,transparent_1px)] bg-[size:16px_16px] md:bg-[size:32px_32px] opacity-20"></div>
+        </div>
+        
+        <div className="max-w-6xl mx-auto text-center relative z-10 px-4 md:px-6 lg:px-8">
+          {/* Floating Badge */}
+          <ScrollAnimatedSection 
+            animation="fade-up" 
+            delay={0}
+            as="div" 
+            className="mb-6 md:mb-8"
+          >
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
+              <span className="text-emerald-300 text-sm font-medium tracking-wide">Proven Results</span>
+            </div>
+          </ScrollAnimatedSection>
+
+          {/* Premium Main Heading */}
+          <ScrollAnimatedSection 
+            animation="fade-up" 
+            delay={200}
+            as="h1" 
+            className="text-2xl md:text-5xl xl:text-6xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
+          >
+            <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
+              Why{' '}
+            </span>
+            <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
+              10,000+ Businesses
+            </span>
+            <br className="md:hidden" />
+            <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
+              {' '}Choose WhatsApp Over Email
+            </span>
+          </ScrollAnimatedSection>
+
+          {/* Enhanced Subtitle */}
+          <ScrollAnimatedSection 
+            animation="fade-up" 
+            delay={400}
+            as="p" 
+            className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
+          >
+            <span className="md:hidden">
+              <span className="text-emerald-300">95% higher open rates, 18x faster responses, 50% fewer no-shows.</span>
+              {' '}Smart businesses switch to WhatsApp.
+            </span>
+            <span className="hidden md:inline">
+              Scientifically proven results: 
+              <br className="hidden md:block" />
+              <span className="text-emerald-300">95% higher open rates, 18x faster responses, 50% fewer no-shows.</span>
+              {' '}Discover why smart businesses are switching en masse.
+            </span>
           </ScrollAnimatedSection>
           
-          <ScrollAnimatedSection delay={200}>
-            <p className="text-lg md:text-2xl text-slate-300 max-w-5xl mx-auto mb-16 md:mb-24 leading-relaxed">
-              <span className="md:hidden">
-                <strong className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                  95% higher open rates, 18x faster responses, 50% fewer no-shows
-                </strong>. 
-                Smart businesses switch to WhatsApp.
-              </span>
-              <span className="hidden md:inline">
-                Scientifically proven results: <strong className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                  95% higher open rates, 18x faster responses, 50% fewer no-shows
-                </strong>. 
-                Discover why smart businesses are switching en masse.
-              </span>
-            </p>
+          {/* Premium Social Proof Stats */}
+          <ScrollAnimatedSection 
+            animation="slide-up" 
+            delay={600}
+            className="mt-16 md:mt-24"
+          >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {proofPoints.map((stat, index) => (
+                <ScrollAnimatedSection 
+                  key={index} 
+                  className="text-center"
+                  delay={400 + index * 100}
+                >
+                  <div className="bg-slate-800/70 backdrop-blur-md border border-emerald-500/40 rounded-2xl p-6 md:p-8 shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:shadow-2xl hover:bg-slate-800/80 hover:border-emerald-400/60 hover:scale-[1.02] transform transition-all duration-500 group">
+                    <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
+                      <stat.icon className="w-6 h-6 md:w-8 md:h-8 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
+                    </div>
+                    <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-2 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
+                      {stat.number}
+                    </div>
+                    <div className="text-sm md:text-base font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300">{stat.label}</div>
+                  </div>
+                </ScrollAnimatedSection>
+              ))}
+            </div>
           </ScrollAnimatedSection>
-        </div>
-        
-        {/* Premium Social Proof Stats */}
-        <div className="max-w-6xl mx-auto mt-16 md:mt-24 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {proofPoints.map((stat, index) => (
-              <ScrollAnimatedSection 
-                key={index} 
-                className="text-center"
-                delay={400 + index * 100}
-              >
-                <div className="bg-slate-800/70 backdrop-blur-md border border-emerald-500/40 rounded-3xl p-8 md:p-10 shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:shadow-2xl hover:bg-slate-800/80 hover:border-emerald-400/60 hover:scale-[1.02] transform transition-all duration-500 group">
-                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-3xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
-                    <stat.icon className="w-8 h-8 md:w-10 md:h-10 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
-                  </div>
-                  <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-3 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
-                    {stat.number}
-                  </div>
-                  <div className="text-base md:text-lg font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300">{stat.label}</div>
-                </div>
-              </ScrollAnimatedSection>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -907,7 +944,7 @@ const WhyUs = () => {
       <ScrollAnimatedSection delay={200}>
         <Pricing />
       </ScrollAnimatedSection>
-    </BackgroundProvider>
+    </div>
   );
 };
 
