@@ -45,10 +45,10 @@ const ResultSummary = () => {
 
   const stats = [
     { 
-      value: '98%', 
-      label: 'Higher open rates vs email', 
+      value: '30sec', 
+      label: 'Average booking time', 
       icon: Clock,
-      detailText: "WhatsApp messages achieve 98% open rates compared to just 20% for email marketing. This 5x improvement in reach translates to 45-60% conversion rates vs 2-5% for traditional methods. 57% of messages receive replies within 1 minute."
+      detailText: "Complete bookings from first message to confirmation in under 30 seconds. No phone calls, forms, or back-and-forth emails needed. Customers book instantly through familiar WhatsApp interface while you sleep."
     },
     { 
       value: '40%', 
