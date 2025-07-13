@@ -332,7 +332,7 @@ const WhyUs = () => {
       <Header />
       
       {/* Hero Section - Premium Design */}
-      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-16 md:py-24 px-3 md:px-4 relative overflow-hidden">
+      <section className="py-16 md:py-24 px-3 md:px-4 relative overflow-hidden">
         {/* Enhanced Background decoration with emerald accents */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-gradient-to-r from-emerald-600/20 via-slate-600/10 to-emerald-500/15 rounded-full blur-3xl animate-pulse"></div>
@@ -467,7 +467,7 @@ const WhyUs = () => {
            </div>
           
            {/* Desktop: Premium Professional Table */}
-           <ScrollAnimatedSection className="hidden md:block backdrop-blur-sm bg-black/30 rounded-3xl shadow-[0_32px_64px_rgba(0,0,0,0.4),0_16px_32px_rgba(0,0,0,0.25)] border border-slate-600/30 mb-16 overflow-hidden hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] transition-all duration-500" delay={300}>
+           <ScrollAnimatedSection className="hidden md:block backdrop-blur-sm bg-slate-800/30 rounded-3xl shadow-[0_32px_64px_rgba(0,0,0,0.4),0_16px_32px_rgba(0,0,0,0.25)] border border-slate-600/30 mb-16 overflow-hidden hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] transition-all duration-500" delay={300}>
              <div className="overflow-x-auto">
                <table className="w-full">
                  <thead>
