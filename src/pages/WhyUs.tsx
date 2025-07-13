@@ -26,13 +26,13 @@ const WhyUs = () => {
       icon: Calendar
     },
     {
-      number: "300%",
-      label: "Better Than Competitors",
+      number: "30sec",
+      label: "Average Response",
       icon: TrendingUp
     },
     {
-      number: "99.9%",
-      label: "Uptime Guarantee",
+      number: "80%",
+      label: "Fewer No-Shows",
       icon: Shield
     }
   ];
@@ -297,7 +297,7 @@ const WhyUs = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="py-16 md:py-32 px-4 md:px-6 lg:px-8 relative overflow-hidden">
+      <section className="py-16 md:py-24 px-6 relative overflow-hidden">
         {/* Additional premium blur decorations */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl animate-pulse"></div>
@@ -306,16 +306,17 @@ const WhyUs = () => {
         
         <div className="max-w-6xl mx-auto text-center relative z-10">
           <ScrollAnimatedSection delay={100}>
-            <h1 className="text-3xl md:text-6xl xl:text-7xl font-bold text-white mb-6 md:mb-8">
-              Why 10,000+ Businesses{" "}
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-12">
+              Why{" "}
               <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
-                Choose WhatsApp Over Email
-              </span>
+                10,000+ Businesses
+              </span>{" "}
+              Choose WhatsApp Over Email
             </h1>
           </ScrollAnimatedSection>
           
           <ScrollAnimatedSection delay={200}>
-            <p className="text-lg md:text-2xl text-slate-300 max-w-5xl mx-auto mb-12 md:mb-16 leading-relaxed">
+            <p className="text-lg md:text-2xl text-slate-300 max-w-5xl mx-auto mb-16 md:mb-24 leading-relaxed">
               <span className="md:hidden">
                 <strong className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
                   95% higher open rates, 18x faster responses, 50% fewer no-shows
@@ -330,19 +331,6 @@ const WhyUs = () => {
               </span>
             </p>
           </ScrollAnimatedSection>
-          
-          <ScrollAnimatedSection delay={300}>
-            <div className="bg-slate-800/80 backdrop-blur-sm border border-emerald-500/30 rounded-3xl p-6 md:p-10 max-w-4xl mx-auto shadow-2xl shadow-emerald-500/20">
-              <p className="text-lg md:text-2xl font-semibold text-emerald-300">
-                <span className="md:hidden">
-                  ✅ 1000+ case studies • 85% prefer messaging • Results in 24h
-                </span>
-                <span className="hidden md:inline">
-                  ✅ Proven by 1000+ case studies • 85% of customers prefer messaging • Results within 24 hours
-                </span>
-              </p>
-            </div>
-          </ScrollAnimatedSection>
         </div>
         
         {/* Premium Social Proof Stats */}
@@ -354,14 +342,14 @@ const WhyUs = () => {
                 className="text-center"
                 delay={400 + index * 100}
               >
-                <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 md:p-8 hover:bg-slate-800/80 hover:border-emerald-500/30 transition-all duration-300 shadow-lg hover:shadow-emerald-500/20">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-2xl flex items-center justify-center mb-4 mx-auto">
-                    <stat.icon className="w-6 h-6 md:w-8 md:h-8 text-emerald-400" />
+                <div className="bg-slate-800/70 backdrop-blur-md border border-emerald-500/40 rounded-3xl p-8 md:p-10 shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:shadow-2xl hover:bg-slate-800/80 hover:border-emerald-400/60 hover:scale-[1.02] transform transition-all duration-500 group">
+                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-3xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                    <stat.icon className="w-8 h-8 md:w-10 md:h-10 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
                   </div>
-                  <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent mb-2">
+                  <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-3 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
                     {stat.number}
                   </div>
-                  <div className="text-sm md:text-base text-slate-400">{stat.label}</div>
+                  <div className="text-base md:text-lg font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300">{stat.label}</div>
                 </div>
               </ScrollAnimatedSection>
             ))}
