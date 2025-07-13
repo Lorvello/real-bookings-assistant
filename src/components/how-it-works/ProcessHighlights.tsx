@@ -51,67 +51,41 @@ const ProcessHighlights = () => {
         <div className="space-y-6 md:space-y-12">
           <StepIndicator />
           
-          {/* Desktop: Sequential animated layout with clean cards */}
+          {/* Desktop: Sequential scroll-triggered animated layout with clean cards */}
           <div className="hidden md:block">
             <div className="space-y-16">
-              <div 
-                className="animate-fade-in shadow-lg hover:shadow-xl transition-all duration-500"
-                style={{
-                  animationDelay: '600ms',
-                  animationFillMode: 'both'
-                }}
-              >
+              <ScrollAnimatedSection animation="slide-left" delay={200} className="shadow-lg hover:shadow-xl transition-all duration-500">
                 <StepOneDetails />
-              </div>
-              <div 
-                className="animate-fade-in shadow-lg hover:shadow-xl transition-all duration-500"
-                style={{
-                  animationDelay: '900ms',
-                  animationFillMode: 'both'
-                }}
-              >
+              </ScrollAnimatedSection>
+              <ScrollAnimatedSection animation="slide-left" delay={400} className="shadow-lg hover:shadow-xl transition-all duration-500">
                 <StepTwoDetails />
-              </div>
-              <div 
-                className="animate-fade-in shadow-lg hover:shadow-xl transition-all duration-500"
-                style={{
-                  animationDelay: '1200ms',
-                  animationFillMode: 'both'
-                }}
-              >
+              </ScrollAnimatedSection>
+              <ScrollAnimatedSection animation="slide-left" delay={600} className="shadow-lg hover:shadow-xl transition-all duration-500">
                 <StepThreeDetails />
-              </div>
+              </ScrollAnimatedSection>
             </div>
           </div>
 
-          {/* Mobile: Clean vertical layout with modern cards */}
+          {/* Mobile: Clean vertical layout with scroll-triggered modern cards */}
           <div className="md:hidden space-y-8">
             {steps.map((step, index) => {
               const StepComponent = step.component;
               return (
-                <div 
+                <ScrollAnimatedSection 
                   key={index} 
+                  animation="slide-left" 
+                  delay={200 + index * 200}
                   className="shadow-lg"
-                  style={{
-                    animationDelay: `${600 + index * 300}ms`,
-                    animationFillMode: 'both'
-                  }}
                 >
                   <StepComponent />
-                </div>
+                </ScrollAnimatedSection>
               );
             })}
           </div>
           
-          <div 
-            className="animate-fade-in"
-            style={{
-              animationDelay: '1500ms',
-              animationFillMode: 'both'
-            }}
-          >
+          <ScrollAnimatedSection animation="fade-up" delay={400}>
             <ResultSummary />
-          </div>
+          </ScrollAnimatedSection>
         </div>
       </div>
     </ScrollAnimatedSection>

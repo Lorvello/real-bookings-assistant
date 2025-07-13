@@ -2,7 +2,7 @@
 import React from 'react';
 import { useScrollAnimation, AnimationConfig } from '@/hooks/useScrollAnimation';
 
-export type AnimationType = 'fade-up' | 'fade-down' | 'fade-left' | 'fade-right' | 'scale' | 'fade' | 'slide-up' | 'slide-down';
+export type AnimationType = 'fade-up' | 'fade-down' | 'fade-left' | 'fade-right' | 'scale' | 'fade' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right';
 
 interface ScrollAnimatedSectionProps {
   children: React.ReactNode;
@@ -11,6 +11,7 @@ interface ScrollAnimatedSectionProps {
   as?: keyof JSX.IntrinsicElements;
   animation?: AnimationType;
   config?: AnimationConfig;
+  stagger?: number; // Auto-increment delay for child elements
 }
 
 const ScrollAnimatedSection: React.FC<ScrollAnimatedSectionProps> = ({ 
@@ -19,7 +20,8 @@ const ScrollAnimatedSection: React.FC<ScrollAnimatedSectionProps> = ({
   delay = 0,
   as = 'section',
   animation = 'fade-up',
-  config = {}
+  config = {},
+  stagger = 0
 }) => {
   const { ref, isVisible } = useScrollAnimation(config);
 

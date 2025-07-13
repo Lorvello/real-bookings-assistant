@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CheckCircle, Sparkles, TrendingUp, Clock, Users, Zap } from 'lucide-react';
+import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 const ResultSummary = () => {
   const [activeStatIndex, setActiveStatIndex] = useState(0);
@@ -74,24 +75,29 @@ const ResultSummary = () => {
     <div className="relative">
       <div className="relative rounded-3xl p-3 md:p-8">
         {/* Powerful direct header */}
-        <div className="text-center mb-20 md:mb-24">
+        <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-20 md:mb-24">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-black bg-gradient-to-r from-white via-slate-100 to-emerald-200 bg-clip-text text-transparent tracking-wide leading-tight drop-shadow-2xl">
             Proven results that transform businesses
           </h2>
-        </div>
+        </ScrollAnimatedSection>
         
         {/* Desktop: Premium 4-card horizontal row layout with flip functionality */}
         <div className="hidden md:grid grid-cols-4 gap-8 lg:gap-12 max-w-6xl mx-auto" style={{ perspective: '1000px' }}>
           {stats.map((stat, index) => {
+            const animationTypes: Array<'fade-up' | 'slide-left' | 'slide-right' | 'scale'> = ['fade-up', 'slide-left', 'slide-right', 'scale'];
+            const animationType = animationTypes[index % animationTypes.length];
             const Icon = stat.icon;
             const isFlipped = flippedCards[index];
             
             return (
-              <div 
+              <ScrollAnimatedSection 
                 key={index} 
+                animation={animationType}
+                delay={200 + index * 150}
                 className={`group relative aspect-square cursor-pointer transition-all duration-700 ${!isFlipped ? 'hover:scale-105 hover:-translate-y-4' : ''}`}
-                onClick={() => toggleCardFlip(index)}
+                as="div"
               >
+                <div onClick={() => toggleCardFlip(index)} className="w-full h-full">
                 {/* Flip Container */}
                 <div 
                   className="relative w-full h-full transition-transform duration-600 ease-in-out"
@@ -163,7 +169,8 @@ const ResultSummary = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+                </div>
+              </ScrollAnimatedSection>
             );
           })}
         </div>
@@ -171,15 +178,20 @@ const ResultSummary = () => {
         {/* Mobile: 2x2 square grid layout with flip functionality */}
         <div className="md:hidden grid grid-cols-2 gap-8 max-w-md mx-auto" style={{ perspective: '1000px' }}>
           {stats.map((stat, index) => {
+            const mobileAnimationTypes: Array<'fade-up' | 'slide-left' | 'slide-right' | 'scale'> = ['fade-up', 'slide-right', 'slide-left', 'scale'];
+            const mobileAnimationType = mobileAnimationTypes[index % mobileAnimationTypes.length];
             const Icon = stat.icon;
             const isFlipped = flippedCards[index];
             
             return (
-              <div 
+              <ScrollAnimatedSection 
                 key={index} 
+                animation={mobileAnimationType}
+                delay={200 + index * 150}
                 className="relative aspect-square cursor-pointer"
-                onClick={() => toggleCardFlip(index)}
+                as="div"
               >
+                <div onClick={() => toggleCardFlip(index)} className="w-full h-full">
                 {/* Mobile Flip Container */}
                 <div 
                   className="relative w-full h-full transition-transform duration-600 ease-in-out"
@@ -245,7 +257,8 @@ const ResultSummary = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+                </div>
+              </ScrollAnimatedSection>
             );
           })}
         </div>

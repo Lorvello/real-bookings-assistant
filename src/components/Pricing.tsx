@@ -2,6 +2,7 @@
 import { Check, Star, ArrowRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 
 export const Pricing = () => {
   const [isAnnual, setIsAnnual] = useState(false);
@@ -79,7 +80,7 @@ export const Pricing = () => {
       
       <div className="max-w-6xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8 md:mb-16">
+        <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-8 md:mb-16">
           <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
             <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
             <span className="text-emerald-400 font-semibold text-sm md:text-base">Simple Pricing</span>
@@ -90,10 +91,10 @@ export const Pricing = () => {
           <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
             Start with our free trial and scale as you grow. No setup fees, no contracts.
           </p>
-        </div>
+        </ScrollAnimatedSection>
 
         {/* Pricing toggle */}
-        <div className="flex items-center justify-center mb-8 md:mb-12">
+        <ScrollAnimatedSection animation="fade-up" delay={200} className="flex items-center justify-center mb-8 md:mb-12">
           <div className="bg-slate-800/50 rounded-full p-1 border border-slate-700/50">
             <div className="flex">
               <button
@@ -121,18 +122,21 @@ export const Pricing = () => {
                   </button>
             </div>
           </div>
-        </div>
+        </ScrollAnimatedSection>
 
         {/* Desktop: Grid layout */}
         <div className="hidden md:grid md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
-            <div
+            <ScrollAnimatedSection
               key={plan.name}
+              animation="fade-up"
+              delay={400 + index * 150}
               className={`relative rounded-3xl p-8 border transition-all duration-300 hover:scale-105 ${
                 plan.isEnterprise
                   ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
                   : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
               } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}
+              as="div"
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
@@ -191,7 +195,7 @@ export const Pricing = () => {
                 {plan.cta}
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
-            </div>
+            </ScrollAnimatedSection>
           ))}
         </div>
 
@@ -200,13 +204,16 @@ export const Pricing = () => {
           <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain">
             <div className="flex gap-6 pb-4 px-4">
               {plans.map((plan, index) => (
-                <div
+                <ScrollAnimatedSection
                   key={plan.name}
+                  animation="fade-up"
+                  delay={400 + index * 150}
                   className={`w-[90vw] flex-none snap-start snap-always relative rounded-3xl p-6 border transition-all ${
                     plan.isEnterprise
                       ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
                       : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
                   } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}
+                  as="div"
                 >
                    {plan.popular && (
                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
@@ -265,18 +272,18 @@ export const Pricing = () => {
                     {plan.cta}
                     <ArrowRight className="ml-2 w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </Button>
-                </div>
+                </ScrollAnimatedSection>
               ))}
             </div>
           </div>
         </div>
 
         {/* Additional info */}
-        <div className="text-center mt-8">
+        <ScrollAnimatedSection animation="fade-up" delay={800} className="text-center mt-8">
           <p className="text-slate-500 text-sm">
             30 days free trial • No credit card required • Cancel anytime
           </p>
-        </div>
+        </ScrollAnimatedSection>
       </div>
     </section>
   );
