@@ -367,7 +367,7 @@ const WhyUs = () => {
             animation="fade-up" 
             delay={200}
             as="h1" 
-            className="text-2xl md:text-5xl xl:text-6xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
+            className="text-xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
           >
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               Why{' '}
@@ -386,7 +386,7 @@ const WhyUs = () => {
             animation="fade-up" 
             delay={400}
             as="p" 
-            className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
+            className="text-xs md:text-lg lg:text-xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
           >
             95% higher response rates vs phone calls, 18x faster than web forms, 50% fewer no-shows than manual booking.
           </ScrollAnimatedSection>
