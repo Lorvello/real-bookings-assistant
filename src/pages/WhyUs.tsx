@@ -10,6 +10,7 @@ const WhyUs = () => {
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
   const [activeAdvantageIndex, setActiveAdvantageIndex] = useState(0);
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(0);
+  const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
   const sectorCarouselRef = useRef<HTMLDivElement>(null);
   const advantageCarouselRef = useRef<HTMLDivElement>(null);
   const testimonialCarouselRef = useRef<HTMLDivElement>(null);
@@ -292,6 +293,35 @@ const WhyUs = () => {
     });
   };
 
+  // Card flip handler
+  const toggleCardFlip = (index: number) => {
+    setFlippedCards(prev => {
+      const newFlipped = [...prev];
+      newFlipped[index] = !newFlipped[index];
+      return newFlipped;
+    });
+  };
+
+  // Detailed explanations for card backs
+  const cardBackContent = [
+    {
+      title: "10,000+ Businesses",
+      content: "From small local practices to enterprise chains, our platform serves a diverse range of businesses across healthcare, beauty, professional services, and more. Each business has seen measurable improvements in booking efficiency and customer satisfaction."
+    },
+    {
+      title: "2M+ Successful Bookings",
+      content: "Every booking processed through our system represents a successful customer interaction. Our AI handles complex scheduling scenarios, multiple service types, and customer preferences while maintaining a 99.2% success rate for completed bookings."
+    },
+    {
+      title: "30sec Average Response",
+      content: "While traditional booking methods take minutes or hours, our AI responds instantly to customer inquiries. This includes understanding context, checking availability, and confirming appointments - all in under 30 seconds on average."
+    },
+    {
+      title: "80% Fewer No-Shows",
+      content: "Through intelligent reminder systems, easy rescheduling, and personalized communication via WhatsApp, we've dramatically reduced no-show rates compared to traditional email-based systems. Customers actually receive and read our reminders."
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
       <Header />
@@ -342,7 +372,7 @@ const WhyUs = () => {
             </span>
             <br className="md:hidden" />
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
-              {' '}Choose WhatsApp Over Email
+              {' '}Choose WhatsApp Over Traditional Booking Methods
             </span>
           </ScrollAnimatedSection>
 
@@ -353,16 +383,7 @@ const WhyUs = () => {
             as="p" 
             className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
           >
-            <span className="md:hidden">
-              <span className="text-emerald-300">95% higher open rates, 18x faster responses, 50% fewer no-shows.</span>
-              {' '}Smart businesses switch to WhatsApp.
-            </span>
-            <span className="hidden md:inline">
-              Scientifically proven results: 
-              <br className="hidden md:block" />
-              <span className="text-emerald-300">95% higher open rates, 18x faster responses, 50% fewer no-shows.</span>
-              {' '}Discover why smart businesses are switching en masse.
-            </span>
+            95% higher response rates vs phone calls, 18x faster than web forms, 50% fewer no-shows than manual booking. Discover why smart businesses are switching from outdated methods.
           </ScrollAnimatedSection>
           
           {/* Premium Social Proof Stats */}
@@ -371,21 +392,51 @@ const WhyUs = () => {
             delay={600}
             className="mt-16 md:mt-24"
           >
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6" style={{ perspective: '1000px' }}>
               {proofPoints.map((stat, index) => (
                 <ScrollAnimatedSection 
                   key={index} 
                   className="text-center"
-                  delay={400 + index * 100}
+                  delay={200 + index * 150}
                 >
-                  <div className="bg-slate-800/70 backdrop-blur-md border border-emerald-500/40 rounded-2xl p-6 md:p-8 shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:shadow-2xl hover:bg-slate-800/80 hover:border-emerald-400/60 hover:scale-[1.02] transform transition-all duration-500 group">
-                    <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
-                      <stat.icon className="w-6 h-6 md:w-8 md:h-8 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
+                  <div 
+                    className="relative aspect-square cursor-pointer"
+                    onClick={() => toggleCardFlip(index)}
+                    style={{
+                      transformStyle: 'preserve-3d',
+                      transform: flippedCards[index] ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                      transition: 'transform 0.6s ease-in-out'
+                    }}
+                  >
+                    {/* Front Side */}
+                    <div 
+                      className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-4 md:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] hover:scale-[1.02] transform transition-all duration-500 group"
+                      style={{
+                        backfaceVisibility: 'hidden'
+                      }}
+                    >
+                      <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-3 md:mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
+                        <stat.icon className="w-6 h-6 md:w-7 md:h-7 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
+                      </div>
+                      <div className="text-xl md:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-2 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
+                        {stat.number}
+                      </div>
+                      <div className="text-xs md:text-sm font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300 leading-tight">{stat.label}</div>
                     </div>
-                    <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-2 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
-                      {stat.number}
+                    
+                    {/* Back Side */}
+                    <div 
+                      className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-4 md:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] transform transition-all duration-500 flex flex-col justify-center"
+                      style={{
+                        backfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)'
+                      }}
+                    >
+                      <div className="text-left">
+                        <h4 className="text-sm md:text-base font-bold text-emerald-300 mb-2 md:mb-3">{cardBackContent[index].title}</h4>
+                        <p className="text-[11px] md:text-[13px] lg:text-[14px] text-slate-300 leading-relaxed">{cardBackContent[index].content}</p>
+                      </div>
                     </div>
-                    <div className="text-sm md:text-base font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300">{stat.label}</div>
                   </div>
                 </ScrollAnimatedSection>
               ))}
