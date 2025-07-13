@@ -18,9 +18,6 @@ const AITestSection = () => {
         
         <div className="max-w-6xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-20">
-            <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
-              <span className="text-emerald-400 font-semibold text-sm md:text-lg">✨ Try It Now</span>
-            </div>
             <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-8 px-3 sm:px-0">
               Test Our AI Assistant
             </h2>
