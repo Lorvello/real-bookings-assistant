@@ -67,14 +67,14 @@ const ResultSummary = () => {
         </div>
         
         {/* Desktop: Premium 4-card horizontal row layout */}
-        <div className="hidden md:grid grid-cols-4 gap-12 lg:gap-16 max-w-7xl mx-auto">
+        <div className="hidden md:grid grid-cols-4 gap-8 lg:gap-12 max-w-6xl mx-auto">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             
             return (
               <div 
                 key={index} 
-                className="group relative aspect-square bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-12 lg:p-16 text-center transition-all duration-700 hover:scale-105 hover:-translate-y-4 flex flex-col justify-center items-center"
+                className="group relative aspect-square bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 lg:p-8 text-center transition-all duration-700 hover:scale-105 hover:-translate-y-4 flex flex-col justify-center items-center"
                 style={{
                   boxShadow: `
                     0 30px 60px -12px rgba(0, 0, 0, 0.35),
@@ -91,17 +91,17 @@ const ResultSummary = () => {
                 
                 <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
                   {/* Prominent icon */}
-                  <div className="mb-10">
-                    <Icon className="w-16 h-16 lg:w-20 lg:h-20 mx-auto text-emerald-400 drop-shadow-2xl group-hover:drop-shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-700 group-hover:scale-110" />
+                  <div className="mb-6">
+                    <Icon className="w-12 h-12 lg:w-14 lg:h-14 mx-auto text-emerald-400 drop-shadow-2xl group-hover:drop-shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all duration-700 group-hover:scale-110" />
                   </div>
                   
                   {/* Large prominent statistic */}
-                  <div className="text-6xl lg:text-7xl xl:text-8xl font-black text-emerald-400 mb-8 lg:mb-10 tracking-tighter drop-shadow-2xl group-hover:drop-shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-all duration-700">
+                  <div className="text-4xl lg:text-5xl xl:text-6xl font-black text-emerald-400 mb-4 lg:mb-6 tracking-tighter drop-shadow-2xl group-hover:drop-shadow-[0_0_25px_rgba(16,185,129,0.4)] transition-all duration-700">
                     {stat.value}
                   </div>
                   
                   {/* Subtle descriptive text */}
-                  <div className="text-sm lg:text-base text-slate-300/90 leading-snug font-light tracking-wide text-center max-w-full">
+                  <div className="text-xs lg:text-sm text-slate-300/90 leading-snug font-light tracking-wide text-center max-w-full">
                     {stat.label}
                   </div>
                 </div>
