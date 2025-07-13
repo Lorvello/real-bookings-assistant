@@ -156,8 +156,8 @@ const ResultSummary = () => {
                     <div className="absolute inset-0 rounded-2xl bg-white/[0.03]" />
                     
                     <div className="relative z-10 flex items-center justify-center h-full w-full p-1">
-                      {/* Detailed text with very small font - no icon */}
-                      <div className="text-[7px] lg:text-[8px] text-slate-300/90 leading-none font-light tracking-wide text-center">
+                      {/* Detailed text with slightly larger font - no icon */}
+                      <div className="text-[9px] lg:text-[10px] text-slate-300/90 leading-tight font-light tracking-wide text-center">
                         {stat.detailText}
                       </div>
                     </div>
@@ -238,8 +238,8 @@ const ResultSummary = () => {
                     <div className="absolute inset-0 rounded-2xl bg-white/[0.03]" />
                     
                     <div className="relative z-10 flex items-center justify-center h-full w-full p-1">
-                      {/* Detailed text with very small font for mobile - no icon */}
-                      <div className="text-[6px] text-slate-300/90 leading-none font-light tracking-wide text-center">
+                      {/* Detailed text with slightly larger font for mobile - no icon */}
+                      <div className="text-[8px] text-slate-300/90 leading-tight font-light tracking-wide text-center">
                         {stat.detailText}
                       </div>
                     </div>
