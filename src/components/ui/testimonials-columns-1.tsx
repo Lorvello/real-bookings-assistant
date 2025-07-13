@@ -113,23 +113,36 @@ const thirdColumn = testimonials.slice(6, 9);
 
 const Testimonials = () => {
   return (
-    <section className="bg-background my-20 relative">
-      <div className="container z-10 mx-auto">
+    <section className="py-16 md:py-24 relative overflow-hidden" style={{
+      backgroundColor: 'hsl(217, 35%, 12%)'
+    }}>
+      {/* Background decoration */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
+      </div>
+      
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
+      
+      <div className="max-w-6xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           viewport={{ once: true }}
-          className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
+          className="text-center mb-8 md:mb-16"
         >
-          <div className="flex justify-center">
-            <div className="border py-1 px-4 rounded-lg">Testimonials</div>
+          <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
+            <span className="text-emerald-400 font-semibold text-sm md:text-base">Testimonials</span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tighter mt-5">
-            What our users say
+          <h2 className="text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+              What our users say
+            </span>
           </h2>
-          <p className="text-center mt-5 opacity-75">
+          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
             See what our customers have to say about us.
           </p>
         </motion.div>
