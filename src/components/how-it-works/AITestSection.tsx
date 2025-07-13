@@ -27,11 +27,11 @@ const AITestSection = () => {
             <p className="text-sm md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed px-3 sm:px-0">
               Experience how quickly and naturally our AI handles booking conversations. 
               <br className="hidden md:block" />
-              <strong className="text-white">No registration required — try it right now!</strong>
+              <strong className="text-white">No registration required, try it right now!</strong>
             </p>
           </div>
           
-          <div className="bg-slate-800/70 backdrop-blur-sm border border-slate-700/50 rounded-2xl md:rounded-3xl p-3 md:p-12 shadow-2xl max-w-5xl mx-auto h-[600px] md:h-[700px]">
+          <div className="bg-slate-800/70 backdrop-blur-sm border border-slate-700/50 rounded-2xl md:rounded-3xl p-2 md:p-4 shadow-2xl max-w-6xl mx-auto h-[650px] md:h-[750px]">
             <AIAgentTestChat />
           </div>
         </div>
