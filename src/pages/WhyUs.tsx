@@ -454,12 +454,12 @@ const WhyUs = () => {
          <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
            <div className="text-center mb-12 md:mb-20">
              <ScrollAnimatedSection delay={100}>
-                  <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-center mb-6 md:mb-8 bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent">
-                    WhatsApp vs Traditional Booking
-                  </h2>
-             </ScrollAnimatedSection>
-             <ScrollAnimatedSection delay={200}>
-                <p className="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+                   <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-center mb-6 md:mb-8 bg-gradient-to-r from-emerald-400 via-white to-emerald-400 bg-clip-text text-transparent">
+                     WhatsApp vs Traditional Booking
+                   </h2>
+              </ScrollAnimatedSection>
+              <ScrollAnimatedSection delay={200}>
+                 <p className="text-base md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
                   <span className="md:hidden">Data from thousands of businesses</span>
                   <span className="hidden md:inline">Data-driven comparison across thousands of businesses worldwide</span>
                 </p>
