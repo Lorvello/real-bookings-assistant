@@ -471,23 +471,23 @@ const WhyUs = () => {
              <div className="overflow-x-auto">
                <table className="w-full">
                  <thead>
-                   <tr className="bg-slate-800/50 border-b border-slate-600/40">
-                     <th className="text-left py-8 px-10 text-slate-100 text-xl font-bold tracking-tight">Metric</th>
-                     <th className="text-center py-8 px-10 text-slate-400 text-xl font-bold tracking-tight">Phone Calls</th>
-                     <th className="text-center py-8 px-10 text-slate-400 text-xl font-bold tracking-tight">Website Forms</th>
-                     <th className="text-center py-8 px-10 text-green-400 text-xl font-bold tracking-tight">WhatsApp</th>
-                     <th className="text-center py-8 px-10 text-emerald-400 text-xl font-bold tracking-tight">Improvement</th>
-                   </tr>
+                    <tr className="bg-slate-800/50 border-b border-slate-600/40">
+                      <th className="text-left py-4 px-10 text-slate-100 text-xl font-bold tracking-tight">Metric</th>
+                      <th className="text-center py-4 px-10 text-slate-400 text-xl font-bold tracking-tight">Phone Calls</th>
+                      <th className="text-center py-4 px-10 text-slate-400 text-xl font-bold tracking-tight">Website Forms</th>
+                      <th className="text-center py-4 px-10 text-green-400 text-xl font-bold tracking-tight">WhatsApp</th>
+                      <th className="text-center py-4 px-10 text-emerald-400 text-xl font-bold tracking-tight">Improvement</th>
+                    </tr>
                  </thead>
                  <tbody>
                    {whatsappVsTraditionalStats.map((stat, index) => (
-                     <tr key={index} className={`border-b border-slate-700/30 hover:bg-slate-800/30 transition-all duration-300 ${index % 2 === 0 ? 'bg-slate-900/20' : 'bg-transparent'}`}>
-                       <td className="py-7 px-10 text-white font-semibold text-lg tracking-tight">{stat.metric}</td>
-                       <td className="py-7 px-10 text-center text-slate-300 text-lg font-medium">{stat.phoneCalls}</td>
-                       <td className="py-7 px-10 text-center text-slate-300 text-lg font-medium">{stat.websiteForms}</td>
-                       <td className="py-7 px-10 text-center text-green-400 font-bold text-lg">{stat.whatsapp}</td>
-                       <td className="py-7 px-10 text-center text-emerald-400 font-bold text-lg">{stat.improvement}</td>
-                     </tr>
+                      <tr key={index} className={`border-b border-slate-700/30 hover:bg-slate-800/30 transition-all duration-300 ${index % 2 === 0 ? 'bg-slate-900/20' : 'bg-transparent'}`}>
+                        <td className="py-4 px-10 text-white font-semibold text-lg tracking-tight">{stat.metric}</td>
+                        <td className="py-4 px-10 text-center text-slate-300 text-lg font-medium">{stat.phoneCalls}</td>
+                        <td className="py-4 px-10 text-center text-slate-300 text-lg font-medium">{stat.websiteForms}</td>
+                        <td className="py-4 px-10 text-center text-green-400 font-bold text-lg">{stat.whatsapp}</td>
+                        <td className="py-4 px-10 text-center text-emerald-400 font-bold text-lg">{stat.improvement}</td>
+                      </tr>
                    ))}
                  </tbody>
                </table>
