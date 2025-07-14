@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import Testimonials from '@/components/ui/testimonials-columns-1';
 
-import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Heart, Brain, Smartphone, Gauge, UserCheck } from 'lucide-react';
+import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Heart, Brain, Smartphone, Gauge, UserCheck, TabletSmartphone, Rocket } from 'lucide-react';
 import { Pricing } from '@/components/Pricing';
 
 const WhyUs = () => {
@@ -730,202 +730,178 @@ const WhyUs = () => {
         <Testimonials />
       </ScrollAnimatedSection>
 
-      {/* Premium Enterprise Digital Transformation Section */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-24 relative overflow-hidden">
-        {/* Premium Background Effects */}
+      {/* Streamlined Mobile-First Excellence Section */}
+      <ScrollAnimatedSection as="section" className="py-16 md:py-32 relative overflow-hidden">
+        {/* Subtle Background Ambiance */}
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-600/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-tl from-emerald-400/8 via-transparent to-emerald-500/12 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-emerald-600/5 via-transparent to-emerald-500/8 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/3 left-1/4 w-[600px] h-[400px] bg-gradient-to-br from-emerald-500/8 via-transparent to-emerald-600/4 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[300px] bg-gradient-to-tl from-emerald-400/6 via-transparent to-emerald-500/8 rounded-full blur-3xl"></div>
         </div>
         
-        {/* Sophisticated Grid Overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(16_185_129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16_185_129,0.03)_1px,transparent_1px)] bg-[size:48px_48px] opacity-40"></div>
-        
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 relative z-10">
-          {/* Premium Header Section */}
-          <div className="text-center mb-8 md:mb-20">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 relative z-10">
+          {/* Sophisticated Header */}
+          <div className="text-center mb-12 md:mb-20">
             <ScrollAnimatedSection 
               animation="fade-up" 
               delay={0}
-              as="div" 
-              className="mb-6 md:mb-8"
+              as="h2" 
+              className="text-3xl md:text-5xl xl:text-6xl font-bold mb-6 md:mb-8 tracking-tight"
             >
-              <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/[0.03] backdrop-blur-xl border border-emerald-500/20 shadow-[0_8px_32px_rgba(16,185,129,0.12)]">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3 animate-pulse"></div>
-                <span className="text-emerald-300 text-sm md:text-base font-medium tracking-wide">Digital Evolution</span>
-              </div>
+              <span className="text-white">Why </span>
+              <span className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent">
+                Mobile-First
+              </span>
+              <span className="text-white"> Wins</span>
             </ScrollAnimatedSection>
 
             <ScrollAnimatedSection 
               animation="fade-up" 
               delay={200}
-              as="h2" 
-              className="text-3xl md:text-6xl xl:text-7xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
-            >
-              <span className="bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent">
-                The Future is{' '}
-              </span>
-              <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent relative">
-                Mobile-First
-                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 via-transparent to-emerald-400/20 blur-xl"></div>
-              </span>
-            </ScrollAnimatedSection>
-
-            <ScrollAnimatedSection 
-              animation="fade-up" 
-              delay={400}
               as="p" 
-              className="text-base md:text-xl xl:text-2xl text-slate-300 max-w-5xl mx-auto leading-relaxed px-3 sm:px-0 font-light"
+              className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed font-light"
             >
-              <span className="md:hidden">WhatsApp delivers superior speed, personal connection, and measurable results over traditional channels.</span>
-              <span className="hidden md:inline">
-                The paradigm shift from email to WhatsApp represents a fundamental evolution in customer communication. 
-                Modern consumers demand <span className="text-emerald-300 font-medium">instant responsiveness</span>, 
-                <span className="text-emerald-300 font-medium"> seamless convenience</span>, and 
-                <span className="text-emerald-300 font-medium"> personalized interactions</span>. 
-                Organizations that embrace this transformation 
-                <strong className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent"> achieve higher conversion rates, enhanced customer loyalty, and accelerated growth</strong>.
-              </span>
+              Three fundamental shifts driving customer behavior and business success
             </ScrollAnimatedSection>
           </div>
           
-          {/* Mobile: Premium Simplified Card */}
-          <div className="md:hidden">
-            <ScrollAnimatedSection 
-              animation="fade-up" 
-              delay={600}
-              className="mx-3"
-            >
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 via-transparent to-emerald-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative bg-white/[0.04] backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-6 shadow-[0_20px_40px_rgba(0,0,0,0.12),0_8px_32px_rgba(16,185,129,0.08)] hover:shadow-[0_32px_64px_rgba(0,0,0,0.16),0_12px_48px_rgba(16,185,129,0.12)] transition-all duration-700 hover:scale-[1.02] hover:border-emerald-500/20">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-emerald-400/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
-                      <Smartphone className="w-8 h-8 text-emerald-300" />
+          {/* Mobile: Clean Single Flow */}
+          <div className="md:hidden space-y-6">
+            {[
+              {
+                icon: TabletSmartphone,
+                title: "Universal Adoption",
+                description: "96 daily interactions per user",
+                detail: "Natural mobile behavior drives engagement"
+              },
+              {
+                icon: Rocket,
+                title: "Instant Response",
+                description: "Sub-30 second expectations",
+                detail: "Speed determines conversion success"
+              },
+              {
+                icon: Users,
+                title: "Personal Trust",
+                description: "85% prefer messaging",
+                detail: "Conversational commerce builds loyalty"
+              }
+            ].map((item, index) => (
+              <ScrollAnimatedSection 
+                key={index}
+                animation="fade-up" 
+                delay={400 + index * 150}
+              >
+                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.05] hover:border-emerald-500/20 transition-all duration-300">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-emerald-400/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <item.icon className="w-6 h-6 text-emerald-300" />
                     </div>
-                    <p className="text-emerald-200 font-medium leading-relaxed">
-                      WhatsApp delivers <strong className="text-emerald-300">faster bookings</strong> + <strong className="text-emerald-300">higher attendance</strong> + <strong className="text-emerald-300">superior results</strong>
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-bold text-white">{item.title}</h3>
+                        <span className="text-emerald-300 text-sm font-medium">{item.description}</span>
+                      </div>
+                      <p className="text-slate-400 text-sm">{item.detail}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </ScrollAnimatedSection>
+              </ScrollAnimatedSection>
+            ))}
           </div>
 
-          {/* Desktop: Premium Enterprise Grid */}
+          {/* Desktop: Refined Three-Column Layout */}
           <div className="hidden md:block">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12 mb-16">
+            <div className="grid grid-cols-3 gap-8 lg:gap-12 mb-16">
               {[
                 {
-                  icon: Smartphone,
-                  title: "Mobile-First Behavior",
-                  description: "Modern consumers interact with their devices 96+ times daily. WhatsApp seamlessly integrates into these natural behavioral patterns, ensuring maximum engagement and response rates.",
+                  icon: TabletSmartphone,
+                  title: "Universal Adoption",
                   stat: "96x Daily",
-                  gradient: "from-emerald-500/20 to-blue-500/20"
+                  insight: "Mobile devices are checked 96 times per day. WhatsApp integrates seamlessly into this natural behavior, ensuring maximum reach and engagement without disrupting user patterns."
                 },
                 {
-                  icon: Zap,
-                  title: "Expectation of Speed",
-                  description: "Contemporary customers demand instantaneous responses across all touchpoints. WhatsApp delivers real-time communication while traditional email channels create friction and abandonment.",
-                  stat: "<30 Seconds",
-                  gradient: "from-emerald-500/20 to-amber-500/20"
+                  icon: Rocket,
+                  title: "Instant Response",
+                  stat: "<30 Sec",
+                  insight: "Modern customers expect immediate acknowledgment. WhatsApp delivers instant responses while traditional channels create friction, leading to higher conversion rates and customer satisfaction."
                 },
                 {
-                  icon: Heart,
-                  title: "Personal Connection",
-                  description: "Research demonstrates 85% consumer preference for messaging over email communication. This preference stems from WhatsApp's intimate, conversational nature that builds stronger customer relationships.",
+                  icon: Users,
+                  title: "Personal Trust",
                   stat: "85% Prefer",
-                  gradient: "from-emerald-500/20 to-rose-500/20"
+                  insight: "Messaging feels more personal and trusted than email. This preference drives higher engagement rates and builds stronger customer relationships through conversational commerce."
                 }
               ].map((item, index) => (
                 <ScrollAnimatedSection 
                   key={index}
                   animation="fade-up" 
-                  delay={600 + index * 200}
+                  delay={400 + index * 200}
                   className="group"
                 >
                   <div className="relative h-full">
-                    {/* Premium Glow Effect */}
-                    <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/20 via-transparent to-emerald-400/15 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
-                    
-                    {/* Main Card */}
-                    <div className="relative h-full bg-white/[0.03] backdrop-blur-2xl border border-white/[0.06] rounded-3xl p-8 xl:p-10 shadow-[0_20px_40px_rgba(0,0,0,0.08),0_8px_32px_rgba(16,185,129,0.04)] hover:shadow-[0_32px_64px_rgba(0,0,0,0.12),0_12px_48px_rgba(16,185,129,0.08)] transition-all duration-700 hover:scale-[1.02] hover:border-emerald-500/15 hover:-translate-y-2">
+                    {/* Clean Card Design */}
+                    <div className="relative h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.06] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-emerald-500/15 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1">
                       
-                      {/* Premium Icon Container */}
-                      <div className="relative mb-8">
-                        <div className={`w-20 h-20 xl:w-24 xl:h-24 bg-gradient-to-br ${item.gradient} rounded-3xl flex items-center justify-center mx-auto shadow-inner group-hover:scale-110 transition-all duration-500`}>
-                          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-3xl"></div>
-                          <item.icon className="w-10 h-10 xl:w-12 xl:h-12 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300 relative z-10" />
+                      {/* Icon and Stat Integration */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/15 to-emerald-400/25 rounded-2xl flex items-center justify-center">
+                          <item.icon className="w-8 h-8 text-emerald-300" />
                         </div>
-                        
-                        {/* Floating Stat Badge */}
-                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500/90 to-emerald-400/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-lg">
-                          <span className="text-white text-xs font-bold">{item.stat}</span>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-emerald-300">{item.stat}</div>
+                          <div className="text-xs text-slate-400 uppercase tracking-wider">Key Metric</div>
                         </div>
                       </div>
 
-                      {/* Typography Hierarchy */}
-                      <div className="text-center space-y-4">
-                        <h3 className="text-xl xl:text-2xl font-bold text-white mb-4 group-hover:text-emerald-100 transition-colors duration-300">
+                      {/* Content Hierarchy */}
+                      <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white group-hover:text-emerald-100 transition-colors duration-300">
                           {item.title}
                         </h3>
-                        <p className="text-slate-300 group-hover:text-slate-200 leading-relaxed text-base xl:text-lg transition-colors duration-300">
-                          {item.description}
+                        <p className="text-slate-300 group-hover:text-slate-200 leading-relaxed transition-colors duration-300">
+                          {item.insight}
                         </p>
                       </div>
 
-                      {/* Subtle Bottom Accent */}
-                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      {/* Subtle Interaction Indicator */}
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400/0 to-transparent group-hover:via-emerald-400/50 transition-all duration-500 rounded-b-2xl"></div>
                     </div>
                   </div>
                 </ScrollAnimatedSection>
               ))}
             </div>
 
-            {/* Premium Conclusion CTA Card */}
+            {/* Streamlined Executive Summary */}
             <ScrollAnimatedSection 
               animation="fade-up" 
-              delay={1200}
+              delay={1000}
               className="text-center"
             >
-              <div className="relative group max-w-5xl mx-auto">
-                {/* Enhanced Glow Effect */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/30 via-emerald-400/20 to-emerald-500/30 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-1000"></div>
-                
-                {/* Premium CTA Card */}
-                <div className="relative bg-white/[0.05] backdrop-blur-3xl border border-white/[0.1] rounded-3xl p-8 md:p-12 xl:p-16 shadow-[0_32px_64px_rgba(0,0,0,0.12),0_16px_48px_rgba(16,185,129,0.08)] hover:shadow-[0_48px_96px_rgba(0,0,0,0.16),0_24px_64px_rgba(16,185,129,0.12)] transition-all duration-700 hover:scale-[1.01] hover:border-emerald-500/20">
+              <div className="relative group max-w-4xl mx-auto">
+                <div className="relative bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-8 md:p-12 hover:bg-white/[0.05] hover:border-emerald-500/15 transition-all duration-500">
                   
-                  {/* Glassmorphism Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-emerald-500/[0.02] rounded-3xl"></div>
-                  
-                  <div className="relative z-10">
-                    <div className="mb-6">
-                      <div className="inline-flex items-center px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
-                        <span className="text-emerald-300 text-sm font-medium">Executive Summary</span>
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-2xl md:text-3xl xl:text-4xl font-bold text-white mb-6 group-hover:text-emerald-100 transition-colors duration-300">
-                      Strategic Business Impact
+                  <div className="space-y-6">
+                    <h3 className="text-2xl md:text-3xl font-bold text-white">
+                      The Mobile-First Advantage
                     </h3>
                     
-                    <p className="text-lg md:text-xl xl:text-2xl leading-relaxed font-light">
-                      <span className="bg-gradient-to-r from-emerald-300 via-emerald-200 to-emerald-300 bg-clip-text text-transparent">
-                        WhatsApp integration delivers measurable improvements: accelerated booking confirmation, enhanced customer attendance rates, and superior business outcomes across all key performance metrics.
-                      </span>
+                    <p className="text-lg md:text-xl text-slate-300 leading-relaxed">
+                      WhatsApp delivers <span className="text-emerald-300 font-medium">18x faster responses</span>, 
+                      <span className="text-emerald-300 font-medium"> 50% higher attendance</span>, and 
+                      <span className="text-emerald-300 font-medium"> 95% customer satisfaction</span> 
+                      compared to traditional booking methods.
                     </p>
 
-                    {/* Premium Metrics Row */}
-                    <div className="grid grid-cols-3 gap-6 mt-8 pt-8 border-t border-white/[0.05]">
+                    {/* Integrated Metrics */}
+                    <div className="grid grid-cols-3 gap-6 pt-6 border-t border-white/[0.06]">
                       {[
-                        { metric: "Response Speed", value: "18x Faster" },
-                        { metric: "Attendance Rate", value: "+50%" },
-                        { metric: "Customer Satisfaction", value: "95%+" }
-                      ].map((stat, index) => (
+                        { label: "Faster Response", value: "18x" },
+                        { label: "Higher Attendance", value: "+50%" },
+                        { label: "Satisfaction Rate", value: "95%" }
+                      ].map((metric, index) => (
                         <div key={index} className="text-center">
-                          <div className="text-emerald-300 text-lg md:text-xl font-bold">{stat.value}</div>
-                          <div className="text-slate-400 text-sm md:text-base">{stat.metric}</div>
+                          <div className="text-emerald-300 text-xl font-bold">{metric.value}</div>
+                          <div className="text-slate-400 text-sm">{metric.label}</div>
                         </div>
                       ))}
                     </div>
