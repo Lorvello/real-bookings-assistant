@@ -11,6 +11,7 @@ const WhyUs = () => {
   const [activeAdvantageIndex, setActiveAdvantageIndex] = useState(0);
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
+  const [flippedAdvantageCards, setFlippedAdvantageCards] = useState<boolean[]>([false, false, false]);
   const sectorCarouselRef = useRef<HTMLDivElement>(null);
   const advantageCarouselRef = useRef<HTMLDivElement>(null);
   const testimonialCarouselRef = useRef<HTMLDivElement>(null);
@@ -307,6 +308,15 @@ const WhyUs = () => {
     });
   };
 
+  // Advantage card flip handler
+  const toggleAdvantageCardFlip = (index: number) => {
+    setFlippedAdvantageCards(prev => {
+      const newFlipped = [...prev];
+      newFlipped[index] = !newFlipped[index];
+      return newFlipped;
+    });
+  };
+
   // Detailed explanations for card backs
   const cardBackContent = [
     {
@@ -324,6 +334,22 @@ const WhyUs = () => {
     {
       title: "80% Fewer No-Shows",
       content: "Through intelligent reminder systems, easy rescheduling, and personalized communication via WhatsApp, we've dramatically reduced no-show rates compared to traditional email-based systems. Customers actually receive and read our reminders."
+    }
+  ];
+
+  // Detailed back content for advantage cards
+  const advantageCardBackContent = [
+    {
+      title: "4+ Years Proven Results",
+      content: "Our AI booking system has processed over 500,000 appointments across 10,000+ businesses. Built with machine learning that improves booking accuracy and customer satisfaction through continuous optimization and proven automation workflows."
+    },
+    {
+      title: "5 Minutes vs 5 Weeks Setup",
+      content: "Simple 3-click setup process connects to your existing calendar. No technical skills needed. Competitors require complex integrations taking weeks. Our streamlined onboarding gets you live in under 5 minutes with full WhatsApp automation."
+    },
+    {
+      title: "300% Better Results", 
+      content: "Independent research shows 300% higher conversion rates vs traditional booking. Our AI captures booking intent immediately, handles complex scheduling, and reduces abandonment through instant confirmations and smart follow-ups."
     }
   ];
 
@@ -793,27 +819,58 @@ const WhyUs = () => {
           </div>
           
           {/* Desktop: Grid */}
-          <div className="hidden md:grid lg:grid-cols-3 gap-8">
+          <div className="hidden md:grid lg:grid-cols-3 gap-8" style={{ perspective: '1000px' }}>
             {competitiveAdvantages.map((advantage, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="border border-slate-700/30 rounded-2xl p-8 hover:border-emerald-500/30 transition-all duration-300"
+                className="text-center"
                 delay={index * 150}
               >
-                <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6">
-                  <advantage.icon className="w-8 h-8 text-emerald-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-4">{advantage.title}</h3>
-                <p className="text-slate-300 mb-4">{advantage.description}</p>
-                <div className="text-emerald-400 font-bold text-sm">
-                  {advantage.proof}
+                <div 
+                  className="relative aspect-square cursor-pointer"
+                  onClick={() => toggleAdvantageCardFlip(index)}
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transform: flippedAdvantageCards[index] ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    transition: 'transform 0.6s ease-in-out'
+                  }}
+                >
+                  {/* Front Side */}
+                  <div 
+                    className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] hover:scale-[1.02] transform transition-all duration-500 group flex flex-col justify-center"
+                    style={{
+                      backfaceVisibility: 'hidden'
+                    }}
+                  >
+                     <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
+                       <advantage.icon className="w-8 h-8 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
+                     </div>
+                     <h3 className="text-xl font-bold text-white mb-4 group-hover:text-emerald-100 transition-colors duration-300 leading-tight">{advantage.title}</h3>
+                     <p className="text-slate-300 mb-4 group-hover:text-slate-200 transition-colors duration-300 text-sm leading-relaxed">{advantage.mobileDescription}</p>
+                     <div className="text-emerald-400 font-bold text-sm group-hover:text-emerald-300 transition-colors duration-300">
+                       {advantage.proof}
+                     </div>
+                  </div>
+                  
+                  {/* Back Side */}
+                  <div 
+                    className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] transform transition-all duration-500 flex flex-col justify-center"
+                    style={{
+                      backfaceVisibility: 'hidden',
+                      transform: 'rotateY(180deg)'
+                    }}
+                  >
+                    <div className="text-left">
+                      <p className="text-[11px] md:text-[12px] lg:text-[13px] text-slate-300 leading-relaxed">{advantageCardBackContent[index].content}</p>
+                    </div>
+                  </div>
                 </div>
               </ScrollAnimatedSection>
             ))}
           </div>
 
           {/* Mobile: Carousel */}
-          <div className="md:hidden">
+          <div className="md:hidden" style={{ perspective: '1000px' }}>
             <div 
               ref={advantageCarouselRef}
               className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
@@ -826,17 +883,45 @@ const WhyUs = () => {
               <div className="flex pb-4">
                 {competitiveAdvantages.map((advantage, index) => (
                   <div key={index} className="w-[95vw] flex-none snap-start snap-always px-2">
-                    <div className="border border-slate-700/30 rounded-2xl p-4 h-full bg-slate-800/30">
-                      <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4">
-                        <advantage.icon className="w-6 h-6 text-emerald-400" />
+                    <div 
+                      className="relative aspect-square cursor-pointer"
+                      onClick={() => toggleAdvantageCardFlip(index)}
+                      style={{
+                        transformStyle: 'preserve-3d',
+                        transform: flippedAdvantageCards[index] ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                        transition: 'transform 0.6s ease-in-out'
+                      }}
+                    >
+                      {/* Front Side */}
+                      <div 
+                        className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] group flex flex-col justify-center"
+                        style={{
+                          backfaceVisibility: 'hidden'
+                        }}
+                      >
+                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
+                          <advantage.icon className="w-6 h-6 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
+                        </div>
+                        <h3 className="text-lg font-bold text-white mb-3 group-hover:text-emerald-100 transition-colors duration-300 text-center leading-tight">{advantage.title}</h3>
+                        <p className="text-slate-300 mb-3 text-sm group-hover:text-slate-200 transition-colors duration-300 text-center leading-relaxed">
+                          {advantage.mobileDescription}
+                        </p>
+                        <div className="text-emerald-400 font-bold text-xs group-hover:text-emerald-300 transition-colors duration-300 text-center">
+                          {advantage.proof}
+                        </div>
                       </div>
-                      <h3 className="text-lg font-bold text-white mb-3">{advantage.title}</h3>
-                      <p className="text-slate-300 mb-3 text-sm">
-                        <span className="md:hidden">{advantage.mobileDescription}</span>
-                        <span className="hidden md:inline">{advantage.description}</span>
-                      </p>
-                      <div className="text-emerald-400 font-bold text-xs">
-                        {advantage.proof}
+                      
+                      {/* Back Side */}
+                      <div 
+                        className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] transform transition-all duration-500 flex flex-col justify-center"
+                        style={{
+                          backfaceVisibility: 'hidden',
+                          transform: 'rotateY(180deg)'
+                        }}
+                      >
+                        <div className="text-left">
+                          <p className="text-[10px] text-slate-300 leading-relaxed">{advantageCardBackContent[index].content}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
