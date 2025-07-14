@@ -554,27 +554,65 @@ const WhyUs = () => {
             </ScrollAnimatedSection>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
             {psychologicalBenefits.map((benefit, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-6 md:p-10 hover:bg-slate-800/80 hover:border-emerald-500/30 transition-all duration-300 shadow-xl hover:shadow-emerald-500/20"
+                className="group relative"
                 delay={300 + index * 150}
               >
-                <div className="flex items-start space-x-4 md:space-x-6">
-                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-3xl flex items-center justify-center flex-shrink-0">
-                    <benefit.icon className="w-8 h-8 md:w-10 md:h-10 text-green-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent mb-3 md:mb-4">{benefit.title}</h3>
-                    <p className="text-slate-300 mb-4 md:mb-6 text-base md:text-lg leading-relaxed">
-                      <span className="md:hidden">{benefit.mobileDescription}</span>
-                      <span className="hidden md:inline">{benefit.description}</span>
-                    </p>
-                    <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-sm border border-green-500/30 text-green-400 px-4 md:px-6 py-2 md:py-3 rounded-full text-sm md:text-base font-bold inline-block shadow-lg">
-                      {benefit.stat}
+                {/* Ultra-Premium Card Container with Advanced Glassmorphism */}
+                <div className="relative p-8 md:p-12 rounded-3xl backdrop-blur-2xl bg-gradient-to-br from-slate-800/40 via-slate-900/30 to-slate-800/20 border border-slate-600/20 shadow-[0_32px_64px_rgba(0,0,0,0.3),0_16px_32px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all duration-700 ease-out hover:shadow-[0_48px_96px_rgba(16,185,129,0.15),0_24px_48px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(16,185,129,0.2)] hover:border-emerald-400/30 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/40 hover:to-emerald-900/10 transform hover:scale-[1.02] hover:-translate-y-2">
+                  
+                  {/* Luxury Accent Border */}
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-emerald-500/20 via-transparent to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 -z-10 blur-xl"></div>
+                  
+                  {/* Premium Content Layout */}
+                  <div className="flex items-start space-x-6 md:space-x-8">
+                    {/* Executive-Grade Icon Container */}
+                    <div className="relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
+                      {/* Sophisticated Background with Multiple Layers */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-emerald-400/15 to-emerald-600/20 rounded-2xl shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"></div>
+                      <div className="absolute inset-1 bg-gradient-to-tr from-slate-800/60 to-slate-700/40 rounded-xl backdrop-blur-sm"></div>
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        <benefit.icon className="w-10 h-10 md:w-12 md:h-12 text-emerald-400 drop-shadow-lg group-hover:text-emerald-300 transition-all duration-500" />
+                      </div>
+                      {/* Subtle Glow Effect */}
+                      <div className="absolute inset-0 bg-emerald-400/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-700"></div>
+                    </div>
+                    
+                    {/* Premium Content Container */}
+                    <div className="flex-1 space-y-6">
+                      {/* Executive Headline with Sophisticated Typography */}
+                      <h3 className="text-2xl md:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent leading-tight tracking-tight">
+                        {benefit.title}
+                      </h3>
+                      
+                      {/* Refined Description with Enhanced Readability */}
+                      <p className="text-slate-300 text-lg md:text-xl leading-relaxed font-light tracking-wide">
+                        <span className="md:hidden">{benefit.mobileDescription}</span>
+                        <span className="hidden md:inline">{benefit.description}</span>
+                      </p>
+                      
+                      {/* Premium Statistics Badge */}
+                      <div className="inline-flex items-center">
+                        <div className="relative group/badge">
+                          {/* Sophisticated Badge Background */}
+                          <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-400/25 to-emerald-500/20 backdrop-blur-xl border border-emerald-400/40 rounded-full px-6 md:px-8 py-3 md:py-4 shadow-2xl shadow-emerald-500/20">
+                            <span className="text-emerald-300 font-bold text-base md:text-lg tracking-wide">
+                              {benefit.stat}
+                            </span>
+                          </div>
+                          {/* Advanced Glow Animation */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/30 to-emerald-500/30 rounded-full blur-lg opacity-0 group-hover/badge:opacity-70 transition-all duration-500 -z-10"></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* Subtle Premium Accent Lines */}
+                  <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent"></div>
+                  <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent"></div>
                 </div>
               </ScrollAnimatedSection>
             ))}
