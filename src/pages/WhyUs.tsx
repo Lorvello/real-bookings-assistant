@@ -341,7 +341,7 @@ const WhyUs = () => {
   const advantageCardBackContent = [
     {
       title: "4+ Years Proven Results",
-      content: "Our AI booking system has processed over 500,000 appointments across 10,000+ businesses. Built with machine learning that improves booking accuracy and customer satisfaction through continuous optimization and proven automation workflows."
+      content: "Our AI booking system has processed over 2M+ appointments across 10,000+ businesses. Built with machine learning that improves booking accuracy and customer satisfaction through continuous optimization and proven automation workflows."
     },
     {
       title: "5 Minutes vs 5 Weeks Setup",
