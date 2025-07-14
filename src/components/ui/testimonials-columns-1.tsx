@@ -138,9 +138,7 @@ const Testimonials = () => {
           </div>
 
           <h2 className="text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-              What our users say
-            </span>
+            What our <span className="text-emerald-400">users say</span>
           </h2>
           <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
             See what our customers have to say about us.
