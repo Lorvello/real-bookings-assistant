@@ -2,19 +2,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
+import Testimonials from '@/components/ui/testimonials-columns-1';
 
-import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Rocket, Crown, Mail, BarChart3, Timer, UserCheck, Heart, Brain, Smartphone, Gauge } from 'lucide-react';
+import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Heart, Brain, Smartphone, Gauge, UserCheck } from 'lucide-react';
 import { Pricing } from '@/components/Pricing';
 
 const WhyUs = () => {
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
-  const [activeAdvantageIndex, setActiveAdvantageIndex] = useState(0);
-  const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
-  const [flippedAdvantageCards, setFlippedAdvantageCards] = useState<boolean[]>([false, false, false]);
   const sectorCarouselRef = useRef<HTMLDivElement>(null);
-  const advantageCarouselRef = useRef<HTMLDivElement>(null);
-  const testimonialCarouselRef = useRef<HTMLDivElement>(null);
 
   const proofPoints = [
     {
@@ -208,56 +204,7 @@ const WhyUs = () => {
     }
   ];
 
-  const competitiveAdvantages = [
-    {
-      icon: Crown,
-      title: "4+ Years Proven Results",
-      description: "While others are still catching up, we already have 4+ years of experience with AI-driven appointment automation.",
-      mobileDescription: "4+ years experience while others catch up.",
-      proof: "10,000+ satisfied businesses"
-    },
-    {
-      icon: Rocket,
-      title: "5 Minutes vs 5 Weeks Setup",
-      description: "Our competitors need weeks of setup. We get you live in minutes, without technical knowledge.",
-      mobileDescription: "Live in minutes, not weeks like competitors.",
-      proof: "Average setup: 4.7 minutes"
-    },
-    {
-      icon: Target,
-      title: "300% Better Results",
-      description: "Independent studies show that our AI converts 3x more inquiries into bookings than other systems.",
-      mobileDescription: "3x more bookings than other AI systems.",
-      proof: "Verified by 1,000+ case studies"
-    }
-  ];
 
-  const testimonials = [
-    {
-      quote: "We tried 3 other booking systems before finding this one. None came even close. This is the only one that actually understands our business.",
-      mobileQuote: "Tried 3 others first. None came close. This actually works.",
-      author: "Sarah Chen",
-      role: "Owner, Wellness Spa",
-      result: "+400% bookings",
-      rating: 5
-    },
-    {
-      quote: "Switched from Calendly and another AI tool. The difference is night and day - this really works like a real receptionist.",
-      mobileQuote: "Switched from Calendly. Night and day difference.",
-      author: "Mike Rodriguez", 
-      role: "Manager, Auto Repair",
-      result: "+250% revenue",
-      rating: 5
-    },
-    {
-      quote: "First tried the 'big names'. Wasted months. Should have started here. Best ROI of any business tool I've ever bought.",
-      mobileQuote: "Tried big names first. Wasted months. Best ROI ever.",
-      author: "Emma Thompson",
-      role: "Director, Medical Clinic", 
-      result: "+180% efficiency",
-      rating: 5
-    }
-  ];
 
   // Carousel scroll handlers
   useEffect(() => {
@@ -277,13 +224,9 @@ const WhyUs = () => {
     };
 
     const cleanupSector = setupCarousel(sectorCarouselRef, setActiveSectorIndex);
-    const cleanupAdvantage = setupCarousel(advantageCarouselRef, setActiveAdvantageIndex);
-    const cleanupTestimonial = setupCarousel(testimonialCarouselRef, setActiveTestimonialIndex);
 
     return () => {
       cleanupSector?.();
-      cleanupAdvantage?.();
-      cleanupTestimonial?.();
     };
   }, []);
 
@@ -308,14 +251,6 @@ const WhyUs = () => {
     });
   };
 
-  // Advantage card flip handler
-  const toggleAdvantageCardFlip = (index: number) => {
-    setFlippedAdvantageCards(prev => {
-      const newFlipped = [...prev];
-      newFlipped[index] = !newFlipped[index];
-      return newFlipped;
-    });
-  };
 
   // Detailed explanations for card backs
   const cardBackContent = [
@@ -337,21 +272,6 @@ const WhyUs = () => {
     }
   ];
 
-  // Detailed back content for advantage cards
-  const advantageCardBackContent = [
-    {
-      title: "4+ Years Proven Results",
-      content: "Our AI booking system has processed over 2M+ appointments across 10,000+ businesses. Built with machine learning that improves booking accuracy and customer satisfaction through continuous optimization and proven automation workflows."
-    },
-    {
-      title: "5 Minutes vs 5 Weeks Setup",
-      content: "Simple 3-click setup process connects to your existing calendar. No technical skills needed. Competitors require complex integrations taking weeks. Our streamlined onboarding gets you live in under 5 minutes with full WhatsApp automation."
-    },
-    {
-      title: "300% Better Results", 
-      content: "Independent research shows 300% higher conversion rates vs traditional booking. Our AI captures booking intent immediately, handles complex scheduling, and reduces abandonment through instant confirmations and smart follow-ups."
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
@@ -805,246 +725,9 @@ const WhyUs = () => {
         </div>
       </ScrollAnimatedSection>
 
-      {/* Competitive Advantages */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
-          <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              Why We're Different From <span className="text-emerald-400">All Others</span>
-            </h2>
-            <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-              <span className="md:hidden">Advanced AI that understands your business</span>
-              <span className="hidden md:inline">We didn't just build a booking tool. We built the most advanced AI assistant that truly understands your business.</span>
-            </p>
-          </div>
-          
-          {/* Desktop: Grid */}
-          <div className="hidden md:grid lg:grid-cols-3 gap-8" style={{ perspective: '1000px' }}>
-            {competitiveAdvantages.map((advantage, index) => (
-              <ScrollAnimatedSection 
-                key={index} 
-                className="text-center"
-                delay={index * 150}
-              >
-                <div 
-                  className="relative aspect-square cursor-pointer"
-                  onClick={() => toggleAdvantageCardFlip(index)}
-                  style={{
-                    transformStyle: 'preserve-3d',
-                    transform: flippedAdvantageCards[index] ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                    transition: 'transform 0.6s ease-in-out'
-                  }}
-                >
-                  {/* Front Side */}
-                  <div 
-                    className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] hover:scale-[1.02] transform transition-all duration-500 group flex flex-col justify-center"
-                    style={{
-                      backfaceVisibility: 'hidden'
-                    }}
-                  >
-                     <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
-                       <advantage.icon className="w-8 h-8 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
-                     </div>
-                     <h3 className="text-xl font-bold text-white mb-4 group-hover:text-emerald-100 transition-colors duration-300 leading-tight">{advantage.title}</h3>
-                     <p className="text-slate-300 mb-4 group-hover:text-slate-200 transition-colors duration-300 text-sm leading-relaxed">{advantage.mobileDescription}</p>
-                     <div className="text-emerald-400 font-bold text-sm group-hover:text-emerald-300 transition-colors duration-300">
-                       {advantage.proof}
-                     </div>
-                  </div>
-                  
-                  {/* Back Side */}
-                  <div 
-                    className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] transform transition-all duration-500 flex flex-col justify-center"
-                    style={{
-                      backfaceVisibility: 'hidden',
-                      transform: 'rotateY(180deg)'
-                    }}
-                  >
-                    <div className="text-left">
-                      <p className="text-sm md:text-base lg:text-lg text-slate-300 leading-relaxed">{advantageCardBackContent[index].content}</p>
-                    </div>
-                  </div>
-                </div>
-              </ScrollAnimatedSection>
-            ))}
-          </div>
-
-          {/* Mobile: Carousel */}
-          <div className="md:hidden" style={{ perspective: '1000px' }}>
-            <div 
-              ref={advantageCarouselRef}
-              className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              <div className="flex pb-4">
-                {competitiveAdvantages.map((advantage, index) => (
-                  <div key={index} className="w-[95vw] flex-none snap-start snap-always px-2">
-                    <div 
-                      className="relative aspect-square cursor-pointer"
-                      onClick={() => toggleAdvantageCardFlip(index)}
-                      style={{
-                        transformStyle: 'preserve-3d',
-                        transform: flippedAdvantageCards[index] ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                        transition: 'transform 0.6s ease-in-out'
-                      }}
-                    >
-                      {/* Front Side */}
-                      <div 
-                        className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] group flex flex-col justify-center"
-                        style={{
-                          backfaceVisibility: 'hidden'
-                        }}
-                      >
-                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
-                          <advantage.icon className="w-6 h-6 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
-                        </div>
-                        <h3 className="text-lg font-bold text-white mb-3 group-hover:text-emerald-100 transition-colors duration-300 text-center leading-tight">{advantage.title}</h3>
-                        <p className="text-slate-300 mb-3 text-sm group-hover:text-slate-200 transition-colors duration-300 text-center leading-relaxed">
-                          {advantage.mobileDescription}
-                        </p>
-                        <div className="text-emerald-400 font-bold text-xs group-hover:text-emerald-300 transition-colors duration-300 text-center">
-                          {advantage.proof}
-                        </div>
-                      </div>
-                      
-                      {/* Back Side */}
-                      <div 
-                        className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] transform transition-all duration-500 flex flex-col justify-center"
-                        style={{
-                          backfaceVisibility: 'hidden',
-                          transform: 'rotateY(180deg)'
-                        }}
-                      >
-                        <div className="text-left">
-                          <p className="text-[10px] text-slate-300 leading-relaxed">{advantageCardBackContent[index].content}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Carousel indicators */}
-            <div className="flex justify-center space-x-2 mt-4">
-              {competitiveAdvantages.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleCarouselClick(advantageCarouselRef, index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === activeAdvantageIndex
-                      ? 'bg-emerald-400 w-6'
-                      : 'bg-slate-600 hover:bg-slate-500'
-                  }`}
-                  aria-label={`Go to advantage ${index + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </ScrollAnimatedSection>
-
-      {/* Social Proof - Testimonials */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
-          <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              <span className="md:hidden">Why Businesses Switch To Us</span>
-              <span className="hidden md:inline">Why Businesses Switch From Competitors To Us</span>
-            </h2>
-            <p className="text-sm md:text-xl text-slate-300 px-3 sm:px-0">
-              <span className="md:hidden">Tried others first, then found us</span>
-              <span className="hidden md:inline">Real stories from businesses that tried others first, and then found us</span>
-            </p>
-          </div>
-          
-          {/* Desktop: Grid */}
-          <div className="hidden md:grid lg:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <ScrollAnimatedSection 
-                key={index} 
-                className="border border-slate-700/30 rounded-2xl p-8 hover:border-emerald-500/30 transition-all duration-300"
-                delay={index * 150}
-              >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                <p className="text-slate-300 mb-6 italic font-medium">"{testimonial.quote}"</p>
-                <div className="flex justify-between items-end">
-                  <div>
-                    <div className="font-bold text-white">{testimonial.author}</div>
-                    <div className="text-slate-400 text-sm">{testimonial.role}</div>
-                  </div>
-                  <div className="bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full text-sm font-bold border border-emerald-500/20">
-                    {testimonial.result}
-                  </div>
-                </div>
-              </ScrollAnimatedSection>
-            ))}
-          </div>
-
-          {/* Mobile: Carousel */}
-          <div className="md:hidden">
-            <div 
-              ref={testimonialCarouselRef}
-              className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              <div className="flex pb-4">
-                {testimonials.map((testimonial, index) => (
-                  <div key={index} className="w-[95vw] flex-none snap-start snap-always px-2">
-                    <div className="border border-slate-700/30 rounded-2xl p-4 h-full bg-slate-800/30">
-                      <div className="flex gap-1 mb-3">
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                        ))}
-                      </div>
-                      <p className="text-slate-300 mb-4 italic font-medium text-sm">
-                        "<span className="md:hidden">{testimonial.mobileQuote}</span>
-                        <span className="hidden md:inline">{testimonial.quote}</span>"
-                      </p>
-                      <div className="flex justify-between items-end">
-                        <div>
-                          <div className="font-bold text-white text-sm">{testimonial.author}</div>
-                          <div className="text-slate-400 text-xs">{testimonial.role}</div>
-                        </div>
-                        <div className="bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full text-xs font-bold border border-emerald-500/20">
-                          {testimonial.result}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Carousel indicators */}
-            <div className="flex justify-center space-x-2 mt-4">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleCarouselClick(testimonialCarouselRef, index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === activeTestimonialIndex
-                      ? 'bg-yellow-400 w-6'
-                      : 'bg-slate-600 hover:bg-slate-500'
-                  }`}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+      {/* Testimonials Section */}
+      <ScrollAnimatedSection delay={100} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
+        <Testimonials />
       </ScrollAnimatedSection>
 
       {/* Digital Transformation Conclusion */}
