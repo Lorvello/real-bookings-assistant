@@ -547,7 +547,7 @@ const WhyUs = () => {
               </h2>
             </ScrollAnimatedSection>
             <ScrollAnimatedSection delay={200}>
-              <p className="text-lg md:text-2xl text-slate-300 max-w-4xl mx-auto px-3 sm:px-0">
+              <p className="text-base md:text-xl text-slate-300 max-w-4xl mx-auto px-3 sm:px-0">
                 <span className="md:hidden">How people feel and behave matters</span>
                 <span className="hidden md:inline">It's not just about numbers - it's about how people feel and behave</span>
               </p>
