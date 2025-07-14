@@ -562,13 +562,13 @@ const WhyUs = () => {
                 delay={300 + index * 150}
               >
                 {/* Ultra-Premium Card Container with Advanced Glassmorphism */}
-                <div className="relative p-8 md:p-12 rounded-3xl backdrop-blur-2xl bg-gradient-to-br from-slate-800/40 via-slate-900/30 to-slate-800/20 border border-slate-600/20 shadow-[0_32px_64px_rgba(0,0,0,0.3),0_16px_32px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all duration-700 ease-out hover:shadow-[0_48px_96px_rgba(16,185,129,0.15),0_24px_48px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(16,185,129,0.2)] hover:border-emerald-400/30 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/40 hover:to-emerald-900/10 transform hover:scale-[1.02] hover:-translate-y-2">
+                <div className="relative p-5 md:p-7 rounded-3xl backdrop-blur-2xl bg-gradient-to-br from-slate-800/40 via-slate-900/30 to-slate-800/20 border border-slate-600/20 shadow-[0_32px_64px_rgba(0,0,0,0.3),0_16px_32px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all duration-700 ease-out hover:shadow-[0_48px_96px_rgba(16,185,129,0.15),0_24px_48px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(16,185,129,0.2)] hover:border-emerald-400/30 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/40 hover:to-emerald-900/10 transform hover:scale-[1.02] hover:-translate-y-2">
                   
                   {/* Luxury Accent Border */}
                   <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-emerald-500/20 via-transparent to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 -z-10 blur-xl"></div>
                   
                   {/* Premium Content Layout */}
-                  <div className="flex items-start space-x-6 md:space-x-8">
+                  <div className="flex items-start space-x-4 md:space-x-6">
                     {/* Executive-Grade Icon Container */}
                     <div className="relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
                       {/* Sophisticated Background with Multiple Layers */}
@@ -582,7 +582,7 @@ const WhyUs = () => {
                     </div>
                     
                     {/* Premium Content Container */}
-                    <div className="flex-1 space-y-6">
+                    <div className="flex-1 space-y-3 md:space-y-4">
                       {/* Executive Headline with Sophisticated Typography */}
                       <h3 className="text-2xl md:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent leading-tight tracking-tight">
                         {benefit.title}
