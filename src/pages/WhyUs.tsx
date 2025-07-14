@@ -638,7 +638,7 @@ const WhyUs = () => {
             {sectorCaseStudies.map((study, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="border border-slate-700/30 rounded-2xl p-8 hover:border-green-500/30 transition-all duration-300"
+                className="relative backdrop-blur-xl bg-gradient-to-br from-slate-900/80 via-slate-800/60 to-slate-900/40 border border-slate-600/40 rounded-3xl p-8 shadow-[0_24px_48px_rgba(0,0,0,0.4),0_12px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)] hover:shadow-[0_32px_64px_rgba(16,185,129,0.12),0_16px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(16,185,129,0.15)] hover:border-emerald-500/40 hover:bg-gradient-to-br hover:from-slate-900/90 hover:via-slate-800/70 hover:to-emerald-900/20 transition-all duration-500 transform hover:scale-[1.01] hover:-translate-y-1"
                 delay={index * 200}
               >
                 <div className="grid lg:grid-cols-3 gap-8">
@@ -723,7 +723,7 @@ const WhyUs = () => {
               <div className="flex pb-4">
                 {sectorCaseStudies.map((study, index) => (
                   <div key={index} className="w-[95vw] flex-none snap-start snap-always px-2">
-                    <div className="border border-slate-700/30 rounded-2xl p-4 h-full bg-slate-800/30">
+                     <div className="relative backdrop-blur-xl bg-gradient-to-br from-slate-900/85 via-slate-800/65 to-slate-900/45 border border-slate-600/40 rounded-2xl p-4 h-full shadow-[0_16px_32px_rgba(0,0,0,0.4),0_8px_16px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)]">
                       {/* Header */}
                       <div className="flex items-center space-x-3 mb-4">
                         <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
