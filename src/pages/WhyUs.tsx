@@ -730,66 +730,209 @@ const WhyUs = () => {
         <Testimonials />
       </ScrollAnimatedSection>
 
-      {/* Digital Transformation Conclusion */}
-      <ScrollAnimatedSection as="section" className="py-6 md:py-20">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
-          <div className="text-center mb-4 md:mb-16">
-            <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-white mb-2 md:mb-6 px-3 sm:px-0">
-              The Future is <span className="text-green-400">Mobile-First</span>
-            </h2>
-            <p className="text-xs md:text-xl text-slate-300 max-w-4xl mx-auto leading-relaxed px-3 sm:px-0">
-              <span className="md:hidden">WhatsApp beats email: speed, personal touch, better results.</span>
-              <span className="hidden md:inline">
-                The shift from email to WhatsApp is not temporary - it's part of a broader digital transformation. 
-                Consumers expect speed, convenience and personal communication. Businesses that embrace this 
-                <strong className="text-emerald-400"> win more customers, retain them longer and grow faster</strong>.
+      {/* Premium Enterprise Digital Transformation Section */}
+      <ScrollAnimatedSection as="section" className="py-12 md:py-24 relative overflow-hidden">
+        {/* Premium Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-600/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-tl from-emerald-400/8 via-transparent to-emerald-500/12 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-emerald-600/5 via-transparent to-emerald-500/8 rounded-full blur-3xl"></div>
+        </div>
+        
+        {/* Sophisticated Grid Overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(16_185_129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16_185_129,0.03)_1px,transparent_1px)] bg-[size:48px_48px] opacity-40"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 relative z-10">
+          {/* Premium Header Section */}
+          <div className="text-center mb-8 md:mb-20">
+            <ScrollAnimatedSection 
+              animation="fade-up" 
+              delay={0}
+              as="div" 
+              className="mb-6 md:mb-8"
+            >
+              <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/[0.03] backdrop-blur-xl border border-emerald-500/20 shadow-[0_8px_32px_rgba(16,185,129,0.12)]">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3 animate-pulse"></div>
+                <span className="text-emerald-300 text-sm md:text-base font-medium tracking-wide">Digital Evolution</span>
+              </div>
+            </ScrollAnimatedSection>
+
+            <ScrollAnimatedSection 
+              animation="fade-up" 
+              delay={200}
+              as="h2" 
+              className="text-3xl md:text-6xl xl:text-7xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
+            >
+              <span className="bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent">
+                The Future is{' '}
               </span>
-            </p>
+              <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent relative">
+                Mobile-First
+                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 via-transparent to-emerald-400/20 blur-xl"></div>
+              </span>
+            </ScrollAnimatedSection>
+
+            <ScrollAnimatedSection 
+              animation="fade-up" 
+              delay={400}
+              as="p" 
+              className="text-base md:text-xl xl:text-2xl text-slate-300 max-w-5xl mx-auto leading-relaxed px-3 sm:px-0 font-light"
+            >
+              <span className="md:hidden">WhatsApp delivers superior speed, personal connection, and measurable results over traditional channels.</span>
+              <span className="hidden md:inline">
+                The paradigm shift from email to WhatsApp represents a fundamental evolution in customer communication. 
+                Modern consumers demand <span className="text-emerald-300 font-medium">instant responsiveness</span>, 
+                <span className="text-emerald-300 font-medium"> seamless convenience</span>, and 
+                <span className="text-emerald-300 font-medium"> personalized interactions</span>. 
+                Organizations that embrace this transformation 
+                <strong className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent"> achieve higher conversion rates, enhanced customer loyalty, and accelerated growth</strong>.
+              </span>
+            </ScrollAnimatedSection>
           </div>
           
-          {/* Mobile: Simplified conclusion */}
-          <div className="md:hidden text-center">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-green-500/20 rounded-2xl p-3 mx-3">
-              <p className="text-xs text-green-300 leading-relaxed">
-                WhatsApp = <strong>faster bookings + higher attendance + better results</strong>
-              </p>
-            </div>
+          {/* Mobile: Premium Simplified Card */}
+          <div className="md:hidden">
+            <ScrollAnimatedSection 
+              animation="fade-up" 
+              delay={600}
+              className="mx-3"
+            >
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 via-transparent to-emerald-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative bg-white/[0.04] backdrop-blur-2xl border border-white/[0.08] rounded-3xl p-6 shadow-[0_20px_40px_rgba(0,0,0,0.12),0_8px_32px_rgba(16,185,129,0.08)] hover:shadow-[0_32px_64px_rgba(0,0,0,0.16),0_12px_48px_rgba(16,185,129,0.12)] transition-all duration-700 hover:scale-[1.02] hover:border-emerald-500/20">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-emerald-400/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+                      <Smartphone className="w-8 h-8 text-emerald-300" />
+                    </div>
+                    <p className="text-emerald-200 font-medium leading-relaxed">
+                      WhatsApp delivers <strong className="text-emerald-300">faster bookings</strong> + <strong className="text-emerald-300">higher attendance</strong> + <strong className="text-emerald-300">superior results</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </ScrollAnimatedSection>
           </div>
 
-          {/* Desktop: Full content */}
+          {/* Desktop: Premium Enterprise Grid */}
           <div className="hidden md:block">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-12">
-              <div className="text-center">
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
-                  <Smartphone className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-                </div>
-                <h3 className="text-lg md:text-xl font-bold text-white mb-2">Mobile-First Behavior</h3>
-                <p className="text-slate-300 text-sm md:text-base">People check their phone 96 times per day. WhatsApp fits into their natural behavior.</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
-                  <Zap className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-                </div>
-                <h3 className="text-lg md:text-xl font-bold text-white mb-2">Expectation of Speed</h3>
-                <p className="text-slate-300 text-sm md:text-base">Customers expect immediate responses. WhatsApp delivers this, email no longer does.</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
-                  <Heart className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-                </div>
-                <h3 className="text-lg md:text-xl font-bold text-white mb-2">Personal Connection</h3>
-                <p className="text-slate-300 text-sm md:text-base">85% prefer messaging over emails. It feels more personal and trusted.</p>
-              </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12 mb-16">
+              {[
+                {
+                  icon: Smartphone,
+                  title: "Mobile-First Behavior",
+                  description: "Modern consumers interact with their devices 96+ times daily. WhatsApp seamlessly integrates into these natural behavioral patterns, ensuring maximum engagement and response rates.",
+                  stat: "96x Daily",
+                  gradient: "from-emerald-500/20 to-blue-500/20"
+                },
+                {
+                  icon: Zap,
+                  title: "Expectation of Speed",
+                  description: "Contemporary customers demand instantaneous responses across all touchpoints. WhatsApp delivers real-time communication while traditional email channels create friction and abandonment.",
+                  stat: "<30 Seconds",
+                  gradient: "from-emerald-500/20 to-amber-500/20"
+                },
+                {
+                  icon: Heart,
+                  title: "Personal Connection",
+                  description: "Research demonstrates 85% consumer preference for messaging over email communication. This preference stems from WhatsApp's intimate, conversational nature that builds stronger customer relationships.",
+                  stat: "85% Prefer",
+                  gradient: "from-emerald-500/20 to-rose-500/20"
+                }
+              ].map((item, index) => (
+                <ScrollAnimatedSection 
+                  key={index}
+                  animation="fade-up" 
+                  delay={600 + index * 200}
+                  className="group"
+                >
+                  <div className="relative h-full">
+                    {/* Premium Glow Effect */}
+                    <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/20 via-transparent to-emerald-400/15 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
+                    
+                    {/* Main Card */}
+                    <div className="relative h-full bg-white/[0.03] backdrop-blur-2xl border border-white/[0.06] rounded-3xl p-8 xl:p-10 shadow-[0_20px_40px_rgba(0,0,0,0.08),0_8px_32px_rgba(16,185,129,0.04)] hover:shadow-[0_32px_64px_rgba(0,0,0,0.12),0_12px_48px_rgba(16,185,129,0.08)] transition-all duration-700 hover:scale-[1.02] hover:border-emerald-500/15 hover:-translate-y-2">
+                      
+                      {/* Premium Icon Container */}
+                      <div className="relative mb-8">
+                        <div className={`w-20 h-20 xl:w-24 xl:h-24 bg-gradient-to-br ${item.gradient} rounded-3xl flex items-center justify-center mx-auto shadow-inner group-hover:scale-110 transition-all duration-500`}>
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-3xl"></div>
+                          <item.icon className="w-10 h-10 xl:w-12 xl:h-12 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300 relative z-10" />
+                        </div>
+                        
+                        {/* Floating Stat Badge */}
+                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500/90 to-emerald-400/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-lg">
+                          <span className="text-white text-xs font-bold">{item.stat}</span>
+                        </div>
+                      </div>
+
+                      {/* Typography Hierarchy */}
+                      <div className="text-center space-y-4">
+                        <h3 className="text-xl xl:text-2xl font-bold text-white mb-4 group-hover:text-emerald-100 transition-colors duration-300">
+                          {item.title}
+                        </h3>
+                        <p className="text-slate-300 group-hover:text-slate-200 leading-relaxed text-base xl:text-lg transition-colors duration-300">
+                          {item.description}
+                        </p>
+                      </div>
+
+                      {/* Subtle Bottom Accent */}
+                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    </div>
+                  </div>
+                </ScrollAnimatedSection>
+              ))}
             </div>
 
-            <div className="text-center">
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-green-500/20 rounded-2xl p-4 md:p-8 max-w-4xl mx-auto mx-3 md:mx-auto">
-                <h3 className="text-lg md:text-2xl font-bold text-white mb-3 md:mb-4">Conclusion in One Sentence</h3>
-                <p className="text-sm md:text-xl text-green-300 leading-relaxed">
-                  WhatsApp ensures faster confirmation, higher attendance and better business results.
-                </p>
+            {/* Premium Conclusion CTA Card */}
+            <ScrollAnimatedSection 
+              animation="fade-up" 
+              delay={1200}
+              className="text-center"
+            >
+              <div className="relative group max-w-5xl mx-auto">
+                {/* Enhanced Glow Effect */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/30 via-emerald-400/20 to-emerald-500/30 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-1000"></div>
+                
+                {/* Premium CTA Card */}
+                <div className="relative bg-white/[0.05] backdrop-blur-3xl border border-white/[0.1] rounded-3xl p-8 md:p-12 xl:p-16 shadow-[0_32px_64px_rgba(0,0,0,0.12),0_16px_48px_rgba(16,185,129,0.08)] hover:shadow-[0_48px_96px_rgba(0,0,0,0.16),0_24px_64px_rgba(16,185,129,0.12)] transition-all duration-700 hover:scale-[1.01] hover:border-emerald-500/20">
+                  
+                  {/* Glassmorphism Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-emerald-500/[0.02] rounded-3xl"></div>
+                  
+                  <div className="relative z-10">
+                    <div className="mb-6">
+                      <div className="inline-flex items-center px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
+                        <span className="text-emerald-300 text-sm font-medium">Executive Summary</span>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-2xl md:text-3xl xl:text-4xl font-bold text-white mb-6 group-hover:text-emerald-100 transition-colors duration-300">
+                      Strategic Business Impact
+                    </h3>
+                    
+                    <p className="text-lg md:text-xl xl:text-2xl leading-relaxed font-light">
+                      <span className="bg-gradient-to-r from-emerald-300 via-emerald-200 to-emerald-300 bg-clip-text text-transparent">
+                        WhatsApp integration delivers measurable improvements: accelerated booking confirmation, enhanced customer attendance rates, and superior business outcomes across all key performance metrics.
+                      </span>
+                    </p>
+
+                    {/* Premium Metrics Row */}
+                    <div className="grid grid-cols-3 gap-6 mt-8 pt-8 border-t border-white/[0.05]">
+                      {[
+                        { metric: "Response Speed", value: "18x Faster" },
+                        { metric: "Attendance Rate", value: "+50%" },
+                        { metric: "Customer Satisfaction", value: "95%+" }
+                      ].map((stat, index) => (
+                        <div key={index} className="text-center">
+                          <div className="text-emerald-300 text-lg md:text-xl font-bold">{stat.value}</div>
+                          <div className="text-slate-400 text-sm md:text-base">{stat.metric}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </ScrollAnimatedSection>
           </div>
         </div>
       </ScrollAnimatedSection>
