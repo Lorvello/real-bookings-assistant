@@ -633,154 +633,83 @@ const WhyUs = () => {
             </p>
           </div>
           
-          {/* Desktop: Ultra-Premium Floating Cards */}
-          <div className="hidden md:block space-y-16">
+          {/* Desktop: Vertical layout */}
+          <div className="hidden md:block space-y-12">
             {sectorCaseStudies.map((study, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="group relative"
+                className="border border-slate-700/30 rounded-2xl p-8 hover:border-green-500/30 transition-all duration-300"
                 delay={index * 200}
               >
-                {/* Ultra-Premium Glassmorphism Card */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-900/95 to-slate-800/90 backdrop-blur-2xl border border-slate-600/40 hover:border-emerald-400/50 transition-all duration-700 ease-out p-12 shadow-[0_8px_32px_rgba(0,0,0,0.3),0_32px_64px_rgba(0,0,0,0.2),0_0_0_1px_rgba(255,255,255,0.05)] hover:shadow-[0_20px_60px_rgba(16,185,129,0.15),0_40px_80px_rgba(0,0,0,0.3),0_0_0_1px_rgba(16,185,129,0.2)] hover:scale-[1.02] transform-gpu">
-                  
-                  {/* Sophisticated Background Pattern */}
-                  <div className="absolute inset-0 opacity-20">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.1),transparent_50%)]"></div>
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(16,185,129,0.08),transparent_50%)]"></div>
-                    <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_48%,rgba(16,185,129,0.03)_49%,rgba(16,185,129,0.03)_51%,transparent_52%)] bg-[length:8px_8px]"></div>
-                  </div>
-
-                  {/* Premium Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-emerald-600/5 opacity-50 group-hover:opacity-70 transition-opacity duration-700"></div>
-
-                  {/* Floating Accent Elements */}
-                  <div className="absolute -top-1 -left-1 w-24 h-24 bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 rounded-full blur-2xl opacity-60 group-hover:opacity-80 transition-opacity duration-700"></div>
-                  <div className="absolute -bottom-1 -right-1 w-32 h-32 bg-gradient-to-tl from-emerald-500/15 to-emerald-400/5 rounded-full blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-700"></div>
-
-                  <div className="relative z-10">
-                    <div className="grid lg:grid-cols-3 gap-12">
-                      {/* Luxury Header Section */}
-                      <div className="lg:col-span-3">
-                        <div className="flex items-center space-x-6 mb-8">
-                          {/* Elite Icon Container */}
-                          <div className="relative">
-                            <div className="w-20 h-20 bg-gradient-to-br from-emerald-500/20 via-emerald-400/15 to-emerald-600/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-emerald-400/30 shadow-[0_8px_32px_rgba(16,185,129,0.15)]">
-                              <study.icon className="w-10 h-10 text-emerald-300" />
-                            </div>
-                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/40 to-emerald-600/30 rounded-2xl blur-lg opacity-0 group-hover:opacity-60 transition-opacity duration-500"></div>
-                          </div>
-                          
-                          <div className="flex-1">
-                            <h3 className="text-3xl font-bold bg-gradient-to-r from-white via-emerald-100 to-white bg-clip-text text-transparent mb-3 tracking-tight">
-                              {study.sector}
-                            </h3>
-                            <div className="flex flex-wrap gap-4">
-                              {study.headerStats.map((stat, idx) => (
-                                <div key={idx} className="relative group/stat">
-                                  <div className="px-4 py-2 bg-gradient-to-r from-emerald-500/20 via-emerald-400/15 to-emerald-500/20 backdrop-blur-xl rounded-full border border-emerald-400/30 shadow-lg">
-                                    <span className="text-emerald-300 font-semibold text-sm tracking-wide">{stat}</span>
-                                  </div>
-                                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/30 to-emerald-500/30 rounded-full blur-md opacity-0 group-hover/stat:opacity-50 transition-opacity duration-300"></div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+                <div className="grid lg:grid-cols-3 gap-8">
+                  {/* Header */}
+                  <div className="lg:col-span-3">
+                    <div className="flex items-center space-x-4 mb-6">
+                      <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center">
+                        <study.icon className="w-8 h-8 text-green-400" />
                       </div>
-
-                      {/* Executive Case Study Panel */}
-                      <div className="space-y-8">
-                        <div className="relative">
-                          <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-600/10 rounded-2xl blur-xl opacity-50"></div>
-                          <div className="relative bg-slate-800/60 backdrop-blur-xl rounded-2xl p-8 border border-slate-600/40">
-                            <h4 className="text-xl font-bold text-white mb-6 tracking-tight">{study.caseTitle}</h4>
-                            <div className="space-y-6">
-                              <div className="relative">
-                                <div className="flex items-center space-x-3 mb-3">
-                                  <div className="w-2 h-2 bg-red-400 rounded-full shadow-lg shadow-red-400/50"></div>
-                                  <span className="text-red-300 font-semibold text-sm uppercase tracking-widest">Before</span>
-                                </div>
-                                <p className="text-slate-200 leading-relaxed pl-5 border-l border-slate-600/40">{study.caseBefore}</p>
-                              </div>
-                              <div className="relative">
-                                <div className="flex items-center space-x-3 mb-3">
-                                  <div className="w-2 h-2 bg-emerald-400 rounded-full shadow-lg shadow-emerald-400/50"></div>
-                                  <span className="text-emerald-300 font-semibold text-sm uppercase tracking-widest">After</span>
-                                </div>
-                                <p className="text-slate-200 leading-relaxed pl-5 border-l border-emerald-400/40">{study.caseAfter}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Sophisticated Implementation Panel */}
-                      <div className="relative">
-                        <div className="absolute -inset-4 bg-gradient-to-r from-emerald-600/10 via-transparent to-emerald-500/10 rounded-2xl blur-xl opacity-50"></div>
-                        <div className="relative bg-slate-800/60 backdrop-blur-xl rounded-2xl p-8 border border-slate-600/40">
-                          <h4 className="text-xl font-bold text-white mb-6 tracking-tight">Implementation</h4>
-                          <div className="space-y-4">
-                            {study.implementation.map((item, idx) => (
-                              <div key={idx} className="flex items-start space-x-4 group/item">
-                                <div className="relative mt-1">
-                                  <CheckCircle className="w-5 h-5 text-emerald-400 group-hover/item:text-emerald-300 transition-colors duration-300" />
-                                  <div className="absolute inset-0 bg-emerald-400/30 rounded-full blur-md opacity-0 group-hover/item:opacity-50 transition-opacity duration-300"></div>
-                                </div>
-                                <span className="text-slate-200 leading-relaxed group-hover/item:text-white transition-colors duration-300">{item}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Premium Results Panel */}
-                      <div className="relative">
-                        <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-400/10 rounded-2xl blur-xl opacity-50"></div>
-                        <div className="relative bg-slate-800/60 backdrop-blur-xl rounded-2xl p-8 border border-slate-600/40">
-                          <h4 className="text-xl font-bold text-white mb-6 tracking-tight">Results</h4>
-                          <div className="space-y-4 mb-8">
-                            {study.results.map((result, idx) => (
-                              <div key={idx} className="flex items-start space-x-4 group/result">
-                                <div className="relative mt-1">
-                                  <TrendingUp className="w-5 h-5 text-emerald-400 group-hover/result:text-emerald-300 transition-colors duration-300" />
-                                  <div className="absolute inset-0 bg-emerald-400/30 rounded-full blur-md opacity-0 group-hover/result:opacity-50 transition-opacity duration-300"></div>
-                                </div>
-                                <span className="text-emerald-300 font-medium leading-relaxed group-hover/result:text-emerald-200 transition-colors duration-300">{result}</span>
-                              </div>
-                            ))}
-                          </div>
-                          
-                          {/* Executive Quote Container */}
-                          <div className="relative">
-                            <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/20 to-emerald-600/20 rounded-xl blur-lg opacity-70"></div>
-                            <div className="relative bg-gradient-to-br from-slate-700/80 to-slate-800/90 backdrop-blur-xl rounded-xl p-6 border-l-4 border-emerald-400 shadow-[0_8px_32px_rgba(16,185,129,0.1)]">
-                              <div className="flex items-start space-x-4">
-                                <div className="w-8 h-6 text-emerald-400/60 flex-shrink-0">
-                                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-                                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>
-                                  </svg>
-                                </div>
-                                <p className="text-slate-200 italic leading-relaxed font-medium">{study.quote}</p>
-                              </div>
-                            </div>
-                          </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-white">{study.sector}</h3>
+                        <div className="flex gap-4 mt-2">
+                          {study.headerStats.map((stat, idx) => (
+                            <span key={idx} className="text-green-400 font-semibold text-sm">{stat}</span>
+                          ))}
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Luxury Border Accents */}
-                  <div className="absolute top-0 left-12 right-12 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent"></div>
-                  <div className="absolute bottom-0 left-12 right-12 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent"></div>
-                  <div className="absolute left-0 top-12 bottom-12 w-px bg-gradient-to-b from-transparent via-emerald-400/30 to-transparent"></div>
-                  <div className="absolute right-0 top-12 bottom-12 w-px bg-gradient-to-b from-transparent via-emerald-400/30 to-transparent"></div>
+                  {/* Case Study Details */}
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-lg font-bold text-white mb-3">{study.caseTitle}</h4>
+                      <div className="space-y-4">
+                        <div>
+                          <span className="text-red-400 font-semibold">Before:</span>
+                          <p className="text-slate-300 text-sm mt-1">{study.caseBefore}</p>
+                        </div>
+                        <div>
+                          <span className="text-green-400 font-semibold">After:</span>
+                          <p className="text-slate-300 text-sm mt-1">{study.caseAfter}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Implementation */}
+                  <div>
+                    <h4 className="text-lg font-bold text-white mb-3">Implementation</h4>
+                    <div className="space-y-2">
+                      {study.implementation.map((item, idx) => (
+                        <div key={idx} className="flex items-start space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-slate-300 text-sm">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Results */}
+                  <div>
+                    <h4 className="text-lg font-bold text-white mb-3">Results</h4>
+                    <div className="space-y-2 mb-4">
+                      {study.results.map((result, idx) => (
+                        <div key={idx} className="flex items-start space-x-2">
+                          <TrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-emerald-300 text-sm font-medium">{result}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-slate-800/50 rounded-xl p-4 border-l-4 border-green-400">
+                      <p className="text-slate-300 italic text-sm">"{study.quote}"</p>
+                    </div>
+                  </div>
                 </div>
               </ScrollAnimatedSection>
             ))}
           </div>
 
-          {/* Mobile: Ultra-Premium Floating Cards Carousel */}
+          {/* Mobile: Carousel */}
           <div className="md:hidden">
             <div 
               ref={sectorCarouselRef}
@@ -791,120 +720,59 @@ const WhyUs = () => {
                 WebkitOverflowScrolling: 'touch'
               }}
             >
-              <div className="flex pb-6">
+              <div className="flex pb-4">
                 {sectorCaseStudies.map((study, index) => (
-                  <div key={index} className="w-[95vw] flex-none snap-start snap-always px-3">
-                    {/* Ultra-Premium Mobile Glassmorphism Card */}
-                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-900/95 to-slate-800/90 backdrop-blur-2xl border border-slate-600/40 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.3),0_24px_48px_rgba(0,0,0,0.2),0_0_0_1px_rgba(255,255,255,0.05)] h-full">
-                      
-                      {/* Sophisticated Mobile Background Pattern */}
-                      <div className="absolute inset-0 opacity-20">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.1),transparent_50%)]"></div>
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(16,185,129,0.08),transparent_50%)]"></div>
-                      </div>
-
-                      {/* Premium Mobile Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-emerald-600/5 opacity-50"></div>
-
-                      {/* Mobile Floating Accent Elements */}
-                      <div className="absolute -top-1 -left-1 w-16 h-16 bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 rounded-full blur-xl opacity-60"></div>
-                      <div className="absolute -bottom-1 -right-1 w-20 h-20 bg-gradient-to-tl from-emerald-500/15 to-emerald-400/5 rounded-full blur-2xl opacity-40"></div>
-
-                      <div className="relative z-10">
-                        {/* Luxury Mobile Header */}
-                        <div className="flex items-center space-x-4 mb-6">
-                          {/* Elite Mobile Icon Container */}
-                          <div className="relative">
-                            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 via-emerald-400/15 to-emerald-600/10 backdrop-blur-xl rounded-xl flex items-center justify-center border border-emerald-400/30 shadow-[0_4px_16px_rgba(16,185,129,0.15)]">
-                              <study.icon className="w-8 h-8 text-emerald-300" />
-                            </div>
-                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/40 to-emerald-600/30 rounded-xl blur-md opacity-30"></div>
-                          </div>
-                          
-                          <div className="flex-1">
-                            <h3 className="text-xl font-bold bg-gradient-to-r from-white via-emerald-100 to-white bg-clip-text text-transparent mb-2 tracking-tight">
-                              {study.sector}
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
-                              {study.headerStats.map((stat, idx) => (
-                                <div key={idx} className="relative">
-                                  <div className="px-3 py-1.5 bg-gradient-to-r from-emerald-500/20 via-emerald-400/15 to-emerald-500/20 backdrop-blur-xl rounded-full border border-emerald-400/30 shadow-md">
-                                    <span className="text-emerald-300 font-semibold text-xs tracking-wide">{stat}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                  <div key={index} className="w-[95vw] flex-none snap-start snap-always px-2">
+                    <div className="border border-slate-700/30 rounded-2xl p-4 h-full bg-slate-800/30">
+                      {/* Header */}
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
+                          <study.icon className="w-6 h-6 text-green-400" />
                         </div>
-
-                        {/* Executive Mobile Case Study */}
-                        <div className="mb-6">
-                          <h4 className="text-lg font-bold text-white mb-4 tracking-tight">{study.caseTitle}</h4>
-                          <div className="space-y-4 text-sm">
-                            <div className="relative">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <div className="w-1.5 h-1.5 bg-red-400 rounded-full shadow-md shadow-red-400/50"></div>
-                                <span className="text-red-300 font-semibold text-xs uppercase tracking-widest">Before</span>
-                              </div>
-                              <p className="text-slate-200 leading-relaxed pl-4 border-l border-slate-600/40">{study.mobileBefore}</p>
-                            </div>
-                            <div className="relative">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full shadow-md shadow-emerald-400/50"></div>
-                                <span className="text-emerald-300 font-semibold text-xs uppercase tracking-widest">After</span>
-                              </div>
-                              <p className="text-slate-200 leading-relaxed pl-4 border-l border-emerald-400/40">{study.mobileAfter}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Premium Mobile Quote Container */}
-                        <div className="relative">
-                          <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/20 to-emerald-600/20 rounded-xl blur-lg opacity-50"></div>
-                          <div className="relative bg-gradient-to-br from-slate-700/80 to-slate-800/90 backdrop-blur-xl rounded-xl p-4 border-l-3 border-emerald-400 shadow-[0_4px_16px_rgba(16,185,129,0.1)]">
-                            <div className="flex items-start space-x-3">
-                              <div className="w-6 h-4 text-emerald-400/60 flex-shrink-0 mt-0.5">
-                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-                                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>
-                                </svg>
-                              </div>
-                              <p className="text-slate-200 italic leading-relaxed text-sm font-medium">"{study.quote}"</p>
-                            </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-white">{study.sector}</h3>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {study.headerStats.map((stat, idx) => (
+                              <span key={idx} className="text-green-400 font-semibold text-xs">{stat}</span>
+                            ))}
                           </div>
                         </div>
                       </div>
 
-                      {/* Luxury Mobile Border Accents */}
-                      <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent"></div>
-                      <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent"></div>
+                      {/* Case Study */}
+                      <h4 className="text-sm font-bold text-white mb-2">{study.caseTitle}</h4>
+                      <div className="space-y-3 text-xs">
+                        <div>
+                          <span className="text-red-400 font-semibold">Before:</span>
+                          <p className="text-slate-300 mt-1">{study.mobileBefore}</p>
+                        </div>
+                        <div>
+                          <span className="text-green-400 font-semibold">After:</span>
+                          <p className="text-slate-300 mt-1">{study.mobileAfter}</p>
+                        </div>
+                        <div className="bg-slate-800/50 rounded-lg p-3 border-l-2 border-green-400">
+                          <p className="text-slate-300 italic">"{study.quote}"</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
             
-            {/* Premium Carousel Indicators */}
-            <div className="flex justify-center space-x-3 mt-6">
+            {/* Carousel indicators */}
+            <div className="flex justify-center space-x-2 mt-4">
               {sectorCaseStudies.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => handleCarouselClick(sectorCarouselRef, index)}
-                  className={`relative transition-all duration-500 ${
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
                     index === activeSectorIndex
-                      ? 'w-8 h-3'
-                      : 'w-3 h-3 hover:w-4'
+                      ? 'bg-green-400 w-6'
+                      : 'bg-slate-600 hover:bg-slate-500'
                   }`}
                   aria-label={`Go to case study ${index + 1}`}
-                >
-                  <div className={`w-full h-full rounded-full transition-all duration-500 ${
-                    index === activeSectorIndex
-                      ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-lg shadow-emerald-400/50'
-                      : 'bg-slate-600 hover:bg-slate-500'
-                  }`}></div>
-                  {index === activeSectorIndex && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full blur-md opacity-60"></div>
-                  )}
-                </button>
+                />
               ))}
             </div>
           </div>
