@@ -861,7 +861,7 @@ const WhyUs = () => {
                     }}
                   >
                     <div className="text-left">
-                      <p className="text-[11px] md:text-[12px] lg:text-[13px] text-slate-300 leading-relaxed">{advantageCardBackContent[index].content}</p>
+                      <p className="text-sm md:text-base lg:text-lg text-slate-300 leading-relaxed">{advantageCardBackContent[index].content}</p>
                     </div>
                   </div>
                 </div>
