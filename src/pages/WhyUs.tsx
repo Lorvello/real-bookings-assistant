@@ -923,8 +923,7 @@ const WhyUs = () => {
                     <p className="text-lg md:text-xl text-slate-300 leading-relaxed">
                       WhatsApp delivers <span className="text-emerald-300 font-medium">18x faster responses</span>, 
                       <span className="text-emerald-300 font-medium"> 50% higher attendance</span>, and 
-                      <span className="text-emerald-300 font-medium"> 95% customer satisfaction</span> 
-                      compared to traditional booking methods.
+                      <span className="text-emerald-300 font-medium"> 95% customer satisfaction</span> compared to traditional booking methods.
                     </p>
 
                     {/* Integrated Metrics */}
