@@ -16,10 +16,10 @@ const FAQ = () => {
 
   const recommendedQuestions = [
     "What does it cost?",
-    "How does it work exactly?",
+    "Do you provide the WhatsApp number and calendar?",
     "For which types of businesses is this suitable?",
     "Is it difficult to set up?",
-    "Which calendars are supported?"
+    "Can I use my existing WhatsApp number instead?"
   ];
 
   const faqSections = [
@@ -58,12 +58,16 @@ const FAQ = () => {
       borderColor: "border-green-500/20",
       items: [
         {
-          question: "Do I need a business WhatsApp number?",
-          answer: "It's recommended. You use our business WhatsApp number that we give you, but you can also use your own if needed."
+          question: "Do you provide the WhatsApp number and calendar?",
+          answer: "Yes! We provide you with a professional WhatsApp Business number and a complete calendar system. However, if you prefer, you can also connect your own existing WhatsApp number and calendar."
+        },
+        {
+          question: "Can I use my existing WhatsApp number instead?",
+          answer: "Absolutely! While we provide a professional WhatsApp Business number, you can choose to use your own existing number if you prefer."
         },
         {
           question: "Which calendars does it integrate with?",
-          answer: "Google Calendar, Outlook, Apple Calendar, Calendly and most popular calendar applications. Also CRM systems like Notion, Airtable and HubSpot."
+          answer: "Our professional calendar system works seamlessly, but you can also connect Google Calendar, Outlook, Apple Calendar, Calendly and most popular calendar applications. Also CRM systems like Notion, Airtable and HubSpot."
         },
         {
           question: "Does it work in multiple languages?",
@@ -186,8 +190,8 @@ const FAQ = () => {
           answer: "Enterprise customers get automatic social media content creation and posting (Instagram, Facebook, LinkedIn)."
         },
         {
-          question: "Does it integrate with email marketing?",
-          answer: "Yes, we can automatically add customers to your Mailchimp, Klaviyo or other email lists."
+          question: "What's included in the professional calendar system?",
+          answer: "Our professional calendar system includes automatic appointment scheduling, conflict detection, availability management, team coordination, and seamless integration with your existing tools - all ready to use from day one."
         }
       ]
     },
