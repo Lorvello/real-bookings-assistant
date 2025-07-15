@@ -60,7 +60,7 @@ const Solution = () => {
     });
   };
   return (
-    <section className="relative py-4 md:py-8 overflow-hidden">
+    <section className="relative py-12 md:py-16 overflow-hidden">
       
       {/* Background decoration */}
       <div className="absolute inset-0">
@@ -68,22 +68,25 @@ const Solution = () => {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/5 rounded-full blur-3xl"></div>
       </div>
       
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
+      
       
       <div className="max-w-6xl mx-auto relative z-20 px-4 md:px-6 lg:px-8">
         <StaggeredAnimationContainer 
           staggerDelay={300} 
           variant="hero"
-          className="space-y-8 md:space-y-16"
+          className="space-y-8 md:space-y-12"
         >
           {/* Header - Compact mobile with improved spacing */}
           <div className="text-center pt-4 md:pt-8">
-            <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
+            <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
               Meet Your <span className="text-emerald-400">24/7</span><br />
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
                 Booking Assistant
               </span>
             </h2>
-            <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
+            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
               <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
               <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
               faster than any human could.</span>

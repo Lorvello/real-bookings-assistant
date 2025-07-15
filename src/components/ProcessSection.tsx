@@ -10,7 +10,7 @@ import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 
 const ProcessSection = () => {
   return (
-    <section className="py-16 md:py-20 relative overflow-hidden" style={{
+    <section className="py-12 md:py-16 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
     }}>
       {/* Background decoration */}
@@ -27,14 +27,14 @@ const ProcessSection = () => {
           staggerDelay={200} 
           threshold={0.3}
           variant="process"
-          className="space-y-32 md:space-y-24"
+          className="space-y-8 md:space-y-12"
         >
           {/* Section header - Compact */}
           <div className="text-center">
-            <h2 className="text-xl md:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
               See How It <span className="text-emerald-400">Works</span>
             </h2>
-            <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
+            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
               From first message to confirmed appointment in less than 30 seconds. 
               Watch how our AI handles the entire booking process automatically.
             </p>

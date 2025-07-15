@@ -66,7 +66,7 @@ export const Pricing = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 relative overflow-hidden">
+    <section className="py-12 md:py-16 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -83,10 +83,10 @@ export const Pricing = () => {
             <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
             <span className="text-emerald-400 font-semibold text-sm md:text-base">Simple Pricing</span>
           </div>
-          <h2 className="text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+          <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
             Choose Your <span className="text-emerald-400">Perfect Plan</span>
           </h2>
-          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+          <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
             Start with our free trial and scale as you grow. No setup fees, no contracts.
           </p>
         </ScrollAnimatedSection>
