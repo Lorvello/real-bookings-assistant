@@ -59,20 +59,24 @@ const CalendarMockup = () => {
       // Check viewport boundaries and adjust position
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const popupWidth = 280;
+      const popupWidth = 320; // Increased to match actual modal width
       const popupHeight = 300;
       
       let adjustedX = x;
       let adjustedY = y;
       
-      // Flip horizontally if popup would go off screen
+      // Account for translateX(-50%) transform - popup is centered on x
+      // Check if popup would go off screen on the right
       if (x + popupWidth / 2 > viewportWidth - 20) {
         adjustedX = viewportWidth - popupWidth / 2 - 20;
-      } else if (x - popupWidth / 2 < 20) {
+      }
+      // Check if popup would go off screen on the left
+      if (x - popupWidth / 2 < 20) {
         adjustedX = popupWidth / 2 + 20;
       }
       
-      // Flip vertically if popup would go off screen
+      // Account for translateY(-100%) transform - popup appears above y
+      // Check if popup would go off screen on the top
       if (y - popupHeight < 20) {
         adjustedY = targetRect.bottom + 10;
       }
