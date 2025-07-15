@@ -60,7 +60,7 @@ const Solution = () => {
     });
   };
   return (
-    <section className="relative py-8 md:py-16 overflow-hidden">
+    <section className="relative py-4 md:py-8 overflow-hidden">
       
       {/* Background decoration */}
       <div className="absolute inset-0">
@@ -78,7 +78,7 @@ const Solution = () => {
           className="space-y-8 md:space-y-16"
         >
           {/* Header - Compact mobile with improved spacing */}
-          <div className="text-center pt-12 md:pt-20">
+          <div className="text-center pt-4 md:pt-8">
             <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
               Meet Your <span className="text-emerald-400">24/7</span><br />
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
