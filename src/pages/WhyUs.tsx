@@ -436,41 +436,37 @@ const WhyUs = () => {
             <ScrollAnimatedSection className="hidden md:block backdrop-blur-sm bg-gradient-to-b from-slate-800/40 to-slate-900/40 rounded-3xl shadow-[0_32px_64px_rgba(0,0,0,0.4),0_16px_32px_rgba(0,0,0,0.25),0_0_40px_rgba(16,185,129,0.1)] border border-slate-600/30 mb-8 overflow-hidden hover:shadow-[0_40px_80px_rgba(0,0,0,0.5),0_0_60px_rgba(16,185,129,0.15)] transition-all duration-500" delay={300}>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead>
+                   <thead>
                      <tr className="bg-gradient-to-r from-slate-800/60 to-slate-800/40 border-b border-slate-600/50">
-                       <th className="text-left py-6 px-12 text-slate-100 text-xl font-bold tracking-tight">Metric</th>
-                       <th className="text-center py-6 px-8 text-slate-400 text-xl font-bold tracking-tight">Phone Calls</th>
-                       <th className="text-center py-6 px-8 text-slate-400 text-xl font-bold tracking-tight">Website Forms</th>
-                       <th className="text-center py-6 px-8 text-green-400 text-xl font-bold tracking-tight bg-green-400/10 border-x border-green-400/20 shadow-[0_0_20px_rgba(16,185,129,0.3)] relative">
+                       <th className="text-left py-6 px-12 text-slate-100 text-lg font-bold tracking-tight">Metric</th>
+                       <th className="text-center py-6 px-8 text-slate-400 text-lg font-bold tracking-tight">Phone Calls</th>
+                       <th className="text-center py-6 px-8 text-slate-400 text-lg font-bold tracking-tight">Website Forms</th>
+                       <th className="text-center py-6 px-8 text-green-400 text-lg font-bold tracking-tight bg-green-400/10 border-x border-green-400/20 shadow-[0_0_20px_rgba(16,185,129,0.3)] relative">
                          <div className="absolute inset-0 bg-gradient-to-b from-green-400/5 to-green-400/10"></div>
                          <span className="relative z-10">WhatsApp</span>
                        </th>
-                       <th className="text-center py-6 px-8 text-emerald-400 text-xl font-bold tracking-tight">Improvement</th>
+                       <th className="text-center py-6 px-8 text-emerald-400 text-lg font-bold tracking-tight">Improvement</th>
                      </tr>
                   </thead>
                   <tbody>
                     {whatsappVsTraditionalStats.map((stat, index) => (
                        <tr key={index} className={`border-b border-slate-700/40 hover:bg-slate-800/50 hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition-all duration-300 group cursor-pointer ${index % 2 === 0 ? 'bg-white/[0.02]' : 'bg-slate-900/30'}`}>
-                         <td className="py-6 px-12 text-white font-bold text-lg tracking-tight">
+                         <td className="py-6 px-12 text-white font-bold text-base tracking-tight">
                            <div className="flex items-center gap-5">
                              <div className="w-12 h-12 bg-gradient-to-br from-green-400/20 to-green-600/20 rounded-xl flex items-center justify-center border border-green-400/30 group-hover:border-green-400/50 transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                                <stat.icon className="w-7 h-7 text-green-400 group-hover:text-green-300 transition-colors duration-300" />
                              </div>
-                             <span className="group-hover:text-slate-50 transition-colors duration-300 text-xl font-bold">{stat.metric}</span>
+                             <span className="group-hover:text-slate-50 transition-colors duration-300 text-lg font-bold">{stat.metric}</span>
                            </div>
                          </td>
-                         <td className="py-6 px-8 text-center text-slate-300 text-lg font-medium group-hover:text-slate-200 transition-colors duration-300">{stat.phoneCalls}</td>
-                         <td className="py-6 px-8 text-center text-slate-300 text-lg font-medium group-hover:text-slate-200 transition-colors duration-300">{stat.websiteForms}</td>
+                         <td className="py-6 px-8 text-center text-slate-300 text-base font-medium group-hover:text-slate-200 transition-colors duration-300">{stat.phoneCalls}</td>
+                         <td className="py-6 px-8 text-center text-slate-300 text-base font-medium group-hover:text-slate-200 transition-colors duration-300">{stat.websiteForms}</td>
                          <td className="py-6 px-8 text-center bg-green-400/10 border-x border-green-400/20 relative">
                            <div className="absolute inset-0 bg-gradient-to-b from-green-400/5 to-green-400/10 group-hover:from-green-400/8 group-hover:to-green-400/15 transition-all duration-300"></div>
-                           <span className="relative z-10 text-green-400 font-bold text-xl group-hover:text-green-300 transition-colors duration-300 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)]">{stat.whatsapp}</span>
+                           <span className="relative z-10 text-green-400 font-bold text-lg group-hover:text-green-300 transition-colors duration-300 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)]">{stat.whatsapp}</span>
                          </td>
                          <td className="py-6 px-8 text-center">
-                           <div className="inline-flex items-center justify-center">
-                             <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent font-bold text-xl px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-400/15 to-green-400/15 border border-emerald-400/30 group-hover:from-emerald-400/25 group-hover:to-green-400/25 group-hover:border-emerald-400/50 transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                               {stat.improvement}
-                             </span>
-                           </div>
+                           <span className="text-green-400 font-bold text-lg">{stat.improvement}</span>
                          </td>
                        </tr>
                     ))}
@@ -480,11 +476,11 @@ const WhyUs = () => {
             </ScrollAnimatedSection>
 
             {/* Enhanced Credibility Footer */}
-            <div className="hidden md:block text-center mb-16 space-y-3">
-              <div className="flex items-center justify-center gap-2 text-slate-400 text-sm font-medium">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                <span>Based on data from 1,000+ businesses worldwide</span>
-              </div>
+             <div className="hidden md:block text-center mb-16 space-y-3">
+               <div className="flex items-center justify-center gap-2 text-slate-400 text-sm font-medium">
+                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                 <span>Based on data from 10,000+ businesses worldwide</span>
+               </div>
               <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
                 <button className="text-emerald-400 hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70 font-medium">
                   View methodology
@@ -508,40 +504,36 @@ const WhyUs = () => {
                       <div className="w-14 h-14 bg-gradient-to-br from-green-400/20 to-green-600/20 rounded-xl flex items-center justify-center border border-green-400/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                         <stat.icon className="w-8 h-8 text-green-400" />
                       </div>
-                      <h3 className="text-white font-bold text-xl tracking-tight">{stat.metric}</h3>
+                      <h3 className="text-white font-bold text-lg tracking-tight">{stat.metric}</h3>
                     </div>
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center py-4 border-b border-slate-700/40 hover:bg-slate-800/30 transition-colors duration-300 rounded-lg px-3">
-                        <span className="text-slate-400 text-base font-medium">Phone Calls</span>
-                        <span className="text-slate-300 font-semibold text-base">{stat.phoneCalls}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-4 border-b border-slate-700/40 hover:bg-slate-800/30 transition-colors duration-300 rounded-lg px-3">
-                        <span className="text-slate-400 text-base font-medium">Website Forms</span>
-                        <span className="text-slate-300 font-semibold text-base">{stat.websiteForms}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-4 border-b border-slate-700/40 hover:bg-slate-800/30 transition-colors duration-300 rounded-lg px-3 bg-green-400/10 border-green-400/20">
-                        <span className="text-green-400 text-base font-bold shadow-[0_0_10px_rgba(16,185,129,0.2)]">WhatsApp</span>
-                        <span className="text-green-400 font-bold text-lg shadow-[0_0_10px_rgba(16,185,129,0.2)]">{stat.whatsapp}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-4 pt-6 px-3">
-                        <span className="text-emerald-400 text-base font-bold">Improvement</span>
-                        <div className="inline-flex items-center justify-center">
-                          <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent font-bold text-lg px-3 py-1 rounded-lg bg-gradient-to-r from-emerald-400/15 to-green-400/15 border border-emerald-400/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                            {stat.improvement}
-                          </span>
-                        </div>
-                      </div>
+                       <div className="flex justify-between items-center py-4 border-b border-slate-700/40 hover:bg-slate-800/30 transition-colors duration-300 rounded-lg px-3">
+                         <span className="text-slate-400 text-sm font-medium">Phone Calls</span>
+                         <span className="text-slate-300 font-semibold text-sm">{stat.phoneCalls}</span>
+                       </div>
+                       <div className="flex justify-between items-center py-4 border-b border-slate-700/40 hover:bg-slate-800/30 transition-colors duration-300 rounded-lg px-3">
+                         <span className="text-slate-400 text-sm font-medium">Website Forms</span>
+                         <span className="text-slate-300 font-semibold text-sm">{stat.websiteForms}</span>
+                       </div>
+                       <div className="flex justify-between items-center py-4 border-b border-slate-700/40 hover:bg-slate-800/30 transition-colors duration-300 rounded-lg px-3 bg-green-400/10 border-green-400/20">
+                         <span className="text-green-400 text-sm font-bold shadow-[0_0_10px_rgba(16,185,129,0.2)]">WhatsApp</span>
+                         <span className="text-green-400 font-bold text-base shadow-[0_0_10px_rgba(16,185,129,0.2)]">{stat.whatsapp}</span>
+                       </div>
+                       <div className="flex justify-between items-center py-4 pt-6 px-3">
+                         <span className="text-emerald-400 text-sm font-bold">Improvement</span>
+                         <span className="text-green-400 font-bold text-base">{stat.improvement}</span>
+                       </div>
                     </div>
                   </ScrollAnimatedSection>
                 ))}
               </div>
 
               {/* Mobile Enhanced Credibility Footer */}
-              <div className="md:hidden text-center mb-12 space-y-4">
-                <div className="flex items-center justify-center gap-2 text-slate-400 text-sm font-medium">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                  <span>Based on data from 1,000+ businesses worldwide</span>
-                </div>
+               <div className="md:hidden text-center mb-12 space-y-4">
+                 <div className="flex items-center justify-center gap-2 text-slate-400 text-sm font-medium">
+                   <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                   <span>Based on data from 10,000+ businesses worldwide</span>
+                 </div>
                 <div className="space-y-2">
                   <button className="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70 block">
                     View methodology
