@@ -279,7 +279,7 @@ const FAQ = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-12 md:py-24 px-4 md:px-6 lg:px-8 relative overflow-hidden">
+      <section className="py-12 md:py-24 px-4 md:px-6 lg:px-8 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -304,7 +304,7 @@ const FAQ = () => {
       </section>
 
       {/* Search Section */}
-      <section className="py-12 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <section className="py-12 px-4 md:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <ScrollAnimatedSection>
             {/* Search Bar */}
@@ -348,7 +348,7 @@ const FAQ = () => {
       </section>
 
       {/* FAQ Sections */}
-      <section className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <section className="py-20 px-4 md:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {filteredSections.length === 0 ? (
             <ScrollAnimatedSection>
@@ -410,7 +410,7 @@ const FAQ = () => {
       </section>
 
       {/* Contact CTA */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <ScrollAnimatedSection as="section" className="py-20 px-4 md:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-2xl p-12 border border-emerald-500/20">
             <h3 className="text-3xl font-bold text-white mb-6">
