@@ -48,34 +48,8 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
               Research Overview
             </h3>
             <p className="text-slate-300 leading-relaxed text-sm">
-              Our data comes from analyzing booking patterns across 10,247 businesses in 45 countries over 18 months (January 2023 - June 2024). We tracked response times, conversion rates, and customer satisfaction through direct business reporting and customer surveys.
+              Our data comes from analyzing booking patterns across 10,247 businesses in 45 countries over 18 months (January 2023 - June 2024). We tracked response times, conversion rates, and customer satisfaction through direct business reporting, customer surveys, and third-party analytics.
             </p>
-          </div>
-
-          {/* Data Sources */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              Data Sources
-            </h3>
-            <div className="space-y-2">
-              <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
-                <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Direct integration analytics from 8,500+ businesses using our platform</span>
-              </div>
-              <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
-                <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Comparative studies with 1,747 businesses using traditional methods</span>
-              </div>
-              <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
-                <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Customer satisfaction surveys (47,000+ responses)</span>
-              </div>
-              <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
-                <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Third-party booking platform analytics</span>
-              </div>
-            </div>
           </div>
 
           {/* Methodology Details */}
@@ -95,11 +69,11 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">No-show rates measured over 90-day periods</span>
+                <span className="text-slate-300 text-sm">No-show rates measured over 90-day periods with comparative analysis</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Customer satisfaction via post-booking surveys (1-10 scale)</span>
+                <span className="text-slate-300 text-sm">Customer satisfaction via post-booking surveys (1-10 scale) across 47,000+ responses</span>
               </div>
             </div>
           </div>
