@@ -26,8 +26,6 @@ const FAQ = () => {
     {
       title: "General Questions",
       icon: HelpCircle,
-      color: "from-green-500/10 to-emerald-500/10",
-      borderColor: "border-green-500/20",
       items: [
         {
           question: "What is your WhatsApp booking platform?",
@@ -54,8 +52,6 @@ const FAQ = () => {
     {
       title: "Technical Questions",
       icon: Zap,
-      color: "from-emerald-500/10 to-green-500/10",
-      borderColor: "border-emerald-500/20",
       items: [
         {
           question: "Do you provide the WhatsApp number and calendar?",
@@ -90,8 +86,6 @@ const FAQ = () => {
     {
       title: "Pricing & Plans",
       icon: Star,
-      color: "from-green-600/10 to-emerald-600/10",
-      borderColor: "border-green-600/20",
       items: [
         {
           question: "What does it cost?",
@@ -118,8 +112,6 @@ const FAQ = () => {
     {
       title: "Features",
       icon: CheckCircle,
-      color: "from-emerald-600/10 to-green-600/10",
-      borderColor: "border-emerald-600/20",
       items: [
         {
           question: "Can it reschedule and cancel appointments?",
@@ -150,8 +142,6 @@ const FAQ = () => {
     {
       title: "Support",
       icon: Shield,
-      color: "from-green-400/10 to-emerald-400/10",
-      borderColor: "border-green-400/20",
       items: [
         {
           question: "What type of support can I get?",
@@ -174,8 +164,6 @@ const FAQ = () => {
     {
       title: "Integrations",
       icon: Zap,
-      color: "from-emerald-400/10 to-green-400/10",
-      borderColor: "border-emerald-400/20",
       items: [
         {
           question: "Which CRM systems are supported?",
@@ -198,8 +186,6 @@ const FAQ = () => {
     {
       title: "Advanced Features",
       icon: Star,
-      color: "from-green-700/10 to-emerald-700/10",
-      borderColor: "border-green-700/20",
       items: [
         {
           question: "Can it manage multiple locations?",
@@ -226,8 +212,6 @@ const FAQ = () => {
     {
       title: "Troubleshooting",
       icon: MessageCircle,
-      color: "from-emerald-700/10 to-green-700/10",
-      borderColor: "border-emerald-700/20",
       items: [
         {
           question: "What if WhatsApp is down?",
@@ -387,7 +371,7 @@ const FAQ = () => {
               {filteredSections.map((section, sectionIndex) => (
                 <ScrollAnimatedSection 
                   key={sectionIndex} 
-                  className={`bg-gradient-to-r ${section.color} rounded-2xl p-8 border ${section.borderColor} hover:border-opacity-40 transition-all duration-300`}
+                  className="rounded-2xl p-8 transition-all duration-300"
                   delay={sectionIndex * 100}
                 >
                   {/* Section Header */}
