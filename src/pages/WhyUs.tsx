@@ -82,30 +82,26 @@ const WhyUs = () => {
     {
       icon: Heart,
       title: "Personal Touch",
-      description: "85% of consumers prefer messaging a business over emailing. WhatsApp feels personal and trusted.",
-      mobileDescription: "85% prefer messaging - more personal than email.",
-      stat: "85% prefers messaging"
+      description: "85% of consumers prefer messaging a business over emailing. WhatsApp creates a personal, trusted connection that email simply can't match.",
+      mobileDescription: "85% prefer messaging - more personal and trusted than email communication.",
     },
     {
       icon: Brain,
       title: "Lower Threshold",
-      description: "53% of customers are more likely to purchase from businesses that are reachable via chat. It feels less formal than email.",
-      mobileDescription: "53% more likely to buy from chat-enabled businesses.",
-      stat: "53% higher conversion"
+      description: "53% of customers are more likely to purchase from businesses reachable via chat. It feels less formal and more approachable than email.",
+      mobileDescription: "53% more likely to buy from chat-enabled businesses - less formal barrier.",
     },
     {
       icon: Smartphone,
       title: "Mobile-First Behavior",
-      description: "People check their phone 96 times per day. WhatsApp fits into their natural behavior.",
-      mobileDescription: "WhatsApp fits natural phone checking habits.",
-      stat: "96x per day checked"
+      description: "People check their phone 96 times per day. WhatsApp seamlessly integrates into their natural mobile behavior patterns.",
+      mobileDescription: "96x daily phone checks - WhatsApp fits natural mobile habits.",
     },
     {
       icon: Zap,
       title: "Real-time Interaction",
-      description: "Two-way communication in one conversation. Customers can directly ask, confirm or change.",
-      mobileDescription: "Direct two-way communication in one chat.",
-      stat: "Direct interaction"
+      description: "Two-way communication flows naturally in one conversation. Customers can instantly ask questions, confirm details, or request changes.",
+      mobileDescription: "Instant two-way communication - ask, confirm, change in real-time.",
     }
   ];
 
@@ -507,58 +503,34 @@ const WhyUs = () => {
                 className="group relative"
                 delay={300 + index * 150}
               >
-                {/* Ultra-Premium Card Container with Advanced Glassmorphism */}
-                <div className="relative h-80 md:h-96 p-4 md:p-6 rounded-3xl backdrop-blur-2xl bg-gradient-to-br from-slate-800/40 via-slate-900/30 to-slate-800/20 border border-slate-600/20 shadow-[0_32px_64px_rgba(0,0,0,0.3),0_16px_32px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all duration-700 ease-out hover:shadow-[0_48px_96px_rgba(16,185,129,0.15),0_24px_48px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(16,185,129,0.2)] hover:border-emerald-400/30 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/40 hover:to-emerald-900/10 transform hover:scale-[1.02] hover:-translate-y-2">
+                {/* Optimized Card Container */}
+                <div className="relative p-5 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-slate-600/30 shadow-[0_20px_40px_rgba(0,0,0,0.25)] transition-all duration-500 hover:shadow-[0_24px_48px_rgba(16,185,129,0.12)] hover:border-emerald-400/40 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1">
                   
-                  {/* Luxury Accent Border */}
-                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-emerald-500/20 via-transparent to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 -z-10 blur-xl"></div>
-                  
-                  {/* Premium Content Layout */}
-                  <div className="flex items-start space-x-3 md:space-x-4">
-                    {/* Executive-Grade Icon Container */}
-                    <div className="relative w-16 h-16 md:w-18 md:h-18 flex-shrink-0">
-                      {/* Sophisticated Background with Multiple Layers */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-emerald-400/15 to-emerald-600/20 rounded-2xl shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"></div>
-                      <div className="absolute inset-1 bg-gradient-to-tr from-slate-800/60 to-slate-700/40 rounded-xl backdrop-blur-sm"></div>
+                  {/* Content Layout */}
+                  <div className="flex items-start space-x-4">
+                    {/* Icon Container */}
+                    <div className="relative w-12 h-12 md:w-14 md:h-14 flex-shrink-0">
+                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/25 via-emerald-400/20 to-emerald-600/25 rounded-xl shadow-lg transform group-hover:scale-105 transition-transform duration-300"></div>
+                      <div className="absolute inset-0.5 bg-gradient-to-tr from-slate-800/70 to-slate-700/50 rounded-lg backdrop-blur-sm"></div>
                       <div className="relative w-full h-full flex items-center justify-center">
-                        <benefit.icon className="w-8 h-8 md:w-9 md:h-9 text-emerald-400 drop-shadow-lg group-hover:text-emerald-300 transition-all duration-500" />
+                        <benefit.icon className="w-6 h-6 md:w-7 md:h-7 text-emerald-400 drop-shadow-lg group-hover:text-emerald-300 transition-colors duration-300" />
                       </div>
-                      {/* Subtle Glow Effect */}
-                      <div className="absolute inset-0 bg-emerald-400/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-700"></div>
                     </div>
                     
-                    {/* Premium Content Container */}
-                    <div className="flex-1 space-y-2 md:space-y-3">
-                      {/* Executive Headline with Sophisticated Typography */}
-                      <h3 className="text-lg md:text-xl xl:text-2xl font-bold bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent leading-tight tracking-tight">
+                    {/* Content Container */}
+                    <div className="flex-1 space-y-3">
+                      {/* Title */}
+                      <h3 className="text-lg md:text-xl font-bold bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent leading-tight">
                         {benefit.title}
                       </h3>
                       
-                      {/* Refined Description with Enhanced Readability */}
-                      <p className="text-slate-300 text-sm md:text-base leading-relaxed font-light tracking-wide">
+                      {/* Description with integrated statistics */}
+                      <p className="text-slate-300 text-sm md:text-base leading-relaxed">
                         <span className="md:hidden">{benefit.mobileDescription}</span>
                         <span className="hidden md:inline">{benefit.description}</span>
                       </p>
-                      
-                      {/* Premium Statistics Badge */}
-                      <div className="inline-flex items-center">
-                        <div className="relative group/badge">
-                          {/* Sophisticated Badge Background */}
-                          <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-400/25 to-emerald-500/20 backdrop-blur-xl border border-emerald-400/40 rounded-full px-4 md:px-6 py-2 md:py-3 shadow-2xl shadow-emerald-500/20">
-                            <span className="text-emerald-300 font-bold text-sm md:text-base tracking-wide">
-                              {benefit.stat}
-                            </span>
-                          </div>
-                          {/* Advanced Glow Animation */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/30 to-emerald-500/30 rounded-full blur-lg opacity-0 group-hover/badge:opacity-70 transition-all duration-500 -z-10"></div>
-                        </div>
-                      </div>
                     </div>
                   </div>
-                  
-                  {/* Subtle Premium Accent Lines */}
-                  <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent"></div>
-                  <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent"></div>
                 </div>
               </ScrollAnimatedSection>
             ))}
