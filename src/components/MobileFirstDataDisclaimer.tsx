@@ -1,6 +1,6 @@
 const MobileFirstDataDisclaimer = ({ onMethodologyClick }: { onMethodologyClick: () => void }) => {
   return (
-    <div className="-mt-4 pb-4 text-center">
+    <div className="mt-6 pb-4 text-center">
       <div className="flex items-center justify-center gap-2 mb-2">
         <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
         <p className="text-sm text-slate-400">
