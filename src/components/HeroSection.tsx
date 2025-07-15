@@ -1,8 +1,19 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "lucide-react";
 
 const HeroSection: React.FC = () => {
+  const navigate = useNavigate();
+  
+  const handleStartTrial = () => {
+    navigate('/signup');
+  };
+  
+  const handleHowItWorks = () => {
+    navigate('/how-it-works');
+  };
+  
   return (
     <section className="relative min-h-screen overflow-hidden flex items-center justify-center pt-20 md:pt-24">
       {/* Grid pattern overlay */}
@@ -39,12 +50,18 @@ const HeroSection: React.FC = () => {
 
           {/* CTA Section */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-6 pt-6 md:pt-8 animate-appear opacity-100 delay-500 px-4 sm:px-0">
-            <Button className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 md:px-8 py-3 md:py-6 text-base md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[48px]">
+            <Button 
+              onClick={handleStartTrial}
+              className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 md:px-8 py-3 md:py-6 text-base md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[48px]"
+            >
               <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
               Start Free 7-Day Trial
             </Button>
             
-            <button className="w-full sm:w-auto text-slate-300 hover:text-white text-base md:text-lg font-medium flex items-center justify-center gap-2 group transition-colors min-h-[48px] px-4">
+            <button 
+              onClick={handleHowItWorks}
+              className="w-full sm:w-auto text-slate-300 hover:text-white text-base md:text-lg font-medium flex items-center justify-center gap-2 group transition-colors min-h-[48px] px-4"
+            >
               <Zap className="w-4 h-4 md:w-5 md:h-5 group-hover:text-emerald-400 transition-colors" />
               See how it works
             </button>
