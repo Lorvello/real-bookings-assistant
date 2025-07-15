@@ -6,7 +6,7 @@ interface DataDisclaimerProps {
 
 const DataDisclaimer: React.FC<DataDisclaimerProps> = ({ onMethodologyClick }) => {
   return (
-    <div className="pt-2 pb-4 text-center">
+    <div className="pt-0 pb-4 text-center">
       <p className="text-slate-400 text-sm mb-2 font-medium">
         Based on data from 10,000+ businesses worldwide
       </p>
