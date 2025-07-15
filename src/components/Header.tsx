@@ -3,11 +3,13 @@ import { Menu, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/hooks/useAuth';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { isHeaderVisible } = useScrollDirection(10);
   
   const navItems = [
     { name: 'Home', path: '/' },
@@ -43,7 +45,11 @@ const Header = () => {
   };
 
   return (
-    <header className="w-full pt-4 px-4 sm:px-6 lg:px-8 relative z-10">
+    <header 
+      className={`fixed top-0 left-0 right-0 w-full pt-4 px-4 sm:px-6 lg:px-8 z-50 transition-transform duration-300 ease-in-out ${
+        isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
+      }`}
+    >
       <nav 
         className="max-w-7xl mx-auto mx-6 rounded-3xl px-8 py-4 shadow-lg"
         style={{ backgroundColor: '#1E293B' }}
