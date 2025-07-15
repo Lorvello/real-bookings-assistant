@@ -365,7 +365,7 @@ const WhyUs = () => {
                   delay={200 + index * 150}
                 >
                   <div 
-                    className="relative aspect-[4/3] cursor-pointer"
+                    className="group relative aspect-[4/3] cursor-pointer"
                     onClick={() => toggleCardFlip(index)}
                     style={{
                       transformStyle: 'preserve-3d',
@@ -381,7 +381,7 @@ const WhyUs = () => {
                        }}
                      >
                         {/* Small corner button */}
-                         <div className="absolute top-1.5 right-1.5 text-[8px] md:text-[9px] text-slate-500 hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
+                         <div className="absolute top-1.5 right-1.5 text-[8px] md:text-[9px] text-slate-500 group-hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
                            Learn more
                            <ArrowRight className="w-2 h-2 md:w-2.5 md:h-2.5" />
                          </div>
