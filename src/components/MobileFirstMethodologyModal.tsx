@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X } from "lucide-react";
+import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 interface MobileFirstMethodologyModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ const MobileFirstMethodologyModal: React.FC<MobileFirstMethodologyModalProps> = 
         {/* Modal Content */}
         <div className="px-6 py-4 space-y-6">
           {/* Research Overview */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={0} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Research Overview
@@ -50,10 +51,10 @@ const MobileFirstMethodologyModal: React.FC<MobileFirstMethodologyModalProps> = 
             <p className="text-slate-300 leading-relaxed text-sm">
               Mobile usage patterns tracked through app analytics across 50,000+ users. Customer preference surveys with 15,000+ respondents analyzing communication channel preferences and response behaviors.
             </p>
-          </div>
+          </ScrollAnimatedSection>
 
           {/* Methodology Details */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={200} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Methodology Details
@@ -76,10 +77,10 @@ const MobileFirstMethodologyModal: React.FC<MobileFirstMethodologyModalProps> = 
                 <span className="text-slate-300 text-sm">Satisfaction measurements via post-interaction feedback systems</span>
               </div>
             </div>
-          </div>
+          </ScrollAnimatedSection>
 
           {/* Study Limitations */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={400} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Study Limitations
@@ -89,7 +90,7 @@ const MobileFirstMethodologyModal: React.FC<MobileFirstMethodologyModalProps> = 
                 Results may vary by demographics, industry, and geographic location. Mobile behavior patterns can be influenced by device capabilities and network conditions.
               </p>
             </div>
-          </div>
+          </ScrollAnimatedSection>
         </div>
       </div>
     </div>

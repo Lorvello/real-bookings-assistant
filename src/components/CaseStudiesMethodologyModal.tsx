@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
+import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 interface CaseStudiesMethodologyModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ const CaseStudiesMethodologyModal: React.FC<CaseStudiesMethodologyModalProps> = 
         {/* Modal Content */}
         <div className="px-6 py-4 space-y-6">
           {/* Research Overview */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={0} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Research Overview
@@ -50,10 +51,10 @@ const CaseStudiesMethodologyModal: React.FC<CaseStudiesMethodologyModalProps> = 
             <p className="text-slate-300 leading-relaxed text-sm">
               Our case studies methodology involves comprehensive business performance analysis before and after WhatsApp integration. Each case study represents verified business results tracked through multiple measurement systems and validated by third-party audits over 6-12 month periods.
             </p>
-          </div>
+          </ScrollAnimatedSection>
 
           {/* Methodology Details */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={200} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Methodology Details
@@ -80,10 +81,10 @@ const CaseStudiesMethodologyModal: React.FC<CaseStudiesMethodologyModalProps> = 
                 <span className="text-slate-300 text-sm">Implementation success tracked through real-time calendar integration and booking analytics</span>
               </div>
             </div>
-          </div>
+          </ScrollAnimatedSection>
 
           {/* Study Limitations */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={400} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Study Limitations
@@ -93,7 +94,7 @@ const CaseStudiesMethodologyModal: React.FC<CaseStudiesMethodologyModalProps> = 
                 Case studies represent individual business results. Outcomes may vary based on business size, implementation quality, staff training, and industry-specific factors. Results reflect businesses that completed full integration and training programs.
               </p>
             </div>
-          </div>
+          </ScrollAnimatedSection>
         </div>
       </div>
     </div>
