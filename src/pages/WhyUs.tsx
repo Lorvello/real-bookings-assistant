@@ -12,6 +12,8 @@ import PsychologyMethodologyModal from '@/components/PsychologyMethodologyModal'
 import PsychologyDataDisclaimer from '@/components/PsychologyDataDisclaimer';
 import CaseStudiesMethodologyModal from '@/components/CaseStudiesMethodologyModal';
 import CaseStudiesDataDisclaimer from '@/components/CaseStudiesDataDisclaimer';
+import MobileFirstDataDisclaimer from '@/components/MobileFirstDataDisclaimer';
+import MobileFirstMethodologyModal from '@/components/MobileFirstMethodologyModal';
 
 const WhyUs = () => {
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
@@ -20,6 +22,7 @@ const WhyUs = () => {
   const [isMethodologyModalOpen, setIsMethodologyModalOpen] = useState(false);
   const [isPsychologyMethodologyModalOpen, setIsPsychologyMethodologyModalOpen] = useState(false);
   const [isCaseStudiesMethodologyModalOpen, setIsCaseStudiesMethodologyModalOpen] = useState(false);
+  const [isMobileFirstMethodologyModalOpen, setIsMobileFirstMethodologyModalOpen] = useState(false);
   const sectorCarouselRef = useRef<HTMLDivElement>(null);
 
   const proofPoints = [
@@ -302,6 +305,8 @@ const WhyUs = () => {
   const closePsychologyMethodologyModal = () => setIsPsychologyMethodologyModalOpen(false);
   const openCaseStudiesMethodologyModal = () => setIsCaseStudiesMethodologyModalOpen(true);
   const closeCaseStudiesMethodologyModal = () => setIsCaseStudiesMethodologyModalOpen(false);
+  const openMobileFirstMethodologyModal = () => setIsMobileFirstMethodologyModalOpen(true);
+  const closeMobileFirstMethodologyModal = () => setIsMobileFirstMethodologyModalOpen(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
@@ -1018,10 +1023,12 @@ const WhyUs = () => {
                         </div>
                       ))}
                     </div>
-                  </div>
-                </div>
               </div>
-            </ScrollAnimatedSection>
+            </div>
+            
+            <MobileFirstDataDisclaimer onMethodologyClick={openMobileFirstMethodologyModal} />
+          </div>
+        </ScrollAnimatedSection>
           </div>
         </div>
       </ScrollAnimatedSection>
@@ -1044,12 +1051,16 @@ const WhyUs = () => {
       />
 
       {/* Case Studies Methodology Modal */}
-      <CaseStudiesMethodologyModal 
-        isOpen={isCaseStudiesMethodologyModalOpen} 
-        onClose={closeCaseStudiesMethodologyModal}
-      />
-    </div>
-  );
-};
+        <CaseStudiesMethodologyModal 
+          isOpen={isCaseStudiesMethodologyModalOpen} 
+          onClose={closeCaseStudiesMethodologyModal} 
+        />
+        <MobileFirstMethodologyModal 
+          isOpen={isMobileFirstMethodologyModalOpen} 
+          onClose={closeMobileFirstMethodologyModal} 
+        />
+      </div>
+    );
+  };
 
 export default WhyUs;
