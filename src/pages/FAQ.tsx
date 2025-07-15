@@ -411,7 +411,6 @@ const FAQ = () => {
 
       {/* Contact CTA */}
       <ScrollAnimatedSection as="section" className="py-20 px-4 md:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
             <h3 className="text-3xl font-bold text-white mb-6">
               Still have questions?
             </h3>
@@ -436,7 +435,6 @@ const FAQ = () => {
               <p>📞 <strong>Phone support:</strong> Mon-Fri 9:00-18:00</p>
               <p>💬 <strong>Live chat:</strong> Available 24/7</p>
             </div>
-        </div>
       </ScrollAnimatedSection>
     </div>
   );
