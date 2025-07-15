@@ -396,7 +396,7 @@ const WhyUs = () => {
       </section>
 
        {/* Premium WhatsApp vs Email Statistics */}
-       <ScrollAnimatedSection as="section" className="pt-16 md:pt-24 pb-12 md:pb-16">
+       <ScrollAnimatedSection as="section" className="pt-24 md:pt-32 pb-12 md:pb-16">
          <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
            <div className="text-center mb-12 md:mb-20">
              <ScrollAnimatedSection delay={100}>
