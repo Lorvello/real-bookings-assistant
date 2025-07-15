@@ -113,9 +113,7 @@ const thirdColumn = testimonials.slice(6, 9);
 
 const Testimonials = () => {
   return (
-    <section className="py-16 md:py-24 relative overflow-hidden" style={{
-      backgroundColor: 'hsl(217, 35%, 12%)'
-    }}>
+    <section className="py-16 md:py-24 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
