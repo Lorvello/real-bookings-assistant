@@ -60,7 +60,7 @@ const Solution = () => {
     });
   };
   return (
-    <section className="relative py-1 md:py-3 overflow-hidden">
+    <section className="relative py-4 md:py-8 overflow-hidden">
       
       {/* Background decoration */}
       <div className="absolute inset-0">
@@ -73,23 +73,23 @@ const Solution = () => {
         <StaggeredAnimationContainer 
           staggerDelay={300} 
           variant="hero"
-          className="space-y-3 md:space-y-8"
+          className="space-y-8 md:space-y-16"
         >
           {/* Header - Compact mobile with improved spacing */}
-          <div className="text-center pt-3 md:pt-6">
-            <h2 className="text-lg md:text-4xl xl:text-5xl font-bold text-white mb-2 md:mb-4 leading-tight px-2 md:px-0">
+          <div className="text-center pt-4 md:pt-8">
+            <h2 className="text-xl md:text-5xl xl:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
               Meet Your <span className="text-emerald-400">24/7</span><br />
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
                 Booking Assistant
               </span>
             </h2>
-            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-3 md:mb-6">
+            <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
               <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
               <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
               faster than any human could.</span>
             </p>
             
-            <p className="text-xs md:text-base text-emerald-400 font-semibold tracking-tight">
+            <p className="text-sm md:text-lg text-emerald-400 font-semibold tracking-tight">
               Here's what makes it revolutionary:
             </p>
           </div>
