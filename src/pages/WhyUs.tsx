@@ -6,11 +6,13 @@ import Testimonials from '@/components/ui/testimonials-columns-1';
 
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Heart, Brain, Smartphone, Gauge, UserCheck, TabletSmartphone, Rocket } from 'lucide-react';
 import { Pricing } from '@/components/Pricing';
+import MethodologyModal from '@/components/MethodologyModal';
 
 const WhyUs = () => {
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
   const [flippedPsychCards, setFlippedPsychCards] = useState<boolean[]>([false, false, false, false]);
+  const [isMethodologyModalOpen, setIsMethodologyModalOpen] = useState(false);
   const sectorCarouselRef = useRef<HTMLDivElement>(null);
 
   const proofPoints = [
@@ -286,6 +288,9 @@ const WhyUs = () => {
     "Cognitive research proves immediate responses trigger dopamine release, creating positive associations with your brand. Customers describe WhatsApp booking as 'effortless' and 'natural.' One restaurant owner shared: 'Customers book tables mid-conversation with friends - it's seamless.'"
   ];
 
+  // Modal handlers
+  const openMethodologyModal = () => setIsMethodologyModalOpen(true);
+  const closeMethodologyModal = () => setIsMethodologyModalOpen(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
@@ -481,10 +486,18 @@ const WhyUs = () => {
                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
                  <span>Based on data from 10,000+ businesses worldwide</span>
                </div>
-              <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
-                <button className="text-emerald-400 hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70 font-medium">
-                  View methodology
-                </button>
+               <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
+                 <button 
+                   onClick={openMethodologyModal}
+                   className="text-emerald-400 hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70 font-medium"
+                 >
+                   View methodology
+                 </button>
+                 <span>•</span>
+                 <span>Data updated monthly</span>
+                 <span>•</span>
+                 <span>Results may vary by industry</span>
+               </div>
                 <span>•</span>
                 <span>Data updated monthly</span>
                 <span>•</span>
@@ -535,8 +548,12 @@ const WhyUs = () => {
                    <span>Based on data from 10,000+ businesses worldwide</span>
                  </div>
                 <div className="space-y-2">
-                  <button className="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70 block">
-                    View methodology
+                   <button 
+                     onClick={openMethodologyModal}
+                     className="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70 block"
+                   >
+                     View methodology
+                   </button>
                   </button>
                   <div className="flex items-center justify-center gap-3 text-xs text-slate-500">
                     <span>Data updated monthly</span>
@@ -1002,6 +1019,12 @@ const WhyUs = () => {
       <ScrollAnimatedSection delay={200}>
         <Pricing />
       </ScrollAnimatedSection>
+
+      {/* Methodology Modal */}
+      <MethodologyModal 
+        isOpen={isMethodologyModalOpen} 
+        onClose={closeMethodologyModal}
+      />
     </div>
   );
 };
