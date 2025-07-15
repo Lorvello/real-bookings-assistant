@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/hooks/useAuth';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
@@ -9,6 +9,7 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isHeaderVisible } = useScrollDirection(10);
   
   const navItems = [
@@ -65,28 +66,44 @@ const Header = () => {
           </Link>
           
           {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center space-x-8">
-            {navItems.map((item) => (
-              item.path === '/#pricing' ? (
+          <div className="hidden lg:flex items-center space-x-2">
+            {navItems.map((item) => {
+              const isActive = item.path === '/#pricing' ? location.pathname === '/' : location.pathname === item.path;
+              
+              return item.path === '/#pricing' ? (
                 <a
                   key={item.name}
                   href={item.path}
                   onClick={handlePricingClick}
-                  className="text-slate-300 hover:text-white transition-colors text-base font-medium cursor-pointer"
+                  className={`relative px-3 py-2 rounded-lg font-semibold text-base tracking-wide transition-all duration-300 cursor-pointer ${
+                    isActive 
+                      ? 'text-white bg-slate-700/50' 
+                      : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
+                  } focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 focus:ring-offset-slate-800`}
                 >
                   {item.name}
+                  {isActive && (
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-500 rounded-full" />
+                  )}
                 </a>
               ) : (
                 <Link
                   key={item.name}
                   to={item.path}
                   onClick={handleNavClick}
-                  className="text-slate-300 hover:text-white transition-colors text-base font-medium"
+                  className={`relative px-3 py-2 rounded-lg font-semibold text-base tracking-wide transition-all duration-300 ${
+                    isActive 
+                      ? 'text-white bg-slate-700/50' 
+                      : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
+                  } focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 focus:ring-offset-slate-800`}
                 >
                   {item.name}
+                  {isActive && (
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-500 rounded-full" />
+                  )}
                 </Link>
-              )
-            ))}
+              );
+            })}
           </div>
           
           {/* Desktop CTA Button */}
@@ -114,28 +131,44 @@ const Header = () => {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="lg:hidden mt-4 pt-4 border-t border-slate-600">
-            <div className="flex flex-col space-y-4">
-              {navItems.map((item) => (
-                item.path === '/#pricing' ? (
+            <div className="flex flex-col space-y-1">
+              {navItems.map((item) => {
+                const isActive = item.path === '/#pricing' ? location.pathname === '/' : location.pathname === item.path;
+                
+                return item.path === '/#pricing' ? (
                   <a
                     key={item.name}
                     href={item.path}
                     onClick={handlePricingClick}
-                    className="text-slate-300 hover:text-white transition-colors text-base font-medium py-2 cursor-pointer"
+                    className={`relative px-3 py-3 rounded-lg font-semibold text-base tracking-wide transition-all duration-300 cursor-pointer ${
+                      isActive 
+                        ? 'text-white bg-slate-700/50' 
+                        : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
+                    } focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 focus:ring-offset-slate-800`}
                   >
                     {item.name}
+                    {isActive && (
+                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-500 rounded-full" />
+                    )}
                   </a>
                 ) : (
                   <Link
                     key={item.name}
                     to={item.path}
                     onClick={handleNavClick}
-                    className="text-slate-300 hover:text-white transition-colors text-base font-medium py-2"
+                    className={`relative px-3 py-3 rounded-lg font-semibold text-base tracking-wide transition-all duration-300 ${
+                      isActive 
+                        ? 'text-white bg-slate-700/50' 
+                        : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
+                    } focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 focus:ring-offset-slate-800`}
                   >
                     {item.name}
+                    {isActive && (
+                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-500 rounded-full" />
+                    )}
                   </Link>
-                )
-              ))}
+                );
+              })}
               <Button 
                 onClick={handleGetStarted}
                 className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl mt-4 w-full"
