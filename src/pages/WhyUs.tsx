@@ -8,12 +8,15 @@ import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calend
 import { Pricing } from '@/components/Pricing';
 import MethodologyModal from '@/components/MethodologyModal';
 import DataDisclaimer from '@/components/DataDisclaimer';
+import PsychologyMethodologyModal from '@/components/PsychologyMethodologyModal';
+import PsychologyDataDisclaimer from '@/components/PsychologyDataDisclaimer';
 
 const WhyUs = () => {
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
   const [flippedPsychCards, setFlippedPsychCards] = useState<boolean[]>([false, false, false, false]);
   const [isMethodologyModalOpen, setIsMethodologyModalOpen] = useState(false);
+  const [isPsychologyMethodologyModalOpen, setIsPsychologyMethodologyModalOpen] = useState(false);
   const sectorCarouselRef = useRef<HTMLDivElement>(null);
 
   const proofPoints = [
@@ -292,6 +295,8 @@ const WhyUs = () => {
   // Modal handlers
   const openMethodologyModal = () => setIsMethodologyModalOpen(true);
   const closeMethodologyModal = () => setIsMethodologyModalOpen(false);
+  const openPsychologyMethodologyModal = () => setIsPsychologyMethodologyModalOpen(true);
+  const closePsychologyMethodologyModal = () => setIsPsychologyMethodologyModalOpen(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
@@ -664,8 +669,8 @@ const WhyUs = () => {
         </div>
       </ScrollAnimatedSection>
 
-      {/* Data Disclaimer - After Psychological Benefits */}
-      <DataDisclaimer onMethodologyClick={openMethodologyModal} />
+      {/* Psychology Data Disclaimer - After Psychological Benefits */}
+      <PsychologyDataDisclaimer onMethodologyClick={openPsychologyMethodologyModal} />
 
       {/* Detailed Sector Case Studies */}
       <ScrollAnimatedSection as="section" className="pt-24 md:pt-32 pb-12 md:pb-16">
@@ -1025,6 +1030,12 @@ const WhyUs = () => {
       <MethodologyModal 
         isOpen={isMethodologyModalOpen} 
         onClose={closeMethodologyModal}
+      />
+
+      {/* Psychology Methodology Modal */}
+      <PsychologyMethodologyModal 
+        isOpen={isPsychologyMethodologyModalOpen} 
+        onClose={closePsychologyMethodologyModal}
       />
     </div>
   );
