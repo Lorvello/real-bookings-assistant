@@ -75,32 +75,34 @@ const Header = () => {
                   key={item.name}
                   href={item.path}
                   onClick={handlePricingClick}
-                  className={`relative px-3 py-2 rounded-lg font-semibold text-base tracking-wide transition-all duration-300 cursor-pointer ${
+                  className={`relative px-4 py-2 rounded-md text-base transition-all duration-300 ease-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:ring-offset-2 focus:ring-offset-slate-800 ${
                     isActive 
-                      ? 'text-white bg-slate-700/50' 
-                      : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
-                  } focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 focus:ring-offset-slate-800`}
+                      ? 'text-emerald-500 font-semibold tracking-wide bg-emerald-500/8 shadow-sm hover:text-emerald-500/80' 
+                      : 'text-slate-300 font-normal hover:text-white'
+                  }`}
+                  style={isActive ? { 
+                    boxShadow: '0 0 20px rgba(16, 185, 129, 0.1)',
+                    letterSpacing: '0.5px'
+                  } : {}}
                 >
                   {item.name}
-                  {isActive && (
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-500 rounded-full" />
-                  )}
                 </a>
               ) : (
                 <Link
                   key={item.name}
                   to={item.path}
                   onClick={handleNavClick}
-                  className={`relative px-3 py-2 rounded-lg font-semibold text-base tracking-wide transition-all duration-300 ${
+                  className={`relative px-4 py-2 rounded-md text-base transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:ring-offset-2 focus:ring-offset-slate-800 ${
                     isActive 
-                      ? 'text-white bg-slate-700/50' 
-                      : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
-                  } focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 focus:ring-offset-slate-800`}
+                      ? 'text-emerald-500 font-semibold tracking-wide bg-emerald-500/8 shadow-sm hover:text-emerald-500/80' 
+                      : 'text-slate-300 font-normal hover:text-white'
+                  }`}
+                  style={isActive ? { 
+                    boxShadow: '0 0 20px rgba(16, 185, 129, 0.1)',
+                    letterSpacing: '0.5px'
+                  } : {}}
                 >
                   {item.name}
-                  {isActive && (
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-500 rounded-full" />
-                  )}
                 </Link>
               );
             })}
@@ -140,32 +142,34 @@ const Header = () => {
                     key={item.name}
                     href={item.path}
                     onClick={handlePricingClick}
-                    className={`relative px-3 py-3 rounded-lg font-semibold text-base tracking-wide transition-all duration-300 cursor-pointer ${
+                    className={`relative px-4 py-3 rounded-md text-base transition-all duration-300 ease-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:ring-offset-2 focus:ring-offset-slate-800 ${
                       isActive 
-                        ? 'text-white bg-slate-700/50' 
-                        : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
-                    } focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 focus:ring-offset-slate-800`}
+                        ? 'text-emerald-500 font-semibold tracking-wide bg-emerald-500/8 shadow-sm hover:text-emerald-500/80' 
+                        : 'text-slate-300 font-normal hover:text-white'
+                    }`}
+                    style={isActive ? { 
+                      boxShadow: '0 0 20px rgba(16, 185, 129, 0.1)',
+                      letterSpacing: '0.5px'
+                    } : {}}
                   >
                     {item.name}
-                    {isActive && (
-                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-500 rounded-full" />
-                    )}
                   </a>
                 ) : (
                   <Link
                     key={item.name}
                     to={item.path}
                     onClick={handleNavClick}
-                    className={`relative px-3 py-3 rounded-lg font-semibold text-base tracking-wide transition-all duration-300 ${
+                    className={`relative px-4 py-3 rounded-md text-base transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:ring-offset-2 focus:ring-offset-slate-800 ${
                       isActive 
-                        ? 'text-white bg-slate-700/50' 
-                        : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
-                    } focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2 focus:ring-offset-slate-800`}
+                        ? 'text-emerald-500 font-semibold tracking-wide bg-emerald-500/8 shadow-sm hover:text-emerald-500/80' 
+                        : 'text-slate-300 font-normal hover:text-white'
+                    }`}
+                    style={isActive ? { 
+                      boxShadow: '0 0 20px rgba(16, 185, 129, 0.1)',
+                      letterSpacing: '0.5px'
+                    } : {}}
                   >
                     {item.name}
-                    {isActive && (
-                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-500 rounded-full" />
-                    )}
                   </Link>
                 );
               })}
