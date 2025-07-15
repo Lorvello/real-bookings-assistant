@@ -5,7 +5,7 @@ import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 
 const Features = () => {
   return (
-    <section className="py-12 md:py-24 px-3 md:px-4 relative overflow-hidden" style={{
+    <section className="pt-20 pb-12 md:pt-32 md:pb-24 px-3 md:px-4 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
     }}>
       {/* Background decoration - Optimized for mobile */}
