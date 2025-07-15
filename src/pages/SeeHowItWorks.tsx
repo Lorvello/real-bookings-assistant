@@ -12,7 +12,7 @@ const SeeHowItWorks = () => {
       <Header />
       
       {/* Hero Section - Premium Design */}
-      <section className="py-12 md:py-16 px-3 md:px-4 relative overflow-hidden">
+      <section className="pt-24 md:pt-32 pb-12 md:pb-16 px-3 md:px-4 relative overflow-hidden">
         {/* Enhanced Background decoration with emerald accents */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-gradient-to-r from-emerald-600/20 via-slate-600/10 to-emerald-500/15 rounded-full blur-3xl animate-pulse"></div>

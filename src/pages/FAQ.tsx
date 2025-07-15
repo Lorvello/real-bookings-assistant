@@ -279,7 +279,7 @@ const FAQ = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="py-8 md:py-16 px-4 md:px-6 lg:px-8 relative overflow-hidden">
+      <section className="pt-24 md:pt-32 pb-8 md:pb-16 px-4 md:px-6 lg:px-8 relative overflow-hidden">
         {/* Grid pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
         
