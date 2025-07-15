@@ -30,7 +30,7 @@ const HeroSection: React.FC = () => {
 
         {/* Main headline */}
         <div className="space-y-4 md:space-y-8">
-          <h1 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-extrabold text-white leading-tight md:leading-[0.95] tracking-tight animate-appear opacity-100">
+          <h1 className="text-xl md:text-4xl xl:text-5xl font-bold text-white leading-tight md:leading-[0.95] tracking-tight animate-appear opacity-100">
             <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
               Bookings
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
@@ -40,7 +40,7 @@ const HeroSection: React.FC = () => {
             via WhatsApp
           </h1>
 
-          <p className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0">
+          <p className="text-sm md:text-lg text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0">
             <span className="md:hidden">AI books appointments 24/7 via WhatsApp. Zero missed opportunities.</span>
             <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-semibold">24/7 automation</span>,{" "}
