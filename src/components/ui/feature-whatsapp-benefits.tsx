@@ -63,8 +63,6 @@ export const WhatsAppBenefits = ({
     <section className={className}>
       {/* Visual distinction background overlay */}
       <div className="relative">
-        {/* Enhanced grid pattern overlay for cards section */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.03)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
         
         <div ref={ref} className="container max-w-5xl mx-auto px-8 lg:px-16 relative z-10">
           <div className="grid gap-4 md:grid-cols-2 lg:gap-6">
