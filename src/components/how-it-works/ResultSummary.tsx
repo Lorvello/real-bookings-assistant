@@ -100,7 +100,7 @@ const ResultSummary = () => {
                 <div onClick={() => toggleCardFlip(index)} className="w-full h-full">
                 {/* Flip Container */}
                 <div 
-                  className="relative w-full h-full transition-transform duration-800 ease-in-out"
+                  className="relative w-full h-full transition-transform duration-600 ease-in-out"
                   style={{
                     transformStyle: 'preserve-3d',
                     transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
@@ -200,7 +200,7 @@ const ResultSummary = () => {
                 <div onClick={() => toggleCardFlip(index)} className="w-full h-full">
                 {/* Mobile Flip Container */}
                 <div 
-                  className="relative w-full h-full transition-transform duration-800 ease-in-out"
+                  className="relative w-full h-full transition-transform duration-600 ease-in-out"
                   style={{
                     transformStyle: 'preserve-3d',
                     transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
