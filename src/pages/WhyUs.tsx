@@ -10,6 +10,7 @@ import { Pricing } from '@/components/Pricing';
 const WhyUs = () => {
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
+  const [flippedPsychCards, setFlippedPsychCards] = useState<boolean[]>([false, false, false, false]);
   const sectorCarouselRef = useRef<HTMLDivElement>(null);
 
   const proofPoints = [
@@ -247,6 +248,15 @@ const WhyUs = () => {
     });
   };
 
+  // Psychological card flip handler
+  const togglePsychCardFlip = (index: number) => {
+    setFlippedPsychCards(prev => {
+      const newFlipped = [...prev];
+      newFlipped[index] = !newFlipped[index];
+      return newFlipped;
+    });
+  };
+
 
   // Detailed explanations for card backs
   const cardBackContent = [
@@ -266,6 +276,14 @@ const WhyUs = () => {
       title: "80% Fewer No-Shows",
       content: "Through intelligent reminder systems, easy rescheduling, and personalized communication via WhatsApp, we've dramatically reduced no-show rates compared to traditional email-based systems. Customers actually receive and read our reminders."
     }
+  ];
+
+  // Psychological benefits back side content
+  const psychBackContent = [
+    "Psychology research from Dr. Sherry Turkle at MIT reveals that messaging feels like 'being heard' rather than 'being processed.' Businesses report customers share more personal details via WhatsApp, creating genuine relationships. One salon owner noted: 'Clients text me like a friend, not a service provider.'",
+    "Behavioral economics shows messaging removes 'email anxiety' - the fear of formal communication. Customers admit they delay emailing businesses but message instantly. Case study: A dental practice saw 340% more appointment requests when switching from email forms to WhatsApp chat.",
+    "Anthropological studies show phones are 'digital extensions of self.' WhatsApp integrates into daily rituals - checking messages while commuting, during breaks, before sleep. Unlike emails buried in inboxes, WhatsApp messages demand immediate attention through our ingrained behavioral patterns.",
+    "Cognitive research proves immediate responses trigger dopamine release, creating positive associations with your brand. Customers describe WhatsApp booking as 'effortless' and 'natural.' One restaurant owner shared: 'Customers book tables mid-conversation with friends - it's seamless.'"
   ];
 
 
@@ -503,31 +521,62 @@ const WhyUs = () => {
                 className="group relative"
                 delay={300 + index * 150}
               >
-                {/* Optimized Card Container */}
-                <div className="relative p-5 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-slate-600/30 shadow-[0_20px_40px_rgba(0,0,0,0.25)] transition-all duration-500 hover:shadow-[0_24px_48px_rgba(16,185,129,0.12)] hover:border-emerald-400/40 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1">
-                  
-                  {/* Content Layout */}
-                  <div className="flex items-start space-x-4">
-                    {/* Icon Container */}
-                    <div className="relative w-12 h-12 md:w-14 md:h-14 flex-shrink-0">
-                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/25 via-emerald-400/20 to-emerald-600/25 rounded-xl shadow-lg transform group-hover:scale-105 transition-transform duration-300"></div>
-                      <div className="absolute inset-0.5 bg-gradient-to-tr from-slate-800/70 to-slate-700/50 rounded-lg backdrop-blur-sm"></div>
-                      <div className="relative w-full h-full flex items-center justify-center">
-                        <benefit.icon className="w-6 h-6 md:w-7 md:h-7 text-emerald-400 drop-shadow-lg group-hover:text-emerald-300 transition-colors duration-300" />
+                {/* Flip Card Container */}
+                <div 
+                  className="relative cursor-pointer h-48 md:h-52"
+                  onClick={() => togglePsychCardFlip(index)}
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transform: flippedPsychCards[index] ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    transition: 'transform 0.6s ease-in-out'
+                  }}
+                >
+                  {/* Front Side */}
+                  <div 
+                    className="absolute inset-0 p-5 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-slate-600/30 shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:shadow-[0_24px_48px_rgba(16,185,129,0.12)] hover:border-emerald-400/40 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1 transition-all duration-500"
+                    style={{
+                      backfaceVisibility: 'hidden'
+                    }}
+                  >
+                    {/* Content Layout */}
+                    <div className="flex items-start space-x-4">
+                      {/* Icon Container */}
+                      <div className="relative w-12 h-12 md:w-14 md:h-14 flex-shrink-0">
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/25 via-emerald-400/20 to-emerald-600/25 rounded-xl shadow-lg transform group-hover:scale-105 transition-transform duration-300"></div>
+                        <div className="absolute inset-0.5 bg-gradient-to-tr from-slate-800/70 to-slate-700/50 rounded-lg backdrop-blur-sm"></div>
+                        <div className="relative w-full h-full flex items-center justify-center">
+                          <benefit.icon className="w-6 h-6 md:w-7 md:h-7 text-emerald-400 drop-shadow-lg group-hover:text-emerald-300 transition-colors duration-300" />
+                        </div>
+                      </div>
+                      
+                      {/* Content Container */}
+                      <div className="flex-1 space-y-3">
+                        {/* Title */}
+                        <h3 className="text-lg md:text-xl font-bold bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent leading-tight">
+                          {benefit.title}
+                        </h3>
+                        
+                        {/* Description with integrated statistics */}
+                        <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+                          <span className="md:hidden">{benefit.mobileDescription}</span>
+                          <span className="hidden md:inline">{benefit.description}</span>
+                        </p>
                       </div>
                     </div>
-                    
-                    {/* Content Container */}
-                    <div className="flex-1 space-y-3">
-                      {/* Title */}
-                      <h3 className="text-lg md:text-xl font-bold bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent leading-tight">
-                        {benefit.title}
-                      </h3>
-                      
-                      {/* Description with integrated statistics */}
+                  </div>
+
+                  {/* Back Side */}
+                  <div 
+                    className="absolute inset-0 p-5 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-slate-600/30 shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:shadow-[0_24px_48px_rgba(16,185,129,0.12)] hover:border-emerald-400/40 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1 transition-all duration-500 flex items-center justify-center"
+                    style={{
+                      backfaceVisibility: 'hidden',
+                      transform: 'rotateY(180deg)'
+                    }}
+                  >
+                    {/* Text Content Only */}
+                    <div className="text-center">
                       <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-                        <span className="md:hidden">{benefit.mobileDescription}</span>
-                        <span className="hidden md:inline">{benefit.description}</span>
+                        {psychBackContent[index]}
                       </p>
                     </div>
                   </div>
