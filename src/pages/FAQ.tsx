@@ -275,17 +275,11 @@ const FAQ = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-slate-900">
       <Header />
       
       {/* Hero Section */}
-      <section className="py-12 md:py-24 px-4 md:px-6 lg:px-8 relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-green-500/5 rounded-full blur-3xl"></div>
-        </div>
-        
+      <section className="py-8 md:py-16 px-4 md:px-6 lg:px-8 relative overflow-hidden">
         {/* Grid pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
         
@@ -294,7 +288,7 @@ const FAQ = () => {
             <h1 className="text-2xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6">
               Frequently Asked <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Questions</span>
             </h1>
-            <p className="text-sm md:text-xl text-gray-300 max-w-4xl mx-auto mb-8 md:mb-16">
+            <p className="text-sm md:text-xl text-gray-300 max-w-4xl mx-auto mb-6 md:mb-8">
               Everything you need to know about our AI-powered WhatsApp booking platform. 
               Can't find what you're looking for? <strong className="text-emerald-400">Contact our support team</strong>.
             </p>
@@ -304,7 +298,7 @@ const FAQ = () => {
       </section>
 
       {/* Search Section */}
-      <section className="py-12 px-4 md:px-6 lg:px-8">
+      <section className="py-6 px-4 md:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <ScrollAnimatedSection>
             {/* Search Bar */}
@@ -348,7 +342,7 @@ const FAQ = () => {
       </section>
 
       {/* FAQ Sections */}
-      <section className="py-20 px-4 md:px-6 lg:px-8">
+      <section className="py-8 px-4 md:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {filteredSections.length === 0 ? (
             <ScrollAnimatedSection>
