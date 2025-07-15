@@ -8,7 +8,8 @@ const PsychologyDataDisclaimer: React.FC<PsychologyDataDisclaimerProps> = ({ onM
   return (
     <div className="-mt-4 pb-4 text-center">
       <p className="text-slate-400 text-sm mb-2 font-medium">
-        Based on behavioral psychology research from 25,000+ consumers across 15 countries
+        <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>
+        Based on behavioral psychology research from 10,000+ businesses across 15 countries
       </p>
       
       <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-xs text-slate-400">

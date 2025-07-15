@@ -8,6 +8,7 @@ const CaseStudiesDataDisclaimer: React.FC<CaseStudiesDataDisclaimerProps> = ({ o
   return (
     <div className="-mt-4 pb-4 text-center">
       <p className="text-slate-400 text-sm mb-2 font-medium">
+        <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>
         Based on verified business performance data from in-depth case studies
       </p>
       
