@@ -80,7 +80,7 @@ const Solution = () => {
         >
           {/* Header - Compact mobile with improved spacing */}
           <div className="text-center pt-4 md:pt-8">
-            <h2 className="text-lg md:text-3xl xl:text-4xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
+            <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
               Meet Your <span className="text-emerald-400">24/7</span><br />
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
                 Booking Assistant

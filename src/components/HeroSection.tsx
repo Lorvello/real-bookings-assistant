@@ -19,7 +19,7 @@ const HeroSection: React.FC = () => {
 
         {/* Main headline */}
         <div className="space-y-4 md:space-y-8">
-          <h1 className="text-lg md:text-3xl xl:text-4xl font-extrabold text-white leading-tight md:leading-[0.95] tracking-tight animate-appear opacity-100">
+          <h1 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-extrabold text-white leading-tight md:leading-[0.95] tracking-tight animate-appear opacity-100">
             <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
               Bookings
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
