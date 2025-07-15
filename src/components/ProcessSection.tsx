@@ -10,7 +10,7 @@ import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 
 const ProcessSection = () => {
   return (
-    <section className="py-16 md:py-20 relative overflow-hidden" style={{
+    <section className="py-8 md:py-12 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
     }}>
       {/* Background decoration */}
@@ -27,7 +27,7 @@ const ProcessSection = () => {
           staggerDelay={200} 
           threshold={0.3}
           variant="process"
-          className="space-y-32 md:space-y-24"
+          className="space-y-16 md:space-y-12"
         >
           {/* Section header - Compact */}
           <div className="text-center">

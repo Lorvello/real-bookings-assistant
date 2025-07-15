@@ -5,7 +5,7 @@ import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 
 const Features = () => {
   return (
-    <section className="pt-20 pb-12 md:pt-32 md:pb-24 px-3 md:px-4 relative overflow-hidden" style={{
+    <section className="pt-10 pb-6 md:pt-16 md:pb-12 px-3 md:px-4 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
     }}>
       {/* Background decoration - Optimized for mobile */}
@@ -19,7 +19,7 @@ const Features = () => {
         <StaggeredAnimationContainer 
           staggerDelay={200} 
           variant="features"
-          className="space-y-8 md:space-y-20"
+          className="space-y-4 md:space-y-10"
         >
           {/* Header - Mobile optimized */}
           <div className="text-center">
