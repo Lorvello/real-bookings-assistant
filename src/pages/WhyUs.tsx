@@ -567,7 +567,7 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Detailed Sector Case Studies */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-16">
+      <ScrollAnimatedSection as="section" className="pt-24 md:pt-32 pb-12 md:pb-16">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
