@@ -409,33 +409,6 @@ const FAQ = () => {
         </div>
       </section>
 
-      {/* Contact CTA */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4 md:px-6 lg:px-8">
-            <h3 className="text-3xl font-bold text-white mb-6">
-              Still have questions?
-            </h3>
-            <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Our support team is ready to help you with AI-powered booking automation. 
-              Get in touch and we'll answer any questions you have.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-emerald-600 hover:to-green-600 transition-all duration-300 shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center space-x-2">
-                <MessageCircle className="w-5 h-5" />
-                <span>Start WhatsApp Chat</span>
-              </button>
-              
-              <button className="bg-transparent text-white px-8 py-4 rounded-xl font-semibold hover:bg-slate-800/20 transition-all duration-300 border border-slate-700/50 hover:border-slate-600/50 flex items-center justify-center space-x-2">
-                <Mail className="w-5 h-5" />
-                <span>Email Support</span>
-              </button>
-            </div>
-
-            <div className="mt-8 text-gray-300 text-sm">
-              <p>📞 <strong>Phone support:</strong> Mon-Fri 9:00-18:00</p>
-              <p>💬 <strong>Live chat:</strong> Available 24/7</p>
-            </div>
-      </ScrollAnimatedSection>
     </div>
   );
 };
