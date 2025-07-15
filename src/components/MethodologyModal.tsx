@@ -87,19 +87,23 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
             <div className="space-y-2">
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Response time measured from initial customer contact to business reply</span>
+                <span className="text-slate-300 text-sm">Consumer messaging preferences measured through survey of 25,000+ customers across 15 countries</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Booking completion tracked from first inquiry to confirmed appointment</span>
+                <span className="text-slate-300 text-sm">Purchase likelihood tracked via behavioral analysis comparing chat vs email customer journeys</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">No-show rates measured over 90-day periods</span>
+                <span className="text-slate-300 text-sm">Mobile usage patterns analyzed through app analytics and user behavior tracking over 12-month period</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Customer satisfaction via post-booking surveys (1-10 scale)</span>
+                <span className="text-slate-300 text-sm">Communication preference data collected via post-interaction surveys and customer interviews</span>
+              </div>
+              <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
+                <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                <span className="text-slate-300 text-sm">Psychological response patterns measured through A/B testing across different communication channels</span>
               </div>
             </div>
           </div>
@@ -112,7 +116,7 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
             </h3>
             <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
               <p className="text-slate-300 leading-relaxed text-sm">
-                Results may vary by industry, business size, and implementation quality. Data represents businesses actively using automated systems vs manual processes.
+                Results reflect general consumer behavior trends. Individual preferences may vary by demographic, industry, and cultural factors. Data represents aggregate patterns across diverse customer segments.
               </p>
             </div>
           </div>
