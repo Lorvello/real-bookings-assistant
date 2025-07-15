@@ -480,7 +480,7 @@ const WhyUs = () => {
               </div>
             </ScrollAnimatedSection>
 
-            {/* Enhanced Credibility Footer */}
+             {/* Enhanced Credibility Footer */}
              <div className="hidden md:block text-center mb-16 space-y-3">
                <div className="flex items-center justify-center gap-2 text-slate-400 text-sm font-medium">
                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
@@ -499,12 +499,6 @@ const WhyUs = () => {
                  <span>Results may vary by industry</span>
                </div>
              </div>
-                <span>•</span>
-                <span>Data updated monthly</span>
-                <span>•</span>
-                <span>Results may vary by industry</span>
-              </div>
-            </div>
 
              {/* Mobile: Enhanced Premium Cards */}
              <div className="md:hidden space-y-6 mb-8">
