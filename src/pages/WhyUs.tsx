@@ -10,6 +10,8 @@ import MethodologyModal from '@/components/MethodologyModal';
 import DataDisclaimer from '@/components/DataDisclaimer';
 import PsychologyMethodologyModal from '@/components/PsychologyMethodologyModal';
 import PsychologyDataDisclaimer from '@/components/PsychologyDataDisclaimer';
+import CaseStudiesMethodologyModal from '@/components/CaseStudiesMethodologyModal';
+import CaseStudiesDataDisclaimer from '@/components/CaseStudiesDataDisclaimer';
 
 const WhyUs = () => {
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
@@ -17,6 +19,7 @@ const WhyUs = () => {
   const [flippedPsychCards, setFlippedPsychCards] = useState<boolean[]>([false, false, false, false]);
   const [isMethodologyModalOpen, setIsMethodologyModalOpen] = useState(false);
   const [isPsychologyMethodologyModalOpen, setIsPsychologyMethodologyModalOpen] = useState(false);
+  const [isCaseStudiesMethodologyModalOpen, setIsCaseStudiesMethodologyModalOpen] = useState(false);
   const sectorCarouselRef = useRef<HTMLDivElement>(null);
 
   const proofPoints = [
@@ -297,6 +300,8 @@ const WhyUs = () => {
   const closeMethodologyModal = () => setIsMethodologyModalOpen(false);
   const openPsychologyMethodologyModal = () => setIsPsychologyMethodologyModalOpen(true);
   const closePsychologyMethodologyModal = () => setIsPsychologyMethodologyModalOpen(false);
+  const openCaseStudiesMethodologyModal = () => setIsCaseStudiesMethodologyModalOpen(true);
+  const closeCaseStudiesMethodologyModal = () => setIsCaseStudiesMethodologyModalOpen(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
@@ -832,7 +837,7 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Data Disclaimer - After Case Studies */}
-      <DataDisclaimer onMethodologyClick={openMethodologyModal} />
+      <CaseStudiesDataDisclaimer onMethodologyClick={openCaseStudiesMethodologyModal} />
 
       {/* Testimonials Section */}
       <ScrollAnimatedSection delay={100} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
@@ -1036,6 +1041,12 @@ const WhyUs = () => {
       <PsychologyMethodologyModal 
         isOpen={isPsychologyMethodologyModalOpen} 
         onClose={closePsychologyMethodologyModal}
+      />
+
+      {/* Case Studies Methodology Modal */}
+      <CaseStudiesMethodologyModal 
+        isOpen={isCaseStudiesMethodologyModalOpen} 
+        onClose={closeCaseStudiesMethodologyModal}
       />
     </div>
   );
