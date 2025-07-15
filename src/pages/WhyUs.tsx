@@ -278,7 +278,7 @@ const WhyUs = () => {
       <Header />
       
       {/* Hero Section - Premium Design */}
-      <section className="py-16 md:py-24 px-3 md:px-4 relative overflow-hidden">
+      <section className="py-12 md:py-16 px-3 md:px-4 relative overflow-hidden">
         {/* Enhanced Background decoration with emerald accents */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-gradient-to-r from-emerald-600/20 via-slate-600/10 to-emerald-500/15 rounded-full blur-3xl animate-pulse"></div>
@@ -313,7 +313,7 @@ const WhyUs = () => {
             animation="fade-up" 
             delay={200}
             as="h1" 
-            className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
+            className="text-xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
           >
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               Why{' '}
@@ -332,7 +332,7 @@ const WhyUs = () => {
             animation="fade-up" 
             delay={400}
             as="p" 
-            className="text-xs md:text-lg lg:text-xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
+            className="text-sm md:text-lg text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
           >
             95% higher response rates vs phone calls, 18x faster than web forms, 50% fewer no-shows than manual booking.
           </ScrollAnimatedSection>
@@ -396,16 +396,16 @@ const WhyUs = () => {
       </section>
 
        {/* Premium WhatsApp vs Email Statistics */}
-       <ScrollAnimatedSection as="section" className="py-16 md:py-24">
+       <ScrollAnimatedSection as="section" className="py-12 md:py-16">
          <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
            <div className="text-center mb-12 md:mb-20">
              <ScrollAnimatedSection delay={100}>
-                   <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-center mb-6 md:mb-8 bg-gradient-to-r from-emerald-400 via-white to-emerald-400 bg-clip-text text-transparent">
+                   <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-center mb-6 md:mb-8 bg-gradient-to-r from-emerald-400 via-white to-emerald-400 bg-clip-text text-transparent">
                      WhatsApp vs Traditional Booking
                    </h2>
               </ScrollAnimatedSection>
               <ScrollAnimatedSection delay={200}>
-                 <p className="text-base md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+                 <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
                   <span className="md:hidden">Data from thousands of businesses</span>
                   <span className="hidden md:inline">Data-driven comparison across thousands of businesses worldwide</span>
                 </p>
@@ -479,11 +479,11 @@ const WhyUs = () => {
        </ScrollAnimatedSection>
 
       {/* Premium Psychological Benefits Section */}
-      <ScrollAnimatedSection as="section" className="py-16 md:py-24">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-16">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-12 md:mb-20">
             <ScrollAnimatedSection delay={100}>
-              <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
+              <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
                 Why WhatsApp Works{" "}
                 <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent">
                   <span className="md:hidden">Better</span>
@@ -493,7 +493,7 @@ const WhyUs = () => {
               </h2>
             </ScrollAnimatedSection>
             <ScrollAnimatedSection delay={200}>
-              <p className="text-base md:text-xl text-slate-300 max-w-4xl mx-auto px-3 sm:px-0">
+              <p className="text-sm md:text-lg text-slate-300 max-w-4xl mx-auto px-3 sm:px-0">
                 <span className="md:hidden">How people feel and behave matters</span>
                 <span className="hidden md:inline">It's not just about numbers - it's about how people feel and behave</span>
               </p>
@@ -567,13 +567,13 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Detailed Sector Case Studies */}
-      <ScrollAnimatedSection as="section" className="py-12 md:py-20">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-16">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               <span className="text-green-400">Proven Results</span> Across All Sectors
             </h2>
-            <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
               <span className="md:hidden">Real businesses, dramatic improvements</span>
               <span className="hidden md:inline">In-depth case studies of real businesses that saw dramatic improvements</span>
             </p>
@@ -731,7 +731,7 @@ const WhyUs = () => {
       </ScrollAnimatedSection>
 
       {/* Streamlined Mobile-First Excellence Section */}
-      <ScrollAnimatedSection as="section" className="py-16 md:py-32 relative overflow-hidden">
+      <ScrollAnimatedSection as="section" className="py-12 md:py-16 relative overflow-hidden">
         {/* Subtle Background Ambiance */}
         <div className="absolute inset-0">
           <div className="absolute top-1/3 left-1/4 w-[600px] h-[400px] bg-gradient-to-br from-emerald-500/8 via-transparent to-emerald-600/4 rounded-full blur-3xl"></div>
@@ -745,7 +745,7 @@ const WhyUs = () => {
               animation="fade-up" 
               delay={0}
               as="h2" 
-              className="text-3xl md:text-5xl xl:text-6xl font-bold mb-6 md:mb-8 tracking-tight"
+              className="text-xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 tracking-tight"
             >
               <span className="text-white">Why </span>
               <span className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent">
