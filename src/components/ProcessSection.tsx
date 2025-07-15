@@ -31,7 +31,7 @@ const ProcessSection = () => {
         >
           {/* Section header - Compact */}
           <div className="text-center">
-            <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-lg md:text-3xl xl:text-4xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
               See How It <span className="text-emerald-400">Works</span>
             </h2>
             <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
