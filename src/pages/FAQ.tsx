@@ -275,11 +275,11 @@ const FAQ = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Header />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-12 md:py-24 px-4 md:px-6 lg:px-8 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-12 md:py-24 px-4 md:px-6 lg:px-8 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -294,7 +294,7 @@ const FAQ = () => {
             <h1 className="text-2xl md:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6">
               Frequently Asked <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">Questions</span>
             </h1>
-            <p className="text-sm md:text-xl text-slate-300 max-w-4xl mx-auto mb-8 md:mb-16">
+            <p className="text-sm md:text-xl text-gray-300 max-w-4xl mx-auto mb-8 md:mb-16">
               Everything you need to know about our AI-powered WhatsApp booking platform. 
               Can't find what you're looking for? <strong className="text-emerald-400">Contact our support team</strong>.
             </p>
@@ -304,7 +304,7 @@ const FAQ = () => {
       </section>
 
       {/* Search Section */}
-      <section className="py-12 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+      <section className="py-12 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="max-w-4xl mx-auto">
           <ScrollAnimatedSection>
             {/* Search Bar */}
@@ -320,7 +320,7 @@ const FAQ = () => {
                   />
               </div>
               {searchTerm && (
-                <div className="mt-4 text-sm text-slate-400 text-center">
+                <div className="mt-4 text-sm text-gray-300 text-center">
                   {filteredSections.reduce((total, section) => total + section.items.length, 0)} results found
                 </div>
               )}
@@ -335,7 +335,7 @@ const FAQ = () => {
                     <button
                       key={index}
                       onClick={() => handleRecommendedClick(question)}
-                      className="bg-transparent hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400 px-4 py-2 rounded-xl text-sm transition-all duration-300 border border-slate-600/50 hover:border-emerald-500/50"
+                      className="bg-transparent hover:bg-emerald-500/20 text-gray-300 hover:text-emerald-400 px-4 py-2 rounded-xl text-sm transition-all duration-300 border border-slate-600/50 hover:border-emerald-500/50"
                     >
                       {question}
                     </button>
@@ -348,7 +348,7 @@ const FAQ = () => {
       </section>
 
       {/* FAQ Sections */}
-      <section className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+      <section className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="max-w-6xl mx-auto">
           {filteredSections.length === 0 ? (
             <ScrollAnimatedSection>
@@ -357,7 +357,7 @@ const FAQ = () => {
                   <Search className="w-12 h-12 text-slate-400" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">No results found</h3>
-                <p className="text-slate-400 mb-6">Try a different search term or view all FAQs below.</p>
+                <p className="text-gray-300 mb-6">Try a different search term or view all FAQs below.</p>
                 <button 
                   onClick={() => setSearchTerm('')}
                   className="bg-emerald-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-600 transition-colors"
@@ -396,7 +396,7 @@ const FAQ = () => {
                         <AccordionTrigger className="text-left hover:no-underline hover:text-emerald-400 transition-colors py-6">
                           <span className="font-semibold text-white text-lg">{item.question}</span>
                         </AccordionTrigger>
-                        <AccordionContent className="text-slate-300 leading-relaxed pb-6 text-base">
+                        <AccordionContent className="text-gray-300 leading-relaxed pb-6 text-base">
                           {item.answer}
                         </AccordionContent>
                       </AccordionItem>
@@ -410,13 +410,13 @@ const FAQ = () => {
       </section>
 
       {/* Contact CTA */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+      <ScrollAnimatedSection as="section" className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-2xl p-12 border border-emerald-500/20">
             <h3 className="text-3xl font-bold text-white mb-6">
               Still have questions?
             </h3>
-            <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
               Our support team is ready to help you with AI-powered booking automation. 
               Get in touch and we'll answer any questions you have.
             </p>
@@ -433,7 +433,7 @@ const FAQ = () => {
               </button>
             </div>
 
-            <div className="mt-8 text-slate-400 text-sm">
+            <div className="mt-8 text-gray-300 text-sm">
               <p>📞 <strong>Phone support:</strong> Mon-Fri 9:00-18:00</p>
               <p>💬 <strong>Live chat:</strong> Available 24/7</p>
             </div>
