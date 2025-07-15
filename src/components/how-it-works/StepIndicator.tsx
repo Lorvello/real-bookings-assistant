@@ -81,7 +81,7 @@ const StepIndicator = () => {
               </svg>
             </div>
             
-            <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-emerald-300 via-emerald-200 to-emerald-400 bg-clip-text text-transparent drop-shadow-2xl tracking-tight">
+            <h3 className="text-xl md:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-emerald-300 via-emerald-200 to-emerald-400 bg-clip-text text-transparent drop-shadow-2xl tracking-tight">
               3 Steps. 5 Minutes. Done.
             </h3>
             
@@ -93,7 +93,7 @@ const StepIndicator = () => {
             </div>
           </div>
           
-          <p className="text-base md:text-lg text-slate-300 max-w-3xl mx-auto font-light leading-relaxed">
+          <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto font-light leading-relaxed">
             Our intelligent system handles everything automatically, so you can focus on what matters most, 
             <span className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent font-semibold"> serving your customers</span>.
           </p>

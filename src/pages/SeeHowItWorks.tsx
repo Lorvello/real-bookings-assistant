@@ -12,7 +12,7 @@ const SeeHowItWorks = () => {
       <Header />
       
       {/* Hero Section - Premium Design */}
-      <section className="py-16 md:py-24 px-3 md:px-4 relative overflow-hidden">
+      <section className="py-12 md:py-16 px-3 md:px-4 relative overflow-hidden">
         {/* Enhanced Background decoration with emerald accents */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-gradient-to-r from-emerald-600/20 via-slate-600/10 to-emerald-500/15 rounded-full blur-3xl animate-pulse"></div>
@@ -47,7 +47,7 @@ const SeeHowItWorks = () => {
             animation="fade-up" 
             delay={200}
             as="h1" 
-            className="text-2xl md:text-5xl xl:text-6xl 2xl:text-8xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
+            className="text-xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
           >
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               How does{' '}
@@ -63,7 +63,7 @@ const SeeHowItWorks = () => {
             animation="fade-up" 
             delay={400}
             as="p" 
-            className="text-sm md:text-xl lg:text-2xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
+            className="text-sm md:text-lg text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
           >
             Step by step explanation of how easy it is to get started with our system. 
             <br className="hidden md:block" />
