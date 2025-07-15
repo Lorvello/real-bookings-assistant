@@ -327,13 +327,13 @@ const FAQ = () => {
             <div className="relative mb-8">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <Input
-                  type="text"
-                  placeholder="Search frequently asked questions..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 pr-4 py-4 h-14 text-lg bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
-                />
+                  <Input
+                    type="text"
+                    placeholder="Search frequently asked questions..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-12 pr-4 py-4 h-14 text-lg bg-transparent border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
+                  />
               </div>
               {searchTerm && (
                 <div className="mt-4 text-sm text-slate-400 text-center">
@@ -351,7 +351,7 @@ const FAQ = () => {
                     <button
                       key={index}
                       onClick={() => handleRecommendedClick(question)}
-                      className="bg-slate-700/50 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400 px-4 py-2 rounded-xl text-sm transition-all duration-300 border border-slate-600/50 hover:border-emerald-500/50"
+                      className="bg-transparent hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400 px-4 py-2 rounded-xl text-sm transition-all duration-300 border border-slate-600/50 hover:border-emerald-500/50"
                     >
                       {question}
                     </button>
@@ -369,7 +369,7 @@ const FAQ = () => {
           {filteredSections.length === 0 ? (
             <ScrollAnimatedSection>
               <div className="text-center py-16">
-                <div className="w-24 h-24 bg-slate-800/50 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                <div className="w-24 h-24 bg-transparent border border-slate-700/50 rounded-2xl flex items-center justify-center mb-6 mx-auto">
                   <Search className="w-12 h-12 text-slate-400" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4">No results found</h3>
@@ -387,12 +387,12 @@ const FAQ = () => {
               {filteredSections.map((section, sectionIndex) => (
                 <ScrollAnimatedSection 
                   key={sectionIndex} 
-                  className={`bg-gradient-to-r ${section.color} backdrop-blur-sm rounded-2xl p-8 border ${section.borderColor} hover:border-opacity-40 transition-all duration-300`}
+                  className={`bg-gradient-to-r ${section.color} rounded-2xl p-8 border ${section.borderColor} hover:border-opacity-40 transition-all duration-300`}
                   delay={sectionIndex * 100}
                 >
                   {/* Section Header */}
                   <div className="flex items-center space-x-4 mb-8">
-                    <div className="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center">
+                    <div className="w-16 h-16 bg-transparent border border-slate-700/50 rounded-2xl flex items-center justify-center">
                       <section.icon className="w-8 h-8 text-emerald-400" />
                     </div>
                     <div>
@@ -407,7 +407,7 @@ const FAQ = () => {
                       <AccordionItem 
                         key={itemIndex} 
                         value={`${sectionIndex}-${itemIndex}`}
-                        className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50 px-6 hover:bg-slate-800/50 transition-all duration-300"
+                        className="bg-transparent rounded-xl border border-slate-700/50 px-6 hover:bg-slate-800/20 transition-all duration-300"
                       >
                         <AccordionTrigger className="text-left hover:no-underline hover:text-emerald-400 transition-colors py-6">
                           <span className="font-semibold text-white text-lg">{item.question}</span>
@@ -426,9 +426,9 @@ const FAQ = () => {
       </section>
 
       {/* Contact CTA */}
-      <ScrollAnimatedSection as="section" className="py-20 px-4 md:px-6 lg:px-8 bg-slate-800/20">
+      <ScrollAnimatedSection as="section" className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 backdrop-blur-sm rounded-2xl p-12 border border-emerald-500/20">
+          <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-2xl p-12 border border-emerald-500/20">
             <h3 className="text-3xl font-bold text-white mb-6">
               Still have questions?
             </h3>
@@ -443,7 +443,7 @@ const FAQ = () => {
                 <span>Start WhatsApp Chat</span>
               </button>
               
-              <button className="bg-slate-800/50 backdrop-blur-sm text-white px-8 py-4 rounded-xl font-semibold hover:bg-slate-800/70 transition-all duration-300 border border-slate-700/50 hover:border-slate-600/50 flex items-center justify-center space-x-2">
+              <button className="bg-transparent text-white px-8 py-4 rounded-xl font-semibold hover:bg-slate-800/20 transition-all duration-300 border border-slate-700/50 hover:border-slate-600/50 flex items-center justify-center space-x-2">
                 <Mail className="w-5 h-5" />
                 <span>Email Support</span>
               </button>
