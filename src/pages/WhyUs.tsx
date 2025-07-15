@@ -25,6 +25,22 @@ const WhyUs = () => {
   const [isMobileFirstMethodologyModalOpen, setIsMobileFirstMethodologyModalOpen] = useState(false);
   const sectorCarouselRef = useRef<HTMLDivElement>(null);
 
+  // Modal handlers - defined early to ensure scope availability
+  const openMethodologyModal = () => setIsMethodologyModalOpen(true);
+  const closeMethodologyModal = () => setIsMethodologyModalOpen(false);
+  const openPsychologyMethodologyModal = () => setIsPsychologyMethodologyModalOpen(true);
+  const closePsychologyMethodologyModal = () => setIsPsychologyMethodologyModalOpen(false);
+  const openCaseStudiesMethodologyModal = () => setIsCaseStudiesMethodologyModalOpen(true);
+  const closeCaseStudiesMethodologyModal = () => setIsCaseStudiesMethodologyModalOpen(false);
+  const openMobileFirstMethodologyModal = () => {
+    console.log('openMobileFirstMethodologyModal called');
+    setIsMobileFirstMethodologyModalOpen(true);
+  };
+  const closeMobileFirstMethodologyModal = () => {
+    console.log('closeMobileFirstMethodologyModal called');
+    setIsMobileFirstMethodologyModalOpen(false);
+  };
+
   const proofPoints = [
     {
       number: "10,000+",
@@ -298,15 +314,6 @@ const WhyUs = () => {
     "Cognitive research proves immediate responses trigger dopamine release, creating positive associations with your brand. Customers describe WhatsApp booking as 'effortless' and 'natural.' One restaurant owner shared: 'Customers book tables mid-conversation with friends - it's seamless.'"
   ];
 
-  // Modal handlers
-  const openMethodologyModal = () => setIsMethodologyModalOpen(true);
-  const closeMethodologyModal = () => setIsMethodologyModalOpen(false);
-  const openPsychologyMethodologyModal = () => setIsPsychologyMethodologyModalOpen(true);
-  const closePsychologyMethodologyModal = () => setIsPsychologyMethodologyModalOpen(false);
-  const openCaseStudiesMethodologyModal = () => setIsCaseStudiesMethodologyModalOpen(true);
-  const closeCaseStudiesMethodologyModal = () => setIsCaseStudiesMethodologyModalOpen(false);
-  const openMobileFirstMethodologyModal = () => setIsMobileFirstMethodologyModalOpen(true);
-  const closeMobileFirstMethodologyModal = () => setIsMobileFirstMethodologyModalOpen(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
