@@ -42,7 +42,7 @@ const WhyUs = () => {
       phoneCalls: "24-48 hours",
       websiteForms: "12-24 hours",
       whatsapp: "Under 30 seconds",
-      improvement: "50x faster",
+      improvement: "15x faster",
       icon: Clock
     },
     {
@@ -58,7 +58,7 @@ const WhyUs = () => {
       phoneCalls: "~25%",
       websiteForms: "~15%",
       whatsapp: "85-95%",
-      improvement: "4x higher success",
+      improvement: "3x higher success",
       icon: Target
     },
     {
@@ -432,69 +432,102 @@ const WhyUs = () => {
              </ScrollAnimatedSection>
            </div>
           
-           {/* Desktop: Premium Professional Table */}
-           <ScrollAnimatedSection className="hidden md:block backdrop-blur-sm bg-slate-800/30 rounded-3xl shadow-[0_32px_64px_rgba(0,0,0,0.4),0_16px_32px_rgba(0,0,0,0.25)] border border-slate-600/30 mb-16 overflow-hidden hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] transition-all duration-500" delay={300}>
-             <div className="overflow-x-auto">
-               <table className="w-full">
-                 <thead>
-                    <tr className="bg-slate-800/50 border-b border-slate-600/40">
-                      <th className="text-left py-4 px-10 text-slate-100 text-xl font-bold tracking-tight">Metric</th>
-                      <th className="text-center py-4 px-10 text-slate-400 text-xl font-bold tracking-tight">Phone Calls</th>
-                      <th className="text-center py-4 px-10 text-slate-400 text-xl font-bold tracking-tight">Website Forms</th>
-                      <th className="text-center py-4 px-10 text-green-400 text-xl font-bold tracking-tight">WhatsApp</th>
-                      <th className="text-center py-4 px-10 text-emerald-400 text-xl font-bold tracking-tight">Improvement</th>
-                    </tr>
-                 </thead>
-                 <tbody>
-                   {whatsappVsTraditionalStats.map((stat, index) => (
-                      <tr key={index} className={`border-b border-slate-700/30 hover:bg-slate-800/30 transition-all duration-300 ${index % 2 === 0 ? 'bg-slate-900/20' : 'bg-transparent'}`}>
-                        <td className="py-4 px-10 text-white font-semibold text-lg tracking-tight">{stat.metric}</td>
-                        <td className="py-4 px-10 text-center text-slate-300 text-lg font-medium">{stat.phoneCalls}</td>
-                        <td className="py-4 px-10 text-center text-slate-300 text-lg font-medium">{stat.websiteForms}</td>
-                        <td className="py-4 px-10 text-center text-green-400 font-bold text-lg">{stat.whatsapp}</td>
-                        <td className="py-4 px-10 text-center text-emerald-400 font-bold text-lg">{stat.improvement}</td>
-                      </tr>
-                   ))}
-                 </tbody>
-               </table>
-             </div>
-           </ScrollAnimatedSection>
+            {/* Desktop: Enhanced Premium Professional Table */}
+            <ScrollAnimatedSection className="hidden md:block backdrop-blur-sm bg-gradient-to-b from-slate-800/40 to-slate-900/40 rounded-3xl shadow-[0_32px_64px_rgba(0,0,0,0.4),0_16px_32px_rgba(0,0,0,0.25),0_0_40px_rgba(16,185,129,0.1)] border border-slate-600/30 mb-8 overflow-hidden hover:shadow-[0_40px_80px_rgba(0,0,0,0.5),0_0_60px_rgba(16,185,129,0.15)] transition-all duration-500" delay={300}>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                     <tr className="bg-gradient-to-r from-slate-800/60 to-slate-800/40 border-b border-slate-600/50">
+                       <th className="text-left py-6 px-12 text-slate-100 text-xl font-bold tracking-tight">Metric</th>
+                       <th className="text-center py-6 px-8 text-slate-400 text-xl font-bold tracking-tight">Phone Calls</th>
+                       <th className="text-center py-6 px-8 text-slate-400 text-xl font-bold tracking-tight">Website Forms</th>
+                       <th className="text-center py-6 px-8 text-green-400 text-xl font-bold tracking-tight shadow-[0_0_20px_rgba(16,185,129,0.3)]">WhatsApp</th>
+                       <th className="text-center py-6 px-8 text-emerald-400 text-xl font-bold tracking-tight">Improvement</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                    {whatsappVsTraditionalStats.map((stat, index) => (
+                       <tr key={index} className={`border-b border-slate-700/40 hover:bg-slate-800/40 hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition-all duration-300 group ${index % 2 === 0 ? 'bg-slate-900/30' : 'bg-slate-800/20'}`}>
+                         <td className="py-6 px-12 text-white font-bold text-lg tracking-tight">
+                           <div className="flex items-center gap-4">
+                             <div className="w-10 h-10 bg-slate-700/60 rounded-xl flex items-center justify-center border border-slate-600/50 group-hover:border-slate-500/70 transition-all duration-300">
+                               <stat.icon className="w-5 h-5 text-slate-200 group-hover:text-slate-100" />
+                             </div>
+                             <span className="group-hover:text-slate-50 transition-colors duration-300">{stat.metric}</span>
+                           </div>
+                         </td>
+                         <td className="py-6 px-8 text-center text-slate-300 text-lg font-medium group-hover:text-slate-200 transition-colors duration-300">{stat.phoneCalls}</td>
+                         <td className="py-6 px-8 text-center text-slate-300 text-lg font-medium group-hover:text-slate-200 transition-colors duration-300">{stat.websiteForms}</td>
+                         <td className="py-6 px-8 text-center text-green-400 font-bold text-lg group-hover:text-green-300 transition-colors duration-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]">{stat.whatsapp}</td>
+                         <td className="py-6 px-8 text-center">
+                           <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent font-bold text-lg px-3 py-1 rounded-lg bg-emerald-400/10 border border-emerald-400/20 group-hover:bg-emerald-400/20 transition-all duration-300">
+                             {stat.improvement}
+                           </span>
+                         </td>
+                       </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </ScrollAnimatedSection>
 
-            {/* Mobile: Premium Cards */}
-            <div className="md:hidden space-y-5 mb-8">
-             {whatsappVsTraditionalStats.slice(0, 3).map((stat, index) => (
-                 <ScrollAnimatedSection 
-                   key={index} 
-                   className="bg-slate-800/40 border border-slate-600/40 rounded-2xl p-6 shadow-[0_16px_32px_rgba(0,0,0,0.3)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300"
-                   delay={300 + index * 100}
-                 >
-                   <div className="flex items-center gap-4 mb-5">
-                     <div className="w-10 h-10 bg-slate-700/60 rounded-xl flex items-center justify-center border border-slate-600/50">
-                       <stat.icon className="w-5 h-5 text-slate-200" />
-                     </div>
-                     <h3 className="text-white font-bold text-lg tracking-tight">{stat.metric}</h3>
-                   </div>
-                   <div className="space-y-4">
-                     <div className="flex justify-between items-center py-3 border-b border-slate-700/30">
-                       <span className="text-slate-400 text-base font-medium">Phone Calls</span>
-                       <span className="text-slate-300 font-semibold text-base">{stat.phoneCalls}</span>
-                     </div>
-                     <div className="flex justify-between items-center py-3 border-b border-slate-700/30">
-                       <span className="text-slate-400 text-base font-medium">Website Forms</span>
-                       <span className="text-slate-300 font-semibold text-base">{stat.websiteForms}</span>
-                     </div>
-                     <div className="flex justify-between items-center py-3 border-b border-slate-700/30">
-                       <span className="text-green-400 text-base font-medium">WhatsApp</span>
-                       <span className="text-green-400 font-bold text-base">{stat.whatsapp}</span>
-                     </div>
-                     <div className="flex justify-between items-center py-3 pt-4">
-                       <span className="text-emerald-400 text-base font-bold">Improvement</span>
-                       <span className="text-emerald-400 font-bold text-base">{stat.improvement}</span>
-                     </div>
-                   </div>
-                 </ScrollAnimatedSection>
-               ))}
-             </div>
+            {/* Credibility Footer */}
+            <div className="hidden md:block text-center mb-16">
+              <p className="text-slate-400 text-sm font-medium mb-3">
+                Data based on analysis of 1,000+ businesses worldwide
+              </p>
+              <button className="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70">
+                View methodology
+              </button>
+            </div>
+
+             {/* Mobile: Enhanced Premium Cards */}
+             <div className="md:hidden space-y-6 mb-8">
+              {whatsappVsTraditionalStats.slice(0, 3).map((stat, index) => (
+                  <ScrollAnimatedSection 
+                    key={index} 
+                    className="bg-gradient-to-b from-slate-800/50 to-slate-900/40 border border-slate-600/40 rounded-2xl p-6 shadow-[0_16px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(16,185,129,0.05)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4),0_0_30px_rgba(16,185,129,0.1)] transition-all duration-300"
+                    delay={300 + index * 100}
+                  >
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 bg-slate-700/60 rounded-xl flex items-center justify-center border border-slate-600/50 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                        <stat.icon className="w-6 h-6 text-slate-200" />
+                      </div>
+                      <h3 className="text-white font-bold text-xl tracking-tight">{stat.metric}</h3>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center py-4 border-b border-slate-700/40 hover:bg-slate-800/20 transition-colors duration-300 rounded-lg px-2">
+                        <span className="text-slate-400 text-base font-medium">Phone Calls</span>
+                        <span className="text-slate-300 font-semibold text-base">{stat.phoneCalls}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-4 border-b border-slate-700/40 hover:bg-slate-800/20 transition-colors duration-300 rounded-lg px-2">
+                        <span className="text-slate-400 text-base font-medium">Website Forms</span>
+                        <span className="text-slate-300 font-semibold text-base">{stat.websiteForms}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-4 border-b border-slate-700/40 hover:bg-slate-800/20 transition-colors duration-300 rounded-lg px-2">
+                        <span className="text-green-400 text-base font-semibold shadow-[0_0_10px_rgba(16,185,129,0.2)]">WhatsApp</span>
+                        <span className="text-green-400 font-bold text-base shadow-[0_0_10px_rgba(16,185,129,0.2)]">{stat.whatsapp}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-4 pt-6 px-2">
+                        <span className="text-emerald-400 text-base font-bold">Improvement</span>
+                        <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent font-bold text-base px-2 py-1 rounded-lg bg-emerald-400/10 border border-emerald-400/20">
+                          {stat.improvement}
+                        </span>
+                      </div>
+                    </div>
+                  </ScrollAnimatedSection>
+                ))}
+              </div>
+
+              {/* Mobile Credibility Footer */}
+              <div className="md:hidden text-center mb-8">
+                <p className="text-slate-400 text-sm font-medium mb-3">
+                  Data based on analysis of 1,000+ businesses worldwide
+                </p>
+                <button className="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70">
+                  View methodology
+                </button>
+              </div>
          </div>
        </ScrollAnimatedSection>
 
