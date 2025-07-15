@@ -75,13 +75,13 @@ const Header = () => {
                   key={item.name}
                   href={item.path}
                   onClick={handlePricingClick}
-                  className={`relative px-4 py-2 rounded-md text-base transition-all duration-300 ease-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:ring-offset-2 focus:ring-offset-slate-800 ${
+                  className={`relative px-4 py-2 text-base transition-all duration-300 ease-out cursor-pointer outline-none ${
                     isActive 
-                      ? 'text-emerald-500 font-semibold tracking-wide bg-emerald-500/8 shadow-sm hover:text-emerald-500/80' 
+                      ? 'text-emerald-500 font-semibold tracking-wide hover:text-emerald-500/80' 
                       : 'text-slate-300 font-normal hover:text-white'
                   }`}
                   style={isActive ? { 
-                    boxShadow: '0 0 20px rgba(16, 185, 129, 0.1)',
+                    textShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
                     letterSpacing: '0.5px'
                   } : {}}
                 >
@@ -92,13 +92,13 @@ const Header = () => {
                   key={item.name}
                   to={item.path}
                   onClick={handleNavClick}
-                  className={`relative px-4 py-2 rounded-md text-base transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:ring-offset-2 focus:ring-offset-slate-800 ${
+                  className={`relative px-4 py-2 text-base transition-all duration-300 ease-out outline-none ${
                     isActive 
-                      ? 'text-emerald-500 font-semibold tracking-wide bg-emerald-500/8 shadow-sm hover:text-emerald-500/80' 
+                      ? 'text-emerald-500 font-semibold tracking-wide hover:text-emerald-500/80' 
                       : 'text-slate-300 font-normal hover:text-white'
                   }`}
                   style={isActive ? { 
-                    boxShadow: '0 0 20px rgba(16, 185, 129, 0.1)',
+                    textShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
                     letterSpacing: '0.5px'
                   } : {}}
                 >
@@ -142,13 +142,13 @@ const Header = () => {
                     key={item.name}
                     href={item.path}
                     onClick={handlePricingClick}
-                    className={`relative px-4 py-3 rounded-md text-base transition-all duration-300 ease-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:ring-offset-2 focus:ring-offset-slate-800 ${
+                    className={`relative px-4 py-3 text-base transition-all duration-300 ease-out cursor-pointer outline-none ${
                       isActive 
-                        ? 'text-emerald-500 font-semibold tracking-wide bg-emerald-500/8 shadow-sm hover:text-emerald-500/80' 
+                        ? 'text-emerald-500 font-semibold tracking-wide hover:text-emerald-500/80' 
                         : 'text-slate-300 font-normal hover:text-white'
                     }`}
                     style={isActive ? { 
-                      boxShadow: '0 0 20px rgba(16, 185, 129, 0.1)',
+                      textShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
                       letterSpacing: '0.5px'
                     } : {}}
                   >
@@ -159,13 +159,13 @@ const Header = () => {
                     key={item.name}
                     to={item.path}
                     onClick={handleNavClick}
-                    className={`relative px-4 py-3 rounded-md text-base transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:ring-offset-2 focus:ring-offset-slate-800 ${
+                    className={`relative px-4 py-3 text-base transition-all duration-300 ease-out outline-none ${
                       isActive 
-                        ? 'text-emerald-500 font-semibold tracking-wide bg-emerald-500/8 shadow-sm hover:text-emerald-500/80' 
+                        ? 'text-emerald-500 font-semibold tracking-wide hover:text-emerald-500/80' 
                         : 'text-slate-300 font-normal hover:text-white'
                     }`}
                     style={isActive ? { 
-                      boxShadow: '0 0 20px rgba(16, 185, 129, 0.1)',
+                      textShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
                       letterSpacing: '0.5px'
                     } : {}}
                   >
