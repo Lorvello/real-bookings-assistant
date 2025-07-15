@@ -23,7 +23,7 @@ const BentoGrid = ({ children, className }: BentoGridProps) => {
   return (
     <div
       className={cn(
-        "grid w-full auto-rows-[22rem] grid-cols-1 gap-4 lg:grid-cols-3",
+        "grid w-full auto-rows-[18rem] grid-cols-1 gap-3 lg:grid-cols-3",
         className,
       )}
     >
@@ -60,19 +60,19 @@ const BentoCard = ({
     <div className={cn(
       "pointer-events-none z-10 flex flex-col gap-2",
       name === "100% Automatic Bookings" 
-        ? "absolute bottom-6 left-6 right-6 text-left" 
-        : "p-6"
+        ? "absolute bottom-4 left-4 right-4 text-left" 
+        : "p-4"
     )}>
-      <Icon className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
+      <Icon className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors duration-300" />
       <h3 className={cn(
-        "text-xl font-semibold text-foreground group-hover:text-primary mb-2 transition-colors duration-300",
+        "text-lg font-semibold text-foreground group-hover:text-primary mb-2 transition-colors duration-300",
         name === "100% Automatic Bookings" ? "" : ""
       )}>
         {name}
       </h3>
       <p className={cn(
         "max-w-lg text-muted-foreground leading-relaxed group-hover:text-foreground/80 transition-colors duration-300",
-        name === "100% Automatic Bookings" ? "text-sm" : ""
+        name === "100% Automatic Bookings" ? "text-xs" : "text-sm"
       )}>{description}</p>
     </div>
 

@@ -60,7 +60,7 @@ const Solution = () => {
     });
   };
   return (
-    <section className="relative py-3 md:py-6 overflow-hidden">
+    <section className="relative py-1 md:py-3 overflow-hidden">
       
       {/* Background decoration */}
       <div className="absolute inset-0">

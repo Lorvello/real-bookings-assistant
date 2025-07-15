@@ -12,7 +12,7 @@ const HeroSection: React.FC = () => {
       
       <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center z-10">
         {/* Floating badge */}
-        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8 animate-appear opacity-0">
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-2 md:mb-4 animate-appear opacity-0">
           <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
           <span className="text-emerald-300 text-xs md:text-sm font-medium">AI-Powered Booking Revolution</span>
         </div>
