@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { Clock, User, Phone, Mail, X, ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Booking {
   id: string;
@@ -89,7 +90,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
     }
   };
 
-  return (
+  const modalContent = (
     <div 
       data-popup="true"
       className="fixed z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg backdrop-blur-sm shadow-2xl"
@@ -305,4 +306,6 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
       )}
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

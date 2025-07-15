@@ -118,7 +118,7 @@ const CalendarMockup = () => {
   }, [modalOpen]);
 
   return (
-    <div ref={calendarRef} className="w-full max-w-3xl mx-auto bg-card/20 backdrop-blur-sm rounded-xl shadow-sm overflow-hidden border border-border/20 relative">
+    <div ref={calendarRef} className="w-full max-w-3xl mx-auto bg-card/20 backdrop-blur-sm rounded-xl shadow-sm border border-border/20 relative overflow-visible">
       {/* Compact Header */}
       <div className="bg-card/30 backdrop-blur-sm p-2 border-b border-border/20">
         <div className="text-center">
