@@ -65,21 +65,21 @@ export const WhatsAppBenefits = ({
       <div className="relative">
         
         <div ref={ref} className="container max-w-5xl mx-auto px-8 lg:px-16 relative z-10">
-          <div className="grid gap-4 md:grid-cols-2 lg:gap-6">
+          <div className="grid gap-3 md:grid-cols-2 lg:gap-4">
             {enhancedBenefits[0] && (
               <div className={`group md:col-span-2 flex flex-col md:flex-row overflow-hidden rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-xl shadow-black/30 transition-all duration-300 ease-out transform-gpu isolate hover:scale-[1.03] hover:z-10 hover:shadow-2xl hover:shadow-emerald-500/40 hover:border-emerald-400/80 cursor-pointer ${isVisible ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
-                <div className="md:flex-1 md:min-h-[16rem] lg:min-h-[18rem] xl:min-h-[20rem] overflow-hidden rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
+                <div className="md:flex-1 md:min-h-[12rem] lg:min-h-[14rem] xl:min-h-[16rem] overflow-hidden rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
                   <img
                     src={enhancedBenefits[0].image}
                     alt={enhancedBenefits[0].title}
                     className="aspect-[16/9] h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
                   />
                 </div>
-                <div className="md:flex-1 flex flex-col justify-center px-6 py-7 md:px-8 md:py-9 lg:px-10 lg:py-11 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
-                  <h3 className="mb-3 text-xl font-bold tracking-tight text-white md:mb-4 md:text-2xl lg:mb-5 lg:text-3xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
+                <div className="md:flex-1 flex flex-col justify-center px-4 py-5 md:px-6 md:py-7 lg:px-8 lg:py-9 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
+                  <h3 className="mb-2 text-base font-bold tracking-tight text-white md:mb-3 md:text-lg lg:mb-4 lg:text-xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
                     {enhancedBenefits[0].title}
                   </h3>
-                  <p className="text-slate-300 font-medium text-base md:text-lg lg:text-xl leading-relaxed transition-all duration-300 group-hover:text-slate-200">
+                  <p className="text-slate-300 font-medium text-sm md:text-base lg:text-lg leading-relaxed transition-all duration-300 group-hover:text-slate-200">
                     {enhancedBenefits[0].description}
                   </p>
                 </div>
@@ -90,18 +90,18 @@ export const WhatsAppBenefits = ({
                 key={benefit.id}
                 className={`group flex flex-col overflow-hidden rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-lg shadow-black/30 transition-all duration-300 ease-out transform-gpu isolate hover:scale-[1.03] hover:z-10 hover:shadow-xl hover:shadow-emerald-500/40 hover:border-emerald-400/80 cursor-pointer ${isVisible ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}
               >
-                <div className="overflow-hidden h-52 md:h-56 lg:h-60 rounded-t-xl">
+                <div className="overflow-hidden h-36 md:h-40 lg:h-44 rounded-t-xl">
                   <img
                     src={benefit.image}
                     alt={benefit.title}
                     className="h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
                   />
                 </div>
-                <div className="px-6 py-7 md:px-7 md:py-8 lg:px-8 lg:py-9 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
-                  <h3 className="mb-3 text-lg font-bold tracking-tight text-white md:mb-4 md:text-xl lg:mb-5 lg:text-2xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
+                <div className="px-4 py-5 md:px-5 md:py-6 lg:px-6 lg:py-7 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
+                  <h3 className="mb-2 text-sm font-bold tracking-tight text-white md:mb-3 md:text-base lg:mb-4 lg:text-lg transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
                     {benefit.title}
                   </h3>
-                  <p className="text-slate-300 font-medium text-sm md:text-base lg:text-lg leading-relaxed transition-all duration-300 group-hover:text-slate-200">
+                  <p className="text-slate-300 font-medium text-xs md:text-sm lg:text-base leading-relaxed transition-all duration-300 group-hover:text-slate-200">
                     {benefit.description}
                   </p>
                 </div>

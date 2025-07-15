@@ -10,7 +10,7 @@ import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 
 const ProcessSection = () => {
   return (
-    <section className="py-8 md:py-12 relative overflow-hidden" style={{
+    <section className="py-4 md:py-8 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
     }}>
       {/* Background decoration */}
@@ -27,69 +27,69 @@ const ProcessSection = () => {
           staggerDelay={200} 
           threshold={0.3}
           variant="process"
-          className="space-y-16 md:space-y-12"
+          className="space-y-10 md:space-y-8"
         >
           {/* Section header - Compact */}
           <div className="text-center">
-            <h2 className="text-xl md:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-lg md:text-4xl font-bold text-white mb-2 md:mb-4 px-3 sm:px-0">
               See How It <span className="text-emerald-400">Works</span>
             </h2>
-            <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
+            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
               From first message to confirmed appointment in less than 30 seconds. 
               Watch how our AI handles the entire booking process automatically.
             </p>
           </div>
 
           {/* Step 1: WhatsApp Chat */}
-          <div className="flex flex-col lg:flex-row items-center gap-4 md:gap-12">
-            <div className="flex-1 space-y-3 md:space-y-6 text-center lg:text-left">
-              <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
-                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
+          <div className="flex flex-col lg:flex-row items-center gap-3 md:gap-8">
+            <div className="flex-1 space-y-2 md:space-y-4 text-center lg:text-left">
+              <div className="flex items-center gap-2 md:gap-3 justify-center lg:justify-start">
+                <div className="w-5 h-5 md:w-8 md:h-8 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-base bg-gradient-to-br from-emerald-500 to-green-500">
                   1
                 </div>
-                <h3 className="text-sm md:text-2xl font-bold text-white">Customer Starts WhatsApp Chat</h3>
+                <h3 className="text-sm md:text-xl font-bold text-white">Customer Starts WhatsApp Chat</h3>
               </div>
-              <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
+              <p className="text-xs md:text-base text-slate-300 leading-relaxed px-3 lg:px-0">
                 Your customer sends a simple message expressing their need. Our AI agent 
                 responds immediately with intelligent questions to understand their preferences 
                 and find the perfect appointment time.
               </p>
             </div>
             
-            <div className="flex-1 w-full max-w-[280px] md:max-w-sm lg:max-w-none">
+            <div className="flex-1 w-full max-w-[240px] md:max-w-sm lg:max-w-none">
               <WhatsAppChat />
             </div>
           </div>
 
           {/* Step 2: Calendar Result */}
-          <div className="flex flex-col lg:flex-row-reverse items-center gap-4 md:gap-12">
-            <div className="flex-1 space-y-3 md:space-y-6 text-center lg:text-left">
-              <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
-                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
+          <div className="flex flex-col lg:flex-row-reverse items-center gap-3 md:gap-8">
+            <div className="flex-1 space-y-2 md:space-y-4 text-center lg:text-left">
+              <div className="flex items-center gap-2 md:gap-3 justify-center lg:justify-start">
+                <div className="w-5 h-5 md:w-8 md:h-8 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-base bg-gradient-to-br from-emerald-500 to-green-500">
                   2
                 </div>
-                <h3 className="text-sm md:text-2xl font-bold text-white">Appointment Automatically Booked</h3>
+                <h3 className="text-sm md:text-xl font-bold text-white">Appointment Automatically Booked</h3>
               </div>
-               <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
+               <p className="text-xs md:text-base text-slate-300 leading-relaxed px-3 lg:px-0">
                  Integrate with your existing calendar system, or use our professional high-end calendar solution designed for optimal appointment management.
                </p>
             </div>
             
-            <div className="flex-1 w-full max-w-[280px] md:max-w-sm lg:max-w-none">
+            <div className="flex-1 w-full max-w-[240px] md:max-w-sm lg:max-w-none">
               <CalendarMockup />
             </div>
           </div>
 
           {/* AI Agent Test Section */}
-          <div className="space-y-3 md:space-y-8">
+          <div className="space-y-2 md:space-y-6">
             <div className="text-center">
-              <div className="flex items-center gap-2 md:gap-4 justify-center mb-3 md:mb-6">
-                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
+              <div className="flex items-center gap-2 md:gap-3 justify-center mb-2 md:mb-4">
+                <div className="w-5 h-5 md:w-8 md:h-8 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-base bg-gradient-to-br from-emerald-500 to-green-500">
                   3
                 </div>
-                <h3 className="text-sm md:text-2xl font-bold text-white">Test The AI Agent Yourself</h3>
+                <h3 className="text-sm md:text-xl font-bold text-white">Test The AI Agent Yourself</h3>
               </div>
-              <p className="text-xs md:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-4 md:mb-8 px-3 sm:px-0">
+              <p className="text-xs md:text-base text-slate-300 leading-relaxed max-w-3xl mx-auto mb-3 md:mb-6 px-3 sm:px-0">
                 Try it yourself! Chat with our AI agent and experience how fast and natural 
                 the booking process is. No registration required.
               </p>
@@ -100,9 +100,9 @@ const ProcessSection = () => {
                 <DialogTrigger asChild>
                   <Button 
                     size="default"
-                    className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm md:text-base px-6 md:px-8 py-3 md:py-4 h-auto rounded-lg border border-slate-700 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+                    className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs md:text-sm px-4 md:px-6 py-2 md:py-3 h-auto rounded-lg border border-slate-700 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
                   >
-                  <Bot className="mr-2 h-4 w-4 md:h-5 md:w-5 text-white" />
+                  <Bot className="mr-2 h-3 w-3 md:h-4 md:w-4 text-white" />
                   Try AI Agent Demo
                 </Button>
               </DialogTrigger>
