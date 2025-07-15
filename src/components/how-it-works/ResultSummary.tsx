@@ -125,7 +125,7 @@ const ResultSummary = () => {
                     <div className="absolute inset-0 rounded-2xl bg-white/[0.03] opacity-0 group-hover:opacity-100 transition-all duration-700" />
                     
                     {/* Learn more text */}
-                    <div className="absolute top-1.5 right-1.5 text-[8px] lg:text-[9px] text-slate-500 hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
+                    <div className="absolute top-1.5 right-1.5 text-[8px] lg:text-[9px] text-slate-500 group-hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
                       Learn more
                       <ArrowRight className="w-2 h-2 lg:w-2.5 lg:h-2.5" />
                     </div>
@@ -194,7 +194,7 @@ const ResultSummary = () => {
                 key={index} 
                 animation={mobileAnimationType}
                 delay={200 + index * 150}
-                className="relative aspect-square cursor-pointer"
+                className="group relative aspect-square cursor-pointer"
                 as="div"
               >
                 <div onClick={() => toggleCardFlip(index)} className="w-full h-full">
@@ -220,7 +220,7 @@ const ResultSummary = () => {
                     }}
                    >
                     {/* Learn more text */}
-                    <div className="absolute top-1.5 right-1.5 text-[8px] text-slate-500 hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
+                    <div className="absolute top-1.5 right-1.5 text-[8px] text-slate-500 group-hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
                       Learn more
                       <ArrowRight className="w-2 h-2" />
                     </div>
