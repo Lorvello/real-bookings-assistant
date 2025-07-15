@@ -26,8 +26,8 @@ const FAQ = () => {
     {
       title: "General Questions",
       icon: HelpCircle,
-      color: "from-blue-500/10 to-purple-500/10",
-      borderColor: "border-blue-500/20",
+      color: "from-green-500/10 to-emerald-500/10",
+      borderColor: "border-green-500/20",
       items: [
         {
           question: "What is your WhatsApp booking platform?",
@@ -54,8 +54,8 @@ const FAQ = () => {
     {
       title: "Technical Questions",
       icon: Zap,
-      color: "from-green-500/10 to-emerald-500/10",
-      borderColor: "border-green-500/20",
+      color: "from-emerald-500/10 to-green-500/10",
+      borderColor: "border-emerald-500/20",
       items: [
         {
           question: "Do you provide the WhatsApp number and calendar?",
@@ -90,8 +90,8 @@ const FAQ = () => {
     {
       title: "Pricing & Plans",
       icon: Star,
-      color: "from-yellow-500/10 to-orange-500/10",
-      borderColor: "border-yellow-500/20",
+      color: "from-green-600/10 to-emerald-600/10",
+      borderColor: "border-green-600/20",
       items: [
         {
           question: "What does it cost?",
@@ -118,8 +118,8 @@ const FAQ = () => {
     {
       title: "Features",
       icon: CheckCircle,
-      color: "from-emerald-500/10 to-green-500/10",
-      borderColor: "border-emerald-500/20",
+      color: "from-emerald-600/10 to-green-600/10",
+      borderColor: "border-emerald-600/20",
       items: [
         {
           question: "Can it reschedule and cancel appointments?",
@@ -150,8 +150,8 @@ const FAQ = () => {
     {
       title: "Support",
       icon: Shield,
-      color: "from-purple-500/10 to-pink-500/10",
-      borderColor: "border-purple-500/20",
+      color: "from-green-400/10 to-emerald-400/10",
+      borderColor: "border-green-400/20",
       items: [
         {
           question: "What type of support can I get?",
@@ -174,8 +174,8 @@ const FAQ = () => {
     {
       title: "Integrations",
       icon: Zap,
-      color: "from-cyan-500/10 to-blue-500/10",
-      borderColor: "border-cyan-500/20",
+      color: "from-emerald-400/10 to-green-400/10",
+      borderColor: "border-emerald-400/20",
       items: [
         {
           question: "Which CRM systems are supported?",
@@ -198,8 +198,8 @@ const FAQ = () => {
     {
       title: "Advanced Features",
       icon: Star,
-      color: "from-indigo-500/10 to-purple-500/10",
-      borderColor: "border-indigo-500/20",
+      color: "from-green-700/10 to-emerald-700/10",
+      borderColor: "border-green-700/20",
       items: [
         {
           question: "Can it manage multiple locations?",
@@ -226,8 +226,8 @@ const FAQ = () => {
     {
       title: "Troubleshooting",
       icon: MessageCircle,
-      color: "from-red-500/10 to-pink-500/10",
-      borderColor: "border-red-500/20",
+      color: "from-emerald-700/10 to-green-700/10",
+      borderColor: "border-emerald-700/20",
       items: [
         {
           question: "What if WhatsApp is down?",
@@ -273,13 +273,6 @@ const FAQ = () => {
     }
   ];
 
-  const quickStats = [
-    { number: "95%", label: "Messages read within 5 min", icon: MessageCircle },
-    { number: "50%", label: "Fewer no-shows", icon: CheckCircle },
-    { number: "18x", label: "Faster responses", icon: Zap },
-    { number: "24/7", label: "Automatic bookings", icon: Shield }
-  ];
-
   // Filter FAQ sections based on search term
   const filteredSections = useMemo(() => {
     if (!searchTerm) return faqSections;
@@ -323,25 +316,11 @@ const FAQ = () => {
             </p>
           </ScrollAnimatedSection>
 
-          {/* Quick Stats */}
-          <ScrollAnimatedSection delay={200}>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-16">
-              {quickStats.map((stat, index) => (
-                <div key={index} className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-3 md:p-6 hover:bg-slate-800/70 transition-all duration-300">
-                  <div className="w-8 h-8 md:w-12 md:h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-2 md:mb-4 mx-auto">
-                    <stat.icon className="w-4 h-4 md:w-6 md:h-6 text-emerald-400" />
-                  </div>
-                  <div className="text-lg md:text-3xl font-bold text-white mb-1 md:mb-2">{stat.number}</div>
-                  <div className="text-slate-400 text-xs md:text-sm">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </ScrollAnimatedSection>
         </div>
       </section>
 
       {/* Search Section */}
-      <section className="py-12 px-4 md:px-6 lg:px-8 bg-slate-800/20">
+      <section className="py-12 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
         <div className="max-w-4xl mx-auto">
           <ScrollAnimatedSection>
             {/* Search Bar */}
@@ -385,7 +364,7 @@ const FAQ = () => {
       </section>
 
       {/* FAQ Sections */}
-      <section className="py-20 px-4 md:px-6 lg:px-8">
+      <section className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
         <div className="max-w-6xl mx-auto">
           {filteredSections.length === 0 ? (
             <ScrollAnimatedSection>
