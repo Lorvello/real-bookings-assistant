@@ -7,6 +7,7 @@ import Testimonials from '@/components/ui/testimonials-columns-1';
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Heart, Brain, Smartphone, Gauge, UserCheck, TabletSmartphone, Rocket } from 'lucide-react';
 import { Pricing } from '@/components/Pricing';
 import MethodologyModal from '@/components/MethodologyModal';
+import DataDisclaimer from '@/components/DataDisclaimer';
 
 const WhyUs = () => {
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
@@ -663,6 +664,9 @@ const WhyUs = () => {
         </div>
       </ScrollAnimatedSection>
 
+      {/* Data Disclaimer - After Psychological Benefits */}
+      <DataDisclaimer onMethodologyClick={openMethodologyModal} />
+
       {/* Detailed Sector Case Studies */}
       <ScrollAnimatedSection as="section" className="pt-24 md:pt-32 pb-12 md:pb-16">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
@@ -821,6 +825,9 @@ const WhyUs = () => {
           </div>
         </div>
       </ScrollAnimatedSection>
+
+      {/* Data Disclaimer - After Case Studies */}
+      <DataDisclaimer onMethodologyClick={openMethodologyModal} />
 
       {/* Testimonials Section */}
       <ScrollAnimatedSection delay={100} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
