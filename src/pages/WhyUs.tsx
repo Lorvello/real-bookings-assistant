@@ -381,9 +381,10 @@ const WhyUs = () => {
                        }}
                      >
                         {/* Small corner button */}
-                        <div className="absolute top-1.5 right-1.5 text-[8px] md:text-[9px] text-slate-500 hover:text-emerald-400 transition-colors duration-200">
-                          Learn more
-                        </div>
+                         <div className="absolute top-1.5 right-1.5 text-[8px] md:text-[9px] text-slate-500 hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
+                           Learn more
+                           <ArrowRight className="w-2 h-2 md:w-2.5 md:h-2.5" />
+                         </div>
                         
                         <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-3 md:mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
                           <stat.icon className="w-6 h-6 md:w-8 md:h-8 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
