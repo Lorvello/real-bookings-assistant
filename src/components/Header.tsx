@@ -22,6 +22,18 @@ const Header = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const handlePricingClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    navigate('/');
+    setTimeout(() => {
+      const pricingElement = document.getElementById('pricing');
+      if (pricingElement) {
+        pricingElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+    setIsMobileMenuOpen(false);
+  };
+
   const handleGetStarted = () => {
     if (user) {
       navigate('/dashboard');
@@ -49,14 +61,25 @@ const Header = () => {
           {/* Desktop Navigation Links */}
           <div className="hidden lg:flex items-center space-x-8">
             {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                onClick={handleNavClick}
-                className="text-slate-300 hover:text-white transition-colors text-base font-medium"
-              >
-                {item.name}
-              </Link>
+              item.path === '/#pricing' ? (
+                <a
+                  key={item.name}
+                  href={item.path}
+                  onClick={handlePricingClick}
+                  className="text-slate-300 hover:text-white transition-colors text-base font-medium cursor-pointer"
+                >
+                  {item.name}
+                </a>
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  onClick={handleNavClick}
+                  className="text-slate-300 hover:text-white transition-colors text-base font-medium"
+                >
+                  {item.name}
+                </Link>
+              )
             ))}
           </div>
           
@@ -87,14 +110,25 @@ const Header = () => {
           <div className="lg:hidden mt-4 pt-4 border-t border-slate-600">
             <div className="flex flex-col space-y-4">
               {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  onClick={handleNavClick}
-                  className="text-slate-300 hover:text-white transition-colors text-base font-medium py-2"
-                >
-                  {item.name}
-                </Link>
+                item.path === '/#pricing' ? (
+                  <a
+                    key={item.name}
+                    href={item.path}
+                    onClick={handlePricingClick}
+                    className="text-slate-300 hover:text-white transition-colors text-base font-medium py-2 cursor-pointer"
+                  >
+                    {item.name}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    onClick={handleNavClick}
+                    className="text-slate-300 hover:text-white transition-colors text-base font-medium py-2"
+                  >
+                    {item.name}
+                  </Link>
+                )
               ))}
               <Button 
                 onClick={handleGetStarted}
