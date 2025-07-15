@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CheckCircle, Sparkles, TrendingUp, Clock, Users, Zap } from 'lucide-react';
+import { CheckCircle, Sparkles, TrendingUp, Clock, Users, Zap, ArrowRight } from 'lucide-react';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 const ResultSummary = () => {
@@ -124,6 +124,12 @@ const ResultSummary = () => {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-emerald-500/15 via-emerald-400/8 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700" />
                     <div className="absolute inset-0 rounded-2xl bg-white/[0.03] opacity-0 group-hover:opacity-100 transition-all duration-700" />
                     
+                    {/* Learn more text */}
+                    <div className="absolute top-1.5 right-1.5 text-[8px] lg:text-[9px] text-slate-500 hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
+                      Learn more
+                      <ArrowRight className="w-2 h-2 lg:w-2.5 lg:h-2.5" />
+                    </div>
+                    
                     <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
                       {/* Prominent icon */}
                       <div className="mb-4">
@@ -163,7 +169,7 @@ const ResultSummary = () => {
                     
                     <div className="relative z-10 flex items-start justify-start h-full w-full p-2">
                       {/* Detailed text with larger font and top-left aligned - no icon */}
-                      <div className="text-[13px] lg:text-[14px] text-slate-300/90 leading-tight font-light tracking-wide text-left">
+                      <div className="text-[13px] lg:text-[14px] text-slate-300/90 leading-tight font-light tracking-wide text-left italic">
                         {stat.detailText}
                       </div>
                     </div>
@@ -212,7 +218,13 @@ const ResultSummary = () => {
                         inset 0 1px 0 rgba(255, 255, 255, 0.12)
                       `
                     }}
-                  >
+                   >
+                    {/* Learn more text */}
+                    <div className="absolute top-1.5 right-1.5 text-[8px] text-slate-500 hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
+                      Learn more
+                      <ArrowRight className="w-2 h-2" />
+                    </div>
+                    
                     <div className="flex flex-col items-center justify-center h-full w-full">
                       {/* Prominent mobile icon */}
                       <div className="mb-6">
@@ -251,7 +263,7 @@ const ResultSummary = () => {
                     
                     <div className="relative z-10 flex items-start justify-start h-full w-full p-2">
                       {/* Detailed text with larger font and top-left aligned for mobile - no icon */}
-                      <div className="text-[12px] text-slate-300/90 leading-tight font-light tracking-wide text-left">
+                      <div className="text-[12px] text-slate-300/90 leading-tight font-light tracking-wide text-left italic">
                         {stat.detailText}
                       </div>
                     </div>
