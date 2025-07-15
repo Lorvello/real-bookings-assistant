@@ -98,7 +98,7 @@ const Solution = () => {
           <div className="relative">
             {/* Visual separator with subtle gradient */}
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent"></div>
-            <div className="pt-6 md:pt-10">
+            <div className="pt-3 md:pt-6">
               <WhatsAppBenefits />
             </div>
           </div>
