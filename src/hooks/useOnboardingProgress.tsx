@@ -54,7 +54,8 @@ export const useOnboardingProgress = () => {
         completionPercentage: 0,
         completedSteps: 0,
         totalSteps: 5,
-        nextSteps: []
+        nextSteps: [],
+        allSteps: []
       };
     }
 
