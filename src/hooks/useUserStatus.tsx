@@ -70,7 +70,7 @@ export const useUserStatus = () => {
       }
     } else if (profile.subscription_status === 'expired') {
       userType = 'expired_trial';
-      statusMessage = gracePeriodActive ? 'Grace Period Active' : 'Access Expired';
+      statusMessage = gracePeriodActive ? 'Grace Period Active' : 'Trial Expired';
       statusColor = gracePeriodActive ? 'yellow' : 'red';
     }
 
