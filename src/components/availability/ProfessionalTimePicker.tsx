@@ -188,158 +188,183 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <Button
-        variant="outline"
-        onClick={onToggle}
-        type="button"
-        className="h-9 px-3 bg-card/80 border-border/60 text-foreground hover:bg-card/90 hover:border-primary/40 transition-all duration-200 shadow-sm"
-      >
-        <span className="font-mono text-sm">{formattedValue}</span>
-      </Button>
+    <>
+      <div className="relative" ref={dropdownRef}>
+        <Input
+          value={formattedValue}
+          onChange={(e) => {
+            const value = e.target.value;
+            setInputValue(value);
+            const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+            if (timeRegex.test(value)) {
+              onChange(value);
+            }
+          }}
+          onFocus={onToggle}
+          placeholder="09:00"
+          className="font-mono text-center bg-background border-border hover:border-accent focus:border-accent focus:ring-accent/20 transition-all duration-200"
+        />
+      </div>
       
+      {/* Professional Modal Overlay */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 bg-popover/95 backdrop-blur-sm border border-border/60 rounded-2xl shadow-xl shadow-black/10 z-50 p-4 min-w-[280px]">
-          {/* Mode Toggle */}
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-foreground">Select Time</h3>
-            <div className="flex items-center space-x-1 bg-muted/50 rounded-lg p-0.5">
-              <button
-                onClick={() => setMode('clock')}
-                className={`p-1.5 rounded-md transition-all duration-200 ${
-                  mode === 'clock' 
-                    ? 'bg-primary text-primary-foreground shadow-sm' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Clock className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setMode('input')}
-                className={`p-1.5 rounded-md transition-all duration-200 ${
-                  mode === 'input' 
-                    ? 'bg-primary text-primary-foreground shadow-sm' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Type className="h-4 w-4" />
-              </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 animate-in fade-in-0 zoom-in-95">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">Select Time</h2>
+              <div className="flex items-center space-x-1 bg-muted/50 rounded-lg p-0.5">
+                <button
+                  onClick={() => setMode('clock')}
+                  className={`p-2 rounded-md transition-all duration-200 ${
+                    mode === 'clock' 
+                      ? 'bg-accent text-accent-foreground shadow-sm' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
+                  }`}
+                >
+                  <Clock className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setMode('input')}
+                  className={`p-2 rounded-md transition-all duration-200 ${
+                    mode === 'input' 
+                      ? 'bg-accent text-accent-foreground shadow-sm' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
+                  }`}
+                >
+                  <Type className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-          </div>
 
-          {mode === 'clock' ? (
-            <div className="space-y-4">
-              {/* Clock Interface */}
-              <div 
-                ref={clockRef}
-                className="relative w-48 h-48 mx-auto bg-card/50 rounded-full border-2 border-border/60 cursor-pointer hover:border-primary/40 transition-all duration-200"
-                onClick={handleClockClick}
-              >
-                {/* Clock face */}
-                <div className="absolute inset-2 rounded-full bg-background/80 border border-border/30">
-                  {/* Hour numbers or minute marks */}
-                  {isSelectingMinutes ? generateMinuteMarks() : generateHourNumbers()}
+            {/* Modal Content */}
+            <div className="p-6">
+              {mode === 'clock' ? (
+                <div className="space-y-6">
+                  {/* Professional Clock Interface */}
+                  <div className="flex flex-col items-center space-y-4">
+                    <div 
+                      ref={clockRef}
+                      className="relative w-64 h-64 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 cursor-pointer hover:border-accent/60 transition-all duration-300 shadow-lg"
+                      onClick={handleClockClick}
+                    >
+                      {/* Clock face inner circle */}
+                      <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner">
+                        {/* Hour numbers or minute marks */}
+                        {isSelectingMinutes ? generateMinuteMarks() : generateHourNumbers()}
+                        
+                        {/* Center dot */}
+                        <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-accent rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-lg" />
+                        
+                        {/* Hour hand */}
+                        {!isSelectingMinutes && (
+                          <div
+                            className="absolute top-1/2 left-1/2 origin-bottom bg-accent rounded-full z-10 shadow-lg"
+                            style={{
+                              width: '4px',
+                              height: '45px',
+                              transform: `translate(-50%, -100%) rotate(${hourAngle}deg)`,
+                              transformOrigin: 'bottom center'
+                            }}
+                          />
+                        )}
+                        
+                        {/* Minute hand */}
+                        {isSelectingMinutes && (
+                          <div
+                            className="absolute top-1/2 left-1/2 origin-bottom bg-accent rounded-full z-10 shadow-lg"
+                            style={{
+                              width: '3px',
+                              height: '60px',
+                              transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)`,
+                              transformOrigin: 'bottom center'
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Current time display */}
+                    <div className="text-center">
+                      <div className="text-3xl font-mono font-bold text-foreground mb-1">
+                        {formattedValue}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {isSelectingMinutes ? 'Select minutes' : 'Select hours'}
+                      </div>
+                    </div>
+                  </div>
                   
-                  {/* Center dot */}
-                  <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-primary rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10" />
-                  
-                  {/* Hour hand */}
-                  {!isSelectingMinutes && (
-                    <div
-                      className="absolute top-1/2 left-1/2 origin-bottom bg-primary rounded-full z-10"
-                      style={{
-                        width: '3px',
-                        height: '30px',
-                        transform: `translate(-50%, -100%) rotate(${hourAngle}deg)`,
-                        transformOrigin: 'bottom center'
-                      }}
-                    />
-                  )}
-                  
-                  {/* Minute hand */}
-                  {isSelectingMinutes && (
-                    <div
-                      className="absolute top-1/2 left-1/2 origin-bottom bg-primary rounded-full z-10"
-                      style={{
-                        width: '2px',
-                        height: '40px',
-                        transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)`,
-                        transformOrigin: 'bottom center'
-                      }}
-                    />
-                  )}
+                  {/* Hour/Minute Toggle */}
+                  <div className="flex items-center justify-center space-x-2">
+                    <Button
+                      variant={!isSelectingMinutes ? "default" : "outline"}
+                      size="lg"
+                      onClick={() => setIsSelectingMinutes(false)}
+                      className={`min-w-[80px] ${!isSelectingMinutes ? 'bg-accent hover:bg-accent/90' : ''}`}
+                    >
+                      Hours
+                    </Button>
+                    <Button
+                      variant={isSelectingMinutes ? "default" : "outline"}
+                      size="lg"
+                      onClick={() => setIsSelectingMinutes(true)}
+                      className={`min-w-[80px] ${isSelectingMinutes ? 'bg-accent hover:bg-accent/90' : ''}`}
+                    >
+                      Minutes
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Hour/Minute Toggle */}
-              <div className="flex items-center justify-center space-x-2">
-                <Button
-                  variant={!isSelectingMinutes ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsSelectingMinutes(false)}
-                  className="min-w-[60px]"
-                >
-                  Hours
-                </Button>
-                <Button
-                  variant={isSelectingMinutes ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsSelectingMinutes(true)}
-                  className="min-w-[60px]"
-                >
-                  Minutes
-                </Button>
-              </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Direct Input Interface */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-foreground">
+                      Enter time (24-hour format)
+                    </label>
+                    <Input
+                      value={inputValue}
+                      onChange={handleInputChange}
+                      onKeyDown={handleInputKeyDown}
+                      placeholder="09:00"
+                      className="font-mono text-center text-lg bg-background border-border focus:border-accent focus:ring-accent/20 h-12"
+                      autoFocus
+                    />
+                    <p className="text-xs text-muted-foreground text-center">
+                      Examples: 09:00, 14:30, 23:45
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Input Interface */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Enter time (HH:MM)
-                </label>
-                <Input
-                  value={inputValue}
-                  onChange={handleInputChange}
-                  onKeyDown={handleInputKeyDown}
-                  placeholder="09:00"
-                  className="font-mono text-center bg-background/80 border-border/60 focus:border-primary/60 focus:ring-primary/20"
-                />
-                <p className="text-xs text-muted-foreground text-center">
-                  Use 24-hour format (e.g., 09:00, 14:30)
-                </p>
-              </div>
-            </div>
-          )}
-          
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end space-x-2 mt-4 pt-4 border-t border-border/60">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => {
-                if (mode === 'input') {
-                  const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
-                  if (timeRegex.test(inputValue)) {
-                    onChange(inputValue);
+            
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-border bg-muted/20">
+              <Button
+                variant="outline"
+                onClick={onClose}
+                className="px-6"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (mode === 'input') {
+                    const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+                    if (timeRegex.test(inputValue)) {
+                      onChange(inputValue);
+                    }
                   }
-                }
-                onClose();
-              }}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Set Time
-            </Button>
+                  onClose();
+                }}
+                className="bg-accent hover:bg-accent/90 text-accent-foreground px-6"
+              >
+                Set Time
+              </Button>
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
