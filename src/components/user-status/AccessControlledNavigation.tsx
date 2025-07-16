@@ -86,11 +86,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
     // Special handling for WhatsApp for expired trial and canceled_and_inactive users
     if (item.href === '/conversations') {
       if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
-        toast({
-          title: "WhatsApp Booking Agent Not Active",
-          description: "Your booking assistant is not active. Upgrade now or resubscribe to activate it.",
-          variant: "destructive",
-        });
+        onNavigate('/whatsapp-not-available');
         return;
       }
     }

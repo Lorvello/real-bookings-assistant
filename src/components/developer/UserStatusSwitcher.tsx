@@ -15,6 +15,7 @@ const userStatusOptions = [
   { value: 'expired_trial', label: 'Expired Trial', description: 'User with expired trial' },
   { value: 'paid_subscriber', label: 'Paid Subscriber', description: 'User with active subscription' },
   { value: 'canceled_but_active', label: 'Canceled but Active', description: 'User who canceled but still has access' },
+  { value: 'canceled_and_inactive', label: 'Canceled and Inactive', description: 'User who canceled and subscription has expired' },
 ];
 
 export const UserStatusSwitcher = () => {
