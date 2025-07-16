@@ -151,8 +151,9 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         await syncToDatabase(day.key, localAvailability[day.key]);
       }
       
-      onComplete();
+      // Close the modal and trigger completion callback
       onClose();
+      onComplete();
     } catch (error) {
       console.error('Error completing availability setup:', error);
     }

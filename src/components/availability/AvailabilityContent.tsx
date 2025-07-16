@@ -30,8 +30,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
 
   const handleGuidedComplete = () => {
     setIsGuidedModalOpen(false);
-    // Refresh the page to show the updated availability
-    window.location.reload();
+    // The hook will automatically refresh data, no need to reload the page
   };
 
   if (activeTab === 'schedule') {

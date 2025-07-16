@@ -55,6 +55,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   const [mode, setMode] = useState<'clock' | 'input'>('clock');
   const [inputValue, setInputValue] = useState('');
   const [isSelectingMinutes, setIsSelectingMinutes] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const clockRef = useRef<HTMLDivElement>(null);
   
@@ -64,6 +65,39 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   useEffect(() => {
     setInputValue(formattedValue);
   }, [formattedValue]);
+
+  // Handle drag functionality
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!isDragging || !clockRef.current) return;
+      
+      const rect = clockRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      const x = event.clientX - centerX;
+      const y = event.clientY - centerY;
+      
+      let angle = Math.atan2(y, x) * 180 / Math.PI;
+      angle = (angle + 90 + 360) % 360;
+      
+      updateTimeFromAngle(angle);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, isSelectingMinutes, formattedValue]);
 
   // Handle click outside
   useEffect(() => {
@@ -81,6 +115,25 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose]);
+
+  const updateTimeFromAngle = (angle: number) => {
+    const currentTime = formattedValue.split(':').map(Number);
+    let newHours = currentTime[0];
+    let newMinutes = currentTime[1];
+    
+    if (isSelectingMinutes) {
+      newMinutes = Math.round(angleToTime(angle, false) / 5) * 5; // Snap to 5-minute intervals
+      newMinutes = Math.max(0, Math.min(59, newMinutes));
+    } else {
+      const newHour = angleToTime(angle, true);
+      newHours = newHour === 0 ? 12 : newHour;
+      if (currentTime[0] >= 12) newHours += 12;
+      newHours = newHours % 24;
+    }
+    
+    const newTime = `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+    onChange(newTime);
+  };
 
   const handleClockClick = (event: React.MouseEvent) => {
     if (!clockRef.current) return;
@@ -268,13 +321,18 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                                  transformOrigin: 'bottom center'
                                }}
                              />
-                             {/* Hour hand circle */}
-                             <div
-                               className="absolute top-1/2 left-1/2 w-4 h-4 bg-primary rounded-full z-15 shadow-lg transition-transform duration-200 cursor-pointer"
-                               style={{
-                                 transform: `translate(-50%, -50%) translate(${Math.cos((hourAngle - 90) * Math.PI / 180) * 40}px, ${Math.sin((hourAngle - 90) * Math.PI / 180) * 40}px)`
-                               }}
-                             />
+                              {/* Hour hand circle */}
+                              <div
+                                className="absolute top-1/2 left-1/2 w-4 h-4 bg-primary rounded-full z-15 shadow-lg transition-transform duration-200 cursor-grab active:cursor-grabbing hover:scale-110"
+                                style={{
+                                  transform: `translate(-50%, -50%) translate(${Math.cos((hourAngle - 90) * Math.PI / 180) * 40}px, ${Math.sin((hourAngle - 90) * Math.PI / 180) * 40}px)`
+                                }}
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                  setIsSelectingMinutes(false);
+                                  setIsDragging(true);
+                                }}
+                              />
                            </>
                          )}
                          
@@ -290,13 +348,18 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                                  transformOrigin: 'bottom center'
                                }}
                              />
-                             {/* Minute hand circle */}
-                             <div
-                               className="absolute top-1/2 left-1/2 w-3 h-3 bg-primary rounded-full z-15 shadow-lg transition-transform duration-200 cursor-pointer"
-                               style={{
-                                 transform: `translate(-50%, -50%) translate(${Math.cos((minuteAngle - 90) * Math.PI / 180) * 55}px, ${Math.sin((minuteAngle - 90) * Math.PI / 180) * 55}px)`
-                               }}
-                             />
+                              {/* Minute hand circle */}
+                              <div
+                                className="absolute top-1/2 left-1/2 w-3 h-3 bg-primary rounded-full z-15 shadow-lg transition-transform duration-200 cursor-grab active:cursor-grabbing hover:scale-110"
+                                style={{
+                                  transform: `translate(-50%, -50%) translate(${Math.cos((minuteAngle - 90) * Math.PI / 180) * 55}px, ${Math.sin((minuteAngle - 90) * Math.PI / 180) * 55}px)`
+                                }}
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                  setIsSelectingMinutes(true);
+                                  setIsDragging(true);
+                                }}
+                              />
                            </>
                          )}
                        </div>
