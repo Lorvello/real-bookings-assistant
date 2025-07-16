@@ -2454,6 +2454,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      generate_mock_data: {
+        Args: { p_user_id: string; p_data_type?: string }
+        Returns: undefined
+      }
       get_available_slots: {
         Args: {
           p_calendar_id: string
