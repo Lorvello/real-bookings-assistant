@@ -1,15 +1,9 @@
 
 import React from 'react';
-import { MultiStepRegistration } from '@/components/registration/MultiStepRegistration';
-import { LoginLink } from '@/components/auth/LoginLink';
+import { StreamlinedSignup } from '@/components/registration/StreamlinedSignup';
 
 const Signup = () => {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <MultiStepRegistration />
-      <LoginLink />
-    </div>
-  );
+  return <StreamlinedSignup />;
 };
 
 export default Signup;

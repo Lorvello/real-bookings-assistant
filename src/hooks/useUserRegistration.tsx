@@ -43,6 +43,7 @@ interface UserRegistrationData {
   businessEmail: string;
   serviceTypes: ServiceType[];
   availability: WeeklyAvailability;
+  phone?: string;
 }
 
 interface UserRegistrationResult {
@@ -81,15 +82,15 @@ export const useUserRegistration = () => {
         let errorMessage = authError.message;
         
         if (authError.message.includes('already registered')) {
-          errorMessage = 'Dit e-mailadres is al geregistreerd';
+          errorMessage = 'This email address is already registered';
         } else if (authError.message.includes('invalid email')) {
-          errorMessage = 'Ongeldig e-mailadres';
+          errorMessage = 'Invalid email address';
         } else if (authError.message.includes('password')) {
-          errorMessage = 'Wachtwoord voldoet niet aan de eisen (minimaal 6 karakters)';
+          errorMessage = 'Password does not meet requirements (minimum 6 characters)';
         }
 
         toast({
-          title: "Registratie gefaald",
+          title: "Registration failed",
           description: errorMessage,
           variant: "destructive",
         });
@@ -98,10 +99,10 @@ export const useUserRegistration = () => {
       }
 
       if (!authData.user) {
-        const errorMessage = "Gebruiker kon niet worden aangemaakt";
+        const errorMessage = "User could not be created";
         console.error('[UserRegistration] No user returned from auth');
         toast({
-          title: "Registratie gefaald",
+          title: "Registration failed",
           description: errorMessage,
           variant: "destructive",
         });
@@ -111,7 +112,27 @@ export const useUserRegistration = () => {
 
       console.log('[UserRegistration] Auth successful, user created:', authData.user.id);
 
-      // Stap 2: Roep database functie aan voor complete setup
+      // Stap 2: Update user profile with trial information and phone
+      const trialStartDate = new Date().toISOString();
+      const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days from now
+
+      const { error: profileError } = await supabase
+        .from('users')
+        .update({
+          full_name: data.fullName,
+          business_name: data.businessName,
+          business_type: data.businessType,
+          business_email: data.businessEmail,
+          phone: data.phone,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', authData.user.id);
+
+      if (profileError) {
+        console.error('[UserRegistration] Profile update error:', profileError);
+      }
+
+      // Stap 3: Roep database functie aan voor complete setup
       const { data: setupResult, error: setupError } = await supabase.rpc(
         'create_user_with_calendar',
         {
@@ -125,8 +146,8 @@ export const useUserRegistration = () => {
       if (setupError) {
         console.error('[UserRegistration] Setup error:', setupError);
         toast({
-          title: "Setup gefaald",
-          description: setupError.message || "Onbekende fout tijdens setup",
+          title: "Setup failed",
+          description: setupError.message || "Unknown error during setup",
           variant: "destructive",
         });
         setLoading(false);
@@ -145,8 +166,8 @@ export const useUserRegistration = () => {
       if (!result?.success) {
         console.error('[UserRegistration] Setup function returned failure:', result);
         toast({
-          title: "Setup gefaald",
-          description: result?.error || "Setup functie gefaald",
+          title: "Setup failed",
+          description: result?.error || "Setup function failed",
           variant: "destructive",
         });
         setLoading(false);
@@ -183,8 +204,8 @@ export const useUserRegistration = () => {
       console.log('[UserRegistration] Registration completely successful');
       
       toast({
-        title: "Account succesvol aangemaakt! 🎉",
-        description: "Je account en bedrijfsprofiel zijn volledig ingesteld. Je bent automatisch ingelogd.",
+        title: "Account created successfully! 🎉",
+        description: "Your account and business profile are fully set up. You're automatically logged in.",
       });
 
       setLoading(false);
@@ -197,8 +218,8 @@ export const useUserRegistration = () => {
     } catch (error) {
       console.error('[UserRegistration] Unexpected error:', error);
       toast({
-        title: "Registratie gefaald",
-        description: "Er is een onverwachte fout opgetreden",
+        title: "Registration failed",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
       setLoading(false);
