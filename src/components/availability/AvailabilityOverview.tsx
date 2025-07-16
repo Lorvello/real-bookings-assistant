@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Edit2, Plus } from 'lucide-react';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
-import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
+import { SingleDayEditModal } from './SingleDayEditModal';
 
 interface AvailabilityOverviewProps {
   onChange: () => void;
@@ -200,13 +200,16 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
 
 
       {/* Edit Modal */}
-      <GuidedAvailabilityModal
-        isOpen={isEditModalOpen}
-        onClose={handleModalClose}
-        onComplete={handleModalComplete}
-        startDay={editDay}
-        editMode={true}
-      />
+      {editDay !== null && availability[DAYS[editDay]?.key] && (
+        <SingleDayEditModal
+          isOpen={isEditModalOpen}
+          onClose={handleModalClose}
+          onComplete={handleModalComplete}
+          dayIndex={editDay}
+          dayData={availability[DAYS[editDay].key]}
+          dayLabel={DAYS[editDay].label}
+        />
+      )}
     </div>
   );
 };
