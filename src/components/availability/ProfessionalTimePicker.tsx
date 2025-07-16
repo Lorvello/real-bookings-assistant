@@ -262,7 +262,12 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
               onChange(value);
             }
           }}
-          onFocus={onToggle}
+          onFocus={(e) => {
+            e.stopPropagation();
+            onToggle();
+          }}
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
           placeholder="09:00"
           className="font-mono text-center bg-background border-border hover:border-accent focus:border-accent focus:ring-accent/20 transition-all duration-200"
         />
@@ -282,6 +287,8 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
           <div 
             className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 animate-in fade-in-0 zoom-in-95 relative"
             onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-border">
@@ -424,6 +431,9 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                       value={inputValue}
                       onChange={handleInputChange}
                       onKeyDown={handleInputKeyDown}
+                      onFocus={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
                       placeholder="09:00"
                       className="font-mono text-center text-lg bg-background border-border focus:border-accent focus:ring-accent/20 h-12"
                       autoFocus

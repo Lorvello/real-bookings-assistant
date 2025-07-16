@@ -26,10 +26,14 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const isAvailabilityConfigured = () => {
     if (!defaultSchedule || !availability) return false;
     
-    return DAYS.some(day => 
-      availability[day.key]?.enabled && 
-      availability[day.key]?.timeBlocks?.length > 0
-    );
+    // Check if ALL days are configured (enabled with time blocks OR explicitly disabled)
+    return DAYS.every(day => {
+      const dayData = availability[day.key];
+      return dayData && (
+        (dayData.enabled && dayData.timeBlocks?.length > 0) ||
+        (!dayData.enabled)
+      );
+    });
   };
 
   const handleConfigureAvailability = async () => {

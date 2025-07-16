@@ -34,9 +34,13 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
   const getAvailabilityStatus = () => {
     if (!availability) return { total: 7, configured: 0, isComplete: false };
     
+    // Count days that are either enabled with time blocks OR explicitly disabled
     const configuredDays = DAYS.filter(day => {
       const dayData = availability[day.key];
-      return dayData?.enabled && dayData?.timeBlocks?.length > 0;
+      return dayData && (
+        (dayData.enabled && dayData.timeBlocks?.length > 0) ||
+        (!dayData.enabled)
+      );
     });
     
     return {
@@ -132,11 +136,11 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
                   <div className="space-y-2">
                     {isConfigured ? (
                       <div className="space-y-2">
-                        <div className="flex items-center space-x-2 text-green-600">
+                        <div className="flex items-center space-x-2 text-emerald-600">
                           <Clock className="h-4 w-4" />
                           <span className="text-sm font-medium">Available</span>
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-foreground/90 font-medium">
                           {formatTimeRange(dayData.timeBlocks)}
                         </div>
                         {dayData.timeBlocks.length > 1 && (
@@ -174,36 +178,6 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
         })}
       </div>
 
-      {/* Professional Summary Stats - Only show if not complete */}
-      {!status.isComplete && (
-        <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-6 shadow-lg">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Configuration Progress</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">{status.configured}</div>
-              <div className="text-sm text-muted-foreground">Days Available</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">
-                {DAYS.reduce((total, day) => {
-                  const dayData = availability[day.key];
-                  if (dayData?.enabled && dayData?.timeBlocks) {
-                    return total + dayData.timeBlocks.length;
-                  }
-                  return total;
-                }, 0)}
-              </div>
-              <div className="text-sm text-muted-foreground">Total Time Blocks</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">
-                {Math.round((status.configured / status.total) * 100)}%
-              </div>
-              <div className="text-sm text-muted-foreground">Complete</div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Professional Complete Status */}
       {status.isComplete && (
