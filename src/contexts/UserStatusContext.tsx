@@ -154,7 +154,11 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     if (!profile?.id) return;
     
     try {
+      // Clear user status cache
       sessionStorage.removeItem(USER_STATUS_CACHE_KEY);
+      
+      // Clear profile cache to ensure fresh data
+      localStorage.removeItem('userProfile');
     } catch (error) {
       console.error('Error clearing cache:', error);
     }

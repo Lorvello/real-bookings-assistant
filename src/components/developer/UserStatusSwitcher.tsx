@@ -19,7 +19,7 @@ const userStatusOptions = [
 ];
 
 export const UserStatusSwitcher = () => {
-  const { profile } = useProfile();
+  const { profile, refetch } = useProfile();
   const { userStatus, invalidateCache } = useUserStatus();
   const { toast } = useToast();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
@@ -46,7 +46,8 @@ export const UserStatusSwitcher = () => {
         variant: "default",
       });
 
-      // Clear cache and refresh status
+      // Force profile refresh first, then clear status cache
+      await refetch();
       invalidateCache();
     } catch (error) {
       console.error('Error updating user status:', error);
