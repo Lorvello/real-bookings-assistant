@@ -145,22 +145,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </CardContent>
       </Card>
 
-      <Card className="border-blue-200 bg-blue-50">
-        <CardHeader>
-          <CardTitle className="text-blue-800">Free Trial</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600 mb-2">6 Days Left</div>
-            <p className="text-sm text-blue-700 mb-4">
-              Your 7-day free trial is active.
-            </p>
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-              Upgrade Plan
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

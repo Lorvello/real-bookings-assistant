@@ -518,6 +518,13 @@ export type Database = {
             foreignKeyName: "calendar_members_invited_by_fkey"
             columns: ["invited_by"]
             isOneToOne: false
+            referencedRelation: "user_status_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -527,6 +534,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "business_availability_overview"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "calendar_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_status_overview"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "calendar_members_user_id_fkey"
@@ -669,6 +683,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "business_availability_overview"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "calendars_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_status_overview"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "calendars_user_id_fkey"
@@ -2116,6 +2137,57 @@ export type Database = {
           },
         ]
       }
+      user_status_overview: {
+        Row: {
+          business_name: string | null
+          created_at: string | null
+          days_remaining: number | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          subscription_end_date: string | null
+          subscription_status: string | null
+          subscription_tier:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          trial_end_date: string | null
+          trial_start_date: string | null
+          user_status_type: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          created_at?: string | null
+          days_remaining?: never
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          subscription_end_date?: string | null
+          subscription_status?: string | null
+          subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
+          user_status_type?: never
+        }
+        Update: {
+          business_name?: string | null
+          created_at?: string | null
+          days_remaining?: never
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          subscription_end_date?: string | null
+          subscription_status?: string | null
+          subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
+          user_status_type?: never
+        }
+        Relationships: []
+      }
       whatsapp_analytics: {
         Row: {
           active_conversations: number | null
@@ -2453,6 +2525,10 @@ export type Database = {
       get_todays_schedule: {
         Args: { p_calendar_id: string }
         Returns: Json
+      }
+      get_user_status_type: {
+        Args: { p_user_id: string }
+        Returns: string
       }
       get_user_subscription_details: {
         Args: { p_user_id: string }

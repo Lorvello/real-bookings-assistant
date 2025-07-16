@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Calendar,
@@ -43,6 +43,22 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
 
+  // Memoize navigation items with stable state to prevent flashing
+  const navigationItems = useMemo(() => {
+    return navigation.map((item) => {
+      const hasAccess = !item.requiresAccess || accessControl[item.requiresAccess];
+      const isActive = location.pathname === item.href;
+      const isRestricted = !hasAccess || (userStatus.isExpired && item.requiresAccess !== 'canViewDashboard');
+
+      return {
+        ...item,
+        hasAccess,
+        isActive,
+        isRestricted
+      };
+    });
+  }, [location.pathname, userStatus.isExpired, accessControl]);
+
   const handleItemClick = (item: NavItem) => {
     // Check if user has access to this feature
     if (item.requiresAccess && !accessControl[item.requiresAccess]) {
@@ -68,73 +84,53 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
     onNavigate(item.href);
   };
 
-  const getItemState = (item: NavItem) => {
-    const hasAccess = !item.requiresAccess || accessControl[item.requiresAccess];
-    const isActive = location.pathname === item.href;
-    const isRestricted = !hasAccess || (userStatus.isExpired && item.requiresAccess !== 'canViewDashboard');
-
-    return { hasAccess, isActive, isRestricted };
-  };
-
   return (
     <nav className="flex-1 space-y-1 px-2 py-4">
-      {navigation.map((item) => {
-        const { hasAccess, isActive, isRestricted } = getItemState(item);
-        
-        return (
-          <button
-            key={item.name}
-            onClick={() => handleItemClick(item)}
-            className={`
-              group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
-              ${isActive 
-                ? 'bg-green-600 text-white shadow-lg' 
-                : isRestricted
-                  ? 'text-gray-500 hover:bg-gray-700 hover:text-gray-400 cursor-not-allowed'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-              }
-            `}
-            title={
-              isRestricted 
-                ? `${item.name} - Upgrade required` 
-                : item.name
+      {navigationItems.map((item) => (
+        <button
+          key={item.name}
+          onClick={() => handleItemClick(item)}
+          className={`
+            group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
+            ${item.isActive 
+              ? 'bg-green-600 text-white shadow-lg' 
+              : item.isRestricted
+                ? 'text-gray-500 hover:bg-gray-700 hover:text-gray-400 cursor-not-allowed'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
             }
-          >
-            <div className="relative">
-              <item.icon
-                className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200 ${
-                  isActive 
-                    ? 'text-white' 
-                    : isRestricted 
-                      ? 'text-gray-600' 
-                      : 'text-gray-400 group-hover:text-white'
-                }`}
-              />
-              {isRestricted && (
-                <div className="absolute -top-1 -right-1">
-                  {userStatus.isExpired ? (
-                    <Lock className="h-3 w-3 text-red-400" />
-                  ) : (
-                    <Eye className="h-3 w-3 text-yellow-400" />
-                  )}
-                </div>
-              )}
-            </div>
-            <span className={`transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 w-0 overflow-hidden'}`}>
-              {item.name}
-            </span>
-            {isRestricted && isSidebarOpen && (
-              <div className="ml-auto">
-                {userStatus.isExpired ? (
-                  <Lock className="h-4 w-4 text-red-400" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-yellow-400" />
-                )}
+          `}
+          title={
+            item.isRestricted 
+              ? `${item.name} - Upgrade required` 
+              : item.name
+          }
+        >
+          <div className="relative">
+            <item.icon
+              className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200 ${
+                item.isActive 
+                  ? 'text-white' 
+                  : item.isRestricted 
+                    ? 'text-gray-600' 
+                    : 'text-gray-400 group-hover:text-white'
+              }`}
+            />
+            {item.isRestricted && userStatus.isExpired && (
+              <div className="absolute -top-1 -right-1">
+                <Lock className="h-3 w-3 text-red-400" />
               </div>
             )}
-          </button>
-        );
-      })}
+          </div>
+          <span className={`transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 w-0 overflow-hidden'}`}>
+            {item.name}
+          </span>
+          {item.isRestricted && isSidebarOpen && userStatus.isExpired && (
+            <div className="ml-auto">
+              <Lock className="h-4 w-4 text-red-400" />
+            </div>
+          )}
+        </button>
+      ))}
     </nav>
   );
 }

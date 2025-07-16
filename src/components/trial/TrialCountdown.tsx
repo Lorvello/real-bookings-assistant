@@ -8,13 +8,14 @@ interface TrialCountdownProps {
 
 export function TrialCountdown({ daysRemaining, isExpanded }: TrialCountdownProps) {
   const getCountdownColor = () => {
+    if (daysRemaining <= 0) return 'text-red-400';
     if (daysRemaining <= 1) return 'text-red-400';
     if (daysRemaining <= 3) return 'text-yellow-400';
     return 'text-green-400';
   };
 
   const getCountdownText = () => {
-    if (daysRemaining === 0) return 'Trial Expires Today';
+    if (daysRemaining <= 0) return 'Trial Expired';
     if (daysRemaining === 1) return '1 Day Free Trial Remaining';
     return `${daysRemaining} Days Free Trial Remaining`;
   };

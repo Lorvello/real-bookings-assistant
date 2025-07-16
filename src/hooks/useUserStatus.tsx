@@ -1,12 +1,45 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useProfile } from './useProfile';
 import { UserStatus, UserType, AccessControl } from '@/types/userStatus';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useUserStatus = () => {
   const { profile } = useProfile();
+  const [userStatusType, setUserStatusType] = useState<string>('unknown');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Get user status type from database function
+  useEffect(() => {
+    const fetchUserStatusType = async () => {
+      if (!profile?.id) {
+        setUserStatusType('unknown');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .rpc('get_user_status_type', { p_user_id: profile.id });
+
+        if (error) {
+          console.error('Error fetching user status type:', error);
+          setUserStatusType('unknown');
+        } else {
+          setUserStatusType(data || 'unknown');
+        }
+      } catch (error) {
+        console.error('Error fetching user status type:', error);
+        setUserStatusType('unknown');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserStatusType();
+  }, [profile?.id]);
 
   const userStatus = useMemo<UserStatus>(() => {
-    if (!profile) {
+    if (!profile || isLoading) {
       return {
         userType: 'unknown',
         isTrialActive: false,
@@ -20,7 +53,7 @@ export const useUserStatus = () => {
         canEdit: false,
         canCreate: false,
         showUpgradePrompt: false,
-        statusMessage: 'Loading...',
+        statusMessage: isLoading ? 'Loading...' : 'Unknown Status',
         statusColor: 'gray'
       };
     }
@@ -35,7 +68,7 @@ export const useUserStatus = () => {
       ? Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
       : 0;
 
-    // Determine user type
+    // Map database status to UserType
     let userType: UserType = 'unknown';
     let statusMessage = '';
     let statusColor: 'green' | 'yellow' | 'red' | 'gray' = 'gray';
@@ -43,38 +76,42 @@ export const useUserStatus = () => {
     // Check if in grace period
     const gracePeriodActive = gracePeriodEnd && now <= gracePeriodEnd;
 
-    if (profile.subscription_status === 'trial') {
-      if (trialEndDate && now <= trialEndDate) {
+    switch (userStatusType) {
+      case 'active_trial':
         userType = 'trial';
         statusMessage = daysRemaining === 1 ? '1 Day Free Trial Remaining' : `${daysRemaining} Days Free Trial Remaining`;
         statusColor = daysRemaining <= 1 ? 'red' : daysRemaining <= 3 ? 'yellow' : 'green';
-      } else {
+        break;
+      case 'expired_trial':
         userType = 'expired_trial';
         statusMessage = 'Trial Expired';
         statusColor = 'red';
-      }
-    } else if (profile.subscription_status === 'active' || profile.subscription_status === 'paid') {
-      userType = 'subscriber';
-      statusMessage = 'Active Subscription';
-      statusColor = 'green';
-    } else if (profile.subscription_status === 'canceled') {
-      if (subscriptionEndDate && now <= subscriptionEndDate) {
+        break;
+      case 'paid_subscriber':
+        userType = 'subscriber';
+        statusMessage = 'Active Subscription';
+        statusColor = 'green';
+        break;
+      case 'canceled_but_active':
         userType = 'canceled_subscriber';
-        const remainingDays = Math.ceil((subscriptionEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const remainingDays = subscriptionEndDate 
+          ? Math.ceil((subscriptionEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+          : 0;
         statusMessage = `Subscription ending in ${remainingDays} day${remainingDays === 1 ? '' : 's'}`;
         statusColor = 'yellow';
-      } else {
+        break;
+      case 'setup_incomplete':
         userType = 'expired_trial';
-        statusMessage = 'Subscription Expired';
-        statusColor = 'red';
-      }
-    } else if (profile.subscription_status === 'expired') {
-      userType = 'expired_trial';
-      statusMessage = gracePeriodActive ? 'Grace Period Active' : 'Trial Expired';
-      statusColor = gracePeriodActive ? 'yellow' : 'red';
+        statusMessage = 'Setup Incomplete';
+        statusColor = 'yellow';
+        break;
+      default:
+        userType = 'unknown';
+        statusMessage = 'Unknown Status';
+        statusColor = 'gray';
     }
 
-    // Determine access levels
+    // Determine access levels based on user type
     const isTrialActive = userType === 'trial';
     const isExpired = userType === 'expired_trial' && !gracePeriodActive;
     const isSubscriber = userType === 'subscriber';
@@ -103,7 +140,7 @@ export const useUserStatus = () => {
       statusMessage,
       statusColor
     };
-  }, [profile]);
+  }, [profile, userStatusType, isLoading]);
 
   const accessControl = useMemo<AccessControl>(() => {
     const { userType, hasFullAccess, isExpired } = userStatus;
