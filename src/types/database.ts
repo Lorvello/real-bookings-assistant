@@ -5,6 +5,9 @@ export interface UserProfile {
   business_name?: string;
   business_type?: string;
   phone?: string;
+  subscription_status?: 'trial' | 'active' | 'expired' | 'cancelled';
+  trial_start_date?: string;
+  trial_end_date?: string;
   created_at: string;
   updated_at: string;
 }

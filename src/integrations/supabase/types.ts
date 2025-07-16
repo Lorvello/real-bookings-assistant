@@ -1048,9 +1048,12 @@ export type Database = {
           phone: string | null
           public_transport_info: string | null
           show_opening_hours: boolean | null
+          subscription_status: string | null
           team_size: string | null
           tiktok: string | null
           timezone: string | null
+          trial_end_date: string | null
+          trial_start_date: string | null
           updated_at: string | null
           website: string | null
         }
@@ -1090,9 +1093,12 @@ export type Database = {
           phone?: string | null
           public_transport_info?: string | null
           show_opening_hours?: boolean | null
+          subscription_status?: string | null
           team_size?: string | null
           tiktok?: string | null
           timezone?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
           updated_at?: string | null
           website?: string | null
         }
@@ -1132,9 +1138,12 @@ export type Database = {
           phone?: string | null
           public_transport_info?: string | null
           show_opening_hours?: boolean | null
+          subscription_status?: string | null
           team_size?: string | null
           tiktok?: string | null
           timezone?: string | null
+          trial_end_date?: string | null
+          trial_start_date?: string | null
           updated_at?: string | null
           website?: string | null
         }

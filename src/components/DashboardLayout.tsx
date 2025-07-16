@@ -5,8 +5,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { SidebarHeader } from '@/components/dashboard/SidebarHeader';
 import { BackToWebsiteButton } from '@/components/dashboard/BackToWebsiteButton';
 import { NavigationMenu } from '@/components/dashboard/NavigationMenu';
+import { EnhancedNavigationMenu } from '@/components/trial/EnhancedNavigationMenu';
 import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcherSection';
 import { UserProfileSection } from '@/components/dashboard/UserProfileSection';
+import { TrialCountdown } from '@/components/trial/TrialCountdown';
+import { ProgressIndicator } from '@/components/trial/ProgressIndicator';
+import { useTrialStatus } from '@/hooks/useTrialStatus';
+import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -16,6 +21,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
+  const { isTrialActive, daysRemaining } = useTrialStatus();
+  const { completionPercentage, completedSteps, totalSteps } = useOnboardingProgress();
 
   const handleSignOut = async () => {
     await signOut();
@@ -51,10 +58,34 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             onBackToWebsite={handleBackToWebsite} 
           />
 
-          <NavigationMenu 
-            isSidebarOpen={isSidebarOpen} 
-            onNavigate={handleNavigation} 
-          />
+          {/* Trial Status Components - Only show for active trial users */}
+          {isTrialActive && (
+            <>
+              <TrialCountdown 
+                daysRemaining={daysRemaining} 
+                isExpanded={isSidebarOpen} 
+              />
+              <ProgressIndicator 
+                completionPercentage={completionPercentage}
+                completedSteps={completedSteps}
+                totalSteps={totalSteps}
+                isExpanded={isSidebarOpen}
+              />
+            </>
+          )}
+
+          {/* Navigation Menu - Enhanced for trial users, normal for others */}
+          {isTrialActive ? (
+            <EnhancedNavigationMenu 
+              isSidebarOpen={isSidebarOpen} 
+              onNavigate={handleNavigation} 
+            />
+          ) : (
+            <NavigationMenu 
+              isSidebarOpen={isSidebarOpen} 
+              onNavigate={handleNavigation} 
+            />
+          )}
 
           <CalendarSwitcherSection isSidebarOpen={isSidebarOpen} />
 

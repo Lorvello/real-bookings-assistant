@@ -33,7 +33,7 @@ export const useProfile = () => {
         return;
       }
 
-      setProfile(data);
+      setProfile(data as UserProfile);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
