@@ -47,9 +47,9 @@ function GlobalWebhookProcessor() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <CalendarProvider>
-        <ConversationCalendarProvider>
-          <UserStatusProvider>
+      <UserStatusProvider>
+        <CalendarProvider>
+          <ConversationCalendarProvider>
             <Router>
               <GlobalWebhookProcessor />
               <Routes>
@@ -75,9 +75,9 @@ function App() {
               </Routes>
               <Toaster />
             </Router>
-          </UserStatusProvider>
-        </ConversationCalendarProvider>
-      </CalendarProvider>
+          </ConversationCalendarProvider>
+        </CalendarProvider>
+      </UserStatusProvider>
     </QueryClientProvider>
   );
 }
