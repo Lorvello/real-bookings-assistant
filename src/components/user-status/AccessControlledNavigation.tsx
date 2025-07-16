@@ -45,13 +45,16 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
 
   // Memoize navigation items with stable state to prevent flashing
   const navigationItems = useMemo(() => {
-    // For paid subscribers, skip access control checks to prevent glitches
+    // For paid subscribers, never show restrictions regardless of loading state
     const isPaidSubscriber = userStatus.userType === 'subscriber' && userStatus.isSubscriber;
     
     return navigation.map((item) => {
       const isActive = location.pathname === item.href;
+      
       // For paid subscribers, never show restrictions to prevent glitches
-      const isRestricted = isPaidSubscriber ? false : (item.requiresAccess && !accessControl[item.requiresAccess]);
+      const isRestricted = isPaidSubscriber 
+        ? false 
+        : (item.requiresAccess && !accessControl[item.requiresAccess]);
 
       return {
         ...item,

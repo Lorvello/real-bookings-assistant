@@ -5,8 +5,19 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const useUserStatus = () => {
   const { profile, loading: profileLoading } = useProfile();
-  const [userStatusType, setUserStatusType] = useState<string>('unknown');
-  const [isLoading, setIsLoading] = useState(true);
+  
+  // Initialize with optimistic state for paid subscribers to prevent glitches
+  const [userStatusType, setUserStatusType] = useState<string>(() => {
+    // Try to get from localStorage first for persistence across navigation
+    const cached = localStorage.getItem('userStatusType');
+    return cached || 'unknown';
+  });
+  
+  const [isLoading, setIsLoading] = useState(() => {
+    // For paid subscribers, start with false to prevent loading flash
+    const cached = localStorage.getItem('userStatusType');
+    return !cached;
+  });
 
   // Get user status type from database function with caching
   useEffect(() => {
@@ -14,13 +25,15 @@ export const useUserStatus = () => {
       if (!profile?.id) {
         setUserStatusType('unknown');
         setIsLoading(false);
+        localStorage.removeItem('userStatusType');
         return;
       }
 
-      // For paid subscribers, set optimistic status to prevent glitches
+      // For paid subscribers, immediately set status and cache it
       if (profile.subscription_status === 'active' && profile.subscription_tier) {
         setUserStatusType('paid_subscriber');
         setIsLoading(false);
+        localStorage.setItem('userStatusType', 'paid_subscriber');
         return;
       }
 
@@ -32,7 +45,9 @@ export const useUserStatus = () => {
           console.error('Error fetching user status type:', error);
           setUserStatusType('unknown');
         } else {
-          setUserStatusType(data || 'unknown');
+          const status = data || 'unknown';
+          setUserStatusType(status);
+          localStorage.setItem('userStatusType', status);
         }
       } catch (error) {
         console.error('Error fetching user status type:', error);
@@ -46,10 +61,10 @@ export const useUserStatus = () => {
   }, [profile?.id, profile?.subscription_status, profile?.subscription_tier]);
 
   const userStatus = useMemo<UserStatus>(() => {
-    // Use stable loading state that considers both profile and status loading
-    const isActuallyLoading = profileLoading || isLoading;
+    // For paid subscribers, never show loading state to prevent glitches
+    const isPaidSubscriber = profile?.subscription_status === 'active' && profile?.subscription_tier;
     
-    if (!profile || isActuallyLoading) {
+    if (!profile && !isPaidSubscriber) {
       return {
         userType: 'unknown',
         isTrialActive: false,
@@ -63,7 +78,49 @@ export const useUserStatus = () => {
         canEdit: false,
         canCreate: false,
         showUpgradePrompt: false,
-        statusMessage: isActuallyLoading ? 'Loading...' : 'Unknown Status',
+        statusMessage: profileLoading ? 'Loading...' : 'Unknown Status',
+        statusColor: 'gray',
+        isSetupIncomplete: false
+      };
+    }
+    
+    // For paid subscribers, immediately return active status regardless of loading states
+    if (isPaidSubscriber) {
+      return {
+        userType: 'subscriber',
+        isTrialActive: false,
+        isExpired: false,
+        isSubscriber: true,
+        isCanceled: false,
+        hasFullAccess: true,
+        daysRemaining: 0,
+        gracePeriodActive: false,
+        needsUpgrade: false,
+        canEdit: true,
+        canCreate: true,
+        showUpgradePrompt: false,
+        statusMessage: 'Active Subscription',
+        statusColor: 'green',
+        isSetupIncomplete: false
+      };
+    }
+    
+    // Show loading only for non-paid users
+    if (isLoading && !isPaidSubscriber) {
+      return {
+        userType: 'unknown',
+        isTrialActive: false,
+        isExpired: false,
+        isSubscriber: false,
+        isCanceled: false,
+        hasFullAccess: false,
+        daysRemaining: 0,
+        gracePeriodActive: false,
+        needsUpgrade: false,
+        canEdit: false,
+        canCreate: false,
+        showUpgradePrompt: false,
+        statusMessage: 'Loading...',
         statusColor: 'gray',
         isSetupIncomplete: false
       };
