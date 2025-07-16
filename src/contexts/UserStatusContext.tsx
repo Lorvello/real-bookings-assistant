@@ -1,174 +1,115 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
-import { useProfile } from './useProfile';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { useProfile } from '@/hooks/useProfile';
 import { UserStatus, UserType, AccessControl } from '@/types/userStatus';
 import { supabase } from '@/integrations/supabase/client';
 
-const USER_STATUS_CACHE_KEY = 'userStatusCache';
-const USER_STATUS_CACHE_VERSION = '2.0';
-const STABLE_STATUS_KEY = 'stableUserStatus';
+interface UserStatusContextType {
+  userStatus: UserStatus;
+  accessControl: AccessControl;
+  isLoading: boolean;
+  invalidateCache: () => void;
+}
 
-export const useUserStatus = () => {
-  const { profile, loading: profileLoading } = useProfile();
+const UserStatusContext = createContext<UserStatusContextType | undefined>(undefined);
+
+const USER_STATUS_CACHE_KEY = 'globalUserStatusCache';
+const CACHE_VERSION = '3.0';
+
+export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { profile } = useProfile();
   
-  // Persistent state using sessionStorage for better cross-tab persistence
-  const getStableStatus = () => {
-    try {
-      const stable = sessionStorage.getItem(STABLE_STATUS_KEY);
-      if (stable && profile?.id) {
-        const { userId, status, timestamp } = JSON.parse(stable);
-        if (userId === profile.id && Date.now() - timestamp < 30 * 60 * 1000) { // 30 minutes
-          return status;
-        }
-      }
-    } catch (error) {
-      console.error('Error reading stable status:', error);
-    }
-    return null;
-  };
-
-  const setStableStatus = (status: string) => {
-    if (profile?.id) {
-      try {
-        sessionStorage.setItem(STABLE_STATUS_KEY, JSON.stringify({
-          userId: profile.id,
-          status,
-          timestamp: Date.now()
-        }));
-      } catch (error) {
-        console.error('Error setting stable status:', error);
-      }
-    }
-  };
-
-  // Initialize with persistent state to prevent resets during navigation
+  // Global persistent state - loaded once and maintained across navigation
   const [userStatusType, setUserStatusType] = useState<string>(() => {
-    // PRIORITY 1: Check for stable status first
-    const stableStatus = getStableStatus();
-    if (stableStatus) return stableStatus;
-
-    // PRIORITY 2: For paid subscribers, immediately return without any loading
+    // For paid subscribers, return immediately without any loading
     if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
       return 'paid_subscriber';
     }
-
-    // PRIORITY 3: Check cached data
-    if (profile?.id) {
-      try {
-        const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
-        if (cached) {
-          const { version, data, userId } = JSON.parse(cached);
-          if (version === USER_STATUS_CACHE_VERSION && userId === profile.id) {
-            return data.userStatusType || 'unknown';
-          }
-        }
-      } catch (error) {
-        console.error('Error loading cached user status:', error);
-      }
-    }
-    return 'unknown';
-  });
-  
-  const [isLoading, setIsLoading] = useState(() => {
-    // NEVER show loading for paid subscribers to prevent UI glitches
-    if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
-      return false;
-    }
     
-    // Don't show loading if we have stable status
-    if (getStableStatus()) {
-      return false;
-    }
-    
-    // Check if we have cached data
+    // Check cache
     try {
       const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
       if (cached && profile?.id) {
         const { version, data, userId } = JSON.parse(cached);
-        if (version === USER_STATUS_CACHE_VERSION && userId === profile.id) {
+        if (version === CACHE_VERSION && userId === profile.id) {
+          return data.userStatusType || 'unknown';
+        }
+      }
+    } catch (error) {
+      console.error('Error loading cached status:', error);
+    }
+    
+    return 'unknown';
+  });
+  
+  // Never show loading for paid subscribers or cached data
+  const [isLoading, setIsLoading] = useState(() => {
+    if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
+      return false;
+    }
+    
+    try {
+      const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
+      if (cached && profile?.id) {
+        const { version, data, userId } = JSON.parse(cached);
+        if (version === CACHE_VERSION && userId === profile.id) {
           return false;
         }
       }
     } catch (error) {
-      console.error('Error checking cached user status:', error);
+      console.error('Error checking cached status:', error);
     }
     
     return true;
   });
-
+  
   const fetchInProgress = useRef(false);
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const initialLoadComplete = useRef(false);
 
-  // Debounced status update to prevent rapid changes
-  const updateStatus = (newStatus: string) => {
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
-    }
-    
-    debounceTimeout.current = setTimeout(() => {
-      setUserStatusType(newStatus);
-      setStableStatus(newStatus);
-    }, 50);
-  };
-
-  // Optimized status fetching with intelligent caching
+  // Single fetch on mount - never refetch during navigation
   useEffect(() => {
-    const fetchUserStatusType = async () => {
-      if (!profile?.id) {
-        updateStatus('unknown');
-        setIsLoading(false);
-        sessionStorage.removeItem(USER_STATUS_CACHE_KEY);
-        sessionStorage.removeItem(STABLE_STATUS_KEY);
-        return;
-      }
+    if (!profile?.id || initialLoadComplete.current) return;
 
-      // INSTANT DETECTION: For paid subscribers, NEVER call database
+    const fetchUserStatus = async () => {
+      // Immediate return for paid subscribers
       if (profile.subscription_status === 'active' && profile.subscription_tier) {
-        const status = 'paid_subscriber';
-        updateStatus(status);
+        setUserStatusType('paid_subscriber');
         setIsLoading(false);
+        initialLoadComplete.current = true;
         
-        // Cache for future use
+        // Cache for consistency
         try {
           sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
-            version: USER_STATUS_CACHE_VERSION,
-            data: { userStatusType: status },
+            version: CACHE_VERSION,
+            data: { userStatusType: 'paid_subscriber' },
             userId: profile.id,
             timestamp: Date.now()
           }));
         } catch (error) {
-          console.error('Error caching user status:', error);
+          console.error('Error caching status:', error);
         }
         return;
       }
 
-      // Check stable status first - prevents re-fetching on tab switches
-      const stableStatus = getStableStatus();
-      if (stableStatus) {
-        updateStatus(stableStatus);
-        setIsLoading(false);
-        return;
-      }
-
-      // Check cached data with longer validity for non-paid users
+      // Check cache first
       try {
         const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
         if (cached) {
           const { version, data, userId, timestamp } = JSON.parse(cached);
-          if (version === USER_STATUS_CACHE_VERSION && userId === profile.id) {
-            // Use cached data if it's less than 10 minutes old
-            const isRecent = Date.now() - timestamp < 10 * 60 * 1000;
-            if (isRecent) {
-              updateStatus(data.userStatusType || 'unknown');
+          if (version === CACHE_VERSION && userId === profile.id) {
+            // Use cached data if less than 15 minutes old
+            if (Date.now() - timestamp < 15 * 60 * 1000) {
+              setUserStatusType(data.userStatusType || 'unknown');
               setIsLoading(false);
+              initialLoadComplete.current = true;
               return;
             }
           }
         }
       } catch (error) {
-        console.error('Error reading cached user status:', error);
+        console.error('Error reading cache:', error);
       }
 
-      // Only fetch from database if absolutely necessary
+      // Fetch from database only if necessary
       if (fetchInProgress.current) return;
       fetchInProgress.current = true;
 
@@ -177,48 +118,67 @@ export const useUserStatus = () => {
           .rpc('get_user_status_type', { p_user_id: profile.id });
 
         if (error) {
-          console.error('Error fetching user status type:', error);
-          updateStatus('unknown');
+          console.error('Error fetching user status:', error);
+          setUserStatusType('unknown');
         } else {
           const status = data || 'unknown';
-          updateStatus(status);
+          setUserStatusType(status);
           
-          // Cache the result with sessionStorage
+          // Cache the result
           try {
             sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
-              version: USER_STATUS_CACHE_VERSION,
+              version: CACHE_VERSION,
               data: { userStatusType: status },
               userId: profile.id,
               timestamp: Date.now()
             }));
           } catch (error) {
-            console.error('Error caching user status:', error);
+            console.error('Error caching status:', error);
           }
         }
       } catch (error) {
-        console.error('Error fetching user status type:', error);
-        updateStatus('unknown');
+        console.error('Error fetching user status:', error);
+        setUserStatusType('unknown');
       } finally {
         setIsLoading(false);
         fetchInProgress.current = false;
+        initialLoadComplete.current = true;
       }
     };
 
-    fetchUserStatusType();
-    
-    // Cleanup function to prevent memory leaks
-    return () => {
-      if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current);
-      }
-    };
-  }, [profile?.id]); // ONLY depend on profile.id to prevent unnecessary re-fetches
+    fetchUserStatus();
+  }, [profile?.id]);
 
-  const userStatus = useMemo<UserStatus>(() => {
-    // FAILSAFE: For paid subscribers, ALWAYS return active status immediately
-    const isPaidSubscriber = profile?.subscription_status === 'active' && profile?.subscription_tier;
+  // Invalidate cache and refetch (only used by UserStatusSwitcher)
+  const invalidateCache = () => {
+    if (!profile?.id) return;
     
-    if (isPaidSubscriber) {
+    try {
+      sessionStorage.removeItem(USER_STATUS_CACHE_KEY);
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+    }
+    
+    initialLoadComplete.current = false;
+    fetchInProgress.current = false;
+    setIsLoading(true);
+    
+    // Trigger refetch
+    const timer = setTimeout(() => {
+      if (profile?.id) {
+        initialLoadComplete.current = false;
+        // This will trigger the useEffect to run again
+        setUserStatusType('unknown');
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  };
+
+  // Compute user status - optimized for performance
+  const userStatus: UserStatus = React.useMemo(() => {
+    // Immediate return for paid subscribers
+    if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
       return {
         userType: 'subscriber',
         isTrialActive: false,
@@ -237,8 +197,7 @@ export const useUserStatus = () => {
         isSetupIncomplete: false
       };
     }
-    
-    // Handle non-paid users
+
     if (!profile) {
       return {
         userType: 'unknown',
@@ -253,14 +212,14 @@ export const useUserStatus = () => {
         canEdit: false,
         canCreate: false,
         showUpgradePrompt: false,
-        statusMessage: profileLoading ? 'Loading...' : 'Unknown Status',
+        statusMessage: 'Loading...',
         statusColor: 'gray',
         isSetupIncomplete: false
       };
     }
-    
-    // Show loading only for non-paid users
-    if (isLoading) {
+
+    // Show loading only when absolutely necessary
+    if (isLoading && !initialLoadComplete.current) {
       return {
         userType: 'unknown',
         isTrialActive: false,
@@ -285,33 +244,15 @@ export const useUserStatus = () => {
     const subscriptionEndDate = profile.subscription_end_date ? new Date(profile.subscription_end_date) : null;
     const gracePeriodEnd = profile.grace_period_end ? new Date(profile.grace_period_end) : null;
 
-    // Calculate days remaining for trial
     const daysRemaining = trialEndDate 
       ? Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
       : 0;
 
-    // Debug logging for status detection
-    console.log('🔍 Status Detection Debug:', {
-      userStatusType,
-      profile: {
-        subscription_status: profile.subscription_status,
-        subscription_tier: profile.subscription_tier,
-        trial_end_date: profile.trial_end_date,
-        subscription_end_date: profile.subscription_end_date,
-      },
-      daysRemaining,
-      trialEndDate,
-      subscriptionEndDate,
-      isTrialActive: trialEndDate && now <= trialEndDate,
-      isSubscriptionActive: subscriptionEndDate && now <= subscriptionEndDate
-    });
-
-    // Map database status to UserType
+    // Map status type to user status
     let userType: UserType = 'unknown';
     let statusMessage = '';
     let statusColor: 'green' | 'yellow' | 'red' | 'gray' = 'gray';
 
-    // Check if in grace period
     const gracePeriodActive = gracePeriodEnd && now <= gracePeriodEnd;
 
     switch (userStatusType) {
@@ -351,20 +292,11 @@ export const useUserStatus = () => {
         statusColor = 'yellow';
         break;
       default:
-        console.warn('⚠️ Unknown userStatusType detected:', userStatusType);
         userType = 'unknown';
         statusMessage = 'Unknown Status';
         statusColor = 'gray';
     }
 
-    console.log('✅ Final Status Mapping:', {
-      userStatusType,
-      userType,
-      statusMessage,
-      statusColor
-    });
-
-    // Determine access levels based on user type
     const isTrialActive = userType === 'trial';
     const isExpired = userType === 'expired_trial' && !gracePeriodActive;
     const isSubscriber = userType === 'subscriber';
@@ -395,15 +327,15 @@ export const useUserStatus = () => {
       statusColor,
       isSetupIncomplete
     };
-  }, [profile, userStatusType, profileLoading, isLoading]);
+  }, [profile, userStatusType, isLoading]);
 
-  const accessControl = useMemo<AccessControl>(() => {
-    const { userType, hasFullAccess, isExpired } = userStatus;
+  // Compute access control - optimized for performance
+  const accessControl: AccessControl = React.useMemo(() => {
+    const { userType, hasFullAccess } = userStatus;
     const tier = profile?.subscription_tier;
 
-    // FAILSAFE: For paid subscribers, ALWAYS return full access immediately
-    const isPaidSubscriber = profile?.subscription_status === 'active' && profile?.subscription_tier;
-    if (isPaidSubscriber || (userType === 'subscriber' && profile?.subscription_status === 'active')) {
+    // Immediate return for paid subscribers
+    if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
       const baseAccess = {
         canViewDashboard: true,
         canCreateBookings: true,
@@ -459,7 +391,7 @@ export const useUserStatus = () => {
       }
     }
 
-    // Setup incomplete users have restricted access
+    // Setup incomplete users
     if (userType === 'setup_incomplete') {
       return {
         canViewDashboard: true,
@@ -479,14 +411,14 @@ export const useUserStatus = () => {
       };
     }
 
-    // Expired trial users have access to everything except WhatsApp (which shows warning)
+    // Expired trial users
     if (userType === 'expired_trial') {
       return {
         canViewDashboard: true,
         canCreateBookings: true,
         canEditBookings: true,
         canManageSettings: true,
-        canAccessWhatsApp: false, // Special handling: show warning instead of lock
+        canAccessWhatsApp: false,
         canUseAI: true,
         canExportData: true,
         canInviteUsers: false,
@@ -499,129 +431,61 @@ export const useUserStatus = () => {
       };
     }
 
-    // Canceled and inactive users have limited access
+    // Canceled and inactive users
     if (userType === 'canceled_and_inactive') {
       return {
         canViewDashboard: true,
         canCreateBookings: true,
         canEditBookings: true,
         canManageSettings: true,
-        canAccessWhatsApp: false, // Special handling: show warning instead of lock
-        canUseAI: true,
-        canExportData: true,
+        canAccessWhatsApp: false,
+        canUseAI: false,
+        canExportData: false,
         canInviteUsers: false,
         canAccessAPI: false,
         canUseWhiteLabel: false,
         hasPrioritySupport: false,
         maxCalendars: 1,
-        maxBookingsPerMonth: 50,
+        maxBookingsPerMonth: 25,
         maxTeamMembers: 1
       };
     }
 
-    if (userType === 'trial') {
-      return {
-        canViewDashboard: true,
-        canCreateBookings: true,
-        canEditBookings: true,
-        canManageSettings: true,
-        canAccessWhatsApp: true,
-        canUseAI: true,
-        canExportData: true,
-        canInviteUsers: false,
-        canAccessAPI: false,
-        canUseWhiteLabel: false,
-        hasPrioritySupport: false,
-        maxCalendars: 1,
-        maxBookingsPerMonth: 50,
-        maxTeamMembers: 1
-      };
-    }
-
-    // Tier-based access control for subscribers
-    if (userType === 'subscriber' || userType === 'canceled_subscriber') {
-      const baseAccess = {
-        canViewDashboard: true,
-        canCreateBookings: true,
-        canEditBookings: true,
-        canManageSettings: true,
-        canAccessWhatsApp: true,
-        canUseAI: true,
-        canExportData: true,
-        canInviteUsers: userType === 'subscriber'
-      };
-
-      switch (tier) {
-        case 'starter':
-          return {
-            ...baseAccess,
-            canAccessAPI: false,
-            canUseWhiteLabel: false,
-            hasPrioritySupport: false,
-            maxCalendars: 1,
-            maxBookingsPerMonth: 50,
-            maxTeamMembers: 1
-          };
-        case 'professional':
-          return {
-            ...baseAccess,
-            canAccessAPI: true,
-            canUseWhiteLabel: false,
-            hasPrioritySupport: true,
-            maxCalendars: 5,
-            maxBookingsPerMonth: 500,
-            maxTeamMembers: 5
-          };
-        case 'enterprise':
-          return {
-            ...baseAccess,
-            canAccessAPI: true,
-            canUseWhiteLabel: true,
-            hasPrioritySupport: true,
-            maxCalendars: 25,
-            maxBookingsPerMonth: 10000,
-            maxTeamMembers: 50
-          };
-        default:
-          // Default to starter tier limits
-          return {
-            ...baseAccess,
-            canAccessAPI: false,
-            canUseWhiteLabel: false,
-            hasPrioritySupport: false,
-            maxCalendars: 1,
-            maxBookingsPerMonth: 50,
-            maxTeamMembers: 1
-          };
-      }
-    }
-
-    // Default (unknown/loading)
+    // Default access for trial and active users
     return {
-      canViewDashboard: false,
-      canCreateBookings: false,
-      canEditBookings: false,
-      canManageSettings: false,
-      canAccessWhatsApp: false,
-      canUseAI: false,
-      canExportData: false,
-      canInviteUsers: false,
+      canViewDashboard: true,
+      canCreateBookings: hasFullAccess,
+      canEditBookings: hasFullAccess,
+      canManageSettings: true,
+      canAccessWhatsApp: hasFullAccess,
+      canUseAI: hasFullAccess,
+      canExportData: hasFullAccess,
+      canInviteUsers: hasFullAccess,
       canAccessAPI: false,
       canUseWhiteLabel: false,
       hasPrioritySupport: false,
-      maxCalendars: 0,
-      maxBookingsPerMonth: 0,
-      maxTeamMembers: 0
+      maxCalendars: hasFullAccess ? 1 : 0,
+      maxBookingsPerMonth: hasFullAccess ? 50 : 0,
+      maxTeamMembers: hasFullAccess ? 1 : 0
     };
-  }, [userStatus, profile]);
+  }, [userStatus, profile?.subscription_tier]);
 
-  // Cache invalidation method for manual status switches
-  const invalidateCache = () => {
-    sessionStorage.removeItem(USER_STATUS_CACHE_KEY);
-    sessionStorage.removeItem(STABLE_STATUS_KEY);
-    setIsLoading(true);
-    setUserStatusType('unknown');
-  };
+  return (
+    <UserStatusContext.Provider value={{
+      userStatus,
+      accessControl,
+      isLoading,
+      invalidateCache
+    }}>
+      {children}
+    </UserStatusContext.Provider>
+  );
+};
 
-  return { userStatus, accessControl, invalidateCache };
+export const useUserStatus = () => {
+  const context = useContext(UserStatusContext);
+  if (context === undefined) {
+    throw new Error('useUserStatus must be used within a UserStatusProvider');
+  }
+  return context;
 };

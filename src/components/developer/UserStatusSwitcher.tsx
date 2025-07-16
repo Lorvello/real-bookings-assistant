@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
-import { useUserStatus } from '@/hooks/useUserStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Settings, User, RefreshCw } from 'lucide-react';
 
@@ -20,7 +20,7 @@ const userStatusOptions = [
 
 export const UserStatusSwitcher = () => {
   const { profile } = useProfile();
-  const { userStatus } = useUserStatus();
+  const { userStatus, invalidateCache } = useUserStatus();
   const { toast } = useToast();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,8 +46,8 @@ export const UserStatusSwitcher = () => {
         variant: "default",
       });
 
-      // Refresh the page to update the UI
-      window.location.reload();
+      // Clear cache and refresh status
+      invalidateCache();
     } catch (error) {
       console.error('Error updating user status:', error);
       toast({

@@ -13,7 +13,7 @@ import {
   Zap,
   Settings
 } from 'lucide-react';
-import { useUserStatus } from '@/hooks/useUserStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useNavigate } from 'react-router-dom';
 
 export function UserStatusDisplay() {

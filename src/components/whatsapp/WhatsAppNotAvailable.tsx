@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, AlertCircle, Zap } from 'lucide-react';
-import { useUserStatus } from '@/hooks/useUserStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 
 export const WhatsAppNotAvailable: React.FC = () => {
   const { userStatus } = useUserStatus();

@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { CalendarView } from '@/components/CalendarView';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { useUserStatus } from '@/hooks/useUserStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { SetupIncompleteMessage } from '@/components/onboarding/SetupIncompleteMessage';
 
 const Calendar = () => {

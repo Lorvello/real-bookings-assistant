@@ -2,7 +2,7 @@
 import React from 'react';
 import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { useUserStatus } from '@/hooks/useUserStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { SetupIncompleteMessage } from '@/components/onboarding/SetupIncompleteMessage';
 
 export default function TestAIAgent() {

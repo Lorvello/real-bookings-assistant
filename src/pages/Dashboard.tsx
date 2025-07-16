@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { useUserStatus } from '@/hooks/useUserStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { DashboardTabs } from '@/components/DashboardTabs';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
 import { DateRange, getPresetRange } from '@/utils/dateRangePresets';

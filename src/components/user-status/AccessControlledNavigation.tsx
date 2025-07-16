@@ -12,7 +12,7 @@ import {
   AlertCircle,
   Eye
 } from 'lucide-react';
-import { useUserStatus } from '@/hooks/useUserStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface NavItem {

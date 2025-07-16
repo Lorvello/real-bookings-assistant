@@ -1,6 +1,6 @@
 import React from 'react';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
-import { useUserStatus } from '@/hooks/useUserStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';

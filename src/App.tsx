@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CalendarProvider } from '@/contexts/CalendarContext';
 import { ConversationCalendarProvider } from '@/contexts/ConversationCalendarContext';
+import { UserStatusProvider } from '@/contexts/UserStatusContext';
 import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
 import { useAuth } from '@/hooks/useAuth';
 import Login from '@/pages/Login';
@@ -48,31 +49,33 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <CalendarProvider>
         <ConversationCalendarProvider>
-          <Router>
-            <GlobalWebhookProcessor />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/bookings" element={<Bookings />} />
-              <Route path="/availability" element={<Availability />} />
-              <Route path="/conversations" element={<Conversations />} />
-              <Route path="/conversations/:id" element={<ConversationDetail />} />
-              <Route path="/test-ai-agent" element={<TestAIAgent />} />
-              <Route path="/whatsapp-not-available" element={<WhatsAppNotAvailable />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/testing" element={<Testing />} />
-              <Route path="/how-it-works" element={<SeeHowItWorks />} />
-              <Route path="/why-us" element={<WhyUs />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-          </Router>
+          <UserStatusProvider>
+            <Router>
+              <GlobalWebhookProcessor />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/calendar" element={<Calendar />} />
+                <Route path="/bookings" element={<Bookings />} />
+                <Route path="/availability" element={<Availability />} />
+                <Route path="/conversations" element={<Conversations />} />
+                <Route path="/conversations/:id" element={<ConversationDetail />} />
+                <Route path="/test-ai-agent" element={<TestAIAgent />} />
+                <Route path="/whatsapp-not-available" element={<WhatsAppNotAvailable />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/testing" element={<Testing />} />
+                <Route path="/how-it-works" element={<SeeHowItWorks />} />
+                <Route path="/why-us" element={<WhyUs />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Toaster />
+            </Router>
+          </UserStatusProvider>
         </ConversationCalendarProvider>
       </CalendarProvider>
     </QueryClientProvider>

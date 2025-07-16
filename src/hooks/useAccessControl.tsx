@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useUserStatus } from './useUserStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 
 export const useAccessControl = () => {

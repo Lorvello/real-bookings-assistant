@@ -11,7 +11,7 @@ import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcher
 import { UserProfileSection } from '@/components/dashboard/UserProfileSection';
 import { StatusIndicator } from '@/components/user-status/StatusIndicator';
 import { UpgradePrompt } from '@/components/user-status/UpgradePrompt';
-import { useUserStatus } from '@/hooks/useUserStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface DashboardLayoutProps {
