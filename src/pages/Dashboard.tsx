@@ -73,10 +73,17 @@ const Dashboard = () => {
   if (!userStatus.isSetupIncomplete && calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full bg-gray-900">
-          <div className="text-center">
-            <div className="text-lg text-gray-300">No calendar found</div>
-            <p className="text-gray-500 mt-2">Create your first calendar to get started</p>
+        <div className="bg-gray-900 min-h-full p-2 md:p-8">
+          {/* Developer Status Switcher */}
+          <div className="mb-4">
+            <UserStatusSwitcher />
+          </div>
+
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="text-lg text-gray-300">No calendar found</div>
+              <p className="text-gray-500 mt-2">Create your first calendar to get started</p>
+            </div>
           </div>
         </div>
       </DashboardLayout>
