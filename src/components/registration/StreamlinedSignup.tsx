@@ -171,12 +171,12 @@ export const StreamlinedSignup: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#2C3E50' }}>
-      <Card className="w-full max-w-md bg-white shadow-xl">
+      <Card className="w-full max-w-md bg-card border-border shadow-xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold text-foreground">
             Start Your Free Trial
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-muted-foreground">
             Create your WhatsApp booking assistant account
           </CardDescription>
         </CardHeader>
@@ -280,13 +280,13 @@ export const StreamlinedSignup: React.FC = () => {
               {formData.password && (
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
-                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                       <div
                         className={`h-full transition-all duration-300 ${passwordStrength.color}`}
                         style={{ width: `${(passwordStrength.level === 'weak' ? 33 : passwordStrength.level === 'medium' ? 66 : 100)}%` }}
                       />
                     </div>
-                    <span className="text-xs text-gray-600">{passwordStrength.text}</span>
+                    <span className="text-xs text-muted-foreground">{passwordStrength.text}</span>
                   </div>
                 </div>
               )}
@@ -318,7 +318,7 @@ export const StreamlinedSignup: React.FC = () => {
                 </Button>
               </div>
               {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                <div className="flex items-center space-x-1 text-green-600">
+                <div className="flex items-center space-x-1 text-green-500">
                   <CheckCircle className="h-4 w-4" />
                   <span className="text-sm">Passwords match</span>
                 </div>
@@ -351,13 +351,13 @@ export const StreamlinedSignup: React.FC = () => {
                   checked={formData.agreeToTerms}
                   onCheckedChange={(checked) => updateFormData('agreeToTerms', checked as boolean)}
                 />
-                <Label htmlFor="agreeToTerms" className="text-sm text-gray-600 leading-relaxed">
+                <Label htmlFor="agreeToTerms" className="text-sm text-muted-foreground leading-relaxed">
                   I agree to the{' '}
-                  <Link to="/terms" className="text-blue-600 hover:text-blue-800 underline">
+                  <Link to="/terms" className="text-primary hover:text-primary/80 underline">
                     Terms of Service
                   </Link>{' '}
                   and{' '}
-                  <Link to="/privacy" className="text-blue-600 hover:text-blue-800 underline">
+                  <Link to="/privacy" className="text-primary hover:text-primary/80 underline">
                     Privacy Policy
                   </Link>
                 </Label>
@@ -387,11 +387,11 @@ export const StreamlinedSignup: React.FC = () => {
 
           {/* Login Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link 
                 to="/login" 
-                className="font-medium text-blue-600 hover:text-blue-800 underline"
+                className="font-medium text-primary hover:text-primary/80 underline"
               >
                 Sign in
               </Link>
