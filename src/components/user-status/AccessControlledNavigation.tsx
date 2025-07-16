@@ -53,6 +53,17 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
     return navigation.map((item) => {
       const isActive = location.pathname === item.href;
       
+      // Special handling for WhatsApp - no lock icon for expired trial and canceled_and_inactive
+      if (item.href === '/conversations') {
+        if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
+          return {
+            ...item,
+            isActive,
+            isRestricted: false // Don't show lock icon, just show warning on click
+          };
+        }
+      }
+      
       // FAILSAFE: For paid subscribers, NEVER show restrictions under any circumstances
       const isRestricted = isPaidSubscriber 
         ? false 
@@ -71,6 +82,18 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
     const isPaidSubscriber = userStatus.userType === 'subscriber' || 
                             userStatus.isSubscriber || 
                             (userStatus.statusMessage === 'Active Subscription');
+    
+    // Special handling for WhatsApp for expired trial and canceled_and_inactive users
+    if (item.href === '/conversations') {
+      if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
+        toast({
+          title: "WhatsApp Booking Agent Not Active",
+          description: "Your booking assistant is not active. Upgrade now or resubscribe to activate it.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     
     if (!isPaidSubscriber && item.requiresAccess && !accessControl[item.requiresAccess]) {
       let title = "Access Restricted";

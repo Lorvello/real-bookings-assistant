@@ -21,11 +21,21 @@ export const useAccessControl = () => {
 
   const requireAccess = (feature: keyof typeof accessControl, onDenied?: () => void) => {
     if (!checkAccess(feature)) {
-      toast({
-        title: "Access Restricted",
-        description: `This feature requires an active subscription.`,
-        variant: "destructive",
-      });
+      // Special handling for WhatsApp for expired trial and canceled_and_inactive users
+      if (feature === 'canAccessWhatsApp' && 
+          (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive')) {
+        toast({
+          title: "WhatsApp Booking Agent Not Active",
+          description: "Your booking assistant is not active. Upgrade now or resubscribe to activate it.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Access Restricted",
+          description: `This feature requires an active subscription.`,
+          variant: "destructive",
+        });
+      }
       
       if (onDenied) {
         onDenied();

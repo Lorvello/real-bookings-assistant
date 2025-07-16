@@ -247,6 +247,11 @@ export const useUserStatus = () => {
         statusMessage = `Subscription ending in ${remainingDays} day${remainingDays === 1 ? '' : 's'}`;
         statusColor = 'yellow';
         break;
+      case 'canceled_and_inactive':
+        userType = 'canceled_and_inactive';
+        statusMessage = 'Subscription canceled and expired';
+        statusColor = 'red';
+        break;
       case 'setup_incomplete':
         userType = 'setup_incomplete';
         statusMessage = 'Setup Incomplete';
@@ -262,13 +267,13 @@ export const useUserStatus = () => {
     const isTrialActive = userType === 'trial';
     const isExpired = userType === 'expired_trial' && !gracePeriodActive;
     const isSubscriber = userType === 'subscriber';
-    const isCanceled = userType === 'canceled_subscriber';
+    const isCanceled = userType === 'canceled_subscriber' || userType === 'canceled_and_inactive';
     const isSetupIncomplete = userType === 'setup_incomplete';
-    const hasFullAccess = isTrialActive || isSubscriber || isCanceled || gracePeriodActive;
-    const needsUpgrade = userType === 'expired_trial' && !gracePeriodActive;
+    const hasFullAccess = isTrialActive || isSubscriber || (isCanceled && userType === 'canceled_subscriber') || gracePeriodActive;
+    const needsUpgrade = (userType === 'expired_trial' && !gracePeriodActive) || userType === 'canceled_and_inactive';
     const canEdit = hasFullAccess;
     const canCreate = hasFullAccess;
-    const showUpgradePrompt = userType === 'expired_trial' || userType === 'canceled_subscriber';
+    const showUpgradePrompt = userType === 'expired_trial' || userType === 'canceled_subscriber' || userType === 'canceled_and_inactive';
 
     return {
       userType,
@@ -373,22 +378,43 @@ export const useUserStatus = () => {
       };
     }
 
-    if (isExpired) {
+    // Expired trial users have access to everything except WhatsApp (which shows warning)
+    if (userType === 'expired_trial') {
       return {
         canViewDashboard: true,
-        canCreateBookings: false,
-        canEditBookings: false,
-        canManageSettings: false,
-        canAccessWhatsApp: false,
-        canUseAI: false,
-        canExportData: false,
+        canCreateBookings: true,
+        canEditBookings: true,
+        canManageSettings: true,
+        canAccessWhatsApp: false, // Special handling: show warning instead of lock
+        canUseAI: true,
+        canExportData: true,
         canInviteUsers: false,
         canAccessAPI: false,
         canUseWhiteLabel: false,
         hasPrioritySupport: false,
-        maxCalendars: 0,
-        maxBookingsPerMonth: 0,
-        maxTeamMembers: 0
+        maxCalendars: 1,
+        maxBookingsPerMonth: 50,
+        maxTeamMembers: 1
+      };
+    }
+
+    // Canceled and inactive users have limited access
+    if (userType === 'canceled_and_inactive') {
+      return {
+        canViewDashboard: true,
+        canCreateBookings: true,
+        canEditBookings: true,
+        canManageSettings: true,
+        canAccessWhatsApp: false, // Special handling: show warning instead of lock
+        canUseAI: true,
+        canExportData: true,
+        canInviteUsers: false,
+        canAccessAPI: false,
+        canUseWhiteLabel: false,
+        hasPrioritySupport: false,
+        maxCalendars: 1,
+        maxBookingsPerMonth: 50,
+        maxTeamMembers: 1
       };
     }
 
