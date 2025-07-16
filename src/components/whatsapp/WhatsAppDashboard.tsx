@@ -7,6 +7,7 @@ import { WhatsAppContactOverview } from './WhatsAppContactOverview';
 import { OrphanedConversationsManager } from './OrphanedConversationsManager';
 import { WebhookFlowDashboard } from '../webhooks/WebhookFlowDashboard';
 import { WebhookHealthMonitor } from '../webhooks/WebhookHealthMonitor';
+import { WhatsAppServiceStatus } from './WhatsAppServiceStatus';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
@@ -23,6 +24,9 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
 
   return (
     <div className="h-full">
+      {/* Service Status Indicator */}
+      <WhatsAppServiceStatus calendarId={calendarId} />
+      
       <Tabs defaultValue="overview" className="h-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">

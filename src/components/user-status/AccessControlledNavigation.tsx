@@ -23,14 +23,15 @@ interface NavItem {
   description?: string;
 }
 
+// Only WhatsApp requires active subscription - everything else is always accessible
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home, requiresAccess: 'canViewDashboard' },
-  { name: 'Calendar', href: '/calendar', icon: Calendar, requiresAccess: 'canViewDashboard' },
-  { name: 'Bookings', href: '/bookings', icon: BookOpen, requiresAccess: 'canViewDashboard', description: 'View and manage bookings' },
-  { name: 'Availability', href: '/availability', icon: Clock, requiresAccess: 'canManageSettings', description: 'Set your working hours' },
-  { name: 'WhatsApp', href: '/conversations', icon: MessageCircle, requiresAccess: 'canAccessWhatsApp', description: 'WhatsApp integration' },
-  { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot, requiresAccess: 'canUseAI', description: 'AI assistant features' },
-  { name: 'Settings', href: '/settings', icon: Settings, requiresAccess: 'canManageSettings' },
+  { name: 'Dashboard', href: '/dashboard', icon: Home },
+  { name: 'Calendar', href: '/calendar', icon: Calendar },
+  { name: 'Bookings', href: '/bookings', icon: BookOpen, description: 'View and manage bookings' },
+  { name: 'Availability', href: '/availability', icon: Clock, description: 'Set your working hours' },
+  { name: 'WhatsApp', href: '/conversations', icon: MessageCircle, requiresAccess: 'canAccessWhatsApp', description: 'WhatsApp booking assistant' },
+  { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot, description: 'AI assistant features' },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 interface AccessControlledNavigationProps {
@@ -46,13 +47,13 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
   // Memoize navigation items with stable state to prevent flashing
   const navigationItems = useMemo(() => {
     return navigation.map((item) => {
-      const hasAccess = !item.requiresAccess || accessControl[item.requiresAccess];
       const isActive = location.pathname === item.href;
-      const isRestricted = !hasAccess || (userStatus.isExpired && item.requiresAccess !== 'canViewDashboard');
+      // Only restrict WhatsApp for expired users - everything else is always accessible
+      const isRestricted = item.requiresAccess === 'canAccessWhatsApp' && 
+                          (userStatus.isExpired || !accessControl[item.requiresAccess]);
 
       return {
         ...item,
-        hasAccess,
         isActive,
         isRestricted
       };
@@ -60,21 +61,12 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
   }, [location.pathname, userStatus.isExpired, accessControl]);
 
   const handleItemClick = (item: NavItem) => {
-    // Check if user has access to this feature
-    if (item.requiresAccess && !accessControl[item.requiresAccess]) {
+    // Only restrict WhatsApp for expired users
+    if (item.requiresAccess === 'canAccessWhatsApp' && 
+        (userStatus.isExpired || !accessControl[item.requiresAccess])) {
       toast({
-        title: "Access Restricted",
-        description: `${item.description || item.name} requires an active subscription.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // For expired users, show upgrade prompt for restricted features
-    if (userStatus.isExpired && item.requiresAccess && item.requiresAccess !== 'canViewDashboard') {
-      toast({
-        title: "Upgrade Required",
-        description: `Access to ${item.name} is limited. Please upgrade to continue.`,
+        title: "WhatsApp Service Inactive",
+        description: "WhatsApp booking assistant requires an active subscription.",
         variant: "destructive",
       });
       onNavigate('/settings'); // Redirect to settings/billing
@@ -115,7 +107,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
                     : 'text-gray-400 group-hover:text-white'
               }`}
             />
-            {item.isRestricted && userStatus.isExpired && (
+            {item.isRestricted && (
               <div className="absolute -top-1 -right-1">
                 <Lock className="h-3 w-3 text-red-400" />
               </div>
@@ -124,7 +116,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
           <span className={`transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 w-0 overflow-hidden'}`}>
             {item.name}
           </span>
-          {item.isRestricted && isSidebarOpen && userStatus.isExpired && (
+          {item.isRestricted && isSidebarOpen && (
             <div className="ml-auto">
               <Lock className="h-4 w-4 text-red-400" />
             </div>
