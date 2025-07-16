@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
+import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 interface MethodologyModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
         {/* Modal Content */}
         <div className="px-6 py-4 space-y-6">
           {/* Research Overview */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={0} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Research Overview
@@ -50,10 +51,10 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
             <p className="text-slate-300 leading-relaxed text-sm">
               Our data comes from analyzing booking patterns across 10,247 businesses in 45 countries over 18 months (January 2023 - June 2024). We tracked response times, conversion rates, and customer satisfaction through direct business reporting, customer surveys, and third-party analytics.
             </p>
-          </div>
+          </ScrollAnimatedSection>
 
           {/* Methodology Details */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={200} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Methodology Details
@@ -76,10 +77,10 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
                 <span className="text-slate-300 text-sm">Customer satisfaction via post-booking surveys (1-10 scale) across 47,000+ responses</span>
               </div>
             </div>
-          </div>
+          </ScrollAnimatedSection>
 
           {/* Study Limitations */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={400} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Study Limitations
@@ -89,7 +90,7 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
                 Results may vary by industry, business size, and implementation quality. Data represents businesses actively using automated systems vs manual processes.
               </p>
             </div>
-          </div>
+          </ScrollAnimatedSection>
         </div>
       </div>
     </div>

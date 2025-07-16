@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
+import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 interface PsychologyMethodologyModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
         {/* Modal Content */}
         <div className="px-6 py-4 space-y-6">
           {/* Research Overview */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={0} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Research Overview
@@ -50,10 +51,10 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
             <p className="text-slate-300 leading-relaxed text-sm">
               Our psychological behavior research analyzed consumer messaging preferences and purchase patterns across 25,000+ customers in 15 countries. We examined how communication channels affect customer decision-making and engagement patterns.
             </p>
-          </div>
+          </ScrollAnimatedSection>
 
           {/* Methodology Details */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={200} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Methodology Details
@@ -80,10 +81,10 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
                 <span className="text-slate-300 text-sm">Psychological response patterns measured through A/B testing across different communication channels</span>
               </div>
             </div>
-          </div>
+          </ScrollAnimatedSection>
 
           {/* Study Limitations */}
-          <div className="space-y-4">
+          <ScrollAnimatedSection animation="fade-up" delay={400} className="space-y-4">
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Study Limitations
@@ -93,7 +94,7 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
                 Results reflect general consumer behavior trends. Individual preferences may vary by demographic, industry, and cultural factors. Data represents aggregate patterns across diverse customer segments.
               </p>
             </div>
-          </div>
+          </ScrollAnimatedSection>
         </div>
       </div>
     </div>
