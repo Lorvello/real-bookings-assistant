@@ -20,6 +20,11 @@ export const useAccessControl = () => {
   };
 
   const requireAccess = (feature: keyof typeof accessControl, onDenied?: () => void) => {
+    // STABLE ACCESS: Don't show restrictions during loading/unknown states
+    if (userStatus.userType === 'unknown' && userStatus.statusMessage === 'Loading...') {
+      return true; // Allow access during loading to prevent glitches
+    }
+    
     if (!checkAccess(feature)) {
       // Special handling for WhatsApp for expired trial and canceled_and_inactive users
       if (feature === 'canAccessWhatsApp' && 

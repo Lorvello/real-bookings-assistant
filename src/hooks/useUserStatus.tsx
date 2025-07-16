@@ -4,16 +4,57 @@ import { UserStatus, UserType, AccessControl } from '@/types/userStatus';
 import { supabase } from '@/integrations/supabase/client';
 
 const USER_STATUS_CACHE_KEY = 'userStatusCache';
-const USER_STATUS_CACHE_VERSION = '1.0';
+const USER_STATUS_CACHE_VERSION = '2.0';
+const STABLE_STATUS_KEY = 'stableUserStatus';
 
 export const useUserStatus = () => {
   const { profile, loading: profileLoading } = useProfile();
   
-  // Initialize with cached state for persistence across navigation
-  const [userStatusType, setUserStatusType] = useState<string>(() => {
+  // Persistent state using sessionStorage for better cross-tab persistence
+  const getStableStatus = () => {
+    try {
+      const stable = sessionStorage.getItem(STABLE_STATUS_KEY);
+      if (stable && profile?.id) {
+        const { userId, status, timestamp } = JSON.parse(stable);
+        if (userId === profile.id && Date.now() - timestamp < 30 * 60 * 1000) { // 30 minutes
+          return status;
+        }
+      }
+    } catch (error) {
+      console.error('Error reading stable status:', error);
+    }
+    return null;
+  };
+
+  const setStableStatus = (status: string) => {
     if (profile?.id) {
       try {
-        const cached = localStorage.getItem(USER_STATUS_CACHE_KEY);
+        sessionStorage.setItem(STABLE_STATUS_KEY, JSON.stringify({
+          userId: profile.id,
+          status,
+          timestamp: Date.now()
+        }));
+      } catch (error) {
+        console.error('Error setting stable status:', error);
+      }
+    }
+  };
+
+  // Initialize with persistent state to prevent resets during navigation
+  const [userStatusType, setUserStatusType] = useState<string>(() => {
+    // PRIORITY 1: Check for stable status first
+    const stableStatus = getStableStatus();
+    if (stableStatus) return stableStatus;
+
+    // PRIORITY 2: For paid subscribers, immediately return without any loading
+    if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
+      return 'paid_subscriber';
+    }
+
+    // PRIORITY 3: Check cached data
+    if (profile?.id) {
+      try {
+        const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
         if (cached) {
           const { version, data, userId } = JSON.parse(cached);
           if (version === USER_STATUS_CACHE_VERSION && userId === profile.id) {
@@ -28,14 +69,19 @@ export const useUserStatus = () => {
   });
   
   const [isLoading, setIsLoading] = useState(() => {
-    // For paid subscribers, never show loading to prevent glitches
+    // NEVER show loading for paid subscribers to prevent UI glitches
     if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
+      return false;
+    }
+    
+    // Don't show loading if we have stable status
+    if (getStableStatus()) {
       return false;
     }
     
     // Check if we have cached data
     try {
-      const cached = localStorage.getItem(USER_STATUS_CACHE_KEY);
+      const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
       if (cached && profile?.id) {
         const { version, data, userId } = JSON.parse(cached);
         if (version === USER_STATUS_CACHE_VERSION && userId === profile.id) {
@@ -50,26 +96,40 @@ export const useUserStatus = () => {
   });
 
   const fetchInProgress = useRef(false);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Get user status type from database function with enhanced caching
+  // Debounced status update to prevent rapid changes
+  const updateStatus = (newStatus: string) => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    
+    debounceTimeout.current = setTimeout(() => {
+      setUserStatusType(newStatus);
+      setStableStatus(newStatus);
+    }, 50);
+  };
+
+  // Optimized status fetching with intelligent caching
   useEffect(() => {
     const fetchUserStatusType = async () => {
       if (!profile?.id) {
-        setUserStatusType('unknown');
+        updateStatus('unknown');
         setIsLoading(false);
-        localStorage.removeItem(USER_STATUS_CACHE_KEY);
+        sessionStorage.removeItem(USER_STATUS_CACHE_KEY);
+        sessionStorage.removeItem(STABLE_STATUS_KEY);
         return;
       }
 
-      // For paid subscribers, immediately set status and cache it - NO DATABASE CALL
+      // INSTANT DETECTION: For paid subscribers, NEVER call database
       if (profile.subscription_status === 'active' && profile.subscription_tier) {
         const status = 'paid_subscriber';
-        setUserStatusType(status);
+        updateStatus(status);
         setIsLoading(false);
         
-        // Cache the status with profile data
+        // Cache for future use
         try {
-          localStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+          sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
             version: USER_STATUS_CACHE_VERSION,
             data: { userStatusType: status },
             userId: profile.id,
@@ -81,16 +141,24 @@ export const useUserStatus = () => {
         return;
       }
 
-      // Check if we already have valid cached data
+      // Check stable status first - prevents re-fetching on tab switches
+      const stableStatus = getStableStatus();
+      if (stableStatus) {
+        updateStatus(stableStatus);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check cached data with longer validity for non-paid users
       try {
-        const cached = localStorage.getItem(USER_STATUS_CACHE_KEY);
+        const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
         if (cached) {
           const { version, data, userId, timestamp } = JSON.parse(cached);
           if (version === USER_STATUS_CACHE_VERSION && userId === profile.id) {
-            // Use cached data if it's less than 5 minutes old
-            const isRecent = Date.now() - timestamp < 5 * 60 * 1000;
+            // Use cached data if it's less than 10 minutes old
+            const isRecent = Date.now() - timestamp < 10 * 60 * 1000;
             if (isRecent) {
-              setUserStatusType(data.userStatusType || 'unknown');
+              updateStatus(data.userStatusType || 'unknown');
               setIsLoading(false);
               return;
             }
@@ -100,7 +168,7 @@ export const useUserStatus = () => {
         console.error('Error reading cached user status:', error);
       }
 
-      // Only fetch from database if we don't have valid cached data
+      // Only fetch from database if absolutely necessary
       if (fetchInProgress.current) return;
       fetchInProgress.current = true;
 
@@ -110,17 +178,14 @@ export const useUserStatus = () => {
 
         if (error) {
           console.error('Error fetching user status type:', error);
-          setUserStatusType('unknown');
+          updateStatus('unknown');
         } else {
           const status = data || 'unknown';
-          setUserStatusType(status);
+          updateStatus(status);
           
-          // Clear cache after successful database update from UserStatusSwitcher
-          localStorage.removeItem(USER_STATUS_CACHE_KEY);
-          
-          // Cache the result
+          // Cache the result with sessionStorage
           try {
-            localStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+            sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
               version: USER_STATUS_CACHE_VERSION,
               data: { userStatusType: status },
               userId: profile.id,
@@ -132,7 +197,7 @@ export const useUserStatus = () => {
         }
       } catch (error) {
         console.error('Error fetching user status type:', error);
-        setUserStatusType('unknown');
+        updateStatus('unknown');
       } finally {
         setIsLoading(false);
         fetchInProgress.current = false;
@@ -140,7 +205,14 @@ export const useUserStatus = () => {
     };
 
     fetchUserStatusType();
-  }, [profile?.id, profile?.subscription_status, profile?.subscription_tier]);
+    
+    // Cleanup function to prevent memory leaks
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [profile?.id]); // ONLY depend on profile.id to prevent unnecessary re-fetches
 
   const userStatus = useMemo<UserStatus>(() => {
     // FAILSAFE: For paid subscribers, ALWAYS return active status immediately
@@ -543,5 +615,13 @@ export const useUserStatus = () => {
     };
   }, [userStatus, profile]);
 
-  return { userStatus, accessControl };
+  // Cache invalidation method for manual status switches
+  const invalidateCache = () => {
+    sessionStorage.removeItem(USER_STATUS_CACHE_KEY);
+    sessionStorage.removeItem(STABLE_STATUS_KEY);
+    setIsLoading(true);
+    setUserStatusType('unknown');
+  };
+
+  return { userStatus, accessControl, invalidateCache };
 };

@@ -43,12 +43,22 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
 
-  // Memoize navigation items with stable state to prevent flashing
+  // Memoize navigation items with ULTRA-STABLE state to prevent any flashing
   const navigationItems = useMemo(() => {
-    // FAILSAFE: Multiple checks for paid subscribers to prevent ANY glitches
+    // ULTIMATE FAILSAFE: Multiple checks for paid subscribers to prevent ANY glitches
     const isPaidSubscriber = userStatus.userType === 'subscriber' || 
                             userStatus.isSubscriber || 
-                            (userStatus.statusMessage === 'Active Subscription');
+                            (userStatus.statusMessage === 'Active Subscription') ||
+                            (userStatus.statusColor === 'green' && userStatus.statusMessage.includes('Active'));
+    
+    // STABLE STATUS: Don't process navigation during unknown/loading states
+    if (userStatus.userType === 'unknown' && userStatus.statusMessage === 'Loading...') {
+      return navigation.map((item) => ({
+        ...item,
+        isActive: location.pathname === item.href,
+        isRestricted: false // Prevent lock icons during loading
+      }));
+    }
     
     return navigation.map((item) => {
       const isActive = location.pathname === item.href;
@@ -64,7 +74,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
         }
       }
       
-      // FAILSAFE: For paid subscribers, NEVER show restrictions under any circumstances
+      // ULTIMATE FAILSAFE: For paid subscribers, NEVER show restrictions under any circumstances
       const isRestricted = isPaidSubscriber 
         ? false 
         : (item.requiresAccess && !accessControl[item.requiresAccess]);
@@ -75,13 +85,19 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
         isRestricted
       };
     });
-  }, [location.pathname, userStatus.userType, userStatus.isSubscriber, userStatus.statusMessage, accessControl]);
+  }, [location.pathname, userStatus.userType, userStatus.isSubscriber, userStatus.statusMessage, userStatus.statusColor, accessControl]);
 
   const handleItemClick = (item: NavItem) => {
-    // FAILSAFE: Multiple checks for paid subscribers to prevent ANY access restrictions
+    // ULTIMATE FAILSAFE: Multiple checks for paid subscribers to prevent ANY access restrictions
     const isPaidSubscriber = userStatus.userType === 'subscriber' || 
                             userStatus.isSubscriber || 
-                            (userStatus.statusMessage === 'Active Subscription');
+                            (userStatus.statusMessage === 'Active Subscription') ||
+                            (userStatus.statusColor === 'green' && userStatus.statusMessage.includes('Active'));
+    
+    // Don't process clicks during loading/unknown states to prevent glitches
+    if (userStatus.userType === 'unknown' && userStatus.statusMessage === 'Loading...') {
+      return;
+    }
     
     // Special handling for WhatsApp for expired trial and canceled_and_inactive users
     if (item.href === '/conversations') {
