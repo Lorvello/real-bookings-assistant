@@ -66,17 +66,17 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
     setInputValue(formattedValue);
   }, [formattedValue]);
 
-  // Handle drag functionality
+  // Handle drag functionality with touch support
   useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
+    const handleMove = (clientX: number, clientY: number) => {
       if (!isDragging || !clockRef.current) return;
       
       const rect = clockRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
       
-      const x = event.clientX - centerX;
-      const y = event.clientY - centerY;
+      const x = clientX - centerX;
+      const y = clientY - centerY;
       
       let angle = Math.atan2(y, x) * 180 / Math.PI;
       angle = (angle + 90 + 360) % 360;
@@ -84,20 +84,36 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       updateTimeFromAngle(angle);
     };
 
-    const handleMouseUp = () => {
+    const handleMouseMove = (event: MouseEvent) => {
+      handleMove(event.clientX, event.clientY);
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      event.preventDefault();
+      if (event.touches.length > 0) {
+        const touch = event.touches[0];
+        handleMove(touch.clientX, touch.clientY);
+      }
+    };
+
+    const handleEnd = () => {
       setIsDragging(false);
     };
 
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('mouseup', handleEnd);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleEnd);
     }
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleEnd);
     };
-  }, [isDragging, isSelectingMinutes, formattedValue]);
+  }, [isDragging, isSelectingMinutes]);
 
   // Handle click outside
   useEffect(() => {
@@ -136,7 +152,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   };
 
   const handleClockClick = (event: React.MouseEvent) => {
-    if (!clockRef.current) return;
+    if (!clockRef.current || isDragging) return;
     
     const rect = clockRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -148,21 +164,13 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
     let angle = Math.atan2(y, x) * 180 / Math.PI;
     angle = (angle + 90 + 360) % 360; // Normalize to 0-360 with 12 o'clock as 0
     
-    const currentTime = formattedValue.split(':').map(Number);
-    let newHours = currentTime[0];
-    let newMinutes = currentTime[1];
-    
-    if (isSelectingMinutes) {
-      newMinutes = Math.round(angleToTime(angle, false) / 5) * 5; // Snap to 5-minute intervals
-    } else {
-      const newHour = angleToTime(angle, true);
-      newHours = newHour === 0 ? 12 : newHour;
-      if (currentTime[0] >= 12) newHours += 12;
-      newHours = newHours % 24;
-    }
-    
-    const newTime = `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
-    onChange(newTime);
+    updateTimeFromAngle(angle);
+  };
+
+  const handleHandStart = (event: React.MouseEvent | React.TouchEvent, selectingMinutes: boolean) => {
+    event.stopPropagation();
+    setIsSelectingMinutes(selectingMinutes);
+    setIsDragging(true);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -327,11 +335,8 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                                 style={{
                                   transform: `translate(-50%, -50%) translate(${Math.cos((hourAngle - 90) * Math.PI / 180) * 40}px, ${Math.sin((hourAngle - 90) * Math.PI / 180) * 40}px)`
                                 }}
-                                onMouseDown={(e) => {
-                                  e.stopPropagation();
-                                  setIsSelectingMinutes(false);
-                                  setIsDragging(true);
-                                }}
+                                onMouseDown={(e) => handleHandStart(e, false)}
+                                onTouchStart={(e) => handleHandStart(e, false)}
                               />
                            </>
                          )}
@@ -354,11 +359,8 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                                 style={{
                                   transform: `translate(-50%, -50%) translate(${Math.cos((minuteAngle - 90) * Math.PI / 180) * 55}px, ${Math.sin((minuteAngle - 90) * Math.PI / 180) * 55}px)`
                                 }}
-                                onMouseDown={(e) => {
-                                  e.stopPropagation();
-                                  setIsSelectingMinutes(true);
-                                  setIsDragging(true);
-                                }}
+                                onMouseDown={(e) => handleHandStart(e, true)}
+                                onTouchStart={(e) => handleHandStart(e, true)}
                               />
                            </>
                          )}

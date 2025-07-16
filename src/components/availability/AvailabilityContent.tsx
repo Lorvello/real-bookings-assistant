@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Info, Globe, Calendar, Clock } from 'lucide-react';
 import { StepByStepDayConfiguration } from './StepByStepDayConfiguration';
+import { AvailabilityOverview } from './AvailabilityOverview';
 import { DateOverrides } from './DateOverrides';
 import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
 import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
@@ -19,7 +20,17 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   onUnsavedChanges
 }) => {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
-  const { defaultSchedule, createDefaultSchedule } = useDailyAvailabilityManager(onUnsavedChanges);
+  const { defaultSchedule, createDefaultSchedule, DAYS, availability } = useDailyAvailabilityManager(onUnsavedChanges);
+
+  // Check if availability is fully configured
+  const isAvailabilityConfigured = () => {
+    if (!defaultSchedule || !availability) return false;
+    
+    return DAYS.some(day => 
+      availability[day.key]?.enabled && 
+      availability[day.key]?.timeBlocks?.length > 0
+    );
+  };
 
   const handleConfigureAvailability = async () => {
     if (!defaultSchedule) {
@@ -71,8 +82,12 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Main Content - Left Side */}
                 <div className="lg:col-span-3 space-y-8">
-                  {/* Step by Step Day Configuration */}
-                  <StepByStepDayConfiguration onChange={onUnsavedChanges} />
+                  {/* Show overview if configured, otherwise show step-by-step */}
+                  {isAvailabilityConfigured() ? (
+                    <AvailabilityOverview onChange={onUnsavedChanges} />
+                  ) : (
+                    <StepByStepDayConfiguration onChange={onUnsavedChanges} />
+                  )}
                 </div>
 
                 {/* Sidebar - Right Side */}
