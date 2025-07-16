@@ -8,7 +8,6 @@ import {
   Clock,
   BookOpen,
   Bot,
-  Lock,
   AlertCircle
 } from 'lucide-react';
 import { useTrialStatus } from '@/hooks/useTrialStatus';
@@ -24,10 +23,10 @@ interface NavItem {
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Calendar', href: '/calendar', icon: Calendar },
-  { name: 'Bookings', href: '/bookings', icon: BookOpen, requiresSetup: true },
-  { name: 'Availability', href: '/availability', icon: Clock, requiresSetup: true },
-  { name: 'WhatsApp', href: '/conversations', icon: MessageCircle, requiresSetup: true },
-  { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot, requiresSetup: true },
+  { name: 'Bookings', href: '/bookings', icon: BookOpen },
+  { name: 'Availability', href: '/availability', icon: Clock },
+  { name: 'WhatsApp', href: '/conversations', icon: MessageCircle },
+  { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -44,11 +43,6 @@ export function EnhancedNavigationMenu({ isSidebarOpen, onNavigate }: EnhancedNa
   const isSetupIncomplete = isTrialActive && completionPercentage < 70;
 
   const handleItemClick = (item: NavItem) => {
-    if (item.requiresSetup && isSetupIncomplete) {
-      // Show guidance message or redirect to setup
-      onNavigate('/settings');
-      return;
-    }
     onNavigate(item.href);
   };
 
@@ -56,7 +50,6 @@ export function EnhancedNavigationMenu({ isSidebarOpen, onNavigate }: EnhancedNa
     <nav className="flex-1 space-y-1 px-2 py-4">
       {navigation.map((item) => {
         const isActive = location.pathname === item.href;
-        const needsSetup = item.requiresSetup && isSetupIncomplete;
         
         return (
           <button
@@ -66,29 +59,19 @@ export function EnhancedNavigationMenu({ isSidebarOpen, onNavigate }: EnhancedNa
               group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
               ${isActive 
                 ? 'bg-green-600 text-white shadow-lg' 
-                : needsSetup
-                  ? 'text-gray-400 hover:bg-gray-700 hover:text-gray-300'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
               }
             `}
-            title={needsSetup ? 'Complete setup first' : item.name}
+            title={item.name}
           >
-            <div className="relative">
-              <item.icon
-                className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200 ${
-                  isActive ? 'text-white' : needsSetup ? 'text-gray-500' : 'text-gray-400 group-hover:text-white'
-                }`}
-              />
-              {needsSetup && (
-                <Lock className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400" />
-              )}
-            </div>
+            <item.icon
+              className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200 ${
+                isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+              }`}
+            />
             <span className={`transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 w-0 overflow-hidden'}`}>
               {item.name}
             </span>
-            {needsSetup && isSidebarOpen && (
-              <AlertCircle className="ml-auto h-4 w-4 text-yellow-400" />
-            )}
           </button>
         );
       })}

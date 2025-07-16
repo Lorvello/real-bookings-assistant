@@ -1,6 +1,8 @@
 import React from 'react';
 import { Clock, AlertTriangle, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { UserStatus } from '@/types/userStatus';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 interface StatusIndicatorProps {
   userStatus: UserStatus;
@@ -9,6 +11,7 @@ interface StatusIndicatorProps {
 
 export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps) {
   const { userType, statusMessage, statusColor, daysRemaining } = userStatus;
+  const navigate = useNavigate();
 
   const getIcon = () => {
     switch (userType) {
@@ -20,6 +23,8 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
         return <CheckCircle className={`h-4 w-4 ${getColorClass()}`} />;
       case 'canceled_subscriber':
         return <AlertTriangle className={`h-4 w-4 ${getColorClass()}`} />;
+      case 'setup_incomplete':
+        return <Clock className={`h-4 w-4 ${getColorClass()}`} />;
       default:
         return <Clock className={`h-4 w-4 ${getColorClass()}`} />;
     }
@@ -59,13 +64,31 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
         </div>
         {isExpanded && (
           <div className="ml-3 min-w-0 flex-1">
-            <p className={`text-xs font-medium ${getColorClass()}`}>
-              {statusMessage}
-            </p>
-            {userType === 'trial' && daysRemaining <= 3 && (
-              <p className="text-xs text-gray-400 mt-1">
-                Upgrade to keep access
-              </p>
+            {userType === 'setup_incomplete' ? (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-yellow-400">
+                  {daysRemaining} Days Free Trial Remaining
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full h-6 text-xs py-1 px-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10"
+                >
+                  Complete Setup
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <p className={`text-xs font-medium ${getColorClass()}`}>
+                  {statusMessage}
+                </p>
+                {userType === 'trial' && daysRemaining <= 3 && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Upgrade to keep access
+                  </p>
+                )}
+              </div>
             )}
           </div>
         )}
