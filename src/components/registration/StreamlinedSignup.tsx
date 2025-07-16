@@ -385,6 +385,11 @@ export const StreamlinedSignup: React.FC = () => {
             </Button>
           </form>
 
+          {/* Trust Indicator */}
+          <div className="text-sm text-muted-foreground text-center mt-3">
+            Cancel anytime • No credit card required
+          </div>
+
           {/* Login Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
