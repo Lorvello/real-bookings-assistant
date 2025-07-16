@@ -1,31 +1,68 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { UserProfile } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 
+const PROFILE_CACHE_KEY = 'userProfile';
+const PROFILE_CACHE_VERSION = '1.0';
+
 export const useProfile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<UserProfile | null>(() => {
+    // Initialize with cached profile to prevent loading flash
+    if (user?.id) {
+      try {
+        const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+        if (cached) {
+          const { version, data, userId } = JSON.parse(cached);
+          if (version === PROFILE_CACHE_VERSION && userId === user.id) {
+            return data;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading cached profile:', error);
+      }
+    }
+    return null;
+  });
+  
+  const [loading, setLoading] = useState(() => {
+    // If we have cached profile data, start with loading = false
+    return !profile;
+  });
+
+  const fetchInProgress = useRef(false);
 
   useEffect(() => {
     if (user) {
-      fetchProfile();
+      // Check if we need to fetch profile
+      const shouldFetch = !profile || profile.id !== user.id;
+      
+      if (shouldFetch) {
+        fetchProfile();
+      } else {
+        setLoading(false);
+      }
     } else {
       setProfile(null);
       setLoading(false);
+      localStorage.removeItem(PROFILE_CACHE_KEY);
     }
-  }, [user]);
+  }, [user?.id]); // Only depend on user.id to prevent unnecessary refetches
 
   const fetchProfile = async () => {
+    if (fetchInProgress.current || !user?.id) return;
+    
+    fetchInProgress.current = true;
+    
     try {
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
 
       if (error) {
@@ -33,11 +70,26 @@ export const useProfile = () => {
         return;
       }
 
-      setProfile(data as UserProfile);
+      const profileData = data as UserProfile;
+      setProfile(profileData);
+      
+      // Cache the profile data with version and user ID
+      try {
+        localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify({
+          version: PROFILE_CACHE_VERSION,
+          data: profileData,
+          userId: user.id,
+          timestamp: Date.now()
+        }));
+      } catch (error) {
+        console.error('Error caching profile:', error);
+      }
+      
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
+      fetchInProgress.current = false;
     }
   };
 

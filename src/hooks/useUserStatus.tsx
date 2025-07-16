@@ -1,41 +1,108 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useProfile } from './useProfile';
 import { UserStatus, UserType, AccessControl } from '@/types/userStatus';
 import { supabase } from '@/integrations/supabase/client';
 
+const USER_STATUS_CACHE_KEY = 'userStatusCache';
+const USER_STATUS_CACHE_VERSION = '1.0';
+
 export const useUserStatus = () => {
   const { profile, loading: profileLoading } = useProfile();
   
-  // Initialize with optimistic state for paid subscribers to prevent glitches
+  // Initialize with cached state for persistence across navigation
   const [userStatusType, setUserStatusType] = useState<string>(() => {
-    // Try to get from localStorage first for persistence across navigation
-    const cached = localStorage.getItem('userStatusType');
-    return cached || 'unknown';
+    if (profile?.id) {
+      try {
+        const cached = localStorage.getItem(USER_STATUS_CACHE_KEY);
+        if (cached) {
+          const { version, data, userId } = JSON.parse(cached);
+          if (version === USER_STATUS_CACHE_VERSION && userId === profile.id) {
+            return data.userStatusType || 'unknown';
+          }
+        }
+      } catch (error) {
+        console.error('Error loading cached user status:', error);
+      }
+    }
+    return 'unknown';
   });
   
   const [isLoading, setIsLoading] = useState(() => {
-    // For paid subscribers, start with false to prevent loading flash
-    const cached = localStorage.getItem('userStatusType');
-    return !cached;
+    // For paid subscribers, never show loading to prevent glitches
+    if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
+      return false;
+    }
+    
+    // Check if we have cached data
+    try {
+      const cached = localStorage.getItem(USER_STATUS_CACHE_KEY);
+      if (cached && profile?.id) {
+        const { version, data, userId } = JSON.parse(cached);
+        if (version === USER_STATUS_CACHE_VERSION && userId === profile.id) {
+          return false;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking cached user status:', error);
+    }
+    
+    return true;
   });
 
-  // Get user status type from database function with caching
+  const fetchInProgress = useRef(false);
+
+  // Get user status type from database function with enhanced caching
   useEffect(() => {
     const fetchUserStatusType = async () => {
       if (!profile?.id) {
         setUserStatusType('unknown');
         setIsLoading(false);
-        localStorage.removeItem('userStatusType');
+        localStorage.removeItem(USER_STATUS_CACHE_KEY);
         return;
       }
 
-      // For paid subscribers, immediately set status and cache it
+      // For paid subscribers, immediately set status and cache it - NO DATABASE CALL
       if (profile.subscription_status === 'active' && profile.subscription_tier) {
-        setUserStatusType('paid_subscriber');
+        const status = 'paid_subscriber';
+        setUserStatusType(status);
         setIsLoading(false);
-        localStorage.setItem('userStatusType', 'paid_subscriber');
+        
+        // Cache the status with profile data
+        try {
+          localStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+            version: USER_STATUS_CACHE_VERSION,
+            data: { userStatusType: status },
+            userId: profile.id,
+            timestamp: Date.now()
+          }));
+        } catch (error) {
+          console.error('Error caching user status:', error);
+        }
         return;
       }
+
+      // Check if we already have valid cached data
+      try {
+        const cached = localStorage.getItem(USER_STATUS_CACHE_KEY);
+        if (cached) {
+          const { version, data, userId, timestamp } = JSON.parse(cached);
+          if (version === USER_STATUS_CACHE_VERSION && userId === profile.id) {
+            // Use cached data if it's less than 5 minutes old
+            const isRecent = Date.now() - timestamp < 5 * 60 * 1000;
+            if (isRecent) {
+              setUserStatusType(data.userStatusType || 'unknown');
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error reading cached user status:', error);
+      }
+
+      // Only fetch from database if we don't have valid cached data
+      if (fetchInProgress.current) return;
+      fetchInProgress.current = true;
 
       try {
         const { data, error } = await supabase
@@ -47,13 +114,25 @@ export const useUserStatus = () => {
         } else {
           const status = data || 'unknown';
           setUserStatusType(status);
-          localStorage.setItem('userStatusType', status);
+          
+          // Cache the result
+          try {
+            localStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+              version: USER_STATUS_CACHE_VERSION,
+              data: { userStatusType: status },
+              userId: profile.id,
+              timestamp: Date.now()
+            }));
+          } catch (error) {
+            console.error('Error caching user status:', error);
+          }
         }
       } catch (error) {
         console.error('Error fetching user status type:', error);
         setUserStatusType('unknown');
       } finally {
         setIsLoading(false);
+        fetchInProgress.current = false;
       }
     };
 
@@ -61,30 +140,9 @@ export const useUserStatus = () => {
   }, [profile?.id, profile?.subscription_status, profile?.subscription_tier]);
 
   const userStatus = useMemo<UserStatus>(() => {
-    // For paid subscribers, never show loading state to prevent glitches
+    // FAILSAFE: For paid subscribers, ALWAYS return active status immediately
     const isPaidSubscriber = profile?.subscription_status === 'active' && profile?.subscription_tier;
     
-    if (!profile && !isPaidSubscriber) {
-      return {
-        userType: 'unknown',
-        isTrialActive: false,
-        isExpired: false,
-        isSubscriber: false,
-        isCanceled: false,
-        hasFullAccess: false,
-        daysRemaining: 0,
-        gracePeriodActive: false,
-        needsUpgrade: false,
-        canEdit: false,
-        canCreate: false,
-        showUpgradePrompt: false,
-        statusMessage: profileLoading ? 'Loading...' : 'Unknown Status',
-        statusColor: 'gray',
-        isSetupIncomplete: false
-      };
-    }
-    
-    // For paid subscribers, immediately return active status regardless of loading states
     if (isPaidSubscriber) {
       return {
         userType: 'subscriber',
@@ -105,8 +163,29 @@ export const useUserStatus = () => {
       };
     }
     
+    // Handle non-paid users
+    if (!profile) {
+      return {
+        userType: 'unknown',
+        isTrialActive: false,
+        isExpired: false,
+        isSubscriber: false,
+        isCanceled: false,
+        hasFullAccess: false,
+        daysRemaining: 0,
+        gracePeriodActive: false,
+        needsUpgrade: false,
+        canEdit: false,
+        canCreate: false,
+        showUpgradePrompt: false,
+        statusMessage: profileLoading ? 'Loading...' : 'Unknown Status',
+        statusColor: 'gray',
+        isSetupIncomplete: false
+      };
+    }
+    
     // Show loading only for non-paid users
-    if (isLoading && !isPaidSubscriber) {
+    if (isLoading) {
       return {
         userType: 'unknown',
         isTrialActive: false,
@@ -216,8 +295,9 @@ export const useUserStatus = () => {
     const { userType, hasFullAccess, isExpired } = userStatus;
     const tier = profile?.subscription_tier;
 
-    // For paid subscribers, return full access immediately to prevent glitches
-    if (userType === 'subscriber' && profile?.subscription_status === 'active') {
+    // FAILSAFE: For paid subscribers, ALWAYS return full access immediately
+    const isPaidSubscriber = profile?.subscription_status === 'active' && profile?.subscription_tier;
+    if (isPaidSubscriber || (userType === 'subscriber' && profile?.subscription_status === 'active')) {
       const baseAccess = {
         canViewDashboard: true,
         canCreateBookings: true,

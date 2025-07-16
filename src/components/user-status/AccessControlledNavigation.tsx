@@ -45,13 +45,15 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
 
   // Memoize navigation items with stable state to prevent flashing
   const navigationItems = useMemo(() => {
-    // For paid subscribers, never show restrictions regardless of loading state
-    const isPaidSubscriber = userStatus.userType === 'subscriber' && userStatus.isSubscriber;
+    // FAILSAFE: Multiple checks for paid subscribers to prevent ANY glitches
+    const isPaidSubscriber = userStatus.userType === 'subscriber' || 
+                            userStatus.isSubscriber || 
+                            (userStatus.statusMessage === 'Active Subscription');
     
     return navigation.map((item) => {
       const isActive = location.pathname === item.href;
       
-      // For paid subscribers, never show restrictions to prevent glitches
+      // FAILSAFE: For paid subscribers, NEVER show restrictions under any circumstances
       const isRestricted = isPaidSubscriber 
         ? false 
         : (item.requiresAccess && !accessControl[item.requiresAccess]);
@@ -62,11 +64,13 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
         isRestricted
       };
     });
-  }, [location.pathname, userStatus.userType, userStatus.isSubscriber, accessControl]);
+  }, [location.pathname, userStatus.userType, userStatus.isSubscriber, userStatus.statusMessage, accessControl]);
 
   const handleItemClick = (item: NavItem) => {
-    // For paid subscribers, always allow navigation to prevent glitches
-    const isPaidSubscriber = userStatus.userType === 'subscriber' && userStatus.isSubscriber;
+    // FAILSAFE: Multiple checks for paid subscribers to prevent ANY access restrictions
+    const isPaidSubscriber = userStatus.userType === 'subscriber' || 
+                            userStatus.isSubscriber || 
+                            (userStatus.statusMessage === 'Active Subscription');
     
     if (!isPaidSubscriber && item.requiresAccess && !accessControl[item.requiresAccess]) {
       let title = "Access Restricted";
