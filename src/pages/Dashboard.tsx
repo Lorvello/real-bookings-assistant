@@ -66,7 +66,11 @@ const Dashboard = () => {
     return null;
   }
 
-  if (calendars.length === 0) {
+  const activeCalendarIds = getActiveCalendarIds();
+  const primaryCalendarId = activeCalendarIds.length > 0 ? activeCalendarIds[0] : undefined;
+
+  // Show "No calendar found" only for non-setup-incomplete users
+  if (!userStatus.isSetupIncomplete && calendars.length === 0) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full bg-gray-900">
@@ -78,9 +82,6 @@ const Dashboard = () => {
       </DashboardLayout>
     );
   }
-
-  const activeCalendarIds = getActiveCalendarIds();
-  const primaryCalendarId = activeCalendarIds.length > 0 ? activeCalendarIds[0] : undefined;
 
   return (
     <DashboardLayout>
