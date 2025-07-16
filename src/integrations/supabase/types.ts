@@ -1038,16 +1038,21 @@ export type Database = {
           facebook: string | null
           full_name: string | null
           gender: string | null
+          grace_period_end: string | null
           id: string
           instagram: string | null
           language: string | null
+          last_payment_date: string | null
           linkedin: string | null
           opening_hours_note: string | null
           other_info: string | null
           parking_info: string | null
+          payment_status: string | null
           phone: string | null
           public_transport_info: string | null
           show_opening_hours: boolean | null
+          subscription_end_date: string | null
+          subscription_start_date: string | null
           subscription_status: string | null
           team_size: string | null
           tiktok: string | null
@@ -1083,16 +1088,21 @@ export type Database = {
           facebook?: string | null
           full_name?: string | null
           gender?: string | null
+          grace_period_end?: string | null
           id: string
           instagram?: string | null
           language?: string | null
+          last_payment_date?: string | null
           linkedin?: string | null
           opening_hours_note?: string | null
           other_info?: string | null
           parking_info?: string | null
+          payment_status?: string | null
           phone?: string | null
           public_transport_info?: string | null
           show_opening_hours?: boolean | null
+          subscription_end_date?: string | null
+          subscription_start_date?: string | null
           subscription_status?: string | null
           team_size?: string | null
           tiktok?: string | null
@@ -1128,16 +1138,21 @@ export type Database = {
           facebook?: string | null
           full_name?: string | null
           gender?: string | null
+          grace_period_end?: string | null
           id?: string
           instagram?: string | null
           language?: string | null
+          last_payment_date?: string | null
           linkedin?: string | null
           opening_hours_note?: string | null
           other_info?: string | null
           parking_info?: string | null
+          payment_status?: string | null
           phone?: string | null
           public_transport_info?: string | null
           show_opening_hours?: boolean | null
+          subscription_end_date?: string | null
+          subscription_start_date?: string | null
           subscription_status?: string | null
           team_size?: string | null
           tiktok?: string | null
@@ -2458,6 +2473,10 @@ export type Database = {
       test_webhook_system: {
         Args: { p_calendar_id: string }
         Returns: Json
+      }
+      update_expired_trials: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

@@ -6,12 +6,13 @@ import { SidebarHeader } from '@/components/dashboard/SidebarHeader';
 import { BackToWebsiteButton } from '@/components/dashboard/BackToWebsiteButton';
 import { NavigationMenu } from '@/components/dashboard/NavigationMenu';
 import { EnhancedNavigationMenu } from '@/components/trial/EnhancedNavigationMenu';
+import { AccessControlledNavigation } from '@/components/user-status/AccessControlledNavigation';
 import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcherSection';
 import { UserProfileSection } from '@/components/dashboard/UserProfileSection';
-import { TrialCountdown } from '@/components/trial/TrialCountdown';
-import { ProgressIndicator } from '@/components/trial/ProgressIndicator';
-import { useTrialStatus } from '@/hooks/useTrialStatus';
-import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
+import { StatusIndicator } from '@/components/user-status/StatusIndicator';
+import { UpgradePrompt } from '@/components/user-status/UpgradePrompt';
+import { useUserStatus } from '@/hooks/useUserStatus';
+import { useToast } from '@/hooks/use-toast';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -21,8 +22,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
-  const { isTrialActive, daysRemaining } = useTrialStatus();
-  const { completionPercentage, completedSteps, totalSteps } = useOnboardingProgress();
+  const { userStatus, accessControl } = useUserStatus();
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
     await signOut();
@@ -43,6 +44,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const handleUpgrade = () => {
+    toast({
+      title: "Upgrade Account",
+      description: "Redirecting to upgrade options...",
+    });
+    navigate('/settings');
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 w-full">
       {/* Sidebar */}
@@ -58,34 +67,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             onBackToWebsite={handleBackToWebsite} 
           />
 
-          {/* Trial Status Components - Only show for active trial users */}
-          {isTrialActive && (
-            <>
-              <TrialCountdown 
-                daysRemaining={daysRemaining} 
-                isExpanded={isSidebarOpen} 
-              />
-              <ProgressIndicator 
-                completionPercentage={completionPercentage}
-                completedSteps={completedSteps}
-                totalSteps={totalSteps}
-                isExpanded={isSidebarOpen}
-              />
-            </>
-          )}
+          {/* User Status Indicator - Shows for all users */}
+          <StatusIndicator 
+            userStatus={userStatus} 
+            isExpanded={isSidebarOpen} 
+          />
 
-          {/* Navigation Menu - Enhanced for trial users, normal for others */}
-          {isTrialActive ? (
-            <EnhancedNavigationMenu 
-              isSidebarOpen={isSidebarOpen} 
-              onNavigate={handleNavigation} 
-            />
-          ) : (
-            <NavigationMenu 
-              isSidebarOpen={isSidebarOpen} 
-              onNavigate={handleNavigation} 
-            />
-          )}
+          {/* Upgrade Prompt - Shows for expired/canceled users */}
+          <UpgradePrompt 
+            userStatus={userStatus} 
+            isExpanded={isSidebarOpen} 
+            onUpgrade={handleUpgrade} 
+          />
+
+          {/* Access Controlled Navigation - Adapts to user status */}
+          <AccessControlledNavigation 
+            isSidebarOpen={isSidebarOpen} 
+            onNavigate={handleNavigation} 
+          />
 
           <CalendarSwitcherSection isSidebarOpen={isSidebarOpen} />
 

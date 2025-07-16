@@ -5,9 +5,14 @@ export interface UserProfile {
   business_name?: string;
   business_type?: string;
   phone?: string;
-  subscription_status?: 'trial' | 'active' | 'expired' | 'cancelled';
+  subscription_status?: 'trial' | 'active' | 'expired' | 'canceled' | 'paid';
   trial_start_date?: string;
   trial_end_date?: string;
+  subscription_start_date?: string;
+  subscription_end_date?: string;
+  last_payment_date?: string;
+  payment_status?: 'unpaid' | 'paid' | 'failed' | 'pending';
+  grace_period_end?: string;
   created_at: string;
   updated_at: string;
 }
