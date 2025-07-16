@@ -2,12 +2,8 @@
 import React from 'react';
 import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { useUserStatus } from '@/contexts/UserStatusContext';
-import { SetupIncompleteOverlay } from '@/components/onboarding/SetupIncompleteOverlay';
 
 export default function TestAIAgent() {
-  const { userStatus } = useUserStatus();
-
   return (
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-2 md:p-8">
@@ -20,18 +16,9 @@ export default function TestAIAgent() {
             </p>
           </div>
 
-          {/* Show setup incomplete message or AI agent */}
-          {userStatus.isSetupIncomplete ? (
-            <SetupIncompleteOverlay>
-              <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl h-[600px] md:h-[700px]">
-                <AIAgentTestChat />
-              </div>
-            </SetupIncompleteOverlay>
-          ) : (
-            <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl h-[600px] md:h-[700px]">
-              <AIAgentTestChat />
-            </div>
-          )}
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl h-[600px] md:h-[700px]">
+            <AIAgentTestChat />
+          </div>
         </div>
       </div>
     </DashboardLayout>
