@@ -168,6 +168,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   };
 
   const handleHandStart = (event: React.MouseEvent | React.TouchEvent, selectingMinutes: boolean) => {
+    event.preventDefault();
     event.stopPropagation();
     setIsSelectingMinutes(selectingMinutes);
     setIsDragging(true);
@@ -269,8 +270,19 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       
       {/* Professional Modal Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 animate-in fade-in-0 zoom-in-95 relative">
+        <div 
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[99999] flex items-center justify-center p-4"
+          onClick={(e) => {
+            // Only close if clicking the overlay itself, not the modal content
+            if (e.target === e.currentTarget) {
+              onClose();
+            }
+          }}
+        >
+          <div 
+            className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 animate-in fade-in-0 zoom-in-95 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="text-lg font-semibold text-foreground">Select Time</h2>
@@ -307,7 +319,10 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                      <div 
                        ref={clockRef}
                        className="relative w-64 h-64 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 cursor-pointer hover:border-primary/60 transition-all duration-300 shadow-lg"
-                       onClick={handleClockClick}
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         handleClockClick(e);
+                       }}
                      >
                        {/* Clock face inner circle */}
                        <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner">
