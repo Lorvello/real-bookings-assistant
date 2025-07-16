@@ -43,7 +43,12 @@ const MobileFirstMethodologyModal: React.FC<MobileFirstMethodologyModalProps> = 
         {/* Modal Content */}
         <div className="px-6 py-4 space-y-6">
           {/* Research Overview */}
-          <ScrollAnimatedSection animation="fade-up" delay={0} className="space-y-4">
+          <ScrollAnimatedSection 
+            animation="fade-up" 
+            delay={100} 
+            className="space-y-4"
+            config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true }}
+          >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Research Overview
@@ -54,7 +59,12 @@ const MobileFirstMethodologyModal: React.FC<MobileFirstMethodologyModalProps> = 
           </ScrollAnimatedSection>
 
           {/* Methodology Details */}
-          <ScrollAnimatedSection animation="fade-up" delay={200} className="space-y-4">
+          <ScrollAnimatedSection 
+            animation="fade-up" 
+            delay={300} 
+            className="space-y-4"
+            config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true }}
+          >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Methodology Details
@@ -80,7 +90,12 @@ const MobileFirstMethodologyModal: React.FC<MobileFirstMethodologyModalProps> = 
           </ScrollAnimatedSection>
 
           {/* Study Limitations */}
-          <ScrollAnimatedSection animation="fade-up" delay={400} className="space-y-4">
+          <ScrollAnimatedSection 
+            animation="fade-up" 
+            delay={500} 
+            className="space-y-4"
+            config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true }}
+          >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               Study Limitations
