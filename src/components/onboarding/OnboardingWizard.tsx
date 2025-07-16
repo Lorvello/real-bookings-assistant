@@ -20,14 +20,10 @@ export const OnboardingWizard = () => {
     switch (step.key) {
       case 'business_info':
         return Settings;
-      case 'calendar_setup':
-        return Calendar;
       case 'service_types':
         return Bot;
       case 'availability':
         return Clock;
-      case 'booking_settings':
-        return MessageCircle;
       default:
         return Circle;
     }
@@ -37,14 +33,10 @@ export const OnboardingWizard = () => {
     switch (step.key) {
       case 'business_info':
         return () => navigate('/settings');
-      case 'calendar_setup':
-        return () => navigate('/settings');
       case 'service_types':
         return () => navigate('/settings');
       case 'availability':
         return () => navigate('/availability');
-      case 'booking_settings':
-        return () => navigate('/settings');
       default:
         return () => navigate('/settings');
     }

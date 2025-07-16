@@ -63,21 +63,30 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
     return navigation.map((item) => {
       const isActive = location.pathname === item.href;
       
-      // Special handling for WhatsApp - no lock icon for expired trial and canceled_and_inactive
-      if (item.href === '/conversations') {
-        if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
-          return {
-            ...item,
-            isActive,
-            isRestricted: false // Don't show lock icon, just show warning on click
-          };
-        }
+    // Special handling for WhatsApp - no lock icon for expired trial and canceled_and_inactive
+    if (item.href === '/conversations') {
+      if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
+        return {
+          ...item,
+          isActive,
+          isRestricted: false // Don't show lock icon, just show warning on click
+        };
       }
-      
-      // ULTIMATE FAILSAFE: For paid subscribers, NEVER show restrictions under any circumstances
-      const isRestricted = isPaidSubscriber 
-        ? false 
-        : (item.requiresAccess && !accessControl[item.requiresAccess]);
+    }
+    
+    // REMOVE ALL LOCKS for Setup Incomplete users - they can access all navigation
+    if (userStatus.userType === 'setup_incomplete') {
+      return {
+        ...item,
+        isActive,
+        isRestricted: false // No restrictions for setup incomplete users
+      };
+    }
+    
+    // ULTIMATE FAILSAFE: For paid subscribers, NEVER show restrictions under any circumstances
+    const isRestricted = isPaidSubscriber 
+      ? false 
+      : (item.requiresAccess && !accessControl[item.requiresAccess]);
 
       return {
         ...item,
@@ -107,14 +116,17 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
       }
     }
     
+    // SETUP INCOMPLETE users can access all navigation - no restrictions
+    if (userStatus.userType === 'setup_incomplete') {
+      onNavigate(item.href);
+      return;
+    }
+    
     if (!isPaidSubscriber && item.requiresAccess && !accessControl[item.requiresAccess]) {
       let title = "Access Restricted";
       let description = "This feature requires an active subscription.";
       
-      if (userStatus.isSetupIncomplete) {
-        title = "Setup Required";
-        description = "Please complete your setup before accessing this feature.";
-      } else if (userStatus.isExpired) {
+      if (userStatus.isExpired) {
         title = "Subscription Expired";
         description = "This feature requires an active subscription.";
       }

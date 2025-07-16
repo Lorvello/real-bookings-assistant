@@ -22,7 +22,7 @@ export function ProgressIndicator({
             <Circle className="h-4 w-4 text-gray-400" />
             <CheckCircle 
               className={`h-4 w-4 text-green-400 absolute top-0 left-0 transition-opacity duration-300 ${
-                completionPercentage > 50 ? 'opacity-100' : 'opacity-0'
+                completionPercentage === 100 ? 'opacity-100' : 'opacity-0'
               }`} 
             />
           </div>
