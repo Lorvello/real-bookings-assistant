@@ -4,15 +4,22 @@ import { UserStatus, UserType, AccessControl } from '@/types/userStatus';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useUserStatus = () => {
-  const { profile } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
   const [userStatusType, setUserStatusType] = useState<string>('unknown');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Get user status type from database function
+  // Get user status type from database function with caching
   useEffect(() => {
     const fetchUserStatusType = async () => {
       if (!profile?.id) {
         setUserStatusType('unknown');
+        setIsLoading(false);
+        return;
+      }
+
+      // For paid subscribers, set optimistic status to prevent glitches
+      if (profile.subscription_status === 'active' && profile.subscription_tier) {
+        setUserStatusType('paid_subscriber');
         setIsLoading(false);
         return;
       }
@@ -36,10 +43,13 @@ export const useUserStatus = () => {
     };
 
     fetchUserStatusType();
-  }, [profile?.id]);
+  }, [profile?.id, profile?.subscription_status, profile?.subscription_tier]);
 
   const userStatus = useMemo<UserStatus>(() => {
-    if (!profile || isLoading) {
+    // Use stable loading state that considers both profile and status loading
+    const isActuallyLoading = profileLoading || isLoading;
+    
+    if (!profile || isActuallyLoading) {
       return {
         userType: 'unknown',
         isTrialActive: false,
@@ -53,7 +63,7 @@ export const useUserStatus = () => {
         canEdit: false,
         canCreate: false,
         showUpgradePrompt: false,
-        statusMessage: isLoading ? 'Loading...' : 'Unknown Status',
+        statusMessage: isActuallyLoading ? 'Loading...' : 'Unknown Status',
         statusColor: 'gray',
         isSetupIncomplete: false
       };
@@ -143,11 +153,68 @@ export const useUserStatus = () => {
       statusColor,
       isSetupIncomplete
     };
-  }, [profile, userStatusType, isLoading]);
+  }, [profile, userStatusType, profileLoading, isLoading]);
 
   const accessControl = useMemo<AccessControl>(() => {
     const { userType, hasFullAccess, isExpired } = userStatus;
     const tier = profile?.subscription_tier;
+
+    // For paid subscribers, return full access immediately to prevent glitches
+    if (userType === 'subscriber' && profile?.subscription_status === 'active') {
+      const baseAccess = {
+        canViewDashboard: true,
+        canCreateBookings: true,
+        canEditBookings: true,
+        canManageSettings: true,
+        canAccessWhatsApp: true,
+        canUseAI: true,
+        canExportData: true,
+        canInviteUsers: true
+      };
+
+      switch (tier) {
+        case 'starter':
+          return {
+            ...baseAccess,
+            canAccessAPI: false,
+            canUseWhiteLabel: false,
+            hasPrioritySupport: false,
+            maxCalendars: 1,
+            maxBookingsPerMonth: 50,
+            maxTeamMembers: 1
+          };
+        case 'professional':
+          return {
+            ...baseAccess,
+            canAccessAPI: true,
+            canUseWhiteLabel: false,
+            hasPrioritySupport: true,
+            maxCalendars: 5,
+            maxBookingsPerMonth: 500,
+            maxTeamMembers: 5
+          };
+        case 'enterprise':
+          return {
+            ...baseAccess,
+            canAccessAPI: true,
+            canUseWhiteLabel: true,
+            hasPrioritySupport: true,
+            maxCalendars: 25,
+            maxBookingsPerMonth: 10000,
+            maxTeamMembers: 50
+          };
+        default:
+          return {
+            ...baseAccess,
+            canAccessAPI: false,
+            canUseWhiteLabel: false,
+            hasPrioritySupport: false,
+            maxCalendars: 1,
+            maxBookingsPerMonth: 50,
+            maxTeamMembers: 1
+          };
+      }
+    }
 
     // Setup incomplete users have restricted access
     if (userType === 'setup_incomplete') {

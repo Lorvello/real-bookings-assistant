@@ -45,10 +45,13 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
 
   // Memoize navigation items with stable state to prevent flashing
   const navigationItems = useMemo(() => {
+    // For paid subscribers, skip access control checks to prevent glitches
+    const isPaidSubscriber = userStatus.userType === 'subscriber' && userStatus.isSubscriber;
+    
     return navigation.map((item) => {
       const isActive = location.pathname === item.href;
-      // Check if item requires access and user doesn't have it
-      const isRestricted = item.requiresAccess && !accessControl[item.requiresAccess];
+      // For paid subscribers, never show restrictions to prevent glitches
+      const isRestricted = isPaidSubscriber ? false : (item.requiresAccess && !accessControl[item.requiresAccess]);
 
       return {
         ...item,
@@ -56,11 +59,13 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
         isRestricted
       };
     });
-  }, [location.pathname, userStatus, accessControl]);
+  }, [location.pathname, userStatus.userType, userStatus.isSubscriber, accessControl]);
 
   const handleItemClick = (item: NavItem) => {
-    // Check if item requires access and user doesn't have it
-    if (item.requiresAccess && !accessControl[item.requiresAccess]) {
+    // For paid subscribers, always allow navigation to prevent glitches
+    const isPaidSubscriber = userStatus.userType === 'subscriber' && userStatus.isSubscriber;
+    
+    if (!isPaidSubscriber && item.requiresAccess && !accessControl[item.requiresAccess]) {
       let title = "Access Restricted";
       let description = "This feature requires an active subscription.";
       
