@@ -15,46 +15,61 @@ export const useOnboardingProgress = () => {
   // Fetch additional onboarding data
   useEffect(() => {
     const fetchOnboardingData = async () => {
-      if (!profile?.id || !selectedCalendar) return;
+      if (!profile?.id) return;
 
       try {
-        // Check service types
-        const { data: serviceTypes } = await supabase
-          .from('service_types')
-          .select('id')
-          .eq('calendar_id', selectedCalendar.id)
-          .eq('is_active', true);
-        
-        setServiceTypeCount(serviceTypes?.length || 0);
+        // Check service types for any calendar the user owns
+        if (calendars.length > 0) {
+          const { data: serviceTypes } = await supabase
+            .from('service_types')
+            .select('id, calendar_id')
+            .in('calendar_id', calendars.map(cal => cal.id))
+            .eq('is_active', true);
+          
+          setServiceTypeCount(serviceTypes?.length || 0);
+        } else {
+          setServiceTypeCount(0);
+        }
 
-        // Check availability rules via availability_schedules
-        const { data: availabilityRules } = await supabase
-          .from('availability_rules')
-          .select('id, schedule_id')
-          .in('schedule_id', 
-            (await supabase
-              .from('availability_schedules')
+        // Check availability rules for any calendar the user owns
+        if (calendars.length > 0) {
+          const { data: availabilitySchedules } = await supabase
+            .from('availability_schedules')
+            .select('id')
+            .in('calendar_id', calendars.map(cal => cal.id));
+          
+          if (availabilitySchedules && availabilitySchedules.length > 0) {
+            const { data: availabilityRules } = await supabase
+              .from('availability_rules')
               .select('id')
-              .eq('calendar_id', selectedCalendar.id)
-            ).data?.map(schedule => schedule.id) || []
-          );
-        
-        setAvailabilityRulesCount(availabilityRules?.length || 0);
+              .in('schedule_id', availabilitySchedules.map(schedule => schedule.id));
+            
+            setAvailabilityRulesCount(availabilityRules?.length || 0);
+          } else {
+            setAvailabilityRulesCount(0);
+          }
+        } else {
+          setAvailabilityRulesCount(0);
+        }
 
-        // Check booking settings
-        const { data: bookingSettings } = await supabase
-          .from('calendar_settings')
-          .select('id')
-          .eq('calendar_id', selectedCalendar.id);
-        
-        setBookingSettingsConfigured(!!bookingSettings && bookingSettings.length > 0);
+        // Check booking settings for any calendar the user owns
+        if (calendars.length > 0) {
+          const { data: bookingSettings } = await supabase
+            .from('calendar_settings')
+            .select('id')
+            .in('calendar_id', calendars.map(cal => cal.id));
+          
+          setBookingSettingsConfigured(!!bookingSettings && bookingSettings.length > 0);
+        } else {
+          setBookingSettingsConfigured(false);
+        }
       } catch (error) {
         console.error('Error fetching onboarding data:', error);
       }
     };
 
     fetchOnboardingData();
-  }, [profile?.id, selectedCalendar?.id]);
+  }, [profile?.id, calendars]);
 
   // Check if setup is complete and automatically progress user status
   useEffect(() => {

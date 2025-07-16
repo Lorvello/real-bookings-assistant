@@ -12,7 +12,8 @@ export const OnboardingWizard = () => {
   const { userStatus } = useUserStatus();
   const navigate = useNavigate();
 
-  if (!userStatus.isSetupIncomplete) {
+  // Hide setup section when all steps are completed
+  if (!userStatus.isSetupIncomplete || completionPercentage === 100) {
     return null;
   }
 
@@ -60,28 +61,25 @@ export const OnboardingWizard = () => {
               <span>Progress</span>
               <span>{completedSteps}/{totalSteps} completed</span>
             </div>
-            <Progress value={completionPercentage} className="h-2" />
+            <Progress value={completionPercentage} className="h-2 bg-slate-700" />
           </div>
           
           <div className="space-y-3">
             {allSteps.map((step) => {
               const StepIcon = getStepIcon(step);
               const isCompleted = step.completed;
-              const isNext = nextSteps.includes(step);
               
               return (
                 <div 
                   key={step.key}
                   className={`flex items-center gap-3 p-4 rounded-lg border ${
                     isCompleted 
-                      ? 'border-primary/30 bg-primary/10' 
-                      : isNext 
-                        ? 'border-primary/30 bg-primary/10' 
-                        : 'border-slate-600 bg-slate-700/50'
+                      ? 'border-green-500/30 bg-green-500/10' 
+                      : 'border-slate-600 bg-slate-700/50'
                   }`}
                 >
                   <div className={`flex-shrink-0 ${
-                    isCompleted ? 'text-primary' : isNext ? 'text-primary' : 'text-gray-400'
+                    isCompleted ? 'text-green-500' : 'text-gray-400'
                   }`}>
                     {isCompleted ? (
                       <CheckCircle className="h-5 w-5" />
@@ -93,18 +91,18 @@ export const OnboardingWizard = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h4 className={`font-medium ${
-                        isCompleted ? 'text-primary' : isNext ? 'text-primary' : 'text-gray-300'
+                        isCompleted ? 'text-green-500' : 'text-gray-300'
                       }`}>
                         {step.name}
                       </h4>
                       {isCompleted && (
-                        <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
+                        <span className="text-xs bg-green-500/20 text-green-500 px-2 py-1 rounded-full">
                           Complete
                         </span>
                       )}
                     </div>
                     <p className={`text-sm ${
-                      isCompleted ? 'text-primary/80' : isNext ? 'text-primary/80' : 'text-gray-400'
+                      isCompleted ? 'text-green-500/80' : 'text-gray-400'
                     }`}>
                       {step.description}
                     </p>
