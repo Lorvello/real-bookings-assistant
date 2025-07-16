@@ -281,6 +281,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       }
       
       console.log('Default schedule created:', data);
+      // Don't call onChange() immediately to avoid triggering unsaved changes dialog
     } catch (error) {
       console.error('Error creating default schedule:', error);
     }

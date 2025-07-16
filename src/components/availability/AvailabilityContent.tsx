@@ -3,7 +3,7 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Info, Globe } from 'lucide-react';
-import { DailyAvailability } from './DailyAvailability';
+import { StepByStepDayConfiguration } from './StepByStepDayConfiguration';
 import { DateOverrides } from './DateOverrides';
 import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
 
@@ -23,10 +23,8 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Main Content - Left Side */}
             <div className="lg:col-span-3 space-y-8">
-              {/* Daily Availability */}
-              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-5 shadow-lg shadow-black/5">
-                <DailyAvailability onChange={onUnsavedChanges} />
-              </div>
+              {/* Step by Step Day Configuration */}
+              <StepByStepDayConfiguration onChange={onUnsavedChanges} />
             </div>
 
             {/* Sidebar - Right Side */}
