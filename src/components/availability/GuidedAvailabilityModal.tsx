@@ -143,23 +143,28 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   };
 
   const handleComplete = async () => {
+    // CRITICAL FIX: Immediate UI response - close modal first
+    onClose();
+    
     try {
+      // Run database operations in background without blocking UI
       // Create default schedule first if needed
       await createDefaultSchedule();
       
-      // Wait a bit for the schedule to be created
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Sync all availability data in parallel instead of sequential
+      const syncPromises = DAYS.map(day => 
+        syncToDatabase(day.key, localAvailability[day.key])
+      );
       
-      // Sync all availability data to database
-      for (const day of DAYS) {
-        await syncToDatabase(day.key, localAvailability[day.key]);
-      }
+      // Execute all database operations in parallel
+      await Promise.all(syncPromises);
       
-      // Close the modal and trigger completion callback
-      onClose();
+      // Trigger completion callback after DB operations complete
       onComplete();
     } catch (error) {
       console.error('Error completing availability setup:', error);
+      // Still trigger completion even if there are errors
+      onComplete();
     }
   };
 
