@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
@@ -8,11 +8,20 @@ interface PsychologyMethodologyModalProps {
 }
 
 const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({ isOpen, onClose }) => {
-  // Body scroll lock
+  const [showContent, setShowContent] = useState(false);
+
+  // Body scroll lock and content animation trigger
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      // Delay content animation to ensure modal is fully rendered
+      const timer = setTimeout(() => setShowContent(true), 200);
+      return () => {
+        clearTimeout(timer);
+        document.body.style.overflow = '';
+      };
     } else {
+      setShowContent(false);
       document.body.style.overflow = '';
     }
 
@@ -47,7 +56,7 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
             animation="fade-up" 
             delay={100} 
             className="space-y-4"
-            config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true }}
+            config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
@@ -63,7 +72,7 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
             animation="fade-up" 
             delay={300} 
             className="space-y-4"
-            config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true }}
+            config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
@@ -98,7 +107,7 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
             animation="fade-up" 
             delay={500} 
             className="space-y-4"
-            config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true }}
+            config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
