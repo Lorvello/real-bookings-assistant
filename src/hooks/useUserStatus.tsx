@@ -54,7 +54,8 @@ export const useUserStatus = () => {
         canCreate: false,
         showUpgradePrompt: false,
         statusMessage: isLoading ? 'Loading...' : 'Unknown Status',
-        statusColor: 'gray'
+        statusColor: 'gray',
+        isSetupIncomplete: false
       };
     }
 
@@ -101,7 +102,7 @@ export const useUserStatus = () => {
         statusColor = 'yellow';
         break;
       case 'setup_incomplete':
-        userType = 'expired_trial';
+        userType = 'setup_incomplete';
         statusMessage = 'Setup Incomplete';
         statusColor = 'yellow';
         break;
@@ -116,6 +117,7 @@ export const useUserStatus = () => {
     const isExpired = userType === 'expired_trial' && !gracePeriodActive;
     const isSubscriber = userType === 'subscriber';
     const isCanceled = userType === 'canceled_subscriber';
+    const isSetupIncomplete = userType === 'setup_incomplete';
     const hasFullAccess = isTrialActive || isSubscriber || isCanceled || gracePeriodActive;
     const needsUpgrade = userType === 'expired_trial' && !gracePeriodActive;
     const canEdit = hasFullAccess;
@@ -138,13 +140,34 @@ export const useUserStatus = () => {
       canCreate,
       showUpgradePrompt,
       statusMessage,
-      statusColor
+      statusColor,
+      isSetupIncomplete
     };
   }, [profile, userStatusType, isLoading]);
 
   const accessControl = useMemo<AccessControl>(() => {
     const { userType, hasFullAccess, isExpired } = userStatus;
     const tier = profile?.subscription_tier;
+
+    // Setup incomplete users have restricted access
+    if (userType === 'setup_incomplete') {
+      return {
+        canViewDashboard: true,
+        canCreateBookings: false,
+        canEditBookings: false,
+        canManageSettings: true,
+        canAccessWhatsApp: false,
+        canUseAI: false,
+        canExportData: false,
+        canInviteUsers: false,
+        canAccessAPI: false,
+        canUseWhiteLabel: false,
+        hasPrioritySupport: false,
+        maxCalendars: 0,
+        maxBookingsPerMonth: 0,
+        maxTeamMembers: 0
+      };
+    }
 
     if (isExpired) {
       return {

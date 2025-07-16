@@ -1,4 +1,4 @@
-export type UserType = 'trial' | 'expired_trial' | 'subscriber' | 'canceled_subscriber' | 'unknown';
+export type UserType = 'trial' | 'expired_trial' | 'subscriber' | 'canceled_subscriber' | 'setup_incomplete' | 'unknown';
 
 export interface UserStatus {
   userType: UserType;
@@ -17,6 +17,7 @@ export interface UserStatus {
   showUpgradePrompt: boolean;
   statusMessage: string;
   statusColor: 'green' | 'yellow' | 'red' | 'gray';
+  isSetupIncomplete: boolean;
 }
 
 export interface AccessControl {

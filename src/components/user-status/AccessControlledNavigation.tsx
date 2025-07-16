@@ -23,14 +23,13 @@ interface NavItem {
   description?: string;
 }
 
-// Only WhatsApp requires active subscription - everything else is always accessible
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Calendar', href: '/calendar', icon: Calendar },
-  { name: 'Bookings', href: '/bookings', icon: BookOpen, description: 'View and manage bookings' },
+  { name: 'Calendar', href: '/calendar', icon: Calendar, requiresAccess: 'canCreateBookings', description: 'View and manage calendar' },
+  { name: 'Bookings', href: '/bookings', icon: BookOpen, requiresAccess: 'canCreateBookings', description: 'View and manage bookings' },
   { name: 'Availability', href: '/availability', icon: Clock, description: 'Set your working hours' },
   { name: 'WhatsApp', href: '/conversations', icon: MessageCircle, requiresAccess: 'canAccessWhatsApp', description: 'WhatsApp booking assistant' },
-  { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot, description: 'AI assistant features' },
+  { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot, requiresAccess: 'canUseAI', description: 'AI assistant features' },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -48,9 +47,8 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
   const navigationItems = useMemo(() => {
     return navigation.map((item) => {
       const isActive = location.pathname === item.href;
-      // Only restrict WhatsApp for expired users - everything else is always accessible
-      const isRestricted = item.requiresAccess === 'canAccessWhatsApp' && 
-                          (userStatus.isExpired || !accessControl[item.requiresAccess]);
+      // Check if item requires access and user doesn't have it
+      const isRestricted = item.requiresAccess && !accessControl[item.requiresAccess];
 
       return {
         ...item,
@@ -58,18 +56,28 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
         isRestricted
       };
     });
-  }, [location.pathname, userStatus.isExpired, accessControl]);
+  }, [location.pathname, userStatus, accessControl]);
 
   const handleItemClick = (item: NavItem) => {
-    // Only restrict WhatsApp for expired users
-    if (item.requiresAccess === 'canAccessWhatsApp' && 
-        (userStatus.isExpired || !accessControl[item.requiresAccess])) {
+    // Check if item requires access and user doesn't have it
+    if (item.requiresAccess && !accessControl[item.requiresAccess]) {
+      let title = "Access Restricted";
+      let description = "This feature requires an active subscription.";
+      
+      if (userStatus.isSetupIncomplete) {
+        title = "Setup Required";
+        description = "Please complete your setup before accessing this feature.";
+      } else if (userStatus.isExpired) {
+        title = "Subscription Expired";
+        description = "This feature requires an active subscription.";
+      }
+      
       toast({
-        title: "WhatsApp Service Inactive",
-        description: "WhatsApp booking assistant requires an active subscription.",
+        title,
+        description,
         variant: "destructive",
       });
-      onNavigate('/settings'); // Redirect to settings/billing
+      onNavigate('/settings');
       return;
     }
 
@@ -93,7 +101,9 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
           `}
           title={
             item.isRestricted 
-              ? `${item.name} - Upgrade required` 
+              ? userStatus.isSetupIncomplete 
+                ? `${item.name} - Setup required` 
+                : `${item.name} - Upgrade required`
               : item.name
           }
         >

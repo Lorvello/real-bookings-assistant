@@ -4,17 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useUserStatus } from '@/hooks/useUserStatus';
 import { useOptimizedBookings } from '@/hooks/useOptimizedBookings';
 import { useBookingsFilters } from '@/hooks/useBookingsFilters';
 import { BookingDetailModal } from '@/components/calendar/BookingDetailModal';
 import { BookingsHeader } from '@/components/bookings/BookingsHeader';
 import { BookingsFilters } from '@/components/bookings/BookingsFilters';
 import { BookingsList } from '@/components/bookings/BookingsList';
+import { SetupIncompleteMessage } from '@/components/onboarding/SetupIncompleteMessage';
 
 const Bookings = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { selectedCalendar, calendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
+  const { userStatus } = useUserStatus();
   
   // Get primary calendar for bookings
   const activeCalendarIds = getActiveCalendarIds();
@@ -89,27 +92,36 @@ const Bookings = () => {
         <div className="space-y-4 md:space-y-6">
           <BookingsHeader />
 
-          <BookingsFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            dateRange={dateRange}
-            setDateRange={setDateRange}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-          />
+          {userStatus.isSetupIncomplete ? (
+            <SetupIncompleteMessage 
+              title="Bookings Setup Required"
+              message="Complete your business setup to start managing bookings and accepting appointments."
+            />
+          ) : (
+            <>
+              <BookingsFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+              />
 
-          <BookingsList
-            bookings={filteredAndSortedBookings}
-            loading={bookingsLoading}
-            hasFilters={hasFilters}
-            onBookingClick={handleBookingClick}
-          />
+              <BookingsList
+                bookings={filteredAndSortedBookings}
+                loading={bookingsLoading}
+                hasFilters={hasFilters}
+                onBookingClick={handleBookingClick}
+              />
 
-          <BookingDetailModal
-            open={isModalOpen}
-            onClose={handleCloseModal}
-            booking={selectedBooking}
-          />
+              <BookingDetailModal
+                open={isModalOpen}
+                onClose={handleCloseModal}
+                booking={selectedBooking}
+              />
+            </>
+          )}
         </div>
       </div>
     </DashboardLayout>

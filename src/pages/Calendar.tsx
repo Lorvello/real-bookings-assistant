@@ -5,11 +5,14 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { CalendarView } from '@/components/CalendarView';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useUserStatus } from '@/hooks/useUserStatus';
+import { SetupIncompleteMessage } from '@/components/onboarding/SetupIncompleteMessage';
 
 const Calendar = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { selectedCalendar, calendars, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
+  const { userStatus } = useUserStatus();
 
   React.useEffect(() => {
     if (!authLoading && !user) {
@@ -67,9 +70,16 @@ const Calendar = () => {
           </div>
 
           {/* Calendar Content with Clean Styling */}
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-2 md:p-4">
-            <CalendarView calendarIds={activeCalendarIds} />
-          </div>
+          {userStatus.isSetupIncomplete ? (
+            <SetupIncompleteMessage 
+              title="Calendar Setup Required"
+              message="Complete your business setup to start managing your calendar and bookings."
+            />
+          ) : (
+            <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-2 md:p-4">
+              <CalendarView calendarIds={activeCalendarIds} />
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

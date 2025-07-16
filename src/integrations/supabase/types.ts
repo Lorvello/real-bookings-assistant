@@ -2331,6 +2331,10 @@ export type Database = {
         Args: { p_user_id: string; p_days?: number }
         Returns: Json
       }
+      admin_set_user_status: {
+        Args: { p_user_id: string; p_status_type: string }
+        Returns: Json
+      }
       admin_update_user_subscription: {
         Args: {
           p_user_id: string
@@ -2405,6 +2409,10 @@ export type Database = {
       }
       ensure_default_service_types: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      ensure_user_has_calendar_and_service: {
+        Args: { p_user_id: string }
         Returns: undefined
       }
       export_whatsapp_data: {
