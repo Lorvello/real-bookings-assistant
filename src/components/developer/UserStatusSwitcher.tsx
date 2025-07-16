@@ -30,6 +30,8 @@ export const UserStatusSwitcher = () => {
 
     setIsLoading(true);
     try {
+      console.log('Updating user status to:', selectedStatus);
+      
       const { data, error } = await supabase
         .rpc('admin_set_user_status', {
           p_user_id: profile.id,
@@ -37,7 +39,16 @@ export const UserStatusSwitcher = () => {
         });
 
       if (error) {
+        console.error('Supabase RPC error:', error);
         throw error;
+      }
+
+      console.log('RPC response:', data);
+
+      // Check if the function returned success
+      const response = data as { success?: boolean; error?: string };
+      if (response && !response.success) {
+        throw new Error(response.error || 'Failed to update user status');
       }
 
       toast({
@@ -47,13 +58,19 @@ export const UserStatusSwitcher = () => {
       });
 
       // Force profile refresh first, then clear status cache
+      console.log('Refreshing profile and clearing cache...');
       await refetch();
       invalidateCache();
+      
+      // Clear the selected status
+      setSelectedStatus('');
+      
+      console.log('User status update completed successfully');
     } catch (error) {
       console.error('Error updating user status:', error);
       toast({
         title: "Error",
-        description: "Failed to update user status",
+        description: error instanceof Error ? error.message : "Failed to update user status",
         variant: "destructive",
       });
     } finally {
