@@ -15,16 +15,12 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
   useEffect(() => {
     if (user && calendarId) {
       fetchSchedules();
-      setupRealtimeSubscription();
+      const cleanup = setupRealtimeSubscription();
+      return cleanup;
     } else {
       setSchedules([]);
       setLoading(false);
     }
-
-    return () => {
-      // Cleanup subscription when component unmounts or dependencies change
-      supabase.removeAllChannels();
-    };
   }, [user, calendarId]);
 
   const fetchSchedules = async () => {
@@ -59,7 +55,7 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
   };
 
   const setupRealtimeSubscription = () => {
-    if (!calendarId) return;
+    if (!calendarId) return () => {};
 
     const channel = supabase
       .channel(`availability_schedules_${calendarId}`)
@@ -87,7 +83,9 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
       )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const createSchedule = async (scheduleData: Partial<AvailabilitySchedule>) => {
