@@ -16,7 +16,8 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     syncingRules,
     defaultCalendar,
     defaultSchedule,
-    syncToDatabase
+    syncToDatabase,
+    createDefaultSchedule
   } = useDailyAvailabilityManager(onChange);
 
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
@@ -182,10 +183,42 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   };
 
   // Show loading state if we don't have calendar data yet
-  if (!defaultCalendar || !defaultSchedule) {
+  if (!defaultCalendar) {
     return (
       <div className="space-y-3">
         <div className="text-center text-gray-400">Loading availability...</div>
+      </div>
+    );
+  }
+
+  // Show empty state if no availability schedule exists
+  if (!defaultSchedule) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-8 max-w-md mx-auto">
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Set Your Availability</h3>
+              <p className="text-gray-400 text-sm">
+                Configure your working hours to let customers know when you're available for bookings.
+              </p>
+            </div>
+            <button 
+              onClick={async () => {
+                await createDefaultSchedule();
+                onChange();
+              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Configure Availability
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

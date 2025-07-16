@@ -260,6 +260,32 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     };
   }, [syncTimeouts]);
 
+  // Function to create a default schedule
+  const createDefaultSchedule = async () => {
+    if (!defaultCalendar) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('availability_schedules')
+        .insert({
+          calendar_id: defaultCalendar.id,
+          name: 'Default Schedule',
+          is_default: true
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating default schedule:', error);
+        return;
+      }
+      
+      console.log('Default schedule created:', data);
+    } catch (error) {
+      console.error('Error creating default schedule:', error);
+    }
+  };
+
   return {
     DAYS,
     availability,
@@ -268,6 +294,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     syncingRules,
     defaultCalendar,
     defaultSchedule,
-    syncToDatabase
+    syncToDatabase,
+    createDefaultSchedule
   };
 };
