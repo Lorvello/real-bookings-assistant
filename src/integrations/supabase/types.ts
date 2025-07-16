@@ -2327,12 +2327,27 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_clear_user_data: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       admin_extend_trial: {
         Args: { p_user_id: string; p_days?: number }
         Returns: Json
       }
+      admin_generate_mock_data: {
+        Args: { p_user_id: string; p_status_level: string }
+        Returns: Json
+      }
       admin_set_user_status: {
-        Args: { p_user_id: string; p_status_type: string }
+        Args:
+          | {
+              p_user_id: string
+              p_status: string
+              p_clear_data?: boolean
+              p_generate_mock_data?: boolean
+            }
+          | { p_user_id: string; p_status_type: string }
         Returns: Json
       }
       admin_update_user_subscription: {
