@@ -7,50 +7,44 @@ import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Settings, User, RefreshCw, AlertTriangle, Database } from 'lucide-react';
+import { Settings, User, RefreshCw, Database } from 'lucide-react';
 
 const userStatusOptions = [
   { 
     value: 'setup_incomplete', 
     label: 'Setup Incomplete', 
-    description: 'Fresh account - all data will be cleared',
-    dataAction: 'clear',
-    warning: 'This will delete all calendars, services, bookings, and business info!'
+    description: 'Brand new account with empty setup',
+    dataAction: 'clear'
   },
   { 
     value: 'active_trial', 
     label: 'Active Trial', 
-    description: 'Basic setup with demo data',
-    dataAction: 'generate_basic',
-    warning: 'This will clear existing data and generate basic demo setup'
+    description: 'Demo salon with basic setup complete',
+    dataAction: 'generate_basic'
   },
   { 
     value: 'expired_trial', 
     label: 'Expired Trial', 
-    description: 'Keeps existing data unchanged',
-    dataAction: 'preserve',
-    warning: 'No data changes - preserves current setup'
+    description: 'Demo salon with trial period expired',
+    dataAction: 'generate_basic'
   },
   { 
     value: 'paid_subscriber', 
     label: 'Paid Subscriber', 
-    description: 'Full setup with comprehensive data',
-    dataAction: 'generate_full',
-    warning: 'This will clear existing data and generate full professional setup'
+    description: 'Professional clinic with full setup',
+    dataAction: 'generate_full'
   },
   { 
     value: 'canceled_but_active', 
     label: 'Canceled but Active', 
-    description: 'Keeps existing data unchanged',
-    dataAction: 'preserve',
-    warning: 'No data changes - preserves current setup'
+    description: 'Professional clinic, canceled but still active',
+    dataAction: 'generate_full'
   },
   { 
     value: 'canceled_and_inactive', 
     label: 'Canceled and Inactive', 
-    description: 'Keeps existing data unchanged',
-    dataAction: 'preserve',
-    warning: 'No data changes - preserves current setup'
+    description: 'Professional clinic, canceled and inactive',
+    dataAction: 'generate_full'
   },
 ];
 
@@ -226,27 +220,10 @@ export const UserStatusSwitcher = () => {
             </div>
           )}
 
-          {/* Warning Message */}
-          {selectedStatus && !isLoading && (
-            <div className="bg-amber-50 border border-amber-200 rounded p-3">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <div className="text-sm font-medium text-amber-800">
-                    Warning: {getSelectedOption()?.label}
-                  </div>
-                  <div className="text-xs text-amber-700 mt-1">
-                    {getSelectedOption()?.warning}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="text-xs text-blue-600 bg-blue-100 p-2 rounded">
-          <strong>Note:</strong> This developer tool simulates different user states with realistic data. 
-          Mock data generation helps test various scenarios without manual setup.
+          <strong>Developer Tool:</strong> Instantly switch between different user states with appropriate mock data.
         </div>
       </CardContent>
     </Card>

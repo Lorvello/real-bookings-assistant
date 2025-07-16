@@ -2336,7 +2336,7 @@ export type Database = {
         Returns: Json
       }
       admin_generate_mock_data: {
-        Args: { p_user_id: string; p_status_level: string }
+        Args: { p_user_id: string; p_status: string }
         Returns: Json
       }
       admin_set_user_status: {
