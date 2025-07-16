@@ -17,11 +17,14 @@ import { ConversationCalendarProvider, useConversationCalendar } from '@/context
 import { useWhatsAppConversationMetrics } from '@/hooks/useWhatsAppConversationMetrics';
 import { useWhatsAppConversationsList } from '@/hooks/useWhatsAppConversationsList';
 import { WhatsAppDashboard } from '@/components/whatsapp/WhatsAppDashboard';
+import { SetupIncompleteOverlay } from '@/components/onboarding/SetupIncompleteOverlay';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 
 const ConversationsContent = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { selectedCalendarId, calendars, setSelectedCalendarId } = useConversationCalendar();
+  const { userStatus } = useUserStatus();
   
   const [timeFilter, setTimeFilter] = useState('week');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
@@ -151,9 +154,17 @@ const ConversationsContent = () => {
           </div>
 
           {/* Analytics Dashboard */}
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl">
-            <WhatsAppDashboard calendarId={selectedCalendarId} />
-          </div>
+          {userStatus.isSetupIncomplete ? (
+            <SetupIncompleteOverlay>
+              <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl">
+                <WhatsAppDashboard calendarId={selectedCalendarId} />
+              </div>
+            </SetupIncompleteOverlay>
+          ) : (
+            <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl">
+              <WhatsAppDashboard calendarId={selectedCalendarId} />
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

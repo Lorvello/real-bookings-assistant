@@ -44,16 +44,15 @@ export const OnboardingWizard = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Complete Your Setup
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <Settings className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold text-white">Complete Your Setup</h2>
+        </div>
+        
+        <div className="space-y-4">
           <div className="space-y-2">
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-sm text-gray-300">
               <span>Progress</span>
               <span>{completedSteps}/{totalSteps} completed</span>
             </div>
@@ -69,16 +68,16 @@ export const OnboardingWizard = () => {
               return (
                 <div 
                   key={step.key}
-                  className={`flex items-center gap-3 p-3 rounded-lg border ${
+                  className={`flex items-center gap-3 p-4 rounded-lg border ${
                     isCompleted 
-                      ? 'border-green-200 bg-green-50' 
+                      ? 'border-primary/30 bg-primary/10' 
                       : isNext 
-                        ? 'border-blue-200 bg-blue-50' 
-                        : 'border-gray-200 bg-gray-50'
+                        ? 'border-primary/30 bg-primary/10' 
+                        : 'border-slate-600 bg-slate-700/50'
                   }`}
                 >
                   <div className={`flex-shrink-0 ${
-                    isCompleted ? 'text-green-600' : isNext ? 'text-blue-600' : 'text-gray-400'
+                    isCompleted ? 'text-primary' : isNext ? 'text-primary' : 'text-gray-400'
                   }`}>
                     {isCompleted ? (
                       <CheckCircle className="h-5 w-5" />
@@ -90,18 +89,18 @@ export const OnboardingWizard = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h4 className={`font-medium ${
-                        isCompleted ? 'text-green-800' : isNext ? 'text-blue-800' : 'text-gray-600'
+                        isCompleted ? 'text-primary' : isNext ? 'text-primary' : 'text-gray-300'
                       }`}>
                         {step.name}
                       </h4>
                       {isCompleted && (
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                        <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
                           Complete
                         </span>
                       )}
                     </div>
                     <p className={`text-sm ${
-                      isCompleted ? 'text-green-600' : isNext ? 'text-blue-600' : 'text-gray-500'
+                      isCompleted ? 'text-primary/80' : isNext ? 'text-primary/80' : 'text-gray-400'
                     }`}>
                       {step.description}
                     </p>
@@ -111,7 +110,7 @@ export const OnboardingWizard = () => {
                     <Button 
                       size="sm" 
                       onClick={getStepAction(step)}
-                      className="flex-shrink-0"
+                      className="flex-shrink-0 bg-primary hover:bg-primary/90"
                     >
                       <ArrowRight className="h-4 w-4" />
                     </Button>
@@ -120,8 +119,8 @@ export const OnboardingWizard = () => {
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

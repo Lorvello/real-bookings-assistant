@@ -6,7 +6,7 @@ import { CalendarView } from '@/components/CalendarView';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
-import { SetupIncompleteMessage } from '@/components/onboarding/SetupIncompleteMessage';
+import { SetupIncompleteOverlay } from '@/components/onboarding/SetupIncompleteOverlay';
 
 const Calendar = () => {
   const navigate = useNavigate();
@@ -71,10 +71,11 @@ const Calendar = () => {
 
           {/* Calendar Content with Clean Styling */}
           {userStatus.isSetupIncomplete ? (
-            <SetupIncompleteMessage 
-              title="Calendar Setup Required"
-              message="Complete your business setup to start managing your calendar and bookings."
-            />
+            <SetupIncompleteOverlay>
+              <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-2 md:p-4">
+                <CalendarView calendarIds={activeCalendarIds} />
+              </div>
+            </SetupIncompleteOverlay>
           ) : (
             <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-2 md:p-4">
               <CalendarView calendarIds={activeCalendarIds} />

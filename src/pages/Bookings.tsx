@@ -11,7 +11,7 @@ import { BookingDetailModal } from '@/components/calendar/BookingDetailModal';
 import { BookingsHeader } from '@/components/bookings/BookingsHeader';
 import { BookingsFilters } from '@/components/bookings/BookingsFilters';
 import { BookingsList } from '@/components/bookings/BookingsList';
-import { SetupIncompleteMessage } from '@/components/onboarding/SetupIncompleteMessage';
+import { SetupIncompleteOverlay } from '@/components/onboarding/SetupIncompleteOverlay';
 
 const Bookings = () => {
   const navigate = useNavigate();
@@ -93,10 +93,29 @@ const Bookings = () => {
           <BookingsHeader />
 
           {userStatus.isSetupIncomplete ? (
-            <SetupIncompleteMessage 
-              title="Bookings Setup Required"
-              message="Complete your business setup to start managing bookings and accepting appointments."
-            />
+            <SetupIncompleteOverlay>
+              <BookingsFilters
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+              />
+
+              <BookingsList
+                bookings={filteredAndSortedBookings}
+                loading={bookingsLoading}
+                hasFilters={hasFilters}
+                onBookingClick={handleBookingClick}
+              />
+
+              <BookingDetailModal
+                open={isModalOpen}
+                onClose={handleCloseModal}
+                booking={selectedBooking}
+              />
+            </SetupIncompleteOverlay>
           ) : (
             <>
               <BookingsFilters

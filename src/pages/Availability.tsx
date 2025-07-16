@@ -2,8 +2,12 @@
 import React from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { AvailabilityManager } from '@/components/availability/AvailabilityManager';
+import { SetupIncompleteOverlay } from '@/components/onboarding/SetupIncompleteOverlay';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 
 const Availability = () => {
+  const { userStatus } = useUserStatus();
+
   return (
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-2 md:p-8">
@@ -16,7 +20,13 @@ const Availability = () => {
             </p>
           </div>
 
-          <AvailabilityManager />
+          {userStatus.isSetupIncomplete ? (
+            <SetupIncompleteOverlay>
+              <AvailabilityManager />
+            </SetupIncompleteOverlay>
+          ) : (
+            <AvailabilityManager />
+          )}
         </div>
       </div>
     </DashboardLayout>
