@@ -22,6 +22,8 @@ export const OnboardingWizard = () => {
         return Settings;
       case 'service_types':
         return Bot;
+      case 'calendar_creation':
+        return Calendar;
       case 'availability':
         return Clock;
       default:
@@ -32,9 +34,11 @@ export const OnboardingWizard = () => {
   const getStepAction = (step: any) => {
     switch (step.key) {
       case 'business_info':
-        return () => navigate('/settings');
+        return () => navigate('/settings?tab=business');
       case 'service_types':
-        return () => navigate('/settings');
+        return () => navigate('/settings?tab=services');
+      case 'calendar_creation':
+        return () => navigate('/calendar');
       case 'availability':
         return () => navigate('/availability');
       default:

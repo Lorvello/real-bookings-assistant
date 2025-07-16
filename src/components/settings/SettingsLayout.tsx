@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Building2, Calendar, CreditCard, MessageSquare, Wrench } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
@@ -11,6 +12,7 @@ import { WhatsAppTab } from './WhatsAppTab';
 import { useSettingsData } from '@/hooks/useSettingsData';
 
 export const SettingsLayout = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('profile');
   const {
     profileData,
@@ -22,6 +24,20 @@ export const SettingsLayout = () => {
     handleUpdateBusiness
   } = useSettingsData();
 
+  // Handle tab from URL parameters
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['profile', 'business', 'calendar', 'services', 'billing', 'whatsapp'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Clear the URL parameter after navigating
+    setSearchParams({});
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 p-2 md:p-6">
       <div className="max-w-6xl mx-auto">
@@ -32,7 +48,7 @@ export const SettingsLayout = () => {
         </div>
 
         {/* Settings Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 md:space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-3 md:space-y-6">
           <div className="overflow-x-auto">
             <TabsList className="grid w-full grid-cols-6 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2">
               <TabsTrigger value="profile" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">

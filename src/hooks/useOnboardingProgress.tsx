@@ -6,7 +6,7 @@ import { useUserStatus } from '@/contexts/UserStatusContext';
 
 export const useOnboardingProgress = () => {
   const { profile } = useProfile();
-  const { selectedCalendar } = useCalendarContext();
+  const { selectedCalendar, calendars } = useCalendarContext();
   const { userStatus, invalidateCache } = useUserStatus();
   const [serviceTypeCount, setServiceTypeCount] = useState(0);
   const [availabilityRulesCount, setAvailabilityRulesCount] = useState(0);
@@ -62,10 +62,11 @@ export const useOnboardingProgress = () => {
     
     const isBusinessInfoComplete = !!(profile.business_name && profile.business_type);
     const isServiceTypesComplete = serviceTypeCount > 0;
+    const isCalendarCreated = calendars.length > 0;
     const isAvailabilityComplete = availabilityRulesCount > 0;
     
-    // If all 3 steps are complete, automatically progress to active trial
-    if (isBusinessInfoComplete && isServiceTypesComplete && isAvailabilityComplete) {
+    // If all 4 steps are complete, automatically progress to active trial
+    if (isBusinessInfoComplete && isServiceTypesComplete && isCalendarCreated && isAvailabilityComplete) {
       const progressToActiveTrial = async () => {
         try {
           // Update user status to active trial
@@ -94,20 +95,20 @@ export const useOnboardingProgress = () => {
       
       progressToActiveTrial();
     }
-  }, [profile?.id, profile?.business_name, profile?.business_type, serviceTypeCount, availabilityRulesCount, userStatus.userType, invalidateCache]);
+  }, [profile?.id, profile?.business_name, profile?.business_type, serviceTypeCount, calendars.length, availabilityRulesCount, userStatus.userType, invalidateCache]);
 
   const progress = useMemo(() => {
     if (!profile) {
       return {
         completionPercentage: 0,
         completedSteps: 0,
-        totalSteps: 3,
+        totalSteps: 4,
         nextSteps: [],
         allSteps: []
       };
     }
 
-    // SIMPLIFIED: Only 3 essential steps
+    // Updated to 4 essential steps
     const steps = [
       {
         key: 'business_info',
@@ -120,6 +121,12 @@ export const useOnboardingProgress = () => {
         completed: serviceTypeCount > 0,
         name: 'Service Types',
         description: 'Add your services and pricing'
+      },
+      {
+        key: 'calendar_creation',
+        completed: calendars.length > 0,
+        name: 'Create Your Calendar',
+        description: 'Set up your booking calendar'
       },
       {
         key: 'availability',
@@ -140,7 +147,7 @@ export const useOnboardingProgress = () => {
       nextSteps,
       allSteps: steps
     };
-  }, [profile, selectedCalendar, serviceTypeCount, availabilityRulesCount, bookingSettingsConfigured]);
+  }, [profile, selectedCalendar, calendars.length, serviceTypeCount, availabilityRulesCount, bookingSettingsConfigured]);
 
   return progress;
 };
