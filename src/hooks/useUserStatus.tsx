@@ -115,6 +115,9 @@ export const useUserStatus = () => {
           const status = data || 'unknown';
           setUserStatusType(status);
           
+          // Clear cache after successful database update from UserStatusSwitcher
+          localStorage.removeItem(USER_STATUS_CACHE_KEY);
+          
           // Cache the result
           try {
             localStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
