@@ -57,8 +57,11 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
   const setupRealtimeSubscription = () => {
     if (!calendarId) return () => {};
 
+    // Create a unique channel name to prevent conflicts between multiple hook instances
+    const channelName = `availability_schedules_${calendarId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     const channel = supabase
-      .channel(`availability_schedules_${calendarId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
