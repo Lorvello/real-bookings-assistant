@@ -1,20 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Edit2, Plus } from 'lucide-react';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
+import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
 
 interface AvailabilityOverviewProps {
   onChange: () => void;
 }
 
 export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onChange }) => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editDay, setEditDay] = useState<number | null>(null);
+  
   const {
     DAYS,
     availability,
     defaultCalendar,
     defaultSchedule
   } = useDailyAvailabilityManager(onChange);
+
+  const handleEditDay = (dayIndex: number) => {
+    setEditDay(dayIndex);
+    setIsEditModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsEditModalOpen(false);
+    setEditDay(null);
+  };
+
+  const handleModalComplete = () => {
+    onChange();
+    handleModalClose();
+  };
 
   const formatTimeRange = (timeBlocks: any[]) => {
     if (!timeBlocks || timeBlocks.length === 0) return 'Not available';
@@ -75,7 +94,7 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
             <div>
               <h2 className="text-2xl font-bold text-foreground">Your Availability</h2>
               <p className="text-muted-foreground">
-                {status.isComplete ? 'Availability Configured' : `${status.configured} of ${status.total} days configured`}
+                {status.isComplete ? 'Schedule configured' : `${status.configured} of ${status.total} days configured`}
               </p>
             </div>
           </div>
@@ -94,7 +113,7 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
 
       {/* Weekly Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {DAYS.map((day) => {
+        {DAYS.map((day, dayIndex) => {
           const dayData = availability[day.key];
           const isConfigured = dayData?.enabled && dayData?.timeBlocks?.length > 0;
           
@@ -127,6 +146,7 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0"
+                      onClick={() => handleEditDay(dayIndex)}
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -179,37 +199,14 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
       </div>
 
 
-      {/* Professional Complete Status */}
-      {status.isComplete && (
-        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-2xl p-6 shadow-lg">
-          <div className="text-center space-y-2">
-            <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="h-6 w-6 text-green-500" />
-            </div>
-            <h3 className="text-xl font-semibold text-foreground">Availability Configured</h3>
-            <p className="text-muted-foreground">
-              Your weekly schedule is ready. All {status.configured} days have been configured with your availability times.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex items-center justify-center space-x-4">
-        <Button
-          variant="outline"
-          className="px-6"
-        >
-          <Edit2 className="h-4 w-4 mr-2" />
-          Edit Schedule
-        </Button>
-        <Button
-          className="px-6 bg-primary hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Exception
-        </Button>
-      </div>
+      {/* Edit Modal */}
+      <GuidedAvailabilityModal
+        isOpen={isEditModalOpen}
+        onClose={handleModalClose}
+        onComplete={handleModalComplete}
+        startDay={editDay}
+        editMode={true}
+      />
     </div>
   );
 };

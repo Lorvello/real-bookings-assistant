@@ -13,6 +13,8 @@ interface GuidedAvailabilityModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
+  startDay?: number | null;
+  editMode?: boolean;
 }
 
 interface TimeBlock {
@@ -39,9 +41,11 @@ const DAYS = [
 export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = ({
   isOpen,
   onClose,
-  onComplete
+  onComplete,
+  startDay = null,
+  editMode = false
 }) => {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(startDay ?? 0);
   const [timezone, setTimezone] = useState('Europe/Amsterdam');
   const [selectedTimeBlock, setSelectedTimeBlock] = useState<{dayKey: string; blockId: string; field: 'startTime' | 'endTime'} | null>(null);
   const [localAvailability, setLocalAvailability] = useState<Record<string, DayAvailability>>(() => {
@@ -305,7 +309,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       >
         <DialogHeader className="space-y-4">
           <DialogTitle className="text-center text-xl font-bold text-foreground">
-            Configure Your Availability
+            {editMode ? 'Edit Your Availability' : 'Configure Your Availability'}
           </DialogTitle>
           
           {/* Progress Bar */}
