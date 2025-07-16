@@ -6,7 +6,7 @@ import { AvailabilityDayRow } from './AvailabilityDayRow';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 
 interface StepByStepDayConfigurationProps {
-  onChange: () => void;
+  onChange?: () => void;
 }
 
 export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProps> = ({ onChange }) => {
@@ -20,7 +20,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
     defaultSchedule,
     syncToDatabase,
     createDefaultSchedule
-  } = useDailyAvailabilityManager(onChange);
+  } = useDailyAvailabilityManager(onChange || (() => {}));
 
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});

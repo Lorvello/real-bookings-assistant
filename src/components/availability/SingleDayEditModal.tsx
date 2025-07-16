@@ -86,7 +86,8 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
       try {
         await syncToDatabase(currentDay.key, debouncedData);
         setLastSaved(new Date());
-        onComplete(); // Trigger refresh of parent component
+        // Don't call onComplete here - it causes modal to close
+        // onComplete should only be called when user explicitly closes modal
       } catch (error) {
         console.error('Auto-save failed:', error);
       } finally {
@@ -95,7 +96,7 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
     };
 
     autoSave();
-  }, [debouncedData, currentDay.key, syncToDatabase, onComplete, isOpen, initialDayData]);
+  }, [debouncedData, currentDay.key, syncToDatabase, isOpen, initialDayData]);
 
   // Reset local data when modal opens with new data
   useEffect(() => {
@@ -267,7 +268,10 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
         <div className="flex items-center justify-end pt-4 border-t border-border/40">
           <Button
             variant="outline"
-            onClick={onClose}
+            onClick={() => {
+              onComplete(); // Trigger parent refresh when explicitly closing
+              onClose();
+            }}
             className="bg-background hover:bg-muted"
           >
             Close

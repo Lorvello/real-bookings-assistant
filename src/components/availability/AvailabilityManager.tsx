@@ -16,7 +16,6 @@ export const AvailabilityManager = () => {
   const { profile, loading: profileLoading } = useProfile();
   const { selectedCalendar, viewingAllCalendars } = useCalendarContext();
   const { calendars } = useCalendars();
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
 
   // Voor availability gebruiken we altijd een specifieke kalender
@@ -40,19 +39,6 @@ export const AvailabilityManager = () => {
       navigate('/login');
     }
   }, [user, authLoading, navigate]);
-
-  const handleSave = async () => {
-    try {
-      // Note: Save functionality moved to individual components
-      setHasUnsavedChanges(false);
-    } catch (error) {
-      console.error('Error saving availability:', error);
-    }
-  };
-
-  const handleUnsavedChanges = () => {
-    setHasUnsavedChanges(true);
-  };
 
   if (authLoading || profileLoading) {
     return (
@@ -79,26 +65,6 @@ export const AvailabilityManager = () => {
 
   return (
     <div className="bg-gray-900 min-h-full">
-      {/* Save Button and Status */}
-      {hasUnsavedChanges && (
-        <div className="p-4 pb-0">
-            <div className="bg-amber-900/30 border border-amber-500/30 rounded-xl p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <div className="text-yellow-400 text-sm font-medium">
-                  You have unsaved changes
-                </div>
-                <button
-                  onClick={handleSave}
-                  disabled={false}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm disabled:opacity-50 transition-all duration-200"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
-        </div>
-      )}
-
       <AvailabilityTabs
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -108,7 +74,6 @@ export const AvailabilityManager = () => {
         <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-4">
           <AvailabilityContent
             activeTab={activeTab}
-            onUnsavedChanges={handleUnsavedChanges}
           />
         </div>
       </div>

@@ -18,7 +18,7 @@ interface DateOverride {
 }
 
 interface DateOverridesProps {
-  onChange: () => void;
+  onChange?: () => void;
 }
 
 export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
@@ -53,19 +53,19 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
       reason: ''
     });
     setShowAddForm(false);
-    onChange();
+    onChange?.();
   };
 
   const removeOverride = (id: string) => {
     setOverrides(prev => prev.filter(o => o.id !== id));
-    onChange();
+    onChange?.();
   };
 
   const updateOverride = (id: string, updates: Partial<DateOverride>) => {
     setOverrides(prev => prev.map(override => 
       override.id === id ? { ...override, ...updates } : override
     ));
-    onChange();
+    onChange?.();
   };
 
   const formatDate = (dateStr: string) => {
@@ -79,7 +79,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
 
   const handleAddOverride = () => {
     setShowAddForm(true);
-    onChange();
+    onChange?.();
   };
 
   return (

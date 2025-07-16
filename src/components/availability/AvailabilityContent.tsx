@@ -12,15 +12,13 @@ import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager
 
 interface AvailabilityContentProps {
   activeTab: string;
-  onUnsavedChanges: () => void;
 }
 
 export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
-  activeTab,
-  onUnsavedChanges
+  activeTab
 }) => {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
-  const { defaultSchedule, createDefaultSchedule, DAYS, availability } = useDailyAvailabilityManager(onUnsavedChanges);
+  const { defaultSchedule, createDefaultSchedule, DAYS, availability } = useDailyAvailabilityManager(() => {});
 
   // Check if availability is fully configured
   const isAvailabilityConfigured = () => {
@@ -88,9 +86,9 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
                 <div className="lg:col-span-3 space-y-8">
                   {/* Show overview if configured, otherwise show step-by-step */}
                   {isAvailabilityConfigured() ? (
-                    <AvailabilityOverview onChange={onUnsavedChanges} />
+                    <AvailabilityOverview />
                   ) : (
-                    <StepByStepDayConfiguration onChange={onUnsavedChanges} />
+                    <StepByStepDayConfiguration />
                   )}
                 </div>
 
@@ -153,7 +151,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
             </div>
             
             <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-5 shadow-lg shadow-black/5">
-              <DateOverrides onChange={onUnsavedChanges} />
+              <DateOverrides />
             </div>
           </div>
         </div>

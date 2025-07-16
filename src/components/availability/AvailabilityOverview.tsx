@@ -6,7 +6,7 @@ import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager
 import { SingleDayEditModal } from './SingleDayEditModal';
 
 interface AvailabilityOverviewProps {
-  onChange: () => void;
+  onChange?: () => void;
 }
 
 export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onChange }) => {
@@ -18,7 +18,7 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
     availability,
     defaultCalendar,
     defaultSchedule
-  } = useDailyAvailabilityManager(onChange);
+  } = useDailyAvailabilityManager(onChange || (() => {}));
 
   const handleEditDay = (dayIndex: number) => {
     setEditDay(dayIndex);
@@ -31,7 +31,7 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
   };
 
   const handleModalComplete = () => {
-    onChange();
+    onChange?.();
     handleModalClose();
   };
 
