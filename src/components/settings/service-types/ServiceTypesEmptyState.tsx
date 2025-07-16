@@ -19,7 +19,7 @@ export function ServiceTypesEmptyState({ onAddService }: ServiceTypesEmptyStateP
       </p>
       <Button 
         onClick={onAddService}
-        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        className="bg-accent hover:bg-accent/90 text-accent-foreground"
       >
         <Plus className="h-4 w-4 mr-2" />
         Eerste Service Toevoegen

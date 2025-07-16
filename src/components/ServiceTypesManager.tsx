@@ -29,7 +29,7 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
     description: '',
     duration: '',
     price: '',
-    color: '#3B82F6',
+    color: '#10B981',
     max_attendees: '',
     preparation_time: '',
     cleanup_time: '',
@@ -41,7 +41,7 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
       description: '',
       duration: '',
       price: '',
-      color: '#3B82F6',
+      color: '#10B981',
       max_attendees: '',
       preparation_time: '',
       cleanup_time: '',
@@ -128,8 +128,15 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Weet je zeker dat je dit service type wilt verwijderen?')) {
+  const handleDelete = async (id: string, serviceName: string) => {
+    const confirmed = window.confirm(
+      `Weet je zeker dat je "${serviceName}" wilt verwijderen?\n\n` +
+      'Let op: Dit kan invloed hebben op bestaande boekingen die gebruik maken van deze service. ' +
+      'Bestaande boekingen blijven bestaan, maar nieuwe boekingen kunnen niet meer worden gemaakt voor deze service.\n\n' +
+      'Deze actie kan niet ongedaan worden gemaakt.'
+    );
+    
+    if (!confirmed) {
       return;
     }
 
@@ -137,7 +144,7 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
       await deleteServiceType(id);
       toast({
         title: "Success",
-        description: "Service type succesvol verwijderd",
+        description: `Service "${serviceName}" succesvol verwijderd`,
       });
     } catch (error) {
       console.error('Error deleting service type:', error);
@@ -160,7 +167,7 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
           <CardTitle className="text-foreground">Services</CardTitle>
           <Button 
             onClick={() => setShowAddModal(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground"
           >
             <Plus className="h-4 w-4 mr-2" />
             Nieuwe Service
@@ -183,14 +190,14 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
         {/* Services List */}
         {serviceTypes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {serviceTypes.map((service) => (
-              <ServiceTypeCard
-                key={service.id}
-                service={service}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
+             {serviceTypes.map((service) => (
+               <ServiceTypeCard
+                 key={service.id}
+                 service={service}
+                 onEdit={handleEdit}
+                 onDelete={(id) => handleDelete(id, service.name)}
+               />
+             ))}
           </div>
         ) : (
           <ServiceTypesEmptyState onAddService={() => setShowAddModal(true)} />
