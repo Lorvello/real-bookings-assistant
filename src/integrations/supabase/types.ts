@@ -1011,6 +1011,63 @@ export type Database = {
           },
         ]
       }
+      subscription_tiers: {
+        Row: {
+          api_access: boolean | null
+          created_at: string | null
+          description: string | null
+          display_name: string
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          max_bookings_per_month: number | null
+          max_calendars: number | null
+          max_team_members: number | null
+          price_monthly: number | null
+          price_yearly: number | null
+          priority_support: boolean | null
+          tier_name: Database["public"]["Enums"]["subscription_tier"]
+          updated_at: string | null
+          white_label: boolean | null
+        }
+        Insert: {
+          api_access?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_bookings_per_month?: number | null
+          max_calendars?: number | null
+          max_team_members?: number | null
+          price_monthly?: number | null
+          price_yearly?: number | null
+          priority_support?: boolean | null
+          tier_name: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string | null
+          white_label?: boolean | null
+        }
+        Update: {
+          api_access?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_bookings_per_month?: number | null
+          max_calendars?: number | null
+          max_team_members?: number | null
+          price_monthly?: number | null
+          price_yearly?: number | null
+          priority_support?: boolean | null
+          tier_name?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string | null
+          white_label?: boolean | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           accessibility_info: string | null
@@ -1054,6 +1111,9 @@ export type Database = {
           subscription_end_date: string | null
           subscription_start_date: string | null
           subscription_status: string | null
+          subscription_tier:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
           team_size: string | null
           tiktok: string | null
           timezone: string | null
@@ -1104,6 +1164,9 @@ export type Database = {
           subscription_end_date?: string | null
           subscription_start_date?: string | null
           subscription_status?: string | null
+          subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
           team_size?: string | null
           tiktok?: string | null
           timezone?: string | null
@@ -1154,6 +1217,9 @@ export type Database = {
           subscription_end_date?: string | null
           subscription_start_date?: string | null
           subscription_status?: string | null
+          subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
           team_size?: string | null
           tiktok?: string | null
           timezone?: string | null
@@ -2189,6 +2255,20 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_extend_trial: {
+        Args: { p_user_id: string; p_days?: number }
+        Returns: Json
+      }
+      admin_update_user_subscription: {
+        Args: {
+          p_user_id: string
+          p_subscription_status?: string
+          p_subscription_tier?: string
+          p_trial_end_date?: string
+          p_subscription_end_date?: string
+        }
+        Returns: Json
+      }
       check_availability: {
         Args: {
           p_calendar_id: string
@@ -2374,6 +2454,10 @@ export type Database = {
         Args: { p_calendar_id: string }
         Returns: Json
       }
+      get_user_subscription_details: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_whatsapp_data_retention_days: {
         Args: { p_calendar_id: string }
         Returns: number
@@ -2474,13 +2558,17 @@ export type Database = {
         Args: { p_calendar_id: string }
         Returns: Json
       }
+      update_existing_users_retroactively: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_expired_trials: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
     }
     Enums: {
-      [_ in never]: never
+      subscription_tier: "starter" | "professional" | "enterprise"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2607,6 +2695,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_tier: ["starter", "professional", "enterprise"],
+    },
   },
 } as const

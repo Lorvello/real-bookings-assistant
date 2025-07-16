@@ -28,6 +28,10 @@ export interface AccessControl {
   canUseAI: boolean;
   canExportData: boolean;
   canInviteUsers: boolean;
+  canAccessAPI: boolean;
+  canUseWhiteLabel: boolean;
+  hasPrioritySupport: boolean;
   maxCalendars: number;
   maxBookingsPerMonth: number;
+  maxTeamMembers: number;
 }

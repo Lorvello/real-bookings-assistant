@@ -107,6 +107,7 @@ export const useUserStatus = () => {
 
   const accessControl = useMemo<AccessControl>(() => {
     const { userType, hasFullAccess, isExpired } = userStatus;
+    const tier = profile?.subscription_tier;
 
     if (isExpired) {
       return {
@@ -118,8 +119,12 @@ export const useUserStatus = () => {
         canUseAI: false,
         canExportData: false,
         canInviteUsers: false,
+        canAccessAPI: false,
+        canUseWhiteLabel: false,
+        hasPrioritySupport: false,
         maxCalendars: 0,
-        maxBookingsPerMonth: 0
+        maxBookingsPerMonth: 0,
+        maxTeamMembers: 0
       };
     }
 
@@ -133,13 +138,18 @@ export const useUserStatus = () => {
         canUseAI: true,
         canExportData: true,
         canInviteUsers: false,
+        canAccessAPI: false,
+        canUseWhiteLabel: false,
+        hasPrioritySupport: false,
         maxCalendars: 1,
-        maxBookingsPerMonth: 50
+        maxBookingsPerMonth: 50,
+        maxTeamMembers: 1
       };
     }
 
-    if (userType === 'subscriber') {
-      return {
+    // Tier-based access control for subscribers
+    if (userType === 'subscriber' || userType === 'canceled_subscriber') {
+      const baseAccess = {
         canViewDashboard: true,
         canCreateBookings: true,
         canEditBookings: true,
@@ -147,25 +157,52 @@ export const useUserStatus = () => {
         canAccessWhatsApp: true,
         canUseAI: true,
         canExportData: true,
-        canInviteUsers: true,
-        maxCalendars: 10,
-        maxBookingsPerMonth: 1000
+        canInviteUsers: userType === 'subscriber'
       };
-    }
 
-    if (userType === 'canceled_subscriber') {
-      return {
-        canViewDashboard: true,
-        canCreateBookings: true,
-        canEditBookings: true,
-        canManageSettings: true,
-        canAccessWhatsApp: true,
-        canUseAI: true,
-        canExportData: true,
-        canInviteUsers: false,
-        maxCalendars: 10,
-        maxBookingsPerMonth: 1000
-      };
+      switch (tier) {
+        case 'starter':
+          return {
+            ...baseAccess,
+            canAccessAPI: false,
+            canUseWhiteLabel: false,
+            hasPrioritySupport: false,
+            maxCalendars: 1,
+            maxBookingsPerMonth: 50,
+            maxTeamMembers: 1
+          };
+        case 'professional':
+          return {
+            ...baseAccess,
+            canAccessAPI: true,
+            canUseWhiteLabel: false,
+            hasPrioritySupport: true,
+            maxCalendars: 5,
+            maxBookingsPerMonth: 500,
+            maxTeamMembers: 5
+          };
+        case 'enterprise':
+          return {
+            ...baseAccess,
+            canAccessAPI: true,
+            canUseWhiteLabel: true,
+            hasPrioritySupport: true,
+            maxCalendars: 25,
+            maxBookingsPerMonth: 10000,
+            maxTeamMembers: 50
+          };
+        default:
+          // Default to starter tier limits
+          return {
+            ...baseAccess,
+            canAccessAPI: false,
+            canUseWhiteLabel: false,
+            hasPrioritySupport: false,
+            maxCalendars: 1,
+            maxBookingsPerMonth: 50,
+            maxTeamMembers: 1
+          };
+      }
     }
 
     // Default (unknown/loading)
@@ -178,10 +215,14 @@ export const useUserStatus = () => {
       canUseAI: false,
       canExportData: false,
       canInviteUsers: false,
+      canAccessAPI: false,
+      canUseWhiteLabel: false,
+      hasPrioritySupport: false,
       maxCalendars: 0,
-      maxBookingsPerMonth: 0
+      maxBookingsPerMonth: 0,
+      maxTeamMembers: 0
     };
-  }, [userStatus]);
+  }, [userStatus, profile]);
 
   return { userStatus, accessControl };
 };

@@ -1,3 +1,24 @@
+export type SubscriptionTier = 'starter' | 'professional' | 'enterprise';
+
+export interface SubscriptionTierConfig {
+  id: string;
+  tier_name: SubscriptionTier;
+  display_name: string;
+  description?: string;
+  max_calendars: number;
+  max_bookings_per_month: number;
+  max_team_members: number;
+  api_access: boolean;
+  white_label: boolean;
+  priority_support: boolean;
+  price_monthly?: number;
+  price_yearly?: number;
+  features: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -6,6 +27,7 @@ export interface UserProfile {
   business_type?: string;
   phone?: string;
   subscription_status?: 'trial' | 'active' | 'expired' | 'canceled' | 'paid';
+  subscription_tier?: SubscriptionTier;
   trial_start_date?: string;
   trial_end_date?: string;
   subscription_start_date?: string;
