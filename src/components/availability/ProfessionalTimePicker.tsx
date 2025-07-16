@@ -100,7 +100,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
     let newMinutes = currentTime[1];
     
     if (isSelectingMinutes) {
-      newMinutes = angleToTime(angle, false);
+      newMinutes = Math.round(angleToTime(angle, false) / 5) * 5; // Snap to 5-minute intervals
     } else {
       const newHour = angleToTime(angle, true);
       newHours = newHour === 0 ? 12 : newHour;
@@ -243,46 +243,64 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                 <div className="space-y-6">
                   {/* Professional Clock Interface */}
                   <div className="flex flex-col items-center space-y-4">
-                    <div 
-                      ref={clockRef}
-                      className="relative w-64 h-64 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 cursor-pointer hover:border-accent/60 transition-all duration-300 shadow-lg"
-                      onClick={handleClockClick}
-                    >
-                      {/* Clock face inner circle */}
-                      <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner">
-                        {/* Hour numbers or minute marks */}
-                        {isSelectingMinutes ? generateMinuteMarks() : generateHourNumbers()}
-                        
-                        {/* Center dot */}
-                        <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-accent rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-lg" />
-                        
-                        {/* Hour hand */}
-                        {!isSelectingMinutes && (
-                          <div
-                            className="absolute top-1/2 left-1/2 origin-bottom bg-accent rounded-full z-10 shadow-lg"
-                            style={{
-                              width: '4px',
-                              height: '45px',
-                              transform: `translate(-50%, -100%) rotate(${hourAngle}deg)`,
-                              transformOrigin: 'bottom center'
-                            }}
-                          />
-                        )}
-                        
-                        {/* Minute hand */}
-                        {isSelectingMinutes && (
-                          <div
-                            className="absolute top-1/2 left-1/2 origin-bottom bg-accent rounded-full z-10 shadow-lg"
-                            style={{
-                              width: '3px',
-                              height: '60px',
-                              transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)`,
-                              transformOrigin: 'bottom center'
-                            }}
-                          />
-                        )}
-                      </div>
-                    </div>
+                     <div 
+                       ref={clockRef}
+                       className="relative w-64 h-64 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 cursor-pointer hover:border-primary/60 transition-all duration-300 shadow-lg"
+                       onClick={handleClockClick}
+                     >
+                       {/* Clock face inner circle */}
+                       <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner">
+                         {/* Hour numbers or minute marks */}
+                         {isSelectingMinutes ? generateMinuteMarks() : generateHourNumbers()}
+                         
+                         {/* Center dot */}
+                         <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-primary rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-lg" />
+                         
+                         {/* Hour hand */}
+                         {!isSelectingMinutes && (
+                           <>
+                             <div
+                               className="absolute top-1/2 left-1/2 origin-bottom bg-primary rounded-full z-10 shadow-lg transition-transform duration-200"
+                               style={{
+                                 width: '4px',
+                                 height: '45px',
+                                 transform: `translate(-50%, -100%) rotate(${hourAngle}deg)`,
+                                 transformOrigin: 'bottom center'
+                               }}
+                             />
+                             {/* Hour hand circle */}
+                             <div
+                               className="absolute top-1/2 left-1/2 w-4 h-4 bg-primary rounded-full z-15 shadow-lg transition-transform duration-200 cursor-pointer"
+                               style={{
+                                 transform: `translate(-50%, -50%) translate(${Math.cos((hourAngle - 90) * Math.PI / 180) * 40}px, ${Math.sin((hourAngle - 90) * Math.PI / 180) * 40}px)`
+                               }}
+                             />
+                           </>
+                         )}
+                         
+                         {/* Minute hand */}
+                         {isSelectingMinutes && (
+                           <>
+                             <div
+                               className="absolute top-1/2 left-1/2 origin-bottom bg-primary rounded-full z-10 shadow-lg transition-transform duration-200"
+                               style={{
+                                 width: '3px',
+                                 height: '60px',
+                                 transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)`,
+                                 transformOrigin: 'bottom center'
+                               }}
+                             />
+                             {/* Minute hand circle */}
+                             <div
+                               className="absolute top-1/2 left-1/2 w-3 h-3 bg-primary rounded-full z-15 shadow-lg transition-transform duration-200 cursor-pointer"
+                               style={{
+                                 transform: `translate(-50%, -50%) translate(${Math.cos((minuteAngle - 90) * Math.PI / 180) * 55}px, ${Math.sin((minuteAngle - 90) * Math.PI / 180) * 55}px)`
+                               }}
+                             />
+                           </>
+                         )}
+                       </div>
+                     </div>
                     
                     {/* Current time display */}
                     <div className="text-center">
@@ -301,7 +319,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                       variant={!isSelectingMinutes ? "default" : "outline"}
                       size="lg"
                       onClick={() => setIsSelectingMinutes(false)}
-                      className={`min-w-[80px] ${!isSelectingMinutes ? 'bg-accent hover:bg-accent/90' : ''}`}
+                      className={`min-w-[80px] ${!isSelectingMinutes ? 'bg-primary hover:bg-primary/90' : ''}`}
                     >
                       Hours
                     </Button>
@@ -309,7 +327,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                       variant={isSelectingMinutes ? "default" : "outline"}
                       size="lg"
                       onClick={() => setIsSelectingMinutes(true)}
-                      className={`min-w-[80px] ${isSelectingMinutes ? 'bg-accent hover:bg-accent/90' : ''}`}
+                      className={`min-w-[80px] ${isSelectingMinutes ? 'bg-primary hover:bg-primary/90' : ''}`}
                     >
                       Minutes
                     </Button>
@@ -347,7 +365,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
               >
                 Cancel
               </Button>
-              <Button
+                <Button
                 onClick={() => {
                   if (mode === 'input') {
                     const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
@@ -357,7 +375,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                   }
                   onClose();
                 }}
-                className="bg-accent hover:bg-accent/90 text-accent-foreground px-6"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6"
               >
                 Set Time
               </Button>

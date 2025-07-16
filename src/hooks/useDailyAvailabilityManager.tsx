@@ -282,10 +282,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       console.log('Default schedule created:', data);
       
-      // Trigger a manual refetch to ensure the UI updates
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // Call onChange to trigger any necessary updates
+      onChange();
       
     } catch (error) {
       console.error('Error creating default schedule:', error);
