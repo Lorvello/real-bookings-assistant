@@ -15,15 +15,12 @@ export const useAvailabilityRules = (scheduleId?: string) => {
   useEffect(() => {
     if (user && scheduleId) {
       fetchRules();
-      setupRealtimeSubscription();
+      const cleanup = setupRealtimeSubscription();
+      return cleanup;
     } else {
       setRules([]);
       setLoading(false);
     }
-
-    return () => {
-      supabase.removeAllChannels();
-    };
   }, [user, scheduleId]);
 
   const fetchRules = async () => {
@@ -53,7 +50,7 @@ export const useAvailabilityRules = (scheduleId?: string) => {
   };
 
   const setupRealtimeSubscription = () => {
-    if (!scheduleId) return;
+    if (!scheduleId) return () => {};
 
     const channel = supabase
       .channel(`availability_rules_${scheduleId}`)
@@ -88,7 +85,9 @@ export const useAvailabilityRules = (scheduleId?: string) => {
       )
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const createRule = async (ruleData: Partial<AvailabilityRule>) => {
