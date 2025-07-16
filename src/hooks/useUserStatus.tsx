@@ -215,6 +215,22 @@ export const useUserStatus = () => {
       ? Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
       : 0;
 
+    // Debug logging for status detection
+    console.log('🔍 Status Detection Debug:', {
+      userStatusType,
+      profile: {
+        subscription_status: profile.subscription_status,
+        subscription_tier: profile.subscription_tier,
+        trial_end_date: profile.trial_end_date,
+        subscription_end_date: profile.subscription_end_date,
+      },
+      daysRemaining,
+      trialEndDate,
+      subscriptionEndDate,
+      isTrialActive: trialEndDate && now <= trialEndDate,
+      isSubscriptionActive: subscriptionEndDate && now <= subscriptionEndDate
+    });
+
     // Map database status to UserType
     let userType: UserType = 'unknown';
     let statusMessage = '';
@@ -231,7 +247,7 @@ export const useUserStatus = () => {
         break;
       case 'expired_trial':
         userType = 'expired_trial';
-        statusMessage = 'Trial Expired';
+        statusMessage = 'Trial Expired. Upgrade Now';
         statusColor = 'red';
         break;
       case 'paid_subscriber':
@@ -244,24 +260,34 @@ export const useUserStatus = () => {
         const remainingDays = subscriptionEndDate 
           ? Math.ceil((subscriptionEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
           : 0;
-        statusMessage = `Subscription ending in ${remainingDays} day${remainingDays === 1 ? '' : 's'}`;
+        statusMessage = remainingDays > 0 
+          ? `Subscription ends in ${remainingDays} day${remainingDays === 1 ? '' : 's'}`
+          : 'Subscription ending soon';
         statusColor = 'yellow';
         break;
       case 'canceled_and_inactive':
         userType = 'canceled_and_inactive';
-        statusMessage = 'Subscription canceled and expired';
+        statusMessage = 'Subscription Cancelled and Expired. Upgrade';
         statusColor = 'red';
         break;
       case 'setup_incomplete':
         userType = 'setup_incomplete';
-        statusMessage = 'Setup Incomplete';
+        statusMessage = 'Complete Setup to Start Trial';
         statusColor = 'yellow';
         break;
       default:
+        console.warn('⚠️ Unknown userStatusType detected:', userStatusType);
         userType = 'unknown';
         statusMessage = 'Unknown Status';
         statusColor = 'gray';
     }
+
+    console.log('✅ Final Status Mapping:', {
+      userStatusType,
+      userType,
+      statusMessage,
+      statusColor
+    });
 
     // Determine access levels based on user type
     const isTrialActive = userType === 'trial';
