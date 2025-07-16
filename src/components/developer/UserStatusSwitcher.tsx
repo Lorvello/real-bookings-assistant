@@ -57,10 +57,10 @@ export const UserStatusSwitcher = () => {
         variant: "default",
       });
 
-      // Force profile refresh first, then clear status cache
-      console.log('Refreshing profile and clearing cache...');
+      // Force profile refresh first, then update status cache with new status
+      console.log('Refreshing profile and updating cache with new status...');
       await refetch();
-      invalidateCache();
+      invalidateCache(selectedStatus);
       
       // Clear the selected status
       setSelectedStatus('');

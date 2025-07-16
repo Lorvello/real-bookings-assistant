@@ -7,7 +7,7 @@ interface UserStatusContextType {
   userStatus: UserStatus;
   accessControl: AccessControl;
   isLoading: boolean;
-  invalidateCache: () => void;
+  invalidateCache: (newStatus?: string) => void;
 }
 
 const UserStatusContext = createContext<UserStatusContextType | undefined>(undefined);
@@ -150,7 +150,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
   }, [profile?.id]);
 
   // Invalidate cache and refetch (only used by UserStatusSwitcher)
-  const invalidateCache = () => {
+  const invalidateCache = (newStatus?: string) => {
     if (!profile?.id) return;
     
     try {
@@ -163,6 +163,27 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       console.error('Error clearing cache:', error);
     }
     
+    // If we know the new status, update directly without loading state
+    if (newStatus) {
+      setUserStatusType(newStatus);
+      setIsLoading(false);
+      initialLoadComplete.current = true;
+      
+      // Cache the new status
+      try {
+        sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+          version: CACHE_VERSION,
+          data: { userStatusType: newStatus },
+          userId: profile.id,
+          timestamp: Date.now()
+        }));
+      } catch (error) {
+        console.error('Error caching new status:', error);
+      }
+      return;
+    }
+    
+    // Fallback to current behavior for unknown status
     initialLoadComplete.current = false;
     fetchInProgress.current = false;
     setIsLoading(true);
