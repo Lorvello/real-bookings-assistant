@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
-import { TimeDropdown } from './TimeDropdown';
+import { ProfessionalTimePicker } from './ProfessionalTimePicker';
 
 interface TimeBlock {
   id: string;
@@ -39,18 +39,18 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
   const endDropdownId = `${dayKey}-${block.id}-end`;
 
   return (
-    <div className="flex items-center justify-between w-full">
-      {/* Time dropdowns - left side */}
-      <div className="flex items-center space-x-2.5">
-        <TimeDropdown
+    <div className="flex items-center justify-between w-full py-2 px-3 bg-card/60 backdrop-blur-sm border border-border/40 rounded-xl hover:bg-card/80 hover:border-border/60 transition-all duration-200">
+      {/* Time pickers - left side */}
+      <div className="flex items-center space-x-3">
+        <ProfessionalTimePicker
           value={block.startTime}
           onChange={(value) => onUpdateTimeBlock(dayKey, block.id, 'startTime', value)}
           isOpen={openDropdowns[startDropdownId] || false}
           onToggle={() => onToggleDropdown(startDropdownId)}
           onClose={() => onCloseDropdown(startDropdownId)}
         />
-        <span className="text-gray-400 text-sm">-</span>
-        <TimeDropdown
+        <span className="text-muted-foreground text-sm font-medium">→</span>
+        <ProfessionalTimePicker
           value={block.endTime}
           onChange={(value) => onUpdateTimeBlock(dayKey, block.id, 'endTime', value)}
           isOpen={openDropdowns[endDropdownId] || false}
@@ -60,15 +60,15 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
       </div>
 
       {/* Action buttons - right side */}
-      <div className="flex items-center space-x-1">
+      <div className="flex items-center space-x-2">
         {/* Delete button - only show if more than one time block */}
         {canDelete && (
           <Button
             variant="outline"
             size="sm"
             onClick={() => onRemoveTimeBlock(dayKey, block.id)}
-            className="bg-gray-800 border-gray-600 text-red-400 hover:bg-red-900/20 hover:border-red-500 p-1.5 h-8 w-8"
-            title="Tijdslot verwijderen"
+            className="bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 hover:border-destructive/50 p-2 h-8 w-8 transition-all duration-200"
+            title="Remove time slot"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -80,8 +80,8 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
             variant="outline"
             size="sm"
             onClick={() => onAddTimeBlock(dayKey)}
-            className="bg-green-800 border-green-600 text-green-400 hover:bg-green-900/20 hover:border-green-500 p-1.5 h-8 w-8"
-            title="Nieuw tijdslot toevoegen"
+            className="bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 p-2 h-8 w-8 transition-all duration-200"
+            title="Add new time slot"
           >
             <Plus className="h-3.5 w-3.5" />
           </Button>

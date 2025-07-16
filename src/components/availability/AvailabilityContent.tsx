@@ -2,9 +2,10 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Info, Globe, Wrench } from 'lucide-react';
+import { Info, Globe } from 'lucide-react';
 import { DailyAvailability } from './DailyAvailability';
 import { DateOverrides } from './DateOverrides';
+import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
 
 interface AvailabilityContentProps {
   activeTab: string;
@@ -33,38 +34,23 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
               {/* Timezone */}
               <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6 shadow-lg shadow-black/5">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 bg-blue-500/20 rounded-2xl">
-                    <Globe className="h-4 w-4 text-blue-600" />
+                  <div className="p-2 bg-primary/20 rounded-2xl">
+                    <Globe className="h-4 w-4 text-primary" />
                   </div>
                   <h3 className="text-sm font-medium text-foreground">Timezone</h3>
                 </div>
-                <Select defaultValue="europe-amsterdam">
-                  <SelectTrigger className="w-full bg-background/80 border-border/60 rounded-2xl">
+                <Select defaultValue="Europe/Amsterdam">
+                  <SelectTrigger className="w-full bg-background/80 border-border/60 rounded-2xl hover:border-primary/40 transition-colors">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-border rounded-2xl">
-                    <SelectItem value="europe-amsterdam">Europe/Amsterdam</SelectItem>
-                    <SelectItem value="europe-london">Europe/London</SelectItem>
-                    <SelectItem value="america-new-york">America/New_York</SelectItem>
-                    <SelectItem value="asia-tokyo">Asia/Tokyo</SelectItem>
+                  <SelectContent className="bg-popover border-border rounded-2xl max-h-80 overflow-y-auto">
+                    {COMPREHENSIVE_TIMEZONES.map((timezone) => (
+                      <SelectItem key={timezone.value} value={timezone.value}>
+                        {timezone.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              {/* Troubleshooter */}
-              <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6 shadow-lg shadow-black/5">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 bg-orange-500/20 rounded-2xl">
-                    <Wrench className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <h3 className="text-sm font-medium text-foreground">Problems with your schedule?</h3>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full bg-background/80 border-border/60 hover:bg-muted rounded-2xl"
-                >
-                  Start troubleshooter
-                </Button>
               </div>
             </div>
           </div>

@@ -58,8 +58,8 @@ export const AvailabilityManager = () => {
     return (
       <div className="flex items-center justify-center h-full bg-gray-900">
         <div className="text-center">
-          <div className="w-6 h-6 bg-green-600 rounded-full animate-spin mx-auto mb-3"></div>
-          <div className="text-base text-gray-300">Loading...</div>
+          <div className="w-6 h-6 bg-primary rounded-full animate-spin mx-auto mb-3"></div>
+          <div className="text-base text-muted-foreground">Loading...</div>
         </div>
       </div>
     );
@@ -82,20 +82,20 @@ export const AvailabilityManager = () => {
       {/* Save Button and Status */}
       {hasUnsavedChanges && (
         <div className="p-4 pb-0">
-          <div className="bg-amber-900/30 border border-amber-500/30 rounded-lg p-3 mb-4">
-            <div className="flex items-center justify-between">
-              <div className="text-yellow-400 text-sm">
-                You have unsaved changes
+            <div className="bg-amber-900/30 border border-amber-500/30 rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="text-yellow-400 text-sm font-medium">
+                  You have unsaved changes
+                </div>
+                <button
+                  onClick={handleSave}
+                  disabled={false}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg text-sm disabled:opacity-50 transition-all duration-200"
+                >
+                  Save Changes
+                </button>
               </div>
-              <button
-                onClick={handleSave}
-                disabled={false}
-                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-sm disabled:opacity-50"
-              >
-                Save
-              </button>
             </div>
-          </div>
         </div>
       )}
 
