@@ -167,8 +167,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         <div className="flex items-center gap-2 mb-6">
           <h2 className="text-xl font-semibold text-white">Social Media & Website</h2>
           <Tooltip>
-            <TooltipTrigger>
-              <Info className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+            <TooltipTrigger asChild>
+              <button type="button" className="h-4 w-4 text-gray-400 hover:text-white transition-colors">
+                <Info className="h-4 w-4" />
+              </button>
             </TooltipTrigger>
             <TooltipContent>
               <p>De AI-agent kan deze informatie gebruiken in zijn berichten</p>
