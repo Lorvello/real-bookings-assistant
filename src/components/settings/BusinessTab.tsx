@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { BusinessBasicInfoSection } from './sections/BusinessBasicInfoSection';
+import { BusinessAddressSection } from './sections/BusinessAddressSection';
 import { BusinessKnowledgeBaseSection } from './sections/BusinessKnowledgeBaseSection';
 import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,12 @@ export const BusinessTab: React.FC<BusinessTabProps> = ({
 
       {/* Business Basic Info */}
       <BusinessBasicInfoSection 
+        businessData={businessData}
+        setBusinessData={setBusinessData}
+      />
+
+      {/* Business Address */}
+      <BusinessAddressSection 
         businessData={businessData}
         setBusinessData={setBusinessData}
       />
