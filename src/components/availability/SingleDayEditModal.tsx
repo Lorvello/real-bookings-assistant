@@ -26,22 +26,7 @@ interface SingleDayEditModalProps {
   dayLabel: string;
 }
 
-// Custom hook for debounced auto-save
-const useDebounce = (value: any, delay: number) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-};
+// PHASE 1: Remove auto-save system - implement single save on close only
 
 const DAYS = [
   { key: 'monday', label: 'Monday', isWeekend: false, dayOfWeek: 1 },
@@ -64,46 +49,29 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
   const [localDayData, setLocalDayData] = useState<DayAvailability>(initialDayData);
   const [selectedTimeBlock, setSelectedTimeBlock] = useState<{blockId: string; field: 'startTime' | 'endTime'} | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { syncToDatabase } = useDailyAvailabilityManager(() => {});
   
   // Get current day info
   const currentDay = DAYS[dayIndex];
-  
-  // Instant save for immediate response
-  const debouncedData = useDebounce(localDayData, 50);
 
-  // Auto-save effect
-  useEffect(() => {
-    // Don't auto-save on initial load
-    if (!isOpen || JSON.stringify(debouncedData) === JSON.stringify(initialDayData)) {
-      return;
-    }
-
-    const autoSave = async () => {
-      setIsSaving(true);
-      try {
-        await syncToDatabase(currentDay.key, debouncedData);
-        setLastSaved(new Date());
-        // Don't call onComplete here - it causes modal to close
-        // onComplete should only be called when user explicitly closes modal
-      } catch (error) {
-        console.error('Auto-save failed:', error);
-      } finally {
-        setIsSaving(false);
-      }
-    };
-
-    autoSave();
-  }, [debouncedData, currentDay.key, syncToDatabase, isOpen, initialDayData]);
-
-  // Reset local data when modal opens with new data
+  // PHASE 1: Remove auto-save - buffer all changes locally until explicit save
   useEffect(() => {
     if (isOpen) {
       setLocalDayData(initialDayData);
+      setHasUnsavedChanges(false);
+      setError(null);
     }
   }, [isOpen, initialDayData]);
+
+  // Track changes to show unsaved indicator
+  useEffect(() => {
+    if (isOpen && JSON.stringify(localDayData) !== JSON.stringify(initialDayData)) {
+      setHasUnsavedChanges(true);
+    }
+  }, [localDayData, initialDayData, isOpen]);
 
   const handleDayToggle = useCallback((enabled: boolean) => {
     setLocalDayData(prev => ({
@@ -113,16 +81,13 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
   }, []);
 
   const handleTimeBlockUpdate = useCallback((blockId: string, field: 'startTime' | 'endTime', value: string) => {
-    // CRITICAL FIX: Immediate update with faster debounce for time changes
+    // PHASE 1: Buffer changes locally only - no immediate save
     setLocalDayData(prev => ({
       ...prev,
       timeBlocks: prev.timeBlocks.map(block =>
         block.id === blockId ? { ...block, [field]: value } : block
       )
     }));
-    
-    // Force immediate save for time changes to prevent data loss
-    setLastSaved(null); // Reset save indicator to show saving status
   }, []);
 
   const addTimeBlock = useCallback(() => {
@@ -147,10 +112,29 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
     }));
   }, []);
 
-  const formatLastSaved = () => {
-    if (!lastSaved) return null;
-    return `Saved at ${lastSaved.toLocaleTimeString()}`;
-  };
+  // PHASE 4: Implement single save operation on close
+  const handleSaveAndClose = useCallback(async () => {
+    if (!hasUnsavedChanges) {
+      onComplete();
+      onClose();
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      console.log(`Saving changes for ${currentDay.key}:`, localDayData);
+      await syncToDatabase(currentDay.key, localDayData);
+      setHasUnsavedChanges(false);
+      onComplete();
+      onClose();
+    } catch (error) {
+      console.error('Save failed:', error);
+      setError('Failed to save changes. Please try again.');
+      setIsSaving(false);
+    }
+  }, [hasUnsavedChanges, localDayData, currentDay.key, syncToDatabase, onComplete, onClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -164,22 +148,32 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
             <span>Edit {dayLabel}</span>
           </DialogTitle>
           
-          {/* Auto-save indicator */}
+          {/* Save status indicator */}
           <div className="flex items-center justify-center space-x-2 text-xs text-muted-foreground">
             {isSaving ? (
               <>
                 <div className="w-3 h-3 border border-primary border-t-transparent rounded-full animate-spin" />
                 <span>Saving...</span>
               </>
-            ) : lastSaved ? (
+            ) : hasUnsavedChanges ? (
               <>
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span>{formatLastSaved()}</span>
+                <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                <span>Unsaved changes</span>
               </>
             ) : (
-              <span>Changes will be saved automatically</span>
+              <>
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <span>All changes saved</span>
+              </>
             )}
           </div>
+          
+          {/* Error message */}
+          {error && (
+            <div className="text-center text-sm text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">
+              {error}
+            </div>
+          )}
         </DialogHeader>
 
         <div className="py-6 space-y-6">
@@ -269,16 +263,21 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end pt-4 border-t border-border/40">
+        <div className="flex items-center justify-between pt-4 border-t border-border/40">
           <Button
-            variant="outline"
-            onClick={() => {
-              onComplete(); // Trigger parent refresh when explicitly closing
-              onClose();
-            }}
-            className="bg-background hover:bg-muted"
+            variant="ghost"
+            onClick={onClose}
+            disabled={isSaving}
+            className="text-muted-foreground hover:text-foreground"
           >
-            Close
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveAndClose}
+            disabled={isSaving}
+            className="bg-primary hover:bg-primary/90"
+          >
+            {isSaving ? 'Saving...' : hasUnsavedChanges ? 'Save Changes' : 'Done'}
           </Button>
         </div>
       </DialogContent>

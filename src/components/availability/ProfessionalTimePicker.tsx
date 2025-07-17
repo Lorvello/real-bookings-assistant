@@ -474,20 +474,21 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                     </div>
                   </div>
                   
-                  <div className="flex justify-center pt-2">
-                    <Button
-                      onClick={() => {
-                        const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
-                        if (timeRegex.test(inputValue)) {
-                          onChange(inputValue);
-                          onClose();
-                        }
-                      }}
-                      className="bg-primary hover:bg-primary/90"
-                    >
-                      Set Time
-                    </Button>
-                  </div>
+                   <div className="flex justify-center pt-2">
+                     <Button
+                       onClick={() => {
+                         const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+                         if (timeRegex.test(inputValue)) {
+                           onChange(inputValue);
+                           // PHASE 3: Simplified close - let parent handle save
+                           onClose();
+                         }
+                       }}
+                       className="bg-primary hover:bg-primary/90"
+                     >
+                       Set Time
+                     </Button>
+                   </div>
                 </div>
               )}
             </div>
@@ -503,14 +504,8 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
               </Button>
               <Button
                 onClick={() => {
-                  // Simple, direct update without async - prevents crashes
-                  try {
-                    onChange(formattedValue);
-                    onClose();
-                  } catch (error) {
-                    console.error('Time update error:', error);
-                    onClose();
-                  }
+                  // PHASE 3: Simplified close without immediate onChange - let parent handle save
+                  onClose();
                 }}
                 className="bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 min-w-[80px]"
               >

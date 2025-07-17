@@ -71,6 +71,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
   const [pendingUpdates, setPendingUpdates] = useState<Set<string>>(new Set());
   const [syncing, setSyncing] = useState<Set<string>>(new Set());
   const [syncTimeouts, setSyncTimeouts] = useState<Map<string, NodeJS.Timeout>>(new Map());
+  const [syncMutex, setSyncMutex] = useState<Map<string, boolean>>(new Map());
 
   // Convert database rules to UI availability format
   const availabilityFromRules = useMemo(() => {
@@ -128,12 +129,18 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     }
   };
 
-  // Verbeterde sync function met duplicate cleanup
+  // PHASE 2: Implement mutex locks and improved sync with cancellation
   const syncToDatabase = async (dayKey: string, dayData: DayAvailability) => {
     if (!defaultSchedule?.id) return;
     
     const day = DAYS.find(d => d.key === dayKey);
     if (!day) return;
+
+    // PHASE 2: Implement mutex lock to prevent concurrent syncs
+    if (syncMutex.get(dayKey)) {
+      console.log(`Sync already in progress for ${dayKey}, skipping...`);
+      return;
+    }
 
     // Clear any existing timeout for this day
     const existingTimeout = syncTimeouts.get(dayKey);
@@ -142,21 +149,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       syncTimeouts.delete(dayKey);
     }
 
-    // Prevent concurrent syncs for the same day
-    if (syncing.has(dayKey)) {
-      console.log(`Sync already in progress for ${dayKey}, skipping...`);
-      return;
-    }
-
-    // Prevent rapid successive syncs
-    if (pendingUpdates.size > 0) {
-      console.log(`Pending updates exist, delaying sync for ${dayKey}`);
-      const newTimeout = setTimeout(() => {
-        syncToDatabase(dayKey, dayData);
-      }, 1000);
-      syncTimeouts.set(dayKey, newTimeout);
-      return;
-    }
+    // Set mutex lock
+    setSyncMutex(prev => new Map(prev).set(dayKey, true));
 
     const updateId = `${dayKey}-${Date.now()}`;
     setPendingUpdates(prev => new Set(prev).add(updateId));
@@ -247,16 +241,18 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       console.log(`Sync completed successfully for ${dayKey}`);
       
-      // Throttle onChange calls to prevent cascading updates
-      const throttledOnChange = setTimeout(() => {
-        onChange();
-      }, 100);
-      
-      // Store timeout for cleanup
-      syncTimeouts.set(`${dayKey}-onchange`, throttledOnChange);
+      // PHASE 2: Remove cascading onChange calls - let parent handle updates
+      onChange();
     } catch (error) {
       console.error(`Error syncing ${dayKey} to database:`, error);
+      throw error; // Re-throw to let caller handle error
     } finally {
+      // PHASE 2: Release mutex lock and clean up
+      setSyncMutex(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(dayKey);
+        return newMap;
+      });
       setPendingUpdates(prev => {
         const newSet = new Set(prev);
         newSet.delete(updateId);
@@ -270,10 +266,11 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     }
   };
 
-  // Cleanup timeouts on unmount
+  // PHASE 2: Cleanup timeouts and mutex locks on unmount
   useEffect(() => {
     return () => {
       syncTimeouts.forEach(timeout => clearTimeout(timeout));
+      setSyncMutex(new Map());
     };
   }, [syncTimeouts]);
 
