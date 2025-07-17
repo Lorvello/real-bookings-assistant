@@ -1,26 +1,52 @@
-/* React Day Picker Calendar Grid Overrides */
-/* These styles force proper grid alignment by overriding React Day Picker's internal flexbox styling */
+/* AGGRESSIVE React Day Picker Calendar Grid Overrides */
+/* Force complete override of React Day Picker's internal structure */
 
-/* Force grid layout on table element */
+/* Nuclear option - override everything with maximum specificity */
+.react-day-picker * {
+  box-sizing: border-box !important;
+}
+
+/* Force the main container to use CSS Grid */
+.react-day-picker,
+.react-day-picker > div,
+.react-day-picker .rdp-months,
+.react-day-picker .rdp-month {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Force the table to be a proper grid */
+.react-day-picker table,
 .react-day-picker .rdp-table {
   display: grid !important;
   grid-template-columns: repeat(7, 1fr) !important;
   grid-template-rows: auto 1fr !important;
   width: 100% !important;
+  table-layout: fixed !important;
   border-collapse: separate !important;
   border-spacing: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* Force grid layout on header row */
+/* Force header structure */
+.react-day-picker thead,
+.react-day-picker .rdp-thead {
+  display: contents !important;
+}
+
+.react-day-picker thead tr,
 .react-day-picker .rdp-head_row {
   display: grid !important;
   grid-template-columns: repeat(7, 1fr) !important;
   grid-column: 1 / -1 !important;
   gap: 0 !important;
   width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* Force grid layout on header cells */
+.react-day-picker thead th,
 .react-day-picker .rdp-head_cell {
   display: flex !important;
   align-items: center !important;
@@ -33,27 +59,42 @@
   border-bottom: 1px solid hsl(var(--border) / 0.3) !important;
   color: hsl(var(--muted-foreground)) !important;
   background: transparent !important;
+  text-align: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  flex: 1 !important;
 }
 
+.react-day-picker thead th:last-child,
 .react-day-picker .rdp-head_cell:last-child {
   border-right: none !important;
 }
 
-/* Force grid layout on body rows */
-.react-day-picker .rdp-body .rdp-row {
+/* Force body structure */
+.react-day-picker tbody,
+.react-day-picker .rdp-tbody {
+  display: contents !important;
+}
+
+.react-day-picker tbody tr,
+.react-day-picker .rdp-row {
   display: grid !important;
   grid-template-columns: repeat(7, 1fr) !important;
   grid-column: 1 / -1 !important;
   gap: 0 !important;
   width: 100% !important;
   border-bottom: 1px solid hsl(var(--border) / 0.1) !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-.react-day-picker .rdp-body .rdp-row:last-child {
+.react-day-picker tbody tr:last-child,
+.react-day-picker .rdp-row:last-child {
   border-bottom: none !important;
 }
 
-/* Force grid layout on body cells */
+.react-day-picker tbody td,
 .react-day-picker .rdp-cell {
   display: flex !important;
   align-items: center !important;
@@ -65,75 +106,139 @@
   border-right: 1px solid hsl(var(--border) / 0.15) !important;
   text-align: center !important;
   font-size: 0.875rem !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  flex: 1 !important;
 }
 
+.react-day-picker tbody td:last-child,
 .react-day-picker .rdp-cell:last-child {
   border-right: none !important;
 }
 
-/* Override React Day Picker's internal flexbox on tbody */
-.react-day-picker .rdp-tbody {
-  display: contents !important;
-}
-
-/* Override React Day Picker's internal flexbox on thead */
-.react-day-picker .rdp-thead {
-  display: contents !important;
-}
-
-/* Ensure day buttons take full cell space */
+/* Day button styling */
+.react-day-picker button,
 .react-day-picker .rdp-day {
   width: 100% !important;
   height: 100% !important;
   margin: 0 !important;
-  border-radius: 0 !important;
+  border-radius: 0.375rem !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+  min-width: 0 !important;
+  flex: 1 !important;
 }
 
 /* Selected day styling */
-.react-day-picker .rdp-day.rdp-day_selected {
+.react-day-picker button[aria-selected="true"],
+.react-day-picker .rdp-day[aria-selected="true"],
+.react-day-picker .rdp-day_selected {
   background-color: hsl(var(--primary)) !important;
   color: hsl(var(--primary-foreground)) !important;
 }
 
-.react-day-picker .rdp-day.rdp-day_selected:hover {
+.react-day-picker button[aria-selected="true"]:hover,
+.react-day-picker .rdp-day[aria-selected="true"]:hover,
+.react-day-picker .rdp-day_selected:hover {
   background-color: hsl(var(--primary)) !important;
   color: hsl(var(--primary-foreground)) !important;
 }
 
 /* Today styling */
-.react-day-picker .rdp-day.rdp-day_today {
+.react-day-picker button[data-today="true"],
+.react-day-picker .rdp-day[data-today="true"],
+.react-day-picker .rdp-day_today {
   background-color: hsl(var(--accent)) !important;
   color: hsl(var(--accent-foreground)) !important;
 }
 
 /* Outside month days */
-.react-day-picker .rdp-day.rdp-day_outside {
+.react-day-picker button[data-outside="true"],
+.react-day-picker .rdp-day[data-outside="true"],
+.react-day-picker .rdp-day_outside {
   color: hsl(var(--muted-foreground)) !important;
   opacity: 0.5 !important;
 }
 
 /* Disabled days */
-.react-day-picker .rdp-day.rdp-day_disabled {
+.react-day-picker button:disabled,
+.react-day-picker .rdp-day:disabled,
+.react-day-picker .rdp-day_disabled {
   color: hsl(var(--muted-foreground)) !important;
   opacity: 0.5 !important;
+  cursor: not-allowed !important;
 }
 
 /* Range selection styling */
-.react-day-picker .rdp-day.rdp-day_range_middle {
+.react-day-picker button[data-range-middle="true"],
+.react-day-picker .rdp-day[data-range-middle="true"],
+.react-day-picker .rdp-day_range_middle {
   background-color: hsl(var(--accent)) !important;
   color: hsl(var(--accent-foreground)) !important;
 }
 
 /* Hover effects */
-.react-day-picker .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+.react-day-picker button:hover:not([aria-selected="true"]):not(:disabled),
+.react-day-picker .rdp-day:hover:not([aria-selected="true"]):not(:disabled) {
   background-color: hsl(var(--accent) / 0.5) !important;
 }
 
 /* Focus styling */
+.react-day-picker button:focus-visible,
 .react-day-picker .rdp-day:focus-visible {
   outline: 2px solid hsl(var(--ring)) !important;
   outline-offset: 2px !important;
+}
+
+/* Additional nuclear overrides for maximum compatibility */
+.react-day-picker [class*="rdp-head"],
+.react-day-picker [class*="rdp-row"],
+.react-day-picker [class*="rdp-cell"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-width: 0 !important;
+}
+
+/* Force any flexbox containers to be grid instead */
+.react-day-picker [style*="display: flex"],
+.react-day-picker [style*="display:flex"] {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+}
+
+/* Override inline styles that might be applied by React Day Picker */
+.react-day-picker * {
+  box-sizing: border-box !important;
+}
+
+/* Ensure proper spacing and alignment */
+.react-day-picker .rdp-caption {
+  margin-bottom: 1rem !important;
+  text-align: center !important;
+}
+
+.react-day-picker .rdp-nav {
+  display: flex !important;
+  justify-content: space-between !important;
+  position: absolute !important;
+  width: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+.react-day-picker .rdp-nav_button {
+  position: relative !important;
 }
