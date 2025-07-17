@@ -29,38 +29,47 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
   const { calendars, loading: calendarsLoading } = useCalendars();
 
-  // OPTIMIZED: Fast state detection with minimal loading
+  // State lock to prevent override during completion flow
+  const [completionLock, setCompletionLock] = React.useState(false);
+
+  // OPTIMIZED: Fast state detection with completion flow priority
   React.useEffect(() => {
-    // Configuration completed - immediately show configured state
-    if (configurationCompleted) {
+    // PRIORITY 1: Configuration just completed - lock state and prevent override
+    if (configurationCompleted || completionLock) {
       setSetupState('configured');
+      
+      // Clear lock after grace period to allow normal state detection
+      if (completionLock) {
+        const timer = setTimeout(() => setCompletionLock(false), 2000);
+        return () => clearTimeout(timer);
+      }
       return;
     }
 
-    // Still loading calendars
+    // PRIORITY 2: Still loading calendars
     if (calendarsLoading) {
       setSetupState('checking');
       return;
     }
 
-    // No calendars - need calendar creation
+    // PRIORITY 3: No calendars - need calendar creation
     if (!calendars || calendars.length === 0) {
       setSetupState('needs_calendar');
       return;
     }
 
-    // Have calendars but no schedule - need configuration
+    // PRIORITY 4: Have calendars but no schedule - need configuration
     if (!defaultSchedule) {
       setSetupState('needs_config');
       return;
     }
 
-    // Fast availability check - prefer configured state if schedule exists
+    // PRIORITY 5: Fast availability check - prefer configured state if schedule exists
     const hasValidAvailability = availability && Object.keys(availability).length > 0;
     const isConfigured = defaultSchedule && hasValidAvailability;
     
     setSetupState(isConfigured ? 'configured' : 'needs_config');
-  }, [calendars, calendarsLoading, defaultSchedule, availability, configurationCompleted]);
+  }, [calendars, calendarsLoading, defaultSchedule, availability, configurationCompleted, completionLock]);
 
   const handleConfigureAvailability = async () => {
     setConfigurationCompleted(false);
@@ -102,15 +111,18 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   };
 
   const handleGuidedComplete = async () => {
-    // CRITICAL FIX: Immediate state update and modal close
+    // PHASE 3: Immediate completion with state lock
     setIsGuidedModalOpen(false);
     setConfigurationCompleted(true);
+    setCompletionLock(true); // Prevent state override for 2 seconds
     setSetupState('configured'); // Force immediate state change
     
-    // Background refresh without blocking UI
-    if (refreshAvailability) {
-      refreshAvailability();
-    }
+    // Background refresh without blocking UI - no await
+    setTimeout(() => {
+      if (refreshAvailability) {
+        refreshAvailability();
+      }
+    }, 100);
   };
 
   if (activeTab === 'schedule') {

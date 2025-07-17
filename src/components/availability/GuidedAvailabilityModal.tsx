@@ -143,26 +143,30 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   };
 
   const handleComplete = async () => {
-    // PERFORMANCE FIX: Trigger completion immediately, sync in background
+    // PHASE 3: Immediate completion callback to trigger state change
     onComplete();
     
-    try {
-      // Background operations - don't block UI
-      await createDefaultSchedule();
-      
-      // Fast parallel sync without excessive delays
-      const syncPromises = DAYS.map(async (day) => {
-        try {
-          await syncToDatabase(day.key, localAvailability[day.key]);
-        } catch (error) {
-          console.error(`Error syncing ${day.key}:`, error);
-        }
-      });
-      
-      await Promise.all(syncPromises);
-    } catch (error) {
-      console.error('Background sync error:', error);
-    }
+    // PHASE 4: Optimized background sync - run async without blocking
+    setTimeout(async () => {
+      try {
+        // Ensure default schedule exists
+        await createDefaultSchedule();
+        
+        // PHASE 2: Parallel sync with reduced delays
+        const syncPromises = DAYS.map(async (day) => {
+          try {
+            await syncToDatabase(day.key, localAvailability[day.key]);
+          } catch (error) {
+            console.error(`Error syncing ${day.key}:`, error);
+          }
+        });
+        
+        await Promise.all(syncPromises);
+        console.log('Background availability sync completed');
+      } catch (error) {
+        console.error('Background sync error:', error);
+      }
+    }, 50); // Minimal delay to ensure state update happens first
   };
 
   const renderDayConfiguration = () => {

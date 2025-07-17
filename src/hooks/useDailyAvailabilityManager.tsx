@@ -188,8 +188,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
         await deleteRule(rule.id);
       }
 
-      // OPTIMIZED: Reduced deletion wait time
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // PHASE 2: Minimal deletion wait
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       if (dayData.enabled && dayData.timeBlocks.length > 0) {
         // Clean and validate time blocks before creating rules
@@ -213,8 +213,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
               is_available: true
             });
             
-      // OPTIMIZED: Reduced delay
-      await new Promise(resolve => setTimeout(resolve, 50));
+      // PHASE 2: Minimal sync delay
+      await new Promise(resolve => setTimeout(resolve, 25));
           } catch (createError: any) {
             console.error(`Error creating rule for ${dayKey}:`, createError);
             
