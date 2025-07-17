@@ -13,7 +13,7 @@ interface ProfessionalTimePickerProps {
 
 // Helper function to format time to HH:MM format
 const formatTimeToHHMM = (timeString: string): string => {
-  if (!timeString) return '09:00';
+  if (!timeString) return '00:00';
   
   // If already in HH:MM format, return as is
   if (timeString.match(/^\d{2}:\d{2}$/)) {
@@ -28,21 +28,19 @@ const formatTimeToHHMM = (timeString: string): string => {
   return timeString;
 };
 
-// Convert time to angle for clock hands (simplified 12-hour display)
+// Convert time to angle for 24-hour clock hands
 const timeToAngle = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
-  // Display 12-hour format but maintain 24-hour internal logic
-  const displayHour = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours);
-  const hourAngle = (displayHour * 30) + (minutes * 0.5); // 30 degrees per hour + minute adjustment
+  const hourAngle = (hours * 15) + (minutes * 0.25); // 15 degrees per hour for 24-hour clock
   const minuteAngle = minutes * 6; // 6 degrees per minute
   return { hourAngle, minuteAngle };
 };
 
-// Convert angle to time (12-hour display)
-const angleToTime = (angle: number, isHour: boolean, currentHour?: number) => {
+// Convert angle to time for 24-hour clock
+const angleToTime = (angle: number, isHour: boolean) => {
   if (isHour) {
-    const hour12 = Math.round(angle / 30) % 12;
-    return hour12 === 0 ? 12 : hour12;
+    const hour24 = Math.round(angle / 15) % 24;
+    return hour24;
   } else {
     return Math.round(angle / 6) % 60;
   }
@@ -69,7 +67,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
     setInputValue(formattedValue);
   }, [formattedValue]);
 
-  // CRITICAL FIX: Simplified drag handling to prevent website freeze
+  // Optimized drag handling to prevent website freeze
   useEffect(() => {
     if (!isDragging) return;
 
@@ -98,7 +96,6 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       setIsDragging(false);
     };
 
-    // Only add essential event listeners
     document.addEventListener('mousemove', handleMouseMove, { passive: false });
     document.addEventListener('mouseup', handleEnd, { passive: true });
 
@@ -134,19 +131,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       newMinutes = Math.round(angleToTime(angle, false) / 5) * 5; // Snap to 5-minute intervals
       newMinutes = Math.max(0, Math.min(59, newMinutes));
     } else {
-      const hour12 = angleToTime(angle, true, currentTime[0]);
-      
-      // Smart 24-hour logic: maintain AM/PM context based on current time
-      if (currentTime[0] >= 12 && hour12 !== 12) {
-        newHours = hour12 + 12;
-      } else if (currentTime[0] < 12 && hour12 === 12) {
-        newHours = 0;
-      } else if (currentTime[0] >= 12 && hour12 === 12) {
-        newHours = 12;
-      } else {
-        newHours = hour12;
-      }
-      
+      newHours = angleToTime(angle, true);
       newHours = Math.max(0, Math.min(23, newHours));
     }
     
@@ -155,7 +140,6 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   };
 
   const handleClockClick = (event: React.MouseEvent) => {
-    // CRITICAL FIX: Simplified click handling to prevent conflicts
     if (!clockRef.current || isDragging) return;
     
     event.preventDefault();
@@ -175,7 +159,6 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   };
 
   const handleHandStart = (event: React.MouseEvent, selectingMinutes: boolean) => {
-    // CRITICAL FIX: Simplified event handling to prevent freeze
     event.preventDefault();
     event.stopPropagation();
     setIsSelectingMinutes(selectingMinutes);
@@ -186,7 +169,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
     const inputVal = event.target.value;
     setInputValue(inputVal);
     
-    // Validate and format the input
+    // Real-time validation and update
     const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
     if (timeRegex.test(inputVal)) {
       onChange(inputVal);
@@ -206,10 +189,11 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   const generateHourNumbers = () => {
     const hours = [];
     
-    // Generate clean 12-hour numbers with proper spacing
-    for (let i = 1; i <= 12; i++) {
-      const angle = (i * 30) - 90; // -90 to start at 12 o'clock
-      const radius = 40;
+    // Generate all 24 hours with proper spacing - outer ring (1-12) and inner ring (13-24)
+    for (let i = 1; i <= 24; i++) {
+      const hour12 = i > 12 ? i - 12 : i;
+      const angle = (hour12 * 30) - 90; // -90 to start at 12 o'clock
+      const radius = i > 12 ? 30 : 45; // Inner ring for 13-24, outer ring for 1-12
       
       const x = Math.cos(angle * Math.PI / 180) * radius;
       const y = Math.sin(angle * Math.PI / 180) * radius;
@@ -217,34 +201,27 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       hours.push(
         <div
           key={i}
-          className="absolute text-lg font-semibold text-foreground select-none cursor-pointer hover:text-primary transition-colors flex items-center justify-center"
+          className={`absolute select-none cursor-pointer hover:text-primary transition-colors flex items-center justify-center ${
+            i > 12 ? 'text-sm font-medium text-foreground/70' : 'text-lg font-semibold text-foreground'
+          }`}
           style={{
             left: `calc(50% + ${x}px)`,
             top: `calc(50% + ${y}px)`,
-            width: '24px',
-            height: '24px',
+            width: i > 12 ? '20px' : '24px',
+            height: i > 12 ? '20px' : '24px',
             transform: 'translate(-50%, -50%)'
           }}
           onClick={(e) => {
             e.stopPropagation();
             const currentTime = formattedValue.split(':').map(Number);
             const minutes = currentTime[1];
-            let newHours = i;
-            
-            // Smart hour selection: maintain AM/PM context
-            if (currentTime[0] >= 12 && i !== 12) {
-              newHours = i + 12;
-            } else if (currentTime[0] < 12 && i === 12) {
-              newHours = 0;
-            } else if (currentTime[0] >= 12 && i === 12) {
-              newHours = 12;
-            }
+            const newHours = i === 24 ? 0 : i;
             
             const newTime = `${newHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
             onChange(newTime);
           }}
         >
-          {i}
+          {i === 24 ? '00' : i.toString().padStart(2, '0')}
         </div>
       );
     }
@@ -260,7 +237,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       marks.push(
         <div
           key={i}
-          className="absolute text-xs font-medium text-foreground/60 select-none"
+          className="absolute text-xs font-medium text-foreground/60 select-none cursor-pointer hover:text-primary transition-colors"
           style={{
             left: `calc(50% + ${x}px - 6px)`,
             top: `calc(50% + ${y}px - 6px)`,
@@ -269,6 +246,13 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            const currentTime = formattedValue.split(':').map(Number);
+            const hours = currentTime[0];
+            const newTime = `${hours.toString().padStart(2, '0')}:${i.toString().padStart(2, '0')}`;
+            onChange(newTime);
           }}
         >
           {i.toString().padStart(2, '0')}
@@ -282,35 +266,16 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
     <>
       <div className="relative" ref={dropdownRef}>
         <Input
-          value={formattedValue}
-          onChange={(e) => {
-            const value = e.target.value;
-            setInputValue(value);
-            // Real-time typing validation
-            const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
-            if (timeRegex.test(value)) {
-              onChange(value);
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
-              if (timeRegex.test(inputValue)) {
-                onChange(inputValue);
-              }
-              onClose();
-            }
-          }}
-          onFocus={(e) => {
-            e.stopPropagation();
-            // Don't auto-open modal when typing
-          }}
+          value={inputValue}
+          onChange={handleInputChange}
+          onKeyDown={handleInputKeyDown}
+          onFocus={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             onToggle();
           }}
           onMouseDown={(e) => e.stopPropagation()}
-          placeholder="09:00"
+          placeholder="00:00"
           className="font-mono text-center bg-background border-border hover:border-accent focus:border-accent focus:ring-accent/20 transition-all duration-200"
         />
       </div>
@@ -320,7 +285,6 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
         <div 
           className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[99999] flex items-center justify-center p-4"
           onClick={(e) => {
-            // Only close if clicking the overlay itself, not the modal content
             if (e.target === e.currentTarget) {
               onClose();
             }
@@ -363,15 +327,12 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
             <div className="p-6">
               {mode === 'clock' ? (
                 <div className="space-y-6">
-                  {/* Professional Clock Interface */}
+                  {/* Professional 24-Hour Clock Interface */}
                   <div className="flex flex-col items-center space-y-4">
                      <div 
                        ref={clockRef}
                        className="relative w-64 h-64 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 cursor-pointer hover:border-primary/60 transition-all duration-300 shadow-lg"
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         handleClockClick(e);
-                       }}
+                       onClick={handleClockClick}
                      >
                        {/* Clock face inner circle */}
                        <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner">
@@ -435,12 +396,12 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                         {formattedValue}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {isSelectingMinutes ? 'Select minutes' : 'Select hours'}
+                        {isSelectingMinutes ? 'Select minutes' : 'Select hours (24-hour format)'}
                       </div>
                     </div>
                   </div>
                   
-                   {/* Hour/Minute Toggle - Simplified */}
+                   {/* Hour/Minute Toggle */}
                    <div className="flex items-center justify-center space-x-2">
                      <Button
                        variant={!isSelectingMinutes ? "default" : "outline"}
@@ -462,62 +423,54 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {/* Direct Input Interface */}
-                   <div className="space-y-3">
-                     <label className="text-sm font-medium text-foreground">
-                       Enter time (HH:MM format)
-                     </label>
+                  <div className="text-center space-y-2">
+                    <div className="text-sm text-muted-foreground mb-2">Enter time in 24-hour format</div>
                     <Input
+                      type="text"
                       value={inputValue}
                       onChange={handleInputChange}
                       onKeyDown={handleInputKeyDown}
-                      onFocus={(e) => e.stopPropagation()}
-                      onClick={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      placeholder="09:00"
-                      className="font-mono text-center text-lg bg-background border-border focus:border-accent focus:ring-accent/20 h-12"
+                      placeholder="HH:MM (e.g., 09:30, 15:45)"
+                      className="font-mono text-lg text-center"
                       autoFocus
                     />
-                    <p className="text-xs text-muted-foreground text-center">
-                      Examples: 09:00, 14:30, 23:45
-                    </p>
+                    <div className="text-xs text-muted-foreground">
+                      Valid format: 00:00 to 23:59
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-center pt-2">
+                    <Button
+                      onClick={() => {
+                        const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+                        if (timeRegex.test(inputValue)) {
+                          onChange(inputValue);
+                          onClose();
+                        }
+                      }}
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      Set Time
+                    </Button>
                   </div>
                 </div>
               )}
             </div>
-            
+
             {/* Modal Footer */}
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-border bg-muted/20">
+            <div className="flex items-center justify-end p-6 border-t border-border/40 space-x-3">
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="px-6"
+                className="bg-background hover:bg-muted"
               >
                 Cancel
               </Button>
-                <Button
-                onClick={() => {
-                  // CRITICAL FIX: Immediate save without delay
-                  let finalTime = formattedValue;
-                  
-                  if (mode === 'input') {
-                    const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
-                    if (timeRegex.test(inputValue)) {
-                      finalTime = inputValue;
-                    }
-                  }
-                  
-                  console.log('Setting time to:', finalTime);
-                  
-                  // Force the change to trigger immediately
-                  onChange(finalTime);
-                  
-                  // Close modal immediately
-                  onClose();
-                }}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+              <Button
+                onClick={onClose}
+                className="bg-primary hover:bg-primary/90"
               >
-                Set Time
+                Done
               </Button>
             </div>
           </div>
