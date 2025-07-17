@@ -53,6 +53,15 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
   
   const { rules, createRule, updateRule, deleteRule, syncingRules, refetch: refreshRules } = useAvailabilityRules(defaultSchedule?.id);
 
+  // CRITICAL FIX: Track when calendars change to refresh availability data
+  useEffect(() => {
+    if (calendars.length > 0) {
+      console.log('Calendars changed, refreshing availability data...');
+      // Trigger onChange to refresh availability data when calendars change
+      onChange();
+    }
+  }, [calendars, onChange]);
+
   const [availability, setAvailability] = useState<Record<string, DayAvailability>>(() => {
     const initial: Record<string, DayAvailability> = {};
     DAYS.forEach(day => {

@@ -84,8 +84,14 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
         description: `${data.name} is succesvol aangemaakt`,
       });
 
-      // Refresh calendars and select the new one
-      refreshCalendars();
+      // CRITICAL FIX: Wait for calendar refresh before proceeding
+      console.log('Waiting for calendar refresh to complete...');
+      await refreshCalendars();
+      
+      // Add small delay to ensure database consistency
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      console.log('Calendar refresh completed, selecting new calendar');
       selectCalendar(calendar as any);
 
       // Call success callback if provided

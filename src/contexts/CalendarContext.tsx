@@ -95,8 +95,11 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     localStorage.removeItem('selectedCalendarId');
   };
 
-  const refreshCalendars = () => {
-    refetch();
+  const refreshCalendars = async () => {
+    console.log('Refreshing calendars...');
+    const result = await refetch();
+    console.log('Calendars refreshed successfully');
+    return result;
   };
 
   const getActiveCalendarIds = () => {

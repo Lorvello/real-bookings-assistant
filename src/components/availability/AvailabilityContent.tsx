@@ -29,12 +29,21 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   // Check if availability is configured (enhanced to detect configured availability immediately after setup)
   const isAvailabilityConfigured = () => {
     // If configuration was just completed, always show overview
-    if (configurationCompleted) return true;
+    if (configurationCompleted) {
+      console.log('Configuration completed flag is true, showing overview');
+      return true;
+    }
     
-    if (!defaultSchedule) return false;
+    if (!defaultSchedule) {
+      console.log('No default schedule found, showing configuration');
+      return false;
+    }
     
     // More robust check for configured availability
-    if (!availability) return false;
+    if (!availability) {
+      console.log('No availability data found, showing configuration');
+      return false;
+    }
     
     // Show overview if at least some days are configured OR if we have database rules
     const hasConfiguredDays = DAYS.some(day => {
@@ -45,8 +54,18 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
       );
     });
     
+    // ENHANCED: Also check if we have any database rules (even default ones)
+    const hasBasicConfig = defaultSchedule && (hasConfiguredDays || DAYS.some(day => availability[day.key]?.enabled));
+    
+    console.log('Availability check result:', {
+      hasDefaultSchedule: !!defaultSchedule,
+      hasConfiguredDays,
+      hasBasicConfig,
+      willShowOverview: hasBasicConfig
+    });
+    
     // Always show overview if we have a default schedule and some configuration
-    return defaultSchedule && hasConfiguredDays;
+    return hasBasicConfig;
   };
 
   const handleConfigureAvailability = async () => {
@@ -70,45 +89,55 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   };
 
   const handleCalendarCreated = async () => {
-    // Calendar was created successfully - now proceed to availability configuration
     setIsCalendarDialogOpen(false);
+    setIsInitialSetupFlow(true);
     
-    // Small delay to ensure calendar is properly loaded
+    // CRITICAL FIX: Wait longer for calendar to be properly selected and availability data to load
+    console.log('Calendar created, waiting for data to be available...');
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    if (!defaultSchedule) {
-      await createDefaultSchedule();
+    // Force refresh of availability data
+    if (refreshAvailability) {
+      console.log('Refreshing availability data after calendar creation...');
+      refreshAvailability();
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
+    
+    // Open guided modal after calendar creation
+    console.log('Opening guided modal after calendar creation...');
     setIsGuidedModalOpen(true);
   };
 
   const handleGuidedComplete = async () => {
     setIsGuidedModalOpen(false);
     
-    // CRITICAL FIX: Set configuration completed flag to ensure overview is shown
-    console.log('Guided configuration completed, setting configuration completed flag');
-    setConfigurationCompleted(true);
+    // CRITICAL FIX: Force refresh of availability data first, then set completion flag
+    console.log('Guided configuration completed, forcing data refresh...');
     
-    // Force immediate refresh of availability data after configuration
-    console.log('Forcing data refresh after configuration...');
+    // Multiple refresh attempts to ensure data is loaded
     if (refreshAvailability) {
-      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for DB consistency
+      await new Promise(resolve => setTimeout(resolve, 200)); // Increased delay for DB consistency
+      refreshAvailability();
+      
+      // Second refresh to ensure all data is loaded
+      await new Promise(resolve => setTimeout(resolve, 200));
       refreshAvailability();
     }
     
-    // If this was part of the initial setup flow, ensure we stay in overview mode
-    if (isInitialSetupFlow) {
-      console.log('Initial setup flow completed, staying in overview mode');
-      setIsInitialSetupFlow(false);
-      // Force a re-render to show the overview with new data
-      await new Promise(resolve => setTimeout(resolve, 200));
-      if (refreshAvailability) {
-        refreshAvailability();
-      }
-    }
+    // Wait for data to be actually available before setting completion flag
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // NOW set configuration completed flag to ensure overview is shown
+    console.log('Setting configuration completed flag after data refresh');
+    setConfigurationCompleted(true);
     
     // After a successful setup, ensure overview stays visible
     console.log('Configuration completed successfully, overview will be shown');
+    
+    // Force onChange to trigger any dependent updates
+    if (refreshAvailability) {
+      refreshAvailability();
+    }
   };
 
   if (activeTab === 'schedule') {

@@ -20,6 +20,7 @@ export const useCalendars = () => {
 
   const fetchCalendars = async () => {
     try {
+      console.log('Fetching calendars for user:', user?.id);
       const { data, error } = await supabase
         .from('calendars')
         .select('*')
@@ -31,9 +32,12 @@ export const useCalendars = () => {
         return;
       }
 
+      console.log('Calendars fetched successfully:', data);
       setCalendars(data || []);
+      return data || [];
     } catch (error) {
       console.error('Error fetching calendars:', error);
+      return [];
     } finally {
       setLoading(false);
     }
