@@ -21,6 +21,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
 }) => {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
+  const [isInitialSetupFlow, setIsInitialSetupFlow] = useState(false);
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
   const { calendars } = useCalendars();
 
@@ -45,11 +46,13 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     // Check if user has any calendars first
     if (!calendars || calendars.length === 0) {
       // No calendars - show calendar creation dialog first
+      setIsInitialSetupFlow(true);
       setIsCalendarDialogOpen(true);
       return;
     }
     
     // Has calendars - proceed with availability configuration
+    setIsInitialSetupFlow(false);
     if (!defaultSchedule) {
       await createDefaultSchedule();
     }
@@ -71,11 +74,23 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
 
   const handleGuidedComplete = async () => {
     setIsGuidedModalOpen(false);
+    
     // Force immediate refresh of availability data after configuration
     console.log('Guided configuration completed, forcing data refresh...');
     if (refreshAvailability) {
       await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for DB consistency
       refreshAvailability();
+    }
+    
+    // If this was part of the initial setup flow, ensure we stay in overview mode
+    if (isInitialSetupFlow) {
+      console.log('Initial setup flow completed, staying in overview mode');
+      setIsInitialSetupFlow(false);
+      // Force a re-render to show the overview with new data
+      await new Promise(resolve => setTimeout(resolve, 200));
+      if (refreshAvailability) {
+        refreshAvailability();
+      }
     }
   };
 
