@@ -189,42 +189,77 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   const generateHourNumbers = () => {
     const hours = [];
     
-    // Generate all 24 hours with proper spacing - outer ring (1-12) and inner ring (13-24)
-    for (let i = 1; i <= 24; i++) {
-      const hour12 = i > 12 ? i - 12 : i;
-      const angle = (hour12 * 30) - 90; // -90 to start at 12 o'clock
-      const radius = i > 12 ? 30 : 45; // Inner ring for 13-24, outer ring for 1-12
+    // Generate outer ring (1-12 hours) with proper spacing
+    for (let i = 1; i <= 12; i++) {
+      const angle = (i * 30) - 90; // -90 to start at 12 o'clock, 30 degrees apart
+      const radius = 42; // Outer ring radius
       
       const x = Math.cos(angle * Math.PI / 180) * radius;
       const y = Math.sin(angle * Math.PI / 180) * radius;
       
       hours.push(
         <div
-          key={i}
-          className={`absolute select-none cursor-pointer hover:text-primary transition-colors flex items-center justify-center ${
-            i > 12 ? 'text-sm font-medium text-foreground/70' : 'text-lg font-semibold text-foreground'
-          }`}
+          key={`outer-${i}`}
+          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 transition-all duration-200 flex items-center justify-center text-base font-semibold text-foreground"
           style={{
             left: `calc(50% + ${x}px)`,
             top: `calc(50% + ${y}px)`,
-            width: i > 12 ? '20px' : '24px',
-            height: i > 12 ? '20px' : '24px',
+            width: '20px',
+            height: '20px',
             transform: 'translate(-50%, -50%)'
           }}
           onClick={(e) => {
             e.stopPropagation();
             const currentTime = formattedValue.split(':').map(Number);
             const minutes = currentTime[1];
-            const newHours = i === 24 ? 0 : i;
+            const newHours = i; // Direct mapping for hours 1-12
             
             const newTime = `${newHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
             onChange(newTime);
           }}
         >
-          {i === 24 ? '00' : i.toString().padStart(2, '0')}
+          {i.toString().padStart(2, '0')}
         </div>
       );
     }
+    
+    // Generate inner ring with proper hour mapping (13-24, with 00 at 12 o'clock position)
+    const innerHours = [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0]; // 0 at position 12 (midnight)
+    for (let i = 0; i < 12; i++) {
+      const position = i + 1; // Position 1-12 on clock face
+      const actualHour = innerHours[i]; // Actual hour value (13-23, 0)
+      const angle = (position * 30) - 90; // Same positions as outer ring
+      const radius = 28; // Inner ring radius - smaller for clear separation
+      
+      const x = Math.cos(angle * Math.PI / 180) * radius;
+      const y = Math.sin(angle * Math.PI / 180) * radius;
+      
+      hours.push(
+        <div
+          key={`inner-${actualHour}`}
+          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 transition-all duration-200 flex items-center justify-center text-xs font-medium text-foreground/75"
+          style={{
+            left: `calc(50% + ${x}px)`,
+            top: `calc(50% + ${y}px)`,
+            width: '16px',
+            height: '16px',
+            transform: 'translate(-50%, -50%)'
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            const currentTime = formattedValue.split(':').map(Number);
+            const minutes = currentTime[1];
+            const newHours = actualHour; // Use actual hour value
+            
+            const newTime = `${newHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            onChange(newTime);
+          }}
+        >
+          {actualHour.toString().padStart(2, '0')}
+        </div>
+      );
+    }
+    
     return hours;
   };
 
@@ -329,13 +364,13 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                 <div className="space-y-6">
                   {/* Professional 24-Hour Clock Interface */}
                   <div className="flex flex-col items-center space-y-4">
-                     <div 
+                      <div 
                        ref={clockRef}
-                       className="relative w-64 h-64 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 cursor-pointer hover:border-primary/60 transition-all duration-300 shadow-lg"
+                       className="relative w-64 h-64 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 cursor-pointer hover:border-primary/60 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                        onClick={handleClockClick}
                      >
                        {/* Clock face inner circle */}
-                       <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner">
+                       <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner transition-all duration-300">
                          {/* Hour numbers or minute marks */}
                          {isSelectingMinutes ? generateMinuteMarks() : generateHourNumbers()}
                          
@@ -401,13 +436,13 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                     </div>
                   </div>
                   
-                   {/* Hour/Minute Toggle */}
-                   <div className="flex items-center justify-center space-x-2">
+                    {/* Hour/Minute Toggle */}
+                    <div className="flex items-center justify-center space-x-2">
                      <Button
                        variant={!isSelectingMinutes ? "default" : "outline"}
                        size="lg"
                        onClick={() => setIsSelectingMinutes(false)}
-                       className="min-w-[80px]"
+                       className="min-w-[80px] transition-all duration-200 hover:scale-105 active:scale-95"
                      >
                        Hours
                      </Button>
@@ -415,7 +450,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                        variant={isSelectingMinutes ? "default" : "outline"}
                        size="lg"
                        onClick={() => setIsSelectingMinutes(true)}
-                       className="min-w-[80px]"
+                       className="min-w-[80px] transition-all duration-200 hover:scale-105 active:scale-95"
                      >
                        Minutes
                      </Button>
@@ -462,13 +497,18 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="bg-background hover:bg-muted"
+                className="bg-background hover:bg-muted transition-all duration-200 hover:scale-105 active:scale-95 min-w-[80px]"
               >
                 Cancel
               </Button>
               <Button
-                onClick={onClose}
-                className="bg-primary hover:bg-primary/90"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onChange(formattedValue);
+                  setTimeout(() => onClose(), 100); // Small delay to prevent crash
+                }}
+                className="bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 min-w-[80px]"
               >
                 Done
               </Button>
