@@ -143,47 +143,25 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   };
 
   const handleComplete = async () => {
-    console.log('Starting completion process...', localAvailability);
-    
-    // CRITICAL FIX: Close modal immediately for better UX
-    onClose();
+    // PERFORMANCE FIX: Trigger completion immediately, sync in background
+    onComplete();
     
     try {
-      // Create default schedule first if needed
-      console.log('Creating default schedule...');
+      // Background operations - don't block UI
       await createDefaultSchedule();
       
-      // Give schedule creation time to complete
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      // Sync all availability data in parallel with better error handling
-      console.log('Syncing availability data...');
+      // Fast parallel sync without excessive delays
       const syncPromises = DAYS.map(async (day) => {
         try {
-          console.log(`Syncing ${day.key}:`, localAvailability[day.key]);
           await syncToDatabase(day.key, localAvailability[day.key]);
-          console.log(`Successfully synced ${day.key}`);
         } catch (error) {
           console.error(`Error syncing ${day.key}:`, error);
-          // Don't throw - allow other days to complete
         }
       });
       
-      // Execute all database operations in parallel
       await Promise.all(syncPromises);
-      
-      console.log('All sync operations completed, triggering completion callback...');
-      
-      // Force a small delay to ensure database operations are fully processed
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Trigger completion callback after DB operations complete
-      onComplete();
-      
     } catch (error) {
-      console.error('Error completing availability setup:', error);
-      // Still trigger completion even if there are errors
-      onComplete();
+      console.error('Background sync error:', error);
     }
   };
 

@@ -29,150 +29,87 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
   const { calendars, loading: calendarsLoading } = useCalendars();
 
-  // Reliable state detection with proper loading states
+  // OPTIMIZED: Fast state detection with minimal loading
   React.useEffect(() => {
-    if (calendarsLoading || isRefreshing) {
-      setSetupState('checking');
-      return;
-    }
-
-    // Configuration was just completed - always show configured
+    // Configuration completed - immediately show configured state
     if (configurationCompleted) {
-      console.log('Configuration completed flag is true, showing configured state');
       setSetupState('configured');
       return;
     }
 
-    // No calendars - need calendar creation first
+    // Still loading calendars
+    if (calendarsLoading) {
+      setSetupState('checking');
+      return;
+    }
+
+    // No calendars - need calendar creation
     if (!calendars || calendars.length === 0) {
-      console.log('No calendars found, showing needs_calendar state');
       setSetupState('needs_calendar');
       return;
     }
 
     // Have calendars but no schedule - need configuration
     if (!defaultSchedule) {
-      console.log('No default schedule found, showing needs_config state');
       setSetupState('needs_config');
       return;
     }
 
-    // Have schedule but no availability data yet - still checking
-    if (!availability) {
-      console.log('No availability data found, still checking');
-      setSetupState('checking');
-      return;
-    }
-
-    // Check if availability is actually configured
-    const hasConfiguredDays = DAYS.some(day => {
-      const dayData = availability[day.key];
-      return dayData && (
-        (dayData.enabled && dayData.timeBlocks?.length > 0) ||
-        (!dayData.enabled)
-      );
-    });
-
-    const isConfigured = defaultSchedule && hasConfiguredDays;
+    // Fast availability check - prefer configured state if schedule exists
+    const hasValidAvailability = availability && Object.keys(availability).length > 0;
+    const isConfigured = defaultSchedule && hasValidAvailability;
     
-    console.log('Setup state check result:', {
-      hasCalendars: calendars.length > 0,
-      hasDefaultSchedule: !!defaultSchedule,
-      hasAvailability: !!availability,
-      hasConfiguredDays,
-      finalState: isConfigured ? 'configured' : 'needs_config'
-    });
-
     setSetupState(isConfigured ? 'configured' : 'needs_config');
-  }, [calendars, calendarsLoading, defaultSchedule, availability, configurationCompleted, isRefreshing, DAYS]);
+  }, [calendars, calendarsLoading, defaultSchedule, availability, configurationCompleted]);
 
   const handleConfigureAvailability = async () => {
-    console.log('Starting configuration process...');
     setConfigurationCompleted(false);
-    setIsRefreshing(true);
     
-    try {
-      // Check setup state and handle accordingly
-      if (setupState === 'needs_calendar') {
-        console.log('No calendars found, opening calendar creation dialog');
-        setIsInitialSetupFlow(true);
-        setIsCalendarDialogOpen(true);
-        return;
-      }
-      
-      // Create default schedule if needed
-      if (!defaultSchedule) {
-        console.log('Creating default schedule...');
-        await createDefaultSchedule();
-        // Wait for schedule to be created
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
-      console.log('Opening guided availability modal...');
-      setIsInitialSetupFlow(false);
-      setIsGuidedModalOpen(true);
-    } finally {
-      setIsRefreshing(false);
+    // Fast path: Open modals immediately without loading
+    if (setupState === 'needs_calendar') {
+      setIsInitialSetupFlow(true);
+      setIsCalendarDialogOpen(true);
+      return;
     }
+    
+    // Quick schedule creation if needed
+    if (!defaultSchedule) {
+      setIsRefreshing(true);
+      try {
+        await createDefaultSchedule();
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+    
+    setIsInitialSetupFlow(false);
+    setIsGuidedModalOpen(true);
   };
 
   const handleCalendarCreated = async () => {
-    console.log('Calendar created, starting availability setup...');
     setIsCalendarDialogOpen(false);
     setIsInitialSetupFlow(true);
-    setIsRefreshing(true);
     
-    try {
-      // Wait for calendar to be available and setup state to update
-      console.log('Waiting for calendar to be properly available...');
-      let attempts = 0;
-      const maxAttempts = 10;
-      
-      while (attempts < maxAttempts && (setupState === 'needs_calendar' || setupState === 'checking')) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        attempts++;
-        console.log(`Waiting for setup state to update (attempt ${attempts}), current state:`, setupState);
-      }
-      
-      // Create default schedule if still needed
-      if (!defaultSchedule) {
-        console.log('Creating default schedule after calendar creation...');
-        await createDefaultSchedule();
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
-      console.log('Opening guided modal after calendar creation...');
-      setIsGuidedModalOpen(true);
-    } finally {
-      setIsRefreshing(false);
+    // OPTIMIZED: Immediate transition without waiting
+    // State will update automatically via useEffect
+    
+    // Create schedule in background while opening modal
+    if (!defaultSchedule) {
+      createDefaultSchedule(); // Don't await - let it run in background
     }
+    
+    setIsGuidedModalOpen(true);
   };
 
   const handleGuidedComplete = async () => {
-    console.log('Guided configuration completed, processing completion...');
+    // CRITICAL FIX: Immediate state update and modal close
     setIsGuidedModalOpen(false);
-    setIsRefreshing(true);
+    setConfigurationCompleted(true);
+    setSetupState('configured'); // Force immediate state change
     
-    try {
-      // Force refresh of availability data
-      console.log('Refreshing availability data after configuration...');
-      if (refreshAvailability) {
-        refreshAvailability();
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-      
-      // Set completion flag to ensure configured state
-      console.log('Setting configuration completed flag...');
-      setConfigurationCompleted(true);
-      
-      // Additional refresh to ensure UI is updated
-      if (refreshAvailability) {
-        refreshAvailability();
-      }
-      
-      console.log('Configuration completed successfully, user will see overview');
-    } finally {
-      setIsRefreshing(false);
+    // Background refresh without blocking UI
+    if (refreshAvailability) {
+      refreshAvailability();
     }
   };
 

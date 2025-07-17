@@ -53,12 +53,11 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
   
   const { rules, createRule, updateRule, deleteRule, syncingRules, refetch: refreshRules } = useAvailabilityRules(defaultSchedule?.id);
 
-  // Fix infinite refresh loop - only refresh when schedule ID changes, not all calendar changes
+  // OPTIMIZED: Minimal refresh logic
   const prevScheduleIdRef = useRef<string | undefined>();
   useEffect(() => {
     const currentScheduleId = defaultSchedule?.id;
     if (currentScheduleId && currentScheduleId !== prevScheduleIdRef.current) {
-      console.log('Schedule changed, refreshing availability data...');
       prevScheduleIdRef.current = currentScheduleId;
       onChange();
     }
@@ -189,8 +188,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
         await deleteRule(rule.id);
       }
 
-      // Wait to ensure deletions are processed
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // OPTIMIZED: Reduced deletion wait time
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       if (dayData.enabled && dayData.timeBlocks.length > 0) {
         // Clean and validate time blocks before creating rules
@@ -214,8 +213,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
               is_available: true
             });
             
-            // Small delay between creates to prevent conflicts
-            await new Promise(resolve => setTimeout(resolve, 100));
+      // OPTIMIZED: Reduced delay
+      await new Promise(resolve => setTimeout(resolve, 50));
           } catch (createError: any) {
             console.error(`Error creating rule for ${dayKey}:`, createError);
             
@@ -258,8 +257,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       console.log(`Sync completed successfully for ${dayKey}`);
       
-      // Force refresh availability data after successful sync
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // OPTIMIZED: Immediate refresh without delay
       onChange();
     } catch (error) {
       console.error(`Error syncing ${dayKey} to database:`, error);
