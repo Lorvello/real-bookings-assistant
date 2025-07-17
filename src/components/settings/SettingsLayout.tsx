@@ -2,9 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Building2, Calendar, CreditCard, MessageSquare, Wrench } from 'lucide-react';
+import { User, Calendar, CreditCard, MessageSquare, Wrench } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
-import { BusinessTab } from './BusinessTab';
 import { CalendarTab } from './CalendarTab';
 import { ServicesTab } from './ServicesTab';
 import { BillingTab } from './BillingTab';
@@ -27,7 +26,7 @@ export const SettingsLayout = () => {
   // Handle tab from URL parameters
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['profile', 'business', 'calendar', 'services', 'billing', 'whatsapp'].includes(tabParam)) {
+    if (tabParam && ['profile', 'calendar', 'services', 'billing', 'whatsapp'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -50,14 +49,10 @@ export const SettingsLayout = () => {
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-3 md:space-y-6">
           <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-6 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2">
+            <TabsList className="grid w-full grid-cols-5 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2">
               <TabsTrigger value="profile" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <User className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Profiel</span>
-              </TabsTrigger>
-              <TabsTrigger value="business" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
-                <Building2 className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="text-xs md:text-sm">Bedrijf</span>
               </TabsTrigger>
               <TabsTrigger value="calendar" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Calendar className="h-3 w-3 md:h-4 md:w-4" />
@@ -82,19 +77,14 @@ export const SettingsLayout = () => {
             <ProfileTab
               profileData={profileData}
               setProfileData={setProfileData}
-              loading={loading}
-              handleUpdateProfile={handleUpdateProfile}
-            />
-          </TabsContent>
-
-          <TabsContent value="business" className="space-y-4 md:space-y-6">
-            <BusinessTab
               businessData={businessData}
               setBusinessData={setBusinessData}
               loading={loading}
-              handleUpdateProfile={handleUpdateBusiness}
+              handleUpdateProfile={handleUpdateProfile}
+              handleUpdateBusiness={handleUpdateBusiness}
             />
           </TabsContent>
+
 
           <TabsContent value="calendar" className="space-y-4 md:space-y-6">
             <CalendarTab />
