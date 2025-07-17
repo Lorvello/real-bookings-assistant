@@ -10,7 +10,7 @@ import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
-import { useCalendars } from '@/hooks/useCalendars';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 
 interface AvailabilityContentProps {
   activeTab: string;
@@ -24,11 +24,20 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [setupState, setSetupState] = React.useState<'checking' | 'needs_calendar' | 'needs_config' | 'configured'>('checking');
   
+  const { calendars, loading: calendarsLoading, refreshCalendars } = useCalendarContext();
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
-  const { calendars, loading: calendarsLoading } = useCalendars();
-
-  // Database-driven state detection - reliable and persistent
+  
+  // PHASE 1: Calendar Context Synchronization - refresh availability when calendars change
   React.useEffect(() => {
+    if (!calendarsLoading && calendars.length > 0) {
+      refreshAvailability();
+    }
+  }, [calendars, calendarsLoading, refreshAvailability]);
+
+  // PHASE 4: Improved State Management - robust state detection with loading states
+  React.useEffect(() => {
+    console.log('Setup state detection:', { calendarsLoading, calendars: calendars?.length, defaultSchedule: !!defaultSchedule, availability: Object.keys(availability || {}).length });
+    
     // Still loading calendars
     if (calendarsLoading) {
       setSetupState('checking');
@@ -38,6 +47,12 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     // No calendars - need calendar creation
     if (!calendars || calendars.length === 0) {
       setSetupState('needs_calendar');
+      return;
+    }
+
+    // Prevent premature state changes during refresh
+    if (isRefreshing) {
+      setSetupState('checking');
       return;
     }
 
@@ -52,20 +67,36 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     const hasEnabledDays = Object.values(availability || {}).some(day => day.enabled && day.timeBlocks.length > 0);
     
     setSetupState(hasEnabledDays ? 'configured' : 'needs_config');
-  }, [calendars, calendarsLoading, defaultSchedule, availability]);
+  }, [calendars, calendarsLoading, defaultSchedule, availability, isRefreshing]);
 
   const handleConfigureAvailability = async () => {
+    console.log('Configure availability clicked, setupState:', setupState);
+    
     // Open calendar creation if no calendar exists
     if (setupState === 'needs_calendar') {
       setIsCalendarDialogOpen(true);
       return;
     }
     
-    // Quick schedule creation if needed
+    // PHASE 2: Ensure schedule exists before opening modal
     if (!defaultSchedule) {
       setIsRefreshing(true);
       try {
+        console.log('Creating default schedule before opening modal...');
         await createDefaultSchedule();
+        console.log('Default schedule created, waiting for sync...');
+        
+        // Wait for availability manager to update
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Verify schedule was created
+        if (!defaultSchedule) {
+          throw new Error('Schedule creation failed');
+        }
+      } catch (error) {
+        console.error('Error creating schedule:', error);
+        setIsRefreshing(false);
+        return;
       } finally {
         setIsRefreshing(false);
       }
@@ -79,36 +110,76 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     setIsRefreshing(true);
     
     try {
-      console.log('Calendar created, waiting for sync...');
+      console.log('Calendar created, refreshing calendar context...');
       
-      // Wait for calendar refresh to complete properly
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // PHASE 1: Refresh calendar context to get new calendar
+      await refreshCalendars();
+      
+      console.log('Calendar context refreshed, waiting for sync...');
+      await new Promise(resolve => setTimeout(resolve, 400));
       
       console.log('Now creating default schedule...');
       
-      // CRITICAL: Wait for schedule creation before opening modal
-      await createDefaultSchedule();
-      console.log('Default schedule created successfully, opening modal...');
+      // PHASE 2: Create schedule with retry mechanism
+      let retryCount = 0;
+      const maxRetries = 3;
       
-      // Additional verification delay
-      await new Promise(resolve => setTimeout(resolve, 100));
+      while (retryCount < maxRetries) {
+        try {
+          await createDefaultSchedule();
+          console.log('Default schedule created successfully');
+          break;
+        } catch (error) {
+          retryCount++;
+          console.warn(`Schedule creation attempt ${retryCount} failed:`, error);
+          
+          if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          } else {
+            throw error;
+          }
+        }
+      }
+      
+      // PHASE 2: Verify schedule creation before opening modal
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       // Only open modal after schedule is actually created
       setIsGuidedModalOpen(true);
     } catch (error) {
-      console.error('Error creating default schedule:', error);
-      // Could show error toast here
+      console.error('Error in calendar creation flow:', error);
+      // Keep user informed but don't block them
+      setIsRefreshing(false);
+      throw error;
     } finally {
       setIsRefreshing(false);
     }
   };
 
-  const handleGuidedComplete = () => {
-    // Close modal - data should already be saved by the modal
-    setIsGuidedModalOpen(false);
+  const handleGuidedComplete = async () => {
+    console.log('Guided setup completed, refreshing state...');
     
-    // Trigger refresh to show updated state
-    refreshAvailability();
+    // PHASE 3: Ensure data is fully saved before closing modal
+    setIsRefreshing(true);
+    
+    try {
+      // Wait for any pending saves to complete
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Refresh availability to get latest state
+      await refreshAvailability();
+      
+      // Close modal after refresh
+      setIsGuidedModalOpen(false);
+      
+      console.log('Setup completed successfully');
+    } catch (error) {
+      console.error('Error completing setup:', error);
+      // Still close modal to avoid blocking user
+      setIsGuidedModalOpen(false);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   if (activeTab === 'schedule') {

@@ -299,7 +299,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     };
   }, [syncTimeouts]);
 
-  // Function to create a default schedule
+  // PHASE 2: Improved schedule creation with better error handling and verification
   const createDefaultSchedule = async () => {
     if (!defaultCalendar) {
       console.error('No default calendar available for schedule creation');
@@ -309,16 +309,43 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     try {
       console.log('Creating default schedule for calendar:', defaultCalendar.id);
       
-      // Verify calendar exists in database before creating schedule
-      const { data: calendarCheck, error: calendarError } = await supabase
-        .from('calendars')
+      // PHASE 2: Enhanced calendar verification with retry
+      let calendarCheck = null;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries && !calendarCheck) {
+        const { data, error } = await supabase
+          .from('calendars')
+          .select('id')
+          .eq('id', defaultCalendar.id)
+          .single();
+        
+        if (error) {
+          console.warn(`Calendar check attempt ${retryCount + 1} failed:`, error);
+          retryCount++;
+          
+          if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          } else {
+            throw new Error(`Calendar not found after ${maxRetries} attempts`);
+          }
+        } else {
+          calendarCheck = data;
+        }
+      }
+      
+      // Check if schedule already exists
+      const { data: existingSchedule } = await supabase
+        .from('availability_schedules')
         .select('id')
-        .eq('id', defaultCalendar.id)
+        .eq('calendar_id', defaultCalendar.id)
+        .eq('is_default', true)
         .single();
       
-      if (calendarError || !calendarCheck) {
-        console.error('Calendar not found in database:', calendarError);
-        throw new Error('Calendar not found in database');
+      if (existingSchedule) {
+        console.log('Default schedule already exists:', existingSchedule.id);
+        return existingSchedule;
       }
       
       const { data, error } = await supabase
@@ -338,8 +365,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       console.log('Default schedule created successfully:', data);
       
-      // Longer delay to ensure database sync
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // PHASE 2: Verification delay and refresh
+      await new Promise(resolve => setTimeout(resolve, 300));
       onChange();
       
       return data;

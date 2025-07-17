@@ -146,10 +146,30 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     try {
       console.log('Saving availability configuration...');
       
-      // Save all availability data to database before completing
-      const savePromises = DAYS.map(day => {
+      // PHASE 3: Improved saving with better error handling
+      const savePromises = DAYS.map(async (day) => {
         const dayData = localAvailability[day.key];
-        return syncToDatabase(day.key, dayData);
+        
+        // Retry mechanism for each day
+        let retryCount = 0;
+        const maxRetries = 2;
+        
+        while (retryCount < maxRetries) {
+          try {
+            await syncToDatabase(day.key, dayData);
+            console.log(`Successfully saved ${day.key}`);
+            return;
+          } catch (error) {
+            retryCount++;
+            console.warn(`Save attempt ${retryCount} failed for ${day.key}:`, error);
+            
+            if (retryCount < maxRetries) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } else {
+              throw error;
+            }
+          }
+        }
       });
       
       // Wait for all days to be saved
@@ -157,12 +177,14 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       
       console.log('All availability data saved successfully');
       
+      // Additional verification delay
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Only complete after everything is saved
       onComplete();
     } catch (error) {
       console.error('Error saving availability configuration:', error);
-      // Could show error message to user here
-      // For now, still complete to avoid blocking the user
+      // Still complete to avoid blocking user, but log the error
       onComplete();
     }
   };
