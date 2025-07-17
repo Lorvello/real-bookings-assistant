@@ -71,7 +71,6 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               min="0"
               max="120"
             />
-            <p className="text-xs text-muted-foreground">Time between appointments</p>
           </div>
         </div>
 
@@ -99,7 +98,6 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               min="0"
               max="168"
             />
-            <p className="text-xs text-muted-foreground">How far in advance bookings are required</p>
           </div>
 
           <div className="space-y-2">
@@ -124,7 +122,6 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               min="1"
               max="365"
             />
-            <p className="text-xs text-muted-foreground">How far in the future bookings are allowed</p>
           </div>
         </div>
 
@@ -151,7 +148,6 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
             max="50"
             placeholder="No limit"
           />
-          <p className="text-xs text-muted-foreground">Leave empty for no daily limit</p>
         </div>
       </div>
     </TooltipProvider>
