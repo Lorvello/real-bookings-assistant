@@ -10,7 +10,8 @@ import {
   Bot,
   Lock,
   AlertCircle,
-  Eye
+  Eye,
+  Phone
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +30,7 @@ const navigation: NavItem[] = [
   { name: 'Bookings', href: '/bookings', icon: BookOpen, requiresAccess: 'canCreateBookings', description: 'View and manage bookings' },
   { name: 'Availability', href: '/availability', icon: Clock, description: 'Set your working hours' },
   { name: 'WhatsApp', href: '/conversations', icon: MessageCircle, requiresAccess: 'canAccessWhatsApp', description: 'WhatsApp booking assistant' },
+  { name: 'Booking Assistant', href: '/whatsapp-booking-assistant', icon: Phone, requiresAccess: 'canAccessWhatsApp', description: 'WhatsApp booking assistant setup' },
   { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot, requiresAccess: 'canUseAI', description: 'AI assistant features' },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
