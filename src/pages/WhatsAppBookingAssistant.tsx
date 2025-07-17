@@ -20,7 +20,9 @@ export default function WhatsAppBookingAssistantPage() {
 
   return (
     <DashboardLayout>
-      <WhatsAppBookingAssistant calendarId={selectedCalendar.id} />
+      <div className="bg-gray-900 min-h-full p-2 md:p-8">
+        <WhatsAppBookingAssistant calendarId={selectedCalendar.id} />
+      </div>
     </DashboardLayout>
   );
 }

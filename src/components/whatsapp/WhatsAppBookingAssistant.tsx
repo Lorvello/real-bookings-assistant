@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Copy, Check, QrCode, Phone, MessageCircle, Clock, Users, Zap, Shield, BarChart3, Settings, ExternalLink } from 'lucide-react';
+import { Copy, Check, QrCode, Phone, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 
 interface WhatsAppBookingAssistantProps {
@@ -21,10 +20,10 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
     try {
       await navigator.clipboard.writeText(formattedNumber);
       setCopied(true);
-      toast.success('Telefoonnummer gekopieerd naar klembord');
+      toast.success('Phone number copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast.error('Kon telefoonnummer niet kopiëren');
+      toast.error('Could not copy phone number');
     }
   };
 
@@ -33,102 +32,46 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
     return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(whatsappUrl)}`;
   };
 
-  const generateWhatsAppLink = () => {
-    return `https://wa.me/${formattedNumber.replace('+', '')}`;
+  const downloadQRCode = () => {
+    const link = document.createElement('a');
+    link.href = generateQRCode();
+    link.download = 'whatsapp-qr-code.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('QR code downloaded');
   };
 
-  const features = [
-    {
-      icon: MessageCircle,
-      title: "24/7 Beschikbaarheid",
-      description: "Klanten kunnen altijd berichten sturen, ook buiten kantooruren"
-    },
-    {
-      icon: Clock,
-      title: "Directe Responses",
-      description: "Gemiddelde responstijd van minder dan 2 seconden"
-    },
-    {
-      icon: Users,
-      title: "Meerdere Klanten",
-      description: "Behandelt onbeperkt aantal gesprekken tegelijkertijd"
-    },
-    {
-      icon: Zap,
-      title: "Automatische Boekingen",
-      description: "Volledige boekingsprocessen zonder menselijke tussenkomst"
-    },
-    {
-      icon: Shield,
-      title: "Veilig & Betrouwbaar",
-      description: "End-to-end versleuteling en GDPR-compliant"
-    },
-    {
-      icon: BarChart3,
-      title: "Gedetailleerde Analytics",
-      description: "Volledige inzichten in klantinteracties en conversies"
-    }
-  ];
-
-  const integrationOptions = [
-    {
-      title: "Website Integratie",
-      description: "Voeg een WhatsApp widget toe aan je website",
-      action: "Widget Code Krijgen"
-    },
-    {
-      title: "Social Media",
-      description: "Deel het nummer op Facebook, Instagram en LinkedIn",
-      action: "Delen"
-    },
-    {
-      title: "Visitekaartjes",
-      description: "Voeg de QR-code toe aan je fysieke materialen",
-      action: "QR Code Downloaden"
-    },
-    {
-      title: "E-mail Handtekening",
-      description: "Voeg het nummer toe aan je e-mail handtekening",
-      action: "Template Krijgen"
-    }
-  ];
-
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header Section */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-          <Phone className="h-8 w-8 text-green-600" />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
+        <div className="flex items-center gap-3">
+          <Phone className="h-8 w-8 text-green-500" />
+          <div>
+            <h1 className="text-3xl font-bold text-white">Bookings Assistant</h1>
+            <p className="text-gray-400 mt-1">WhatsApp booking assistant setup</p>
+          </div>
         </div>
-        <h1 className="text-4xl font-bold text-foreground">
-          Jouw WhatsApp Booking Assistant
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          De AI-gebaseerde boekingsassistent die 24/7 beschikbaar is voor je klanten. 
-          Automatiseer je boekingsproces en verhoog je conversies.
-        </p>
       </div>
 
-      {/* Main Card with WhatsApp Number */}
-      <Card className="max-w-4xl mx-auto shadow-xl border-2 border-green-100">
-        <CardHeader className="text-center bg-gradient-to-r from-green-50 to-emerald-50">
-          <CardTitle className="flex items-center justify-center gap-3 text-2xl">
-            <MessageCircle className="h-6 w-6 text-green-600" />
-            WhatsApp Nummer
+      {/* WhatsApp Number Card */}
+      <Card className="bg-slate-800/90 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Phone className="h-5 w-5 text-green-500" />
+            WhatsApp Number
           </CardTitle>
-          <CardDescription className="text-base">
-            Deel dit nummer met klanten voor directe AI-gebaseerde boekingen
-          </CardDescription>
         </CardHeader>
-        <CardContent className="p-8">
+        <CardContent className="space-y-6">
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Left Side - Number and Actions */}
-            <div className="space-y-6">
-              <div className="bg-gray-50 rounded-xl p-6 text-center">
-                <div className="text-4xl font-mono font-bold text-foreground mb-4">
+            {/* Left Side - Number */}
+            <div className="space-y-4">
+              <div className="bg-slate-700/50 rounded-xl p-6 text-center border border-slate-600/30">
+                <div className="text-2xl font-mono font-bold text-white mb-4">
                   {whatsappNumber}
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="flex flex-col gap-3">
                   <Button
                     onClick={handleCopyNumber}
                     className="gap-2 bg-green-600 hover:bg-green-700"
@@ -137,169 +80,77 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
                     {copied ? (
                       <>
                         <Check className="h-4 w-4" />
-                        Gekopieerd!
+                        Copied!
                       </>
                     ) : (
                       <>
                         <Copy className="h-4 w-4" />
-                        Kopieer Nummer
+                        Copy Number
                       </>
                     )}
                   </Button>
-                  <Button
-                    onClick={() => window.open(generateWhatsAppLink(), '_blank')}
-                    variant="outline"
-                    className="gap-2 border-green-600 text-green-600 hover:bg-green-50"
-                    size="lg"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Test Direct
-                  </Button>
+                  <Badge variant="outline" className="bg-slate-700/50 border-green-500/50 text-green-400">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                    AI Assistant Active
+                  </Badge>
                 </div>
-              </div>
-              
-              {/* Status Badge */}
-              <div className="text-center">
-                <Badge variant="default" className="bg-green-100 text-green-800 px-4 py-2">
-                  <div className="w-2 h-2 bg-green-600 rounded-full mr-2 animate-pulse"></div>
-                  AI Assistant Online
-                </Badge>
               </div>
             </div>
 
             {/* Right Side - QR Code */}
-            <div className="text-center space-y-4">
-              <div className="inline-block bg-white p-6 rounded-xl shadow-lg">
-                <img
-                  src={generateQRCode()}
-                  alt="WhatsApp QR Code"
-                  className="mx-auto rounded-lg"
-                  width={300}
-                  height={300}
-                />
+            <div className="space-y-4">
+              <div className="bg-slate-700/50 rounded-xl p-6 text-center border border-slate-600/30">
+                <div className="inline-block bg-white p-4 rounded-lg mb-4">
+                  <img
+                    src={generateQRCode()}
+                    alt="WhatsApp QR Code"
+                    className="mx-auto rounded"
+                    width={200}
+                    height={200}
+                  />
+                </div>
+                <p className="text-gray-400 text-sm mb-4">
+                  Scan to open WhatsApp directly
+                </p>
+                <Button 
+                  onClick={downloadQRCode}
+                  variant="outline" 
+                  className="gap-2 border-slate-600 text-gray-300 hover:bg-slate-700"
+                >
+                  <Download className="h-4 w-4" />
+                  Download QR Code
+                </Button>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Scan om direct WhatsApp te openen
-              </p>
-              <Button variant="outline" className="gap-2" size="sm">
-                <QrCode className="h-4 w-4" />
-                QR Code Downloaden
-              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Features Grid */}
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8">Waarom onze AI Assistant?</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 hover-scale">
-              <CardContent className="p-6">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-                  <feature.icon className="h-6 w-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* Integration Options */}
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold text-center mb-6">Integratie Mogelijkheden</h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          {integrationOptions.map((option, index) => (
-            <Card key={index} className="hover:shadow-md transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-semibold text-lg">{option.title}</h3>
-                    <p className="text-muted-foreground text-sm">{option.description}</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" className="w-full">
-                  {option.action}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* Usage Instructions */}
-      <Card className="max-w-4xl mx-auto">
+      {/* Instructions */}
+      <Card className="bg-slate-800/90 border-slate-700/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Implementatie Handleiding
-          </CardTitle>
+          <CardTitle className="text-white">Setup Instructions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold mb-3">Voor Nieuwe Klanten:</h3>
-                <ol className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">1.</span>
-                    <span>Klant stuurt bericht naar WhatsApp nummer</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">2.</span>
-                    <span>AI verwelkomt klant en vraagt naar gewenste service</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">3.</span>
-                    <span>Beschikbare tijden worden automatisch getoond</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">4.</span>
-                    <span>Klant kiest tijd en bevestigt afspraak</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">5.</span>
-                    <span>Automatische bevestiging en agenda-item</span>
-                  </li>
-                </ol>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-3">Voor Bestaande Klanten:</h3>
-                <ol className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">1.</span>
-                    <span>AI herkent klant automatisch</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">2.</span>
-                    <span>Toont vorige afspraken en voorkeuren</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">3.</span>
-                    <span>Stelt aangepaste tijden voor</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">4.</span>
-                    <span>Snellere boekingsproces</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">5.</span>
-                    <span>Gepersonaliseerde service</span>
-                  </li>
-                </ol>
-              </div>
+          <div className="space-y-4">
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2">Share with customers</h3>
+              <p className="text-gray-400 text-sm">
+                Provide this WhatsApp number to customers for AI-powered booking assistance.
+              </p>
             </div>
             
-            <Separator />
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2">QR Code usage</h3>
+              <p className="text-gray-400 text-sm">
+                Place the QR code on your website, business cards, or marketing materials for easy access.
+              </p>
+            </div>
             
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-blue-900 mb-2">💡 Pro Tip</h3>
-              <p className="text-blue-800 text-sm">
-                Plaats dit nummer prominent op je website en social media voor de beste resultaten. 
-                Klanten prefereren WhatsApp boven traditionele boekingsformulieren!
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2">Automatic booking</h3>
+              <p className="text-gray-400 text-sm">
+                Customers can book appointments directly through WhatsApp using the AI assistant.
               </p>
             </div>
           </div>
