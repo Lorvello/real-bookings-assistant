@@ -112,13 +112,9 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
     }));
   }, []);
 
-  // PHASE 4: Implement single save operation on close
-  const handleSaveAndClose = useCallback(async () => {
-    if (!hasUnsavedChanges) {
-      onComplete();
-      onClose();
-      return;
-    }
+  // Separate save and close actions for immediate feedback
+  const handleSave = useCallback(async () => {
+    if (!hasUnsavedChanges) return;
 
     setIsSaving(true);
     setError(null);
@@ -127,14 +123,19 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
       console.log(`Saving changes for ${currentDay.key}:`, localDayData);
       await syncToDatabase(currentDay.key, localDayData);
       setHasUnsavedChanges(false);
+      // Immediately refresh the parent component
       onComplete();
-      onClose();
+      setIsSaving(false);
     } catch (error) {
       console.error('Save failed:', error);
       setError('Failed to save changes. Please try again.');
       setIsSaving(false);
     }
-  }, [hasUnsavedChanges, localDayData, currentDay.key, syncToDatabase, onComplete, onClose]);
+  }, [hasUnsavedChanges, localDayData, currentDay.key, syncToDatabase, onComplete]);
+
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -266,19 +267,30 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
         <div className="flex items-center justify-between pt-4 border-t border-border/40">
           <Button
             variant="ghost"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isSaving}
             className="text-muted-foreground hover:text-foreground"
           >
-            Cancel
+            Close
           </Button>
-          <Button
-            onClick={handleSaveAndClose}
-            disabled={isSaving}
-            className="bg-primary hover:bg-primary/90"
-          >
-            {isSaving ? 'Saving...' : hasUnsavedChanges ? 'Save Changes' : 'Done'}
-          </Button>
+          <div className="flex items-center space-x-2">
+            {hasUnsavedChanges && (
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {isSaving ? 'Saving...' : 'Save'}
+              </Button>
+            )}
+            {!hasUnsavedChanges && !isSaving && (
+              <div className="flex items-center space-x-2 text-sm text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <span>Saved</span>
+              </div>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
