@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
 import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
 import { useCalendars } from '@/hooks/useCalendars';
@@ -53,14 +53,16 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
   
   const { rules, createRule, updateRule, deleteRule, syncingRules, refetch: refreshRules } = useAvailabilityRules(defaultSchedule?.id);
 
-  // CRITICAL FIX: Track when calendars change to refresh availability data
+  // Fix infinite refresh loop - only refresh when schedule ID changes, not all calendar changes
+  const prevScheduleIdRef = useRef<string | undefined>();
   useEffect(() => {
-    if (calendars.length > 0) {
-      console.log('Calendars changed, refreshing availability data...');
-      // Trigger onChange to refresh availability data when calendars change
+    const currentScheduleId = defaultSchedule?.id;
+    if (currentScheduleId && currentScheduleId !== prevScheduleIdRef.current) {
+      console.log('Schedule changed, refreshing availability data...');
+      prevScheduleIdRef.current = currentScheduleId;
       onChange();
     }
-  }, [calendars, onChange]);
+  }, [defaultSchedule?.id, onChange]);
 
   const [availability, setAvailability] = useState<Record<string, DayAvailability>>(() => {
     const initial: Record<string, DayAvailability> = {};

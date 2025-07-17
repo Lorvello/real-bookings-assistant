@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Info, Globe, Calendar, Clock } from 'lucide-react';
@@ -23,29 +23,48 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   const [isInitialSetupFlow, setIsInitialSetupFlow] = useState(false);
   const [configurationCompleted, setConfigurationCompleted] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [setupState, setSetupState] = useState<'checking' | 'needs_calendar' | 'needs_config' | 'configured'>('checking');
+  
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
-  const { calendars } = useCalendars();
+  const { calendars, loading: calendarsLoading } = useCalendars();
 
-  // Check if availability is configured (enhanced to detect configured availability immediately after setup)
-  const isAvailabilityConfigured = () => {
-    // If configuration was just completed, always show overview
+  // Reliable state detection with proper loading states
+  useEffect(() => {
+    if (calendarsLoading || isRefreshing) {
+      setSetupState('checking');
+      return;
+    }
+
+    // Configuration was just completed - always show configured
     if (configurationCompleted) {
-      console.log('Configuration completed flag is true, showing overview');
-      return true;
+      console.log('Configuration completed flag is true, showing configured state');
+      setSetupState('configured');
+      return;
     }
-    
+
+    // No calendars - need calendar creation first
+    if (!calendars || calendars.length === 0) {
+      console.log('No calendars found, showing needs_calendar state');
+      setSetupState('needs_calendar');
+      return;
+    }
+
+    // Have calendars but no schedule - need configuration
     if (!defaultSchedule) {
-      console.log('No default schedule found, showing configuration');
-      return false;
+      console.log('No default schedule found, showing needs_config state');
+      setSetupState('needs_config');
+      return;
     }
-    
-    // More robust check for configured availability
+
+    // Have schedule but no availability data yet - still checking
     if (!availability) {
-      console.log('No availability data found, showing configuration');
-      return false;
+      console.log('No availability data found, still checking');
+      setSetupState('checking');
+      return;
     }
-    
-    // Show overview if at least some days are configured OR if we have database rules
+
+    // Check if availability is actually configured
     const hasConfiguredDays = DAYS.some(day => {
       const dayData = availability[day.key];
       return dayData && (
@@ -53,90 +72,107 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
         (!dayData.enabled)
       );
     });
+
+    const isConfigured = defaultSchedule && hasConfiguredDays;
     
-    // ENHANCED: Also check if we have any database rules (even default ones)
-    const hasBasicConfig = defaultSchedule && (hasConfiguredDays || DAYS.some(day => availability[day.key]?.enabled));
-    
-    console.log('Availability check result:', {
+    console.log('Setup state check result:', {
+      hasCalendars: calendars.length > 0,
       hasDefaultSchedule: !!defaultSchedule,
+      hasAvailability: !!availability,
       hasConfiguredDays,
-      hasBasicConfig,
-      willShowOverview: hasBasicConfig
+      finalState: isConfigured ? 'configured' : 'needs_config'
     });
-    
-    // Always show overview if we have a default schedule and some configuration
-    return hasBasicConfig;
-  };
+
+    setSetupState(isConfigured ? 'configured' : 'needs_config');
+  }, [calendars, calendarsLoading, defaultSchedule, availability, configurationCompleted, isRefreshing, DAYS]);
 
   const handleConfigureAvailability = async () => {
-    // Reset configuration completed flag when starting new configuration
+    console.log('Starting configuration process...');
     setConfigurationCompleted(false);
+    setIsRefreshing(true);
     
-    // Check if user has any calendars first
-    if (!calendars || calendars.length === 0) {
-      // No calendars - show calendar creation dialog first
-      setIsInitialSetupFlow(true);
-      setIsCalendarDialogOpen(true);
-      return;
+    try {
+      // Check setup state and handle accordingly
+      if (setupState === 'needs_calendar') {
+        console.log('No calendars found, opening calendar creation dialog');
+        setIsInitialSetupFlow(true);
+        setIsCalendarDialogOpen(true);
+        return;
+      }
+      
+      // Create default schedule if needed
+      if (!defaultSchedule) {
+        console.log('Creating default schedule...');
+        await createDefaultSchedule();
+        // Wait for schedule to be created
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      console.log('Opening guided availability modal...');
+      setIsInitialSetupFlow(false);
+      setIsGuidedModalOpen(true);
+    } finally {
+      setIsRefreshing(false);
     }
-    
-    // Has calendars - proceed with availability configuration
-    setIsInitialSetupFlow(false);
-    if (!defaultSchedule) {
-      await createDefaultSchedule();
-    }
-    setIsGuidedModalOpen(true);
   };
 
   const handleCalendarCreated = async () => {
+    console.log('Calendar created, starting availability setup...');
     setIsCalendarDialogOpen(false);
     setIsInitialSetupFlow(true);
+    setIsRefreshing(true);
     
-    // CRITICAL FIX: Wait longer for calendar to be properly selected and availability data to load
-    console.log('Calendar created, waiting for data to be available...');
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Force refresh of availability data
-    if (refreshAvailability) {
-      console.log('Refreshing availability data after calendar creation...');
-      refreshAvailability();
-      await new Promise(resolve => setTimeout(resolve, 200));
+    try {
+      // Wait for calendar to be available and setup state to update
+      console.log('Waiting for calendar to be properly available...');
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (attempts < maxAttempts && (setupState === 'needs_calendar' || setupState === 'checking')) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        attempts++;
+        console.log(`Waiting for setup state to update (attempt ${attempts}), current state:`, setupState);
+      }
+      
+      // Create default schedule if still needed
+      if (!defaultSchedule) {
+        console.log('Creating default schedule after calendar creation...');
+        await createDefaultSchedule();
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      console.log('Opening guided modal after calendar creation...');
+      setIsGuidedModalOpen(true);
+    } finally {
+      setIsRefreshing(false);
     }
-    
-    // Open guided modal after calendar creation
-    console.log('Opening guided modal after calendar creation...');
-    setIsGuidedModalOpen(true);
   };
 
   const handleGuidedComplete = async () => {
+    console.log('Guided configuration completed, processing completion...');
     setIsGuidedModalOpen(false);
+    setIsRefreshing(true);
     
-    // CRITICAL FIX: Force refresh of availability data first, then set completion flag
-    console.log('Guided configuration completed, forcing data refresh...');
-    
-    // Multiple refresh attempts to ensure data is loaded
-    if (refreshAvailability) {
-      await new Promise(resolve => setTimeout(resolve, 200)); // Increased delay for DB consistency
-      refreshAvailability();
+    try {
+      // Force refresh of availability data
+      console.log('Refreshing availability data after configuration...');
+      if (refreshAvailability) {
+        refreshAvailability();
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
       
-      // Second refresh to ensure all data is loaded
-      await new Promise(resolve => setTimeout(resolve, 200));
-      refreshAvailability();
-    }
-    
-    // Wait for data to be actually available before setting completion flag
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // NOW set configuration completed flag to ensure overview is shown
-    console.log('Setting configuration completed flag after data refresh');
-    setConfigurationCompleted(true);
-    
-    // After a successful setup, ensure overview stays visible
-    console.log('Configuration completed successfully, overview will be shown');
-    
-    // Force onChange to trigger any dependent updates
-    if (refreshAvailability) {
-      refreshAvailability();
+      // Set completion flag to ensure configured state
+      console.log('Setting configuration completed flag...');
+      setConfigurationCompleted(true);
+      
+      // Additional refresh to ensure UI is updated
+      if (refreshAvailability) {
+        refreshAvailability();
+      }
+      
+      console.log('Configuration completed successfully, user will see overview');
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -145,8 +181,18 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
       <>
         <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
           <div className="max-w-7xl mx-auto p-5">
-            {!defaultSchedule ? (
-              // Empty state - show guided configuration starter
+            {/* Loading state */}
+            {setupState === 'checking' && (
+              <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center space-y-4">
+                  <div className="w-8 h-8 bg-primary rounded-full animate-spin mx-auto"></div>
+                  <p className="text-muted-foreground">Loading your availability settings...</p>
+                </div>
+              </div>
+            )}
+
+            {/* No calendar state - show configuration starter */}
+            {(setupState === 'needs_calendar' || setupState === 'needs_config') && (
               <div className="flex items-center justify-center min-h-[60vh]">
                 <div className="text-center space-y-6 max-w-md">
                   <div className="flex items-center justify-center space-x-3">
@@ -168,22 +214,21 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
                   
                   <Button 
                     onClick={handleConfigureAvailability}
+                    disabled={isRefreshing}
                     className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg font-medium"
                   >
-                    Start Configuration
+                    {isRefreshing ? 'Setting up...' : 'Start Configuration'}
                   </Button>
                 </div>
               </div>
-            ) : (
+            )}
+
+            {/* Configured state - show overview */}
+            {setupState === 'configured' && (
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Main Content - Left Side */}
                 <div className="lg:col-span-3 space-y-8">
-                  {/* Show overview if configured, otherwise show step-by-step */}
-                  {isAvailabilityConfigured() ? (
-                    <AvailabilityOverview onChange={refreshAvailability} />
-                  ) : (
-                    <StepByStepDayConfiguration />
-                  )}
+                  <AvailabilityOverview onChange={refreshAvailability} />
                 </div>
 
                 {/* Sidebar - Right Side */}
