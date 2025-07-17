@@ -17,16 +17,39 @@
 .react-day-picker .rdp-months {
   display: flex !important;
   flex-direction: row !important;
-  gap: 2rem !important;
+  gap: 1.5rem !important;
   width: 100% !important;
   justify-content: center !important;
   align-items: flex-start !important;
+  flex-wrap: nowrap !important;
 }
 
 .react-day-picker .rdp-month {
   display: block !important;
   width: auto !important;
   min-width: 280px !important;
+  max-width: 320px !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+}
+
+/* Additional overrides for month containers */
+.react-day-picker .rdp-month_wrapper,
+.react-day-picker .rdp-month_grid {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Force any month-related containers to not stack vertically */
+.react-day-picker [class*="rdp-month"] {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Override any potential vertical stacking */
+.react-day-picker .rdp-months > * {
+  display: block !important;
   flex-shrink: 0 !important;
 }
 
