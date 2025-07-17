@@ -256,7 +256,7 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2">Manage conversations</h3>
               <p className="text-gray-400 text-sm">
-                View and manage all WhatsApp conversations in the WhatsApp tab. You can take over any conversation if needed.
+                View and manage all WhatsApp conversations in the WhatsApp tab.
               </p>
             </div>
           </div>
