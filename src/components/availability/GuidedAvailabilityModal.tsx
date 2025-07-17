@@ -8,9 +8,6 @@ import { Progress } from '@/components/ui/progress';
 import { CheckCircle, Clock, ArrowLeft, ArrowRight, Calendar, Globe } from 'lucide-react';
 import { ProfessionalTimePicker } from './ProfessionalTimePicker';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
-import { useCalendarContext } from '@/contexts/CalendarContext';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
 
 interface GuidedAvailabilityModalProps {
@@ -68,8 +65,6 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   });
 
   const { syncToDatabase, createDefaultSchedule, availability: existingAvailability } = useDailyAvailabilityManager(() => {});
-  const { selectedCalendar, refreshCalendars } = useCalendarContext();
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Load existing availability data when in edit mode
@@ -79,13 +74,6 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       setLocalAvailability(existingAvailability);
     }
   }, [editMode, existingAvailability]);
-
-  // Load current timezone from selected calendar
-  useEffect(() => {
-    if (selectedCalendar?.timezone) {
-      setTimezone(selectedCalendar.timezone);
-    }
-  }, [selectedCalendar]);
 
   const totalSteps = DAYS.length + 1; // Days + timezone step
   const progress = (currentStep / totalSteps) * 100;
@@ -162,55 +150,6 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
     }
-  };
-
-  // Function to update calendar timezone
-  const updateCalendarTimezone = async (newTimezone: string) => {
-    if (!selectedCalendar?.id) {
-      console.error('No calendar selected for timezone update');
-      return false;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('calendars')
-        .update({ timezone: newTimezone })
-        .eq('id', selectedCalendar.id);
-
-      if (error) {
-        console.error('Error updating calendar timezone:', error);
-        toast({
-          title: "Fout",
-          description: "Kan tijdzone niet opslaan",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      console.log('Calendar timezone updated successfully to:', newTimezone);
-      toast({
-        title: "Succes",
-        description: "Tijdzone succesvol opgeslagen",
-      });
-
-      // Refresh calendars to update context
-      await refreshCalendars();
-      return true;
-    } catch (error) {
-      console.error('Error updating calendar timezone:', error);
-      toast({
-        title: "Fout",
-        description: "Kan tijdzone niet opslaan",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  // Auto-save timezone on change
-  const handleTimezoneChange = async (newTimezone: string) => {
-    setTimezone(newTimezone);
-    await updateCalendarTimezone(newTimezone);
   };
 
   const handleComplete = async () => {
@@ -382,7 +321,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         </div>
 
         <div className="space-y-4">
-          <Select value={timezone} onValueChange={handleTimezoneChange}>
+          <Select value={timezone} onValueChange={setTimezone}>
             <SelectTrigger className="w-full bg-background border-border hover:border-primary/40 transition-colors rounded-xl h-12">
               <SelectValue />
             </SelectTrigger>
