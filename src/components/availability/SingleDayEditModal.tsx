@@ -52,7 +52,7 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { syncToDatabase } = useDailyAvailabilityManager(() => {});
+  const { syncToDatabase, refreshAvailability } = useDailyAvailabilityManager(() => {});
   
   // Get current day info
   const currentDay = DAYS[dayIndex];
@@ -123,7 +123,9 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
       console.log(`Saving changes for ${currentDay.key}:`, localDayData);
       await syncToDatabase(currentDay.key, localDayData);
       setHasUnsavedChanges(false);
-      // Immediately refresh the parent component
+      
+      // Force immediate refresh of the rules and trigger parent update
+      await refreshAvailability();
       onComplete();
       setIsSaving(false);
     } catch (error) {
@@ -131,7 +133,7 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
       setError('Failed to save changes. Please try again.');
       setIsSaving(false);
     }
-  }, [hasUnsavedChanges, localDayData, currentDay.key, syncToDatabase, onComplete]);
+  }, [hasUnsavedChanges, localDayData, currentDay.key, syncToDatabase, refreshAvailability, onComplete]);
 
   const handleClose = useCallback(() => {
     onClose();
