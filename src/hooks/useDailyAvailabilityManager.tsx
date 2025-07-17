@@ -323,10 +323,9 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       console.log('Default schedule created successfully:', data);
       
-      // Trigger immediate refresh
-      setTimeout(() => {
-        onChange();
-      }, 50);
+      // Small delay to ensure database sync, then refresh
+      await new Promise(resolve => setTimeout(resolve, 100));
+      onChange();
       
       return data;
       

@@ -142,9 +142,29 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     }
   };
 
-  const handleComplete = () => {
-    // IMMEDIATE: Trigger parent completion callback
-    onComplete();
+  const handleComplete = async () => {
+    try {
+      console.log('Saving availability configuration...');
+      
+      // Save all availability data to database before completing
+      const savePromises = DAYS.map(day => {
+        const dayData = localAvailability[day.key];
+        return syncToDatabase(day.key, dayData);
+      });
+      
+      // Wait for all days to be saved
+      await Promise.all(savePromises);
+      
+      console.log('All availability data saved successfully');
+      
+      // Only complete after everything is saved
+      onComplete();
+    } catch (error) {
+      console.error('Error saving availability configuration:', error);
+      // Could show error message to user here
+      // For now, still complete to avoid blocking the user
+      onComplete();
+    }
   };
 
   const renderDayConfiguration = () => {

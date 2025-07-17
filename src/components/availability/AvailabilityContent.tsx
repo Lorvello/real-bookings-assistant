@@ -24,49 +24,35 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [setupState, setSetupState] = React.useState<'checking' | 'needs_calendar' | 'needs_config' | 'configured'>('checking');
   
-  // DIRECT FLOW STATE - Primary source of truth for new users
-  const [flowState, setFlowState] = React.useState<'none' | 'calendar_created' | 'config_completed'>('none');
-  
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
   const { calendars, loading: calendarsLoading } = useCalendars();
 
-  // SIMPLIFIED: Flow-based state detection - no more complex timing issues
+  // Database-driven state detection - reliable and persistent
   React.useEffect(() => {
-    // PRIORITY 1: Direct flow state - most reliable
-    if (flowState === 'config_completed') {
-      setSetupState('configured');
-      return;
-    }
-    
-    if (flowState === 'calendar_created') {
-      setSetupState('needs_config');
-      return;
-    }
-    
-    // PRIORITY 2: Still loading calendars
+    // Still loading calendars
     if (calendarsLoading) {
       setSetupState('checking');
       return;
     }
 
-    // PRIORITY 3: No calendars - need calendar creation
+    // No calendars - need calendar creation
     if (!calendars || calendars.length === 0) {
       setSetupState('needs_calendar');
       return;
     }
 
-    // PRIORITY 4: Database-based detection (fallback only)
+    // No schedule - need configuration
     if (!defaultSchedule) {
       setSetupState('needs_config');
       return;
     }
 
-    // Check if actually configured
+    // Check if actually configured with real availability rules
     const hasValidAvailability = availability && Object.keys(availability).length > 0;
     const hasEnabledDays = Object.values(availability || {}).some(day => day.enabled && day.timeBlocks.length > 0);
     
     setSetupState(hasEnabledDays ? 'configured' : 'needs_config');
-  }, [calendars, calendarsLoading, defaultSchedule, availability, flowState]);
+  }, [calendars, calendarsLoading, defaultSchedule, availability]);
 
   const handleConfigureAvailability = async () => {
     // Open calendar creation if no calendar exists
@@ -90,25 +76,30 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
 
   const handleCalendarCreated = async () => {
     setIsCalendarDialogOpen(false);
+    setIsRefreshing(true);
     
-    // IMMEDIATE: Set flow state to indicate calendar was created
-    setFlowState('calendar_created');
-    
-    // Create schedule in background but don't wait
-    if (!defaultSchedule) {
-      createDefaultSchedule().catch(console.error);
+    try {
+      console.log('Calendar created, now creating default schedule...');
+      // CRITICAL: Wait for schedule creation before opening modal
+      await createDefaultSchedule();
+      console.log('Default schedule created successfully, opening modal...');
+      
+      // Only open modal after schedule is actually created
+      setIsGuidedModalOpen(true);
+    } catch (error) {
+      console.error('Error creating default schedule:', error);
+      // Could show error toast here
+    } finally {
+      setIsRefreshing(false);
     }
-    
-    // Open configuration modal immediately
-    setIsGuidedModalOpen(true);
   };
 
   const handleGuidedComplete = () => {
-    // IMMEDIATE: Set flow state to completed
-    setFlowState('config_completed');
-    
-    // Close modal immediately  
+    // Close modal - data should already be saved by the modal
     setIsGuidedModalOpen(false);
+    
+    // Trigger refresh to show updated state
+    refreshAvailability();
   };
 
   if (activeTab === 'schedule') {
