@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Info, Globe, Calendar, Clock } from 'lucide-react';
@@ -19,18 +19,18 @@ interface AvailabilityContentProps {
 export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   activeTab
 }) => {
-  const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
-  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
-  const [isInitialSetupFlow, setIsInitialSetupFlow] = useState(false);
-  const [configurationCompleted, setConfigurationCompleted] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [setupState, setSetupState] = useState<'checking' | 'needs_calendar' | 'needs_config' | 'configured'>('checking');
+  const [isGuidedModalOpen, setIsGuidedModalOpen] = React.useState(false);
+  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = React.useState(false);
+  const [isInitialSetupFlow, setIsInitialSetupFlow] = React.useState(false);
+  const [configurationCompleted, setConfigurationCompleted] = React.useState(false);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [setupState, setSetupState] = React.useState<'checking' | 'needs_calendar' | 'needs_config' | 'configured'>('checking');
   
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
   const { calendars, loading: calendarsLoading } = useCalendars();
 
   // Reliable state detection with proper loading states
-  useEffect(() => {
+  React.useEffect(() => {
     if (calendarsLoading || isRefreshing) {
       setSetupState('checking');
       return;
