@@ -183,27 +183,76 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {/* First Message Requirement - Critical Highlight */}
+            <div className="bg-amber-900/40 rounded-lg p-5 border-l-4 border-amber-500 shadow-md">
+              <h3 className="font-bold text-amber-400 mb-2 flex items-center">
+                <QrCode className="mr-2 h-5 w-5" /> FIRST MESSAGE REQUIREMENT
+              </h3>
+              <div className="text-white font-medium mb-2">
+                Customers MUST include their name and your business name in their first message:
+              </div>
+              <div className="bg-slate-800/70 p-3 rounded-md border border-slate-600/50 mb-3">
+                <p className="font-mono text-green-400 text-sm">
+                  "Hi, ik ben [naam] en ik wil een afspraak maken bij [bedrijf]"
+                </p>
+              </div>
+              <p className="text-amber-200/80 text-sm">
+                This is critical! The first message links their WhatsApp ID to your business in our system.
+                After this initial identification, future messages will automatically be associated with your business.
+              </p>
+            </div>
+            
+            {/* Step 1 */}
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">1</span>
+                First Message Required
+              </h3>
+              <p className="text-gray-400 text-sm ml-8">
+                Customer must mention their name and your business name in their first message.
+                This creates the proper connection in our database.
+              </p>
+            </div>
+            
+            {/* Step 2 */}
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">2</span>
+                System Remembers
+              </h3>
+              <p className="text-gray-400 text-sm ml-8">
+                The system links their WhatsApp ID to your specific business. This connection is saved for all future conversations.
+              </p>
+            </div>
+            
+            {/* Step 3 */}
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">3</span>
+                Future Bookings
+              </h3>
+              <p className="text-gray-400 text-sm ml-8">
+                For future conversations, the AI assistant automatically knows which business they're booking with. No need to repeat business name.
+              </p>
+            </div>
+            
+            {/* Share with customers */}
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2">Share with customers</h3>
               <p className="text-gray-400 text-sm">
-                Provide this WhatsApp number to customers for AI-powered booking assistance. They can message this number at any time.
+                Provide this WhatsApp number to customers for AI-powered booking assistance. Make sure to instruct them about the first message format.
               </p>
             </div>
             
+            {/* QR Code usage */}
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2">QR Code usage</h3>
               <p className="text-gray-400 text-sm">
-                Place the QR code on your website, business cards, or marketing materials for easy access. Customers can scan it to start a conversation.
+                Place the QR code on your website, business cards, or marketing materials for easy access. Include instructions about the first message format nearby.
               </p>
             </div>
             
-            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
-              <h3 className="font-semibold text-white mb-2">Automatic booking</h3>
-              <p className="text-gray-400 text-sm">
-                The AI assistant will guide customers through the booking process, asking for their name, preferred service, and suitable time slots based on your availability.
-              </p>
-            </div>
-            
+            {/* Manage conversations */}
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2">Manage conversations</h3>
               <p className="text-gray-400 text-sm">
