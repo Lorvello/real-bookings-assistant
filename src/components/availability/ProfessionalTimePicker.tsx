@@ -28,18 +28,21 @@ const formatTimeToHHMM = (timeString: string): string => {
   return timeString;
 };
 
-// Convert time to angle for clock hands
+// Convert time to angle for clock hands (24-hour support)
 const timeToAngle = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
-  const hourAngle = ((hours % 12) * 30) + (minutes * 0.5); // 30 degrees per hour + minute adjustment
+  // For 24-hour support: show inner ring for 13-24 hours, outer for 1-12
+  const displayHour = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours);
+  const hourAngle = (displayHour * 30) + (minutes * 0.5); // 30 degrees per hour + minute adjustment
   const minuteAngle = minutes * 6; // 6 degrees per minute
-  return { hourAngle, minuteAngle };
+  return { hourAngle, minuteAngle, is24Hour: hours > 12 || hours === 0 };
 };
 
-// Convert angle to time
-const angleToTime = (angle: number, isHour: boolean) => {
+// Convert angle to time (24-hour support)
+const angleToTime = (angle: number, isHour: boolean, currentHour?: number) => {
   if (isHour) {
-    return Math.round(angle / 30) % 12;
+    const hour12 = Math.round(angle / 30) % 12;
+    return hour12 === 0 ? 12 : hour12;
   } else {
     return Math.round(angle / 6) % 60;
   }
@@ -56,11 +59,18 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isSelectingMinutes, setIsSelectingMinutes] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [is24HourMode, setIs24HourMode] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const clockRef = useRef<HTMLDivElement>(null);
   
   const formattedValue = formatTimeToHHMM(value);
-  const { hourAngle, minuteAngle } = timeToAngle(formattedValue);
+  const { hourAngle, minuteAngle, is24Hour } = timeToAngle(formattedValue);
+  
+  // Auto-detect 24-hour mode based on current time
+  useEffect(() => {
+    const [hours] = formattedValue.split(':').map(Number);
+    setIs24HourMode(hours > 12 || hours === 0);
+  }, [formattedValue]);
   
   useEffect(() => {
     setInputValue(formattedValue);
@@ -131,10 +141,23 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       newMinutes = Math.round(angleToTime(angle, false) / 5) * 5; // Snap to 5-minute intervals
       newMinutes = Math.max(0, Math.min(59, newMinutes));
     } else {
-      const newHour = angleToTime(angle, true);
-      newHours = newHour === 0 ? 12 : newHour;
-      if (currentTime[0] >= 12) newHours += 12;
-      newHours = newHours % 24;
+      const hour12 = angleToTime(angle, true, currentTime[0]);
+      
+      if (is24HourMode) {
+        // For 24-hour mode: add 12 to get afternoon hours (13-24)
+        newHours = hour12 === 12 ? 12 : hour12 + 12;
+      } else {
+        // For regular mode: handle AM/PM based on current context
+        if (currentTime[0] >= 12 && hour12 !== 12) {
+          newHours = hour12 + 12;
+        } else if (currentTime[0] < 12 && hour12 === 12) {
+          newHours = 0;
+        } else {
+          newHours = hour12 === 12 ? 12 : hour12;
+        }
+      }
+      
+      newHours = Math.max(0, Math.min(23, newHours));
     }
     
     const newTime = `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
@@ -192,13 +215,18 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
 
   const generateHourNumbers = () => {
     const hours = [];
+    const currentHour = parseInt(formattedValue.split(':')[0]);
+    
+    // Show both 12-hour and 24-hour numbers for better UX
     for (let i = 1; i <= 12; i++) {
       const angle = (i * 30) - 90; // -90 to start at 12 o'clock
       const x = Math.cos(angle * Math.PI / 180) * 35;
       const y = Math.sin(angle * Math.PI / 180) * 35;
+      
+      // Show outer ring number (1-12)
       hours.push(
         <div
-          key={i}
+          key={`outer-${i}`}
           className="absolute text-xs font-medium text-foreground/80 select-none"
           style={{
             left: `calc(50% + ${x}px - 6px)`,
@@ -211,6 +239,35 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
           }}
         >
           {i}
+        </div>
+      );
+      
+      // Show inner ring numbers (13-24) for 24-hour support
+      const innerX = Math.cos(angle * Math.PI / 180) * 22;
+      const innerY = Math.sin(angle * Math.PI / 180) * 22;
+      const inner24Hour = i === 12 ? 0 : i + 12;
+      
+      hours.push(
+        <div
+          key={`inner-${inner24Hour}`}
+          className="absolute text-xs font-medium text-foreground/60 select-none cursor-pointer hover:text-foreground transition-colors"
+          style={{
+            left: `calc(50% + ${innerX}px - 6px)`,
+            top: `calc(50% + ${innerY}px - 6px)`,
+            width: '12px',
+            height: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            const minutes = formattedValue.split(':')[1];
+            const newTime = `${inner24Hour.toString().padStart(2, '0')}:${minutes}`;
+            onChange(newTime);
+          }}
+        >
+          {inner24Hour.toString().padStart(2, '0')}
         </div>
       );
     }
@@ -393,24 +450,46 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                     </div>
                   </div>
                   
-                  {/* Hour/Minute Toggle */}
-                  <div className="flex items-center justify-center space-x-2">
-                    <Button
-                      variant={!isSelectingMinutes ? "default" : "outline"}
-                      size="lg"
-                      onClick={() => setIsSelectingMinutes(false)}
-                      className={`min-w-[80px] ${!isSelectingMinutes ? 'bg-primary hover:bg-primary/90' : ''}`}
-                    >
-                      Hours
-                    </Button>
-                    <Button
-                      variant={isSelectingMinutes ? "default" : "outline"}
-                      size="lg"
-                      onClick={() => setIsSelectingMinutes(true)}
-                      className={`min-w-[80px] ${isSelectingMinutes ? 'bg-primary hover:bg-primary/90' : ''}`}
-                    >
-                      Minutes
-                    </Button>
+                  {/* Hour/Minute Toggle and 24-Hour Mode */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-center space-x-2">
+                      <Button
+                        variant={!isSelectingMinutes ? "default" : "outline"}
+                        size="lg"
+                        onClick={() => setIsSelectingMinutes(false)}
+                        className={`min-w-[80px] ${!isSelectingMinutes ? 'bg-primary hover:bg-primary/90' : ''}`}
+                      >
+                        Hours
+                      </Button>
+                      <Button
+                        variant={isSelectingMinutes ? "default" : "outline"}
+                        size="lg"
+                        onClick={() => setIsSelectingMinutes(true)}
+                        className={`min-w-[80px] ${isSelectingMinutes ? 'bg-primary hover:bg-primary/90' : ''}`}
+                      >
+                        Minutes
+                      </Button>
+                    </div>
+                    
+                    {/* 24-Hour Mode Toggle */}
+                    <div className="flex items-center justify-center space-x-2">
+                      <Button
+                        variant={!is24HourMode ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setIs24HourMode(false)}
+                        className="min-w-[60px] text-xs"
+                      >
+                        AM/PM
+                      </Button>
+                      <Button
+                        variant={is24HourMode ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setIs24HourMode(true)}
+                        className="min-w-[60px] text-xs"
+                      >
+                        24H
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -450,13 +529,23 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
               </Button>
                 <Button
                 onClick={() => {
+                  // CRITICAL FIX: Ensure time is properly saved
+                  let finalTime = formattedValue;
+                  
                   if (mode === 'input') {
                     const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
                     if (timeRegex.test(inputValue)) {
-                      onChange(inputValue);
+                      finalTime = inputValue;
                     }
                   }
-                  onClose();
+                  
+                  // Force the change to trigger
+                  onChange(finalTime);
+                  
+                  // Close modal after a brief delay to ensure save completes
+                  setTimeout(() => {
+                    onClose();
+                  }, 100);
                 }}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-6"
               >

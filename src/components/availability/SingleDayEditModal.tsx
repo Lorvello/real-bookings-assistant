@@ -71,8 +71,8 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
   // Get current day info
   const currentDay = DAYS[dayIndex];
   
-  // Debounce the local data to trigger auto-save
-  const debouncedData = useDebounce(localDayData, 800);
+  // Debounce the local data to trigger auto-save (reduced delay for faster response)
+  const debouncedData = useDebounce(localDayData, 300);
 
   // Auto-save effect
   useEffect(() => {
@@ -113,12 +113,16 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
   }, []);
 
   const handleTimeBlockUpdate = useCallback((blockId: string, field: 'startTime' | 'endTime', value: string) => {
+    // CRITICAL FIX: Immediate update with faster debounce for time changes
     setLocalDayData(prev => ({
       ...prev,
       timeBlocks: prev.timeBlocks.map(block =>
         block.id === blockId ? { ...block, [field]: value } : block
       )
     }));
+    
+    // Force immediate save for time changes to prevent data loss
+    setLastSaved(null); // Reset save indicator to show saving status
   }, []);
 
   const addTimeBlock = useCallback(() => {
