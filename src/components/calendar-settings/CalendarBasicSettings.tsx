@@ -41,14 +41,14 @@ export function CalendarBasicSettings({
         {/* Calendar Name Section */}
         {calendarName && onUpdateCalendarName && (
           <div className="space-y-2">
-            <Label className="text-foreground font-medium">Kalender Naam</Label>
+            <Label className="text-foreground font-medium">Calendar Name</Label>
             <div className="flex items-center space-x-2">
               {isEditingName ? (
                 <>
                   <Input
                     value={tempName}
                     onChange={(e) => setTempName(e.target.value)}
-                    placeholder="Voer kalendernaam in"
+                    placeholder="Enter calendar name"
                     className="flex-1"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSaveName();
@@ -92,7 +92,7 @@ export function CalendarBasicSettings({
               )}
             </div>
             <p className="text-sm text-muted-foreground">
-              De naam van je kalender zoals deze wordt weergegeven
+              The name of your calendar as it appears to customers
             </p>
           </div>
         )}

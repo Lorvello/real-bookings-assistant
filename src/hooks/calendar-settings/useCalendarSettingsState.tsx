@@ -69,16 +69,16 @@ export const useCalendarSettingsState = (calendarId?: string) => {
         setSettings(prev => prev ? { ...prev, ...changes } : null);
       } else {
         toast({
-          title: "Fout",
-          description: "Kan kalender instellingen niet opslaan",
+          title: "Error",
+          description: "Cannot save calendar settings",
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Auto-save error:', error);
       toast({
-        title: "Fout",
-        description: "Er is een onverwachte fout opgetreden bij het opslaan",
+        title: "Error",
+        description: "An unexpected error occurred while saving",
         variant: "destructive",
       });
     } finally {

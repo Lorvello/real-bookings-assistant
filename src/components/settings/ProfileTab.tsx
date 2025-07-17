@@ -84,19 +84,19 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         <div className="flex items-center justify-center bg-blue-800/90 border border-blue-700/50 rounded-2xl shadow-lg p-3">
           <div className="flex items-center space-x-2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
-            <p className="text-blue-200 text-sm">Bezig met opslaan...</p>
+            <p className="text-blue-200 text-sm">Saving...</p>
           </div>
         </div>
       )}
 
       {/* Basic Information */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Basisinformatie</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Basic Information</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Volledige Naam *
+              Full Name *
             </label>
             <input
               type="text"
@@ -128,7 +128,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Telefoonnummer *
+              Phone Number *
             </label>
             <input
               type="tel"
@@ -144,7 +144,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Geboortedatum
+              Date of Birth
             </label>
             <input
               type="date"
@@ -159,7 +159,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Taal
+              Language
             </label>
             <select
               value={profileData.language}
@@ -169,19 +169,19 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               })}
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             >
-              <option value="nl">Nederlands</option>
-              <option value="en">Engels</option>
-              <option value="de">Duits</option>
-              <option value="fr">Frans</option>
-              <option value="es">Spaans</option>
-              <option value="tr">Turks</option>
-              <option value="ar">Arabisch</option>
+              <option value="nl">Dutch</option>
+              <option value="en">English</option>
+              <option value="de">German</option>
+              <option value="fr">French</option>
+              <option value="es">Spanish</option>
+              <option value="tr">Turkish</option>
+              <option value="ar">Arabic</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Tijdzone
+              Timezone
             </label>
             <select
               value={profileData.timezone}
@@ -192,7 +192,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             >
               <option value="Europe/Amsterdam">Amsterdam (CET)</option>
-              <option value="Europe/London">Londen (GMT)</option>
+              <option value="Europe/London">London (GMT)</option>
               <option value="America/New_York">New York (EST)</option>
               <option value="America/Los_Angeles">Los Angeles (PST)</option>
             </select>
@@ -212,7 +212,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>De AI-agent kan deze informatie gebruiken in zijn berichten</p>
+              <p>The AI agent can use this information in its messages</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -229,7 +229,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 ...profileData,
                 website: e.target.value
               })}
-              placeholder="https://www.voorbeeld.nl"
+              placeholder="https://www.example.com"
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             />
           </div>
@@ -245,7 +245,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 ...profileData,
                 instagram: e.target.value
               })}
-              placeholder="@gebruikersnaam"
+              placeholder="@username"
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             />
           </div>
@@ -261,7 +261,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 ...profileData,
                 facebook: e.target.value
               })}
-              placeholder="facebook.com/paginanaam"
+              placeholder="facebook.com/pagename"
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
             />
           </div>
@@ -271,7 +271,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       {/* Business Information with Address */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <div className="flex items-center gap-2 mb-6">
-          <h2 className="text-xl font-semibold text-white">Bedrijfsinformatie</h2>
+          <h2 className="text-xl font-semibold text-white">Business Information</h2>
           <Tooltip>
             <TooltipTrigger asChild>
               <button type="button" className="h-4 w-4 text-gray-400 hover:text-white transition-colors">
@@ -279,7 +279,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>De AI-agent kan deze informatie gebruiken in zijn berichten</p>
+              <p>The AI agent can use this information in its messages</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -287,7 +287,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Bedrijfsnaam *
+              Business Name *
             </label>
             <input 
               type="text" 
@@ -303,7 +303,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Bedrijfstype *
+              Business Type *
             </label>
             <Select 
               value={businessTypes.find(type => type.value === businessData.business_type)} 
@@ -314,7 +314,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               options={businessTypes} 
               className="react-select-container" 
               classNamePrefix="react-select" 
-              placeholder="Zoek en selecteer bedrijfstype..." 
+              placeholder="Search and select business type..." 
               isSearchable 
               styles={{
                 control: base => ({
@@ -353,7 +353,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                   ...businessData,
                   business_type_other: e.target.value
                 })}
-                placeholder="Specificeer bedrijfstype..." 
+                placeholder="Specify business type..." 
                 className="mt-2 w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
               />
             )}
@@ -361,7 +361,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Bedrijfsomschrijving
+              Business Description
             </label>
             <textarea 
               value={businessData.business_description} 
@@ -371,17 +371,17 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               })}
               rows={4} 
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-              placeholder="Vertel klanten over uw bedrijf..." 
+              placeholder="Tell customers about your business..." 
             />
           </div>
           
           {/* Address Section within Business Information */}
           <div className="pt-6 border-t border-gray-700">
-            <h3 className="text-lg font-medium text-white mb-4">Adresgegevens</h3>
+            <h3 className="text-lg font-medium text-white mb-4">Address Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Straatnaam
+                  Street Name
                 </label>
                 <input
                   type="text"
@@ -396,7 +396,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Huisnummer
+                  House Number
                 </label>
                 <input
                   type="text"
@@ -411,7 +411,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Postcode
+                  Postal Code
                 </label>
                 <input
                   type="text"
@@ -426,7 +426,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Plaats
+                  City
                 </label>
                 <input
                   type="text"
@@ -441,7 +441,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Land
+                  Country
                 </label>
                 <input
                   type="text"
@@ -467,16 +467,16 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               <Info className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
             </TooltipTrigger>
             <TooltipContent>
-              <p>De AI-agent kan deze informatie gebruiken in zijn berichten</p>
+              <p>The AI agent can use this information in its messages</p>
             </TooltipContent>
           </Tooltip>
         </div>
-        <p className="text-sm text-gray-400 mb-6">Deze informatie wordt gebruikt door de AI booking agent om klanten te helpen bij vragen</p>
+        <p className="text-sm text-gray-400 mb-6">This information is used by the AI booking agent to help customers with questions</p>
         
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Parkeerinformatie
+              Parking Information
             </label>
             <textarea 
               value={businessData.parking_info} 
@@ -486,13 +486,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               })}
               rows={3} 
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-              placeholder="bijv. Gratis parkeren voor de deur, Betaald parkeren in garage om de hoek..." 
+              placeholder="e.g. Free parking at the door, Paid parking in garage around the corner..." 
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Openbaar Vervoer
+              Public Transport
             </label>
             <textarea 
               value={businessData.public_transport_info} 
@@ -502,13 +502,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               })}
               rows={3} 
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-              placeholder="bijv. 5 minuten lopen vanaf station, Bus 12 stopt voor de deur..." 
+              placeholder="e.g. 5 minutes walk from station, Bus 12 stops at the door..." 
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Toegankelijkheid
+              Accessibility
             </label>
             <textarea 
               value={businessData.accessibility_info} 
@@ -518,13 +518,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               })}
               rows={3} 
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-              placeholder="bijv. Rolstoeltoegankelijk, Lift aanwezig, Geen drempels..." 
+              placeholder="e.g. Wheelchair accessible, Elevator available, No thresholds..." 
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Overige Informatie
+              Other Information
             </label>
             <textarea 
               value={businessData.other_info} 
@@ -534,7 +534,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               })}
               rows={3} 
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-              placeholder="Overige informatie die nuttig kan zijn voor klanten..." 
+              placeholder="Other information that may be useful for customers..." 
             />
           </div>
         </div>

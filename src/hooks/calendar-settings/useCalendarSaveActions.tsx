@@ -30,16 +30,16 @@ export const useCalendarSaveActions = (
 
       if (!success) {
         toast({
-          title: "Fout",
-          description: "Kan kalender instellingen niet opslaan",
+          title: "Error",
+          description: "Cannot save calendar settings",
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Succes",
-        description: "Kalender instellingen succesvol opgeslagen",
+        title: "Success",
+        description: "Calendar settings saved successfully",
       });
 
       setPendingChanges?.({});
@@ -48,8 +48,8 @@ export const useCalendarSaveActions = (
     } catch (error) {
       console.error('Error saving calendar settings:', error);
       toast({
-        title: "Fout",
-        description: "Er is een onverwachte fout opgetreden",
+        title: "Error",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
       return false;

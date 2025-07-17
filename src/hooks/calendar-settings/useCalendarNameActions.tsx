@@ -15,16 +15,16 @@ export const useCalendarNameActions = (calendarId?: string) => {
 
       if (!success) {
         toast({
-          title: "Fout",
-          description: "Kan kalendernaam niet bijwerken",
+          title: "Error",
+          description: "Cannot update calendar name",
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Succes",
-        description: "Kalendernaam succesvol bijgewerkt",
+        title: "Success",
+        description: "Calendar name updated successfully",
       });
 
       // Refresh calendars to update the context
@@ -33,8 +33,8 @@ export const useCalendarNameActions = (calendarId?: string) => {
     } catch (error) {
       console.error('Error updating calendar name:', error);
       toast({
-        title: "Fout",
-        description: "Er is een onverwachte fout opgetreden",
+        title: "Error",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
       return false;

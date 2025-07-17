@@ -42,8 +42,8 @@ export const SettingsLayout = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-3 md:mb-8">
-          <h1 className="text-base md:text-3xl font-bold text-white mb-1 md:mb-2">Instellingen</h1>
-          <p className="text-gray-400 text-xs md:text-base">Beheer instellingen</p>
+          <h1 className="text-base md:text-3xl font-bold text-white mb-1 md:mb-2">Settings</h1>
+          <p className="text-gray-400 text-xs md:text-base">Manage your settings</p>
         </div>
 
         {/* Settings Tabs */}
@@ -52,11 +52,11 @@ export const SettingsLayout = () => {
             <TabsList className="grid w-full grid-cols-5 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2">
               <TabsTrigger value="profile" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <User className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="text-xs md:text-sm">Profiel</span>
+                <span className="text-xs md:text-sm">Profile</span>
               </TabsTrigger>
               <TabsTrigger value="calendar" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Calendar className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="text-xs md:text-sm">Kalender</span>
+                <span className="text-xs md:text-sm">Calendar</span>
               </TabsTrigger>
               <TabsTrigger value="services" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Wrench className="h-3 w-3 md:h-4 md:w-4" />

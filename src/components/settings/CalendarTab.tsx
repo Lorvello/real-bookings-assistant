@@ -49,7 +49,7 @@ export function CalendarTab() {
         <div className="flex items-center justify-center bg-blue-800/90 border border-blue-700/50 rounded-2xl shadow-lg p-3">
           <div className="flex items-center space-x-2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
-            <p className="text-blue-200 text-sm">Bezig met opslaan...</p>
+            <p className="text-blue-200 text-sm">Saving...</p>
           </div>
         </div>
       )}

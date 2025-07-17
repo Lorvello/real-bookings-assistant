@@ -18,16 +18,16 @@ export function ServicesTab() {
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
               <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">Geen kalender gevonden</h3>
-              <p className="text-muted-foreground mb-6">
-                Je hebt nog geen kalenders. Maak eerst een kalender aan om services te beheren.
-              </p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No calendar found</h3>
+               <p className="text-muted-foreground mb-6">
+                 You don't have any calendars yet. Create a calendar first to manage services.
+               </p>
               <Button 
                 onClick={() => setShowCreateDialog(true)}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Kalender Toevoegen
+                Add Calendar
               </Button>
             </div>
           </CardContent>
@@ -48,10 +48,10 @@ export function ServicesTab() {
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">Geen kalender geselecteerd</h3>
-            <p className="text-muted-foreground">
-              Selecteer een kalender om services te beheren.
-            </p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No calendar selected</h3>
+             <p className="text-muted-foreground">
+               Select a calendar to manage services.
+             </p>
           </div>
         </CardContent>
       </Card>
