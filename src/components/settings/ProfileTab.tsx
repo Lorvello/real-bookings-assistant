@@ -1,8 +1,9 @@
 
 import React from 'react';
 import Select from 'react-select';
-import { Save } from 'lucide-react';
+import { Save, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { businessTypes } from '@/constants/settingsOptions';
 
 interface ProfileTabProps {
@@ -29,7 +30,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
     handleUpdateBusiness();
   };
   return (
-    <div className="space-y-8">
+    <TooltipProvider>
+      <div className="space-y-8">
       {/* Save Button */}
       <div className="flex items-center justify-between bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-4">
         <div className="flex items-center space-x-3">
@@ -162,7 +164,17 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
       {/* Social Media */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Social Media & Website</h2>
+        <div className="flex items-center gap-2 mb-6">
+          <h2 className="text-xl font-semibold text-white">Social Media & Website</h2>
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>De AI-agent kan deze informatie gebruiken in zijn berichten</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         
         <div className="space-y-4">
           <div>
@@ -215,9 +227,19 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
       </div>
 
-      {/* Business Information */}
+      {/* Business Information with Address */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Bedrijfsinformatie</h2>
+        <div className="flex items-center gap-2 mb-6">
+          <h2 className="text-xl font-semibold text-white">Bedrijfsinformatie</h2>
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>De AI-agent kan deze informatie gebruiken in zijn berichten</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         
         <div className="space-y-6">
           <div>
@@ -309,94 +331,103 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               placeholder="Vertel klanten over uw bedrijf..." 
             />
           </div>
-        </div>
-      </div>
+          
+          {/* Address Section within Business Information */}
+          <div className="pt-6 border-t border-gray-700">
+            <h3 className="text-lg font-medium text-white mb-4">Adresgegevens</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Straatnaam
+                </label>
+                <input
+                  type="text"
+                  value={businessData.business_street}
+                  onChange={(e) => setBusinessData({
+                    ...businessData,
+                    business_street: e.target.value
+                  })}
+                  className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                />
+              </div>
 
-      {/* Business Address */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Bedrijfs Adresgegevens</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Straatnaam
-            </label>
-            <input
-              type="text"
-              value={businessData.business_street}
-              onChange={(e) => setBusinessData({
-                ...businessData,
-                business_street: e.target.value
-              })}
-              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Huisnummer
+                </label>
+                <input
+                  type="text"
+                  value={businessData.business_number}
+                  onChange={(e) => setBusinessData({
+                    ...businessData,
+                    business_number: e.target.value
+                  })}
+                  className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Huisnummer
-            </label>
-            <input
-              type="text"
-              value={businessData.business_number}
-              onChange={(e) => setBusinessData({
-                ...businessData,
-                business_number: e.target.value
-              })}
-              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Postcode
+                </label>
+                <input
+                  type="text"
+                  value={businessData.business_postal}
+                  onChange={(e) => setBusinessData({
+                    ...businessData,
+                    business_postal: e.target.value
+                  })}
+                  className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Postcode
-            </label>
-            <input
-              type="text"
-              value={businessData.business_postal}
-              onChange={(e) => setBusinessData({
-                ...businessData,
-                business_postal: e.target.value
-              })}
-              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Plaats
+                </label>
+                <input
+                  type="text"
+                  value={businessData.business_city}
+                  onChange={(e) => setBusinessData({
+                    ...businessData,
+                    business_city: e.target.value
+                  })}
+                  className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Plaats
-            </label>
-            <input
-              type="text"
-              value={businessData.business_city}
-              onChange={(e) => setBusinessData({
-                ...businessData,
-                business_city: e.target.value
-              })}
-              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Land
-            </label>
-            <input
-              type="text"
-              value={businessData.business_country}
-              onChange={(e) => setBusinessData({
-                ...businessData,
-                business_country: e.target.value
-              })}
-              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-            />
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Land
+                </label>
+                <input
+                  type="text"
+                  value={businessData.business_country}
+                  onChange={(e) => setBusinessData({
+                    ...businessData,
+                    business_country: e.target.value
+                  })}
+                  className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Business Knowledge Base */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-xl font-semibold text-white mb-6">Booking Agent Knowledge Base</h2>
+        <div className="flex items-center gap-2 mb-6">
+          <h2 className="text-xl font-semibold text-white">Booking Agent Knowledge Base</h2>
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>De AI-agent kan deze informatie gebruiken in zijn berichten</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <p className="text-sm text-gray-400 mb-6">Deze informatie wordt gebruikt door de AI booking agent om klanten te helpen bij vragen</p>
         
         <div className="space-y-4">
@@ -465,6 +496,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 };
