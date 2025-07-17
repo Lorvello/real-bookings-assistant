@@ -21,63 +21,56 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
 }) => {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = React.useState(false);
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = React.useState(false);
-  const [isInitialSetupFlow, setIsInitialSetupFlow] = React.useState(false);
-  const [configurationCompleted, setConfigurationCompleted] = React.useState(false);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [setupState, setSetupState] = React.useState<'checking' | 'needs_calendar' | 'needs_config' | 'configured'>('checking');
+  
+  // DIRECT FLOW STATE - Primary source of truth for new users
+  const [flowState, setFlowState] = React.useState<'none' | 'calendar_created' | 'config_completed'>('none');
   
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
   const { calendars, loading: calendarsLoading } = useCalendars();
 
-  // State lock to prevent override during completion flow
-  const [completionLock, setCompletionLock] = React.useState(false);
-
-  // FIXED: State detection with proper completion priority and availability check
+  // SIMPLIFIED: Flow-based state detection - no more complex timing issues
   React.useEffect(() => {
-    // PRIORITY 1: Configuration just completed - maintain configured state
-    if (configurationCompleted) {
+    // PRIORITY 1: Direct flow state - most reliable
+    if (flowState === 'config_completed') {
       setSetupState('configured');
       return;
     }
-
-    // PRIORITY 2: Completion lock active - maintain configured state
-    if (completionLock) {
-      setSetupState('configured');
+    
+    if (flowState === 'calendar_created') {
+      setSetupState('needs_config');
       return;
     }
-
-    // PRIORITY 3: Still loading calendars
+    
+    // PRIORITY 2: Still loading calendars
     if (calendarsLoading) {
       setSetupState('checking');
       return;
     }
 
-    // PRIORITY 4: No calendars - need calendar creation
+    // PRIORITY 3: No calendars - need calendar creation
     if (!calendars || calendars.length === 0) {
       setSetupState('needs_calendar');
       return;
     }
 
-    // PRIORITY 5: Have calendars but no schedule - need configuration
+    // PRIORITY 4: Database-based detection (fallback only)
     if (!defaultSchedule) {
       setSetupState('needs_config');
       return;
     }
 
-    // PRIORITY 6: Check for configured availability - has rules that indicate setup is complete
+    // Check if actually configured
     const hasValidAvailability = availability && Object.keys(availability).length > 0;
     const hasEnabledDays = Object.values(availability || {}).some(day => day.enabled && day.timeBlocks.length > 0);
-    const isConfigured = defaultSchedule && hasValidAvailability && hasEnabledDays;
     
-    setSetupState(isConfigured ? 'configured' : 'needs_config');
-  }, [calendars, calendarsLoading, defaultSchedule, availability, configurationCompleted, completionLock]);
+    setSetupState(hasEnabledDays ? 'configured' : 'needs_config');
+  }, [calendars, calendarsLoading, defaultSchedule, availability, flowState]);
 
   const handleConfigureAvailability = async () => {
-    setConfigurationCompleted(false);
-    
-    // Fast path: Open modals immediately without loading
+    // Open calendar creation if no calendar exists
     if (setupState === 'needs_calendar') {
-      setIsInitialSetupFlow(true);
       setIsCalendarDialogOpen(true);
       return;
     }
@@ -92,52 +85,30 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
       }
     }
     
-    setIsInitialSetupFlow(false);
     setIsGuidedModalOpen(true);
   };
 
   const handleCalendarCreated = async () => {
     setIsCalendarDialogOpen(false);
-    setIsInitialSetupFlow(true);
     
-    // FIXED: Await schedule creation to prevent race condition
+    // IMMEDIATE: Set flow state to indicate calendar was created
+    setFlowState('calendar_created');
+    
+    // Create schedule in background but don't wait
     if (!defaultSchedule) {
-      setIsRefreshing(true);
-      try {
-        await createDefaultSchedule();
-        // Small delay to ensure database sync
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (error) {
-        console.error('Error creating schedule:', error);
-      } finally {
-        setIsRefreshing(false);
-      }
+      createDefaultSchedule().catch(console.error);
     }
     
-    // Only open modal after schedule is ready
+    // Open configuration modal immediately
     setIsGuidedModalOpen(true);
   };
 
-  const handleGuidedComplete = async () => {
-    // IMMEDIATE: Close modal and set state
+  const handleGuidedComplete = () => {
+    // IMMEDIATE: Set flow state to completed
+    setFlowState('config_completed');
+    
+    // Close modal immediately  
     setIsGuidedModalOpen(false);
-    setConfigurationCompleted(true);
-    setCompletionLock(true);
-    
-    // IMMEDIATE: Force configured state
-    setSetupState('configured');
-    
-    // Persistent completion lock to prevent state override
-    setTimeout(() => {
-      setCompletionLock(false);
-    }, 2000);
-    
-    // Background refresh
-    if (refreshAvailability) {
-      setTimeout(() => {
-        refreshAvailability();
-      }, 100);
-    }
   };
 
   if (activeTab === 'schedule') {
