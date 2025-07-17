@@ -55,12 +55,7 @@ export const useServiceTypes = () => {
 
       console.log('Service types data:', data);
 
-      if (!data || data.length === 0) {
-        console.log('No service types found, creating default one...');
-        await createDefaultServiceType();
-      } else {
-        setServiceTypes(data);
-      }
+      setServiceTypes(data || []);
     } catch (error) {
       console.error('Error in fetchServiceTypes:', error);
       setError('Er is een fout opgetreden bij het laden van service types');
