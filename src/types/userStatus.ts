@@ -26,6 +26,7 @@ export interface AccessControl {
   canEditBookings: boolean;
   canManageSettings: boolean;
   canAccessWhatsApp: boolean;
+  canAccessBookingAssistant: boolean;
   canUseAI: boolean;
   canExportData: boolean;
   canInviteUsers: boolean;

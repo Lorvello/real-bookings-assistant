@@ -30,7 +30,7 @@ const navigation: NavItem[] = [
   { name: 'Bookings', href: '/bookings', icon: BookOpen, requiresAccess: 'canCreateBookings', description: 'View and manage bookings' },
   { name: 'Availability', href: '/availability', icon: Clock, description: 'Set your working hours' },
   { name: 'WhatsApp', href: '/conversations', icon: MessageCircle, requiresAccess: 'canAccessWhatsApp', description: 'WhatsApp booking assistant' },
-  { name: 'Bookings Assistant', href: '/whatsapp-booking-assistant', icon: Phone, requiresAccess: 'canAccessWhatsApp', description: 'WhatsApp booking assistant setup' },
+  { name: 'Bookings Assistant', href: '/whatsapp-booking-assistant', icon: Phone, requiresAccess: 'canAccessBookingAssistant', description: 'Complete setup first, and then get access to your WhatsApp Bookings Assistant number' },
   { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot, requiresAccess: 'canUseAI', description: 'AI assistant features' },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
@@ -76,12 +76,21 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
       }
     }
     
-    // REMOVE ALL LOCKS for Setup Incomplete users - they can access all navigation
+    // Special handling for setup incomplete users - lock specific features
     if (userStatus.userType === 'setup_incomplete') {
+      // For Bookings Assistant, show lock icon if setup is incomplete
+      if (item.href === '/whatsapp-booking-assistant') {
+        return {
+          ...item,
+          isActive,
+          isRestricted: true // Lock booking assistant for setup incomplete users
+        };
+      }
+      
       return {
         ...item,
         isActive,
-        isRestricted: false // No restrictions for setup incomplete users
+        isRestricted: false // No restrictions for other navigation items
       };
     }
     
@@ -118,8 +127,20 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
       }
     }
     
-    // SETUP INCOMPLETE users can access all navigation - no restrictions
+    // Special handling for setup incomplete users
     if (userStatus.userType === 'setup_incomplete') {
+      // Block access to Bookings Assistant until setup is complete
+      if (item.href === '/whatsapp-booking-assistant') {
+        toast({
+          title: "Setup Required",
+          description: "Complete setup first, and then get access to your WhatsApp Bookings Assistant number",
+          variant: "destructive",
+        });
+        onNavigate('/settings');
+        return;
+      }
+      
+      // Allow access to other navigation items
       onNavigate(item.href);
       return;
     }
