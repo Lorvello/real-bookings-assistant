@@ -7,8 +7,10 @@ import { StepByStepDayConfiguration } from './StepByStepDayConfiguration';
 import { AvailabilityOverview } from './AvailabilityOverview';
 import { DateOverrides } from './DateOverrides';
 import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
+import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
+import { useCalendars } from '@/hooks/useCalendars';
 
 interface AvailabilityContentProps {
   activeTab: string;
@@ -18,7 +20,9 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   activeTab
 }) => {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
+  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
+  const { calendars } = useCalendars();
 
   // Check if availability is configured (less strict - show overview if basic data exists)
   const isAvailabilityConfigured = () => {
@@ -38,6 +42,27 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   };
 
   const handleConfigureAvailability = async () => {
+    // Check if user has any calendars first
+    if (!calendars || calendars.length === 0) {
+      // No calendars - show calendar creation dialog first
+      setIsCalendarDialogOpen(true);
+      return;
+    }
+    
+    // Has calendars - proceed with availability configuration
+    if (!defaultSchedule) {
+      await createDefaultSchedule();
+    }
+    setIsGuidedModalOpen(true);
+  };
+
+  const handleCalendarCreated = async () => {
+    // Calendar was created successfully - now proceed to availability configuration
+    setIsCalendarDialogOpen(false);
+    
+    // Small delay to ensure calendar is properly loaded
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     if (!defaultSchedule) {
       await createDefaultSchedule();
     }
@@ -134,6 +159,13 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
           isOpen={isGuidedModalOpen}
           onClose={() => setIsGuidedModalOpen(false)}
           onComplete={handleGuidedComplete}
+        />
+
+        {/* Calendar Creation Dialog */}
+        <CreateCalendarDialog
+          open={isCalendarDialogOpen}
+          onOpenChange={setIsCalendarDialogOpen}
+          onCalendarCreated={handleCalendarCreated}
         />
       </>
     );

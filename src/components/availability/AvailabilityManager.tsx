@@ -55,13 +55,7 @@ export const AvailabilityManager = () => {
     return null;
   }
 
-  if (!availabilityCalendar) {
-    return (
-      <div className="bg-gray-900 min-h-full p-4">
-        <NoCalendarSelected profile={profile} user={profile} />
-      </div>
-    );
-  }
+  // Always show availability interface - calendar creation is handled in the flow
 
   return (
     <div className="bg-gray-900 min-h-full">

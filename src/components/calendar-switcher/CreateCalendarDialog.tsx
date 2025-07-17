@@ -19,12 +19,14 @@ interface CreateCalendarDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   trigger?: 'dropdown' | 'button';
+  onCalendarCreated?: () => void;
 }
 
 export function CreateCalendarDialog({ 
   open, 
   onOpenChange, 
-  trigger = 'dropdown' 
+  trigger = 'dropdown',
+  onCalendarCreated
 }: CreateCalendarDialogProps) {
   const { profile } = useProfile();
   const [newCalendar, setNewCalendar] = useState({
@@ -33,7 +35,7 @@ export function CreateCalendarDialog({
     color: '#3B82F6'
   });
 
-  const { createCalendar, loading: creating } = useCreateCalendar();
+  const { createCalendar, loading: creating } = useCreateCalendar(onCalendarCreated);
 
   // Generate a better default calendar name
   const generateCalendarName = () => {

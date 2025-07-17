@@ -11,7 +11,7 @@ interface CreateCalendarData {
   color?: string;
 }
 
-export const useCreateCalendar = () => {
+export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { refreshCalendars, selectCalendar } = useCalendarContext();
@@ -87,6 +87,11 @@ export const useCreateCalendar = () => {
       // Refresh calendars and select the new one
       refreshCalendars();
       selectCalendar(calendar as any);
+
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess(calendar);
+      }
 
       return calendar;
     } catch (error: any) {
