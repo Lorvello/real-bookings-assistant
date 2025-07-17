@@ -266,7 +266,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       console.log(`Sync completed successfully for ${dayKey}`);
       
-      // OPTIMIZED: Immediate refresh without delay
+      // OPTIMIZED: Immediate refresh for real-time UI updates
+      await refreshRules();
       onChange();
     } catch (error) {
       console.error(`Error syncing ${dayKey} to database:`, error);
@@ -365,8 +366,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       console.log('Default schedule created successfully:', data);
       
-      // PHASE 2: Verification delay and refresh
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // OPTIMIZED: Immediate refresh for fast UI updates
+      await refreshRules();
       onChange();
       
       return data;

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Edit2, Plus } from 'lucide-react';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 import { SingleDayEditModal } from './SingleDayEditModal';
+import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
 
 interface AvailabilityOverviewProps {
   onChange?: () => void;
@@ -11,6 +12,7 @@ interface AvailabilityOverviewProps {
 
 export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onChange }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
   const [editDay, setEditDay] = useState<number | null>(null);
   
   const {
@@ -33,6 +35,11 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
   const handleModalComplete = () => {
     onChange?.();
     handleModalClose();
+  };
+
+  const handleGuidedComplete = () => {
+    onChange?.();
+    setIsGuidedModalOpen(false);
   };
 
   const formatTimeRange = (timeBlocks: any[]) => {
@@ -99,7 +106,17 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsGuidedModalOpen(true)}
+              className="flex items-center space-x-2 text-primary border-primary/20 hover:bg-primary/10"
+            >
+              <Edit2 className="h-4 w-4" />
+              <span>Reconfigure All</span>
+            </Button>
+            
             <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
               status.isComplete 
                 ? 'bg-green-500/20 text-green-400 border border-green-500/30'
@@ -210,6 +227,14 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
           dayLabel={DAYS[editDay].label}
         />
       )}
+
+      {/* Guided Reconfiguration Modal */}
+      <GuidedAvailabilityModal
+        isOpen={isGuidedModalOpen}
+        onClose={() => setIsGuidedModalOpen(false)}
+        onComplete={handleGuidedComplete}
+        editMode={true}
+      />
     </div>
   );
 };

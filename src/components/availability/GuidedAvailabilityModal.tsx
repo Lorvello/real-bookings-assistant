@@ -63,7 +63,15 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     return initial;
   });
 
-  const { syncToDatabase, createDefaultSchedule } = useDailyAvailabilityManager(() => {});
+  const { syncToDatabase, createDefaultSchedule, availability: existingAvailability } = useDailyAvailabilityManager(() => {});
+
+  // Load existing availability data when in edit mode
+  useEffect(() => {
+    if (editMode && existingAvailability && Object.keys(existingAvailability).length > 0) {
+      console.log('Loading existing availability data for edit mode');
+      setLocalAvailability(existingAvailability);
+    }
+  }, [editMode, existingAvailability]);
 
   const totalSteps = DAYS.length + 1; // Days + timezone step
   const progress = (currentStep / totalSteps) * 100;
@@ -177,10 +185,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       
       console.log('All availability data saved successfully');
       
-      // Additional verification delay
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Only complete after everything is saved
+      // OPTIMIZED: Immediate completion for fast UI updates
       onComplete();
     } catch (error) {
       console.error('Error saving availability configuration:', error);
