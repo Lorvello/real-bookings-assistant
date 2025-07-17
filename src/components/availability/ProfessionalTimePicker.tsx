@@ -28,17 +28,22 @@ const formatTimeToHHMM = (timeString: string): string => {
   return timeString;
 };
 
-// Convert time to angle for 24-hour clock hands
+// Convert time to angle for 24-hour clock hands - aligned with number positions
 const timeToAngle = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
-  // Fix 24-hour clock positioning to match user expectations:
-  // Hour 0/24 = top (0°), Hour 6 = bottom (180°), Hour 12 = top (360°/0°), Hour 18 = bottom (180°)
-  let hourAngle = (hours * 15) + (minutes * 0.25); // 15 degrees per hour for 24-hour clock
   
-  // Adjust for 24-hour clock: shift by 180 degrees so 6 AM points down and 12 noon points up
-  hourAngle = (hourAngle + 180) % 360;
+  // Calculate hour angle to match exact number positions on clock face
+  let hourAngle;
+  if (hours === 0) {
+    hourAngle = (12 * 30) - 90; // 00:00 points to 12 o'clock position
+  } else if (hours <= 12) {
+    hourAngle = (hours * 30) - 90; // Hours 1-12 point to their exact positions
+  } else {
+    // Hours 13-23 point to their corresponding 1-11 positions
+    hourAngle = ((hours - 12) * 30) - 90;
+  }
   
-  const minuteAngle = minutes * 6; // 6 degrees per minute
+  const minuteAngle = (minutes * 6) - 90; // Minutes aligned with minute marks
   return { hourAngle, minuteAngle };
 };
 
