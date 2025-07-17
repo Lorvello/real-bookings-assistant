@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, QrCode, Phone, Download } from 'lucide-react';
+import { Copy, Check, QrCode, Phone, Download, Database, CalendarClock, Share2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -202,31 +202,34 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
               </p>
             </div>
             
-            {/* Step 2 */}
+            {/* System Remembers */}
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2 flex items-center">
-                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">1</span>
+                <Database className="mr-2 h-5 w-5 text-blue-400" />
                 System Remembers
               </h3>
-              <p className="text-gray-400 text-sm ml-8">
+              <p className="text-gray-400 text-sm">
                 The system links their WhatsApp ID to your specific business. This connection is saved for all future conversations.
               </p>
             </div>
             
-            {/* Step 3 */}
+            {/* Future Bookings */}
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2 flex items-center">
-                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">2</span>
+                <CalendarClock className="mr-2 h-5 w-5 text-blue-400" />
                 Future Bookings
               </h3>
-              <p className="text-gray-400 text-sm ml-8">
+              <p className="text-gray-400 text-sm">
                 For future conversations, the AI assistant automatically knows which business they're booking with. No need to repeat business name.
               </p>
             </div>
             
             {/* Share with customers */}
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
-              <h3 className="font-semibold text-white mb-2">Share with customers</h3>
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <Share2 className="mr-2 h-5 w-5 text-blue-400" />
+                Share with customers
+              </h3>
               <p className="text-gray-400 text-sm">
                 Provide this WhatsApp number to customers for AI-powered booking assistance.
               </p>
@@ -234,7 +237,10 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
             
             {/* QR Code usage */}
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
-              <h3 className="font-semibold text-white mb-2">QR Code usage</h3>
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <QrCode className="mr-2 h-5 w-5 text-blue-400" />
+                QR Code usage
+              </h3>
               <p className="text-gray-400 text-sm">
                 Place the QR code on your website, business cards, or marketing materials for easy access.
               </p>
@@ -242,7 +248,10 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
             
             {/* Manage conversations */}
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
-              <h3 className="font-semibold text-white mb-2">Manage conversations</h3>
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <MessageSquare className="mr-2 h-5 w-5 text-blue-400" />
+                Manage conversations
+              </h3>
               <p className="text-gray-400 text-sm">
                 View and manage all WhatsApp conversations in the WhatsApp tab.
               </p>
