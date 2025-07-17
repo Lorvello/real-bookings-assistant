@@ -8,11 +8,26 @@
 
 /* Force the main container to use CSS Grid */
 .react-day-picker,
-.react-day-picker > div,
-.react-day-picker .rdp-months,
-.react-day-picker .rdp-month {
+.react-day-picker > div {
   display: block !important;
   width: 100% !important;
+}
+
+/* Force months container to use horizontal layout */
+.react-day-picker .rdp-months {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 2rem !important;
+  width: 100% !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+}
+
+.react-day-picker .rdp-month {
+  display: block !important;
+  width: auto !important;
+  min-width: 280px !important;
+  flex-shrink: 0 !important;
 }
 
 /* Force the table to be a proper grid */
@@ -179,12 +194,67 @@
   cursor: not-allowed !important;
 }
 
-/* Range selection styling */
+/* Range selection styling - Complete visual feedback */
+/* Range start (first selected date) */
+.react-day-picker button[data-range-start="true"],
+.react-day-picker .rdp-day[data-range-start="true"],
+.react-day-picker .rdp-day_range_start {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-radius: 0.5rem 0 0 0.5rem !important;
+  position: relative !important;
+}
+
+/* Range end (last selected date) */
+.react-day-picker button[data-range-end="true"],
+.react-day-picker .rdp-day[data-range-end="true"],
+.react-day-picker .rdp-day_range_end {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-radius: 0 0.5rem 0.5rem 0 !important;
+  position: relative !important;
+}
+
+/* Range middle (dates between start and end) */
 .react-day-picker button[data-range-middle="true"],
 .react-day-picker .rdp-day[data-range-middle="true"],
 .react-day-picker .rdp-day_range_middle {
-  background-color: hsl(var(--accent)) !important;
-  color: hsl(var(--accent-foreground)) !important;
+  background-color: hsl(var(--primary) / 0.4) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-radius: 0 !important;
+  position: relative !important;
+}
+
+/* Alternative range selection classes for better compatibility */
+.react-day-picker .rdp-day_range_start,
+.react-day-picker .rdp-day_range_end,
+.react-day-picker .rdp-day_range_middle {
+  background-color: hsl(var(--primary) / 0.4) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.react-day-picker .rdp-day_range_start,
+.react-day-picker .rdp-day_range_end {
+  background-color: hsl(var(--primary)) !important;
+}
+
+/* Ensure full range is visually connected */
+.react-day-picker [data-selected="true"] {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Range selection in progress */
+.react-day-picker .rdp-day[data-range-middle="true"]::before,
+.react-day-picker .rdp-day_range_middle::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -0.25rem !important;
+  right: -0.25rem !important;
+  bottom: 0 !important;
+  background-color: hsl(var(--primary) / 0.2) !important;
+  z-index: -1 !important;
 }
 
 /* Hover effects */
