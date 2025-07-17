@@ -51,7 +51,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
   const { schedules } = useAvailabilitySchedules(defaultCalendar?.id);
   const defaultSchedule = schedules.find(s => s.is_default) || schedules[0];
   
-  const { rules, createRule, updateRule, deleteRule, syncingRules } = useAvailabilityRules(defaultSchedule?.id);
+  const { rules, createRule, updateRule, deleteRule, syncingRules, refetch: refreshRules } = useAvailabilityRules(defaultSchedule?.id);
 
   const [availability, setAvailability] = useState<Record<string, DayAvailability>>(() => {
     const initial: Record<string, DayAvailability> = {};
@@ -320,6 +320,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     defaultCalendar,
     defaultSchedule,
     syncToDatabase,
-    createDefaultSchedule
+    createDefaultSchedule,
+    refreshAvailability: refreshRules
   };
 };

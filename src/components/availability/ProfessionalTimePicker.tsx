@@ -385,51 +385,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                          {/* Center dot */}
                          <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-primary rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-lg" />
                          
-                         {/* Hour hand */}
-                         {!isSelectingMinutes && (
-                           <>
-                             <div
-                               className="absolute top-1/2 left-1/2 origin-bottom bg-primary rounded-full z-10 shadow-lg transition-transform duration-200"
-                                style={{
-                                  width: '4px',
-                                  height: '55px', // Adjusted for new ring positions
-                                  transform: `translate(-50%, -100%) rotate(${hourAngle}deg)`,
-                                  transformOrigin: 'bottom center'
-                                }}
-                             />
-                              {/* Hour hand circle */}
-                              <div
-                                className="absolute top-1/2 left-1/2 w-4 h-4 bg-primary rounded-full z-15 shadow-lg transition-transform duration-200 cursor-grab active:cursor-grabbing hover:scale-110"
-                                  style={{
-                                    transform: `translate(-50%, -50%) translate(${Math.cos((hourAngle - 90) * Math.PI / 180) * 52}px, ${Math.sin((hourAngle - 90) * Math.PI / 180) * 52}px)`
-                                  }}
-                                 onMouseDown={(e) => handleHandStart(e, false)}
-                              />
-                           </>
-                         )}
-                         
-                         {/* Minute hand */}
-                         {isSelectingMinutes && (
-                           <>
-                             <div
-                               className="absolute top-1/2 left-1/2 origin-bottom bg-primary rounded-full z-10 shadow-lg transition-transform duration-200"
-                                style={{
-                                  width: '3px',
-                                  height: '70px', // Adjusted for new ring positions
-                                  transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)`,
-                                  transformOrigin: 'bottom center'
-                                }}
-                             />
-                              {/* Minute hand circle */}
-                              <div
-                                className="absolute top-1/2 left-1/2 w-3 h-3 bg-primary rounded-full z-15 shadow-lg transition-transform duration-200 cursor-grab active:cursor-grabbing hover:scale-110"
-                                  style={{
-                                    transform: `translate(-50%, -50%) translate(${Math.cos((minuteAngle - 90) * Math.PI / 180) * 68}px, ${Math.sin((minuteAngle - 90) * Math.PI / 180) * 68}px)`
-                                  }}
-                                 onMouseDown={(e) => handleHandStart(e, true)}
-                              />
-                           </>
-                         )}
+                          {/* Green clock pointer/line removed as requested */}
                        </div>
                      </div>
                     

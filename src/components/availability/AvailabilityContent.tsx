@@ -18,7 +18,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   activeTab
 }) => {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
-  const { defaultSchedule, createDefaultSchedule, DAYS, availability } = useDailyAvailabilityManager(() => {});
+  const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
 
   // Check if availability is configured (less strict - show overview if basic data exists)
   const isAvailabilityConfigured = () => {
@@ -44,9 +44,14 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     setIsGuidedModalOpen(true);
   };
 
-  const handleGuidedComplete = () => {
+  const handleGuidedComplete = async () => {
     setIsGuidedModalOpen(false);
-    // The hook will automatically refresh data, no need to reload the page
+    // Force immediate refresh of availability data after configuration
+    console.log('Guided configuration completed, forcing data refresh...');
+    if (refreshAvailability) {
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for DB consistency
+      refreshAvailability();
+    }
   };
 
   if (activeTab === 'schedule') {
