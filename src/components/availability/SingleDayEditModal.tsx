@@ -124,14 +124,16 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
       await syncToDatabase(currentDay.key, localDayData);
       setHasUnsavedChanges(false);
       
-      // Force page reload to ensure immediate data sync
-      window.location.reload();
+      // Force immediate refresh of the rules and trigger parent update
+      await refreshAvailability();
+      onComplete();
+      setIsSaving(false);
     } catch (error) {
       console.error('Save failed:', error);
       setError('Failed to save changes. Please try again.');
       setIsSaving(false);
     }
-  }, [hasUnsavedChanges, localDayData, currentDay.key, syncToDatabase]);
+  }, [hasUnsavedChanges, localDayData, currentDay.key, syncToDatabase, refreshAvailability, onComplete]);
 
   const handleClose = useCallback(() => {
     onClose();
