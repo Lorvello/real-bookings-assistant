@@ -374,8 +374,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                   <div className="flex flex-col items-center space-y-4">
                        <div 
                         ref={clockRef}
-                        className="relative w-72 h-72 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 cursor-pointer hover:border-primary/60 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                        onClick={handleClockClick}
+                        className="relative w-72 h-72 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 hover:border-primary/60 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                       >
                        {/* Clock face inner circle */}
                        <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner transition-all duration-300">
