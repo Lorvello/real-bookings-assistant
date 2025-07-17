@@ -20,6 +20,7 @@ import SeeHowItWorks from '@/pages/SeeHowItWorks';
 import WhyUs from '@/pages/WhyUs';
 import FAQ from '@/pages/FAQ';
 import TestAIAgent from '@/pages/TestAIAgent';
+import WhatsAppBookingAssistantPage from '@/pages/WhatsAppBookingAssistant';
 import Profile from '@/pages/Profile';
 import { WhatsAppNotAvailable } from '@/components/whatsapp/WhatsAppNotAvailable';
 
@@ -64,6 +65,7 @@ function App() {
                 <Route path="/availability" element={<Availability />} />
                 <Route path="/conversations" element={<Conversations />} />
                 <Route path="/conversations/:id" element={<ConversationDetail />} />
+                <Route path="/whatsapp-booking-assistant" element={<WhatsAppBookingAssistantPage />} />
                 <Route path="/test-ai-agent" element={<TestAIAgent />} />
                 <Route path="/whatsapp-not-available" element={<WhatsAppNotAvailable />} />
                 <Route path="/settings" element={<Settings />} />

@@ -24,7 +24,8 @@ const navigation: NavItem[] = [
   { name: 'Bookings', href: '/bookings', icon: BookOpen },
   { name: 'Availability', href: '/availability', icon: Clock },
   { name: 'WhatsApp', href: '/conversations', icon: MessageCircle },
-  { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot },
+  { name: 'Booking Assistant', href: '/whatsapp-booking-assistant', icon: Bot },
+  { name: 'Test your AI agent', href: '/test-ai-agent', icon: Eye },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

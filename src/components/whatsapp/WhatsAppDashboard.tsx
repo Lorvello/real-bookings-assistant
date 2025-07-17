@@ -4,7 +4,6 @@ import { ConversationsList } from './ConversationsList';
 import { ConversationView } from './ConversationView';
 import { ContactSidebar } from './ContactSidebar';
 import { WhatsAppContactOverview } from './WhatsAppContactOverview';
-import { WhatsAppBookingAssistant } from './WhatsAppBookingAssistant';
 import { OrphanedConversationsManager } from './OrphanedConversationsManager';
 import { WebhookFlowDashboard } from '../webhooks/WebhookFlowDashboard';
 import { WebhookHealthMonitor } from '../webhooks/WebhookHealthMonitor';
@@ -30,11 +29,8 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
       {/* Service Status Indicator */}
       <WhatsAppServiceStatus calendarId={calendarId} />
       
-      <Tabs defaultValue="booking-assistant" className="h-full">
-        <TabsList className={`grid w-full ${isDeveloper ? 'grid-cols-6' : 'grid-cols-4'}`}>
-          <TabsTrigger value="booking-assistant">
-            Booking Assistant
-          </TabsTrigger>
+      <Tabs defaultValue="overview" className="h-full">
+        <TabsList className={`grid w-full ${isDeveloper ? 'grid-cols-5' : 'grid-cols-3'}`}>
           <TabsTrigger value="overview">
             Contacten Overzicht
           </TabsTrigger>
@@ -65,10 +61,6 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
             Beheer
           </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="booking-assistant" className="mt-6">
-          <WhatsAppBookingAssistant calendarId={calendarId} />
-        </TabsContent>
         
         <TabsContent value="overview" className="mt-6">
           <WhatsAppContactOverview calendarId={calendarId} />
