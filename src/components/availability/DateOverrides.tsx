@@ -213,7 +213,27 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                       selected={selectedDates}
                       onSelect={handleRangeSelect}
                       numberOfMonths={2}
-                      className="rounded-2xl bg-card"
+                      className={cn(
+                        "rounded-2xl bg-card pointer-events-auto",
+                        // Grid structure
+                        "[&_.rdp-months]:grid [&_.rdp-months]:grid-cols-2 [&_.rdp-months]:gap-8",
+                        // Day headers alignment and styling
+                        "[&_.rdp-head_row]:grid [&_.rdp-head_row]:grid-cols-7 [&_.rdp-head_row]:gap-0",
+                        "[&_.rdp-head_cell]:flex [&_.rdp-head_cell]:items-center [&_.rdp-head_cell]:justify-center",
+                        "[&_.rdp-head_cell]:h-10 [&_.rdp-head_cell]:text-sm [&_.rdp-head_cell]:font-medium",
+                        "[&_.rdp-head_cell]:text-muted-foreground [&_.rdp-head_cell]:border-b",
+                        "[&_.rdp-head_cell]:border-border/30",
+                        // Week rows grid
+                        "[&_.rdp-week]:grid [&_.rdp-week]:grid-cols-7 [&_.rdp-week]:gap-0",
+                        "[&_.rdp-week]:border-b [&_.rdp-week]:border-border/20",
+                        // Day cells grid structure
+                        "[&_.rdp-day]:h-10 [&_.rdp-day]:w-10 [&_.rdp-day]:flex [&_.rdp-day]:items-center",
+                        "[&_.rdp-day]:justify-center [&_.rdp-day]:relative [&_.rdp-day]:border-r",
+                        "[&_.rdp-day]:border-border/20 [&_.rdp-day:last-child]:border-r-0",
+                        // Remove default table styling
+                        "[&_.rdp-table]:border-collapse [&_.rdp-table]:w-full",
+                        "[&_.rdp-tbody]:space-y-0"
+                      )}
                     />
                   ) : (
                     <Calendar
@@ -223,7 +243,27 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                       selected={selectedDates.from}
                       onSelect={handleDateSelect}
                       numberOfMonths={1}
-                      className="rounded-2xl bg-card"
+                      className={cn(
+                        "rounded-2xl bg-card pointer-events-auto",
+                        // Grid structure
+                        "[&_.rdp-months]:grid [&_.rdp-months]:grid-cols-1",
+                        // Day headers alignment and styling
+                        "[&_.rdp-head_row]:grid [&_.rdp-head_row]:grid-cols-7 [&_.rdp-head_row]:gap-0",
+                        "[&_.rdp-head_cell]:flex [&_.rdp-head_cell]:items-center [&_.rdp-head_cell]:justify-center",
+                        "[&_.rdp-head_cell]:h-10 [&_.rdp-head_cell]:text-sm [&_.rdp-head_cell]:font-medium",
+                        "[&_.rdp-head_cell]:text-muted-foreground [&_.rdp-head_cell]:border-b",
+                        "[&_.rdp-head_cell]:border-border/30",
+                        // Week rows grid
+                        "[&_.rdp-week]:grid [&_.rdp-week]:grid-cols-7 [&_.rdp-week]:gap-0",
+                        "[&_.rdp-week]:border-b [&_.rdp-week]:border-border/20",
+                        // Day cells grid structure
+                        "[&_.rdp-day]:h-10 [&_.rdp-day]:w-10 [&_.rdp-day]:flex [&_.rdp-day]:items-center",
+                        "[&_.rdp-day]:justify-center [&_.rdp-day]:relative [&_.rdp-day]:border-r",
+                        "[&_.rdp-day]:border-border/20 [&_.rdp-day:last-child]:border-r-0",
+                        // Remove default table styling
+                        "[&_.rdp-table]:border-collapse [&_.rdp-table]:w-full",
+                        "[&_.rdp-tbody]:space-y-0"
+                      )}
                     />
                   )}
                 </PopoverContent>
