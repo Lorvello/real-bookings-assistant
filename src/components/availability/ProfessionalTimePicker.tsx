@@ -215,59 +215,65 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
 
   const generateHourNumbers = () => {
     const hours = [];
-    const currentHour = parseInt(formattedValue.split(':')[0]);
     
-    // Show both 12-hour and 24-hour numbers for better UX
+    // Generate clean 24-hour numbers with proper spacing
     for (let i = 1; i <= 12; i++) {
       const angle = (i * 30) - 90; // -90 to start at 12 o'clock
-      const x = Math.cos(angle * Math.PI / 180) * 35;
-      const y = Math.sin(angle * Math.PI / 180) * 35;
+      const outerRadius = 40;
+      const innerRadius = 25;
       
-      // Show outer ring number (1-12)
+      const outerX = Math.cos(angle * Math.PI / 180) * outerRadius;
+      const outerY = Math.sin(angle * Math.PI / 180) * outerRadius;
+      
+      const innerX = Math.cos(angle * Math.PI / 180) * innerRadius;
+      const innerY = Math.sin(angle * Math.PI / 180) * innerRadius;
+      
+      // Outer ring (1-12)
+      const displayOuter = i;
       hours.push(
         <div
           key={`outer-${i}`}
-          className="absolute text-xs font-medium text-foreground/80 select-none"
+          className="absolute text-sm font-semibold text-foreground select-none cursor-pointer hover:text-primary transition-colors flex items-center justify-center"
           style={{
-            left: `calc(50% + ${x}px - 6px)`,
-            top: `calc(50% + ${y}px - 6px)`,
-            width: '12px',
-            height: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          {i}
-        </div>
-      );
-      
-      // Show inner ring numbers (13-24) for 24-hour support
-      const innerX = Math.cos(angle * Math.PI / 180) * 22;
-      const innerY = Math.sin(angle * Math.PI / 180) * 22;
-      const inner24Hour = i === 12 ? 0 : i + 12;
-      
-      hours.push(
-        <div
-          key={`inner-${inner24Hour}`}
-          className="absolute text-xs font-medium text-foreground/60 select-none cursor-pointer hover:text-foreground transition-colors"
-          style={{
-            left: `calc(50% + ${innerX}px - 6px)`,
-            top: `calc(50% + ${innerY}px - 6px)`,
-            width: '12px',
-            height: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            left: `calc(50% + ${outerX}px)`,
+            top: `calc(50% + ${outerY}px)`,
+            width: '20px',
+            height: '20px',
+            transform: 'translate(-50%, -50%)'
           }}
           onClick={(e) => {
             e.stopPropagation();
             const minutes = formattedValue.split(':')[1];
-            const newTime = `${inner24Hour.toString().padStart(2, '0')}:${minutes}`;
+            const hourToUse = displayOuter === 12 ? 12 : displayOuter;
+            const newTime = `${hourToUse.toString().padStart(2, '0')}:${minutes}`;
             onChange(newTime);
           }}
         >
-          {inner24Hour.toString().padStart(2, '0')}
+          {displayOuter}
+        </div>
+      );
+      
+      // Inner ring (13-24/00)
+      const displayInner = i === 12 ? 0 : i + 12;
+      hours.push(
+        <div
+          key={`inner-${displayInner}`}
+          className="absolute text-xs font-medium text-foreground/70 select-none cursor-pointer hover:text-primary transition-colors flex items-center justify-center"
+          style={{
+            left: `calc(50% + ${innerX}px)`,
+            top: `calc(50% + ${innerY}px)`,
+            width: '18px',
+            height: '18px',
+            transform: 'translate(-50%, -50%)'
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            const minutes = formattedValue.split(':')[1];
+            const newTime = `${displayInner.toString().padStart(2, '0')}:${minutes}`;
+            onChange(newTime);
+          }}
+        >
+          {displayInner.toString().padStart(2, '0')}
         </div>
       );
     }
@@ -309,16 +315,29 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
           onChange={(e) => {
             const value = e.target.value;
             setInputValue(value);
+            // Real-time typing validation
             const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
             if (timeRegex.test(value)) {
               onChange(value);
             }
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+              if (timeRegex.test(inputValue)) {
+                onChange(inputValue);
+              }
+              onClose();
+            }
+          }}
           onFocus={(e) => {
+            e.stopPropagation();
+            // Don't auto-open modal when typing
+          }}
+          onClick={(e) => {
             e.stopPropagation();
             onToggle();
           }}
-          onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           placeholder="09:00"
           className="font-mono text-center bg-background border-border hover:border-accent focus:border-accent focus:ring-accent/20 transition-all duration-200"
@@ -450,47 +469,25 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                     </div>
                   </div>
                   
-                  {/* Hour/Minute Toggle and 24-Hour Mode */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-center space-x-2">
-                      <Button
-                        variant={!isSelectingMinutes ? "default" : "outline"}
-                        size="lg"
-                        onClick={() => setIsSelectingMinutes(false)}
-                        className={`min-w-[80px] ${!isSelectingMinutes ? 'bg-primary hover:bg-primary/90' : ''}`}
-                      >
-                        Hours
-                      </Button>
-                      <Button
-                        variant={isSelectingMinutes ? "default" : "outline"}
-                        size="lg"
-                        onClick={() => setIsSelectingMinutes(true)}
-                        className={`min-w-[80px] ${isSelectingMinutes ? 'bg-primary hover:bg-primary/90' : ''}`}
-                      >
-                        Minutes
-                      </Button>
-                    </div>
-                    
-                    {/* 24-Hour Mode Toggle */}
-                    <div className="flex items-center justify-center space-x-2">
-                      <Button
-                        variant={!is24HourMode ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setIs24HourMode(false)}
-                        className="min-w-[60px] text-xs"
-                      >
-                        AM/PM
-                      </Button>
-                      <Button
-                        variant={is24HourMode ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setIs24HourMode(true)}
-                        className="min-w-[60px] text-xs"
-                      >
-                        24H
-                      </Button>
-                    </div>
-                  </div>
+                   {/* Hour/Minute Toggle - Simplified */}
+                   <div className="flex items-center justify-center space-x-2">
+                     <Button
+                       variant={!isSelectingMinutes ? "default" : "outline"}
+                       size="lg"
+                       onClick={() => setIsSelectingMinutes(false)}
+                       className="min-w-[80px]"
+                     >
+                       Hours
+                     </Button>
+                     <Button
+                       variant={isSelectingMinutes ? "default" : "outline"}
+                       size="lg"
+                       onClick={() => setIsSelectingMinutes(true)}
+                       className="min-w-[80px]"
+                     >
+                       Minutes
+                     </Button>
+                   </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -529,7 +526,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
               </Button>
                 <Button
                 onClick={() => {
-                  // CRITICAL FIX: Ensure time is properly saved
+                  // CRITICAL FIX: Immediate save without delay
                   let finalTime = formattedValue;
                   
                   if (mode === 'input') {
@@ -539,13 +536,13 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                     }
                   }
                   
-                  // Force the change to trigger
+                  console.log('Setting time to:', finalTime);
+                  
+                  // Force the change to trigger immediately
                   onChange(finalTime);
                   
-                  // Close modal after a brief delay to ensure save completes
-                  setTimeout(() => {
-                    onClose();
-                  }, 100);
+                  // Close modal immediately
+                  onClose();
                 }}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-6"
               >

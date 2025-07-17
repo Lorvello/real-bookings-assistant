@@ -71,8 +71,8 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
   // Get current day info
   const currentDay = DAYS[dayIndex];
   
-  // Debounce the local data to trigger auto-save (reduced delay for faster response)
-  const debouncedData = useDebounce(localDayData, 300);
+  // Instant save for immediate response
+  const debouncedData = useDebounce(localDayData, 50);
 
   // Auto-save effect
   useEffect(() => {
