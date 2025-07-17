@@ -1,0 +1,139 @@
+/* React Day Picker Calendar Grid Overrides */
+/* These styles force proper grid alignment by overriding React Day Picker's internal flexbox styling */
+
+/* Force grid layout on table element */
+.react-day-picker .rdp-table {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  grid-template-rows: auto 1fr !important;
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+/* Force grid layout on header row */
+.react-day-picker .rdp-head_row {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  grid-column: 1 / -1 !important;
+  gap: 0 !important;
+  width: 100% !important;
+}
+
+/* Force grid layout on header cells */
+.react-day-picker .rdp-head_cell {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 2rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  border-right: 1px solid hsl(var(--border) / 0.2) !important;
+  border-bottom: 1px solid hsl(var(--border) / 0.3) !important;
+  color: hsl(var(--muted-foreground)) !important;
+  background: transparent !important;
+}
+
+.react-day-picker .rdp-head_cell:last-child {
+  border-right: none !important;
+}
+
+/* Force grid layout on body rows */
+.react-day-picker .rdp-body .rdp-row {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  grid-column: 1 / -1 !important;
+  gap: 0 !important;
+  width: 100% !important;
+  border-bottom: 1px solid hsl(var(--border) / 0.1) !important;
+}
+
+.react-day-picker .rdp-body .rdp-row:last-child {
+  border-bottom: none !important;
+}
+
+/* Force grid layout on body cells */
+.react-day-picker .rdp-cell {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 2.25rem !important;
+  padding: 0 !important;
+  position: relative !important;
+  border-right: 1px solid hsl(var(--border) / 0.15) !important;
+  text-align: center !important;
+  font-size: 0.875rem !important;
+}
+
+.react-day-picker .rdp-cell:last-child {
+  border-right: none !important;
+}
+
+/* Override React Day Picker's internal flexbox on tbody */
+.react-day-picker .rdp-tbody {
+  display: contents !important;
+}
+
+/* Override React Day Picker's internal flexbox on thead */
+.react-day-picker .rdp-thead {
+  display: contents !important;
+}
+
+/* Ensure day buttons take full cell space */
+.react-day-picker .rdp-day {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Selected day styling */
+.react-day-picker .rdp-day.rdp-day_selected {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.react-day-picker .rdp-day.rdp-day_selected:hover {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Today styling */
+.react-day-picker .rdp-day.rdp-day_today {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+/* Outside month days */
+.react-day-picker .rdp-day.rdp-day_outside {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 0.5 !important;
+}
+
+/* Disabled days */
+.react-day-picker .rdp-day.rdp-day_disabled {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 0.5 !important;
+}
+
+/* Range selection styling */
+.react-day-picker .rdp-day.rdp-day_range_middle {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+/* Hover effects */
+.react-day-picker .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+  background-color: hsl(var(--accent) / 0.5) !important;
+}
+
+/* Focus styling */
+.react-day-picker .rdp-day:focus-visible {
+  outline: 2px solid hsl(var(--ring)) !important;
+  outline-offset: 2px !important;
+}
