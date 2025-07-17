@@ -30,7 +30,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
     handleUpdateBusiness();
   };
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={100}>
       <div className="space-y-8">
       {/* Save Button */}
       <div className="flex items-center justify-between bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-4">
