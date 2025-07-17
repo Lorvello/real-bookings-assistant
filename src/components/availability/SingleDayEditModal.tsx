@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -52,7 +53,8 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { syncToDatabase, refreshAvailability } = useDailyAvailabilityManager(() => {});
+  const { syncToDatabase } = useDailyAvailabilityManager(() => {});
+  const navigate = useNavigate();
   
   // Get current day info
   const currentDay = DAYS[dayIndex];
@@ -124,16 +126,16 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
       await syncToDatabase(currentDay.key, localDayData);
       setHasUnsavedChanges(false);
       
-      // Force immediate refresh of the rules and trigger parent update
-      await refreshAvailability();
-      onComplete();
-      setIsSaving(false);
+      // Add small delay for database consistency, then refresh page
+      setTimeout(() => {
+        navigate(0);
+      }, 100);
     } catch (error) {
       console.error('Save failed:', error);
       setError('Failed to save changes. Please try again.');
       setIsSaving(false);
     }
-  }, [hasUnsavedChanges, localDayData, currentDay.key, syncToDatabase, refreshAvailability, onComplete]);
+  }, [hasUnsavedChanges, localDayData, currentDay.key, syncToDatabase, navigate]);
 
   const handleClose = useCallback(() => {
     onClose();
