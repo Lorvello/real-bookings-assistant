@@ -234,6 +234,7 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
         onClose={() => setIsGuidedModalOpen(false)}
         onComplete={handleGuidedComplete}
         editMode={true}
+        selectedCalendar={defaultCalendar ? { id: defaultCalendar.id, timezone: defaultCalendar.timezone } : undefined}
       />
     </div>
   );

@@ -9,6 +9,8 @@ import { CheckCircle, Clock, ArrowLeft, ArrowRight, Calendar, Globe } from 'luci
 import { ProfessionalTimePicker } from './ProfessionalTimePicker';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface GuidedAvailabilityModalProps {
   isOpen: boolean;
@@ -16,6 +18,7 @@ interface GuidedAvailabilityModalProps {
   onComplete: () => void;
   startDay?: number | null;
   editMode?: boolean;
+  selectedCalendar?: { id: string; timezone: string };
 }
 
 interface TimeBlock {
@@ -44,10 +47,11 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   onClose,
   onComplete,
   startDay = null,
-  editMode = false
+  editMode = false,
+  selectedCalendar
 }) => {
   const [currentStep, setCurrentStep] = useState(startDay ?? 0);
-  const [timezone, setTimezone] = useState('Europe/Amsterdam');
+  const [timezone, setTimezone] = useState(selectedCalendar?.timezone || 'Europe/Amsterdam');
   const [selectedTimeBlock, setSelectedTimeBlock] = useState<{dayKey: string; blockId: string; field: 'startTime' | 'endTime'} | null>(null);
   const [localAvailability, setLocalAvailability] = useState<Record<string, DayAvailability>>(() => {
     const initial: Record<string, DayAvailability> = {};
@@ -66,6 +70,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
 
   const { syncToDatabase, createDefaultSchedule, availability: existingAvailability } = useDailyAvailabilityManager(() => {});
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Load existing availability data when in edit mode
   useEffect(() => {
@@ -74,6 +79,13 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       setLocalAvailability(existingAvailability);
     }
   }, [editMode, existingAvailability]);
+
+  // Load existing timezone when selectedCalendar changes
+  useEffect(() => {
+    if (selectedCalendar?.timezone) {
+      setTimezone(selectedCalendar.timezone);
+    }
+  }, [selectedCalendar]);
 
   const totalSteps = DAYS.length + 1; // Days + timezone step
   const progress = (currentStep / totalSteps) * 100;
@@ -152,6 +164,21 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     }
   };
 
+  const saveTimezone = async () => {
+    if (!selectedCalendar?.id) {
+      throw new Error('No calendar selected');
+    }
+
+    const { error } = await supabase
+      .from('calendars')
+      .update({ timezone })
+      .eq('id', selectedCalendar.id);
+
+    if (error) {
+      throw error;
+    }
+  };
+
   const handleComplete = async () => {
     try {
       console.log('Saving availability configuration...');
@@ -187,12 +214,26 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       
       console.log('All availability data saved successfully');
       
+      // Save timezone to database
+      await saveTimezone();
+      console.log('Timezone saved successfully');
+      
+      toast({
+        title: "Configuration Saved",
+        description: "Your availability and timezone have been saved successfully.",
+      });
+      
       // Add small delay for database consistency, then refresh page
       setTimeout(() => {
         navigate(0);
       }, 100);
     } catch (error) {
       console.error('Error saving availability configuration:', error);
+      toast({
+        title: "Save Error",
+        description: "There was an error saving your configuration. Please try again.",
+        variant: "destructive",
+      });
       // Still refresh to avoid blocking user, but log the error
       setTimeout(() => {
         navigate(0);

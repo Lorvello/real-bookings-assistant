@@ -24,7 +24,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [setupState, setSetupState] = React.useState<'checking' | 'needs_calendar' | 'needs_config' | 'configured'>('checking');
   
-  const { calendars, loading: calendarsLoading, refreshCalendars } = useCalendarContext();
+  const { calendars, selectedCalendar, loading: calendarsLoading, refreshCalendars } = useCalendarContext();
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
   
   // FIXED: Prevent circular dependencies
@@ -212,6 +212,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
           isOpen={isGuidedModalOpen}
           onClose={() => setIsGuidedModalOpen(false)}
           onComplete={handleGuidedComplete}
+          selectedCalendar={selectedCalendar ? { id: selectedCalendar.id, timezone: selectedCalendar.timezone } : undefined}
         />
 
         {/* Calendar Creation Dialog */}
