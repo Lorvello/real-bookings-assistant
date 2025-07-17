@@ -117,13 +117,6 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
               <span>Reconfigure All</span>
             </Button>
             
-            <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-              status.isComplete 
-                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-            }`}>
-              {status.isComplete ? 'Complete' : 'In Progress'}
-            </div>
           </div>
         </div>
       </div>
