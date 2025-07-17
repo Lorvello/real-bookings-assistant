@@ -126,31 +126,88 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
         </CardContent>
       </Card>
 
-      {/* Instructions */}
+      {/* Prerequisites */}
       <Card className="bg-slate-800/90 border-slate-700/50">
         <CardHeader>
-          <CardTitle className="text-white">Setup Instructions</CardTitle>
+          <CardTitle className="text-white">Required Setup Steps</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">1</span>
+                Complete Business Information
+              </h3>
+              <p className="text-gray-400 text-sm ml-8">
+                Go to Settings and fill in all required business information including your business name, address, and contact details.
+              </p>
+            </div>
+            
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">2</span>
+                Create Service Types
+              </h3>
+              <p className="text-gray-400 text-sm ml-8">
+                Define at least one service type with a name, duration, and price. This allows the AI assistant to understand what services you offer.
+              </p>
+            </div>
+            
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">3</span>
+                Configure Availability
+              </h3>
+              <p className="text-gray-400 text-sm ml-8">
+                Set your working hours and days in the Availability section. The AI assistant will only offer appointments during these times.
+              </p>
+            </div>
+            
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2 flex items-center">
+                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">4</span>
+                Activate Subscription
+              </h3>
+              <p className="text-gray-400 text-sm ml-8">
+                Ensure you have an active subscription that includes the WhatsApp Booking Assistant feature.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Usage Instructions */}
+      <Card className="bg-slate-800/90 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-white">How It Works</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2">Share with customers</h3>
               <p className="text-gray-400 text-sm">
-                Provide this WhatsApp number to customers for AI-powered booking assistance.
+                Provide this WhatsApp number to customers for AI-powered booking assistance. They can message this number at any time.
               </p>
             </div>
             
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2">QR Code usage</h3>
               <p className="text-gray-400 text-sm">
-                Place the QR code on your website, business cards, or marketing materials for easy access.
+                Place the QR code on your website, business cards, or marketing materials for easy access. Customers can scan it to start a conversation.
               </p>
             </div>
             
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2">Automatic booking</h3>
               <p className="text-gray-400 text-sm">
-                Customers can book appointments directly through WhatsApp using the AI assistant.
+                The AI assistant will guide customers through the booking process, asking for their name, preferred service, and suitable time slots based on your availability.
+              </p>
+            </div>
+            
+            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
+              <h3 className="font-semibold text-white mb-2">Manage conversations</h3>
+              <p className="text-gray-400 text-sm">
+                View and manage all WhatsApp conversations in the WhatsApp tab. You can take over any conversation if needed.
               </p>
             </div>
           </div>
