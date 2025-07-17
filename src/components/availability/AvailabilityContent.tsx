@@ -22,12 +22,19 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   const [isInitialSetupFlow, setIsInitialSetupFlow] = useState(false);
+  const [configurationCompleted, setConfigurationCompleted] = useState(false);
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
   const { calendars } = useCalendars();
 
-  // Check if availability is configured (less strict - show overview if basic data exists)
+  // Check if availability is configured (enhanced to detect configured availability immediately after setup)
   const isAvailabilityConfigured = () => {
-    if (!defaultSchedule || !availability) return false;
+    // If configuration was just completed, always show overview
+    if (configurationCompleted) return true;
+    
+    if (!defaultSchedule) return false;
+    
+    // More robust check for configured availability
+    if (!availability) return false;
     
     // Show overview if at least some days are configured OR if we have database rules
     const hasConfiguredDays = DAYS.some(day => {
@@ -38,11 +45,14 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
       );
     });
     
-    // Always show overview if we have a default schedule - let users see current state
+    // Always show overview if we have a default schedule and some configuration
     return defaultSchedule && hasConfiguredDays;
   };
 
   const handleConfigureAvailability = async () => {
+    // Reset configuration completed flag when starting new configuration
+    setConfigurationCompleted(false);
+    
     // Check if user has any calendars first
     if (!calendars || calendars.length === 0) {
       // No calendars - show calendar creation dialog first
@@ -75,8 +85,12 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const handleGuidedComplete = async () => {
     setIsGuidedModalOpen(false);
     
+    // CRITICAL FIX: Set configuration completed flag to ensure overview is shown
+    console.log('Guided configuration completed, setting configuration completed flag');
+    setConfigurationCompleted(true);
+    
     // Force immediate refresh of availability data after configuration
-    console.log('Guided configuration completed, forcing data refresh...');
+    console.log('Forcing data refresh after configuration...');
     if (refreshAvailability) {
       await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for DB consistency
       refreshAvailability();
@@ -92,6 +106,9 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
         refreshAvailability();
       }
     }
+    
+    // After a successful setup, ensure overview stays visible
+    console.log('Configuration completed successfully, overview will be shown');
   };
 
   if (activeTab === 'schedule') {
@@ -134,7 +151,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
                 <div className="lg:col-span-3 space-y-8">
                   {/* Show overview if configured, otherwise show step-by-step */}
                   {isAvailabilityConfigured() ? (
-                    <AvailabilityOverview />
+                    <AvailabilityOverview onChange={refreshAvailability} />
                   ) : (
                     <StepByStepDayConfiguration />
                   )}
