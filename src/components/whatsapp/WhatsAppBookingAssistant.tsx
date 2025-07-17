@@ -202,22 +202,10 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
               </p>
             </div>
             
-            {/* Step 1 */}
-            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
-              <h3 className="font-semibold text-white mb-2 flex items-center">
-                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">1</span>
-                First Message (Recommended)
-              </h3>
-                <p className="text-gray-400 text-sm ml-8">
-                  Customers can mention their name and your business name in their first message for faster setup.
-                  If they don't, the AI assistant will ask which business they're trying to reach.
-                </p>
-            </div>
-            
             {/* Step 2 */}
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2 flex items-center">
-                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">2</span>
+                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">1</span>
                 System Remembers
               </h3>
               <p className="text-gray-400 text-sm ml-8">
@@ -228,7 +216,7 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
             {/* Step 3 */}
             <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/30">
               <h3 className="font-semibold text-white mb-2 flex items-center">
-                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">3</span>
+                <span className="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-green-600/30 text-green-400 border border-green-500/30">2</span>
                 Future Bookings
               </h3>
               <p className="text-gray-400 text-sm ml-8">
