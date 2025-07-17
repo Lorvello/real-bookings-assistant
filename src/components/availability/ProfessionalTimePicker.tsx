@@ -208,7 +208,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       hours.push(
         <div
           key={`outer-${i}`}
-          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 transition-all duration-200 flex items-center justify-center text-base font-semibold text-foreground"
+          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 hover:bg-primary/10 hover:shadow-lg transition-all duration-200 flex items-center justify-center text-base font-semibold text-foreground rounded-full"
           style={{
             left: `calc(50% + ${x}px)`,
             top: `calc(50% + ${y}px)`,
@@ -245,7 +245,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       hours.push(
         <div
           key={`inner-${actualHour}`}
-          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 transition-all duration-200 flex items-center justify-center text-sm font-semibold text-foreground"
+          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 hover:bg-primary/10 hover:shadow-lg transition-all duration-200 flex items-center justify-center text-sm font-semibold text-foreground rounded-full"
           style={{
             left: `calc(50% + ${x}px)`,
             top: `calc(50% + ${y}px)`,
@@ -280,7 +280,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       marks.push(
         <div
           key={i}
-          className="absolute text-xs font-medium text-foreground/60 select-none cursor-pointer hover:text-primary transition-colors"
+          className="absolute text-xs font-medium text-foreground/60 select-none cursor-pointer hover:text-primary hover:bg-primary/10 hover:scale-110 hover:shadow-lg transition-all duration-200 rounded-full flex items-center justify-center"
           style={{
             left: `calc(50% + ${x}px - 6px)`,
             top: `calc(50% + ${y}px - 6px)`,
@@ -382,19 +382,52 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                          {/* Hour numbers or minute marks */}
                          {isSelectingMinutes ? generateMinuteMarks() : generateHourNumbers()}
                          
-                         {/* Center dot */}
-                         <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-primary rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-lg" />
-                         
-                          {/* Green clock pointer/line removed as requested */}
+                          {/* Prominent clock hands */}
+                          <div 
+                            className="absolute top-1/2 left-1/2 origin-bottom bg-primary/90 rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 z-10 transition-all duration-300"
+                            style={{
+                              width: '3px',
+                              height: '45px',
+                              transform: `translate(-50%, -100%) rotate(${isSelectingMinutes ? minuteAngle : hourAngle}deg)`,
+                              transformOrigin: 'bottom center'
+                            }}
+                          />
+                          
+                          {/* Minute markers for precision */}
+                          {!isSelectingMinutes && (
+                            <>
+                              {Array.from({ length: 24 }, (_, i) => {
+                                const angle = (i * 15) - 90;
+                                const radius = 70;
+                                const x = Math.cos(angle * Math.PI / 180) * radius;
+                                const y = Math.sin(angle * Math.PI / 180) * radius;
+                                return (
+                                  <div
+                                    key={`marker-${i}`}
+                                    className="absolute w-0.5 h-2 bg-border/60"
+                                    style={{
+                                      left: `calc(50% + ${x}px)`,
+                                      top: `calc(50% + ${y}px)`,
+                                      transform: `translate(-50%, -50%) rotate(${angle + 90}deg)`,
+                                      transformOrigin: 'center'
+                                    }}
+                                  />
+                                );
+                              })}
+                            </>
+                          )}
+                          
+                          {/* Center dot - enhanced */}
+                          <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-primary rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-lg border-2 border-background" />
                        </div>
                      </div>
                     
-                    {/* Current time display */}
-                    <div className="text-center">
-                      <div className="text-3xl font-mono font-bold text-foreground mb-1">
+                    {/* Current time display - more prominent */}
+                    <div className="text-center bg-accent/10 rounded-xl p-4 border border-accent/20">
+                      <div className="text-5xl font-mono font-bold text-primary mb-2 tracking-wider">
                         {formattedValue}
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-sm text-muted-foreground font-medium">
                         {isSelectingMinutes ? 'Select minutes' : 'Select hours (24-hour format)'}
                       </div>
                     </div>
