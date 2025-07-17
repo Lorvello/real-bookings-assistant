@@ -100,32 +100,43 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     setIsCalendarDialogOpen(false);
     setIsInitialSetupFlow(true);
     
-    // OPTIMIZED: Immediate transition without waiting
-    // State will update automatically via useEffect
-    
-    // Create schedule in background while opening modal
+    // FIXED: Await schedule creation to prevent race condition
     if (!defaultSchedule) {
-      createDefaultSchedule(); // Don't await - let it run in background
+      setIsRefreshing(true);
+      try {
+        await createDefaultSchedule();
+        // Small delay to ensure database sync
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error('Error creating schedule:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
     }
     
+    // Only open modal after schedule is ready
     setIsGuidedModalOpen(true);
   };
 
   const handleGuidedComplete = async () => {
-    // IMMEDIATE: Close modal and set completed state
+    // IMMEDIATE: Close modal and set state
     setIsGuidedModalOpen(false);
     setConfigurationCompleted(true);
     setCompletionLock(true);
+    
+    // IMMEDIATE: Force configured state
     setSetupState('configured');
     
-    // Clear completion lock after UI has stabilized  
+    // Persistent completion lock to prevent state override
     setTimeout(() => {
       setCompletionLock(false);
-    }, 1000);
+    }, 2000);
     
-    // Refresh availability data in background
+    // Background refresh
     if (refreshAvailability) {
-      refreshAvailability();
+      setTimeout(() => {
+        refreshAvailability();
+      }, 100);
     }
   };
 

@@ -304,6 +304,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     if (!defaultCalendar) return;
     
     try {
+      console.log('Creating default schedule for calendar:', defaultCalendar.id);
+      
       const { data, error } = await supabase
         .from('availability_schedules')
         .insert({
@@ -316,16 +318,21 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       if (error) {
         console.error('Error creating default schedule:', error);
-        return;
+        throw error;
       }
       
-      console.log('Default schedule created:', data);
+      console.log('Default schedule created successfully:', data);
       
-      // Call onChange to trigger any necessary updates
-      onChange();
+      // Trigger immediate refresh
+      setTimeout(() => {
+        onChange();
+      }, 50);
+      
+      return data;
       
     } catch (error) {
       console.error('Error creating default schedule:', error);
+      throw error;
     }
   };
 

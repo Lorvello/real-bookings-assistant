@@ -142,28 +142,36 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     }
   };
 
-  const handleComplete = async () => {
-    // Save current configuration synchronously before closing
-    try {
-      // Create schedule if needed first
-      await createDefaultSchedule();
-      
-      // Then sync all availability data
-      const syncPromises = DAYS.map(async (day) => {
-        try {
-          await syncToDatabase(day.key, localAvailability[day.key]);
-        } catch (error) {
-          console.error(`Error syncing ${day.key}:`, error);
-        }
-      });
-      
-      await Promise.all(syncPromises);
-    } catch (error) {
-      console.error('Sync error during completion:', error);
-    }
-    
-    // IMMEDIATE: Trigger completion callback to update parent state
+  const handleComplete = () => {
+    // IMMEDIATE: Close modal first for instant UI feedback
     onComplete();
+    
+    // BACKGROUND: Save configuration asynchronously
+    const saveConfiguration = async () => {
+      try {
+        console.log('Saving availability configuration...');
+        
+        // Create schedule if needed first
+        await createDefaultSchedule();
+        
+        // Then sync all availability data
+        const syncPromises = DAYS.map(async (day) => {
+          try {
+            await syncToDatabase(day.key, localAvailability[day.key]);
+          } catch (error) {
+            console.error(`Error syncing ${day.key}:`, error);
+          }
+        });
+        
+        await Promise.all(syncPromises);
+        console.log('Configuration saved successfully');
+      } catch (error) {
+        console.error('Error saving configuration:', error);
+      }
+    };
+    
+    // Run save in background
+    saveConfiguration();
   };
 
   const renderDayConfiguration = () => {
