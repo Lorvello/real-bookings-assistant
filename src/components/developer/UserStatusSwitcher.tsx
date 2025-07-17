@@ -158,8 +158,8 @@ export const UserStatusSwitcher = () => {
     }
   };
 
-  // Only show in development or for specific users
-  if (!profile || process.env.NODE_ENV === 'production') {
+  // Only show if profile exists (admin can access in any environment)
+  if (!profile) {
     return null;
   }
 
