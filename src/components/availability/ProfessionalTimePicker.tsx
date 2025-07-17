@@ -232,7 +232,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
     }
     
     // Generate inner ring with proper hour mapping (13-24, with 00 at 12 o'clock position)
-    const innerHours = [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0]; // 0 at position 12 (midnight)
+    const innerHours = [0, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]; // 0 at position 1 (top, midnight)
     for (let i = 0; i < 12; i++) {
       const position = i + 1; // Position 1-12 on clock face
       const actualHour = innerHours[i]; // Actual hour value (13-23, 0)
