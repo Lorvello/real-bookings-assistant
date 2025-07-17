@@ -1,15 +1,18 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { CalendarSettings } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
-import { fetchCalendarSettings, createDefaultCalendarSettings } from './calendarSettingsUtils';
+import { fetchCalendarSettings, createDefaultCalendarSettings, updateCalendarSettings } from './calendarSettingsUtils';
+import { useToast } from '@/hooks/use-toast';
 
 export const useCalendarSettingsState = (calendarId?: string) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [settings, setSettings] = useState<CalendarSettings | null>(null);
   const [pendingChanges, setPendingChanges] = useState<Partial<CalendarSettings>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
 
   const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
@@ -51,10 +54,65 @@ export const useCalendarSettingsState = (calendarId?: string) => {
     }
   };
 
-  const updatePendingSettings = (updates: Partial<CalendarSettings>) => {
+  // Auto-save function with debounce
+  const autoSave = useCallback(async (changes: Partial<CalendarSettings>) => {
+    if (!calendarId || !changes || Object.keys(changes).length === 0) return;
+
+    setSaving(true);
+    try {
+      const success = await updateCalendarSettings(calendarId, changes);
+      
+      if (success) {
+        // Clear pending changes after successful save
+        setPendingChanges({});
+        // Update the current settings with the saved changes
+        setSettings(prev => prev ? { ...prev, ...changes } : null);
+      } else {
+        toast({
+          title: "Fout",
+          description: "Kan kalender instellingen niet opslaan",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Auto-save error:', error);
+      toast({
+        title: "Fout",
+        description: "Er is een onverwachte fout opgetreden bij het opslaan",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [calendarId, toast]);
+
+  const updatePendingSettings = useCallback((updates: Partial<CalendarSettings>) => {
     console.log('Updating pending settings:', updates);
-    setPendingChanges(prev => ({ ...prev, ...updates }));
-  };
+    setPendingChanges(prev => {
+      const newChanges = { ...prev, ...updates };
+      
+      // Clear existing timeout
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+      
+      // Set new timeout for auto-save
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        autoSave(newChanges);
+      }, 1000); // 1 second debounce
+      
+      return newChanges;
+    });
+  }, [autoSave]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const getCurrentSettings = () => {
     if (!settings) return null;
