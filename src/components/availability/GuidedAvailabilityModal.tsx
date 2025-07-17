@@ -143,24 +143,43 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   };
 
   const handleComplete = async () => {
-    // CRITICAL FIX: Immediate UI response - close modal first
+    console.log('Starting completion process...', localAvailability);
+    
+    // CRITICAL FIX: Close modal immediately for better UX
     onClose();
     
     try {
-      // Run database operations in background without blocking UI
       // Create default schedule first if needed
+      console.log('Creating default schedule...');
       await createDefaultSchedule();
       
-      // Sync all availability data in parallel instead of sequential
-      const syncPromises = DAYS.map(day => 
-        syncToDatabase(day.key, localAvailability[day.key])
-      );
+      // Give schedule creation time to complete
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Sync all availability data in parallel with better error handling
+      console.log('Syncing availability data...');
+      const syncPromises = DAYS.map(async (day) => {
+        try {
+          console.log(`Syncing ${day.key}:`, localAvailability[day.key]);
+          await syncToDatabase(day.key, localAvailability[day.key]);
+          console.log(`Successfully synced ${day.key}`);
+        } catch (error) {
+          console.error(`Error syncing ${day.key}:`, error);
+          // Don't throw - allow other days to complete
+        }
+      });
       
       // Execute all database operations in parallel
       await Promise.all(syncPromises);
       
+      console.log('All sync operations completed, triggering completion callback...');
+      
+      // Force a small delay to ensure database operations are fully processed
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // Trigger completion callback after DB operations complete
       onComplete();
+      
     } catch (error) {
       console.error('Error completing availability setup:', error);
       // Still trigger completion even if there are errors

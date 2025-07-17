@@ -20,18 +20,21 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
   const { defaultSchedule, createDefaultSchedule, DAYS, availability } = useDailyAvailabilityManager(() => {});
 
-  // Check if availability is fully configured
+  // Check if availability is configured (less strict - show overview if basic data exists)
   const isAvailabilityConfigured = () => {
     if (!defaultSchedule || !availability) return false;
     
-    // Check if ALL days are configured (enabled with time blocks OR explicitly disabled)
-    return DAYS.every(day => {
+    // Show overview if at least some days are configured OR if we have database rules
+    const hasConfiguredDays = DAYS.some(day => {
       const dayData = availability[day.key];
       return dayData && (
         (dayData.enabled && dayData.timeBlocks?.length > 0) ||
         (!dayData.enabled)
       );
     });
+    
+    // Always show overview if we have a default schedule - let users see current state
+    return defaultSchedule && hasConfiguredDays;
   };
 
   const handleConfigureAvailability = async () => {

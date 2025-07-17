@@ -73,9 +73,15 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
   const [syncTimeouts, setSyncTimeouts] = useState<Map<string, NodeJS.Timeout>>(new Map());
   const [syncMutex, setSyncMutex] = useState<Map<string, boolean>>(new Map());
 
-  // Convert database rules to UI availability format
+  // Convert database rules to UI availability format with proper time formatting
   const availabilityFromRules = useMemo(() => {
     const result: Record<string, DayAvailability> = {};
+    
+    // Helper function to format time from HH:MM:SS to HH:MM
+    const formatTime = (time: string) => {
+      if (!time) return '08:00';
+      return time.length === 5 ? time : time.substring(0, 5);
+    };
     
     DAYS.forEach(day => {
       const dayRules = rules.filter(rule => rule.day_of_week === day.dayOfWeek);
@@ -88,8 +94,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
           timeBlocks: availableRules.length > 0 
             ? availableRules.map((rule, index) => ({
                 id: `${day.key}-${index + 1}`,
-                startTime: rule.start_time,
-                endTime: rule.end_time
+                startTime: formatTime(rule.start_time),
+                endTime: formatTime(rule.end_time)
               }))
             : [{
                 id: `${day.key}-1`,

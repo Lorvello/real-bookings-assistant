@@ -140,7 +140,6 @@ export const COMPREHENSIVE_TIMEZONES = [
   { value: 'Asia/Dhaka', label: 'Dhaka, Bangladesh (UTC+6)', offset: 6 },
   { value: 'Asia/Thimphu', label: 'Thimphu, Bhutan (UTC+6)', offset: 6 },
   { value: 'Asia/Bishkek', label: 'Bishkek, Kyrgyzstan (UTC+6)', offset: 6 },
-  { value: 'Asia/Almaty', label: 'Almaty, Kazakhstan (UTC+6)', offset: 6 },
   
   // UTC+6:30
   { value: 'Asia/Yangon', label: 'Yangon, Myanmar (UTC+6:30)', offset: 6.5 },
