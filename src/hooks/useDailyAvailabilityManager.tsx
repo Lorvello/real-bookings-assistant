@@ -154,141 +154,62 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
     }
   };
 
-  // PHASE 2: Implement mutex locks and improved sync with cancellation
+  // SIMPLIFIED: Straightforward database sync without complex mutex logic
   const syncToDatabase = async (dayKey: string, dayData: DayAvailability) => {
     if (!defaultSchedule?.id) return;
     
     const day = DAYS.find(d => d.key === dayKey);
     if (!day) return;
 
-    // PHASE 2: Implement mutex lock to prevent concurrent syncs
-    if (syncMutex.get(dayKey)) {
-      console.log(`Sync already in progress for ${dayKey}, skipping...`);
-      return;
-    }
-
-    // Clear any existing timeout for this day
-    const existingTimeout = syncTimeouts.get(dayKey);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-      syncTimeouts.delete(dayKey);
-    }
-
-    // Set mutex lock
-    setSyncMutex(prev => new Map(prev).set(dayKey, true));
-
-    const updateId = `${dayKey}-${Date.now()}`;
-    setPendingUpdates(prev => new Set(prev).add(updateId));
-    setSyncing(prev => new Set(prev).add(dayKey));
+    console.log(`Syncing ${dayKey} to database:`, dayData);
 
     try {
-      console.log(`Starting sync for ${dayKey}:`, dayData);
-      
-      // Ruim eerst duplicaten op
-      await cleanupDuplicates(defaultSchedule.id, day.dayOfWeek);
-      
-      // Get existing rules for this day
-      const existingRules = rules.filter(rule => rule.day_of_week === day.dayOfWeek);
-      console.log(`Found ${existingRules.length} existing rules for ${dayKey}`);
-      
-      // Delete all existing rules for this day
-      for (const rule of existingRules) {
-        console.log(`Deleting rule ${rule.id} for ${dayKey}`);
-        await deleteRule(rule.id);
+      // Delete existing rules for this day
+      const { error: deleteError } = await supabase
+        .from('availability_rules')
+        .delete()
+        .eq('schedule_id', defaultSchedule.id)
+        .eq('day_of_week', day.dayOfWeek);
+
+      if (deleteError) {
+        console.error('Error deleting old rules:', deleteError);
+        throw deleteError;
       }
 
-      // PHASE 2: Minimal deletion wait
-      await new Promise(resolve => setTimeout(resolve, 50));
-
+      // Create new rules based on availability
       if (dayData.enabled && dayData.timeBlocks.length > 0) {
-        // Clean and validate time blocks before creating rules
-        const cleanedTimeBlocks = validateAndCleanTimeBlocks(dayData.timeBlocks);
-        console.log(`Creating ${cleanedTimeBlocks.length} new rules for ${dayKey}`);
-        
-        // Create new rules with improved error handling
-        for (const timeBlock of cleanedTimeBlocks) {
-          // Validate time block
+        console.log(`Creating ${dayData.timeBlocks.length} time blocks for ${dayKey}`);
+        for (const timeBlock of dayData.timeBlocks) {
           if (timeBlock.startTime >= timeBlock.endTime) {
             console.warn(`Invalid time block for ${dayKey}: ${timeBlock.startTime} - ${timeBlock.endTime}, skipping`);
             continue;
           }
 
-          console.log(`Creating rule for ${dayKey}: ${timeBlock.startTime} - ${timeBlock.endTime}`);
-          try {
-            await createRule({
-              day_of_week: day.dayOfWeek,
-              start_time: timeBlock.startTime,
-              end_time: timeBlock.endTime,
-              is_available: true
-            });
-            
-      // PHASE 2: Minimal sync delay
-      await new Promise(resolve => setTimeout(resolve, 25));
-          } catch (createError: any) {
-            console.error(`Error creating rule for ${dayKey}:`, createError);
-            
-            // Als het nog steeds een duplicate error is, probeer cleanup en retry
-              if (createError.message?.includes('duplicate key')) {
-                console.log(`Duplicate detected, cleaning up and retrying for ${dayKey}`);
-                await cleanupDuplicates(defaultSchedule.id, day.dayOfWeek);
-                await new Promise(resolve => setTimeout(resolve, 200));
-                
-                // Retry once
-                try {
-                  await createRule({
-                    day_of_week: day.dayOfWeek,
-                    start_time: timeBlock.startTime,
-                    end_time: timeBlock.endTime,
-                    is_available: true
-                  });
-                } catch (retryError) {
-                  console.error(`Retry failed for ${dayKey}:`, retryError);
-                }
-              }
-          }
+          await createRule({
+            day_of_week: day.dayOfWeek,
+            start_time: timeBlock.startTime,
+            end_time: timeBlock.endTime,
+            is_available: true
+          });
         }
       } else {
         console.log(`Creating unavailable rule for ${dayKey}`);
-        // Create an unavailable rule for the day
-        try {
-          await createRule({
-            day_of_week: day.dayOfWeek,
-            start_time: '09:00',
-            end_time: '17:00',
-            is_available: false
-          });
-        } catch (error: any) {
-          if (error.message?.includes('duplicate key')) {
-            await cleanupDuplicates(defaultSchedule.id, day.dayOfWeek);
-          }
-        }
+        await createRule({
+          day_of_week: day.dayOfWeek,
+          start_time: '09:00',
+          end_time: '17:00',
+          is_available: false
+        });
       }
       
       console.log(`Sync completed successfully for ${dayKey}`);
       
-      // OPTIMIZED: Immediate refresh for real-time UI updates
+      // Immediate refresh for real-time UI updates
       await refreshRules();
       onChange();
     } catch (error) {
       console.error(`Error syncing ${dayKey} to database:`, error);
-      throw error; // Re-throw to let caller handle error
-    } finally {
-      // PHASE 2: Release mutex lock and clean up
-      setSyncMutex(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(dayKey);
-        return newMap;
-      });
-      setPendingUpdates(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(updateId);
-        return newSet;
-      });
-      setSyncing(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(dayKey);
-        return newSet;
-      });
+      throw error;
     }
   };
 
