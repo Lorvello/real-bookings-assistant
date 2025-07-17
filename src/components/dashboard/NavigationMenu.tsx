@@ -10,6 +10,7 @@ import {
   Eye,
   BookOpen,
   Bot,
+  Phone,
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
@@ -34,7 +35,7 @@ const navigation: NavItem[] = [
       { name: 'Booking Assistant', href: '/whatsapp-booking-assistant', icon: Bot },
     ]
   },
-  { name: 'Booking Assistant', href: '/whatsapp-booking-assistant', icon: Bot },
+  { name: 'Booking Assistant', href: '/whatsapp-booking-assistant', icon: Phone },
   { name: 'Test your AI agent', href: '/test-ai-agent', icon: Eye },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
