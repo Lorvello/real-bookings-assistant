@@ -278,24 +278,8 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
         <div className="max-w-7xl mx-auto p-5">
-          <div className="space-y-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-primary/20 rounded-2xl">
-                <Info className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-foreground">
-                  Schedule exceptions
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Add dates when your availability differs from your standard working hours.
-                </p>
-              </div>
-            </div>
-            
-            <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-5 shadow-lg shadow-black/5">
-              <DateOverrides />
-            </div>
+          <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-5 shadow-lg shadow-black/5">
+            <DateOverrides />
           </div>
         </div>
       </div>
