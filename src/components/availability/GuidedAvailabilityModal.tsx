@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -64,6 +65,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   });
 
   const { syncToDatabase, createDefaultSchedule, availability: existingAvailability } = useDailyAvailabilityManager(() => {});
+  const navigate = useNavigate();
 
   // Load existing availability data when in edit mode
   useEffect(() => {
@@ -185,12 +187,16 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       
       console.log('All availability data saved successfully');
       
-      // OPTIMIZED: Immediate completion for fast UI updates
-      onComplete();
+      // Add small delay for database consistency, then refresh page
+      setTimeout(() => {
+        navigate(0);
+      }, 100);
     } catch (error) {
       console.error('Error saving availability configuration:', error);
-      // Still complete to avoid blocking user, but log the error
-      onComplete();
+      // Still refresh to avoid blocking user, but log the error
+      setTimeout(() => {
+        navigate(0);
+      }, 100);
     }
   };
 
