@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
 import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
-import { useCalendars } from '@/hooks/useCalendars';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface TimeBlock {
@@ -45,8 +45,8 @@ const validateAndCleanTimeBlocks = (timeBlocks: TimeBlock[]): TimeBlock[] => {
 };
 
 export const useDailyAvailabilityManager = (onChange: () => void) => {
-  const { calendars } = useCalendars();
-  const defaultCalendar = calendars.find(cal => cal.is_default) || calendars[0];
+  const { calendars, selectedCalendar } = useCalendarContext();
+  const defaultCalendar = selectedCalendar || calendars.find(cal => cal.is_default) || calendars[0];
   
   const { schedules } = useAvailabilitySchedules(defaultCalendar?.id);
   const defaultSchedule = schedules.find(s => s.is_default) || schedules[0];
@@ -301,10 +301,25 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
 
   // Function to create a default schedule
   const createDefaultSchedule = async () => {
-    if (!defaultCalendar) return;
+    if (!defaultCalendar) {
+      console.error('No default calendar available for schedule creation');
+      throw new Error('No calendar available');
+    }
     
     try {
       console.log('Creating default schedule for calendar:', defaultCalendar.id);
+      
+      // Verify calendar exists in database before creating schedule
+      const { data: calendarCheck, error: calendarError } = await supabase
+        .from('calendars')
+        .select('id')
+        .eq('id', defaultCalendar.id)
+        .single();
+      
+      if (calendarError || !calendarCheck) {
+        console.error('Calendar not found in database:', calendarError);
+        throw new Error('Calendar not found in database');
+      }
       
       const { data, error } = await supabase
         .from('availability_schedules')
@@ -323,8 +338,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       console.log('Default schedule created successfully:', data);
       
-      // Small delay to ensure database sync, then refresh
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Longer delay to ensure database sync
+      await new Promise(resolve => setTimeout(resolve, 200));
       onChange();
       
       return data;

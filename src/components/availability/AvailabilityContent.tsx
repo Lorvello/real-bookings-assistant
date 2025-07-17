@@ -79,10 +79,19 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     setIsRefreshing(true);
     
     try {
-      console.log('Calendar created, now creating default schedule...');
+      console.log('Calendar created, waiting for sync...');
+      
+      // Wait for calendar refresh to complete properly
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      console.log('Now creating default schedule...');
+      
       // CRITICAL: Wait for schedule creation before opening modal
       await createDefaultSchedule();
       console.log('Default schedule created successfully, opening modal...');
+      
+      // Additional verification delay
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Only open modal after schedule is actually created
       setIsGuidedModalOpen(true);
