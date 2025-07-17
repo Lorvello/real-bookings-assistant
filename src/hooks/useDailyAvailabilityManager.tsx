@@ -53,13 +53,22 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
   
   const { rules, createRule, updateRule, deleteRule, syncingRules, refetch: refreshRules } = useAvailabilityRules(defaultSchedule?.id);
 
-  // OPTIMIZED: Minimal refresh logic
+  // OPTIMIZED: Minimal refresh logic with debouncing
   const prevScheduleIdRef = useRef<string | undefined>();
+  const onChangeTimeoutRef = useRef<NodeJS.Timeout>();
+  
   useEffect(() => {
     const currentScheduleId = defaultSchedule?.id;
     if (currentScheduleId && currentScheduleId !== prevScheduleIdRef.current) {
       prevScheduleIdRef.current = currentScheduleId;
-      onChange();
+      
+      // Debounce onChange calls to prevent excessive re-renders
+      if (onChangeTimeoutRef.current) {
+        clearTimeout(onChangeTimeoutRef.current);
+      }
+      onChangeTimeoutRef.current = setTimeout(() => {
+        onChange();
+      }, 100);
     }
   }, [defaultSchedule?.id, onChange]);
 
