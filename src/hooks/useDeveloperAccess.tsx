@@ -1,0 +1,33 @@
+import { useAuth } from './useAuth';
+
+// Developer emails list - can be extended with environment variables
+const DEVELOPER_EMAILS = [
+  'developer@example.com',
+  'admin@example.com',
+  // Add more developer emails as needed
+];
+
+export const useDeveloperAccess = () => {
+  const { user } = useAuth();
+
+  const isDeveloper = () => {
+    if (!user?.email) return false;
+    
+    // Check if user email is in developer list
+    if (DEVELOPER_EMAILS.includes(user.email)) {
+      return true;
+    }
+    
+    // Check if user email ends with development domain
+    if (user.email.endsWith('@brandevolves.com') || user.email.endsWith('@dev.local')) {
+      return true;
+    }
+    
+    return false;
+  };
+
+  return {
+    isDeveloper: isDeveloper(),
+    user
+  };
+};
