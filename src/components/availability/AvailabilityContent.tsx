@@ -11,6 +11,8 @@ import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalen
 import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface AvailabilityContentProps {
   activeTab: string;
@@ -23,10 +25,20 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = React.useState(false);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [setupState, setSetupState] = React.useState<'checking' | 'needs_calendar' | 'needs_config' | 'configured'>('checking');
+  const [timezoneValue, setTimezoneValue] = React.useState<string>('Europe/Amsterdam');
+  const [isTimezoneUpdating, setIsTimezoneUpdating] = React.useState(false);
   
   const { calendars, selectedCalendar, loading: calendarsLoading, refreshCalendars } = useCalendarContext();
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
+  const { toast } = useToast();
   
+  // Update timezone value when selected calendar changes
+  React.useEffect(() => {
+    if (selectedCalendar?.timezone) {
+      setTimezoneValue(selectedCalendar.timezone);
+    }
+  }, [selectedCalendar?.timezone]);
+
   // FIXED: Prevent circular dependencies
   React.useEffect(() => {
     if (!calendarsLoading && calendars.length > 0) {
@@ -106,20 +118,53 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     }
   };
 
-  const handleGuidedComplete = async () => {
-    setIsRefreshing(true);
-    
+  const handleGuidedComplete = () => {
+    setIsGuidedModalOpen(false);
+    // Add small delay to ensure database changes are committed
+    setTimeout(() => {
+      refreshAvailability();
+      refreshCalendars(); // Refresh calendars to get updated timezone
+    }, 200);
+  };
+
+  const handleTimezoneChange = async (newTimezone: string) => {
+    if (!selectedCalendar?.id) {
+      toast({
+        title: "Error",
+        description: "No calendar selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsTimezoneUpdating(true);
     try {
-      // Refresh availability to get latest state
-      await refreshAvailability();
+      const { error } = await supabase
+        .from('calendars')
+        .update({ timezone: newTimezone })
+        .eq('id', selectedCalendar.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setTimezoneValue(newTimezone);
+      toast({
+        title: "Timezone Updated",
+        description: `Timezone changed to ${COMPREHENSIVE_TIMEZONES.find(tz => tz.value === newTimezone)?.label}`,
+      });
       
-      // Close modal after refresh
-      setIsGuidedModalOpen(false);
+      // Refresh calendars to get updated timezone
+      refreshCalendars();
     } catch (error) {
-      console.error('Error completing setup:', error);
-      setIsGuidedModalOpen(false);
+      console.error('Error updating timezone:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update timezone. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setIsRefreshing(false);
+      setIsTimezoneUpdating(false);
     }
   };
 
@@ -188,7 +233,11 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
                       </div>
                       <h3 className="text-sm font-medium text-foreground">Timezone</h3>
                     </div>
-                    <Select defaultValue="Europe/Amsterdam">
+                    <Select 
+                      value={timezoneValue} 
+                      onValueChange={handleTimezoneChange}
+                      disabled={isTimezoneUpdating}
+                    >
                       <SelectTrigger className="w-full bg-background/80 border-border/60 rounded-2xl hover:border-primary/40 transition-colors">
                         <SelectValue />
                       </SelectTrigger>
