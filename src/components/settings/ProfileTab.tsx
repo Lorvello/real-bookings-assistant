@@ -1,8 +1,7 @@
 
-import React from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import Select from 'react-select';
-import { Save, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { businessTypes } from '@/constants/settingsOptions';
 
@@ -25,30 +24,70 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   handleUpdateProfile,
   handleUpdateBusiness
 }) => {
-  const handleSaveAll = () => {
-    handleUpdateProfile();
-    handleUpdateBusiness();
-  };
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveTimeouts, setSaveTimeouts] = useState<{ profile?: NodeJS.Timeout; business?: NodeJS.Timeout }>({});
+
+  // Auto-save profile data with debounce
+  const autoSaveProfile = useCallback((newData: any) => {
+    setProfileData(newData);
+    
+    if (saveTimeouts.profile) {
+      clearTimeout(saveTimeouts.profile);
+    }
+    
+    const timeout = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        await handleUpdateProfile();
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1000);
+    
+    setSaveTimeouts(prev => ({ ...prev, profile: timeout }));
+  }, [setProfileData, handleUpdateProfile, saveTimeouts.profile]);
+
+  // Auto-save business data with debounce
+  const autoSaveBusiness = useCallback((newData: any) => {
+    setBusinessData(newData);
+    
+    if (saveTimeouts.business) {
+      clearTimeout(saveTimeouts.business);
+    }
+    
+    const timeout = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        await handleUpdateBusiness();
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1000);
+    
+    setSaveTimeouts(prev => ({ ...prev, business: timeout }));
+  }, [setBusinessData, handleUpdateBusiness, saveTimeouts.business]);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(saveTimeouts).forEach(timeout => {
+        if (timeout) clearTimeout(timeout);
+      });
+    };
+  }, [saveTimeouts]);
+
   return (
     <TooltipProvider delayDuration={100}>
       <div className="space-y-8">
-      {/* Save Button */}
-      <div className="flex items-center justify-between bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-4">
-        <div className="flex items-center space-x-3">
-          <Save className="h-5 w-5 text-green-400" />
-          <div>
-            <p className="text-white font-medium">Wijzigingen Opslaan</p>
-            <p className="text-gray-400 text-sm">Bewaar je profiel- en bedrijfsgegevens</p>
+      {/* Auto-save indicator */}
+      {(isSaving || loading) && (
+        <div className="flex items-center justify-center bg-blue-800/90 border border-blue-700/50 rounded-2xl shadow-lg p-3">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+            <p className="text-blue-200 text-sm">Bezig met opslaan...</p>
           </div>
         </div>
-        <Button
-          onClick={handleSaveAll}
-          disabled={loading}
-          className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium px-6 py-2 rounded-lg transition-all duration-200 disabled:opacity-50"
-        >
-          {loading ? 'Bezig met opslaan...' : 'Alles Opslaan'}
-        </Button>
-      </div>
+      )}
 
       {/* Basic Information */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
@@ -62,7 +101,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <input
               type="text"
               value={profileData.full_name}
-              onChange={(e) => setProfileData({
+              onChange={(e) => autoSaveProfile({
                 ...profileData,
                 full_name: e.target.value
               })}
@@ -78,7 +117,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <input
               type="email"
               value={profileData.email}
-              onChange={(e) => setProfileData({
+              onChange={(e) => autoSaveProfile({
                 ...profileData,
                 email: e.target.value
               })}
@@ -94,7 +133,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <input
               type="tel"
               value={profileData.phone}
-              onChange={(e) => setProfileData({
+              onChange={(e) => autoSaveProfile({
                 ...profileData,
                 phone: e.target.value
               })}
@@ -110,7 +149,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <input
               type="date"
               value={profileData.date_of_birth}
-              onChange={(e) => setProfileData({
+              onChange={(e) => autoSaveProfile({
                 ...profileData,
                 date_of_birth: e.target.value
               })}
@@ -124,7 +163,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </label>
             <select
               value={profileData.language}
-              onChange={(e) => setProfileData({
+              onChange={(e) => autoSaveProfile({
                 ...profileData,
                 language: e.target.value
               })}
@@ -146,7 +185,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </label>
             <select
               value={profileData.timezone}
-              onChange={(e) => setProfileData({
+              onChange={(e) => autoSaveProfile({
                 ...profileData,
                 timezone: e.target.value
               })}
@@ -186,7 +225,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <input
               type="url"
               value={profileData.website}
-              onChange={(e) => setProfileData({
+              onChange={(e) => autoSaveProfile({
                 ...profileData,
                 website: e.target.value
               })}
@@ -202,7 +241,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <input
               type="text"
               value={profileData.instagram}
-              onChange={(e) => setProfileData({
+              onChange={(e) => autoSaveProfile({
                 ...profileData,
                 instagram: e.target.value
               })}
@@ -218,7 +257,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <input
               type="text"
               value={profileData.facebook}
-              onChange={(e) => setProfileData({
+              onChange={(e) => autoSaveProfile({
                 ...profileData,
                 facebook: e.target.value
               })}
@@ -253,10 +292,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <input 
               type="text" 
               value={businessData.business_name} 
-              onChange={e => setBusinessData({
+              onChange={e => autoSaveBusiness({
                 ...businessData,
                 business_name: e.target.value
-              })} 
+              })}
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
               required 
             />
@@ -268,10 +307,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </label>
             <Select 
               value={businessTypes.find(type => type.value === businessData.business_type)} 
-              onChange={option => setBusinessData({
+              onChange={option => autoSaveBusiness({
                 ...businessData,
                 business_type: option?.value || ''
-              })} 
+              })}
               options={businessTypes} 
               className="react-select-container" 
               classNamePrefix="react-select" 
@@ -310,10 +349,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               <input 
                 type="text" 
                 value={businessData.business_type_other} 
-                onChange={e => setBusinessData({
+                onChange={e => autoSaveBusiness({
                   ...businessData,
                   business_type_other: e.target.value
-                })} 
+                })}
                 placeholder="Specificeer bedrijfstype..." 
                 className="mt-2 w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
               />
@@ -326,10 +365,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </label>
             <textarea 
               value={businessData.business_description} 
-              onChange={e => setBusinessData({
+              onChange={e => autoSaveBusiness({
                 ...businessData,
                 business_description: e.target.value
-              })} 
+              })}
               rows={4} 
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
               placeholder="Vertel klanten over uw bedrijf..." 
@@ -347,7 +386,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 <input
                   type="text"
                   value={businessData.business_street}
-                  onChange={(e) => setBusinessData({
+                  onChange={(e) => autoSaveBusiness({
                     ...businessData,
                     business_street: e.target.value
                   })}
@@ -362,7 +401,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 <input
                   type="text"
                   value={businessData.business_number}
-                  onChange={(e) => setBusinessData({
+                  onChange={(e) => autoSaveBusiness({
                     ...businessData,
                     business_number: e.target.value
                   })}
@@ -377,7 +416,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 <input
                   type="text"
                   value={businessData.business_postal}
-                  onChange={(e) => setBusinessData({
+                  onChange={(e) => autoSaveBusiness({
                     ...businessData,
                     business_postal: e.target.value
                   })}
@@ -392,7 +431,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 <input
                   type="text"
                   value={businessData.business_city}
-                  onChange={(e) => setBusinessData({
+                  onChange={(e) => autoSaveBusiness({
                     ...businessData,
                     business_city: e.target.value
                   })}
@@ -407,7 +446,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 <input
                   type="text"
                   value={businessData.business_country}
-                  onChange={(e) => setBusinessData({
+                  onChange={(e) => autoSaveBusiness({
                     ...businessData,
                     business_country: e.target.value
                   })}
@@ -441,10 +480,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </label>
             <textarea 
               value={businessData.parking_info} 
-              onChange={e => setBusinessData({
+              onChange={e => autoSaveBusiness({
                 ...businessData,
                 parking_info: e.target.value
-              })} 
+              })}
               rows={3} 
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
               placeholder="bijv. Gratis parkeren voor de deur, Betaald parkeren in garage om de hoek..." 
@@ -457,10 +496,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </label>
             <textarea 
               value={businessData.public_transport_info} 
-              onChange={e => setBusinessData({
+              onChange={e => autoSaveBusiness({
                 ...businessData,
                 public_transport_info: e.target.value
-              })} 
+              })}
               rows={3} 
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
               placeholder="bijv. 5 minuten lopen vanaf station, Bus 12 stopt voor de deur..." 
@@ -473,10 +512,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </label>
             <textarea 
               value={businessData.accessibility_info} 
-              onChange={e => setBusinessData({
+              onChange={e => autoSaveBusiness({
                 ...businessData,
                 accessibility_info: e.target.value
-              })} 
+              })}
               rows={3} 
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
               placeholder="bijv. Rolstoeltoegankelijk, Lift aanwezig, Geen drempels..." 
@@ -489,10 +528,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </label>
             <textarea 
               value={businessData.other_info} 
-              onChange={e => setBusinessData({
+              onChange={e => autoSaveBusiness({
                 ...businessData,
                 other_info: e.target.value
-              })} 
+              })}
               rows={3} 
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
               placeholder="Overige informatie die nuttig kan zijn voor klanten..." 
