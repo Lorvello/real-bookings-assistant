@@ -189,10 +189,10 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   const generateHourNumbers = () => {
     const hours = [];
     
-    // Generate outer ring (1-12 hours) with proper spacing
+    // Generate outer ring (1-12 hours) with MUCH more spacing - moved further out
     for (let i = 1; i <= 12; i++) {
       const angle = (i * 30) - 90; // -90 to start at 12 o'clock, 30 degrees apart
-      const radius = 42; // Outer ring radius
+      const radius = 55; // INCREASED outer ring radius for more separation
       
       const x = Math.cos(angle * Math.PI / 180) * radius;
       const y = Math.sin(angle * Math.PI / 180) * radius;
@@ -229,7 +229,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       const position = i + 1; // Position 1-12 on clock face
       const actualHour = innerHours[i]; // Actual hour value (13-23, 0)
       const angle = (position * 30) - 90; // Same positions as outer ring
-      const radius = 28; // Inner ring radius - smaller for clear separation
+      const radius = 20; // DECREASED inner ring radius for maximum separation (55-20 = 35px gap + number width = ~50px total separation)
       
       const x = Math.cos(angle * Math.PI / 180) * radius;
       const y = Math.sin(angle * Math.PI / 180) * radius;
@@ -267,8 +267,8 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
     const marks = [];
     for (let i = 0; i < 60; i += 5) {
       const angle = (i * 6) - 90; // -90 to start at 12 o'clock
-      const x = Math.cos(angle * Math.PI / 180) * 42;
-      const y = Math.sin(angle * Math.PI / 180) * 42;
+      const x = Math.cos(angle * Math.PI / 180) * 50; // Updated to match new outer ring radius
+      const y = Math.sin(angle * Math.PI / 180) * 50;
       marks.push(
         <div
           key={i}
@@ -364,11 +364,11 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                 <div className="space-y-6">
                   {/* Professional 24-Hour Clock Interface */}
                   <div className="flex flex-col items-center space-y-4">
-                      <div 
-                       ref={clockRef}
-                       className="relative w-64 h-64 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 cursor-pointer hover:border-primary/60 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                       onClick={handleClockClick}
-                     >
+                       <div 
+                        ref={clockRef}
+                        className="relative w-72 h-72 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 cursor-pointer hover:border-primary/60 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                        onClick={handleClockClick}
+                      >
                        {/* Clock face inner circle */}
                        <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner transition-all duration-300">
                          {/* Hour numbers or minute marks */}
@@ -382,19 +382,19 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                            <>
                              <div
                                className="absolute top-1/2 left-1/2 origin-bottom bg-primary rounded-full z-10 shadow-lg transition-transform duration-200"
-                               style={{
-                                 width: '4px',
-                                 height: '45px',
-                                 transform: `translate(-50%, -100%) rotate(${hourAngle}deg)`,
-                                 transformOrigin: 'bottom center'
-                               }}
+                                style={{
+                                  width: '4px',
+                                  height: '50px', // Increased length for larger clock
+                                  transform: `translate(-50%, -100%) rotate(${hourAngle}deg)`,
+                                  transformOrigin: 'bottom center'
+                                }}
                              />
                               {/* Hour hand circle */}
                               <div
                                 className="absolute top-1/2 left-1/2 w-4 h-4 bg-primary rounded-full z-15 shadow-lg transition-transform duration-200 cursor-grab active:cursor-grabbing hover:scale-110"
-                                style={{
-                                  transform: `translate(-50%, -50%) translate(${Math.cos((hourAngle - 90) * Math.PI / 180) * 40}px, ${Math.sin((hourAngle - 90) * Math.PI / 180) * 40}px)`
-                                }}
+                                 style={{
+                                   transform: `translate(-50%, -50%) translate(${Math.cos((hourAngle - 90) * Math.PI / 180) * 45}px, ${Math.sin((hourAngle - 90) * Math.PI / 180) * 45}px)`
+                                 }}
                                  onMouseDown={(e) => handleHandStart(e, false)}
                               />
                            </>
@@ -405,19 +405,19 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                            <>
                              <div
                                className="absolute top-1/2 left-1/2 origin-bottom bg-primary rounded-full z-10 shadow-lg transition-transform duration-200"
-                               style={{
-                                 width: '3px',
-                                 height: '60px',
-                                 transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)`,
-                                 transformOrigin: 'bottom center'
-                               }}
+                                style={{
+                                  width: '3px',
+                                  height: '65px', // Increased length for larger clock
+                                  transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)`,
+                                  transformOrigin: 'bottom center'
+                                }}
                              />
                               {/* Minute hand circle */}
                               <div
                                 className="absolute top-1/2 left-1/2 w-3 h-3 bg-primary rounded-full z-15 shadow-lg transition-transform duration-200 cursor-grab active:cursor-grabbing hover:scale-110"
-                                style={{
-                                  transform: `translate(-50%, -50%) translate(${Math.cos((minuteAngle - 90) * Math.PI / 180) * 55}px, ${Math.sin((minuteAngle - 90) * Math.PI / 180) * 55}px)`
-                                }}
+                                 style={{
+                                   transform: `translate(-50%, -50%) translate(${Math.cos((minuteAngle - 90) * Math.PI / 180) * 60}px, ${Math.sin((minuteAngle - 90) * Math.PI / 180) * 60}px)`
+                                 }}
                                  onMouseDown={(e) => handleHandStart(e, true)}
                               />
                            </>
@@ -505,8 +505,20 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onChange(formattedValue);
-                  setTimeout(() => onClose(), 100); // Small delay to prevent crash
+                  
+                  // Safe async update to prevent crash
+                  const timeUpdate = async () => {
+                    try {
+                      onChange(formattedValue);
+                      await new Promise(resolve => setTimeout(resolve, 50));
+                      onClose();
+                    } catch (error) {
+                      console.error('Time update error:', error);
+                      onClose(); // Close anyway if there's an error
+                    }
+                  };
+                  
+                  timeUpdate();
                 }}
                 className="bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 min-w-[80px]"
               >
