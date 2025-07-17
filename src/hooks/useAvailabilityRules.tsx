@@ -12,22 +12,20 @@ export const useAvailabilityRules = (scheduleId?: string) => {
   const [error, setError] = useState<string | null>(null);
   const [syncingRules, setSyncingRules] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (user && scheduleId) {
-      fetchRules();
-      const cleanup = setupRealtimeSubscription();
-      return cleanup;
-    } else {
+  // Memoize fetchRules to prevent unnecessary re-renders
+  const fetchRules = useCallback(async () => {
+    if (!scheduleId) {
       setRules([]);
       setLoading(false);
+      return;
     }
-  }, [user, scheduleId]);
-
-  const fetchRules = async () => {
-    if (!scheduleId) return;
 
     try {
+      setLoading(true);
       setError(null);
+      
+      console.log('Fetching availability rules for schedule:', scheduleId);
+      
       const { data, error } = await supabase
         .from('availability_rules')
         .select('*')
@@ -37,19 +35,33 @@ export const useAvailabilityRules = (scheduleId?: string) => {
       if (error) {
         console.error('Error fetching availability rules:', error);
         setError(error.message);
+        setRules([]);
         return;
       }
 
+      console.log('Successfully fetched availability rules:', data);
       setRules(data || []);
     } catch (error) {
       console.error('Error fetching availability rules:', error);
       setError('An unexpected error occurred');
+      setRules([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [scheduleId]);
 
-  const setupRealtimeSubscription = () => {
+  useEffect(() => {
+    if (user && scheduleId) {
+      fetchRules();
+      const cleanup = setupRealtimeSubscription();
+      return cleanup;
+    } else {
+      setRules([]);
+      setLoading(false);
+    }
+  }, [user, scheduleId, fetchRules]);
+
+  const setupRealtimeSubscription = useCallback(() => {
     if (!scheduleId) return () => {};
 
     // Create a unique channel name to prevent conflicts between multiple hook instances
@@ -91,13 +103,17 @@ export const useAvailabilityRules = (scheduleId?: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  };
+  }, [scheduleId]);
 
   const createRule = async (ruleData: Partial<AvailabilityRule>) => {
-    if (!scheduleId) return null;
+    if (!scheduleId) {
+      console.error('Cannot create rule: scheduleId is missing');
+      return null;
+    }
 
     // Validate required fields
     if (ruleData.day_of_week === undefined || !ruleData.start_time || !ruleData.end_time) {
+      console.error('Cannot create rule: missing required fields', ruleData);
       toast({
         title: "Error",
         description: "Day of week, start time, and end time are required",
@@ -109,15 +125,13 @@ export const useAvailabilityRules = (scheduleId?: string) => {
     try {
       setError(null);
       
-      // First cleanup any potential duplicates
-      try {
-        await supabase.rpc('cleanup_duplicate_availability_rules', {
-          p_schedule_id: scheduleId,
-          p_day_of_week: ruleData.day_of_week
-        });
-      } catch (cleanupError) {
-        console.warn('Cleanup function not available or failed:', cleanupError);
-      }
+      console.log('Creating availability rule:', {
+        schedule_id: scheduleId,
+        day_of_week: ruleData.day_of_week,
+        start_time: ruleData.start_time,
+        end_time: ruleData.end_time,
+        is_available: ruleData.is_available ?? true
+      });
 
       const { data, error } = await supabase
         .from('availability_rules')
@@ -146,6 +160,7 @@ export const useAvailabilityRules = (scheduleId?: string) => {
         return null;
       }
 
+      console.log('Successfully created availability rule:', data);
       return data;
     } catch (error: any) {
       console.error('Error creating availability rule:', error);

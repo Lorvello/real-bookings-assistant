@@ -156,10 +156,16 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
 
   // SIMPLIFIED: Straightforward database sync without complex mutex logic
   const syncToDatabase = async (dayKey: string, dayData: DayAvailability) => {
-    if (!defaultSchedule?.id) return;
+    if (!defaultSchedule?.id) {
+      console.error('Cannot sync to database: no default schedule');
+      return;
+    }
     
     const day = DAYS.find(d => d.key === dayKey);
-    if (!day) return;
+    if (!day) {
+      console.error(`Cannot sync to database: day not found for key ${dayKey}`);
+      return;
+    }
 
     console.log(`Syncing ${dayKey} to database:`, dayData);
 
@@ -185,12 +191,16 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
             continue;
           }
 
-          await createRule({
+          const result = await createRule({
             day_of_week: day.dayOfWeek,
             start_time: timeBlock.startTime,
             end_time: timeBlock.endTime,
             is_available: true
           });
+          
+          if (!result) {
+            console.error(`Failed to create rule for ${dayKey}`);
+          }
         }
       } else {
         console.log(`Creating unavailable rule for ${dayKey}`);

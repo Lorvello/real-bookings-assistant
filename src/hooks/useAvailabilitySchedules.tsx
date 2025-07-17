@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { AvailabilitySchedule } from '@/types/database';
@@ -12,22 +12,20 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user && calendarId) {
-      fetchSchedules();
-      const cleanup = setupRealtimeSubscription();
-      return cleanup;
-    } else {
+  // Memoize fetchSchedules to prevent unnecessary re-renders
+  const fetchSchedules = useCallback(async () => {
+    if (!calendarId) {
       setSchedules([]);
       setLoading(false);
+      return;
     }
-  }, [user, calendarId]);
-
-  const fetchSchedules = async () => {
-    if (!calendarId) return;
 
     try {
+      setLoading(true);
       setError(null);
+      
+      console.log('Fetching availability schedules for calendar:', calendarId);
+      
       const { data, error } = await supabase
         .from('availability_schedules')
         .select('*')
@@ -37,24 +35,33 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
       if (error) {
         console.error('Error fetching availability schedules:', error);
         setError(error.message);
-        toast({
-          title: "Error",
-          description: "Failed to load availability schedules",
-          variant: "destructive",
-        });
+        setSchedules([]);
         return;
       }
 
+      console.log('Successfully fetched availability schedules:', data);
       setSchedules(data || []);
     } catch (error) {
       console.error('Error fetching availability schedules:', error);
       setError('An unexpected error occurred');
+      setSchedules([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [calendarId]);
 
-  const setupRealtimeSubscription = () => {
+  useEffect(() => {
+    if (user && calendarId) {
+      fetchSchedules();
+      const cleanup = setupRealtimeSubscription();
+      return cleanup;
+    } else {
+      setSchedules([]);
+      setLoading(false);
+    }
+  }, [user, calendarId, fetchSchedules]);
+
+  const setupRealtimeSubscription = useCallback(() => {
     if (!calendarId) return () => {};
 
     // Create a unique channel name to prevent conflicts between multiple hook instances
@@ -89,7 +96,7 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  };
+  }, [calendarId]);
 
   const createSchedule = async (scheduleData: Partial<AvailabilitySchedule>) => {
     if (!calendarId) return null;
