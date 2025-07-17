@@ -179,7 +179,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       }
 
       // Wait to ensure deletions are processed
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       if (dayData.enabled && dayData.timeBlocks.length > 0) {
         // Clean and validate time blocks before creating rules
@@ -204,7 +204,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
             });
             
             // Small delay between creates to prevent conflicts
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 100));
           } catch (createError: any) {
             console.error(`Error creating rule for ${dayKey}:`, createError);
             
@@ -212,7 +212,7 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
               if (createError.message?.includes('duplicate key')) {
                 console.log(`Duplicate detected, cleaning up and retrying for ${dayKey}`);
                 await cleanupDuplicates(defaultSchedule.id, day.dayOfWeek);
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 200));
                 
                 // Retry once
                 try {
@@ -247,7 +247,8 @@ export const useDailyAvailabilityManager = (onChange: () => void) => {
       
       console.log(`Sync completed successfully for ${dayKey}`);
       
-      // PHASE 2: Remove cascading onChange calls - let parent handle updates
+      // Force refresh availability data after successful sync
+      await new Promise(resolve => setTimeout(resolve, 100));
       onChange();
     } catch (error) {
       console.error(`Error syncing ${dayKey} to database:`, error);
