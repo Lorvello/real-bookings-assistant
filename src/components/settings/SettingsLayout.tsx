@@ -56,7 +56,7 @@ export const SettingsLayout = () => {
               </TabsTrigger>
               <TabsTrigger value="calendar" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Calendar className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="text-xs md:text-sm">Calendar</span>
+                <span className="text-xs md:text-sm">Beschikbaarheid</span>
               </TabsTrigger>
               <TabsTrigger value="services" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Wrench className="h-3 w-3 md:h-4 md:w-4" />
