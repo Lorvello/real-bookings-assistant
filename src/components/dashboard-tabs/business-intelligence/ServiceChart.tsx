@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChartTooltip } from './ChartTooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Settings2, Filter, SortAsc } from 'lucide-react';
+import { Settings2 } from 'lucide-react';
 
 interface ServicePerformanceData {
   service_name: string;
@@ -31,78 +31,50 @@ const scaleOptions: { value: ScaleOption; label: string }[] = [
   { value: '10000', label: '0 - 10000' },
 ];
 
-type SortOption = 'bookings_desc' | 'revenue_desc' | 'avg_price_desc' | 'alphabetical';
 type FilterOption = 'all' | string;
 
 export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) {
   const [bookingScale, setBookingScale] = useState<ScaleOption>('auto');
   const [revenueScale, setRevenueScale] = useState<ScaleOption>('auto');
   const [selectedService, setSelectedService] = useState<FilterOption>('all');
-  const [sortBy, setSortBy] = useState<SortOption>('bookings_desc');
 
-  // Filter and sort data
-  const filteredAndSortedData = useMemo(() => {
-    let filtered = selectedService === 'all' ? data : data.filter(d => d.service_name === selectedService);
-    
-    // Sort data
-    const sorted = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'bookings_desc':
-          return b.booking_count - a.booking_count;
-        case 'revenue_desc':
-          return b.revenue - a.revenue;
-        case 'avg_price_desc':
-          return b.avg_price - a.avg_price;
-        case 'alphabetical':
-          return a.service_name.localeCompare(b.service_name);
-        default:
-          return 0;
-      }
-    });
+  // Filter data based on selected service
+  const filteredData = useMemo(() => {
+    const filtered = selectedService === 'all' ? data : data.filter(d => d.service_name === selectedService);
     
     // Notify parent of filtered data change
     if (onFilteredDataChange) {
-      onFilteredDataChange(sorted);
+      onFilteredDataChange(filtered);
     }
     
-    return sorted;
-  }, [data, selectedService, sortBy, onFilteredDataChange]);
+    return filtered;
+  }, [data, selectedService, onFilteredDataChange]);
 
   const getScaleMax = (scale: ScaleOption, dataMax: number) => {
     if (scale === 'auto') return Math.ceil(dataMax * 1.1);
     return parseInt(scale);
   };
 
-  const maxBookings = Math.max(...filteredAndSortedData.map(d => d.booking_count));
-  const maxRevenue = Math.max(...filteredAndSortedData.map(d => d.revenue));
+  const maxBookings = Math.max(...filteredData.map(d => d.booking_count));
+  const maxRevenue = Math.max(...filteredData.map(d => d.revenue));
 
   const bookingScaleMax = getScaleMax(bookingScale, maxBookings);
   const revenueScaleMax = getScaleMax(revenueScale, maxRevenue);
 
   // Calculate performance percentages
-  const dataWithPercentages = filteredAndSortedData.map(item => ({
+  const dataWithPercentages = filteredData.map(item => ({
     ...item,
     booking_percentage: (item.booking_count / maxBookings) * 100,
     revenue_percentage: (item.revenue / maxRevenue) * 100,
   }));
 
-  // Get service colors
-  const serviceColors = useMemo(() => {
-    const colors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16', '#f97316'];
-    const colorMap: { [key: string]: string } = {};
-    data.forEach((service, index) => {
-      colorMap[service.service_name] = colors[index % colors.length];
-    });
-    return colorMap;
-  }, [data]);
-
   return (
-    <div className="space-y-4">
-      {/* Service Filtering & Sorting */}
+    <div className="space-y-6">
+      {/* Chart Configuration - All controls in one section */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-slate-800/30 rounded-xl border border-slate-700/30">
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-slate-400" />
-          <span className="text-sm font-medium text-slate-300">Service Filters</span>
+          <Settings2 className="h-4 w-4 text-slate-400" />
+          <span className="text-sm font-medium text-slate-300">Chart Configuration</span>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -123,32 +95,6 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
             </Select>
           </div>
           
-          <div className="flex items-center gap-2">
-            <SortAsc className="h-3 w-3 text-slate-400" />
-            <span className="text-xs text-slate-400 whitespace-nowrap">Sort by:</span>
-            <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-              <SelectTrigger className="w-48 h-8 bg-slate-700/50 border-slate-600/50 text-slate-300">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value="bookings_desc" className="text-slate-300 focus:bg-slate-700">Bookings (High to Low)</SelectItem>
-                <SelectItem value="revenue_desc" className="text-slate-300 focus:bg-slate-700">Revenue (High to Low)</SelectItem>
-                <SelectItem value="avg_price_desc" className="text-slate-300 focus:bg-slate-700">Average Value (High to Low)</SelectItem>
-                <SelectItem value="alphabetical" className="text-slate-300 focus:bg-slate-700">Alphabetical</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      {/* Scale Configuration */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-slate-800/30 rounded-xl border border-slate-700/30">
-        <div className="flex items-center gap-2">
-          <Settings2 className="h-4 w-4 text-slate-400" />
-          <span className="text-sm font-medium text-slate-300">Chart Configuration</span>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400 whitespace-nowrap">Bookings Scale:</span>
             <Select value={bookingScale} onValueChange={(value: ScaleOption) => setBookingScale(value)}>
@@ -183,8 +129,8 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
         </div>
       </div>
 
-      {/* Enhanced Chart */}
-      <div className="h-96 w-full">
+      {/* Enhanced Chart - Much Larger Height */}
+      <div className="h-[600px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={dataWithPercentages} margin={{ top: 20, right: 40, left: 20, bottom: 80 }}>
             <defs>
@@ -280,30 +226,6 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
             />
           </BarChart>
         </ResponsiveContainer>
-      </div>
-
-      {/* Performance Summary */}
-      <div className="mt-3 p-4 bg-slate-800/20 rounded-xl border border-slate-700/30">
-        <h4 className="text-sm font-semibold text-slate-300 mb-3">Performance Summary</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {dataWithPercentages.map((service, index) => (
-            <div key={service.service_name} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: serviceColors[service.service_name] || '#3b82f6' }}
-                ></div>
-                <span className="text-sm font-medium text-slate-300 truncate">{service.service_name}</span>
-              </div>
-              <div className="text-right">
-                <div className="text-xs text-slate-400">
-                  {service.booking_percentage.toFixed(0)}% | {service.revenue_percentage.toFixed(0)}%
-                </div>
-                <div className="text-xs text-slate-500">B | R</div>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

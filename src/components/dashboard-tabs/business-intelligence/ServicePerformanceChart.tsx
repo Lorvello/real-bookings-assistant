@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { ServicePerformanceHeader } from './ServicePerformanceHeader';
 import { ServiceChart } from './ServiceChart';
 import { ServiceChartLegend } from './ServiceChartLegend';
-import { ServiceInsightCards } from './ServiceInsightCards';
 import { ServiceEmptyState } from './ServiceEmptyState';
 
 interface ServicePerformanceData {
@@ -32,10 +31,9 @@ export function ServicePerformanceChart({ data, selectedTimeRange }: ServicePerf
 
         <div className="p-8">
           {hasData ? (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <ServiceChart data={data} onFilteredDataChange={setFilteredData} />
               <ServiceChartLegend />
-              <ServiceInsightCards data={filteredData.length > 0 ? filteredData : data} />
             </div>
           ) : (
             <ServiceEmptyState />

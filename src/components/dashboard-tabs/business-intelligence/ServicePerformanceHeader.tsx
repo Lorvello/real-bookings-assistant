@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { TrendingUp, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ServicePerformanceHeaderProps {
   hasData: boolean;
@@ -17,9 +18,23 @@ export function ServicePerformanceHeader({ hasData, data, selectedTimeRange }: S
             <TrendingUp className="h-6 w-6 text-orange-400" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <h3 className="text-2xl font-bold text-slate-100">Service Performance</h3>
-              <Info className="h-4 w-4 text-slate-400" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="cursor-help p-1 rounded-full bg-slate-800/50 backdrop-blur-sm hover:bg-slate-700/50 transition-colors">
+                    <Info className="h-4 w-4 text-orange-400/70 hover:text-orange-300 transition-colors" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent 
+                  className="max-w-sm bg-slate-900/95 border border-orange-500/30 text-slate-100 z-50"
+                  side="top"
+                  align="center"
+                  sideOffset={8}
+                >
+                  <p className="text-sm">Compares booking volume (blue) and revenue (green) for each service. Helps identify most profitable services and optimize your service portfolio.</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
             <p className="text-slate-400 mt-1">{selectedTimeRange} revenue and bookings per service</p>
           </div>
