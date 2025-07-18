@@ -27,7 +27,7 @@ export function ServicePerformanceHeader({ hasData, data, selectedTimeRange }: S
                   </div>
                 </TooltipTrigger>
                 <TooltipContent 
-                  className="max-w-sm bg-slate-900/95 border border-orange-500/30 text-slate-100 z-50"
+                  className="max-w-sm bg-slate-900/95 border border-orange-500/30 text-slate-100 z-[9999]"
                   side="top"
                   align="center"
                   sideOffset={8}
