@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TimeRangeSelector } from './TimeRangeSelector';
 
 type CalendarView = 'month' | 'week' | 'year';
 
@@ -13,6 +14,8 @@ interface CalendarHeaderProps {
   onNavigate: (direction: 'prev' | 'next') => void;
   onNewBooking: () => void;
   loading?: boolean;
+  timeRange?: { startTime: string; endTime: string };
+  onTimeRangeChange?: (startTime: string, endTime: string) => void;
 }
 
 export function CalendarHeader({
@@ -21,7 +24,9 @@ export function CalendarHeader({
   onViewChange,
   onNavigate,
   onNewBooking,
-  loading = false
+  loading = false,
+  timeRange,
+  onTimeRangeChange
 }: CalendarHeaderProps) {
   const formatTitle = () => {
     switch (currentView) {
@@ -78,6 +83,15 @@ export function CalendarHeader({
 
         {/* Right Section - View Controls & Actions */}
         <div className="flex items-center gap-4">
+          {/* Time Range Selector - Only show for week view */}
+          {currentView === 'week' && timeRange && onTimeRangeChange && (
+            <TimeRangeSelector
+              startTime={timeRange.startTime}
+              endTime={timeRange.endTime}
+              onTimeRangeChange={onTimeRangeChange}
+            />
+          )}
+
           {/* View Switcher */}
           <div className="flex items-center bg-muted/50 rounded-2xl p-1.5 border border-border/60 shadow-sm">
             {(['month', 'week', 'year'] as const).map((view) => (

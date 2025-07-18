@@ -26,16 +26,23 @@ interface Booking {
 interface WeekViewProps {
   bookings: Booking[];
   currentDate: Date;
+  timeRange?: { startTime: string; endTime: string };
 }
 
 // Helper functions
-const generateTimeSlots = (startHour: number, endHour: number, intervalMinutes: number) => {
+const generateTimeSlots = (startTime: string, endTime: string, intervalMinutes: number) => {
   const slots = [];
-  for (let hour = startHour; hour <= endHour; hour++) {
-    for (let minute = 0; minute < 60; minute += intervalMinutes) {
-      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      slots.push(timeString);
-    }
+  const [startHour, startMinute] = startTime.split(':').map(Number);
+  const [endHour, endMinute] = endTime.split(':').map(Number);
+  
+  const startTotalMinutes = startHour * 60 + startMinute;
+  const endTotalMinutes = endHour * 60 + endMinute;
+  
+  for (let totalMinutes = startTotalMinutes; totalMinutes <= endTotalMinutes; totalMinutes += intervalMinutes) {
+    const hour = Math.floor(totalMinutes / 60);
+    const minute = totalMinutes % 60;
+    const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    slots.push(timeString);
   }
   return slots;
 };
@@ -79,10 +86,10 @@ const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
   const bookingTotalMinutes = bookingHours * 60 + bookingMinutes;
   
   const offsetMinutes = bookingTotalMinutes - baseSlotMinutes;
-  const topOffset = Math.max(0, (offsetMinutes / 30) * 50); // 30 min = 50px (reduced from 80px)
+  const topOffset = Math.max(0, (offsetMinutes / 30) * 40); // 30 min = 40px (more compact)
   
   // Calculate height based on duration - more compact
-  const height = Math.max(30, (duration / 30) * 50); // minimum 30px, 30 min = 50px (reduced from 40px/80px)
+  const height = Math.max(24, (duration / 30) * 40); // minimum 24px, 30 min = 40px (more compact)
   
   return { topOffset, height };
 };
@@ -133,12 +140,16 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
   );
 }
 
-export function WeekView({ bookings, currentDate }: WeekViewProps) {
+export function WeekView({ bookings, currentDate, timeRange }: WeekViewProps) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
   
   const weekDays = getWeekDays(currentDate);
-  const timeSlots = generateTimeSlots(6, 23, 30); // 6:00 - 23:00, 30 min slots for maximum coverage
+  
+  // Use custom time range or default to business hours
+  const startTime = timeRange?.startTime || '08:00';
+  const endTime = timeRange?.endTime || '18:00';
+  const timeSlots = generateTimeSlots(startTime, endTime, 30);
 
   const handleBookingClick = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -184,11 +195,11 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
       <div className="relative">
         {/* Time slots */}
         {timeSlots.map((timeSlot, index) => (
-          <div key={timeSlot} className={`grid grid-cols-8 border-b border-gray-300 dark:border-gray-600 ${
-            index % 2 === 0 ? 'bg-muted/20' : 'bg-transparent'
+          <div key={timeSlot} className={`grid grid-cols-8 border-b border-border/20 ${
+            index % 2 === 0 ? 'bg-muted/10' : 'bg-transparent'
           }`}>
             {/* Time label */}
-            <div className="w-16 py-3 px-2 text-xs font-medium text-muted-foreground text-right border-r border-gray-300 dark:border-gray-600">
+            <div className="w-16 py-2 px-2 text-xs font-medium text-muted-foreground text-right border-r border-border/20">
               {timeSlot}
             </div>
             
@@ -200,7 +211,7 @@ export function WeekView({ bookings, currentDate }: WeekViewProps) {
               return (
                 <div
                   key={`${day.toISOString()}-${timeSlot}`}
-                   className={`relative transition-colors min-h-[50px] border-r border-gray-300 dark:border-gray-600 ${
+                   className={`relative transition-colors min-h-[40px] border-r border-border/20 ${
                      isToday(day) 
                        ? 'bg-primary/5 hover:bg-primary/10' 
                        : 'bg-card/50 hover:bg-accent/30'

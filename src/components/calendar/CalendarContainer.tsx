@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { addMonths, subMonths, addWeeks, subWeeks, addYears, subYears } from 'date-fns';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarContent } from './CalendarContent';
@@ -18,6 +18,19 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
   const [currentView, setCurrentView] = useState<CalendarView>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
+  
+  // Time range state for week view with business hours default
+  const [timeRange, setTimeRange] = useState(() => {
+    const saved = localStorage.getItem('calendar-time-range');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        // Fall back to default if parsing fails
+      }
+    }
+    return { startTime: '08:00', endTime: '18:00' };
+  });
   
   const { bookings, loading, error, refetch } = useMultipleCalendarBookings(calendarIds);
 
@@ -54,6 +67,17 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
     setIsNewBookingModalOpen(false);
   };
 
+  const handleTimeRangeChange = (startTime: string, endTime: string) => {
+    const newTimeRange = { startTime, endTime };
+    setTimeRange(newTimeRange);
+    localStorage.setItem('calendar-time-range', JSON.stringify(newTimeRange));
+  };
+
+  // Save time range to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('calendar-time-range', JSON.stringify(timeRange));
+  }, [timeRange]);
+
   return (
     <div className="bg-gradient-to-br from-card via-card/98 to-card/95 rounded-3xl border border-border/40 h-full flex flex-col overflow-hidden shadow-2xl shadow-black/10 backdrop-blur-xl">
       <CalendarHeader
@@ -63,6 +87,8 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
         onNavigate={navigateDate}
         onNewBooking={handleNewBooking}
         loading={loading}
+        timeRange={timeRange}
+        onTimeRangeChange={handleTimeRangeChange}
       />
 
       <div className="flex-1 overflow-hidden min-h-0 relative">
@@ -76,6 +102,7 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
             currentDate={currentDate}
             loading={loading}
             error={error}
+            timeRange={timeRange}
           />
         </div>
       </div>
