@@ -62,14 +62,32 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                   <Input
                     type="text"
                     inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={settings.slot_duration ?? 30}
+                    value={settings.slot_duration?.toString() ?? ''}
                     onChange={(e) => {
                       const value = e.target.value.replace(/[^0-9]/g, '');
-                      onUpdate({ slot_duration: parseInt(value) || 30 });
+                      if (value === '') {
+                        // Don't reset to preset when empty, just update with empty
+                        onUpdate({ slot_duration: undefined });
+                      } else {
+                        const numValue = parseInt(value);
+                        if (numValue > 0 && numValue <= 999) {
+                          onUpdate({ slot_duration: numValue });
+                        }
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Allow backspace, delete, arrow keys, tab
+                      if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                        return;
+                      }
+                      // Only allow numeric input
+                      if (!/[0-9]/.test(e.key)) {
+                        e.preventDefault();
+                      }
                     }}
                     className="bg-background border-border pr-20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    placeholder="30"
+                    placeholder="Enter minutes"
+                    autoComplete="off"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
                     minutes
@@ -249,33 +267,51 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       <SelectItem value="other">Custom deadline</SelectItem>
                     </SelectContent>
                   </Select>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={settings.cancellation_deadline_hours ?? 24}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9.]/g, '');
-                          onUpdate({ cancellation_deadline_hours: parseFloat(value) || 24 });
-                        }}
-                        className="bg-background border-border pr-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="24"
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                        hours
-                      </span>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          value={settings.cancellation_deadline_hours?.toString() ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^0-9.]/g, '');
+                            if (value === '') {
+                              onUpdate({ cancellation_deadline_hours: undefined });
+                            } else {
+                              const numValue = parseFloat(value);
+                              if (numValue >= 0 && numValue <= 168) {
+                                onUpdate({ cancellation_deadline_hours: numValue });
+                              }
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            // Allow backspace, delete, arrow keys, tab, decimal point
+                            if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', '.'].includes(e.key)) {
+                              return;
+                            }
+                            // Only allow numeric input
+                            if (!/[0-9]/.test(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                          className="bg-background border-border pr-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="Enter hours"
+                          autoComplete="off"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                          hours
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onUpdate({ cancellation_deadline_hours: 24 })}
+                        className="text-sm text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Back to preset options
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onUpdate({ cancellation_deadline_hours: 24 })}
-                      className="text-sm text-primary hover:text-primary/80 transition-colors"
-                    >
-                      Back to preset options
-                    </button>
-                  </div>
-                )}
+                  )}
               </div>
             )}
           </div>
@@ -331,34 +367,51 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                         <SelectItem value="other">Custom timing</SelectItem>
                       </SelectContent>
                     </Select>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={settings.first_reminder_timing_hours ?? 24}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/[^0-9]/g, '');
-                            onUpdate({ first_reminder_timing_hours: parseInt(value) || 24 });
-                          }}
-                          className="bg-background border-border pr-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          placeholder="24"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                          hours
-                        </span>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={settings.first_reminder_timing_hours?.toString() ?? ''}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^0-9]/g, '');
+                              if (value === '') {
+                                onUpdate({ first_reminder_timing_hours: undefined });
+                              } else {
+                                const numValue = parseInt(value);
+                                if (numValue > 0 && numValue <= 168) {
+                                  onUpdate({ first_reminder_timing_hours: numValue });
+                                }
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              // Allow backspace, delete, arrow keys, tab
+                              if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                return;
+                              }
+                              // Only allow numeric input
+                              if (!/[0-9]/.test(e.key)) {
+                                e.preventDefault();
+                              }
+                            }}
+                            className="bg-background border-border pr-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            placeholder="Enter hours"
+                            autoComplete="off"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                            hours
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onUpdate({ first_reminder_timing_hours: 24 })}
+                          className="text-sm text-primary hover:text-primary/80 transition-colors"
+                        >
+                          Back to preset options
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => onUpdate({ first_reminder_timing_hours: 24 })}
-                        className="text-sm text-primary hover:text-primary/80 transition-colors"
-                      >
-                        Back to preset options
-                      </button>
-                    </div>
-                  )}
+                    )}
                 </div>
               )}
             </div>
@@ -409,34 +462,51 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                         <SelectItem value="other">Custom timing</SelectItem>
                       </SelectContent>
                     </Select>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={settings.second_reminder_timing_minutes ?? 60}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/[^0-9]/g, '');
-                            onUpdate({ second_reminder_timing_minutes: parseInt(value) || 60 });
-                          }}
-                          className="bg-background border-border pr-20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          placeholder="60"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                          minutes
-                        </span>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={settings.second_reminder_timing_minutes?.toString() ?? ''}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^0-9]/g, '');
+                              if (value === '') {
+                                onUpdate({ second_reminder_timing_minutes: undefined });
+                              } else {
+                                const numValue = parseInt(value);
+                                if (numValue > 0 && numValue <= 480) {
+                                  onUpdate({ second_reminder_timing_minutes: numValue });
+                                }
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              // Allow backspace, delete, arrow keys, tab
+                              if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                return;
+                              }
+                              // Only allow numeric input
+                              if (!/[0-9]/.test(e.key)) {
+                                e.preventDefault();
+                              }
+                            }}
+                            className="bg-background border-border pr-20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            placeholder="Enter minutes"
+                            autoComplete="off"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                            minutes
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onUpdate({ second_reminder_timing_minutes: 60 })}
+                          className="text-sm text-primary hover:text-primary/80 transition-colors"
+                        >
+                          Back to preset options
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => onUpdate({ second_reminder_timing_minutes: 60 })}
-                        className="text-sm text-primary hover:text-primary/80 transition-colors"
-                      >
-                        Back to preset options
-                      </button>
-                    </div>
-                  )}
+                    )}
                 </div>
               )}
             </div>
