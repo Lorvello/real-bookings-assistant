@@ -32,22 +32,50 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 </TooltipContent>
               </Tooltip>
             </div>
-            <Select 
-              value={settings.slot_duration?.toString() ?? '30'} 
-              onValueChange={(value) => onUpdate({ slot_duration: parseInt(value) })}
-            >
-              <SelectTrigger className="bg-background border-border">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="15">15 minutes</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="45">45 minutes</SelectItem>
-                <SelectItem value="60">60 minutes</SelectItem>
-                <SelectItem value="90">90 minutes</SelectItem>
-                <SelectItem value="120">120 minutes</SelectItem>
-              </SelectContent>
-            </Select>
+            {[15, 30, 45, 60, 90, 120].includes(settings.slot_duration ?? 30) ? (
+              <Select 
+                value={settings.slot_duration?.toString() ?? '30'} 
+                onValueChange={(value) => {
+                  if (value === 'other') {
+                    onUpdate({ slot_duration: 0 }); // Trigger custom input
+                  } else {
+                    onUpdate({ slot_duration: parseInt(value) });
+                  }
+                }}
+              >
+                <SelectTrigger className="bg-background border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15">15 minutes</SelectItem>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                  <SelectItem value="45">45 minutes</SelectItem>
+                  <SelectItem value="60">60 minutes</SelectItem>
+                  <SelectItem value="90">90 minutes</SelectItem>
+                  <SelectItem value="120">120 minutes</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  value={settings.slot_duration ?? 30}
+                  onChange={(e) => onUpdate({ slot_duration: parseInt(e.target.value) || 30 })}
+                  className="bg-background border-border flex-1"
+                  min="5"
+                  max="480"
+                  placeholder="Minutes"
+                />
+                <button
+                  type="button"
+                  onClick={() => onUpdate({ slot_duration: 30 })}
+                  className="px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                >
+                  Reset
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -190,21 +218,50 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <Select 
-                  value={settings.cancellation_deadline_hours?.toString() ?? '24'} 
-                  onValueChange={(value) => onUpdate({ cancellation_deadline_hours: parseInt(value) })}
-                >
-                  <SelectTrigger className="bg-background border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0.5">30 minutes before</SelectItem>
-                    <SelectItem value="1">1 hour before</SelectItem>
-                    <SelectItem value="2">2 hours before</SelectItem>
-                    <SelectItem value="6">6 hours before</SelectItem>
-                    <SelectItem value="24">24 hours before</SelectItem>
-                  </SelectContent>
-                </Select>
+                {[0.5, 1, 2, 6, 24].includes(settings.cancellation_deadline_hours ?? 24) ? (
+                  <Select 
+                    value={settings.cancellation_deadline_hours?.toString() ?? '24'} 
+                    onValueChange={(value) => {
+                      if (value === 'other') {
+                        onUpdate({ cancellation_deadline_hours: 0 }); // Trigger custom input
+                      } else {
+                        onUpdate({ cancellation_deadline_hours: parseFloat(value) });
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="bg-background border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0.5">30 minutes before</SelectItem>
+                      <SelectItem value="1">1 hour before</SelectItem>
+                      <SelectItem value="2">2 hours before</SelectItem>
+                      <SelectItem value="6">6 hours before</SelectItem>
+                      <SelectItem value="24">24 hours before</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      value={settings.cancellation_deadline_hours ?? 24}
+                      onChange={(e) => onUpdate({ cancellation_deadline_hours: parseFloat(e.target.value) || 24 })}
+                      className="bg-background border-border flex-1"
+                      min="0.5"
+                      max="168"
+                      step="0.5"
+                      placeholder="Hours"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => onUpdate({ cancellation_deadline_hours: 24 })}
+                      className="px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -238,20 +295,48 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               {settings.first_reminder_enabled && (
                 <div className="space-y-2">
                   <Label className="text-foreground font-medium">Timing</Label>
-                  <Select 
-                    value={settings.first_reminder_timing_hours?.toString() ?? '24'} 
-                    onValueChange={(value) => onUpdate({ first_reminder_timing_hours: parseInt(value) })}
-                  >
-                    <SelectTrigger className="bg-background border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="24">1 day before</SelectItem>
-                      <SelectItem value="48">2 days before</SelectItem>
-                      <SelectItem value="72">3 days before</SelectItem>
-                      <SelectItem value="168">1 week before</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {[24, 48, 72, 168].includes(settings.first_reminder_timing_hours ?? 24) ? (
+                    <Select 
+                      value={settings.first_reminder_timing_hours?.toString() ?? '24'} 
+                      onValueChange={(value) => {
+                        if (value === 'other') {
+                          onUpdate({ first_reminder_timing_hours: 0 }); // Trigger custom input
+                        } else {
+                          onUpdate({ first_reminder_timing_hours: parseInt(value) });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="bg-background border-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="24">1 day before</SelectItem>
+                        <SelectItem value="48">2 days before</SelectItem>
+                        <SelectItem value="72">3 days before</SelectItem>
+                        <SelectItem value="168">1 week before</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        value={settings.first_reminder_timing_hours ?? 24}
+                        onChange={(e) => onUpdate({ first_reminder_timing_hours: parseInt(e.target.value) || 24 })}
+                        className="bg-background border-border flex-1"
+                        min="1"
+                        max="168"
+                        placeholder="Hours"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => onUpdate({ first_reminder_timing_hours: 24 })}
+                        className="px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -280,20 +365,48 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               {settings.second_reminder_enabled && (
                 <div className="space-y-2">
                   <Label className="text-foreground font-medium">Timing</Label>
-                  <Select 
-                    value={settings.second_reminder_timing_minutes?.toString() ?? '60'} 
-                    onValueChange={(value) => onUpdate({ second_reminder_timing_minutes: parseInt(value) })}
-                  >
-                    <SelectTrigger className="bg-background border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30">30 minutes before</SelectItem>
-                      <SelectItem value="60">1 hour before</SelectItem>
-                      <SelectItem value="120">2 hours before</SelectItem>
-                      <SelectItem value="180">3 hours before</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {[30, 60, 120, 180].includes(settings.second_reminder_timing_minutes ?? 60) ? (
+                    <Select 
+                      value={settings.second_reminder_timing_minutes?.toString() ?? '60'} 
+                      onValueChange={(value) => {
+                        if (value === 'other') {
+                          onUpdate({ second_reminder_timing_minutes: 0 }); // Trigger custom input
+                        } else {
+                          onUpdate({ second_reminder_timing_minutes: parseInt(value) });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="bg-background border-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">30 minutes before</SelectItem>
+                        <SelectItem value="60">1 hour before</SelectItem>
+                        <SelectItem value="120">2 hours before</SelectItem>
+                        <SelectItem value="180">3 hours before</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        value={settings.second_reminder_timing_minutes ?? 60}
+                        onChange={(e) => onUpdate({ second_reminder_timing_minutes: parseInt(e.target.value) || 60 })}
+                        className="bg-background border-border flex-1"
+                        min="5"
+                        max="480"
+                        placeholder="Minutes"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => onUpdate({ second_reminder_timing_minutes: 60 })}
+                        className="px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
