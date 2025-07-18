@@ -13,9 +13,15 @@ interface CalendarPolicySettingsProps {
 }
 
 export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySettingsProps) {
-  // State for reminder unit types
+  // State for reminder unit types and custom mode tracking
   const [firstReminderUnit, setFirstReminderUnit] = useState<'hours' | 'days'>('hours');
   const [secondReminderUnit, setSecondReminderUnit] = useState<'minutes' | 'hours'>('minutes');
+  
+  // Track when custom mode is explicitly active (prevents accidental closure)
+  const [isSlotDurationCustom, setIsSlotDurationCustom] = useState(false);
+  const [isCancellationCustom, setIsCancellationCustom] = useState(false);
+  const [isFirstReminderCustom, setIsFirstReminderCustom] = useState(false);
+  const [isSecondReminderCustom, setIsSecondReminderCustom] = useState(false);
 
   // Helper functions to convert between units
   const convertFirstReminderToHours = (value: number, unit: 'hours' | 'days'): number => {
@@ -52,13 +58,15 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 </TooltipContent>
               </Tooltip>
             </div>
-            {[15, 30, 45, 60, 90, 120].includes(settings.slot_duration ?? 30) ? (
+            {!isSlotDurationCustom && [15, 30, 45, 60, 90, 120].includes(settings.slot_duration ?? 30) ? (
               <Select 
                 value={settings.slot_duration?.toString() ?? '30'} 
                 onValueChange={(value) => {
                   if (value === 'other') {
-                    onUpdate({ slot_duration: 0 }); // Trigger custom input
+                    setIsSlotDurationCustom(true);
+                    onUpdate({ slot_duration: undefined });
                   } else {
+                    setIsSlotDurationCustom(false);
                     onUpdate({ slot_duration: parseInt(value) });
                   }
                 }}
@@ -105,7 +113,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                         e.preventDefault();
                       }
                     }}
-                    className="bg-background border-border pr-20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="bg-background border-border pr-20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
                     placeholder="Enter minutes"
                     autoComplete="off"
                   />
@@ -115,7 +123,10 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 </div>
                 <button
                   type="button"
-                  onClick={() => onUpdate({ slot_duration: 30 })}
+                  onClick={() => {
+                    setIsSlotDurationCustom(false);
+                    onUpdate({ slot_duration: 30 });
+                  }}
                   className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
                   Back to preset options
@@ -264,13 +275,15 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                {[0.5, 1, 2, 6, 24].includes(settings.cancellation_deadline_hours ?? 24) ? (
+                {!isCancellationCustom && [0.5, 1, 2, 6, 24].includes(settings.cancellation_deadline_hours ?? 24) ? (
                   <Select 
                     value={settings.cancellation_deadline_hours?.toString() ?? '24'} 
                     onValueChange={(value) => {
                       if (value === 'other') {
-                        onUpdate({ cancellation_deadline_hours: 0 }); // Trigger custom input
+                        setIsCancellationCustom(true);
+                        onUpdate({ cancellation_deadline_hours: undefined });
                       } else {
+                        setIsCancellationCustom(false);
                         onUpdate({ cancellation_deadline_hours: parseFloat(value) });
                       }
                     }}
@@ -315,7 +328,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                               e.preventDefault();
                             }
                           }}
-                          className="bg-background border-border pr-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          className="bg-background border-border pr-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
                           placeholder="Enter hours"
                           autoComplete="off"
                         />
@@ -325,7 +338,10 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       </div>
                       <button
                         type="button"
-                        onClick={() => onUpdate({ cancellation_deadline_hours: 24 })}
+                        onClick={() => {
+                          setIsCancellationCustom(false);
+                          onUpdate({ cancellation_deadline_hours: 24 });
+                        }}
                         className="text-sm text-primary hover:text-primary/80 transition-colors"
                       >
                         Back to preset options
@@ -365,13 +381,15 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               {settings.first_reminder_enabled && (
                 <div className="space-y-2">
                   <Label className="text-foreground font-medium">Timing</Label>
-                  {[24, 48, 72, 168].includes(settings.first_reminder_timing_hours ?? 24) ? (
+                  {!isFirstReminderCustom && [24, 48, 72, 168].includes(settings.first_reminder_timing_hours ?? 24) ? (
                     <Select 
                       value={settings.first_reminder_timing_hours?.toString() ?? '24'} 
                       onValueChange={(value) => {
                         if (value === 'other') {
-                          onUpdate({ first_reminder_timing_hours: 0 }); // Trigger custom input
+                          setIsFirstReminderCustom(true);
+                          onUpdate({ first_reminder_timing_hours: undefined });
                         } else {
+                          setIsFirstReminderCustom(false);
                           onUpdate({ first_reminder_timing_hours: parseInt(value) });
                         }
                       }}
@@ -449,6 +467,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                         <button
                           type="button"
                           onClick={() => {
+                            setIsFirstReminderCustom(false);
                             setFirstReminderUnit('hours');
                             onUpdate({ first_reminder_timing_hours: 24 });
                           }}
@@ -486,13 +505,15 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               {settings.second_reminder_enabled && (
                 <div className="space-y-2">
                   <Label className="text-foreground font-medium">Timing</Label>
-                  {[30, 60, 120, 180].includes(settings.second_reminder_timing_minutes ?? 60) ? (
+                  {!isSecondReminderCustom && [30, 60, 120, 180].includes(settings.second_reminder_timing_minutes ?? 60) ? (
                     <Select 
                       value={settings.second_reminder_timing_minutes?.toString() ?? '60'} 
                       onValueChange={(value) => {
                         if (value === 'other') {
-                          onUpdate({ second_reminder_timing_minutes: 0 }); // Trigger custom input
+                          setIsSecondReminderCustom(true);
+                          onUpdate({ second_reminder_timing_minutes: undefined });
                         } else {
+                          setIsSecondReminderCustom(false);
                           onUpdate({ second_reminder_timing_minutes: parseInt(value) });
                         }
                       }}
@@ -570,6 +591,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                         <button
                           type="button"
                           onClick={() => {
+                            setIsSecondReminderCustom(false);
                             setSecondReminderUnit('minutes');
                             onUpdate({ second_reminder_timing_minutes: 60 });
                           }}
