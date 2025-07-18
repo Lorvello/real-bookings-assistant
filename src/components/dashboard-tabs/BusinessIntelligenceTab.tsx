@@ -15,6 +15,26 @@ interface BusinessIntelligenceTabProps {
   dateRange: DateRange;
 }
 
+// Helper function to generate dynamic period text for tooltips
+const getDynamicPeriodText = (dateRange: DateRange): string => {
+  if (!dateRange) return "in the selected period";
+  
+  switch (dateRange.preset) {
+    case 'last7days':
+      return "in the last 7 days";
+    case 'last30days':
+      return "in the last 30 days";
+    case 'last3months':
+      return "in the last 3 months";
+    case 'lastyear':
+      return "in the last year";
+    case 'custom':
+      return "in the selected period";
+    default:
+      return "in the selected period";
+  }
+};
+
 export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntelligenceTabProps) {
   // Add safety check for dateRange
   if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
@@ -55,6 +75,9 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
     return `${dateRange.label.toLowerCase()}`;
   };
 
+  // Get dynamic period text for tooltips
+  const periodText = getDynamicPeriodText(dateRange);
+
   return (
     <TooltipProvider>
       <div className="space-y-12">
@@ -92,7 +115,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Total money earned from all completed appointments in the last 30 days. This includes all services and represents your gross business income through the booking system.</p>
+              <p className="text-sm">Total money earned from all completed appointments {periodText}. This includes all services and represents your gross business income through the booking system.</p>
             </TooltipContent>
           </Tooltip>
 
@@ -123,7 +146,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Revenue growth percentage compared to the previous period. Positive values indicate business expansion and improved financial performance.</p>
+              <p className="text-sm">Revenue growth percentage compared to the previous period {periodText}. Positive values indicate business expansion and improved financial performance.</p>
             </TooltipContent>
           </Tooltip>
 
@@ -154,7 +177,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Average daily revenue during the selected period. Helps track consistent income flow and plan daily business operations.</p>
+              <p className="text-sm">Average daily revenue during the selected period {periodText}. Helps track consistent income flow and plan daily business operations.</p>
             </TooltipContent>
           </Tooltip>
 
@@ -185,7 +208,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Average revenue per appointment across all services. Higher values indicate premium pricing or successful upselling strategies.</p>
+              <p className="text-sm">Average revenue per appointment across all services {periodText}. Higher values indicate premium pricing or successful upselling strategies.</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -213,7 +236,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
                       align="center"
                       sideOffset={8}
                     >
-                      <p className="text-sm">Compares booking volume (blue) and revenue (green) for each service. Helps identify most profitable services and optimize your service portfolio.</p>
+                      <p className="text-sm">Compares booking volume (blue) and revenue (green) for each service {periodText}. Helps identify most profitable services and optimize your service portfolio.</p>
                     </TooltipContent>
                   </Tooltip>
                 </h3>
