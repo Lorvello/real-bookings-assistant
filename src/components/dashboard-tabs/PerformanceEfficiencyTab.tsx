@@ -303,7 +303,7 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
                 <MetricCard
                   title="Total Customers"
                   value={String(performance?.total_customers || 0)}
-                  subtitle="all time"
+                  subtitle={getMetricSubtitle('customers')}
                   icon={User}
                   variant="blue"
                   delay={0.7}
@@ -319,7 +319,7 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Total number of unique customers who have ever made an appointment through your booking system. Shows your complete customer base size.</p>
+              <p className="text-sm">Total number of unique customers who made appointments {periodText}. Shows your customer base size for the selected period.</p>
             </TooltipContent>
           </Tooltip>
         </div>
