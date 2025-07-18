@@ -46,33 +46,41 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 <SelectTrigger className="bg-background border-border">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border-border shadow-lg">
                   <SelectItem value="15">15 minutes</SelectItem>
                   <SelectItem value="30">30 minutes</SelectItem>
                   <SelectItem value="45">45 minutes</SelectItem>
                   <SelectItem value="60">60 minutes</SelectItem>
                   <SelectItem value="90">90 minutes</SelectItem>
                   <SelectItem value="120">120 minutes</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="other">Custom duration</SelectItem>
                 </SelectContent>
               </Select>
             ) : (
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  value={settings.slot_duration ?? 30}
-                  onChange={(e) => onUpdate({ slot_duration: parseInt(e.target.value) || 30 })}
-                  className="bg-background border-border flex-1"
-                  min="5"
-                  max="480"
-                  placeholder="Minutes"
-                />
+              <div className="space-y-2">
+                <div className="relative">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={settings.slot_duration ?? 30}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      onUpdate({ slot_duration: parseInt(value) || 30 });
+                    }}
+                    className="bg-background border-border pr-20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder="30"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                    minutes
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => onUpdate({ slot_duration: 30 })}
-                  className="px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
-                  Reset
+                  Back to preset options
                 </button>
               </div>
             )}
@@ -232,33 +240,39 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                     <SelectTrigger className="bg-background border-border">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background border-border shadow-lg">
                       <SelectItem value="0.5">30 minutes before</SelectItem>
                       <SelectItem value="1">1 hour before</SelectItem>
                       <SelectItem value="2">2 hours before</SelectItem>
                       <SelectItem value="6">6 hours before</SelectItem>
                       <SelectItem value="24">24 hours before</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="other">Custom deadline</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      value={settings.cancellation_deadline_hours ?? 24}
-                      onChange={(e) => onUpdate({ cancellation_deadline_hours: parseFloat(e.target.value) || 24 })}
-                      className="bg-background border-border flex-1"
-                      min="0.5"
-                      max="168"
-                      step="0.5"
-                      placeholder="Hours"
-                    />
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        value={settings.cancellation_deadline_hours ?? 24}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9.]/g, '');
+                          onUpdate({ cancellation_deadline_hours: parseFloat(value) || 24 });
+                        }}
+                        className="bg-background border-border pr-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        placeholder="24"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                        hours
+                      </span>
+                    </div>
                     <button
                       type="button"
                       onClick={() => onUpdate({ cancellation_deadline_hours: 24 })}
-                      className="px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                      className="text-sm text-primary hover:text-primary/80 transition-colors"
                     >
-                      Reset
+                      Back to preset options
                     </button>
                   </div>
                 )}
@@ -309,31 +323,39 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       <SelectTrigger className="bg-background border-border">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-border shadow-lg">
                         <SelectItem value="24">1 day before</SelectItem>
                         <SelectItem value="48">2 days before</SelectItem>
                         <SelectItem value="72">3 days before</SelectItem>
                         <SelectItem value="168">1 week before</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="other">Custom timing</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        value={settings.first_reminder_timing_hours ?? 24}
-                        onChange={(e) => onUpdate({ first_reminder_timing_hours: parseInt(e.target.value) || 24 })}
-                        className="bg-background border-border flex-1"
-                        min="1"
-                        max="168"
-                        placeholder="Hours"
-                      />
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={settings.first_reminder_timing_hours ?? 24}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^0-9]/g, '');
+                            onUpdate({ first_reminder_timing_hours: parseInt(value) || 24 });
+                          }}
+                          className="bg-background border-border pr-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="24"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                          hours
+                        </span>
+                      </div>
                       <button
                         type="button"
                         onClick={() => onUpdate({ first_reminder_timing_hours: 24 })}
-                        className="px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                        className="text-sm text-primary hover:text-primary/80 transition-colors"
                       >
-                        Reset
+                        Back to preset options
                       </button>
                     </div>
                   )}
@@ -379,31 +401,39 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       <SelectTrigger className="bg-background border-border">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-border shadow-lg">
                         <SelectItem value="30">30 minutes before</SelectItem>
                         <SelectItem value="60">1 hour before</SelectItem>
                         <SelectItem value="120">2 hours before</SelectItem>
                         <SelectItem value="180">3 hours before</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="other">Custom timing</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        value={settings.second_reminder_timing_minutes ?? 60}
-                        onChange={(e) => onUpdate({ second_reminder_timing_minutes: parseInt(e.target.value) || 60 })}
-                        className="bg-background border-border flex-1"
-                        min="5"
-                        max="480"
-                        placeholder="Minutes"
-                      />
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={settings.second_reminder_timing_minutes ?? 60}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^0-9]/g, '');
+                            onUpdate({ second_reminder_timing_minutes: parseInt(value) || 60 });
+                          }}
+                          className="bg-background border-border pr-20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="60"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                          minutes
+                        </span>
+                      </div>
                       <button
                         type="button"
                         onClick={() => onUpdate({ second_reminder_timing_minutes: 60 })}
-                        className="px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                        className="text-sm text-primary hover:text-primary/80 transition-colors"
                       >
-                        Reset
+                        Back to preset options
                       </button>
                     </div>
                   )}
