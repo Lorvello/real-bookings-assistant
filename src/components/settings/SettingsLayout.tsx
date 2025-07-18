@@ -49,7 +49,7 @@ export const SettingsLayout = () => {
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-3 md:space-y-6">
           <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-5 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2">
+            <TabsList className="grid w-full grid-cols-5 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2 h-12 md:h-14">
               <TabsTrigger value="profile" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <User className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Profile</span>
