@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,6 +13,26 @@ interface CalendarPolicySettingsProps {
 }
 
 export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySettingsProps) {
+  // State for reminder unit types
+  const [firstReminderUnit, setFirstReminderUnit] = useState<'hours' | 'days'>('hours');
+  const [secondReminderUnit, setSecondReminderUnit] = useState<'minutes' | 'hours'>('minutes');
+
+  // Helper functions to convert between units
+  const convertFirstReminderToHours = (value: number, unit: 'hours' | 'days'): number => {
+    return unit === 'days' ? value * 24 : value;
+  };
+
+  const convertFirstReminderFromHours = (hours: number, unit: 'hours' | 'days'): number => {
+    return unit === 'days' ? Math.round(hours / 24) : hours;
+  };
+
+  const convertSecondReminderToMinutes = (value: number, unit: 'minutes' | 'hours'): number => {
+    return unit === 'hours' ? value * 60 : value;
+  };
+
+  const convertSecondReminderFromMinutes = (minutes: number, unit: 'minutes' | 'hours'): number => {
+    return unit === 'hours' ? Math.round(minutes / 60) : minutes;
+  };
   return (
     <TooltipProvider delayDuration={100}>
       <div className="space-y-6">
@@ -369,43 +389,69 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                     </Select>
                     ) : (
                       <div className="space-y-2">
-                        <div className="relative">
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            value={settings.first_reminder_timing_hours?.toString() ?? ''}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/[^0-9]/g, '');
-                              if (value === '') {
-                                onUpdate({ first_reminder_timing_hours: undefined });
-                              } else {
-                                const numValue = parseInt(value);
-                                if (numValue > 0 && numValue <= 168) {
-                                  onUpdate({ first_reminder_timing_hours: numValue });
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <Input
+                              type="text"
+                              inputMode="numeric"
+                              value={
+                                settings.first_reminder_timing_hours !== undefined
+                                  ? convertFirstReminderFromHours(settings.first_reminder_timing_hours, firstReminderUnit).toString()
+                                  : ''
+                              }
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/[^0-9]/g, '');
+                                if (value === '') {
+                                  onUpdate({ first_reminder_timing_hours: undefined });
+                                } else {
+                                  const numValue = parseInt(value);
+                                  if (numValue > 0) {
+                                    const hoursValue = convertFirstReminderToHours(numValue, firstReminderUnit);
+                                    if (hoursValue <= 8760) { // Max 1 year
+                                      onUpdate({ first_reminder_timing_hours: hoursValue });
+                                    }
+                                  }
                                 }
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              // Allow backspace, delete, arrow keys, tab
-                              if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
-                                return;
-                              }
-                              // Only allow numeric input
-                              if (!/[0-9]/.test(e.key)) {
-                                e.preventDefault();
-                              }
-                            }}
-                            className="bg-background border-border pr-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            placeholder="Enter hours"
-                            autoComplete="off"
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                            hours
-                          </span>
+                              }}
+                              onKeyDown={(e) => {
+                                // Allow backspace, delete, arrow keys, tab, etc.
+                                if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key)) {
+                                  return;
+                                }
+                                // Only allow numeric input
+                                if (!/[0-9]/.test(e.key)) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              className="bg-background border-border [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              placeholder={`Enter ${firstReminderUnit}`}
+                              autoComplete="off"
+                            />
+                          </div>
+                          <Select value={firstReminderUnit} onValueChange={(value: 'hours' | 'days') => {
+                            // Convert current value to new unit when changing
+                            if (settings.first_reminder_timing_hours !== undefined) {
+                              const currentDisplayValue = convertFirstReminderFromHours(settings.first_reminder_timing_hours, firstReminderUnit);
+                              const newHoursValue = convertFirstReminderToHours(currentDisplayValue, value);
+                              onUpdate({ first_reminder_timing_hours: newHoursValue });
+                            }
+                            setFirstReminderUnit(value);
+                          }}>
+                            <SelectTrigger className="w-24 bg-background border-border">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background border-border shadow-lg">
+                              <SelectItem value="hours">hours</SelectItem>
+                              <SelectItem value="days">days</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         <button
                           type="button"
-                          onClick={() => onUpdate({ first_reminder_timing_hours: 24 })}
+                          onClick={() => {
+                            setFirstReminderUnit('hours');
+                            onUpdate({ first_reminder_timing_hours: 24 });
+                          }}
                           className="text-sm text-primary hover:text-primary/80 transition-colors"
                         >
                           Back to preset options
@@ -464,43 +510,69 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                     </Select>
                     ) : (
                       <div className="space-y-2">
-                        <div className="relative">
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            value={settings.second_reminder_timing_minutes?.toString() ?? ''}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/[^0-9]/g, '');
-                              if (value === '') {
-                                onUpdate({ second_reminder_timing_minutes: undefined });
-                              } else {
-                                const numValue = parseInt(value);
-                                if (numValue > 0 && numValue <= 480) {
-                                  onUpdate({ second_reminder_timing_minutes: numValue });
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <Input
+                              type="text"
+                              inputMode="numeric"
+                              value={
+                                settings.second_reminder_timing_minutes !== undefined
+                                  ? convertSecondReminderFromMinutes(settings.second_reminder_timing_minutes, secondReminderUnit).toString()
+                                  : ''
+                              }
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/[^0-9]/g, '');
+                                if (value === '') {
+                                  onUpdate({ second_reminder_timing_minutes: undefined });
+                                } else {
+                                  const numValue = parseInt(value);
+                                  if (numValue > 0) {
+                                    const minutesValue = convertSecondReminderToMinutes(numValue, secondReminderUnit);
+                                    if (minutesValue <= 1440) { // Max 24 hours
+                                      onUpdate({ second_reminder_timing_minutes: minutesValue });
+                                    }
+                                  }
                                 }
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              // Allow backspace, delete, arrow keys, tab
-                              if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
-                                return;
-                              }
-                              // Only allow numeric input
-                              if (!/[0-9]/.test(e.key)) {
-                                e.preventDefault();
-                              }
-                            }}
-                            className="bg-background border-border pr-20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            placeholder="Enter minutes"
-                            autoComplete="off"
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                            minutes
-                          </span>
+                              }}
+                              onKeyDown={(e) => {
+                                // Allow backspace, delete, arrow keys, tab, etc.
+                                if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key)) {
+                                  return;
+                                }
+                                // Only allow numeric input
+                                if (!/[0-9]/.test(e.key)) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              className="bg-background border-border [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              placeholder={`Enter ${secondReminderUnit}`}
+                              autoComplete="off"
+                            />
+                          </div>
+                          <Select value={secondReminderUnit} onValueChange={(value: 'minutes' | 'hours') => {
+                            // Convert current value to new unit when changing
+                            if (settings.second_reminder_timing_minutes !== undefined) {
+                              const currentDisplayValue = convertSecondReminderFromMinutes(settings.second_reminder_timing_minutes, secondReminderUnit);
+                              const newMinutesValue = convertSecondReminderToMinutes(currentDisplayValue, value);
+                              onUpdate({ second_reminder_timing_minutes: newMinutesValue });
+                            }
+                            setSecondReminderUnit(value);
+                          }}>
+                            <SelectTrigger className="w-24 bg-background border-border">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background border-border shadow-lg">
+                              <SelectItem value="minutes">minutes</SelectItem>
+                              <SelectItem value="hours">hours</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         <button
                           type="button"
-                          onClick={() => onUpdate({ second_reminder_timing_minutes: 60 })}
+                          onClick={() => {
+                            setSecondReminderUnit('minutes');
+                            onUpdate({ second_reminder_timing_minutes: 60 });
+                          }}
                           className="text-sm text-primary hover:text-primary/80 transition-colors"
                         >
                           Back to preset options
