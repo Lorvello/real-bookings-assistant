@@ -16,6 +16,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
   // State for reminder unit types and custom mode tracking
   const [firstReminderUnit, setFirstReminderUnit] = useState<'hours' | 'days'>('hours');
   const [secondReminderUnit, setSecondReminderUnit] = useState<'minutes' | 'hours'>('minutes');
+  const [cancellationUnit, setCancellationUnit] = useState<'minutes' | 'hours' | 'days'>('hours');
   
   // Track when custom mode is explicitly active (prevents accidental closure)
   const [isSlotDurationCustom, setIsSlotDurationCustom] = useState(false);
@@ -38,6 +39,19 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
 
   const convertSecondReminderFromMinutes = (minutes: number, unit: 'minutes' | 'hours'): number => {
     return unit === 'hours' ? Math.round(minutes / 60) : minutes;
+  };
+
+  // Helper functions for cancellation deadline unit conversion
+  const convertCancellationToHours = (value: number, unit: 'minutes' | 'hours' | 'days'): number => {
+    if (unit === 'minutes') return value / 60;
+    if (unit === 'days') return value * 24;
+    return value; // hours
+  };
+
+  const convertCancellationFromHours = (hours: number, unit: 'minutes' | 'hours' | 'days'): number => {
+    if (unit === 'minutes') return Math.round(hours * 60);
+    if (unit === 'days') return Math.round(hours / 24);
+    return hours; // hours
   };
   return (
     <TooltipProvider delayDuration={100}>
@@ -302,44 +316,69 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                   </Select>
                   ) : (
                     <div className="space-y-2">
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={settings.cancellation_deadline_hours?.toString() ?? ''}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/[^0-9.]/g, '');
-                            if (value === '') {
-                              onUpdate({ cancellation_deadline_hours: undefined });
-                            } else {
-                              const numValue = parseFloat(value);
-                              if (numValue >= 0 && numValue <= 168) {
-                                onUpdate({ cancellation_deadline_hours: numValue });
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={
+                              settings.cancellation_deadline_hours !== undefined
+                                ? convertCancellationFromHours(settings.cancellation_deadline_hours, cancellationUnit).toString()
+                                : ''
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^0-9]/g, '');
+                              if (value === '') {
+                                onUpdate({ cancellation_deadline_hours: undefined });
+                              } else {
+                                const numValue = parseInt(value);
+                                if (numValue > 0) {
+                                  const hoursValue = convertCancellationToHours(numValue, cancellationUnit);
+                                  if (hoursValue <= 8760) { // Max 1 year
+                                    onUpdate({ cancellation_deadline_hours: hoursValue });
+                                  }
+                                }
                               }
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            // Allow backspace, delete, arrow keys, tab, decimal point
-                            if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', '.'].includes(e.key)) {
-                              return;
-                            }
-                            // Only allow numeric input
-                            if (!/[0-9]/.test(e.key)) {
-                              e.preventDefault();
-                            }
-                          }}
-                          className="bg-background border-border pr-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
-                          placeholder="Enter hours"
-                          autoComplete="off"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                          hours
-                        </span>
+                            }}
+                            onKeyDown={(e) => {
+                              // Allow all normal editing keys
+                              if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End', 'Enter', 'Escape'].includes(e.key)) {
+                                return;
+                              }
+                              // Only allow numeric input for other keys
+                              if (!/[0-9]/.test(e.key)) {
+                                e.preventDefault();
+                              }
+                            }}
+                            className="bg-background border-border [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
+                            placeholder={`Enter ${cancellationUnit}`}
+                            autoComplete="off"
+                          />
+                        </div>
+                        <Select value={cancellationUnit} onValueChange={(value: 'minutes' | 'hours' | 'days') => {
+                          // Convert current value to new unit when changing
+                          if (settings.cancellation_deadline_hours !== undefined) {
+                            const currentDisplayValue = convertCancellationFromHours(settings.cancellation_deadline_hours, cancellationUnit);
+                            const newHoursValue = convertCancellationToHours(currentDisplayValue, value);
+                            onUpdate({ cancellation_deadline_hours: newHoursValue });
+                          }
+                          setCancellationUnit(value);
+                        }}>
+                          <SelectTrigger className="w-24 bg-background border-border">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border-border shadow-lg">
+                            <SelectItem value="minutes">minutes</SelectItem>
+                            <SelectItem value="hours">hours</SelectItem>
+                            <SelectItem value="days">days</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <button
                         type="button"
                         onClick={() => {
                           setIsCancellationCustom(false);
+                          setCancellationUnit('hours');
                           onUpdate({ cancellation_deadline_hours: 24 });
                         }}
                         className="text-sm text-primary hover:text-primary/80 transition-colors"
