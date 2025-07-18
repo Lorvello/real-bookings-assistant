@@ -414,16 +414,16 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                                 }
                               }}
                               onKeyDown={(e) => {
-                                // Allow backspace, delete, arrow keys, tab, etc.
-                                if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key)) {
+                                // Allow all normal editing keys
+                                if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End', 'Enter', 'Escape'].includes(e.key)) {
                                   return;
                                 }
-                                // Only allow numeric input
+                                // Only allow numeric input for other keys
                                 if (!/[0-9]/.test(e.key)) {
                                   e.preventDefault();
                                 }
                               }}
-                              className="bg-background border-border [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="bg-background border-border [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/50"
                               placeholder={`Enter ${firstReminderUnit}`}
                               autoComplete="off"
                             />
@@ -535,16 +535,16 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                                 }
                               }}
                               onKeyDown={(e) => {
-                                // Allow backspace, delete, arrow keys, tab, etc.
-                                if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key)) {
+                                // Allow all normal editing keys
+                                if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End', 'Enter', 'Escape'].includes(e.key)) {
                                   return;
                                 }
-                                // Only allow numeric input
+                                // Only allow numeric input for other keys
                                 if (!/[0-9]/.test(e.key)) {
                                   e.preventDefault();
                                 }
                               }}
-                              className="bg-background border-border [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="bg-background border-border [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/50"
                               placeholder={`Enter ${secondReminderUnit}`}
                               autoComplete="off"
                             />
