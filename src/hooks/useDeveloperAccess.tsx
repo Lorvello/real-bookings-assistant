@@ -1,4 +1,5 @@
 import { useAuth } from './useAuth';
+import { getEnvironmentConfig } from '@/utils/environment';
 
 // Developer emails list - can be extended with environment variables
 const DEVELOPER_EMAILS = [
@@ -11,6 +12,13 @@ export const useDeveloperAccess = () => {
   const { user } = useAuth();
 
   const isDeveloper = () => {
+    const { allowDeveloperTools } = getEnvironmentConfig();
+    
+    // In production, never show developer tools regardless of email
+    if (!allowDeveloperTools) {
+      return false;
+    }
+    
     if (!user?.email) return false;
     
     // Check if user email is in developer list

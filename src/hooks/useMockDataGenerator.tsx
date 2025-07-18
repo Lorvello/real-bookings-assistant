@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getEnvironmentConfig } from '@/utils/environment';
 
 export function useMockDataGenerator() {
   const { toast } = useToast();
@@ -42,8 +43,17 @@ export function useMockDataGenerator() {
   });
 }
 
-// Helper function to check if user is in trial mode and needs mock data
+// Helper function to check if user should see mock data
+// Only returns true in development environment
 export function shouldUseMockData(user: any) {
+  const { allowMockData } = getEnvironmentConfig();
+  
+  // In production, never show mock data regardless of subscription status
+  if (!allowMockData) {
+    return false;
+  }
+  
+  // In development, show mock data for trial users or users without subscription
   return user?.subscription_status === 'trial' || !user?.subscription_status;
 }
 
