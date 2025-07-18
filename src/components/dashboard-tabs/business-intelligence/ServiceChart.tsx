@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChartTooltip } from './ChartTooltip';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Settings2 } from 'lucide-react';
 
 interface ServicePerformanceData {
   service_name: string;
@@ -14,80 +16,205 @@ interface ServiceChartProps {
   data: ServicePerformanceData[];
 }
 
+type ScaleOption = 'auto' | '50' | '100' | '200' | '500' | '1000' | '2000' | '5000' | '10000';
+
+const scaleOptions: { value: ScaleOption; label: string }[] = [
+  { value: 'auto', label: 'Auto Scale' },
+  { value: '50', label: '0 - 50' },
+  { value: '100', label: '0 - 100' },
+  { value: '200', label: '0 - 200' },
+  { value: '500', label: '0 - 500' },
+  { value: '1000', label: '0 - 1000' },
+  { value: '2000', label: '0 - 2000' },
+  { value: '5000', label: '0 - 5000' },
+  { value: '10000', label: '0 - 10000' },
+];
+
 export function ServiceChart({ data }: ServiceChartProps) {
+  const [bookingScale, setBookingScale] = useState<ScaleOption>('auto');
+  const [revenueScale, setRevenueScale] = useState<ScaleOption>('auto');
+
+  const getScaleMax = (scale: ScaleOption, dataMax: number) => {
+    if (scale === 'auto') return Math.ceil(dataMax * 1.1);
+    return parseInt(scale);
+  };
+
+  const maxBookings = Math.max(...data.map(d => d.booking_count));
+  const maxRevenue = Math.max(...data.map(d => d.revenue));
+
+  const bookingScaleMax = getScaleMax(bookingScale, maxBookings);
+  const revenueScaleMax = getScaleMax(revenueScale, maxRevenue);
+
+  // Calculate performance percentages
+  const dataWithPercentages = data.map(item => ({
+    ...item,
+    booking_percentage: (item.booking_count / maxBookings) * 100,
+    revenue_percentage: (item.revenue / maxRevenue) * 100,
+  }));
+
   return (
-    <div className="h-80 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-          <defs>
-            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
-              <stop offset="100%" stopColor="#10b981" stopOpacity={0.2} />
-            </linearGradient>
-            <linearGradient id="bookingGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8} />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.2} />
-            </linearGradient>
-          </defs>
+    <div className="space-y-6">
+      {/* Scale Configuration */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-slate-800/30 rounded-xl border border-slate-700/30">
+        <div className="flex items-center gap-2">
+          <Settings2 className="h-4 w-4 text-slate-400" />
+          <span className="text-sm font-medium text-slate-300">Chart Configuration</span>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 whitespace-nowrap">Bookings Scale:</span>
+            <Select value={bookingScale} onValueChange={(value: ScaleOption) => setBookingScale(value)}>
+              <SelectTrigger className="w-32 h-8 bg-slate-700/50 border-slate-600/50 text-slate-300">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                {scaleOptions.slice(0, 6).map(option => (
+                  <SelectItem key={option.value} value={option.value} className="text-slate-300 focus:bg-slate-700">
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
-          <CartesianGrid 
-            strokeDasharray="3 3" 
-            stroke="#475569" 
-            opacity={0.3}
-          />
-          
-          <XAxis 
-            dataKey="service_name" 
-            tick={{ fill: '#94a3b8', fontSize: 12 }}
-            axisLine={{ stroke: '#475569' }}
-            tickLine={{ stroke: '#475569' }}
-            angle={-45}
-            textAnchor="end"
-            height={80}
-          />
-          
-          <YAxis 
-            yAxisId="bookings"
-            orientation="left"
-            tick={{ fill: '#3b82f6', fontSize: 12 }}
-            axisLine={{ stroke: '#3b82f6', opacity: 0.5 }}
-            tickLine={{ stroke: '#3b82f6', opacity: 0.5 }}
-          />
-          
-          <YAxis 
-            yAxisId="revenue"
-            orientation="right"
-            tick={{ fill: '#10b981', fontSize: 12 }}
-            axisLine={{ stroke: '#10b981', opacity: 0.5 }}
-            tickLine={{ stroke: '#10b981', opacity: 0.5 }}
-          />
-          
-          <Tooltip 
-            content={<ChartTooltip />}
-            cursor={{ 
-              fill: 'rgba(148, 163, 184, 0.1)',
-              stroke: 'rgba(148, 163, 184, 0.3)',
-              strokeWidth: 1
-            }}
-          />
-          
-          <Bar 
-            yAxisId="bookings"
-            dataKey="booking_count" 
-            fill="url(#bookingGradient)"
-            radius={[4, 4, 0, 0]}
-            name="Boekingen"
-          />
-          
-          <Bar 
-            yAxisId="revenue"
-            dataKey="revenue" 
-            fill="url(#revenueGradient)"
-            radius={[4, 4, 0, 0]}
-            name="Omzet (€)"
-          />
-        </BarChart>
-      </ResponsiveContainer>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 whitespace-nowrap">Revenue Scale:</span>
+            <Select value={revenueScale} onValueChange={(value: ScaleOption) => setRevenueScale(value)}>
+              <SelectTrigger className="w-32 h-8 bg-slate-700/50 border-slate-600/50 text-slate-300">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                {scaleOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value} className="text-slate-300 focus:bg-slate-700">
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Chart */}
+      <div className="h-96 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={dataWithPercentages} margin={{ top: 20, right: 40, left: 20, bottom: 80 }}>
+            <defs>
+              <linearGradient id="enhancedRevenueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={0.9} />
+                <stop offset="50%" stopColor="#10b981" stopOpacity={0.7} />
+                <stop offset="100%" stopColor="#10b981" stopOpacity={0.3} />
+              </linearGradient>
+              <linearGradient id="enhancedBookingGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9} />
+                <stop offset="50%" stopColor="#3b82f6" stopOpacity={0.7} />
+                <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.3} />
+              </linearGradient>
+            </defs>
+            
+            <CartesianGrid 
+              strokeDasharray="2 4" 
+              stroke="#475569" 
+              opacity={0.4}
+              horizontal={true}
+              vertical={false}
+            />
+            
+            <XAxis 
+              dataKey="service_name" 
+              tick={{ fill: '#cbd5e1', fontSize: 13, fontWeight: 500 }}
+              axisLine={{ stroke: '#64748b', strokeWidth: 1 }}
+              tickLine={{ stroke: '#64748b', strokeWidth: 1 }}
+              angle={-35}
+              textAnchor="end"
+              height={90}
+              interval={0}
+            />
+            
+            <YAxis 
+              yAxisId="bookings"
+              orientation="left"
+              domain={[0, bookingScaleMax]}
+              tick={{ fill: '#3b82f6', fontSize: 12, fontWeight: 500 }}
+              axisLine={{ stroke: '#3b82f6', strokeWidth: 2, opacity: 0.8 }}
+              tickLine={{ stroke: '#3b82f6', strokeWidth: 1, opacity: 0.6 }}
+              label={{ 
+                value: 'Aantal Boekingen', 
+                angle: -90, 
+                position: 'insideLeft',
+                style: { textAnchor: 'middle', fill: '#3b82f6', fontSize: 12, fontWeight: 600 }
+              }}
+            />
+            
+            <YAxis 
+              yAxisId="revenue"
+              orientation="right"
+              domain={[0, revenueScaleMax]}
+              tick={{ fill: '#10b981', fontSize: 12, fontWeight: 500 }}
+              axisLine={{ stroke: '#10b981', strokeWidth: 2, opacity: 0.8 }}
+              tickLine={{ stroke: '#10b981', strokeWidth: 1, opacity: 0.6 }}
+              label={{ 
+                value: 'Omzet (€)', 
+                angle: 90, 
+                position: 'insideRight',
+                style: { textAnchor: 'middle', fill: '#10b981', fontSize: 12, fontWeight: 600 }
+              }}
+            />
+            
+            <Tooltip 
+              content={<ChartTooltip />}
+              cursor={{ 
+                fill: 'rgba(148, 163, 184, 0.08)',
+                stroke: 'rgba(148, 163, 184, 0.2)',
+                strokeWidth: 1,
+                radius: 4
+              }}
+            />
+            
+            <Bar 
+              yAxisId="bookings"
+              dataKey="booking_count" 
+              fill="url(#enhancedBookingGradient)"
+              radius={[6, 6, 0, 0]}
+              name="Aantal Boekingen"
+              strokeWidth={1}
+              stroke="rgba(59, 130, 246, 0.3)"
+            />
+            
+            <Bar 
+              yAxisId="revenue"
+              dataKey="revenue" 
+              fill="url(#enhancedRevenueGradient)"
+              radius={[6, 6, 0, 0]}
+              name="Omzet (€)"
+              strokeWidth={1}
+              stroke="rgba(16, 185, 129, 0.3)"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Performance Summary */}
+      <div className="mt-6 p-4 bg-slate-800/20 rounded-xl border border-slate-700/30">
+        <h4 className="text-sm font-semibold text-slate-300 mb-3">Performance Summary</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {dataWithPercentages.map((service, index) => (
+            <div key={service.service_name} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-emerald-500"></div>
+                <span className="text-sm font-medium text-slate-300 truncate">{service.service_name}</span>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-slate-400">
+                  {service.booking_percentage.toFixed(0)}% | {service.revenue_percentage.toFixed(0)}%
+                </div>
+                <div className="text-xs text-slate-500">B | R</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
