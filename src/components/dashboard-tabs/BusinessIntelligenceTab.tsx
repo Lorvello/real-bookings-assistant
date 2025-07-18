@@ -192,7 +192,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
                 <MetricCard
                   title="Average Value"
                   value={`€${businessIntel?.avg_booking_value?.toFixed(2) || '0.00'}`}
-                  subtitle="per appointment"
+                  subtitle={getMetricSubtitle('per appointment')}
                   icon={PiggyBank}
                   variant="orange"
                   delay={0.4}
@@ -240,6 +240,9 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
                     </TooltipContent>
                   </Tooltip>
                 </h3>
+              </div>
+              <div className="mb-4">
+                <p className="text-sm text-slate-400">{getMetricSubtitle('service performance')}</p>
               </div>
               <ServicePerformanceChart data={businessIntel?.service_performance} />
             </div>
