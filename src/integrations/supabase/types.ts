@@ -553,44 +553,62 @@ export type Database = {
       }
       calendar_settings: {
         Row: {
+          allow_cancellations: boolean | null
           allow_waitlist: boolean | null
           booking_window_days: number | null
           buffer_time: number | null
           calendar_id: string | null
+          cancellation_deadline_hours: number | null
           confirmation_required: boolean | null
           created_at: string | null
+          first_reminder_enabled: boolean | null
+          first_reminder_timing_minutes: number | null
           id: string
           last_bot_activity: string | null
           max_bookings_per_day: number | null
           minimum_notice_hours: number | null
+          second_reminder_enabled: boolean | null
+          second_reminder_timing_hours: number | null
           slot_duration: number | null
           whatsapp_bot_active: boolean | null
         }
         Insert: {
+          allow_cancellations?: boolean | null
           allow_waitlist?: boolean | null
           booking_window_days?: number | null
           buffer_time?: number | null
           calendar_id?: string | null
+          cancellation_deadline_hours?: number | null
           confirmation_required?: boolean | null
           created_at?: string | null
+          first_reminder_enabled?: boolean | null
+          first_reminder_timing_minutes?: number | null
           id?: string
           last_bot_activity?: string | null
           max_bookings_per_day?: number | null
           minimum_notice_hours?: number | null
+          second_reminder_enabled?: boolean | null
+          second_reminder_timing_hours?: number | null
           slot_duration?: number | null
           whatsapp_bot_active?: boolean | null
         }
         Update: {
+          allow_cancellations?: boolean | null
           allow_waitlist?: boolean | null
           booking_window_days?: number | null
           buffer_time?: number | null
           calendar_id?: string | null
+          cancellation_deadline_hours?: number | null
           confirmation_required?: boolean | null
           created_at?: string | null
+          first_reminder_enabled?: boolean | null
+          first_reminder_timing_minutes?: number | null
           id?: string
           last_bot_activity?: string | null
           max_bookings_per_day?: number | null
           minimum_notice_hours?: number | null
+          second_reminder_enabled?: boolean | null
+          second_reminder_timing_hours?: number | null
           slot_duration?: number | null
           whatsapp_bot_active?: boolean | null
         }
