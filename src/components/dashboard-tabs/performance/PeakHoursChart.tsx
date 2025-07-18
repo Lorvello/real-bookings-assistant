@@ -13,9 +13,10 @@ interface PeakHoursData {
 interface PeakHoursChartProps {
   data?: PeakHoursData[];
   isLoading?: boolean;
+  periodLabel?: string;
 }
 
-export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
+export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartProps) {
   if (isLoading) {
     return (
       <div className="h-80 bg-gradient-to-br from-slate-700/30 to-slate-800/40 rounded-xl animate-pulse border border-slate-600/20"></div>
@@ -49,19 +50,17 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
   // Determine max value for color intensity
   const maxBookings = Math.max(...completeHourData.map(d => d.bookings));
   
-  // Function to determine color based on activity
+  // Simplified function to determine color based on activity (3 categories only)
   const getBarColor = (bookings: number) => {
     if (bookings === 0) return '#64748B'; // Gray for no bookings
     
     const intensity = bookings / maxBookings;
-    if (intensity >= 0.8) return '#EF4444'; // Red for very busy
-    if (intensity >= 0.6) return '#F97316'; // Orange for busy  
+    if (intensity >= 0.7) return '#F97316'; // Orange for busy
     if (intensity >= 0.4) return '#EAB308'; // Yellow for moderate
-    if (intensity >= 0.2) return '#22C55E'; // Green for quiet
-    return '#10B981'; // Light green for very quiet
+    return '#22C55E'; // Green for quiet
   };
 
-  // Custom tooltip component
+  // Custom tooltip component with simplified categories
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -69,11 +68,9 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
       
       let activityLevel = '';
       if (bookings === 0) activityLevel = 'No bookings';
-      else if (bookings / maxBookings >= 0.8) activityLevel = 'Very busy 🔥';
-      else if (bookings / maxBookings >= 0.6) activityLevel = 'Busy 📈';
+      else if (bookings / maxBookings >= 0.7) activityLevel = 'Busy 📈';
       else if (bookings / maxBookings >= 0.4) activityLevel = 'Moderate 📊';
-      else if (bookings / maxBookings >= 0.2) activityLevel = 'Quiet 😌';
-      else activityLevel = 'Very quiet 💤';
+      else activityLevel = 'Quiet 😌';
 
       return (
         <div className="bg-slate-900/95 border border-green-500/30 rounded-xl p-4 shadow-2xl backdrop-blur-sm">
@@ -97,16 +94,15 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        {/* Legend at the top */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#64748B' }}></div>
-            <span className="text-slate-300">No bookings</span>
+        {/* Period indicator */}
+        {periodLabel && (
+          <div className="text-center">
+            <p className="text-sm text-slate-400">{periodLabel}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#10B981' }}></div>
-            <span className="text-slate-300">Very quiet</span>
-          </div>
+        )}
+
+        {/* Simplified legend (3 categories only) */}
+        <div className="grid grid-cols-3 gap-4 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded" style={{ backgroundColor: '#22C55E' }}></div>
             <span className="text-slate-300">Quiet</span>

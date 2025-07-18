@@ -237,29 +237,33 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
                 <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl">
                   <Activity className="h-6 w-6 text-blue-400" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                  Peak Hours Analysis
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="cursor-help p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                        <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent 
-                      className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
-                      side="top"
-                      align="center"
-                      sideOffset={8}
-                    >
-                      <p className="text-sm">Visual breakdown of appointment volume throughout the day {periodText}, showing busy periods in red/orange and quiet times in green. Helps optimize scheduling.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </h3>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    Peak Hours Analysis
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="cursor-help p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                          <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent 
+                        className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+                        side="top"
+                        align="center"
+                        sideOffset={8}
+                      >
+                        <p className="text-sm">Visual breakdown of appointment volume throughout the day {periodText}, showing busy periods and quiet times. Helps optimize scheduling.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </h3>
+                  <p className="text-sm text-slate-400 mt-1">{dateRange.label}</p>
+                </div>
               </div>
               
               <PeakHoursChart 
                 data={performance?.peak_hours} 
                 isLoading={isLoading}
+                periodLabel={dateRange.label}
               />
             </div>
           </div>
