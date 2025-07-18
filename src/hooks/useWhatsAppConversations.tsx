@@ -4,6 +4,63 @@ import { supabase } from '@/integrations/supabase/client';
 import { WhatsAppConversation } from '@/types/whatsapp';
 import { useWhatsAppConversationUpdates } from './useWhatsAppConversationUpdates';
 
+const getMockConversations = () => [
+  {
+    id: 'mock-conv-1',
+    calendar_id: 'mock-calendar',
+    contact_id: 'mock-1',
+    status: 'active' as const,
+    context: {},
+    last_message_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    whatsapp_contacts: {
+      id: 'mock-1',
+      phone_number: '+31612345678',
+      display_name: 'Emma van der Berg',
+      first_name: 'Emma',
+      last_name: 'van der Berg',
+      profile_picture_url: null,
+      created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  },
+  {
+    id: 'mock-conv-2',
+    calendar_id: 'mock-calendar',
+    contact_id: 'mock-2',
+    status: 'active' as const,
+    context: {},
+    last_message_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    whatsapp_contacts: {
+      id: 'mock-2',
+      phone_number: '+31623456789',
+      display_name: 'Lars Janssen',
+      first_name: 'Lars',
+      last_name: 'Janssen',
+      profile_picture_url: null,
+      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  },
+  {
+    id: 'mock-conv-3',
+    calendar_id: 'mock-calendar',
+    contact_id: 'mock-3',
+    status: 'closed' as const,
+    context: {},
+    last_message_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    whatsapp_contacts: {
+      id: 'mock-3',
+      phone_number: '+31634567890',
+      display_name: 'Sophie de Vries',
+      first_name: 'Sophie',
+      last_name: 'de Vries',
+      profile_picture_url: null,
+      created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  }
+];
+
 export function useWhatsAppConversations(calendarId: string) {
   // Set up real-time updates
   useWhatsAppConversationUpdates(calendarId);
@@ -30,6 +87,12 @@ export function useWhatsAppConversations(calendarId: string) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      // If no real data and calendarId exists, return mock data for trial users
+      if (!data || data.length === 0) {
+        return getMockConversations();
+      }
+      
       return data;
     },
     enabled: !!calendarId,
@@ -81,7 +144,7 @@ export function useUpdateConversationStatus() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ 
-        queryKey: ['whatsapp-conversations', data.calendar_id] 
+        queryKey: ['whatsapp-conversations', data?.calendar_id] 
       });
     },
   });

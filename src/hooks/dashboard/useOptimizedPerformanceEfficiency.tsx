@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getMockPerformanceData } from '../useMockDataGenerator';
 
 interface PerformanceEfficiencyData {
   avg_response_time_minutes: number;
@@ -119,6 +120,11 @@ export function useOptimizedPerformanceEfficiency(
         .reduce((sum, b) => sum + (b.booking_duration || 30) / 60, 0);
       
       const utilizationRate = totalAvailableHours > 0 ? (bookedHours / totalAvailableHours) * 100 : 0;
+
+      // If no real data exists, return mock data for trial users
+      if (totalBookings === 0 && (messagesData?.length || 0) === 0) {
+        return getMockPerformanceData();
+      }
 
       return {
         avg_response_time_minutes: avgResponseTime,

@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getMockFutureInsightsData } from '../useMockDataGenerator';
 
 interface FutureInsightsData {
   demand_forecast: Array<{
@@ -106,6 +107,11 @@ export function useOptimizedFutureInsights(calendarId?: string) {
         month_name: name,
         avg_bookings: Math.floor(Math.random() * 20) + 10 // Placeholder data
       }));
+
+      // If no real data exists, return mock data for trial users
+      if ((historicalBookings?.length || 0) === 0 && (waitlistData?.length || 0) === 0) {
+        return getMockFutureInsightsData();
+      }
 
       return {
         demand_forecast: weeklyTrends,

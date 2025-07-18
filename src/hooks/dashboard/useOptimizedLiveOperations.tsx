@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getMockLiveOperationsData } from '../useMockDataGenerator';
 
 interface LiveOperationsData {
   today_bookings: number;
@@ -48,6 +49,11 @@ export function useOptimizedLiveOperations(calendarId?: string) {
 
       const now = new Date();
       const todayBookings = bookingsData?.filter(b => b.status !== 'cancelled') || [];
+      
+      // If no real data exists, return mock data for trial users  
+      if (todayBookings.length === 0 && (messagesData?.length || 0) === 0) {
+        return getMockLiveOperationsData();
+      }
       
       return {
         today_bookings: todayBookings.length,

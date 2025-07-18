@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getMockBusinessIntelligenceData } from '../useMockDataGenerator';
 
 interface BusinessIntelligenceData {
   current_period_revenue: number;
@@ -100,6 +101,11 @@ export function useOptimizedBusinessIntelligence(
       const totalIntents = intentsData?.length || 0;
       const completedIntents = intentsData?.filter(i => i.status === 'completed').length || 0;
       const conversionRate = totalIntents > 0 ? (completedIntents / totalIntents) * 100 : 0;
+
+      // If no real data exists, return mock data for trial users
+      if (currentPeriodBookings.length === 0 && totalIntents === 0) {
+        return getMockBusinessIntelligenceData();
+      }
 
       return {
         current_period_revenue: currentPeriodBookings.reduce((sum, b) => 

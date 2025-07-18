@@ -2353,6 +2353,10 @@ export type Database = {
         Args: { p_user_id: string; p_days?: number }
         Returns: Json
       }
+      admin_generate_comprehensive_mock_data: {
+        Args: { p_calendar_id: string; p_data_type?: string }
+        Returns: Json
+      }
       admin_generate_mock_data: {
         Args: { p_user_id: string; p_status: string }
         Returns: Json
