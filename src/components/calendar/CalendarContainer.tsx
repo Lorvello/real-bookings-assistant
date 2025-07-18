@@ -1,4 +1,6 @@
+
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { addMonths, subMonths, addWeeks, subWeeks, addYears, subYears } from 'date-fns';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarContent } from './CalendarContent';
@@ -15,7 +17,12 @@ interface CalendarContainerProps {
 export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
   console.log('CalendarContainer rendering with calendarIds:', calendarIds);
   
-  const [currentView, setCurrentView] = useState<CalendarView>('month');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewParam = searchParams.get('view') as CalendarView;
+  
+  const [currentView, setCurrentView] = useState<CalendarView>(
+    viewParam && ['month', 'week', 'year'].includes(viewParam) ? viewParam : 'month'
+  );
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
   
@@ -36,6 +43,30 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
 
   // Enable real-time updates voor alle kalenders - nu als één hook call
   useRealtimeBookings(calendarIds);
+
+  // Update URL when view changes
+  useEffect(() => {
+    if (viewParam !== currentView) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      if (currentView === 'month') {
+        newSearchParams.delete('view');
+      } else {
+        newSearchParams.set('view', currentView);
+      }
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [currentView, searchParams, setSearchParams, viewParam]);
+
+  // Handle initial view from URL parameters
+  useEffect(() => {
+    if (viewParam && ['month', 'week', 'year'].includes(viewParam) && viewParam !== currentView) {
+      setCurrentView(viewParam);
+    }
+  }, [viewParam]);
+
+  const handleViewChange = (newView: CalendarView) => {
+    setCurrentView(newView);
+  };
 
   const navigateDate = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -83,7 +114,7 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
       <CalendarHeader
         currentView={currentView}
         currentDate={currentDate}
-        onViewChange={setCurrentView}
+        onViewChange={handleViewChange}
         onNavigate={navigateDate}
         onNewBooking={handleNewBooking}
         loading={loading}

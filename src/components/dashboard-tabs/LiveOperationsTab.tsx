@@ -1,9 +1,10 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useOptimizedLiveOperations } from '@/hooks/dashboard/useOptimizedLiveOperations';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { Calendar, Clock, MessageCircle, Users, Activity, Zap, Info } from 'lucide-react';
+import { Calendar, Clock, MessageCircle, Users, Activity, Zap, Info, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { MetricCard } from './business-intelligence/MetricCard';
@@ -13,8 +14,13 @@ interface LiveOperationsTabProps {
 }
 
 export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
+  const navigate = useNavigate();
   const { data: liveOps, isLoading } = useOptimizedLiveOperations(calendarId);
   useRealtimeSubscription(calendarId);
+
+  const handleTodayScheduleClick = () => {
+    navigate('/calendar?view=week');
+  };
 
   if (isLoading) {
     return (
@@ -158,7 +164,8 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="relative"
+                className="relative cursor-pointer group"
+                onClick={handleTodayScheduleClick}
               >
                 <MetricCard
                   title="Next"
@@ -169,8 +176,9 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                   delay={0.4}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                  <ArrowRight className="h-3 w-3 text-green-400/70 group-hover:text-green-300 transition-colors group-hover:translate-x-0.5 transform duration-200" />
                 </div>
+                <div className="absolute inset-0 rounded-2xl border border-green-500/20 group-hover:border-green-500/40 transition-colors"></div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
@@ -179,7 +187,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
               align="center"
             >
               <p className="text-sm">
-                Time remaining until your next scheduled appointment. Helps you prepare and manage your schedule efficiently.
+                Click to view your full schedule in calendar week view. Shows time remaining until your next appointment.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -282,23 +290,27 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
             </div>
           </div>
 
-          {/* Enhanced Today's Planning */}
+          {/* Enhanced Today's Planning - Now Clickable */}
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-emerald-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-green-500/30 rounded-2xl shadow-2xl">
+            <div 
+              className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-green-500/30 rounded-2xl shadow-2xl cursor-pointer hover:border-green-500/50 transition-colors"
+              onClick={handleTodayScheduleClick}
+            >
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl">
                     <Calendar className="h-5 w-5 text-green-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-slate-100">Today's Schedule</h3>
+                  <ArrowRight className="h-4 w-4 text-green-400/70 group-hover:text-green-300 group-hover:translate-x-1 transition-all duration-200 ml-auto" />
                 </div>
                 
                 {liveOps?.next_appointment_time ? (
                   <div className="space-y-4">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="p-4 bg-gradient-to-r from-green-500/10 via-emerald-500/5 to-transparent border border-green-500/20 rounded-xl cursor-help relative">
+                        <div className="p-4 bg-gradient-to-r from-green-500/10 via-emerald-500/5 to-transparent border border-green-500/20 rounded-xl cursor-pointer relative group-hover:border-green-500/40 transition-colors">
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="font-semibold text-slate-100 mb-1">Next Appointment</p>
@@ -327,14 +339,14 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                         align="center"
                       >
                         <p className="text-sm">
-                          Your upcoming appointment details including time and countdown. Click to view full schedule.
+                          Click to view your full schedule in calendar week view. See all today's appointments and manage your time.
                         </p>
                       </TooltipContent>
                     </Tooltip>
                     
                     <div className="text-center p-4 bg-slate-800/30 rounded-xl border border-slate-700/20">
                       <p className="text-sm text-slate-400">
-                        View all appointments in the calendar for more details
+                        Click anywhere to view complete schedule
                       </p>
                     </div>
                   </div>
@@ -344,7 +356,8 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                       <Calendar className="h-10 w-10 text-slate-400" />
                     </div>
                     <p className="text-slate-300 font-medium mb-1">Free day today</p>
-                    <p className="text-sm text-slate-400">No appointments scheduled</p>
+                    <p className="text-sm text-slate-400 mb-4">No appointments scheduled</p>
+                    <p className="text-xs text-slate-500">Click to view calendar</p>
                   </div>
                 )}
               </div>

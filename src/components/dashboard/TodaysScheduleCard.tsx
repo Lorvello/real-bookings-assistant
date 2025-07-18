@@ -1,14 +1,20 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { useTodaysBookings } from '@/hooks/useTodaysBookings';
 import { useConversationCalendar } from '@/contexts/ConversationCalendarContext';
 
 export const TodaysScheduleCard = () => {
+  const navigate = useNavigate();
   const { selectedCalendarId } = useConversationCalendar();
   const { data: bookings = [], isLoading } = useTodaysBookings(selectedCalendarId || undefined);
+
+  const handleScheduleClick = () => {
+    navigate('/calendar?view=week');
+  };
 
   if (isLoading) {
     return (
@@ -35,7 +41,7 @@ export const TodaysScheduleCard = () => {
   }
 
   return (
-    <Card>
+    <Card className="cursor-pointer hover:shadow-lg transition-shadow group" onClick={handleScheduleClick}>
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           <Calendar className="h-5 w-5 text-green-600" />
@@ -43,6 +49,7 @@ export const TodaysScheduleCard = () => {
           <Badge variant="outline" className="ml-auto">
             {bookings.length} afspraken
           </Badge>
+          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -51,11 +58,12 @@ export const TodaysScheduleCard = () => {
             <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
             <p className="text-lg font-medium mb-2">Geen afspraken vandaag</p>
             <p className="text-sm">Je agenda is vrij voor vandaag</p>
+            <p className="text-xs text-green-600 mt-2">Klik om kalender te bekijken</p>
           </div>
         ) : (
           <div className="space-y-4">
             {bookings.map((booking) => (
-              <div key={booking.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div key={booking.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <div>
@@ -82,6 +90,9 @@ export const TodaysScheduleCard = () => {
                 </div>
               </div>
             ))}
+            <div className="text-center pt-4 border-t border-muted">
+              <p className="text-xs text-green-600">Klik om volledige kalender te bekijken</p>
+            </div>
           </div>
         )}
       </CardContent>
