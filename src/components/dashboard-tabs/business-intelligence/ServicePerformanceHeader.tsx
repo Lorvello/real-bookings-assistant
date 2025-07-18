@@ -1,13 +1,14 @@
 
 import React from 'react';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Info } from 'lucide-react';
 
 interface ServicePerformanceHeaderProps {
   hasData: boolean;
   data?: any[];
+  selectedTimeRange: string;
 }
 
-export function ServicePerformanceHeader({ hasData, data }: ServicePerformanceHeaderProps) {
+export function ServicePerformanceHeader({ hasData, data, selectedTimeRange }: ServicePerformanceHeaderProps) {
   return (
     <div className="p-8 border-b border-slate-700/30">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -16,8 +17,11 @@ export function ServicePerformanceHeader({ hasData, data }: ServicePerformanceHe
             <TrendingUp className="h-6 w-6 text-orange-400" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-slate-100 mb-1">Service Performance</h3>
-            <p className="text-slate-400">Revenue and bookings per service</p>
+            <div className="flex items-center gap-2">
+              <h3 className="text-2xl font-bold text-slate-100">Service Performance</h3>
+              <Info className="h-4 w-4 text-slate-400" />
+            </div>
+            <p className="text-slate-400 mt-1">{selectedTimeRange} revenue and bookings per service</p>
           </div>
         </div>
         

@@ -244,7 +244,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
               <div className="mb-4">
                 <p className="text-sm text-slate-400">{getMetricSubtitle('service performance')}</p>
               </div>
-              <ServicePerformanceChart data={businessIntel?.service_performance} />
+              <ServicePerformanceChart data={businessIntel?.service_performance} selectedTimeRange={getMetricSubtitle('service performance')} />
             </div>
           </div>
         </div>
