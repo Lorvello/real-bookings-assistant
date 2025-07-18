@@ -17,7 +17,7 @@ export function WhatsAppServiceStatus({ calendarId }: WhatsAppServiceStatusProps
   // Show status indicator if WhatsApp service is not available
   if (userStatus.isExpired || !accessControl.canAccessWhatsApp) {
     return (
-      <Card className="border-destructive/20 bg-destructive/5 mb-6">
+      <Card className="border-border/50 bg-muted/20 mb-6">
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-destructive/10 rounded-lg">
