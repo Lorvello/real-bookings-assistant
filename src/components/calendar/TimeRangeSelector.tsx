@@ -1,3 +1,4 @@
+
 import { Clock } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -32,34 +33,34 @@ export function TimeRangeSelector({ startTime, endTime, onTimeRangeChange }: Tim
   };
 
   return (
-    <div className="flex items-center gap-3 bg-muted/50 rounded-2xl p-1.5 border border-border/60 shadow-sm">
-      <div className="flex items-center gap-2 px-3">
-        <Clock className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm font-medium text-muted-foreground">Show times:</span>
+    <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-1 border border-border/60 shadow-sm">
+      <div className="flex items-center gap-1.5 px-2">
+        <Clock className="h-3 w-3 text-muted-foreground" />
+        <span className="text-xs font-medium text-muted-foreground">Show times:</span>
       </div>
       
       <Select value={startTime} onValueChange={handleStartTimeChange}>
-        <SelectTrigger className="w-20 h-8 border-0 bg-background/50 hover:bg-background/80 focus:ring-1 focus:ring-primary/50">
+        <SelectTrigger className="w-16 h-6 border-0 bg-background/50 hover:bg-background/80 focus:ring-1 focus:ring-primary/50 text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {timeOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem key={option.value} value={option.value} className="text-xs">
               {option.label}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      <span className="text-sm text-muted-foreground">to</span>
+      <span className="text-xs text-muted-foreground">to</span>
 
       <Select value={endTime} onValueChange={handleEndTimeChange}>
-        <SelectTrigger className="w-20 h-8 border-0 bg-background/50 hover:bg-background/80 focus:ring-1 focus:ring-primary/50">
+        <SelectTrigger className="w-16 h-6 border-0 bg-background/50 hover:bg-background/80 focus:ring-1 focus:ring-primary/50 text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {timeOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem key={option.value} value={option.value} className="text-xs">
               {option.label}
             </SelectItem>
           ))}
