@@ -97,21 +97,8 @@ export function IntelligentRecommendations({
       });
     }
 
-    // 4. NO RETURNING CUSTOMERS
-    if (businessIntel?.returning_customers === 0) {
-      recommendations.push({
-        icon: Heart,
-        title: "Focus on Customer Retention!",
-        message: "No returning customers detected. Consider follow-up messaging, loyalty programs, or service quality improvements.",
-        variant: "purple" as const,
-        priority: 1,
-        actionItems: [
-          "Set up automated follow-up messages",
-          "Create a loyalty program",
-          "Ask for customer feedback"
-        ]
-      });
-    }
+    // Customer retention recommendations moved to Performance tab analysis
+    // TODO: Update to use performance data when available
 
     // 5. SINGLE SERVICE RECOMMENDATION
     if (businessIntel?.service_performance && businessIntel.service_performance.length === 1) {
@@ -204,20 +191,8 @@ export function IntelligentRecommendations({
       });
     }
 
-    if (businessIntel?.returning_customers && businessIntel.returning_customers > 5) {
-      recommendations.push({
-        icon: CheckCircle,
-        title: "Great Customer Loyalty!",
-        message: `${businessIntel.returning_customers} returning customers show excellent loyalty! Ask for reviews and referrals to maximize this strength.`,
-        variant: "purple" as const,
-        priority: 3,
-        actionItems: [
-          "Request customer reviews",
-          "Create referral incentives",
-          "Showcase testimonials"
-        ]
-      });
-    }
+    // Customer loyalty recommendations moved to Performance tab analysis
+    // TODO: Update to use performance data when available
 
     // Sort by priority and return top 3 most relevant
     return recommendations

@@ -6,9 +6,9 @@ import { getMockBusinessIntelligenceData } from '../useMockDataGenerator';
 interface BusinessIntelligenceData {
   current_period_revenue: number;
   prev_period_revenue: number;
-  unique_customers: number;
-  returning_customers: number;
   avg_booking_value: number;
+  monthly_growth: number;
+  revenue_per_day: number;
   service_performance: Array<{
     service_name: string;
     booking_count: number;
@@ -60,19 +60,21 @@ export function useOptimizedBusinessIntelligence(
         new Date(b.start_time) >= prevStartDate && new Date(b.start_time) < startDate
       ) || [];
 
-      // Calculate unique customers for current period
-      const currentPeriodEmails = new Set(currentPeriodBookings.map(b => b.customer_email));
+      // Calculate financial metrics
+      const currentPeriodRevenue = currentPeriodBookings.reduce((sum, b) => 
+        sum + (b.total_price || b.service_types?.price || 0), 0);
       
-      // Calculate returning customers (customers who also had bookings before current period)
-      const { data: historicalBookings } = await supabase
-        .from('bookings')
-        .select('customer_email')
-        .eq('calendar_id', calendarId)
-        .neq('status', 'cancelled')
-        .lt('start_time', startDate.toISOString());
+      const previousPeriodRevenue = previousPeriodBookings.reduce((sum, b) => 
+        sum + (b.total_price || b.service_types?.price || 0), 0);
 
-      const historicalEmails = new Set(historicalBookings?.map(b => b.customer_email) || []);
-      const returningCustomers = [...currentPeriodEmails].filter(email => historicalEmails.has(email)).length;
+      // Calculate monthly growth percentage
+      const monthlyGrowth = previousPeriodRevenue > 0 
+        ? ((currentPeriodRevenue - previousPeriodRevenue) / previousPeriodRevenue) * 100
+        : 0;
+
+      // Calculate revenue per day
+      const periodDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const revenuePerDay = periodDays > 0 ? currentPeriodRevenue / periodDays : 0;
 
       // Calculate service performance for current period
       const serviceStats = new Map();
@@ -98,19 +100,30 @@ export function useOptimizedBusinessIntelligence(
 
       // If no real data exists, return mock data for trial users
       if (currentPeriodBookings.length === 0) {
-        return getMockBusinessIntelligenceData();
+        return {
+          current_period_revenue: 139.02,
+          prev_period_revenue: 125.00,
+          avg_booking_value: 139.02,
+          monthly_growth: 11.22,
+          revenue_per_day: 4.63,
+          service_performance: [{
+            service_name: 'Training',
+            booking_count: 1,
+            revenue: 139.02,
+            avg_price: 139.02
+          }],
+          last_updated: new Date().toISOString()
+        };
       }
 
       return {
-        current_period_revenue: currentPeriodBookings.reduce((sum, b) => 
-          sum + (b.total_price || b.service_types?.price || 0), 0),
-        prev_period_revenue: previousPeriodBookings.reduce((sum, b) => 
-          sum + (b.total_price || b.service_types?.price || 0), 0),
-        unique_customers: currentPeriodEmails.size,
-        returning_customers: returningCustomers,
+        current_period_revenue: currentPeriodRevenue,
+        prev_period_revenue: previousPeriodRevenue,
         avg_booking_value: currentPeriodBookings.length > 0 
-          ? currentPeriodBookings.reduce((sum, b) => sum + (b.total_price || b.service_types?.price || 0), 0) / currentPeriodBookings.length
+          ? currentPeriodRevenue / currentPeriodBookings.length
           : 0,
+        monthly_growth: monthlyGrowth,
+        revenue_per_day: revenuePerDay,
         service_performance: servicePerformance,
         last_updated: new Date().toISOString()
       };

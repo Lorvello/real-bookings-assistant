@@ -2,7 +2,7 @@
 import React from 'react';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { TrendingUp, Euro, Users, BarChart3, UserCheck, Info } from 'lucide-react';
+import { TrendingUp, Euro, BarChart3, Calendar, PiggyBank, Info } from 'lucide-react';
 import { BusinessIntelligenceLoading } from './business-intelligence/BusinessIntelligenceLoading';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { ServicePerformanceChart } from './business-intelligence/ServicePerformanceChart';
@@ -105,10 +105,10 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
                 className="relative"
               >
                 <MetricCard
-                  title="Unique Customers"
-                  value={String(businessIntel?.unique_customers || 0)}
-                  subtitle={getMetricSubtitle('customers')}
-                  icon={Users}
+                  title="Monthly Growth"
+                  value={`${businessIntel?.monthly_growth >= 0 ? '+' : ''}${businessIntel?.monthly_growth?.toFixed(1) || '0.0'}%`}
+                  subtitle={getMetricSubtitle('growth')}
+                  icon={TrendingUp}
                   variant="orange"
                   delay={0.2}
                 />
@@ -123,7 +123,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Number of individual customers who made at least one appointment in the last 30 days. Tracks customer acquisition and business reach.</p>
+              <p className="text-sm">Revenue growth percentage compared to the previous period. Positive values indicate business expansion and improved financial performance.</p>
             </TooltipContent>
           </Tooltip>
 
@@ -136,10 +136,10 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
                 className="relative"
               >
                 <MetricCard
-                  title="Returning Customers"
-                  value={String(businessIntel?.returning_customers || 0)}
-                  subtitle={getMetricSubtitle('returning')}
-                  icon={UserCheck}
+                  title="Revenue per Day"
+                  value={`€${businessIntel?.revenue_per_day?.toFixed(2) || '0.00'}`}
+                  subtitle={getMetricSubtitle('daily average')}
+                  icon={Calendar}
                   variant="orange"
                   delay={0.3}
                 />
@@ -154,7 +154,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Number of customers who made multiple appointments in the last 30 days. Indicates customer retention and satisfaction with your services.</p>
+              <p className="text-sm">Average daily revenue during the selected period. Helps track consistent income flow and plan daily business operations.</p>
             </TooltipContent>
           </Tooltip>
 
@@ -170,7 +170,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
                   title="Average Value"
                   value={`€${businessIntel?.avg_booking_value?.toFixed(2) || '0.00'}`}
                   subtitle="per appointment"
-                  icon={Euro}
+                  icon={PiggyBank}
                   variant="orange"
                   delay={0.4}
                 />

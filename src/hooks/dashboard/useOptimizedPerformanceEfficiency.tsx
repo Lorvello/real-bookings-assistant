@@ -8,6 +8,9 @@ interface PerformanceEfficiencyData {
   cancellation_rate: number;
   customer_satisfaction_score: number;
   booking_completion_rate: number;
+  unique_customers: number;
+  returning_customers: number;
+  total_customers: number;
   peak_hours: Array<{
     hour: number;
     bookings: number;
@@ -46,6 +49,30 @@ export function useOptimizedPerformanceEfficiency(
       const noShowBookings = allBookings.filter(b => b.status === 'no-show');
       const cancelledBookings = allBookings.filter(b => b.status === 'cancelled');
 
+      // Calculate customer metrics
+      const currentPeriodEmails = new Set(allBookings.map(b => b.customer_email));
+      
+      // Calculate returning customers (customers who also had bookings before current period)
+      const { data: historicalBookings } = await supabase
+        .from('bookings')
+        .select('customer_email')
+        .eq('calendar_id', calendarId)
+        .neq('status', 'cancelled')
+        .lt('start_time', startDate.toISOString());
+
+      const historicalEmails = new Set(historicalBookings?.map(b => b.customer_email) || []);
+      const returningCustomers = [...currentPeriodEmails].filter(email => historicalEmails.has(email)).length;
+
+      // Calculate total customers ever (all historical + current)
+      const { data: allHistoricalBookings } = await supabase
+        .from('bookings')
+        .select('customer_email')
+        .eq('calendar_id', calendarId)
+        .neq('status', 'cancelled');
+
+      const allCustomerEmails = new Set(allHistoricalBookings?.map(b => b.customer_email) || []);
+      const totalCustomers = allCustomerEmails.size;
+
       // Calculate peak hours for confirmed bookings only
       const hourCounts = new Map();
       confirmedBookings.forEach(booking => {
@@ -61,18 +88,6 @@ export function useOptimizedPerformanceEfficiency(
         }))
         .sort((a, b) => b.bookings - a.bookings);
 
-      // Calculate average booking value from confirmed bookings
-      const totalBookingValue = confirmedBookings.reduce((sum, b) => {
-        const price = b.total_price || (b.service_types as any)?.price || 0;
-        return sum + Number(price);
-      }, 0);
-      
-      const avgBookingValue = confirmedBookings.length > 0 ? totalBookingValue / confirmedBookings.length : 0;
-
-      // Calculate average revenue per day
-      const periodDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      const avgRevenuePerDay = periodDays > 0 ? totalBookingValue / periodDays : 0;
-
       // Calculate rates based on total bookings (including cancelled/no-show)
       const totalBookings = allBookings.length;
 
@@ -82,6 +97,9 @@ export function useOptimizedPerformanceEfficiency(
           cancellation_rate: 2.3,
           customer_satisfaction_score: 4.6,
           booking_completion_rate: 96.5,
+          unique_customers: 3,
+          returning_customers: 1,
+          total_customers: 12,
           peak_hours: [
             { hour: 14, bookings: 3, hour_label: "14:00" },
             { hour: 16, bookings: 2, hour_label: "16:00" },
@@ -96,6 +114,9 @@ export function useOptimizedPerformanceEfficiency(
         cancellation_rate: totalBookings > 0 ? (cancelledBookings.length / totalBookings) * 100 : 0,
         customer_satisfaction_score: 4.2 + Math.random() * 0.8, // Mock score 4.2-5.0
         booking_completion_rate: totalBookings > 0 ? (confirmedBookings.length / totalBookings) * 100 : 0,
+        unique_customers: currentPeriodEmails.size,
+        returning_customers: returningCustomers,
+        total_customers: totalCustomers,
         peak_hours: peakHours,
         last_updated: new Date().toISOString()
       };

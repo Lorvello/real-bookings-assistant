@@ -2,7 +2,7 @@
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { AlertTriangle, XCircle, Star, CheckCircle, Activity, Info } from 'lucide-react';
+import { AlertTriangle, XCircle, Star, CheckCircle, Activity, Info, Users, UserCheck, User } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
 import { DateRange } from '@/components/dashboard/DateRangeFilter';
@@ -224,6 +224,102 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
               sideOffset={8}
             >
               <p className="text-sm">Percentage of booking inquiries that successfully resulted in confirmed appointments {periodText}. Measures conversion efficiency.</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* Customer Metrics - Second Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
+                className="relative"
+              >
+                <MetricCard
+                  title="Unique Customers"
+                  value={String(performance?.unique_customers || 0)}
+                  subtitle={getMetricSubtitle('customers')}
+                  icon={Users}
+                  variant="blue"
+                  delay={0.5}
+                />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                </div>
+              </motion.div>
+            </TooltipTrigger>
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
+              <p className="text-sm">Number of individual customers who made at least one appointment {periodText}. Tracks customer acquisition and business reach.</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.6 }}
+                className="relative"
+              >
+                <MetricCard
+                  title="Returning Customers"
+                  value={String(performance?.returning_customers || 0)}
+                  subtitle={getMetricSubtitle('returning')}
+                  icon={UserCheck}
+                  variant="blue"
+                  delay={0.6}
+                />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                </div>
+              </motion.div>
+            </TooltipTrigger>
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
+              <p className="text-sm">Number of customers who made multiple appointments {periodText}. Indicates customer retention and satisfaction with your services.</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.7 }}
+                className="relative"
+              >
+                <MetricCard
+                  title="Total Customers"
+                  value={String(performance?.total_customers || 0)}
+                  subtitle="all time"
+                  icon={User}
+                  variant="blue"
+                  delay={0.7}
+                />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                </div>
+              </motion.div>
+            </TooltipTrigger>
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
+              <p className="text-sm">Total number of unique customers who have ever made an appointment through your booking system. Shows your complete customer base size.</p>
             </TooltipContent>
           </Tooltip>
         </div>
