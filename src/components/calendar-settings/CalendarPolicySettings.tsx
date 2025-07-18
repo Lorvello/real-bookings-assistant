@@ -225,7 +225,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Automatic WhatsApp reminders reduce no-shows by keeping appointments top-of-mind for your customers.</p>
+                      <p>Send an early reminder well in advance. Helps customers plan ahead and reduces scheduling conflicts.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
@@ -239,17 +239,17 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 <div className="space-y-2">
                   <Label className="text-foreground font-medium">Timing</Label>
                   <Select 
-                    value={settings.first_reminder_timing_minutes?.toString() ?? '60'} 
-                    onValueChange={(value) => onUpdate({ first_reminder_timing_minutes: parseInt(value) })}
+                    value={settings.first_reminder_timing_hours?.toString() ?? '24'} 
+                    onValueChange={(value) => onUpdate({ first_reminder_timing_hours: parseInt(value) })}
                   >
                     <SelectTrigger className="bg-background border-border">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="30">30 minutes before</SelectItem>
-                      <SelectItem value="60">1 hour before</SelectItem>
-                      <SelectItem value="120">2 hours before</SelectItem>
-                      <SelectItem value="180">3 hours before</SelectItem>
+                      <SelectItem value="24">1 day before</SelectItem>
+                      <SelectItem value="48">2 days before</SelectItem>
+                      <SelectItem value="72">3 days before</SelectItem>
+                      <SelectItem value="168">1 week before</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -267,7 +267,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Send an additional reminder well in advance. Helps customers plan ahead and reduces scheduling conflicts.</p>
+                      <p>Final reminder close to the appointment. Automatic WhatsApp reminders reduce no-shows significantly.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
@@ -281,17 +281,17 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 <div className="space-y-2">
                   <Label className="text-foreground font-medium">Timing</Label>
                   <Select 
-                    value={settings.second_reminder_timing_hours?.toString() ?? '24'} 
-                    onValueChange={(value) => onUpdate({ second_reminder_timing_hours: parseInt(value) })}
+                    value={settings.second_reminder_timing_minutes?.toString() ?? '60'} 
+                    onValueChange={(value) => onUpdate({ second_reminder_timing_minutes: parseInt(value) })}
                   >
                     <SelectTrigger className="bg-background border-border">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="24">1 day before</SelectItem>
-                      <SelectItem value="48">2 days before</SelectItem>
-                      <SelectItem value="72">3 days before</SelectItem>
-                      <SelectItem value="168">1 week before</SelectItem>
+                      <SelectItem value="30">30 minutes before</SelectItem>
+                      <SelectItem value="60">1 hour before</SelectItem>
+                      <SelectItem value="120">2 hours before</SelectItem>
+                      <SelectItem value="180">3 hours before</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
