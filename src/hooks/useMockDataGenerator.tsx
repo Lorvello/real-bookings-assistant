@@ -94,31 +94,15 @@ export const getMockFutureInsightsData = () => ({
 });
 
 export const getMockBusinessIntelligenceData = () => ({
-  // Core revenue metrics
-  current_period_revenue: 3144.39,
-  prev_period_revenue: 3593.21,
-  unique_customers: 65,
-  avg_booking_value: 90.48,
-  whatsapp_conversion_rate: 28.5,
-  
-  // Premium enterprise metrics
-  customer_lifetime_value: 380.15,
-  clv_trend: 12.3,
-  monthly_recurring_revenue: 2672.73,
-  mrr_growth: 18.7,
-  customer_acquisition_cost: 27.14,
-  cac_efficiency: 4.2,
-  churn_rate: 14.8,
-  retention_rate: 88.5,
-  revenue_growth_rate: -12.5,
-  profit_margin: 72.8,
-  whatsapp_attribution: 78.2,
-  other_channels_attribution: 21.8,
-  
+  current_period_revenue: 2500 + Math.random() * 2000, // €2500-4500
+  prev_period_revenue: 2200 + Math.random() * 1800, // €2200-4000
+  unique_customers: 45 + Math.floor(Math.random() * 30), // 45-75 customers
+  avg_booking_value: 75 + Math.random() * 50, // €75-125
+  whatsapp_conversion_rate: 35 + Math.random() * 25, // 35-60%
   service_performance: [
-    { service_name: 'Standaard Behandeling', booking_count: 24, revenue: 1890.50, avg_price: 78.77, profit_margin: 68.5 },
-    { service_name: 'Premium Service', booking_count: 12, revenue: 1254.89, avg_price: 104.57, profit_margin: 78.2 },
-    { service_name: 'Consultatie', booking_count: 8, revenue: 425.00, avg_price: 53.13, profit_margin: 82.5 }
+    { service_name: 'Standaard Behandeling', booking_count: 25, revenue: 1875, avg_price: 75 },
+    { service_name: 'Premium Service', booking_count: 12, revenue: 1440, avg_price: 120 },
+    { service_name: 'Consultatie', booking_count: 8, revenue: 400, avg_price: 50 }
   ],
   last_updated: new Date().toISOString()
 });
