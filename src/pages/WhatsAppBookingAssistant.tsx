@@ -1,10 +1,14 @@
+
 import React from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { WhatsAppBookingAssistant } from '@/components/whatsapp/WhatsAppBookingAssistant';
+import { WhatsAppNotAvailable } from '@/components/whatsapp/WhatsAppNotAvailable';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 
 export default function WhatsAppBookingAssistantPage() {
   const { selectedCalendar } = useCalendarContext();
+  const { userStatus } = useUserStatus();
 
   if (!selectedCalendar) {
     return (
@@ -13,6 +17,17 @@ export default function WhatsAppBookingAssistantPage() {
           <div className="text-center">
             <p className="text-muted-foreground">Geen kalender geselecteerd</p>
           </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show inline upgrade page for expired trial or inactive users
+  if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
+    return (
+      <DashboardLayout>
+        <div className="bg-gray-900 min-h-full p-2 md:p-8">
+          <WhatsAppNotAvailable />
         </div>
       </DashboardLayout>
     );

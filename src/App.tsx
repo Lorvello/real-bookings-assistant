@@ -22,7 +22,6 @@ import FAQ from '@/pages/FAQ';
 import TestAIAgent from '@/pages/TestAIAgent';
 import WhatsAppBookingAssistantPage from '@/pages/WhatsAppBookingAssistant';
 import Profile from '@/pages/Profile';
-import { WhatsAppNotAvailable } from '@/components/whatsapp/WhatsAppNotAvailable';
 
 // Pages
 import Index from '@/pages/Index';
@@ -67,7 +66,6 @@ function App() {
                 <Route path="/conversations/:id" element={<ConversationDetail />} />
                 <Route path="/whatsapp-booking-assistant" element={<WhatsAppBookingAssistantPage />} />
                 <Route path="/test-ai-agent" element={<TestAIAgent />} />
-                <Route path="/whatsapp-not-available" element={<WhatsAppNotAvailable />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/testing" element={<Testing />} />
                 <Route path="/how-it-works" element={<SeeHowItWorks />} />

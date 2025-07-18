@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
@@ -29,8 +30,8 @@ const navigation: NavItem[] = [
   { name: 'Calendar', href: '/calendar', icon: Calendar, requiresAccess: 'canCreateBookings', description: 'View and manage calendar' },
   { name: 'Bookings', href: '/bookings', icon: BookOpen, requiresAccess: 'canCreateBookings', description: 'View and manage bookings' },
   { name: 'Availability', href: '/availability', icon: Clock, description: 'Set your working hours' },
-  { name: 'WhatsApp', href: '/conversations', icon: MessageCircle, requiresAccess: 'canAccessWhatsApp', description: 'WhatsApp booking assistant' },
-  { name: 'Bookings Assistant', href: '/whatsapp-booking-assistant', icon: Phone, requiresAccess: 'canAccessBookingAssistant', description: 'Complete setup first, and then get access to your WhatsApp Bookings Assistant number' },
+  { name: 'WhatsApp', href: '/conversations', icon: MessageCircle, description: 'WhatsApp conversations' },
+  { name: 'Bookings Assistant', href: '/whatsapp-booking-assistant', icon: Phone, description: 'WhatsApp booking assistant setup' },
   { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot, requiresAccess: 'canUseAI', description: 'AI assistant features' },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
@@ -65,39 +66,37 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
     return navigation.map((item) => {
       const isActive = location.pathname === item.href;
       
-    // Special handling for WhatsApp - no lock icon for expired trial and canceled_and_inactive
-    if (item.href === '/conversations') {
-      if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
+      // WhatsApp tab is always accessible (no restrictions)
+      if (item.href === '/conversations') {
         return {
           ...item,
           isActive,
-          isRestricted: false // Don't show lock icon, just show warning on click
+          isRestricted: false
         };
       }
-    }
-    
-    // Special handling for setup incomplete users - lock specific features
-    if (userStatus.userType === 'setup_incomplete') {
-      // For Bookings Assistant, show lock icon if setup is incomplete
+      
+      // Booking Assistant tab is always clickable (no lock icon)
       if (item.href === '/whatsapp-booking-assistant') {
         return {
           ...item,
           isActive,
-          isRestricted: true // Lock booking assistant for setup incomplete users
+          isRestricted: false
         };
       }
       
-      return {
-        ...item,
-        isActive,
-        isRestricted: false // No restrictions for other navigation items
-      };
-    }
-    
-    // ULTIMATE FAILSAFE: For paid subscribers, NEVER show restrictions under any circumstances
-    const isRestricted = isPaidSubscriber 
-      ? false 
-      : (item.requiresAccess && !accessControl[item.requiresAccess]);
+      // Special handling for setup incomplete users - lock specific features
+      if (userStatus.userType === 'setup_incomplete') {
+        return {
+          ...item,
+          isActive,
+          isRestricted: false // No restrictions for navigation items
+        };
+      }
+      
+      // ULTIMATE FAILSAFE: For paid subscribers, NEVER show restrictions under any circumstances
+      const isRestricted = isPaidSubscriber 
+        ? false 
+        : (item.requiresAccess && !accessControl[item.requiresAccess]);
 
       return {
         ...item,
@@ -119,28 +118,21 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
       return;
     }
     
-    // Special handling for WhatsApp for expired trial and canceled_and_inactive users
+    // WhatsApp tab is always accessible - no restrictions
     if (item.href === '/conversations') {
-      if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
-        onNavigate('/whatsapp-not-available');
-        return;
-      }
+      onNavigate(item.href);
+      return;
+    }
+    
+    // Booking Assistant tab is always clickable - let the page handle upgrade display
+    if (item.href === '/whatsapp-booking-assistant') {
+      onNavigate(item.href);
+      return;
     }
     
     // Special handling for setup incomplete users
     if (userStatus.userType === 'setup_incomplete') {
-      // Block access to Bookings Assistant until setup is complete
-      if (item.href === '/whatsapp-booking-assistant') {
-        toast({
-          title: "Setup Required",
-          description: "Complete setup first, and then get access to your WhatsApp Bookings Assistant number",
-          variant: "destructive",
-        });
-        onNavigate('/settings');
-        return;
-      }
-      
-      // Allow access to other navigation items
+      // Allow access to all navigation items
       onNavigate(item.href);
       return;
     }
