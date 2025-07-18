@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { useOptimizedFutureInsights } from '@/hooks/dashboard/useOptimizedFutureInsights';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { TrendingUp, Calendar, Target, Brain, Info } from 'lucide-react';
@@ -49,7 +50,12 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="relative">
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="relative"
+              >
                 <MetricCard
                   title="Customer Growth"
                   value={`${futureInsights?.customer_growth_rate?.toFixed(1) || '0.0'}%`}
@@ -61,7 +67,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
                 </div>
-              </div>
+              </motion.div>
             </TooltipTrigger>
             <TooltipContent 
               className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
@@ -75,7 +81,12 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="relative">
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="relative"
+              >
                 <MetricCard
                   title="Capacity Utilization"
                   value={`${futureInsights?.capacity_utilization?.toFixed(1) || '0.0'}%`}
@@ -87,7 +98,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
                 </div>
-              </div>
+              </motion.div>
             </TooltipTrigger>
             <TooltipContent 
               className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
@@ -101,7 +112,12 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="relative">
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="relative"
+              >
                 <MetricCard
                   title="AI Insights"
                   value={String(futureInsights?.demand_forecast?.length || 4)}
@@ -113,7 +129,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
                 </div>
-              </div>
+              </motion.div>
             </TooltipTrigger>
             <TooltipContent 
               className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
@@ -127,7 +143,12 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="relative">
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="relative"
+              >
                 <MetricCard
                   title="Demand Forecast"
                   value={`+${((futureInsights?.demand_forecast?.[0]?.bookings || 0) * 0.15).toFixed(1)}%`}
@@ -139,7 +160,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
                 </div>
-              </div>
+              </motion.div>
             </TooltipTrigger>
             <TooltipContent 
               className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
