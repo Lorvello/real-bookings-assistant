@@ -10,7 +10,7 @@ interface FutureInsightsData {
     trend_direction: string;
   }>;
   customer_growth_rate: number;
-  returning_customers_month: number;
+  capacity_utilization: number;
   seasonal_patterns: Array<{
     month_name: string;
     avg_bookings: number;
@@ -25,6 +25,23 @@ export function useOptimizedFutureInsights(calendarId?: string) {
       if (!calendarId) return null;
 
       console.log('🔮 Fetching future insights for calendar:', calendarId);
+
+      // Get calendar settings to calculate capacity
+      const { data: calendarSettings } = await supabase
+        .from('calendar_settings')
+        .select('*')
+        .eq('calendar_id', calendarId)
+        .single();
+
+      // Get availability rules to calculate total available hours
+      const { data: availabilityData } = await supabase
+        .from('availability_schedules')
+        .select(`
+          *,
+          availability_rules(*)
+        `)
+        .eq('calendar_id', calendarId)
+        .eq('is_default', true);
 
       // Get historical booking data for trend analysis
       const { data: historicalBookings, error: historicalError } = await supabase
@@ -43,7 +60,6 @@ export function useOptimizedFutureInsights(calendarId?: string) {
       const currentMonth = new Date();
       const startOfCurrentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
       const startOfPreviousMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
-      const endOfPreviousMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0);
 
       const { data: currentMonthBookings } = await supabase
         .from('bookings')
@@ -67,32 +83,47 @@ export function useOptimizedFutureInsights(calendarId?: string) {
         ? ((currentMonthCustomers - previousMonthCustomers) / previousMonthCustomers) * 100
         : currentMonthCustomers > 0 ? 100 : 0;
 
-      // Get returning customers this month
-      const { data: monthlyBookings, error: monthlyError } = await supabase
-        .from('bookings')
-        .select('customer_email')
-        .eq('calendar_id', calendarId)
-        .gte('start_time', startOfCurrentMonth.toISOString())
-        .neq('status', 'cancelled');
+      // Calculate capacity utilization
+      let capacityUtilization = 0;
+      if (availabilityData && availabilityData.length > 0) {
+        // Calculate total available hours per week
+        const schedule = availabilityData[0];
+        const rules = schedule.availability_rules || [];
+        
+        const totalWeeklyHours = rules.reduce((total, rule) => {
+          if (rule.is_available) {
+            const start = new Date(`1970-01-01T${rule.start_time}`);
+            const end = new Date(`1970-01-01T${rule.end_time}`);
+            const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+            return total + hours;
+          }
+          return total;
+        }, 0);
 
-      if (monthlyError) {
-        console.error('Error fetching monthly bookings:', monthlyError);
-      }
+        // Calculate booked hours this week
+        const weekStart = new Date();
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        weekStart.setHours(0, 0, 0, 0);
+        
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 7);
 
-      // Calculate returning customers (customers who have booked before this month)
-      const monthlyEmails = new Set(monthlyBookings?.map(b => b.customer_email) || []);
-      let returningCustomers = 0;
-
-      if (monthlyEmails.size > 0) {
-        const { data: previousBookings } = await supabase
+        const { data: weekBookings } = await supabase
           .from('bookings')
-          .select('customer_email')
+          .select('start_time, end_time')
           .eq('calendar_id', calendarId)
-          .lt('start_time', startOfCurrentMonth.toISOString())
-          .neq('status', 'cancelled');
+          .neq('status', 'cancelled')
+          .gte('start_time', weekStart.toISOString())
+          .lt('start_time', weekEnd.toISOString());
 
-        const previousEmails = new Set(previousBookings?.map(b => b.customer_email) || []);
-        returningCustomers = [...monthlyEmails].filter(email => previousEmails.has(email)).length;
+        const bookedHours = weekBookings?.reduce((total, booking) => {
+          const start = new Date(booking.start_time);
+          const end = new Date(booking.end_time);
+          const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+          return total + hours;
+        }, 0) || 0;
+
+        capacityUtilization = totalWeeklyHours > 0 ? (bookedHours / totalWeeklyHours) * 100 : 0;
       }
 
       // Simple demand forecast based on weekly trends
@@ -132,7 +163,7 @@ export function useOptimizedFutureInsights(calendarId?: string) {
       return {
         demand_forecast: weeklyTrends,
         customer_growth_rate: customerGrowthRate,
-        returning_customers_month: returningCustomers,
+        capacity_utilization: Math.min(100, Math.max(0, capacityUtilization)),
         seasonal_patterns: seasonalPatterns,
         last_updated: new Date().toISOString()
       };

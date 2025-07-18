@@ -7,8 +7,8 @@ interface BusinessIntelligenceData {
   current_period_revenue: number;
   prev_period_revenue: number;
   unique_customers: number;
+  returning_customers: number;
   avg_booking_value: number;
-  whatsapp_conversion_rate: number;
   service_performance: Array<{
     service_name: string;
     booking_count: number;
@@ -52,21 +52,6 @@ export function useOptimizedBusinessIntelligence(
         throw bookingsError;
       }
 
-      // Get booking intents for conversion rate
-      const { data: intentsData, error: intentsError } = await supabase
-        .from('booking_intents')
-        .select(`
-          *,
-          whatsapp_conversations!inner(calendar_id)
-        `)
-        .eq('whatsapp_conversations.calendar_id', calendarId)
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString());
-
-      if (intentsError) {
-        console.error('Error fetching intents:', intentsError);
-      }
-
       const currentPeriodBookings = bookingsData?.filter(b => 
         new Date(b.start_time) >= startDate && new Date(b.start_time) <= endDate
       ) || [];
@@ -74,6 +59,20 @@ export function useOptimizedBusinessIntelligence(
       const previousPeriodBookings = bookingsData?.filter(b => 
         new Date(b.start_time) >= prevStartDate && new Date(b.start_time) < startDate
       ) || [];
+
+      // Calculate unique customers for current period
+      const currentPeriodEmails = new Set(currentPeriodBookings.map(b => b.customer_email));
+      
+      // Calculate returning customers (customers who also had bookings before current period)
+      const { data: historicalBookings } = await supabase
+        .from('bookings')
+        .select('customer_email')
+        .eq('calendar_id', calendarId)
+        .neq('status', 'cancelled')
+        .lt('start_time', startDate.toISOString());
+
+      const historicalEmails = new Set(historicalBookings?.map(b => b.customer_email) || []);
+      const returningCustomers = [...currentPeriodEmails].filter(email => historicalEmails.has(email)).length;
 
       // Calculate service performance for current period
       const serviceStats = new Map();
@@ -97,13 +96,8 @@ export function useOptimizedBusinessIntelligence(
         avg_price: stats.count > 0 ? stats.revenue / stats.count : 0
       }));
 
-      // Calculate conversion rate
-      const totalIntents = intentsData?.length || 0;
-      const completedIntents = intentsData?.filter(i => i.status === 'completed').length || 0;
-      const conversionRate = totalIntents > 0 ? (completedIntents / totalIntents) * 100 : 0;
-
       // If no real data exists, return mock data for trial users
-      if (currentPeriodBookings.length === 0 && totalIntents === 0) {
+      if (currentPeriodBookings.length === 0) {
         return getMockBusinessIntelligenceData();
       }
 
@@ -112,11 +106,11 @@ export function useOptimizedBusinessIntelligence(
           sum + (b.total_price || b.service_types?.price || 0), 0),
         prev_period_revenue: previousPeriodBookings.reduce((sum, b) => 
           sum + (b.total_price || b.service_types?.price || 0), 0),
-        unique_customers: new Set(currentPeriodBookings.map(b => b.customer_email)).size,
+        unique_customers: currentPeriodEmails.size,
+        returning_customers: returningCustomers,
         avg_booking_value: currentPeriodBookings.length > 0 
           ? currentPeriodBookings.reduce((sum, b) => sum + (b.total_price || b.service_types?.price || 0), 0) / currentPeriodBookings.length
           : 0,
-        whatsapp_conversion_rate: conversionRate,
         service_performance: servicePerformance,
         last_updated: new Date().toISOString()
       };

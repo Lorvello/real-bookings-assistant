@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getMockPerformanceData } from '../useMockDataGenerator';
 
 interface PerformanceEfficiencyData {
-  booking_efficiency: number;
+  avg_booking_value: number;
   no_show_rate: number;
   cancellation_rate: number;
   avg_revenue_per_day: number;
@@ -42,21 +42,15 @@ export function useOptimizedPerformanceEfficiency(
       }
 
       const allBookings = bookingsData || [];
-      const totalBookings = allBookings.length;
-      const confirmedBookings = allBookings.filter(b => b.status === 'confirmed').length;
-      const noShowBookings = allBookings.filter(b => b.status === 'no-show').length;
-      const cancelledBookings = allBookings.filter(b => b.status === 'cancelled').length;
+      const confirmedBookings = allBookings.filter(b => b.status === 'confirmed');
+      const noShowBookings = allBookings.filter(b => b.status === 'no-show');
+      const cancelledBookings = allBookings.filter(b => b.status === 'cancelled');
 
-      // Calculate booking efficiency (confirmed / total attempted bookings)
-      const bookingEfficiency = totalBookings > 0 ? (confirmedBookings / totalBookings) * 100 : 0;
-
-      // Calculate peak hours for the selected period
+      // Calculate peak hours for confirmed bookings only
       const hourCounts = new Map();
-      allBookings.forEach(booking => {
-        if (booking.status !== 'cancelled') {
-          const hour = new Date(booking.start_time).getHours();
-          hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
-        }
+      confirmedBookings.forEach(booking => {
+        const hour = new Date(booking.start_time).getHours();
+        hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
       });
 
       const peakHours = Array.from(hourCounts.entries())
@@ -67,16 +61,20 @@ export function useOptimizedPerformanceEfficiency(
         }))
         .sort((a, b) => b.bookings - a.bookings);
 
+      // Calculate average booking value from confirmed bookings
+      const totalBookingValue = confirmedBookings.reduce((sum, b) => {
+        const price = b.total_price || (b.service_types as any)?.price || 0;
+        return sum + Number(price);
+      }, 0);
+      
+      const avgBookingValue = confirmedBookings.length > 0 ? totalBookingValue / confirmedBookings.length : 0;
+
       // Calculate average revenue per day
       const periodDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      const totalRevenue = allBookings
-        .filter(b => b.status !== 'cancelled')
-        .reduce((sum, b) => {
-          const price = b.total_price || (b.service_types as any)?.price || 0;
-          return sum + Number(price);
-        }, 0);
-      
-      const avgRevenuePerDay = periodDays > 0 ? totalRevenue / periodDays : 0;
+      const avgRevenuePerDay = periodDays > 0 ? totalBookingValue / periodDays : 0;
+
+      // Calculate rates based on total bookings (including cancelled/no-show)
+      const totalBookings = allBookings.length;
 
       // If no real data exists, return mock data for trial users
       if (totalBookings === 0) {
@@ -84,9 +82,9 @@ export function useOptimizedPerformanceEfficiency(
       }
 
       return {
-        booking_efficiency: bookingEfficiency,
-        no_show_rate: totalBookings > 0 ? (noShowBookings / totalBookings) * 100 : 0,
-        cancellation_rate: totalBookings > 0 ? (cancelledBookings / totalBookings) * 100 : 0,
+        avg_booking_value: avgBookingValue,
+        no_show_rate: totalBookings > 0 ? (noShowBookings.length / totalBookings) * 100 : 0,
+        cancellation_rate: totalBookings > 0 ? (cancelledBookings.length / totalBookings) * 100 : 0,
         avg_revenue_per_day: avgRevenuePerDay,
         peak_hours: peakHours,
         last_updated: new Date().toISOString()

@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
-import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { CheckCircle, AlertTriangle, Euro, Activity, MessageSquare } from 'lucide-react';
+import { AlertTriangle, Euro, Activity, TrendingUp } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
 import { DateRange } from '@/components/dashboard/DateRangeFilter';
@@ -36,15 +35,10 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
     dateRange.startDate,
     dateRange.endDate
   );
-  const { data: businessIntel, isLoading: businessLoading, error: businessError } = useOptimizedBusinessIntelligence(
-    calendarId,
-    dateRange.startDate,
-    dateRange.endDate
-  );
   useRealtimeSubscription(calendarId);
 
-  const isLoading = performanceLoading || businessLoading;
-  const error = performanceError || businessError;
+  const isLoading = performanceLoading;
+  const error = performanceError;
 
   if (isLoading) {
     return (
@@ -84,10 +78,10 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
       {/* Operational Performance Metrics - Blue Theme */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Booking Efficiency"
-          value={`${performance?.booking_efficiency?.toFixed(1) || '0.0'}%`}
-          subtitle="successful bookings"
-          icon={CheckCircle}
+          title="Average Booking Value"
+          value={`€${performance?.avg_booking_value?.toFixed(2) || '0.00'}`}
+          subtitle="per appointment"
+          icon={Euro}
           variant="blue"
           delay={0.1}
         />
@@ -114,7 +108,7 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
           title="Revenue per Day"
           value={`€${performance?.avg_revenue_per_day?.toFixed(0) || '0'}`}
           subtitle="average daily"
-          icon={Euro}
+          icon={TrendingUp}
           variant="blue"
           delay={0.4}
         />
@@ -138,18 +132,6 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
             />
           </div>
         </div>
-      </div>
-
-      {/* WhatsApp Performance Card */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <MetricCard
-          title="WhatsApp Conversion"
-          value={`${businessIntel?.whatsapp_conversion_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="WhatsApp → Booking"
-          icon={MessageSquare}
-          variant="blue"
-          delay={0.5}
-        />
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { TrendingUp, Euro, Users, BarChart3 } from 'lucide-react';
+import { TrendingUp, Euro, Users, BarChart3, UserCheck } from 'lucide-react';
 import { BusinessIntelligenceLoading } from './business-intelligence/BusinessIntelligenceLoading';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { ServicePerformanceChart } from './business-intelligence/ServicePerformanceChart';
@@ -55,7 +56,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
   return (
     <div className="space-y-12">
       {/* Financial & Business Metrics - Orange Theme */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <MetricCard
           title="Revenue"
           value={`€${businessIntel?.current_period_revenue?.toFixed(2) || '0.00'}`}
@@ -80,12 +81,21 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
         />
 
         <MetricCard
+          title="Returning Customers"
+          value={String(businessIntel?.returning_customers || 0)}
+          subtitle={getMetricSubtitle('returning')}
+          icon={UserCheck}
+          variant="orange"
+          delay={0.3}
+        />
+
+        <MetricCard
           title="Average Value"
           value={`€${businessIntel?.avg_booking_value?.toFixed(2) || '0.00'}`}
           subtitle="per appointment"
           icon={Euro}
           variant="orange"
-          delay={0.3}
+          delay={0.4}
         />
 
         <MetricCard
@@ -94,7 +104,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
           subtitle="comparison"
           icon={BarChart3}
           variant="orange"
-          delay={0.4}
+          delay={0.5}
         />
       </div>
 

@@ -2,7 +2,7 @@
 import React from 'react';
 import { useOptimizedLiveOperations } from '@/hooks/dashboard/useOptimizedLiveOperations';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { Calendar, Clock, MessageCircle, Users, AlertCircle, CheckCircle, Activity, Zap } from 'lucide-react';
+import { Calendar, Clock, MessageCircle, Users, Activity, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { MetricCard } from './business-intelligence/MetricCard';
 
@@ -25,14 +25,6 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
       </div>
     );
   }
-
-  const nextAppointmentTime = liveOps?.next_appointment_time 
-    ? new Date(liveOps.next_appointment_time)
-    : null;
-
-  const timeUntilNext = nextAppointmentTime 
-    ? Math.max(0, Math.floor((nextAppointmentTime.getTime() - Date.now()) / (1000 * 60)))
-    : null;
 
   return (
     <div className="space-y-12">
@@ -64,15 +56,15 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
         <MetricCard
           title="Today"
           value={String(liveOps?.today_bookings || 0)}
-          subtitle={`${liveOps?.today_confirmed || 0} confirmed, ${liveOps?.today_pending || 0} pending`}
+          subtitle="confirmed appointments"
           icon={Calendar}
           variant="green"
           delay={0.1}
         />
 
         <MetricCard
-          title="Currently Active"
-          value={String(liveOps?.currently_active_bookings || 0)}
+          title="Active Now"
+          value={String(liveOps?.active_appointments || 0)}
           subtitle="ongoing appointments"
           icon={Users}
           variant="green"
@@ -80,9 +72,9 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
         />
 
         <MetricCard
-          title="WhatsApp Live"
-          value={String(liveOps?.whatsapp_messages_last_hour || 0)}
-          subtitle="messages last hour"
+          title="WhatsApp Active"
+          value={String(liveOps?.active_conversations_today || 0)}
+          subtitle="conversations today"
           icon={MessageCircle}
           variant="green"
           delay={0.3}
@@ -90,8 +82,8 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
 
         <MetricCard
           title="Next"
-          value={timeUntilNext !== null ? `${timeUntilNext}m` : "None"}
-          subtitle={timeUntilNext !== null ? "until next appointment" : "scheduled appointments"}
+          value={liveOps?.next_appointment_formatted || "None"}
+          subtitle={liveOps?.next_appointment_formatted ? "until next appointment" : "scheduled today"}
           icon={Clock}
           variant="green"
           delay={0.4}
@@ -125,7 +117,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                 
                 <div className="flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30">
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm shadow-green-400/50"></div>
                     <span className="text-sm font-medium text-slate-200">WhatsApp Bot</span>
                   </div>
                   <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
@@ -159,14 +151,14 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                 <h3 className="text-lg font-semibold text-slate-100">Today's Schedule</h3>
               </div>
               
-              {nextAppointmentTime ? (
+              {liveOps?.next_appointment_time ? (
                 <div className="space-y-4">
                   <div className="p-4 bg-gradient-to-r from-green-500/10 via-emerald-500/5 to-transparent border border-green-500/20 rounded-xl">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold text-slate-100 mb-1">Next Appointment</p>
                         <p className="text-sm text-slate-300 font-mono">
-                          {nextAppointmentTime.toLocaleTimeString('en-US', { 
+                          {new Date(liveOps.next_appointment_time).toLocaleTimeString('en-US', { 
                             hour: '2-digit', 
                             minute: '2-digit' 
                           })}
@@ -174,17 +166,10 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                       </div>
                       <div className="text-right">
                         <Badge 
-                          variant={timeUntilNext && timeUntilNext < 30 ? "destructive" : "secondary"}
-                          className={`${
-                            timeUntilNext && timeUntilNext < 30 
-                              ? "bg-green-500/20 text-green-400 border-green-500/30" 
-                              : "bg-green-500/20 text-green-400 border-green-500/30"
-                          }`}
+                          variant="secondary"
+                          className="bg-green-500/20 text-green-400 border-green-500/30"
                         >
-                          {timeUntilNext && timeUntilNext < 60 
-                            ? `${timeUntilNext} min`
-                            : `${Math.floor((timeUntilNext || 0) / 60)}h ${(timeUntilNext || 0) % 60}m`
-                          }
+                          {liveOps.next_appointment_formatted}
                         </Badge>
                       </div>
                     </div>
