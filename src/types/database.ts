@@ -66,9 +66,9 @@ export interface CalendarSettings {
   allow_cancellations?: boolean;
   cancellation_deadline_hours?: number;
   first_reminder_enabled?: boolean;
-  first_reminder_timing_minutes?: number;
+  first_reminder_timing_hours?: number;
   second_reminder_enabled?: boolean;
-  second_reminder_timing_hours?: number;
+  second_reminder_timing_minutes?: number;
   created_at: string;
 }
 

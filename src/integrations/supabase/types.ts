@@ -562,13 +562,13 @@ export type Database = {
           confirmation_required: boolean | null
           created_at: string | null
           first_reminder_enabled: boolean | null
-          first_reminder_timing_minutes: number | null
+          first_reminder_timing_hours: number | null
           id: string
           last_bot_activity: string | null
           max_bookings_per_day: number | null
           minimum_notice_hours: number | null
           second_reminder_enabled: boolean | null
-          second_reminder_timing_hours: number | null
+          second_reminder_timing_minutes: number | null
           slot_duration: number | null
           whatsapp_bot_active: boolean | null
         }
@@ -582,13 +582,13 @@ export type Database = {
           confirmation_required?: boolean | null
           created_at?: string | null
           first_reminder_enabled?: boolean | null
-          first_reminder_timing_minutes?: number | null
+          first_reminder_timing_hours?: number | null
           id?: string
           last_bot_activity?: string | null
           max_bookings_per_day?: number | null
           minimum_notice_hours?: number | null
           second_reminder_enabled?: boolean | null
-          second_reminder_timing_hours?: number | null
+          second_reminder_timing_minutes?: number | null
           slot_duration?: number | null
           whatsapp_bot_active?: boolean | null
         }
@@ -602,13 +602,13 @@ export type Database = {
           confirmation_required?: boolean | null
           created_at?: string | null
           first_reminder_enabled?: boolean | null
-          first_reminder_timing_minutes?: number | null
+          first_reminder_timing_hours?: number | null
           id?: string
           last_bot_activity?: string | null
           max_bookings_per_day?: number | null
           minimum_notice_hours?: number | null
           second_reminder_enabled?: boolean | null
-          second_reminder_timing_hours?: number | null
+          second_reminder_timing_minutes?: number | null
           slot_duration?: number | null
           whatsapp_bot_active?: boolean | null
         }
