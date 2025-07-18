@@ -58,20 +58,44 @@ export function shouldUseMockData(user: any) {
 }
 
 // Mock data generators for each dashboard section
-export const getMockPerformanceData = () => ({
-  avg_response_time_minutes: 8.5 + Math.random() * 7, // 8-15 minutes
-  no_show_rate: 8 + Math.random() * 7, // 8-15%
-  cancellation_rate: 10 + Math.random() * 8, // 10-18%
-  calendar_utilization_rate: 65 + Math.random() * 25, // 65-90%
-  peak_hours: [
-    { hour: 10, bookings: 8, hour_label: '10:00' },
-    { hour: 14, bookings: 12, hour_label: '14:00' },
-    { hour: 15, bookings: 10, hour_label: '15:00' },
-    { hour: 11, bookings: 7, hour_label: '11:00' },
-    { hour: 16, bookings: 6, hour_label: '16:00' }
-  ],
-  last_updated: new Date().toISOString()
-});
+export const getMockFutureInsightsData = () => {
+  return {
+    demand_forecast: [
+      { week_number: 1, bookings: 12, trend_direction: 'up' },
+      { week_number: 2, bookings: 15, trend_direction: 'up' },
+      { week_number: 3, bookings: 18, trend_direction: 'up' },
+      { week_number: 4, bookings: 16, trend_direction: 'down' }
+    ],
+    customer_growth_rate: 23.5,
+    returning_customers_month: 8,
+    seasonal_patterns: [
+      { month_name: 'January', avg_bookings: 15 },
+      { month_name: 'February', avg_bookings: 18 },
+      { month_name: 'March', avg_bookings: 22 },
+      { month_name: 'April', avg_bookings: 25 },
+      { month_name: 'May', avg_bookings: 28 },
+      { month_name: 'June', avg_bookings: 24 }
+    ],
+    last_updated: new Date().toISOString()
+  };
+};
+
+export const getMockPerformanceData = () => {
+  return {
+    booking_efficiency: 87.5,
+    no_show_rate: 3.2,
+    cancellation_rate: 8.7,
+    avg_revenue_per_day: 245.50,
+    peak_hours: [
+      { hour: 10, bookings: 8, hour_label: '10:00' },
+      { hour: 14, bookings: 12, hour_label: '14:00' },
+      { hour: 16, bookings: 10, hour_label: '16:00' },
+      { hour: 11, bookings: 7, hour_label: '11:00' },
+      { hour: 15, bookings: 6, hour_label: '15:00' }
+    ],
+    last_updated: new Date().toISOString()
+  };
+};
 
 export const getMockLiveOperationsData = () => ({
   today_bookings: 3 + Math.floor(Math.random() * 6), // 3-8 bookings
@@ -80,26 +104,6 @@ export const getMockLiveOperationsData = () => ({
   currently_active_bookings: Math.floor(Math.random() * 2), // 0-1 active
   next_appointment_time: new Date(Date.now() + (2 + Math.random() * 4) * 60 * 60 * 1000).toISOString(),
   whatsapp_messages_last_hour: 5 + Math.floor(Math.random() * 15), // 5-20 messages
-  last_updated: new Date().toISOString()
-});
-
-export const getMockFutureInsightsData = () => ({
-  demand_forecast: [
-    { week_number: 1, bookings: 12 + Math.floor(Math.random() * 8), trend_direction: 'up' },
-    { week_number: 2, bookings: 15 + Math.floor(Math.random() * 6), trend_direction: 'up' },
-    { week_number: 3, bookings: 18 + Math.floor(Math.random() * 5), trend_direction: 'stable' },
-    { week_number: 4, bookings: 16 + Math.floor(Math.random() * 7), trend_direction: 'down' }
-  ],
-  waitlist_size: 8 + Math.floor(Math.random() * 17), // 8-25 waiting customers
-  returning_customers_month: 15 + Math.floor(Math.random() * 25), // 15-40 returning
-  seasonal_patterns: [
-    { month_name: 'Januari', avg_bookings: 25 },
-    { month_name: 'Februari', avg_bookings: 30 },
-    { month_name: 'Maart', avg_bookings: 35 },
-    { month_name: 'April', avg_bookings: 28 },
-    { month_name: 'Mei', avg_bookings: 32 },
-    { month_name: 'Juni', avg_bookings: 40 }
-  ],
   last_updated: new Date().toISOString()
 });
 

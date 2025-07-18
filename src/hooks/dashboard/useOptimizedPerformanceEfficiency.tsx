@@ -4,10 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { getMockPerformanceData } from '../useMockDataGenerator';
 
 interface PerformanceEfficiencyData {
-  avg_response_time_minutes: number;
+  booking_efficiency: number;
   no_show_rate: number;
   cancellation_rate: number;
-  calendar_utilization_rate: number;
+  avg_revenue_per_day: number;
   peak_hours: Array<{
     hour: number;
     bookings: number;
@@ -31,7 +31,7 @@ export function useOptimizedPerformanceEfficiency(
       // Get bookings for the selected date range
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
-        .select('*')
+        .select('*, service_types(price)')
         .eq('calendar_id', calendarId)
         .gte('start_time', startDate.toISOString())
         .lte('start_time', endDate.toISOString());
@@ -41,29 +41,14 @@ export function useOptimizedPerformanceEfficiency(
         throw bookingsError;
       }
 
-      // Get WhatsApp messages for response time calculation (limited to last 7 days for performance)
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const responseTimeStartDate = startDate > sevenDaysAgo ? startDate : sevenDaysAgo;
-
-      const { data: messagesData, error: messagesError } = await supabase
-        .from('whatsapp_messages')
-        .select(`
-          *,
-          conversation_id!inner(calendar_id)
-        `)
-        .eq('conversation_id.calendar_id', calendarId)
-        .gte('created_at', responseTimeStartDate.toISOString())
-        .lte('created_at', endDate.toISOString())
-        .order('created_at');
-
-      if (messagesError) {
-        console.error('Error fetching messages:', messagesError);
-      }
-
       const allBookings = bookingsData || [];
       const totalBookings = allBookings.length;
+      const confirmedBookings = allBookings.filter(b => b.status === 'confirmed').length;
       const noShowBookings = allBookings.filter(b => b.status === 'no-show').length;
       const cancelledBookings = allBookings.filter(b => b.status === 'cancelled').length;
+
+      // Calculate booking efficiency (confirmed / total attempted bookings)
+      const bookingEfficiency = totalBookings > 0 ? (confirmedBookings / totalBookings) * 100 : 0;
 
       // Calculate peak hours for the selected period
       const hourCounts = new Map();
@@ -82,55 +67,27 @@ export function useOptimizedPerformanceEfficiency(
         }))
         .sort((a, b) => b.bookings - a.bookings);
 
-      // Calculate response time (simplified - average between inbound and outbound messages)
-      let totalResponseTime = 0;
-      let responseCount = 0;
-      
-      if (messagesData) {
-        const conversations = new Map();
-        messagesData.forEach(msg => {
-          if (!conversations.has(msg.conversation_id)) {
-            conversations.set(msg.conversation_id, []);
-          }
-          conversations.get(msg.conversation_id).push(msg);
-        });
-
-        conversations.forEach(msgs => {
-          for (let i = 0; i < msgs.length - 1; i++) {
-            const current = msgs[i];
-            const next = msgs[i + 1];
-            
-            if (current.direction === 'inbound' && next.direction === 'outbound') {
-              const responseTime = new Date(next.created_at).getTime() - new Date(current.created_at).getTime();
-              totalResponseTime += responseTime / (1000 * 60); // Convert to minutes
-              responseCount++;
-            }
-          }
-        });
-      }
-
-      const avgResponseTime = responseCount > 0 ? totalResponseTime / responseCount : 0;
-
-      // Simple utilization calculation based on the selected period
+      // Calculate average revenue per day
       const periodDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      const workingHoursPerDay = 8; // Assumption
-      const totalAvailableHours = periodDays * workingHoursPerDay;
-      const bookedHours = allBookings
+      const totalRevenue = allBookings
         .filter(b => b.status !== 'cancelled')
-        .reduce((sum, b) => sum + (b.booking_duration || 30) / 60, 0);
+        .reduce((sum, b) => {
+          const price = b.total_price || (b.service_types as any)?.price || 0;
+          return sum + Number(price);
+        }, 0);
       
-      const utilizationRate = totalAvailableHours > 0 ? (bookedHours / totalAvailableHours) * 100 : 0;
+      const avgRevenuePerDay = periodDays > 0 ? totalRevenue / periodDays : 0;
 
       // If no real data exists, return mock data for trial users
-      if (totalBookings === 0 && (messagesData?.length || 0) === 0) {
+      if (totalBookings === 0) {
         return getMockPerformanceData();
       }
 
       return {
-        avg_response_time_minutes: avgResponseTime,
+        booking_efficiency: bookingEfficiency,
         no_show_rate: totalBookings > 0 ? (noShowBookings / totalBookings) * 100 : 0,
         cancellation_rate: totalBookings > 0 ? (cancelledBookings / totalBookings) * 100 : 0,
-        calendar_utilization_rate: Math.min(utilizationRate, 100),
+        avg_revenue_per_day: avgRevenuePerDay,
         peak_hours: peakHours,
         last_updated: new Date().toISOString()
       };

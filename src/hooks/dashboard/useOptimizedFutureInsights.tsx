@@ -9,7 +9,7 @@ interface FutureInsightsData {
     bookings: number;
     trend_direction: string;
   }>;
-  waitlist_size: number;
+  customer_growth_rate: number;
   returning_customers_month: number;
   seasonal_patterns: Array<{
     month_name: string;
@@ -24,12 +24,12 @@ export function useOptimizedFutureInsights(calendarId?: string) {
     queryFn: async (): Promise<FutureInsightsData | null> => {
       if (!calendarId) return null;
 
-      console.log('🔮 Fetching future insights for:', calendarId);
+      console.log('🔮 Fetching future insights for calendar:', calendarId);
 
       // Get historical booking data for trend analysis
       const { data: historicalBookings, error: historicalError } = await supabase
         .from('bookings')
-        .select('start_time, status')
+        .select('start_time, status, customer_email')
         .eq('calendar_id', calendarId)
         .gte('start_time', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()) // 60 days
         .neq('status', 'cancelled');
@@ -39,24 +39,40 @@ export function useOptimizedFutureInsights(calendarId?: string) {
         throw historicalError;
       }
 
-      // Get waitlist size
-      const { data: waitlistData, error: waitlistError } = await supabase
-        .from('waitlist')
-        .select('id')
-        .eq('calendar_id', calendarId)
-        .eq('status', 'waiting');
+      // Calculate customer growth rate (current month vs previous month)
+      const currentMonth = new Date();
+      const startOfCurrentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const startOfPreviousMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+      const endOfPreviousMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0);
 
-      if (waitlistError) {
-        console.error('Error fetching waitlist:', waitlistError);
-      }
+      const { data: currentMonthBookings } = await supabase
+        .from('bookings')
+        .select('customer_email')
+        .eq('calendar_id', calendarId)
+        .gte('start_time', startOfCurrentMonth.toISOString())
+        .neq('status', 'cancelled');
+
+      const { data: previousMonthBookings } = await supabase
+        .from('bookings')
+        .select('customer_email')
+        .eq('calendar_id', calendarId)
+        .gte('start_time', startOfPreviousMonth.toISOString())
+        .lt('start_time', startOfCurrentMonth.toISOString())
+        .neq('status', 'cancelled');
+
+      const currentMonthCustomers = new Set(currentMonthBookings?.map(b => b.customer_email) || []).size;
+      const previousMonthCustomers = new Set(previousMonthBookings?.map(b => b.customer_email) || []).size;
+      
+      const customerGrowthRate = previousMonthCustomers > 0 
+        ? ((currentMonthCustomers - previousMonthCustomers) / previousMonthCustomers) * 100
+        : currentMonthCustomers > 0 ? 100 : 0;
 
       // Get returning customers this month
-      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
       const { data: monthlyBookings, error: monthlyError } = await supabase
         .from('bookings')
         .select('customer_email')
         .eq('calendar_id', calendarId)
-        .gte('start_time', startOfMonth.toISOString())
+        .gte('start_time', startOfCurrentMonth.toISOString())
         .neq('status', 'cancelled');
 
       if (monthlyError) {
@@ -72,7 +88,7 @@ export function useOptimizedFutureInsights(calendarId?: string) {
           .from('bookings')
           .select('customer_email')
           .eq('calendar_id', calendarId)
-          .lt('start_time', startOfMonth.toISOString())
+          .lt('start_time', startOfCurrentMonth.toISOString())
           .neq('status', 'cancelled');
 
         const previousEmails = new Set(previousBookings?.map(b => b.customer_email) || []);
@@ -109,22 +125,22 @@ export function useOptimizedFutureInsights(calendarId?: string) {
       }));
 
       // If no real data exists, return mock data for trial users
-      if ((historicalBookings?.length || 0) === 0 && (waitlistData?.length || 0) === 0) {
+      if ((historicalBookings?.length || 0) === 0) {
         return getMockFutureInsightsData();
       }
 
       return {
         demand_forecast: weeklyTrends,
-        waitlist_size: waitlistData?.length || 0,
+        customer_growth_rate: customerGrowthRate,
         returning_customers_month: returningCustomers,
         seasonal_patterns: seasonalPatterns,
         last_updated: new Date().toISOString()
       };
     },
     enabled: !!calendarId,
-    staleTime: 900000, // 15 minutes (increased from 10 minutes)
-    gcTime: 1800000, // 30 minutes (increased from 20 minutes)
-    refetchInterval: 1200000, // 20 minutes (increased from 15 minutes)
+    staleTime: 900000, // 15 minutes
+    gcTime: 1800000, // 30 minutes
+    refetchInterval: 1200000, // 20 minutes
     refetchIntervalInBackground: true,
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15000),

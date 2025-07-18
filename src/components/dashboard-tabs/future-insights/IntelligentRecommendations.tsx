@@ -1,16 +1,16 @@
 
 import React from 'react';
-import { Clock, Users, Calendar, TrendingUp, Target, Lightbulb, Heart, Zap } from 'lucide-react';
+import { TrendingUp, Users, Calendar, Target, Lightbulb, Heart, Zap, UserPlus } from 'lucide-react';
 
 interface IntelligentRecommendationsProps {
   // Performance data
-  avgResponseTime?: number;
+  bookingEfficiency?: number;
   noShowRate?: number;
   cancellationRate?: number;
-  calendarUtilization?: number;
+  avgRevenuePerDay?: number;
   
   // Future insights data
-  waitlistSize?: number;
+  customerGrowthRate?: number;
   returningCustomersMonth?: number;
   demandForecast?: Array<{
     week_number: number;
@@ -24,11 +24,11 @@ interface IntelligentRecommendationsProps {
 }
 
 export function IntelligentRecommendations({
-  avgResponseTime,
+  bookingEfficiency,
   noShowRate,
   cancellationRate,
-  calendarUtilization,
-  waitlistSize,
+  avgRevenuePerDay,
+  customerGrowthRate,
   returningCustomersMonth,
   demandForecast,
   seasonalPatterns
@@ -37,36 +37,86 @@ export function IntelligentRecommendations({
   const generateRecommendations = () => {
     const recommendations = [];
 
-    // Response time recommendations - friendlier tone
-    if (avgResponseTime !== undefined) {
-      if (avgResponseTime > 15) {
+    // Customer growth recommendations
+    if (customerGrowthRate !== undefined) {
+      if (customerGrowthRate > 20) {
         recommendations.push({
-          icon: Clock,
-          title: "Faster Response Time Opportunity",
-          message: `Your response time is currently ${avgResponseTime.toFixed(1)} minutes. By responding faster (within 5-10 minutes) you increase customer satisfaction and conversion. Consider automatic greetings or push notifications!`,
+          icon: UserPlus,
+          title: "Excellent Customer Growth!",
+          message: `Your customer growth rate of ${customerGrowthRate.toFixed(1)}% is outstanding! This shows strong market demand. Consider expanding your services or capacity to accommodate more customers.`,
           variant: "purple" as const,
           priority: 1
         });
-      } else if (avgResponseTime > 5) {
+      } else if (customerGrowthRate > 0) {
         recommendations.push({
-          icon: Clock,
-          title: "Response Time Optimization Tip",
-          message: `With ${avgResponseTime.toFixed(1)} minutes response time you're already doing well! To make it even better: aim for under 5 minutes for maximum customer satisfaction.`,
+          icon: TrendingUp,
+          title: "Steady Customer Growth",
+          message: `With ${customerGrowthRate.toFixed(1)}% growth, you're on the right track. Focus on customer retention and referral programs to accelerate growth.`,
           variant: "purple" as const,
           priority: 2
         });
-      } else {
+      } else if (customerGrowthRate < -10) {
         recommendations.push({
-          icon: Zap,
-          title: "Excellent Response Time!",
-          message: `Fantastic! Your response time of ${avgResponseTime.toFixed(1)} minutes is excellent. Customers appreciate fast service - this helps your conversion significantly.`,
+          icon: Lightbulb,
+          title: "Customer Acquisition Focus Needed",
+          message: `Customer growth is declining by ${Math.abs(customerGrowthRate).toFixed(1)}%. Consider marketing campaigns, social media presence, or customer feedback to understand what's happening.`,
           variant: "purple" as const,
-          priority: 3
+          priority: 1
         });
       }
     }
 
-    // No-show rate recommendations - more encouraging
+    // Booking efficiency recommendations
+    if (bookingEfficiency !== undefined) {
+      if (bookingEfficiency > 85) {
+        recommendations.push({
+          icon: Target,
+          title: "Excellent Booking Efficiency!",
+          message: `Your booking efficiency of ${bookingEfficiency.toFixed(1)}% is outstanding! Customers are successfully completing their bookings. Keep up the great work!`,
+          variant: "purple" as const,
+          priority: 3
+        });
+      } else if (bookingEfficiency < 60) {
+        recommendations.push({
+          icon: Target,
+          title: "Improve Booking Process",
+          message: `Booking efficiency is ${bookingEfficiency.toFixed(1)}%. Consider simplifying your booking process, reducing steps, or improving payment options to increase success rates.`,
+          variant: "purple" as const,
+          priority: 1
+        });
+      } else {
+        recommendations.push({
+          icon: Target,
+          title: "Good Booking Efficiency",
+          message: `Your booking efficiency of ${bookingEfficiency.toFixed(1)}% is solid. Small improvements to the booking flow could push this even higher.`,
+          variant: "purple" as const,
+          priority: 2
+        });
+      }
+    }
+
+    // Revenue per day recommendations
+    if (avgRevenuePerDay !== undefined) {
+      if (avgRevenuePerDay > 200) {
+        recommendations.push({
+          icon: Zap,
+          title: "Strong Daily Revenue!",
+          message: `€${avgRevenuePerDay.toFixed(0)} per day shows excellent business performance. Consider premium services or upselling to maximize this trend.`,
+          variant: "purple" as const,
+          priority: 2
+        });
+      } else if (avgRevenuePerDay < 50) {
+        recommendations.push({
+          icon: TrendingUp,
+          title: "Revenue Growth Opportunity",
+          message: `Daily revenue of €${avgRevenuePerDay.toFixed(0)} has room for improvement. Consider pricing optimization, additional services, or increasing booking frequency.`,
+          variant: "purple" as const,
+          priority: 1
+        });
+      }
+    }
+
+    // No-show rate recommendations
     if (noShowRate !== undefined && noShowRate > 10) {
       recommendations.push({
         icon: Calendar,
@@ -85,7 +135,7 @@ export function IntelligentRecommendations({
       });
     }
 
-    // Cancellation rate recommendations - supportive tone
+    // Cancellation rate recommendations
     if (cancellationRate !== undefined && cancellationRate > 20) {
       recommendations.push({
         icon: Users,
@@ -96,47 +146,7 @@ export function IntelligentRecommendations({
       });
     }
 
-    // Calendar utilization recommendations - growth focused
-    if (calendarUtilization !== undefined) {
-      if (calendarUtilization > 85) {
-        recommendations.push({
-          icon: TrendingUp,
-          title: "Great Demand - Growth Opportunity!",
-          message: `Your calendar is ${calendarUtilization.toFixed(1)}% booked - that's fantastic! This shows strong demand. Consider expansion: extra time slots, staff, or a second location.`,
-          variant: "purple" as const,
-          priority: 1
-        });
-      } else if (calendarUtilization < 40) {
-        recommendations.push({
-          icon: Lightbulb,
-          title: "Marketing Growth Opportunities",
-          message: `Your calendar still has ${(100 - calendarUtilization).toFixed(1)}% room for more customers. Perfect time for marketing: social media, SEO, or referral campaigns can help you grow.`,
-          variant: "purple" as const,
-          priority: 2
-        });
-      } else {
-        recommendations.push({
-          icon: Target,
-          title: "Healthy Utilization Rate",
-          message: `Your calendar is ${calendarUtilization.toFixed(1)}% booked - a nice balance! You have room for growth without overload. Perfect foundation for stable growth.`,
-          variant: "purple" as const,
-          priority: 3
-        });
-      }
-    }
-
-    // Waitlist recommendations - opportunity focused
-    if (waitlistSize !== undefined && waitlistSize > 5) {
-      recommendations.push({
-        icon: Clock,
-        title: "Waitlist = Growth Indicator!",
-        message: `${waitlistSize} people on your waitlist show strong demand! Consider adding extra time slots or prioritize cancellations to serve these enthusiastic customers.`,
-        variant: "purple" as const,
-        priority: 1
-      });
-    }
-
-    // Returning customers recommendations - relationship focused
+    // Returning customers recommendations
     if (returningCustomersMonth !== undefined) {
       if (returningCustomersMonth < 3) {
         recommendations.push({
@@ -157,7 +167,7 @@ export function IntelligentRecommendations({
       }
     }
 
-    // Demand forecast recommendations - strategic
+    // Demand forecast recommendations
     if (demandForecast && demandForecast.length > 0) {
       const trendUp = demandForecast.filter(week => week.trend_direction === 'up').length;
       const trendDown = demandForecast.filter(week => week.trend_direction === 'down').length;
@@ -181,7 +191,7 @@ export function IntelligentRecommendations({
       }
     }
 
-    // Seasonal recommendations - preparation focused
+    // Seasonal recommendations
     if (seasonalPatterns && seasonalPatterns.length > 0) {
       const currentMonth = new Date().getMonth();
       const currentPattern = seasonalPatterns[currentMonth];

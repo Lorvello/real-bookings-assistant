@@ -3,7 +3,7 @@ import React from 'react';
 import { useOptimizedFutureInsights } from '@/hooks/dashboard/useOptimizedFutureInsights';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { TrendingUp, Users, Calendar, Clock } from 'lucide-react';
+import { TrendingUp, Users, Calendar, UserPlus } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { IntelligentRecommendations } from './future-insights/IntelligentRecommendations';
 
@@ -64,15 +64,20 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
     month_name: translateMonthName(pattern.month_name)
   }));
 
+  const formatGrowthRate = (rate: number) => {
+    const sign = rate > 0 ? '+' : '';
+    return `${sign}${rate.toFixed(1)}%`;
+  };
+
   return (
     <div className="space-y-12">
       {/* Future Metrics - Purple/Violet Theme */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <MetricCard
-          title="Waitlist"
-          value={String(insights?.waitlist_size || 0)}
-          subtitle="waiting customers"
-          icon={Clock}
+          title="Customer Growth"
+          value={formatGrowthRate(insights?.customer_growth_rate || 0)}
+          subtitle="month over month"
+          icon={UserPlus}
           variant="purple"
           delay={0.1}
         />
@@ -227,8 +232,8 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
             </div>
             
             <IntelligentRecommendations
-              // Pass only future insights data
-              waitlistSize={insights?.waitlist_size}
+              // Pass future insights data
+              customerGrowthRate={insights?.customer_growth_rate}
               returningCustomersMonth={insights?.returning_customers_month}
               demandForecast={insights?.demand_forecast}
               seasonalPatterns={transformedSeasonalPatterns}

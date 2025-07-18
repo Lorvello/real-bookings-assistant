@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { Clock, AlertTriangle, Calendar, Activity, MessageSquare } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Euro, Activity, MessageSquare } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
 import { DateRange } from '@/components/dashboard/DateRangeFilter';
@@ -83,10 +84,10 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
       {/* Operational Performance Metrics - Blue Theme */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Response Time"
-          value={`${performance?.avg_response_time_minutes?.toFixed(1) || '0.0'}m`}
-          subtitle="average WhatsApp"
-          icon={Clock}
+          title="Booking Efficiency"
+          value={`${performance?.booking_efficiency?.toFixed(1) || '0.0'}%`}
+          subtitle="successful bookings"
+          icon={CheckCircle}
           variant="blue"
           delay={0.1}
         />
@@ -110,10 +111,10 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
         />
 
         <MetricCard
-          title="Conversion Rate"
-          value={`${businessIntel?.whatsapp_conversion_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="WhatsApp → Booking"
-          icon={MessageSquare}
+          title="Revenue per Day"
+          value={`€${performance?.avg_revenue_per_day?.toFixed(0) || '0'}`}
+          subtitle="average daily"
+          icon={Euro}
           variant="blue"
           delay={0.4}
         />
@@ -139,13 +140,13 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
         </div>
       </div>
 
-      {/* Calendar Utilization Card */}
+      {/* WhatsApp Performance Card */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <MetricCard
-          title="Calendar Utilization"
-          value={`${performance?.calendar_utilization_rate?.toFixed(1) || '0.0'}%`}
-          subtitle={getMetricSubtitle('period')}
-          icon={Calendar}
+          title="WhatsApp Conversion"
+          value={`${businessIntel?.whatsapp_conversion_rate?.toFixed(1) || '0.0'}%`}
+          subtitle="WhatsApp → Booking"
+          icon={MessageSquare}
           variant="blue"
           delay={0.5}
         />
