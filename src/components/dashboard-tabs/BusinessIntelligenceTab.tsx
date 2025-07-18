@@ -56,7 +56,7 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
   return (
     <div className="space-y-12">
       {/* Financial & Business Metrics - Orange Theme */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Revenue"
           value={`€${businessIntel?.current_period_revenue?.toFixed(2) || '0.00'}`}
@@ -96,15 +96,6 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
           icon={Euro}
           variant="orange"
           delay={0.4}
-        />
-
-        <MetricCard
-          title="Previous Period"
-          value={`€${businessIntel?.prev_period_revenue?.toFixed(2) || '0.00'}`}
-          subtitle="comparison"
-          icon={BarChart3}
-          variant="orange"
-          delay={0.5}
         />
       </div>
 

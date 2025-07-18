@@ -2,7 +2,7 @@
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { AlertTriangle, Euro, Activity, TrendingUp } from 'lucide-react';
+import { AlertTriangle, XCircle, Star, CheckCircle, Activity } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
 import { DateRange } from '@/components/dashboard/DateRangeFilter';
@@ -76,39 +76,39 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
   return (
     <div className="space-y-12">
       {/* Operational Performance Metrics - Blue Theme */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Average Booking Value"
-          value={`€${performance?.avg_booking_value?.toFixed(2) || '0.00'}`}
-          subtitle="per appointment"
-          icon={Euro}
+          title="No-Show Rate"
+          value={`${performance?.no_show_rate?.toFixed(1) || '0.0'}%`}
+          subtitle={getMetricSubtitle('operational efficiency')}
+          icon={AlertTriangle}
           variant="blue"
           delay={0.1}
         />
 
         <MetricCard
-          title="No-show Rate"
-          value={`${performance?.no_show_rate?.toFixed(1) || '0.0'}%`}
-          subtitle={getMetricSubtitle('period')}
-          icon={AlertTriangle}
+          title="Cancellation Rate"
+          value={`${performance?.cancellation_rate?.toFixed(1) || '0.0'}%`}
+          subtitle={getMetricSubtitle('booking reliability')}
+          icon={XCircle}
           variant="blue"
           delay={0.2}
         />
 
         <MetricCard
-          title="Cancellation Rate"
-          value={`${performance?.cancellation_rate?.toFixed(1) || '0.0'}%`}
-          subtitle={getMetricSubtitle('period')}
-          icon={AlertTriangle}
+          title="Customer Satisfaction"
+          value={`${performance?.customer_satisfaction_score?.toFixed(1) || '0.0'}/5`}
+          subtitle={getMetricSubtitle('service quality')}
+          icon={Star}
           variant="blue"
           delay={0.3}
         />
 
         <MetricCard
-          title="Revenue per Day"
-          value={`€${performance?.avg_revenue_per_day?.toFixed(0) || '0'}`}
-          subtitle="average daily"
-          icon={TrendingUp}
+          title="Booking Completion"
+          value={`${performance?.booking_completion_rate?.toFixed(1) || '0.0'}%`}
+          subtitle={getMetricSubtitle('success rate')}
+          icon={CheckCircle}
           variant="blue"
           delay={0.4}
         />

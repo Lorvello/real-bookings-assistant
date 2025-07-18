@@ -52,7 +52,7 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
       </div>
 
       {/* Real-time Metrics Cards - Green Theme */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Today"
           value={String(liveOps?.today_bookings || 0)}
@@ -63,19 +63,19 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
         />
 
         <MetricCard
-          title="Active Now"
-          value={String(liveOps?.active_appointments || 0)}
-          subtitle="ongoing appointments"
-          icon={Users}
+          title="WhatsApp Active"
+          value={String(liveOps?.active_conversations_today || 0)}
+          subtitle="conversations today"
+          icon={MessageCircle}
           variant="green"
           delay={0.2}
         />
 
         <MetricCard
-          title="WhatsApp Active"
-          value={String(liveOps?.active_conversations_today || 0)}
-          subtitle="conversations today"
-          icon={MessageCircle}
+          title="Active Appointments"
+          value={String(liveOps?.active_appointments || 0)}
+          subtitle="currently ongoing"
+          icon={Users}
           variant="green"
           delay={0.3}
         />
