@@ -75,7 +75,7 @@ export const WhatsAppNotAvailable: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-accent/50 border border-accent rounded-lg p-6">
+          <div className="bg-muted/20 border border-border rounded-lg p-6">
             <div className="flex items-start space-x-4">
               <Zap className="h-6 w-6 text-primary mt-0.5 flex-shrink-0" />
               <div className="flex-1">
