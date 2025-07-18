@@ -58,10 +58,17 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                   variant="purple"
                   delay={0.1}
                 />
-                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                </div>
               </div>
             </TooltipTrigger>
-            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
               <p className="text-sm">Customer Growth Rate measures the percentage increase in new customers month-over-month. This indicates business expansion and marketing effectiveness through your WhatsApp booking assistant.</p>
             </TooltipContent>
           </Tooltip>
@@ -77,10 +84,17 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                   variant="purple"
                   delay={0.2}
                 />
-                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                </div>
               </div>
             </TooltipTrigger>
-            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
               <p className="text-sm">Capacity Utilization shows the percentage of available appointment slots that are currently booked this week. Higher percentages indicate efficient scheduling and strong demand.</p>
             </TooltipContent>
           </Tooltip>
@@ -96,10 +110,17 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                   variant="purple"
                   delay={0.3}
                 />
-                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                </div>
               </div>
             </TooltipTrigger>
-            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
               <p className="text-sm">AI-powered recommendations analyze your booking patterns, customer behavior, and performance data to suggest actionable business optimizations and growth opportunities.</p>
             </TooltipContent>
           </Tooltip>
@@ -115,10 +136,17 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                   variant="purple"
                   delay={0.4}
                 />
-                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                </div>
               </div>
             </TooltipTrigger>
-            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
               <p className="text-sm">Demand Forecast predicts next week's booking volume based on historical data, seasonal trends, and current booking patterns to help with resource planning.</p>
             </TooltipContent>
           </Tooltip>
@@ -134,10 +162,17 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                 <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
                   <DemandForecastChart data={futureInsights?.demand_forecast} />
                 </div>
-                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors z-10" />
+                <div className="absolute top-4 right-4 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                </div>
               </div>
             </TooltipTrigger>
-            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
               <p className="text-sm">Weekly booking demand prediction based on historical patterns and current trends</p>
             </TooltipContent>
           </Tooltip>
@@ -150,10 +185,17 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                 <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
                   <SeasonalPatternsChart data={futureInsights?.seasonal_patterns} />
                 </div>
-                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors z-10" />
+                <div className="absolute top-4 right-4 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                </div>
               </div>
             </TooltipTrigger>
-            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
               <p className="text-sm">Monthly booking volume trends throughout the year, helping identify peak periods and plan capacity</p>
             </TooltipContent>
           </Tooltip>
@@ -180,10 +222,17 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                   />
                 </div>
               </div>
-              <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors z-10" />
+              <div className="absolute top-4 right-4 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+              </div>
             </div>
           </TooltipTrigger>
-          <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+          <TooltipContent 
+            className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
+            side="top"
+            align="center"
+            sideOffset={8}
+          >
             <p className="text-sm">Smart insights and actionable recommendations generated from your business data</p>
           </TooltipContent>
         </Tooltip>
