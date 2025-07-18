@@ -93,3 +93,15 @@ export const getMockServicePerformanceData = () => ([
   { service_name: "Manicure", booking_count: 25, revenue: 1250, avg_price: 50 },
   { service_name: "Facial", booking_count: 15, revenue: 1800, avg_price: 120 }
 ]);
+
+export const getMockOrphanedConversations = () => ([
+  { conversation_id: "conv_1", contact_phone: "+31612345678", contact_name: "Jan Jansen", message_count: 5, last_activity: new Date().toISOString() },
+  { conversation_id: "conv_2", contact_phone: "+31687654321", contact_name: "Emma de Vries", message_count: 3, last_activity: new Date().toISOString() },
+  { conversation_id: "conv_3", contact_phone: "+31698765432", contact_name: "Pieter Bakker", message_count: 8, last_activity: new Date().toISOString() }
+]);
+
+export const getMockWhatsAppContacts = () => ([
+  { id: "1", phone: "+31612345678", name: "Jan Jansen", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "2", phone: "+31687654321", name: "Emma de Vries", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: "3", phone: "+31698765432", name: "Pieter Bakker", created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+]);
