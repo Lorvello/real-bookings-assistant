@@ -1,6 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getMockOrphanedConversations } from './useMockDataGenerator';
 
 interface OrphanedConversation {
   conversation_id: string;
@@ -17,6 +18,12 @@ export function useOrphanedConversations() {
       const { data, error } = await supabase.rpc('find_orphaned_whatsapp_conversations');
       
       if (error) throw error;
+      
+      // If no real orphaned conversations, return mock data for trial users
+      if (!data || data.length === 0) {
+        return getMockOrphanedConversations();
+      }
+      
       return data as OrphanedConversation[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

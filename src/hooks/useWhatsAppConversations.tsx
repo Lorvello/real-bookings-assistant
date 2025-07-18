@@ -11,8 +11,8 @@ const getMockConversations = () => [
     contact_id: 'mock-1',
     status: 'active' as const,
     context: {},
-    last_message_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    last_message_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     whatsapp_contacts: {
       id: 'mock-1',
       phone_number: '+31612345678',
@@ -29,8 +29,8 @@ const getMockConversations = () => [
     contact_id: 'mock-2',
     status: 'active' as const,
     context: {},
-    last_message_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    last_message_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     whatsapp_contacts: {
       id: 'mock-2',
       phone_number: '+31623456789',
@@ -47,8 +47,8 @@ const getMockConversations = () => [
     contact_id: 'mock-3',
     status: 'closed' as const,
     context: {},
-    last_message_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    last_message_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     whatsapp_contacts: {
       id: 'mock-3',
       phone_number: '+31634567890',
@@ -57,6 +57,60 @@ const getMockConversations = () => [
       last_name: 'de Vries',
       profile_picture_url: null,
       created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  },
+  {
+    id: 'mock-conv-4',
+    calendar_id: 'mock-calendar',
+    contact_id: 'mock-4',
+    status: 'active' as const,
+    context: {},
+    last_message_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    whatsapp_contacts: {
+      id: 'mock-4',
+      phone_number: '+31645678901',
+      display_name: 'Daan Peters',
+      first_name: 'Daan',
+      last_name: 'Peters',
+      profile_picture_url: null,
+      created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  },
+  {
+    id: 'mock-conv-5',
+    calendar_id: 'mock-calendar',
+    contact_id: 'mock-5',
+    status: 'active' as const,
+    context: {},
+    last_message_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    whatsapp_contacts: {
+      id: 'mock-5',
+      phone_number: '+31656789012',
+      display_name: 'Lisa van Dijk',
+      first_name: 'Lisa',
+      last_name: 'van Dijk',
+      profile_picture_url: null,
+      created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  },
+  {
+    id: 'mock-conv-6',
+    calendar_id: 'mock-calendar',
+    contact_id: 'mock-6',
+    status: 'closed' as const,
+    context: {},
+    last_message_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    whatsapp_contacts: {
+      id: 'mock-6',
+      phone_number: '+31667890123',
+      display_name: 'Max Bakker',
+      first_name: 'Max',
+      last_name: 'Bakker',
+      profile_picture_url: null,
+      created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
     }
   }
 ];
