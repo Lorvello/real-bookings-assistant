@@ -139,6 +139,12 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
       return;
     }
     
+    // Test AI Agent tab is always clickable - no restrictions
+    if (item.href === '/test-ai-agent') {
+      onNavigate(item.href);
+      return;
+    }
+    
     // Special handling for setup incomplete users
     if (userStatus.userType === 'setup_incomplete') {
       // Allow access to all navigation items
