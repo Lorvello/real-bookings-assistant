@@ -213,40 +213,9 @@ export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntel
           </Tooltip>
         </div>
 
-        {/* Service Performance Chart - Orange Glow Only */}
-        <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/20 via-amber-500/15 to-orange-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-orange-500/30 rounded-2xl shadow-2xl">
-            <div className="p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-xl">
-                  <BarChart3 className="h-6 w-6 text-orange-400" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                  Service Performance
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="cursor-help p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                        <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent 
-                      className="max-w-sm bg-slate-900/95 border border-orange-500/30 text-slate-100 z-50"
-                      side="top"
-                      align="center"
-                      sideOffset={8}
-                    >
-                      <p className="text-sm">Compares booking volume (blue) and revenue (green) for each service {periodText}. Helps identify most profitable services and optimize your service portfolio.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </h3>
-              </div>
-              <div className="mb-4">
-                <p className="text-sm text-slate-400">{getMetricSubtitle('service performance')}</p>
-              </div>
-              <ServicePerformanceChart data={businessIntel?.service_performance} selectedTimeRange={getMetricSubtitle('service performance')} />
-            </div>
-          </div>
+        {/* Service Performance Chart */}
+        <div className="animate-fade-in">
+          <ServicePerformanceChart data={businessIntel?.service_performance} selectedTimeRange={getMetricSubtitle('service performance')} />
         </div>
       </div>
     </TooltipProvider>
