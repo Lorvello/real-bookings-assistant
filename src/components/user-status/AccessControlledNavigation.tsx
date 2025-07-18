@@ -83,6 +83,15 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
           isRestricted: false
         };
       }
+
+      // Test AI Agent tab is always clickable (no lock icon)
+      if (item.href === '/test-ai-agent') {
+        return {
+          ...item,
+          isActive,
+          isRestricted: false
+        };
+      }
       
       // Special handling for setup incomplete users - lock specific features
       if (userStatus.userType === 'setup_incomplete') {
