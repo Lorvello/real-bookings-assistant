@@ -4,6 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useOptimizedLiveOperations } from '@/hooks/dashboard/useOptimizedLiveOperations';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
+import { useRealtimeConnectionStatus } from '@/hooks/useRealtimeConnectionStatus';
+import { useBotStatus } from '@/hooks/useBotStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Calendar, Clock, MessageCircle, Users, Activity, Zap, Info, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
@@ -16,7 +20,80 @@ interface LiveOperationsTabProps {
 export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
   const navigate = useNavigate();
   const { data: liveOps, isLoading } = useOptimizedLiveOperations(calendarId);
+  const { userStatus, accessControl } = useUserStatus();
+  const { selectedCalendar } = useCalendarContext();
+  const { data: botStatus } = useBotStatus(calendarId);
+  const realtimeStatus = useRealtimeConnectionStatus(calendarId);
+  
   useRealtimeSubscription(calendarId);
+
+  // Calculate system statuses
+  const getCalendarStatus = () => {
+    if (!selectedCalendar?.is_active) {
+      return { status: 'Offline', color: 'red', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/30', textColor: 'text-red-400' };
+    }
+    return { status: 'Online', color: 'green', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/30', textColor: 'text-green-400' };
+  };
+
+  const getBookingsAssistantStatus = () => {
+    // Check if subscription allows WhatsApp access
+    if (!accessControl.canAccessWhatsApp || userStatus.isExpired) {
+      return { 
+        status: 'Offline', 
+        color: 'red', 
+        bgColor: 'bg-red-500/10', 
+        borderColor: 'border-red-500/30', 
+        textColor: 'text-red-400',
+        reason: userStatus.isExpired ? 'Subscription expired' : 'No WhatsApp access'
+      };
+    }
+    
+    // Check if bot is enabled
+    if (!botStatus?.whatsapp_bot_active) {
+      return { 
+        status: 'Paused', 
+        color: 'yellow', 
+        bgColor: 'bg-yellow-500/10', 
+        borderColor: 'border-yellow-500/30', 
+        textColor: 'text-yellow-400',
+        reason: 'Bot disabled in settings'
+      };
+    }
+    
+    return { 
+      status: 'Active', 
+      color: 'green', 
+      bgColor: 'bg-green-500/10', 
+      borderColor: 'border-green-500/30', 
+      textColor: 'text-green-400',
+      reason: 'Bot is responding to messages'
+    };
+  };
+
+  const getRealtimeStatus = () => {
+    if (!realtimeStatus.isConnected) {
+      return { 
+        status: 'Disconnected', 
+        color: 'red', 
+        bgColor: 'bg-red-500/10', 
+        borderColor: 'border-red-500/30', 
+        textColor: 'text-red-400',
+        reason: 'No real-time connection'
+      };
+    }
+    return { 
+      status: 'Live', 
+      color: 'green', 
+      bgColor: 'bg-green-500/10', 
+      borderColor: 'border-green-500/30', 
+      textColor: 'text-green-400',
+      reason: 'Real-time sync active'
+    };
+  };
+
+  const calendarStatus = getCalendarStatus();
+  const bookingsAssistantStatus = getBookingsAssistantStatus();
+  const realtimeSyncStatus = getRealtimeStatus();
 
   const handleTodayScheduleClick = () => {
     navigate('/calendar?view=week');
@@ -212,24 +289,26 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                     <TooltipTrigger asChild>
                       <div className="flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30 cursor-help relative">
                         <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm shadow-green-400/50"></div>
+                          <div className={`w-2 h-2 ${calendarStatus.color === 'green' ? 'bg-green-400' : 'bg-red-400'} rounded-full ${calendarStatus.color === 'green' ? 'animate-pulse' : ''} shadow-sm ${calendarStatus.color === 'green' ? 'shadow-green-400/50' : 'shadow-red-400/50'}`}></div>
                           <span className="text-sm font-medium text-slate-200">Calendar Status</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
-                            Online
+                          <Badge variant="outline" className={`${calendarStatus.borderColor} ${calendarStatus.textColor} ${calendarStatus.bgColor}`}>
+                            {calendarStatus.status}
                           </Badge>
-                          <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                          <Info className={`h-3 w-3 ${calendarStatus.textColor}/70 hover:${calendarStatus.textColor} transition-colors`} />
                         </div>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent 
-                      className="max-w-sm bg-slate-900/95 border border-green-500/30 text-slate-100 z-50"
+                      className={`max-w-sm bg-slate-900/95 border ${calendarStatus.borderColor} text-slate-100 z-50`}
                       side="top"
                       align="center"
                     >
                       <p className="text-sm">
-                        Indicates if your booking calendar is online and accepting new appointments. When offline, customers cannot book new slots.
+                        {calendarStatus.status === 'Online' 
+                          ? 'Your booking calendar is online and accepting new appointments.'
+                          : 'Your calendar is offline. Customers cannot book new slots.'}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -238,24 +317,30 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                     <TooltipTrigger asChild>
                       <div className="flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30 cursor-help relative">
                         <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-sm shadow-green-400/50"></div>
-                          <span className="text-sm font-medium text-slate-200">WhatsApp Bot</span>
+                          <div className={`w-2 h-2 ${
+                            bookingsAssistantStatus.color === 'green' ? 'bg-green-400' : 
+                            bookingsAssistantStatus.color === 'yellow' ? 'bg-yellow-400' : 'bg-red-400'
+                          } rounded-full ${bookingsAssistantStatus.color === 'green' ? 'animate-pulse' : ''} shadow-sm ${
+                            bookingsAssistantStatus.color === 'green' ? 'shadow-green-400/50' : 
+                            bookingsAssistantStatus.color === 'yellow' ? 'shadow-yellow-400/50' : 'shadow-red-400/50'
+                          }`}></div>
+                          <span className="text-sm font-medium text-slate-200">Bookings Assistant</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
-                            Active
+                          <Badge variant="outline" className={`${bookingsAssistantStatus.borderColor} ${bookingsAssistantStatus.textColor} ${bookingsAssistantStatus.bgColor}`}>
+                            {bookingsAssistantStatus.status}
                           </Badge>
-                          <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                          <Info className={`h-3 w-3 ${bookingsAssistantStatus.textColor}/70 hover:${bookingsAssistantStatus.textColor} transition-colors`} />
                         </div>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent 
-                      className="max-w-sm bg-slate-900/95 border border-green-500/30 text-slate-100 z-50"
+                      className={`max-w-sm bg-slate-900/95 border ${bookingsAssistantStatus.borderColor} text-slate-100 z-50`}
                       side="top"
                       align="center"
                     >
                       <p className="text-sm">
-                        Shows if your AI booking assistant is active and responding to customer messages automatically.
+                        {bookingsAssistantStatus.reason}. Your AI booking assistant helps customers book appointments via WhatsApp.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -264,24 +349,24 @@ export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
                     <TooltipTrigger asChild>
                       <div className="flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30 cursor-help relative">
                         <div className="flex items-center gap-3">
-                          <Zap className="h-4 w-4 text-green-400" />
+                          <Zap className={`h-4 w-4 ${realtimeSyncStatus.textColor}`} />
                           <span className="text-sm font-medium text-slate-200">Real-time Sync</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="border-green-500/30 text-green-400 bg-green-500/10">
-                            Live
+                          <Badge variant="outline" className={`${realtimeSyncStatus.borderColor} ${realtimeSyncStatus.textColor} ${realtimeSyncStatus.bgColor}`}>
+                            {realtimeSyncStatus.status}
                           </Badge>
-                          <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                          <Info className={`h-3 w-3 ${realtimeSyncStatus.textColor}/70 hover:${realtimeSyncStatus.textColor} transition-colors`} />
                         </div>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent 
-                      className="max-w-sm bg-slate-900/95 border border-green-500/30 text-slate-100 z-50"
+                      className={`max-w-sm bg-slate-900/95 border ${realtimeSyncStatus.borderColor} text-slate-100 z-50`}
                       side="top"
                       align="center"
                     >
                       <p className="text-sm">
-                        Confirms that your data is syncing live with the database. Ensures all bookings and updates are current.
+                        {realtimeSyncStatus.reason}. This ensures all bookings and updates are current and synchronized.
                       </p>
                     </TooltipContent>
                   </Tooltip>
