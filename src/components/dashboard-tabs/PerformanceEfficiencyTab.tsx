@@ -14,6 +14,26 @@ interface PerformanceEfficiencyTabProps {
   dateRange: DateRange;
 }
 
+// Helper function to generate dynamic period text for tooltips
+const getDynamicPeriodText = (dateRange: DateRange): string => {
+  if (!dateRange) return "in the selected period";
+  
+  switch (dateRange.preset) {
+    case 'last7days':
+      return "in the last 7 days";
+    case 'last30days':
+      return "in the last 30 days";
+    case 'last3months':
+      return "in the last 3 months";
+    case 'lastyear':
+      return "in the last year";
+    case 'custom':
+      return "in the selected period";
+    default:
+      return "in the selected period";
+  }
+};
+
 export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceEfficiencyTabProps) {
   // Add safety check for dateRange
   if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
@@ -75,6 +95,9 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
     return `${dateRange.label.toLowerCase()}`;
   };
 
+  // Get dynamic period text for tooltips
+  const periodText = getDynamicPeriodText(dateRange);
+
   return (
     <TooltipProvider>
       <div className="space-y-12">
@@ -107,7 +130,7 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Percentage of confirmed appointments where customers didn't show up in the last 30 days. Lower rates indicate better customer commitment and booking policies.</p>
+              <p className="text-sm">Percentage of confirmed appointments where customers didn't show up {periodText}. Lower rates indicate better customer commitment and booking policies.</p>
             </TooltipContent>
           </Tooltip>
 
@@ -138,7 +161,7 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Percentage of appointments that were cancelled by customers in the last 30 days. Tracks booking reliability and customer behavior patterns.</p>
+              <p className="text-sm">Percentage of appointments that were cancelled by customers {periodText}. Tracks booking reliability and customer behavior patterns.</p>
             </TooltipContent>
           </Tooltip>
 
@@ -169,7 +192,7 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Average customer rating based on post-appointment feedback and reviews over the last 30 days. Scale of 1-5 stars measuring service quality.</p>
+              <p className="text-sm">Average customer rating based on post-appointment feedback and reviews {periodText}. Scale of 1-5 stars measuring service quality.</p>
             </TooltipContent>
           </Tooltip>
 
@@ -200,7 +223,7 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Percentage of booking inquiries that successfully resulted in confirmed appointments in the last 30 days. Measures conversion efficiency.</p>
+              <p className="text-sm">Percentage of booking inquiries that successfully resulted in confirmed appointments {periodText}. Measures conversion efficiency.</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -228,7 +251,7 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
                       align="center"
                       sideOffset={8}
                     >
-                      <p className="text-sm">Visual breakdown of appointment volume throughout the day, showing busy periods in red/orange and quiet times in green. Helps optimize scheduling.</p>
+                      <p className="text-sm">Visual breakdown of appointment volume throughout the day {periodText}, showing busy periods in red/orange and quiet times in green. Helps optimize scheduling.</p>
                     </TooltipContent>
                   </Tooltip>
                 </h3>
