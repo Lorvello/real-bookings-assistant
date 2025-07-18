@@ -4,7 +4,7 @@ import { ConversationsList } from './ConversationsList';
 import { ConversationView } from './ConversationView';
 import { ContactSidebar } from './ContactSidebar';
 import { WhatsAppContactOverview } from './WhatsAppContactOverview';
-import { OrphanedConversationsManager } from './OrphanedConversationsManager';
+import { ConversationManagement } from './ConversationManagement';
 import { WebhookFlowDashboard } from '../webhooks/WebhookFlowDashboard';
 import { WebhookHealthMonitor } from '../webhooks/WebhookHealthMonitor';
 import { WhatsAppServiceStatus } from './WhatsAppServiceStatus';
@@ -58,7 +58,7 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
             </TabsTrigger>
           )}
           <TabsTrigger value="management">
-            Beheer
+            Gespreksbeheer
           </TabsTrigger>
         </TabsList>
         
@@ -103,7 +103,7 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
         
         <TabsContent value="management" className="mt-6">
           <div className="space-y-6">
-            <OrphanedConversationsManager />
+            <ConversationManagement />
           </div>
         </TabsContent>
       </Tabs>
