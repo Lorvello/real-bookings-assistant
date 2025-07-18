@@ -1,5 +1,5 @@
 
-export type DateRangePreset = 'last7days' | 'last30days' | 'last3months' | 'lastyear' | 'custom';
+export type DateRangePreset = 'last7days' | 'last30days' | 'last3months' | 'lastyear' | 'alltime' | 'custom';
 
 export interface DateRange {
   startDate: Date;
@@ -41,6 +41,13 @@ export const getPresetRange = (preset: DateRangePreset): DateRange => {
         preset,
         label: 'Last year'
       };
+    case 'alltime':
+      return {
+        startDate: new Date(2020, 0, 1), // Far back date to include all data
+        endDate,
+        preset,
+        label: 'All time'
+      };
     default:
       return {
         startDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
@@ -56,4 +63,5 @@ export const presetOptions = [
   { preset: 'last30days' as DateRangePreset, label: 'Last 30 days' },
   { preset: 'last3months' as DateRangePreset, label: 'Last 3 months' },
   { preset: 'lastyear' as DateRangePreset, label: 'Last year' },
+  { preset: 'alltime' as DateRangePreset, label: 'All time' },
 ];

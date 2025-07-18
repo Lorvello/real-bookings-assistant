@@ -63,15 +63,8 @@ export function useOptimizedPerformanceEfficiency(
       const historicalEmails = new Set(historicalBookings?.map(b => b.customer_email) || []);
       const returningCustomers = [...currentPeriodEmails].filter(email => historicalEmails.has(email)).length;
 
-      // Calculate total customers ever (all historical + current)
-      const { data: allHistoricalBookings } = await supabase
-        .from('bookings')
-        .select('customer_email')
-        .eq('calendar_id', calendarId)
-        .neq('status', 'cancelled');
-
-      const allCustomerEmails = new Set(allHistoricalBookings?.map(b => b.customer_email) || []);
-      const totalCustomers = allCustomerEmails.size;
+      // Calculate total customers for the selected period
+      const totalCustomers = currentPeriodEmails.size;
 
       // Calculate peak hours for confirmed bookings only
       const hourCounts = new Map();
