@@ -2,11 +2,12 @@
 import React from 'react';
 import { useOptimizedFutureInsights } from '@/hooks/dashboard/useOptimizedFutureInsights';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { TrendingUp, Calendar, Target, Brain } from 'lucide-react';
+import { TrendingUp, Calendar, Target, Brain, Info } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { DemandForecastChart } from './future-insights/DemandForecastChart';
 import { SeasonalPatternsChart } from './future-insights/SeasonalPatternsChart';
 import { IntelligentRecommendations } from './future-insights/IntelligentRecommendations';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FutureInsightsTabProps {
   calendarId: string;
@@ -42,85 +43,151 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
   }
 
   return (
-    <div className="space-y-12">
-      {/* Future Insights Metrics - Purple Theme */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard
-          title="Customer Growth"
-          value={`${futureInsights?.customer_growth_rate?.toFixed(1) || '0.0'}%`}
-          subtitle="month over month"
-          icon={TrendingUp}
-          variant="purple"
-          delay={0.1}
-        />
-
-        <MetricCard
-          title="Capacity Utilization"
-          value={`${futureInsights?.capacity_utilization?.toFixed(1) || '0.0'}%`}
-          subtitle="current week"
-          icon={Target}
-          variant="purple"
-          delay={0.2}
-        />
-
-        <MetricCard
-          title="AI Insights"
-          value={String(futureInsights?.demand_forecast?.length || 4)}
-          subtitle="recommendations ready"
-          icon={Brain}
-          variant="purple"
-          delay={0.3}
-        />
-
-        <MetricCard
-          title="Demand Forecast"
-          value={`+${((futureInsights?.demand_forecast?.[0]?.bookings || 0) * 0.15).toFixed(1)}%`}
-          subtitle="next week projection"
-          icon={Calendar}
-          variant="purple"
-          delay={0.4}
-        />
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* Demand Forecast Chart */}
-        <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
-            <DemandForecastChart data={futureInsights?.demand_forecast} />
-          </div>
-        </div>
-
-        {/* Seasonal Patterns Chart */}
-        <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
-            <SeasonalPatternsChart data={futureInsights?.seasonal_patterns} />
-          </div>
-        </div>
-      </div>
-
-      {/* AI-Powered Recommendations */}
-      <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-        <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
-          <div className="p-8">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl">
-                <Brain className="h-6 w-6 text-purple-400" />
+    <TooltipProvider>
+      <div className="space-y-12">
+        {/* Future Insights Metrics - Purple Theme */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative">
+                <MetricCard
+                  title="Customer Growth"
+                  value={`${futureInsights?.customer_growth_rate?.toFixed(1) || '0.0'}%`}
+                  subtitle="month over month"
+                  icon={TrendingUp}
+                  variant="purple"
+                  delay={0.1}
+                />
+                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors" />
               </div>
-              <h3 className="text-xl font-bold text-slate-100">AI-Powered Recommendations</h3>
-            </div>
-            
-            <IntelligentRecommendations 
-              customerGrowthRate={futureInsights?.customer_growth_rate}
-              demandForecast={futureInsights?.demand_forecast}
-              seasonalPatterns={futureInsights?.seasonal_patterns}
-            />
-          </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+              <p className="text-sm">Customer Growth Rate measures the percentage increase in new customers month-over-month. This indicates business expansion and marketing effectiveness through your WhatsApp booking assistant.</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative">
+                <MetricCard
+                  title="Capacity Utilization"
+                  value={`${futureInsights?.capacity_utilization?.toFixed(1) || '0.0'}%`}
+                  subtitle="current week"
+                  icon={Target}
+                  variant="purple"
+                  delay={0.2}
+                />
+                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+              <p className="text-sm">Capacity Utilization shows the percentage of available appointment slots that are currently booked this week. Higher percentages indicate efficient scheduling and strong demand.</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative">
+                <MetricCard
+                  title="AI Insights"
+                  value={String(futureInsights?.demand_forecast?.length || 4)}
+                  subtitle="recommendations ready"
+                  icon={Brain}
+                  variant="purple"
+                  delay={0.3}
+                />
+                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+              <p className="text-sm">AI-powered recommendations analyze your booking patterns, customer behavior, and performance data to suggest actionable business optimizations and growth opportunities.</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative">
+                <MetricCard
+                  title="Demand Forecast"
+                  value={`+${((futureInsights?.demand_forecast?.[0]?.bookings || 0) * 0.15).toFixed(1)}%`}
+                  subtitle="next week projection"
+                  icon={Calendar}
+                  variant="purple"
+                  delay={0.4}
+                />
+                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+              <p className="text-sm">Demand Forecast predicts next week's booking volume based on historical data, seasonal trends, and current booking patterns to help with resource planning.</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {/* Demand Forecast Chart */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
+                  <DemandForecastChart data={futureInsights?.demand_forecast} />
+                </div>
+                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors z-10" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+              <p className="text-sm">Weekly booking demand prediction based on historical patterns and current trends</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Seasonal Patterns Chart */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
+                  <SeasonalPatternsChart data={futureInsights?.seasonal_patterns} />
+                </div>
+                <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors z-10" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+              <p className="text-sm">Monthly booking volume trends throughout the year, helping identify peak periods and plan capacity</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* AI-Powered Recommendations */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
+                <div className="p-8">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="p-2 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl">
+                      <Brain className="h-6 w-6 text-purple-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-100">AI-Powered Recommendations</h3>
+                  </div>
+                  
+                  <IntelligentRecommendations 
+                    customerGrowthRate={futureInsights?.customer_growth_rate}
+                    demandForecast={futureInsights?.demand_forecast}
+                    seasonalPatterns={futureInsights?.seasonal_patterns}
+                  />
+                </div>
+              </div>
+              <Info className="absolute top-4 right-4 h-4 w-4 text-purple-400/60 hover:text-purple-400 transition-colors z-10" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100">
+            <p className="text-sm">Smart insights and actionable recommendations generated from your business data</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
