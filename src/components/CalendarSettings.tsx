@@ -49,7 +49,13 @@ export function CalendarSettings({
           <CardTitle className="text-foreground">Basic Settings</CardTitle>
         </CardHeader>
         <CardContent>
-          <CalendarBasicSettings settings={settings} onUpdate={updatePendingSettings} calendarName={selectedCalendar?.name} onUpdateCalendarName={updateCalendarName} />
+          <CalendarBasicSettings 
+            settings={settings} 
+            onUpdate={updatePendingSettings} 
+            calendarName={selectedCalendar?.name} 
+            onUpdateCalendarName={updateCalendarName} 
+            calendarId={calendarId}
+          />
         </CardContent>
       </Card>
 

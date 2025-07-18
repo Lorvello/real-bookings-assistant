@@ -6,20 +6,24 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Edit2, Check, X, Info } from 'lucide-react';
 import { CalendarSettings } from '@/types/database';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface CalendarBasicSettingsProps {
   settings: CalendarSettings;
   onUpdate: (updates: Partial<CalendarSettings>) => void;
   calendarName?: string;
   onUpdateCalendarName?: (name: string) => void;
+  calendarId?: string;
 }
 
 export function CalendarBasicSettings({ 
   settings, 
   onUpdate, 
   calendarName, 
-  onUpdateCalendarName 
+  onUpdateCalendarName,
+  calendarId 
 }: CalendarBasicSettingsProps) {
+  const queryClient = useQueryClient();
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(calendarName || '');
 
@@ -33,6 +37,20 @@ export function CalendarBasicSettings({
   const handleCancelEdit = () => {
     setTempName(calendarName || '');
     setIsEditingName(false);
+  };
+
+  const handleWhatsAppBotToggle = async (checked: boolean) => {
+    // Update the setting
+    onUpdate({ whatsapp_bot_active: checked });
+    
+    // Subtle refresh: invalidate relevant queries after a short delay
+    setTimeout(() => {
+      if (calendarId) {
+        queryClient.invalidateQueries({ queryKey: ['bot-status', calendarId] });
+        queryClient.invalidateQueries({ queryKey: ['optimized-live-operations', calendarId] });
+        queryClient.invalidateQueries({ queryKey: ['user-status'] });
+      }
+    }, 1500); // Wait for auto-save to complete
   };
 
   return (
@@ -119,7 +137,7 @@ export function CalendarBasicSettings({
           </div>
           <Switch
             checked={settings.whatsapp_bot_active ?? false}
-            onCheckedChange={(checked) => onUpdate({ whatsapp_bot_active: checked })}
+            onCheckedChange={handleWhatsAppBotToggle}
           />
         </div>
       </div>
