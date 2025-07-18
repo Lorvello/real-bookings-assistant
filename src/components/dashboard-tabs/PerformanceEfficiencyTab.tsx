@@ -80,141 +80,129 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
       <div className="space-y-12">
         {/* Operational Performance Metrics - Blue Theme */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <MetricCard
-              title={
-                <div className="flex items-center gap-2">
-                  <span>No-Show Rate</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="cursor-help">
-                        <Info className="h-4 w-4 text-slate-400 hover:text-slate-300 transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent 
-                      className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
-                      sideOffset={5}
-                    >
-                      <p className="text-sm leading-relaxed">
-                        Percentage of confirmed appointments where customers didn't show up in the last 30 days. Lower rates indicate better customer commitment and booking policies.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="relative"
+              >
+                <MetricCard
+                  title="No-Show Rate"
+                  value={`${performance?.no_show_rate?.toFixed(1) || '0.0'}%`}
+                  subtitle={getMetricSubtitle('operational efficiency')}
+                  icon={AlertTriangle}
+                  variant="blue"
+                  delay={0.1}
+                />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
-              }
-              value={`${performance?.no_show_rate?.toFixed(1) || '0.0'}%`}
-              subtitle={getMetricSubtitle('operational efficiency')}
-              icon={AlertTriangle}
-              variant="blue"
-              delay={0.1}
-            />
-          </motion.div>
+              </motion.div>
+            </TooltipTrigger>
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
+              <p className="text-sm">Percentage of confirmed appointments where customers didn't show up in the last 30 days. Lower rates indicate better customer commitment and booking policies.</p>
+            </TooltipContent>
+          </Tooltip>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            <MetricCard
-              title={
-                <div className="flex items-center gap-2">
-                  <span>Cancellation Rate</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="cursor-help">
-                        <Info className="h-4 w-4 text-slate-400 hover:text-slate-300 transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent 
-                      className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
-                      sideOffset={5}
-                    >
-                      <p className="text-sm leading-relaxed">
-                        Percentage of appointments that were cancelled by customers in the last 30 days. Tracks booking reliability and customer behavior patterns.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                className="relative"
+              >
+                <MetricCard
+                  title="Cancellation Rate"
+                  value={`${performance?.cancellation_rate?.toFixed(1) || '0.0'}%`}
+                  subtitle={getMetricSubtitle('booking reliability')}
+                  icon={XCircle}
+                  variant="blue"
+                  delay={0.2}
+                />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
-              }
-              value={`${performance?.cancellation_rate?.toFixed(1) || '0.0'}%`}
-              subtitle={getMetricSubtitle('booking reliability')}
-              icon={XCircle}
-              variant="blue"
-              delay={0.2}
-            />
-          </motion.div>
+              </motion.div>
+            </TooltipTrigger>
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
+              <p className="text-sm">Percentage of appointments that were cancelled by customers in the last 30 days. Tracks booking reliability and customer behavior patterns.</p>
+            </TooltipContent>
+          </Tooltip>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-          >
-            <MetricCard
-              title={
-                <div className="flex items-center gap-2">
-                  <span>Customer Satisfaction</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="cursor-help">
-                        <Info className="h-4 w-4 text-slate-400 hover:text-slate-300 transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent 
-                      className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
-                      sideOffset={5}
-                    >
-                      <p className="text-sm leading-relaxed">
-                        Average customer rating based on post-appointment feedback and reviews over the last 30 days. Scale of 1-5 stars measuring service quality.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+                className="relative"
+              >
+                <MetricCard
+                  title="Customer Satisfaction"
+                  value={`${performance?.customer_satisfaction_score?.toFixed(1) || '0.0'}/5`}
+                  subtitle={getMetricSubtitle('service quality')}
+                  icon={Star}
+                  variant="blue"
+                  delay={0.3}
+                />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
-              }
-              value={`${performance?.customer_satisfaction_score?.toFixed(1) || '0.0'}/5`}
-              subtitle={getMetricSubtitle('service quality')}
-              icon={Star}
-              variant="blue"
-              delay={0.3}
-            />
-          </motion.div>
+              </motion.div>
+            </TooltipTrigger>
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
+              <p className="text-sm">Average customer rating based on post-appointment feedback and reviews over the last 30 days. Scale of 1-5 stars measuring service quality.</p>
+            </TooltipContent>
+          </Tooltip>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.4 }}
-          >
-            <MetricCard
-              title={
-                <div className="flex items-center gap-2">
-                  <span>Booking Completion</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="cursor-help">
-                        <Info className="h-4 w-4 text-slate-400 hover:text-slate-300 transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent 
-                      className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
-                      sideOffset={5}
-                    >
-                      <p className="text-sm leading-relaxed">
-                        Percentage of booking inquiries that successfully resulted in confirmed appointments in the last 30 days. Measures conversion efficiency.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+                className="relative"
+              >
+                <MetricCard
+                  title="Booking Completion"
+                  value={`${performance?.booking_completion_rate?.toFixed(1) || '0.0'}%`}
+                  subtitle={getMetricSubtitle('success rate')}
+                  icon={CheckCircle}
+                  variant="blue"
+                  delay={0.4}
+                />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
-              }
-              value={`${performance?.booking_completion_rate?.toFixed(1) || '0.0'}%`}
-              subtitle={getMetricSubtitle('success rate')}
-              icon={CheckCircle}
-              variant="blue"
-              delay={0.4}
-            />
-          </motion.div>
+              </motion.div>
+            </TooltipTrigger>
+            <TooltipContent 
+              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              side="top"
+              align="center"
+              sideOffset={8}
+            >
+              <p className="text-sm">Percentage of booking inquiries that successfully resulted in confirmed appointments in the last 30 days. Measures conversion efficiency.</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Enhanced Peak Hours Chart */}
@@ -230,17 +218,17 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
                   Peak Hours Analysis
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="cursor-help">
-                        <Info className="h-4 w-4 text-slate-400 hover:text-slate-300 transition-colors" />
+                      <div className="cursor-help p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                        <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent 
-                      className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
-                      sideOffset={5}
+                      className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+                      side="top"
+                      align="center"
+                      sideOffset={8}
                     >
-                      <p className="text-sm leading-relaxed">
-                        Visual breakdown of appointment volume throughout the day, showing busy periods in red/orange and quiet times in green. Helps optimize scheduling.
-                      </p>
+                      <p className="text-sm">Visual breakdown of appointment volume throughout the day, showing busy periods in red/orange and quiet times in green. Helps optimize scheduling.</p>
                     </TooltipContent>
                   </Tooltip>
                 </h3>

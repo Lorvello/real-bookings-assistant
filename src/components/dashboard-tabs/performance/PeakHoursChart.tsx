@@ -168,17 +168,17 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
                       Busiest time
                       <UITooltip>
                         <TooltipTrigger asChild>
-                          <div className="cursor-help">
-                            <Info className="h-3 w-3 text-slate-400 hover:text-slate-300 transition-colors" />
+                          <div className="cursor-help p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                            <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                           </div>
                         </TooltipTrigger>
                         <TooltipContent 
-                          className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
-                          sideOffset={5}
+                          className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+                          side="top"
+                          align="center"
+                          sideOffset={8}
                         >
-                          <p className="text-sm leading-relaxed">
-                            The hour of the day with the highest number of appointments. Shows your peak demand period for optimal staffing.
-                          </p>
+                          <p className="text-sm">The hour of the day with the highest number of appointments. Shows your peak demand period for optimal staffing.</p>
                         </TooltipContent>
                       </UITooltip>
                     </span>
@@ -194,17 +194,17 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
                       Quiet times
                       <UITooltip>
                         <TooltipTrigger asChild>
-                          <div className="cursor-help">
-                            <Info className="h-3 w-3 text-slate-400 hover:text-slate-300 transition-colors" />
+                          <div className="cursor-help p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                            <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                           </div>
                         </TooltipTrigger>
                         <TooltipContent 
-                          className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
-                          sideOffset={5}
+                          className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+                          side="top"
+                          align="center"
+                          sideOffset={8}
                         >
-                          <p className="text-sm leading-relaxed">
-                            Number of hours per day with no scheduled appointments. Indicates available capacity and potential growth opportunities.
-                          </p>
+                          <p className="text-sm">Number of hours per day with no scheduled appointments. Indicates available capacity and potential growth opportunities.</p>
                         </TooltipContent>
                       </UITooltip>
                     </span>
@@ -220,17 +220,17 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
                       Average per hour
                       <UITooltip>
                         <TooltipTrigger asChild>
-                          <div className="cursor-help">
-                            <Info className="h-3 w-3 text-slate-400 hover:text-slate-300 transition-colors" />
+                          <div className="cursor-help p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                            <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                           </div>
                         </TooltipTrigger>
                         <TooltipContent 
-                          className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
-                          sideOffset={5}
+                          className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+                          side="top"
+                          align="center"
+                          sideOffset={8}
                         >
-                          <p className="text-sm leading-relaxed">
-                            Average number of appointments per operating hour. Measures overall calendar efficiency and utilization.
-                          </p>
+                          <p className="text-sm">Average number of appointments per operating hour. Measures overall calendar efficiency and utilization.</p>
                         </TooltipContent>
                       </UITooltip>
                     </span>
