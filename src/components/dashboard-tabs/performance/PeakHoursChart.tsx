@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
-import { Activity, Clock, Users } from 'lucide-react';
+import { Activity, Clock, Users, Info } from 'lucide-react';
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface PeakHoursData {
   hour: number;
@@ -94,101 +95,154 @@ export function PeakHoursChart({ data, isLoading }: PeakHoursChartProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Legend at the top */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#64748B' }}></div>
-          <span className="text-slate-300">No bookings</span>
+    <TooltipProvider>
+      <div className="space-y-6">
+        {/* Legend at the top */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#64748B' }}></div>
+            <span className="text-slate-300">No bookings</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#10B981' }}></div>
+            <span className="text-slate-300">Very quiet</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#22C55E' }}></div>
+            <span className="text-slate-300">Quiet</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#EAB308' }}></div>
+            <span className="text-slate-300">Moderate</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#F97316' }}></div>
+            <span className="text-slate-300">Busy</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#10B981' }}></div>
-          <span className="text-slate-300">Very quiet</span>
+
+        {/* Chart */}
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={completeHourData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+              <XAxis 
+                dataKey="display_label" 
+                stroke="#94A3B8"
+                fontSize={11}
+                tick={{ fill: '#94A3B8' }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis 
+                stroke="#94A3B8" 
+                fontSize={12}
+                tick={{ fill: '#94A3B8' }}
+                label={{ value: 'Number of appointments', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#94A3B8' } }}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="bookings" radius={[4, 4, 0, 0]}>
+                {completeHourData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={getBarColor(entry.bookings)} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#22C55E' }}></div>
-          <span className="text-slate-300">Quiet</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#EAB308' }}></div>
-          <span className="text-slate-300">Moderate</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: '#F97316' }}></div>
-          <span className="text-slate-300">Busy</span>
+
+        {/* Quick insights at the bottom */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          {(() => {
+            const sortedHours = [...completeHourData].sort((a, b) => b.bookings - a.bookings);
+            const busiestHour = sortedHours[0];
+            const quietestHours = completeHourData.filter(h => h.bookings === 0);
+            const averageBookings = completeHourData.reduce((sum, h) => sum + h.bookings, 0) / completeHourData.length;
+
+            return (
+              <>
+                <div className="bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-slate-200 flex items-center gap-1">
+                      Busiest time
+                      <UITooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-help">
+                            <Info className="h-3 w-3 text-slate-400 hover:text-slate-300 transition-colors" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent 
+                          className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
+                          sideOffset={5}
+                        >
+                          <p className="text-sm leading-relaxed">
+                            The hour of the day with the highest number of appointments. Shows your peak demand period for optimal staffing.
+                          </p>
+                        </TooltipContent>
+                      </UITooltip>
+                    </span>
+                  </div>
+                  <p className="text-lg font-bold text-slate-100">{busiestHour.display_label}</p>
+                  <p className="text-sm text-slate-300">{busiestHour.bookings} appointments</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-slate-200 flex items-center gap-1">
+                      Quiet times
+                      <UITooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-help">
+                            <Info className="h-3 w-3 text-slate-400 hover:text-slate-300 transition-colors" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent 
+                          className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
+                          sideOffset={5}
+                        >
+                          <p className="text-sm leading-relaxed">
+                            Number of hours per day with no scheduled appointments. Indicates available capacity and potential growth opportunities.
+                          </p>
+                        </TooltipContent>
+                      </UITooltip>
+                    </span>
+                  </div>
+                  <p className="text-lg font-bold text-slate-100">{quietestHours.length} hours</p>
+                  <p className="text-sm text-slate-300">Without appointments</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-slate-200 flex items-center gap-1">
+                      Average per hour
+                      <UITooltip>
+                        <TooltipTrigger asChild>
+                          <div className="cursor-help">
+                            <Info className="h-3 w-3 text-slate-400 hover:text-slate-300 transition-colors" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent 
+                          className="max-w-xs bg-slate-900/95 border border-slate-700 text-slate-100 p-3 rounded-lg shadow-xl z-50"
+                          sideOffset={5}
+                        >
+                          <p className="text-sm leading-relaxed">
+                            Average number of appointments per operating hour. Measures overall calendar efficiency and utilization.
+                          </p>
+                        </TooltipContent>
+                      </UITooltip>
+                    </span>
+                  </div>
+                  <p className="text-lg font-bold text-slate-100">{averageBookings.toFixed(1)}</p>
+                  <p className="text-sm text-slate-300">appointments</p>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
-
-      {/* Chart */}
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={completeHourData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
-            <XAxis 
-              dataKey="display_label" 
-              stroke="#94A3B8"
-              fontSize={11}
-              tick={{ fill: '#94A3B8' }}
-              angle={-45}
-              textAnchor="end"
-              height={60}
-            />
-            <YAxis 
-              stroke="#94A3B8" 
-              fontSize={12}
-              tick={{ fill: '#94A3B8' }}
-              label={{ value: 'Number of appointments', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#94A3B8' } }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="bookings" radius={[4, 4, 0, 0]}>
-              {completeHourData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={getBarColor(entry.bookings)} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Quick insights at the bottom */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        {(() => {
-          const sortedHours = [...completeHourData].sort((a, b) => b.bookings - a.bookings);
-          const busiestHour = sortedHours[0];
-          const quietestHours = completeHourData.filter(h => h.bookings === 0);
-          const averageBookings = completeHourData.reduce((sum, h) => sum + h.bookings, 0) / completeHourData.length;
-
-          return (
-            <>
-              <div className="bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-slate-200">Busiest time</span>
-                </div>
-                <p className="text-lg font-bold text-slate-100">{busiestHour.display_label}</p>
-                <p className="text-sm text-slate-300">{busiestHour.bookings} appointments</p>
-              </div>
-
-              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-slate-200">Quiet times</span>
-                </div>
-                <p className="text-lg font-bold text-slate-100">{quietestHours.length} hours</p>
-                <p className="text-sm text-slate-300">Without appointments</p>
-              </div>
-
-              <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-slate-200">Average per hour</span>
-                </div>
-                <p className="text-lg font-bold text-slate-100">{averageBookings.toFixed(1)}</p>
-                <p className="text-sm text-slate-300">appointments</p>
-              </div>
-            </>
-          );
-        })()}
-      </div>
-    </div>
+    </TooltipProvider>
   );
 }

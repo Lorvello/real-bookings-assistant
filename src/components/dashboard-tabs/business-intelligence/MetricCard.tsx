@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
 
 interface MetricCardProps {
-  title: string;
+  title: string | React.ReactNode;
   value: string;
   subtitle: string;
   icon: LucideIcon;
@@ -83,7 +83,7 @@ export function MetricCard({
         {/* Header with title and icon */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
-            <p className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-1">{title}</p>
+            <div className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-1">{title}</div>
           </div>
           <div className={`w-12 h-12 bg-gradient-to-br ${colors.iconBgFrom} ${colors.iconBgTo} rounded-xl flex items-center justify-center shadow-lg`}>
             <Icon className={`h-6 w-6 ${colors.iconColor}`} />
