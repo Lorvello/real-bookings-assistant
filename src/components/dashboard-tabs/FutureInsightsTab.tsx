@@ -47,7 +47,7 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
     <TooltipProvider>
       <div className="space-y-12">
         {/* Future Insights Metrics - Purple Theme */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div 
@@ -119,43 +119,12 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                 className="relative"
               >
                 <MetricCard
-                  title="AI Insights"
-                  value={String(futureInsights?.demand_forecast?.length || 4)}
-                  subtitle="recommendations ready"
-                  icon={Brain}
-                  variant="purple"
-                  delay={0.3}
-                />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
-                </div>
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
-              side="top"
-              align="center"
-              sideOffset={8}
-            >
-              <p className="text-sm">AI-powered recommendations analyze your booking patterns, customer behavior, and performance data to suggest actionable business optimizations and growth opportunities.</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="relative"
-              >
-                <MetricCard
                   title="Demand Forecast"
                   value={`+${((futureInsights?.demand_forecast?.[0]?.bookings || 0) * 0.15).toFixed(1)}%`}
                   subtitle="next week projection"
                   icon={Calendar}
                   variant="purple"
-                  delay={0.4}
+                  delay={0.3}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
@@ -237,7 +206,9 @@ export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
                   </div>
                   
                   <IntelligentRecommendations 
+                    calendarId={calendarId}
                     customerGrowthRate={futureInsights?.customer_growth_rate}
+                    capacityUtilization={futureInsights?.capacity_utilization}
                     demandForecast={futureInsights?.demand_forecast}
                     seasonalPatterns={futureInsights?.seasonal_patterns}
                   />

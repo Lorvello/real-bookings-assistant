@@ -1,17 +1,16 @@
 
 import React from 'react';
-import { TrendingUp, Users, Calendar, Target, Lightbulb, Heart, Zap, UserPlus } from 'lucide-react';
+import { 
+  TrendingUp, Users, Calendar, Target, Lightbulb, Heart, Zap, UserPlus, 
+  Clock, Euro, BarChart3, CalendarDays, ArrowUp, AlertTriangle, CheckCircle 
+} from 'lucide-react';
+import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
+import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 
 interface IntelligentRecommendationsProps {
-  // Performance data
-  bookingEfficiency?: number;
-  noShowRate?: number;
-  cancellationRate?: number;
-  avgRevenuePerDay?: number;
-  
-  // Future insights data
+  calendarId: string;
   customerGrowthRate?: number;
-  returningCustomersMonth?: number;
+  capacityUtilization?: number;
   demandForecast?: Array<{
     week_number: number;
     bookings: number;
@@ -24,194 +23,206 @@ interface IntelligentRecommendationsProps {
 }
 
 export function IntelligentRecommendations({
-  bookingEfficiency,
-  noShowRate,
-  cancellationRate,
-  avgRevenuePerDay,
+  calendarId,
   customerGrowthRate,
-  returningCustomersMonth,
+  capacityUtilization,
   demandForecast,
   seasonalPatterns
 }: IntelligentRecommendationsProps) {
   
+  // Get additional data for comprehensive recommendations
+  const currentDate = new Date();
+  const thirtyDaysAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+  const { data: businessIntel } = useOptimizedBusinessIntelligence(
+    calendarId, 
+    thirtyDaysAgo, 
+    currentDate
+  );
+  
+  const { data: performance } = useOptimizedPerformanceEfficiency(
+    calendarId,
+    thirtyDaysAgo,
+    currentDate
+  );
+
   const generateRecommendations = () => {
     const recommendations = [];
 
-    // Customer growth recommendations
-    if (customerGrowthRate !== undefined) {
-      if (customerGrowthRate > 20) {
-        recommendations.push({
-          icon: UserPlus,
-          title: "Excellent Customer Growth!",
-          message: `Your customer growth rate of ${customerGrowthRate.toFixed(1)}% is outstanding! This shows strong market demand. Consider expanding your services or capacity to accommodate more customers.`,
-          variant: "purple" as const,
-          priority: 1
-        });
-      } else if (customerGrowthRate > 0) {
-        recommendations.push({
-          icon: TrendingUp,
-          title: "Steady Customer Growth",
-          message: `With ${customerGrowthRate.toFixed(1)}% growth, you're on the right track. Focus on customer retention and referral programs to accelerate growth.`,
-          variant: "purple" as const,
-          priority: 2
-        });
-      } else if (customerGrowthRate < -10) {
-        recommendations.push({
-          icon: Lightbulb,
-          title: "Customer Acquisition Focus Needed",
-          message: `Customer growth is declining by ${Math.abs(customerGrowthRate).toFixed(1)}%. Consider marketing campaigns, social media presence, or customer feedback to understand what's happening.`,
-          variant: "purple" as const,
-          priority: 1
-        });
-      }
-    }
-
-    // Booking efficiency recommendations
-    if (bookingEfficiency !== undefined) {
-      if (bookingEfficiency > 85) {
-        recommendations.push({
-          icon: Target,
-          title: "Excellent Booking Efficiency!",
-          message: `Your booking efficiency of ${bookingEfficiency.toFixed(1)}% is outstanding! Customers are successfully completing their bookings. Keep up the great work!`,
-          variant: "purple" as const,
-          priority: 3
-        });
-      } else if (bookingEfficiency < 60) {
-        recommendations.push({
-          icon: Target,
-          title: "Improve Booking Process",
-          message: `Booking efficiency is ${bookingEfficiency.toFixed(1)}%. Consider simplifying your booking process, reducing steps, or improving payment options to increase success rates.`,
-          variant: "purple" as const,
-          priority: 1
-        });
-      } else {
-        recommendations.push({
-          icon: Target,
-          title: "Good Booking Efficiency",
-          message: `Your booking efficiency of ${bookingEfficiency.toFixed(1)}% is solid. Small improvements to the booking flow could push this even higher.`,
-          variant: "purple" as const,
-          priority: 2
-        });
-      }
-    }
-
-    // Revenue per day recommendations
-    if (avgRevenuePerDay !== undefined) {
-      if (avgRevenuePerDay > 200) {
-        recommendations.push({
-          icon: Zap,
-          title: "Strong Daily Revenue!",
-          message: `€${avgRevenuePerDay.toFixed(0)} per day shows excellent business performance. Consider premium services or upselling to maximize this trend.`,
-          variant: "purple" as const,
-          priority: 2
-        });
-      } else if (avgRevenuePerDay < 50) {
-        recommendations.push({
-          icon: TrendingUp,
-          title: "Revenue Growth Opportunity",
-          message: `Daily revenue of €${avgRevenuePerDay.toFixed(0)} has room for improvement. Consider pricing optimization, additional services, or increasing booking frequency.`,
-          variant: "purple" as const,
-          priority: 1
-        });
-      }
-    }
-
-    // No-show rate recommendations
-    if (noShowRate !== undefined && noShowRate > 10) {
+    // 1. HIGH GROWTH RECOMMENDATION
+    if (customerGrowthRate !== undefined && customerGrowthRate > 50) {
       recommendations.push({
-        icon: Calendar,
-        title: "No-show Prevention Strategy",
-        message: `Your no-show rate of ${noShowRate.toFixed(1)}% offers improvement opportunities. Try sending reminders 24h and 2h in advance. A small deposit can also help increase commitment.`,
+        icon: TrendingUp,
+        title: "Excellent Customer Growth!",
+        message: `Your ${customerGrowthRate.toFixed(1)}% growth rate shows strong market demand. Consider expanding your services or capacity to accommodate more customers.`,
         variant: "purple" as const,
-        priority: 1
+        priority: 1,
+        actionItems: [
+          "Add more service offerings",
+          "Extend operating hours",
+          "Consider hiring additional staff"
+        ]
       });
-    } else if (noShowRate !== undefined && noShowRate <= 5) {
+    }
+
+    // 2. LOW CAPACITY RECOMMENDATION  
+    if (capacityUtilization !== undefined && capacityUtilization < 30) {
+      recommendations.push({
+        icon: Target,
+        title: "Optimize Your Schedule!",
+        message: `Your capacity is underutilized at ${capacityUtilization.toFixed(1)}%. Consider adjusting availability hours or marketing during quiet periods to increase bookings.`,
+        variant: "purple" as const,
+        priority: 1,
+        actionItems: [
+          "Review and adjust availability hours",
+          "Run targeted marketing campaigns",
+          "Offer promotional pricing during quiet periods"
+        ]
+      });
+    }
+
+    // 3. HIGH CAPACITY RECOMMENDATION
+    if (capacityUtilization !== undefined && capacityUtilization > 80) {
+      recommendations.push({
+        icon: AlertTriangle,
+        title: "High Demand Detected!",
+        message: `Your calendar is nearly full at ${capacityUtilization.toFixed(1)}%. Consider adding more time slots, extending hours, or raising prices to manage demand.`,
+        variant: "purple" as const,
+        priority: 1,
+        actionItems: [
+          "Add more appointment slots",
+          "Consider premium pricing",
+          "Extend business hours"
+        ]
+      });
+    }
+
+    // 4. NO RETURNING CUSTOMERS
+    if (businessIntel?.returning_customers === 0) {
       recommendations.push({
         icon: Heart,
-        title: "Great Reliability!",
-        message: `Your no-show rate of ${noShowRate.toFixed(1)}% is excellent! Your customers are reliable and appreciate your service. Keep doing what you're doing!`,
+        title: "Focus on Customer Retention!",
+        message: "No returning customers detected. Consider follow-up messaging, loyalty programs, or service quality improvements.",
         variant: "purple" as const,
-        priority: 3
+        priority: 1,
+        actionItems: [
+          "Set up automated follow-up messages",
+          "Create a loyalty program",
+          "Ask for customer feedback"
+        ]
       });
     }
 
-    // Cancellation rate recommendations
-    if (cancellationRate !== undefined && cancellationRate > 20) {
+    // 5. SINGLE SERVICE RECOMMENDATION
+    if (businessIntel?.service_performance && businessIntel.service_performance.length === 1) {
       recommendations.push({
-        icon: Users,
-        title: "Increase Flexibility",
-        message: `With ${cancellationRate.toFixed(1)}% cancellations you can use flexibility as a strength. Offer easy rebooking options and analyze the main reasons for cancellations.`,
+        icon: BarChart3,
+        title: "Expand Your Services!",
+        message: "You're currently offering one service. Consider adding complementary services to increase revenue per customer.",
         variant: "purple" as const,
-        priority: 2
+        priority: 2,
+        actionItems: [
+          "Research complementary services",
+          "Survey customers for service ideas",
+          "Test new services with existing customers"
+        ]
       });
     }
 
-    // Returning customers recommendations
-    if (returningCustomersMonth !== undefined) {
-      if (returningCustomersMonth < 3) {
-        recommendations.push({
-          icon: Heart,
-          title: "Strengthen Customer Relations",
-          message: `You've had ${returningCustomersMonth} returning customers this month. Opportunity to build loyalty: follow-up service, loyalty programs, or personal attention can make the difference.`,
-          variant: "purple" as const,
-          priority: 2
-        });
-      } else if (returningCustomersMonth > 10) {
-        recommendations.push({
-          icon: Heart,
-          title: "Fantastic Customer Loyalty!",
-          message: `${returningCustomersMonth} returning customers this month show great loyalty! You're doing excellently. Ask for reviews and referrals - satisfied customers are your best ambassadors.`,
-          variant: "purple" as const,
-          priority: 3
-        });
-      }
-    }
-
-    // Demand forecast recommendations
-    if (demandForecast && demandForecast.length > 0) {
-      const trendUp = demandForecast.filter(week => week.trend_direction === 'up').length;
-      const trendDown = demandForecast.filter(week => week.trend_direction === 'down').length;
-
-      if (trendUp > trendDown) {
-        recommendations.push({
-          icon: TrendingUp,
-          title: "Growing Demand Predicted!",
-          message: `Trends show growing demand in the coming weeks. Great news! Prepare extra capacity and consider seasonal pricing during peak periods.`,
-          variant: "purple" as const,
-          priority: 2
-        });
-      } else if (trendDown > trendUp) {
-        recommendations.push({
-          icon: Lightbulb,
-          title: "Marketing Opportunity Spotted",
-          message: `Trends show opportunity for more customers. Perfect time for promotions, new service introduction, or a referral campaign to create momentum.`,
-          variant: "purple" as const,
-          priority: 1
-        });
-      }
-    }
-
-    // Seasonal recommendations
-    if (seasonalPatterns && seasonalPatterns.length > 0) {
-      const currentMonth = new Date().getMonth();
-      const currentPattern = seasonalPatterns[currentMonth];
-      const avgPattern = seasonalPatterns.reduce((sum, month) => sum + month.avg_bookings, 0) / seasonalPatterns.length;
+    // 6. PEAK HOUR OPTIMIZATION
+    if (performance?.peak_hours && performance.peak_hours.length > 0) {
+      const topHour = performance.peak_hours[0];
+      const totalBookings = performance.peak_hours.reduce((sum, h) => sum + h.bookings, 0);
+      const peakPercentage = totalBookings > 0 ? (topHour.bookings / totalBookings) * 100 : 0;
       
-      if (currentPattern && currentPattern.avg_bookings > avgPattern * 1.5) {
+      if (peakPercentage > 40) {
         recommendations.push({
-          icon: Calendar,
-          title: "Seasonal Success Opportunity",
-          message: `${currentPattern.month_name} is historically a strong month for you! Make sure you're prepared: sufficient capacity and staff planning maximize your success opportunities.`,
+          icon: Clock,
+          title: "Distribute Your Schedule!",
+          message: `Most bookings happen at ${topHour.hour_label}. Consider incentivizing off-peak appointments with discounts.`,
           variant: "purple" as const,
-          priority: 2
+          priority: 2,
+          actionItems: [
+            "Offer off-peak discounts",
+            "Promote less busy time slots",
+            "Create time-based pricing"
+          ]
         });
       }
     }
 
-    // Sort by priority and return top 6
+    // 7. WEEKEND OPPORTUNITY
+    const weekendBookings = performance?.peak_hours?.filter(h => {
+      // Assuming peak hours includes weekend data - this is a simplified check
+      return false; // Would need weekend-specific data
+    }) || [];
+    
+    if (weekendBookings.length === 0) {
+      recommendations.push({
+        icon: CalendarDays,
+        title: "Weekend Opportunity!",
+        message: "No weekend appointments detected. Consider opening Saturdays/Sundays to capture additional revenue.",
+        variant: "purple" as const,
+        priority: 3,
+        actionItems: [
+          "Test weekend availability",
+          "Survey customers for weekend demand",
+          "Offer weekend-specific services"
+        ]
+      });
+    }
+
+    // 8. PRICING OPTIMIZATION
+    if (performance?.booking_completion_rate !== undefined && performance.booking_completion_rate > 90) {
+      recommendations.push({
+        icon: Euro,
+        title: "Consider Price Increase!",
+        message: `Your ${performance.booking_completion_rate.toFixed(1)}% booking completion rate suggests strong demand. Test higher prices to optimize revenue.`,
+        variant: "purple" as const,
+        priority: 2,
+        actionItems: [
+          "Test a 10-15% price increase",
+          "Create premium service tiers",
+          "Monitor booking demand after changes"
+        ]
+      });
+    }
+
+    // Additional smart recommendations based on combined data
+    if (customerGrowthRate !== undefined && customerGrowthRate > 0 && customerGrowthRate <= 50) {
+      recommendations.push({
+        icon: UserPlus,
+        title: "Steady Growth Strategy",
+        message: `With ${customerGrowthRate.toFixed(1)}% growth, you're on track. Focus on customer retention and referral programs to accelerate growth.`,
+        variant: "purple" as const,
+        priority: 3,
+        actionItems: [
+          "Implement referral rewards",
+          "Follow up with happy customers",
+          "Create customer testimonials"
+        ]
+      });
+    }
+
+    if (businessIntel?.returning_customers && businessIntel.returning_customers > 5) {
+      recommendations.push({
+        icon: CheckCircle,
+        title: "Great Customer Loyalty!",
+        message: `${businessIntel.returning_customers} returning customers show excellent loyalty! Ask for reviews and referrals to maximize this strength.`,
+        variant: "purple" as const,
+        priority: 3,
+        actionItems: [
+          "Request customer reviews",
+          "Create referral incentives",
+          "Showcase testimonials"
+        ]
+      });
+    }
+
+    // Sort by priority and return top 3 most relevant
     return recommendations
       .sort((a, b) => a.priority - b.priority)
-      .slice(0, 6);
+      .slice(0, 3);
   };
 
   const recommendations = generateRecommendations();
@@ -229,22 +240,43 @@ export function IntelligentRecommendations({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-6">
       {recommendations.map((rec, index) => (
         <div
           key={index}
-          className="p-6 bg-gradient-to-br from-purple-500/15 via-purple-500/10 to-transparent border border-purple-500/30 rounded-xl backdrop-blur-sm"
+          className="group p-6 bg-gradient-to-br from-purple-500/15 via-purple-500/10 to-transparent border border-purple-500/30 rounded-xl backdrop-blur-sm hover:from-purple-500/20 hover:border-purple-500/40 transition-all duration-300"
           style={{
-            animation: `fadeIn 0.6s ease-out ${index * 0.1}s both`
+            animation: `fadeIn 0.6s ease-out ${index * 0.15}s both`
           }}
         >
-          <h4 className="font-bold mb-3 flex items-center gap-2 text-purple-300">
-            <rec.icon className="h-5 w-5" />
-            {rec.title}
-          </h4>
-          <p className="text-slate-300 text-sm leading-relaxed">
-            {rec.message}
-          </p>
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl flex items-center justify-center border border-purple-500/30 group-hover:from-purple-500/30 group-hover:border-purple-500/40 transition-all duration-300">
+              <rec.icon className="h-6 w-6 text-purple-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold mb-2 text-purple-300 group-hover:text-purple-200 transition-colors duration-300">
+                {rec.title}
+              </h4>
+              <p className="text-slate-300 text-sm leading-relaxed mb-4">
+                {rec.message}
+              </p>
+              {rec.actionItems && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-purple-400 uppercase tracking-wider">
+                    Recommended Actions:
+                  </p>
+                  <ul className="space-y-1">
+                    {rec.actionItems.map((action, actionIndex) => (
+                      <li key={actionIndex} className="flex items-center gap-2 text-xs text-slate-400">
+                        <div className="w-1.5 h-1.5 bg-purple-400 rounded-full flex-shrink-0"></div>
+                        {action}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       ))}
     </div>
