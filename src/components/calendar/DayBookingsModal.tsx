@@ -93,21 +93,19 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
   const modalContent = (
     <div 
       data-popup="true"
-      className="absolute z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg backdrop-blur-sm shadow-2xl"
+      className="absolute z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg backdrop-blur-sm shadow-2xl min-w-[240px] max-w-[280px] sm:min-w-[280px] sm:max-w-[320px]"
       style={{
         left: `${position?.x || 0}px`,
         top: `${position?.y || 0}px`,
         transform: 'translateX(-50%) translateY(-100%)',
-        minWidth: '280px',
-        maxWidth: '320px',
       }}
     >
       {!showDetail ? (
         <>
           {/* Header */}
-          <div className="p-3 border-b border-slate-700/50">
+          <div className="p-2 sm:p-3 border-b border-slate-700/50">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-xs sm:text-sm font-semibold text-white">
                 {format(date, 'EEE d MMM', { locale: enUS })}
               </h3>
               <button
@@ -120,20 +118,20 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
           </div>
 
           {/* Content */}
-          <div className="p-3 max-h-64 overflow-y-auto">
+          <div className="p-2 sm:p-3 max-h-48 sm:max-h-64 overflow-y-auto">
             {sortedBookings.length === 0 ? (
-              <div className="text-center py-4 text-slate-400 text-xs">
+              <div className="text-center py-3 sm:py-4 text-slate-400 text-xs">
                 No appointments
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5 sm:space-y-2">
                 {sortedBookings.map((booking) => (
                   <div
                     key={booking.id}
-                    className="p-2 rounded-md border border-slate-700/30 bg-slate-800/30 hover:bg-slate-700/50 transition-colors cursor-pointer"
+                    className="p-1.5 sm:p-2 rounded-md border border-slate-700/30 bg-slate-800/30 hover:bg-slate-700/50 transition-colors cursor-pointer"
                     onClick={() => handleBookingClick(booking)}
                   >
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-start gap-1.5 sm:gap-2">
                       <div
                         className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
                         style={{
@@ -141,19 +139,19 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
                         }}
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-white truncate">
+                        <div className="text-[10px] sm:text-xs font-medium text-white truncate">
                           {booking.service_types?.name || booking.service_name || 'Appointment'}
                         </div>
-                        <div className="flex items-center gap-1 mt-1">
-                          <Clock className="w-3 h-3 text-slate-400" />
-                          <span className="text-xs text-slate-300">
+                        <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
+                          <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
+                          <span className="text-[9px] sm:text-xs text-slate-300">
                             {format(new Date(booking.start_time), 'HH:mm')} - 
                             {format(new Date(booking.end_time), 'HH:mm')}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1 mt-1">
-                          <User className="w-3 h-3 text-slate-400" />
-                          <span className="text-xs text-slate-300 truncate">
+                        <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
+                          <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
+                          <span className="text-[9px] sm:text-xs text-slate-300 truncate">
                             {booking.customer_name}
                           </span>
                         </div>
@@ -169,16 +167,16 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
         selectedBooking && (
           <>
             {/* Detail Header */}
-            <div className="p-3 border-b border-slate-700/50">
+            <div className="p-2 sm:p-3 border-b border-slate-700/50">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <button
                     onClick={handleBackToList}
                     className="p-1 hover:bg-slate-700/50 rounded-sm transition-colors"
                   >
                     <ArrowLeft className="w-3 h-3 text-slate-400" />
                   </button>
-                  <h3 className="text-sm font-semibold text-white">
+                  <h3 className="text-xs sm:text-sm font-semibold text-white">
                     Booking Details
                   </h3>
                 </div>
@@ -192,22 +190,22 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
             </div>
 
             {/* Detail Content */}
-            <div className="p-4 space-y-4 max-h-80 overflow-y-auto">
+            <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 overflow-y-auto">
               {/* Service Information */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <div
-                    className="w-3 h-3 rounded-full"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
                     style={{
                       backgroundColor: selectedBooking.service_types?.color || '#10B981'
                     }}
                   />
                   <div>
-                    <h4 className="text-sm font-medium text-white">
+                    <h4 className="text-xs sm:text-sm font-medium text-white">
                       {selectedBooking.service_types?.name || selectedBooking.service_name || 'Appointment'}
                     </h4>
                     {selectedBooking.service_types?.description && (
-                      <p className="text-xs text-slate-400">
+                      <p className="text-[10px] sm:text-xs text-slate-400">
                         {selectedBooking.service_types.description}
                       </p>
                     )}
@@ -216,18 +214,18 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
               </div>
 
               {/* Time Information */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-slate-400" />
+              <div className="space-y-1.5 sm:space-y-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
                   <div>
-                    <div className="text-sm text-white">
+                    <div className="text-xs sm:text-sm text-white">
                       {format(new Date(selectedBooking.start_time), 'EEEE, MMMM d, yyyy')}
                     </div>
-                    <div className="text-sm text-slate-300">
+                    <div className="text-xs sm:text-sm text-slate-300">
                       {format(new Date(selectedBooking.start_time), 'h:mm a')} - {format(new Date(selectedBooking.end_time), 'h:mm a')}
                     </div>
                     {selectedBooking.service_types?.duration && (
-                      <div className="text-xs text-slate-400">
+                      <div className="text-[10px] sm:text-xs text-slate-400">
                         Duration: {selectedBooking.service_types.duration} minutes
                       </div>
                     )}
@@ -236,25 +234,25 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
               </div>
 
               {/* Customer Information */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-slate-400" />
+              <div className="space-y-1.5 sm:space-y-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
                   <div>
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-xs sm:text-sm font-medium text-white">
                       {selectedBooking.customer_name}
                     </div>
                     {selectedBooking.customer_email && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <Mail className="w-3 h-3 text-slate-400" />
-                        <span className="text-xs text-slate-300">
+                      <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
+                        <Mail className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
+                        <span className="text-[10px] sm:text-xs text-slate-300">
                           {selectedBooking.customer_email}
                         </span>
                       </div>
                     )}
                     {selectedBooking.customer_phone && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <Phone className="w-3 h-3 text-slate-400" />
-                        <span className="text-xs text-slate-300">
+                      <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
+                        <Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
+                        <span className="text-[10px] sm:text-xs text-slate-300">
                           {selectedBooking.customer_phone}
                         </span>
                       </div>
@@ -265,8 +263,8 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
 
               {/* Status */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">Status</span>
-                <span className={`text-sm font-medium ${getStatusColor(selectedBooking.status)}`}>
+                <span className="text-xs sm:text-sm text-slate-400">Status</span>
+                <span className={`text-xs sm:text-sm font-medium ${getStatusColor(selectedBooking.status)}`}>
                   {getStatusLabel(selectedBooking.status)}
                 </span>
               </div>
@@ -274,8 +272,8 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
               {/* Price */}
               {selectedBooking.total_price && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-400">Price</span>
-                  <span className="text-sm font-medium text-white">
+                  <span className="text-xs sm:text-sm text-slate-400">Price</span>
+                  <span className="text-xs sm:text-sm font-medium text-white">
                     €{selectedBooking.total_price}
                   </span>
                 </div>
@@ -284,8 +282,8 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
               {/* Notes */}
               {selectedBooking.notes && (
                 <div className="space-y-1">
-                  <h5 className="text-sm font-medium text-white">Notes</h5>
-                  <p className="text-xs text-slate-300 bg-slate-800/50 p-2 rounded">
+                  <h5 className="text-xs sm:text-sm font-medium text-white">Notes</h5>
+                  <p className="text-[10px] sm:text-xs text-slate-300 bg-slate-800/50 p-1.5 sm:p-2 rounded">
                     {selectedBooking.notes}
                   </p>
                 </div>
@@ -294,8 +292,8 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
               {/* Internal Notes */}
               {selectedBooking.internal_notes && (
                 <div className="space-y-1">
-                  <h5 className="text-sm font-medium text-white">Internal Notes</h5>
-                  <p className="text-xs text-slate-300 bg-slate-800/50 p-2 rounded">
+                  <h5 className="text-xs sm:text-sm font-medium text-white">Internal Notes</h5>
+                  <p className="text-[10px] sm:text-xs text-slate-300 bg-slate-800/50 p-1.5 sm:p-2 rounded">
                     {selectedBooking.internal_notes}
                   </p>
                 </div>
