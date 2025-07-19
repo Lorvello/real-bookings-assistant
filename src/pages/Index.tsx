@@ -21,7 +21,9 @@ const Index = () => {
       <BackgroundProvider variant="dark">
         {/* Solution Section */}
         <ScrollAnimatedSection delay={50} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
-          <Solution />
+          <div className="pt-8 md:pt-0">
+            <Solution />
+          </div>
         </ScrollAnimatedSection>
 
         {/* Process Section */}
