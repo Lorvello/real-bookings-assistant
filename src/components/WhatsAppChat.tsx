@@ -3,12 +3,12 @@ import React from 'react';
 
 const WhatsAppChat = () => {
   return (
-    <div className="w-full max-w-[220px] md:max-w-xs mx-auto">
-      {/* Enhanced tablet-style mockup - increased height for mobile to show all messages */}
-      <div className="relative bg-gradient-to-b from-slate-800 via-slate-700 to-slate-900 rounded-xl md:rounded-[2.5rem] p-2 md:p-1 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-500 aspect-[4/5] md:aspect-[9/19] border-2 border-slate-600/60 md:border-none backdrop-blur-sm">
-        {/* Tablet/Phone screen with enhanced styling */}
-        <div className="bg-white rounded-lg md:rounded-[2rem] overflow-hidden relative h-full shadow-inner">
-          {/* Hide notch on mobile (tablet style), show on desktop (iPhone style) */}
+    <div className="w-full max-w-[280px] md:max-w-xs mx-auto">
+      {/* Professional tablet-style interface for mobile, iPhone for desktop */}
+      <div className="relative bg-gradient-to-b from-slate-800 via-slate-700 to-slate-900 rounded-lg md:rounded-[2.5rem] p-1.5 md:p-1 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-500 aspect-[5/4] md:aspect-[9/19] border border-slate-600/40 md:border-none backdrop-blur-sm">
+        {/* Tablet screen for mobile, phone screen for desktop */}
+        <div className="bg-white rounded-md md:rounded-[2rem] overflow-hidden relative h-full shadow-inner">
+          {/* No notch on mobile (tablet style), show notch on desktop (iPhone style) */}
           <div className="hidden md:block absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-4 bg-black rounded-b-xl z-10 shadow-sm"></div>
           
           {/* Enhanced WhatsApp header with better mobile styling */}
@@ -39,8 +39,8 @@ const WhatsAppChat = () => {
             </div>
           </div>
           
-          {/* Enhanced chat area - increased min-height for better mobile display */}
-          <div className="whatsapp-chat-bg min-h-[200px] md:min-h-[280px] p-2.5 md:p-3 space-y-2.5 md:space-y-3 relative">
+          {/* Optimized chat area for tablet-style mobile display */}
+          <div className="whatsapp-chat-bg min-h-[180px] md:min-h-[280px] p-2 md:p-3 space-y-2 md:space-y-3 relative">
             {/* Subtle background overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.02] to-transparent"></div>
 
