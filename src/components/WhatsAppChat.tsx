@@ -4,8 +4,8 @@ import React from 'react';
 const WhatsAppChat = () => {
   return (
     <div className="w-full max-w-[200px] md:max-w-xs mx-auto">
-      {/* Tablet-style mockup for mobile, iPhone for desktop */}
-      <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-lg md:rounded-[2.5rem] p-0.5 md:p-1 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-500 aspect-[4/3] md:aspect-[9/19]">
+      {/* Tablet-style mockup for mobile with professional border, iPhone for desktop */}
+      <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-lg md:rounded-[2.5rem] p-1 md:p-1 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-500 aspect-[4/3] md:aspect-[9/19] border-2 border-gray-700/50 md:border-none">
         {/* Phone screen with very compact styling */}
         <div className="bg-white rounded-md md:rounded-[2rem] overflow-hidden relative h-full">
           {/* Hide notch on mobile (tablet style), show on desktop (iPhone style) */}
@@ -39,8 +39,8 @@ const WhatsAppChat = () => {
             </div>
           </div>
           
-          {/* Much smaller chat area */}
-          <div className="whatsapp-chat-bg min-h-[180px] md:min-h-[280px] p-2 md:p-3 space-y-2 md:space-y-3 relative">
+          {/* Optimized chat area for tablet display on mobile */}
+          <div className="whatsapp-chat-bg min-h-[140px] md:min-h-[280px] p-1.5 md:p-3 space-y-1.5 md:space-y-3 relative">
             {/* Subtle background overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.02] to-transparent"></div>
 
