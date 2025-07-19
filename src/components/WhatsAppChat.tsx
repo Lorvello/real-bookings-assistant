@@ -46,9 +46,9 @@ const WhatsAppChat = () => {
             {/* User message - enhanced for better readability */}
             <div className="flex justify-end relative z-10">
               <div className="whatsapp-bubble-user-modern max-w-[75%] group">
-                <p className="text-white text-xs md:text-xs leading-relaxed font-medium">Hi! I'd like to book a haircut for tomorrow.</p>
+                <p className="text-white text-[10px] md:text-xs leading-relaxed font-medium">Hi! I'd like to book a haircut for tomorrow.</p>
                 <div className="flex items-center justify-end gap-1 mt-1 md:mt-1">
-                  <span className="text-white/70 text-xs md:text-xs font-medium">10:30</span>
+                  <span className="text-white/70 text-[9px] md:text-xs font-medium">10:30</span>
                   <div className="flex items-center">
                     <svg viewBox="0 0 16 15" width="10" height="10" className="md:w-2.5 md:h-2.5 text-white/80">
                       <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L3.724 9.587a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51z"/>
@@ -61,9 +61,9 @@ const WhatsAppChat = () => {
             {/* AI response - enhanced styling */}
             <div className="flex justify-start relative z-10">
               <div className="whatsapp-bubble-ai-modern max-w-[75%] group">
-                <p className="text-gray-800 text-xs md:text-xs leading-relaxed">Hi! I'd be happy to help. What time works best for you tomorrow?</p>
+                <p className="text-gray-800 text-[10px] md:text-xs leading-relaxed">Hi! I'd be happy to help. What time works best for you tomorrow?</p>
                 <div className="flex items-center justify-end mt-1 md:mt-1">
-                  <span className="text-gray-500 text-xs md:text-xs font-medium">10:30</span>
+                  <span className="text-gray-500 text-[9px] md:text-xs font-medium">10:30</span>
                 </div>
               </div>
             </div>
@@ -71,9 +71,9 @@ const WhatsAppChat = () => {
             {/* User provides details */}
             <div className="flex justify-end relative z-10">
               <div className="whatsapp-bubble-user-modern max-w-[75%] group">
-                <p className="text-white text-xs md:text-xs leading-relaxed font-medium">Around 2 PM would be perfect!</p>
+                <p className="text-white text-[10px] md:text-xs leading-relaxed font-medium">Around 2 PM would be perfect!</p>
                 <div className="flex items-center justify-end gap-1 mt-1 md:mt-1">
-                  <span className="text-white/70 text-xs md:text-xs font-medium">10:31</span>
+                  <span className="text-white/70 text-[9px] md:text-xs font-medium">10:31</span>
                   <div className="flex items-center">
                     <svg viewBox="0 0 16 15" width="10" height="10" className="md:w-2.5 md:h-2.5 text-emerald-300">
                       <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L3.724 9.587a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51z"/>
@@ -86,9 +86,9 @@ const WhatsAppChat = () => {
             {/* Final AI confirmation */}
             <div className="flex justify-start relative z-10">
               <div className="whatsapp-bubble-ai-modern max-w-[75%] group">
-                <p className="text-gray-800 text-xs md:text-xs leading-relaxed">Perfect! I have 2:00 PM available. You'll receive confirmation shortly! 💇‍♀️</p>
+                <p className="text-gray-800 text-[10px] md:text-xs leading-relaxed">Perfect! I have 2:00 PM available. You'll receive confirmation shortly! 💇‍♀️</p>
                 <div className="flex items-center justify-end mt-1 md:mt-1">
-                  <span className="text-gray-500 text-xs md:text-xs font-medium">10:31</span>
+                  <span className="text-gray-500 text-[9px] md:text-xs font-medium">10:31</span>
                 </div>
               </div>
             </div>
