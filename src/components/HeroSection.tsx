@@ -15,7 +15,7 @@ const HeroSection: React.FC = () => {
   };
   
   return (
-    <section className="relative min-h-screen overflow-hidden flex items-center justify-center pt-40 md:pt-24">
+    <section className="relative min-h-screen overflow-hidden flex items-center justify-center pt-32 md:pt-24">
       {/* Grid pattern overlay */}
       <div 
         className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"
@@ -23,7 +23,7 @@ const HeroSection: React.FC = () => {
       
       <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center z-10">
         {/* Floating badge - SUBTEXT */}
-        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8 animate-appear opacity-0">
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-2 md:mb-8 animate-appear opacity-0">
           <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
           <span className="text-emerald-300 text-xs md:text-sm font-medium">AI-Powered Booking Revolution</span>
         </div>
@@ -49,10 +49,10 @@ const HeroSection: React.FC = () => {
           </p>
 
           {/* CTA Section - BUTTONS (Medium-Large) */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-6 pt-2 md:pt-8 animate-appear opacity-100 delay-500 px-4 sm:px-0">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-6 pt-6 md:pt-8 animate-appear opacity-100 delay-500 px-4 sm:px-0">
             <Button 
               onClick={handleStartTrial}
-              className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 md:px-8 py-3 md:py-6 text-lg md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[48px]"
+              className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-2 md:px-8 md:py-6 text-sm md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[40px] md:min-h-[48px]"
             >
               <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
               Start Free 7-Day Trial
@@ -60,7 +60,7 @@ const HeroSection: React.FC = () => {
             
             <button 
               onClick={handleHowItWorks}
-              className="w-full sm:w-auto text-slate-300 hover:text-white text-lg md:text-lg font-medium flex items-center justify-center gap-2 group transition-colors min-h-[48px] px-4"
+              className="w-full sm:w-auto text-slate-300 hover:text-white text-sm md:text-lg font-medium flex items-center justify-center gap-2 group transition-colors min-h-[40px] md:min-h-[48px] px-4"
             >
               <Zap className="w-4 h-4 md:w-5 md:h-5 group-hover:text-emerald-400 transition-colors" />
               See how it works
@@ -68,28 +68,28 @@ const HeroSection: React.FC = () => {
           </div>
 
           {/* Social proof - SUBTEXT (Smallest) */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-8 pt-2 md:pt-4 animate-appear opacity-100 delay-700 px-4 sm:px-0 mb-8 md:mb-0">
-            <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-8 pt-1 md:pt-4 animate-appear opacity-100 delay-700 px-4 sm:px-0 mb-8 md:mb-0">
+            <div className="flex items-center gap-1.5 md:gap-3">
               <div className="flex -space-x-1 md:-space-x-2">
-                <div className="w-5 h-5 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
-                  <Scissors className="w-2.5 h-2.5 md:w-4 md:h-4 text-slate-700" />
+                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
+                  <Scissors className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
                 </div>
-                <div className="w-5 h-5 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 md:w-4 md:h-4 bg-slate-700 rounded-t-full" style={{
+                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 md:w-4 md:h-4 bg-slate-700 rounded-t-full" style={{
                     clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)"
                   }}></div>
                 </div>
-                <div className="w-5 h-5 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
-                  <Dumbbell className="w-2.5 h-2.5 md:w-4 md:h-4 text-slate-700" />
+                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
+                  <Dumbbell className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
                 </div>
-                <div className="w-5 h-5 md:w-8 md:h-8 bg-white rounded-full border-2 border-slate-800 flex items-center justify-center">
-                  <Stethoscope className="w-2.5 h-2.5 md:w-4 md:h-4 text-slate-700" />
+                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
+                  <Stethoscope className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
                 </div>
               </div>
               <span className="text-slate-400 text-xs md:text-sm">1000+ businesses automated</span>
             </div>
             
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => (
                 <span key={i} className="text-yellow-400 text-xs md:text-lg">★</span>
               ))}
