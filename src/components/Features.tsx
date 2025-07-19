@@ -32,7 +32,7 @@ const Features = () => {
                 Automate Bookings
               </span>
             </h2>
-            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
               <span className="md:hidden">Features that maximize bookings and revenue</span>
               <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
             </p>
