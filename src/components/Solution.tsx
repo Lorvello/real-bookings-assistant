@@ -80,7 +80,7 @@ const Solution = () => {
           className="space-y-8 md:space-y-12"
         >
           {/* Header - HEADERS (Largest) */}
-          <div className="text-center pt-4 md:pt-8">
+          <div className="text-center pt-1 md:pt-8">
             <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
               Meet Your <span className="text-emerald-400">24/7</span>{" "}
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
