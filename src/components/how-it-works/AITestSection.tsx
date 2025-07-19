@@ -39,7 +39,7 @@ const AITestSection = () => {
             </ScrollAnimatedSection>
           </ScrollAnimatedSection>
           
-          <ScrollAnimatedSection animation="scale" delay={600} className="max-w-6xl mx-auto h-[500px] md:h-[550px]">
+          <ScrollAnimatedSection animation="scale" delay={600} className="max-w-6xl mx-auto h-[350px] md:h-[550px]">
             <AIAgentTestChat />
           </ScrollAnimatedSection>
         </div>

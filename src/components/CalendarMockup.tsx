@@ -188,7 +188,7 @@ const CalendarMockup = () => {
                       <div className="text-[7px] md:text-[9px] sm:text-[8px] text-white font-medium text-left">
                         {dayBookings.length}
                       </div>
-                      <div className="text-[6px] md:text-[8px] sm:text-[7px] text-white/90 text-left leading-tight">
+                      <div className="text-[6px] md:text-[8px] sm:text-[7px] text-white/90 text-left leading-tight truncate">
                         appointments
                       </div>
                     </div>

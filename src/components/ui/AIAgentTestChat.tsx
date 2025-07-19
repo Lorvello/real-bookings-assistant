@@ -319,10 +319,10 @@ export default function AIAgentTestPage() {
           transition={{ duration: 0.3 }}
           className="w-full h-full flex flex-col"
         >
-          {/* Chat Container */}
-          <div className="bg-[#1F2937]/50 backdrop-blur-sm border border-[#10B981]/20 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col h-full">
-            {/* Chat Header */}
-            <div className="bg-gradient-to-r from-[#1F2937] to-[#111827] px-3 sm:px-6 py-3 sm:py-4 border-b border-[#10B981]/20">
+          {/* Chat Container - Smaller on mobile */}
+          <div className="bg-[#1F2937]/50 backdrop-blur-sm border border-[#10B981]/20 rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col h-full">
+            {/* Chat Header - More compact on mobile */}
+            <div className="bg-gradient-to-r from-[#1F2937] to-[#111827] px-2 sm:px-6 py-2 sm:py-4 border-b border-[#10B981]/20">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-[#10B981] rounded-full">
                   <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
@@ -338,8 +338,8 @@ export default function AIAgentTestPage() {
               </div>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-[#111827]/30 to-[#1F2937]/30 min-h-0">
+            {/* Messages - More compact on mobile */}
+            <div className="flex-1 overflow-y-auto p-2 sm:p-6 space-y-2 sm:space-y-4 bg-gradient-to-b from-[#111827]/30 to-[#1F2937]/30 min-h-0">
               <AnimatePresence>
                 {messages.map((message) => (
                   <motion.div
@@ -403,8 +403,8 @@ export default function AIAgentTestPage() {
               )}
             </div>
 
-            {/* Input */}
-            <div className="p-3 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
+            {/* Input - More compact on mobile */}
+            <div className="p-2 sm:p-3 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
               <PlaceholdersAndVanishInput
                 placeholders={placeholders}
                 onChange={handleInputChange}

@@ -4,12 +4,12 @@ import React from 'react';
 const WhatsAppChat = () => {
   return (
     <div className="w-full max-w-[200px] md:max-w-xs mx-auto">
-      {/* Much smaller iPhone mockup for mobile */}
-      <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-[1.8rem] md:rounded-[2.5rem] p-0.5 md:p-1 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-500">
+      {/* Tablet-style mockup for mobile, iPhone for desktop */}
+      <div className="relative bg-gradient-to-b from-gray-800 to-black rounded-lg md:rounded-[2.5rem] p-0.5 md:p-1 shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-500 aspect-[4/3] md:aspect-[9/19]">
         {/* Phone screen with very compact styling */}
-        <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden relative">
-          {/* Much smaller iPhone notch */}
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-2.5 md:w-20 md:h-4 bg-black rounded-b-xl z-10 shadow-sm"></div>
+        <div className="bg-white rounded-md md:rounded-[2rem] overflow-hidden relative h-full">
+          {/* Hide notch on mobile (tablet style), show on desktop (iPhone style) */}
+          <div className="hidden md:block absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-4 bg-black rounded-b-xl z-10 shadow-sm"></div>
           
           {/* Much more compact WhatsApp header */}
           <div className="bg-gradient-to-r from-whatsapp via-emerald-600 to-whatsapp text-white px-2 md:px-3 py-1.5 md:py-2.5 flex items-center gap-1.5 md:gap-2 pt-3 md:pt-5 shadow-lg">
