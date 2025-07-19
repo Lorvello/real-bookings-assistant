@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import WhatsAppChat from './WhatsAppChat';
 import CalendarMockup from './CalendarMockup';
@@ -57,12 +56,12 @@ const ProcessSection = () => {
               </p>
             </div>
             
-            <div className="flex-1 w-full max-w-[220px] md:max-w-sm lg:max-w-none">
+            <div className="flex-1 w-full max-w-[220px] md:max-w-sm lg:max-w-none flex justify-center lg:justify-start">
               <WhatsAppChat />
             </div>
           </div>
 
-          {/* Step 2: Calendar Result */}
+          {/* Step 2: Calendar Result - Enhanced centering */}
           <div className="flex flex-col lg:flex-row-reverse items-start lg:items-center gap-6 md:gap-12 pt-12 md:pt-8">
             <div className="flex-1 space-y-4 md:space-y-6 text-left lg:text-left">
               <div className="flex items-center gap-2 md:gap-4 justify-start lg:justify-start">
@@ -76,8 +75,11 @@ const ProcessSection = () => {
                </p>
             </div>
             
+            {/* Enhanced calendar centering for mobile */}
             <div className="flex-1 w-full max-w-[320px] md:max-w-sm lg:max-w-none flex justify-center lg:justify-start">
-              <CalendarMockup />
+              <div className="w-full flex justify-center lg:justify-start">
+                <CalendarMockup />
+              </div>
             </div>
           </div>
 
@@ -107,7 +109,8 @@ const ProcessSection = () => {
                   Try AI Agent Demo
                 </Button>
               </DialogTrigger>
-                <DialogContent className="max-w-sm md:max-w-2xl w-[90%] md:w-full h-[70vh] md:h-[80vh] max-h-[500px] md:max-h-[600px] p-0 bg-slate-900 border-slate-700 data-[state=open]:animate-in data-[state=open]:fade-in-100 data-[state=open]:scale-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:scale-out-95 duration-300">
+                {/* Significantly reduced modal size for mobile */}
+                <DialogContent className="max-w-[85vw] w-[85vw] md:max-w-2xl md:w-full h-[60vh] md:h-[80vh] max-h-[400px] md:max-h-[600px] p-0 bg-slate-900 border-slate-700 data-[state=open]:animate-in data-[state=open]:fade-in-100 data-[state=open]:scale-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:scale-out-95 duration-300">
                   <AIAgentTestChat />
                 </DialogContent>
               </Dialog>
