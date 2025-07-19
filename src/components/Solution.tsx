@@ -78,21 +78,21 @@ const Solution = () => {
           variant="hero"
           className="space-y-8 md:space-y-12"
         >
-          {/* Header - Compact mobile with improved spacing */}
+          {/* Header - HEADERS (Largest) */}
           <div className="text-center pt-4 md:pt-8">
-            <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
+            <h2 className="text-2xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
               Meet Your <span className="text-emerald-400">24/7</span>{" "}
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
                 Booking Assistant
               </span>
             </h2>
-            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
+            <p className="text-base md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
               <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
               <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
               faster than any human could.</span>
             </p>
             
-            <p className="text-sm md:text-lg text-emerald-400 font-semibold tracking-tight">
+            <p className="text-base md:text-lg text-emerald-400 font-semibold tracking-tight">
               Here's what makes it revolutionary:
             </p>
           </div>

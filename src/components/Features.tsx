@@ -24,15 +24,15 @@ const Features = () => {
           variant="features"
           className="space-y-8 md:space-y-12"
         >
-          {/* Header - Mobile optimized */}
+          {/* Header - HEADERS (Largest) */}
           <div className="text-center pt-16 md:pt-20">
-            <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-2xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               Everything You Need To{" "}
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
                 Automate Bookings
               </span>
             </h2>
-            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+            <p className="text-base md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
               <span className="md:hidden">Features that maximize bookings and revenue</span>
               <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
             </p>

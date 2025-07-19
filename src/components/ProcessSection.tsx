@@ -29,12 +29,12 @@ const ProcessSection = () => {
           variant="process"
           className="space-y-8 md:space-y-12"
         >
-          {/* Section header - Compact */}
+          {/* Section header - HEADERS (Largest) */}
           <div className="text-center">
-            <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-2xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
               See How It <span className="text-emerald-400">Works</span>
             </h2>
-            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
+            <p className="text-base md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
               From first message to confirmed appointment in less than 30 seconds. 
               Watch how our AI handles the entire booking process automatically.
             </p>
@@ -47,9 +47,9 @@ const ProcessSection = () => {
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   1
                 </div>
-                <h3 className="text-sm md:text-2xl font-bold text-white">Customer Starts WhatsApp Chat</h3>
+                <h3 className="text-lg md:text-2xl font-bold text-white">Customer Starts WhatsApp Chat</h3>
               </div>
-              <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
+              <p className="text-sm md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
                 Your customer sends a simple message expressing their need. Our AI agent 
                 responds immediately with intelligent questions to understand their preferences 
                 and find the perfect appointment time.
@@ -68,9 +68,9 @@ const ProcessSection = () => {
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   2
                 </div>
-                <h3 className="text-sm md:text-2xl font-bold text-white">Appointment Automatically Booked</h3>
+                <h3 className="text-lg md:text-2xl font-bold text-white">Appointment Automatically Booked</h3>
               </div>
-               <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
+               <p className="text-sm md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
                  Integrate with your existing calendar system, or use our professional high-end calendar solution designed for optimal appointment management.
                </p>
             </div>
@@ -87,9 +87,9 @@ const ProcessSection = () => {
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   3
                 </div>
-                <h3 className="text-sm md:text-2xl font-bold text-white">Test The AI Agent Yourself</h3>
+                <h3 className="text-lg md:text-2xl font-bold text-white">Test The AI Agent Yourself</h3>
               </div>
-              <p className="text-xs md:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-4 md:mb-8 px-3 sm:px-0">
+              <p className="text-sm md:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-4 md:mb-8 px-3 sm:px-0">
                 Try it yourself! Chat with our AI agent and experience how fast and natural 
                 the booking process is. No registration required.
               </p>
@@ -100,7 +100,7 @@ const ProcessSection = () => {
                 <DialogTrigger asChild>
                   <Button 
                     size="default"
-                    className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm md:text-base px-6 md:px-8 py-3 md:py-4 h-auto rounded-lg border border-slate-700 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+                    className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-lg md:text-base px-6 md:px-8 py-3 md:py-4 h-auto rounded-lg border border-slate-700 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
                   >
                   <Bot className="mr-2 h-4 w-4 md:h-5 md:w-5 text-white" />
                   Try AI Agent Demo
