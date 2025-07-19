@@ -1,6 +1,7 @@
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useState, useRef, useEffect } from "react";
 const globalNetworkImage = "/lovable-uploads/a19bc752-d6ec-4498-944d-aa62ff083b1f.png";
 const automationImage = "/lovable-uploads/c4bcff68-784e-45d1-9ab5-01bf16fcdf6a.png";
 const paymentSuccessImage = "/lovable-uploads/ca02afe5-2602-415b-8d13-928d829aa206.png";
@@ -9,6 +10,7 @@ interface Benefit {
   id: string;
   title: string;
   description: string;
+  mobileDescription?: string;
   image: string;
   imageType: string;
 }
@@ -27,6 +29,7 @@ const defaultBenefits = [
     title: "2.95 Billion Customers Ready to Book",
     description:
       "Reach customers where they already are. WhatsApp's universal adoption means no app downloads, no new accounts. Just instant booking in the world's most popular messaging platform.",
+    mobileDescription: "WhatsApp's universal adoption means instant booking without new apps.",
     image: globalNetworkImage,
     imageType: "global-network",
   },
@@ -35,6 +38,7 @@ const defaultBenefits = [
     title: "24/7 Booking Without Staff",
     description:
       "Your AI assistant never sleeps. Customers book appointments instantly at 3 AM or during busy hours without adding staff costs. Capture every booking opportunity while you focus on your business.",
+    mobileDescription: "AI never sleeps. Instant bookings 24/7 without staff costs.",
     image: automationImage,
     imageType: "automation-24-7",
   },
@@ -43,6 +47,7 @@ const defaultBenefits = [
     title: "80% Fewer No-Shows with Instant Payment", 
     description:
       "Prepayment through WhatsApp creates commitment. Get paid 50 to 75% faster (1 to 2 days vs 7 to 14 days) while dramatically reducing cancellations and improving cash flow.",
+    mobileDescription: "WhatsApp prepayment reduces no-shows 80% and improves cash flow.",
     image: paymentSuccessImage,
     imageType: "payment-success",
   },
@@ -59,11 +64,140 @@ export const WhatsAppBenefits = ({
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
   const enhancedBenefits = benefits;
   
+  // Mobile slideshow state
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slideRef = useRef<HTMLDivElement>(null);
+  
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % enhancedBenefits.length);
+  };
+  
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + enhancedBenefits.length) % enhancedBenefits.length);
+  };
+  
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
+  // Handle touch gestures
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+  
   return (
     <section className={className}>
-      {/* Visual distinction background overlay */}
-      <div className="relative">
-        
+      {/* Mobile Slideshow Layout */}
+      <div className="md:hidden relative">
+        <div ref={ref} className="container max-w-sm mx-auto px-4 relative z-10">
+          <div 
+            className="relative overflow-hidden"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            <div 
+              ref={slideRef}
+              className="flex transition-transform duration-300 ease-out"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            >
+              {enhancedBenefits.map((benefit, index) => (
+                <div
+                  key={benefit.id}
+                  className={`w-full flex-shrink-0 ${isVisible ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}
+                >
+                  <div className="group flex flex-col overflow-hidden rounded-lg border border-slate-700/50 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-lg shadow-black/30 transition-all duration-300 ease-out">
+                    <div className="overflow-hidden h-32 rounded-t-lg">
+                      <img
+                        src={benefit.image}
+                        alt={benefit.title}
+                        className="h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
+                      />
+                    </div>
+                    <div className="px-4 py-4 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
+                      <h3 className="mb-2 text-base font-bold tracking-tight text-white leading-tight transition-all duration-300 group-hover:text-emerald-300">
+                        {benefit.title}
+                      </h3>
+                      <p className="text-slate-300 font-medium text-xs leading-relaxed transition-all duration-300 group-hover:text-slate-200">
+                        {benefit.mobileDescription || benefit.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Navigation arrows */}
+          <div className="absolute inset-y-0 left-0 flex items-center">
+            <button
+              onClick={prevSlide}
+              className="p-2 rounded-full bg-slate-800/80 text-white hover:bg-slate-700/80 transition-colors duration-200"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="absolute inset-y-0 right-0 flex items-center">
+            <button
+              onClick={nextSlide}
+              className="p-2 rounded-full bg-slate-800/80 text-white hover:bg-slate-700/80 transition-colors duration-200"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+          
+          {/* Slide indicators */}
+          <div className="flex justify-center mt-4 space-x-2">
+            {enhancedBenefits.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                  index === currentSlide 
+                    ? 'bg-emerald-400 w-6' 
+                    : 'bg-slate-600 hover:bg-slate-500'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+          
+          {/* Swipe hint */}
+          <div className="text-center mt-3">
+            <p className="text-xs text-slate-500">
+              Swipe or tap arrows to explore
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Layout (unchanged) */}
+      <div className="hidden md:block relative">
         <div ref={ref} className="container max-w-5xl mx-auto px-8 lg:px-16 relative z-10">
           <div className="grid gap-4 md:grid-cols-2 lg:gap-6">
             {enhancedBenefits[0] && (

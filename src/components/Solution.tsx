@@ -87,13 +87,13 @@ const Solution = () => {
                 Booking Assistant
               </span>
             </h2>
-            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
+            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-6 md:mb-8">
               <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
               <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
               faster than any human could.</span>
             </p>
             
-            <p className="text-base md:text-lg text-emerald-400 font-semibold tracking-tight">
+            <p className="text-base md:text-lg text-emerald-400 font-semibold tracking-tight mb-8 md:mb-0">
               Here's what makes it revolutionary:
             </p>
           </div>
