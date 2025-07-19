@@ -61,10 +61,10 @@ const ProcessSection = () => {
             </div>
           </div>
 
-          {/* Step 2: Calendar Result - Back to left alignment for mobile */}
+          {/* Step 2: Calendar Result - Centered on mobile, left on desktop */}
           <div className="flex flex-col lg:flex-row-reverse items-start lg:items-center gap-6 md:gap-12 pt-12 md:pt-8">
-            <div className="flex-1 space-y-4 md:space-y-6 text-left lg:text-left">
-              <div className="flex items-center gap-2 md:gap-4 justify-start lg:justify-start">
+            <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left">
+              <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   2
                 </div>
