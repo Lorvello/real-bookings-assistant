@@ -1,4 +1,3 @@
-
 "use client";
 import React from "react";
 import { motion } from "motion/react";
@@ -114,7 +113,7 @@ const thirdColumn = testimonials.slice(6, 9);
 
 const Testimonials = () => {
   return (
-    <section className="py-12 md:py-16 relative overflow-hidden">
+    <section className="py-16 md:py-20 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>

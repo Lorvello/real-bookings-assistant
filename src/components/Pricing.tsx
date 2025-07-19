@@ -1,5 +1,3 @@
-
-
 import { Check, Star, ArrowRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -16,7 +14,7 @@ export const Pricing = () => {
       description: "Perfect for small businesses getting started",
       features: [
         "Up to 100 WhatsApp conversations/month",
-        "Basic AI booking assistant",
+        "Basic AI booking assistant", 
         "Calendar integration",
         "Email notifications",
         "Standard support"
@@ -67,7 +65,7 @@ export const Pricing = () => {
   ];
 
   return (
-    <section className="py-12 md:py-16 relative overflow-hidden">
+    <section className="py-16 md:py-20 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
