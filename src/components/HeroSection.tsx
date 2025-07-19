@@ -15,7 +15,7 @@ const HeroSection: React.FC = () => {
   };
   
   return (
-    <section className="relative min-h-screen overflow-hidden flex items-center justify-center pt-20 md:pt-24">
+    <section className="relative min-h-screen overflow-hidden flex items-center justify-center pt-32 md:pt-24">
       {/* Grid pattern overlay */}
       <div 
         className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"
@@ -23,7 +23,7 @@ const HeroSection: React.FC = () => {
       
       <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center z-10">
         {/* Floating badge - SUBTEXT */}
-        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8 animate-appear opacity-0">
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-6 md:mb-8 animate-appear opacity-0">
           <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
           <span className="text-emerald-300 text-xs md:text-sm font-medium">AI-Powered Booking Revolution</span>
         </div>
@@ -40,7 +40,7 @@ const HeroSection: React.FC = () => {
             via WhatsApp
           </h1>
 
-          <p className="text-base md:text-lg text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0">
+          <p className="text-sm md:text-lg text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0">
             <span className="md:hidden">AI Books Appointments, Zero Missed Opportunities</span>
             <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-semibold">24/7 automation</span>,{" "}
