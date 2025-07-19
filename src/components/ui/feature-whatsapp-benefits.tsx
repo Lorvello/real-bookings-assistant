@@ -28,7 +28,7 @@ const defaultBenefits = [
     title: "2.95 Billion Customers Ready to Book",
     description:
       "Reach customers where they already are. WhatsApp's universal adoption means no app downloads, no new accounts. Just instant booking in the world's most popular messaging platform.",
-    mobileDescription: "WhatsApp's universal adoption means instant booking without new apps.",
+    mobileDescription: "WhatsApp connects you instantly to billions of users worldwide without requiring any app downloads. Your customers can book appointments directly through the messaging platform they already use daily, eliminating barriers and increasing conversion rates significantly.",
     image: globalNetworkImage,
     imageType: "global-network",
   },
@@ -37,7 +37,7 @@ const defaultBenefits = [
     title: "24/7 Booking Without Staff",
     description:
       "Your AI assistant never sleeps. Customers book appointments instantly at 3 AM or during busy hours without adding staff costs. Capture every booking opportunity while you focus on your business.",
-    mobileDescription: "AI never sleeps. Instant bookings 24/7 without staff costs.",
+    mobileDescription: "Our AI works around the clock, handling customer inquiries and bookings even when you're sleeping or busy with clients. This means zero missed opportunities and dramatically reduced staffing costs while maintaining perfect customer service quality.",
     image: automationImage,
     imageType: "automation-24-7",
   },
@@ -46,7 +46,7 @@ const defaultBenefits = [
     title: "80% Fewer No-Shows with Instant Payment", 
     description:
       "Prepayment through WhatsApp creates commitment. Get paid 50 to 75% faster (1 to 2 days vs 7 to 14 days) while dramatically reducing cancellations and improving cash flow.",
-    mobileDescription: "WhatsApp prepayment reduces no-shows 80% and improves cash flow.",
+    mobileDescription: "Secure payment processing directly in WhatsApp creates genuine customer commitment to their appointments. You'll see immediate improvements in cash flow and appointment reliability, with payments processed instantly rather than waiting weeks for traditional invoicing.",
     image: paymentSuccessImage,
     imageType: "payment-success",
   },
@@ -112,7 +112,7 @@ export const WhatsAppBenefits = ({
       {/* Mobile Slideshow Layout */}
       <div className="md:hidden relative py-4">
         <div ref={ref} className="max-w-sm mx-auto px-6 relative">
-          {/* Slide container with proper visibility */}
+          {/* Slide container with smoother transition */}
           <div 
             className="relative overflow-hidden rounded-lg"
             onTouchStart={onTouchStart}
@@ -121,7 +121,7 @@ export const WhatsAppBenefits = ({
           >
             <div 
               ref={slideRef}
-              className="flex transition-transform duration-300 ease-out"
+              className="flex transition-transform duration-700 ease-in-out"
               style={{ transform: `translateX(-${currentSlide * 100}%)` }}
             >
               {enhancedBenefits.map((benefit, index) => (
@@ -141,7 +141,7 @@ export const WhatsAppBenefits = ({
                       <h3 className="text-lg font-bold text-white mb-3 leading-tight">
                         {benefit.title}
                       </h3>
-                      <p className="text-slate-300 text-sm leading-relaxed">
+                      <p className="text-slate-300 text-xs leading-relaxed">
                         {benefit.mobileDescription || benefit.description}
                       </p>
                     </div>
