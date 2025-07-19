@@ -1,4 +1,3 @@
-
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useState, useRef, useEffect } from "react";
@@ -112,9 +111,29 @@ export const WhatsAppBenefits = ({
     <section className={className}>
       {/* Mobile Slideshow Layout */}
       <div className="md:hidden relative">
-        <div ref={ref} className="container max-w-sm mx-auto px-4 relative z-10">
+        <div ref={ref} className="container max-w-md mx-auto px-4 relative z-10">
+          {/* Navigation arrows positioned outside the slide container */}
+          <div className="absolute inset-y-0 -left-2 flex items-center z-20">
+            <button
+              onClick={prevSlide}
+              className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="absolute inset-y-0 -right-2 flex items-center z-20">
+            <button
+              onClick={nextSlide}
+              className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+          
           <div 
-            className="relative overflow-hidden"
+            className="relative overflow-hidden mx-8"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -129,19 +148,19 @@ export const WhatsAppBenefits = ({
                   key={benefit.id}
                   className={`w-full flex-shrink-0 ${isVisible ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}
                 >
-                  <div className="group flex flex-col overflow-hidden rounded-lg border border-slate-700/50 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-lg shadow-black/30 transition-all duration-300 ease-out">
-                    <div className="overflow-hidden h-32 rounded-t-lg">
+                  <div className="group flex flex-col overflow-hidden rounded-lg border border-slate-700/50 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-lg shadow-black/30 transition-all duration-300 ease-out min-h-[280px]">
+                    <div className="overflow-hidden h-40 rounded-t-lg">
                       <img
                         src={benefit.image}
                         alt={benefit.title}
                         className="h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
                       />
                     </div>
-                    <div className="px-4 py-4 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
-                      <h3 className="mb-2 text-base font-bold tracking-tight text-white leading-tight transition-all duration-300 group-hover:text-emerald-300">
+                    <div className="px-4 py-4 bg-gradient-to-br from-slate-900/95 to-slate-950/90 flex-1 flex flex-col">
+                      <h3 className="mb-3 text-base font-bold tracking-tight text-white leading-tight transition-all duration-300 group-hover:text-emerald-300">
                         {benefit.title}
                       </h3>
-                      <p className="text-slate-300 font-medium text-xs leading-relaxed transition-all duration-300 group-hover:text-slate-200">
+                      <p className="text-slate-300 font-medium text-xs leading-relaxed transition-all duration-300 group-hover:text-slate-200 flex-1">
                         {benefit.mobileDescription || benefit.description}
                       </p>
                     </div>
@@ -149,26 +168,6 @@ export const WhatsAppBenefits = ({
                 </div>
               ))}
             </div>
-          </div>
-          
-          {/* Navigation arrows */}
-          <div className="absolute inset-y-0 left-0 flex items-center">
-            <button
-              onClick={prevSlide}
-              className="p-2 rounded-full bg-slate-800/80 text-white hover:bg-slate-700/80 transition-colors duration-200"
-              aria-label="Previous slide"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="absolute inset-y-0 right-0 flex items-center">
-            <button
-              onClick={nextSlide}
-              className="p-2 rounded-full bg-slate-800/80 text-white hover:bg-slate-700/80 transition-colors duration-200"
-              aria-label="Next slide"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
           </div>
           
           {/* Slide indicators */}
