@@ -28,7 +28,7 @@ const defaultBenefits = [
     title: "2.95 Billion Customers Ready to Book",
     description:
       "Reach customers where they already are. WhatsApp's universal adoption means no app downloads, no new accounts. Just instant booking in the world's most popular messaging platform.",
-    mobileDescription: "WhatsApp connects you instantly to billions of users worldwide without requiring any app downloads. Your customers can book appointments directly through the messaging platform they already use daily, eliminating barriers and increasing conversion rates significantly.",
+    mobileDescription: "Connect instantly to billions of users without app downloads. Book directly through their favorite messaging platform.",
     image: globalNetworkImage,
     imageType: "global-network",
   },
@@ -37,7 +37,7 @@ const defaultBenefits = [
     title: "24/7 Booking Without Staff",
     description:
       "Your AI assistant never sleeps. Customers book appointments instantly at 3 AM or during busy hours without adding staff costs. Capture every booking opportunity while you focus on your business.",
-    mobileDescription: "Our AI works around the clock, handling customer inquiries and bookings even when you're sleeping or busy with clients. This means zero missed opportunities and dramatically reduced staffing costs while maintaining perfect customer service quality.",
+    mobileDescription: "AI handles bookings 24/7 while you sleep or serve clients. Zero missed opportunities, no extra staff costs.",
     image: automationImage,
     imageType: "automation-24-7",
   },
@@ -46,7 +46,7 @@ const defaultBenefits = [
     title: "80% Fewer No-Shows with Instant Payment", 
     description:
       "Prepayment through WhatsApp creates commitment. Get paid 50 to 75% faster (1 to 2 days vs 7 to 14 days) while dramatically reducing cancellations and improving cash flow.",
-    mobileDescription: "Secure payment processing directly in WhatsApp creates genuine customer commitment to their appointments. You'll see immediate improvements in cash flow and appointment reliability, with payments processed instantly rather than waiting weeks for traditional invoicing.",
+    mobileDescription: "Secure WhatsApp payments create real commitment. Get paid instantly instead of waiting weeks for traditional invoicing.",
     image: paymentSuccessImage,
     imageType: "payment-success",
   },
