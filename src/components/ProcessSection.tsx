@@ -61,7 +61,7 @@ const ProcessSection = () => {
             </div>
           </div>
 
-          {/* Step 2: Calendar Result - Enhanced centering */}
+          {/* Step 2: Calendar Result - Back to left alignment for mobile */}
           <div className="flex flex-col lg:flex-row-reverse items-start lg:items-center gap-6 md:gap-12 pt-12 md:pt-8">
             <div className="flex-1 space-y-4 md:space-y-6 text-left lg:text-left">
               <div className="flex items-center gap-2 md:gap-4 justify-start lg:justify-start">
@@ -75,9 +75,9 @@ const ProcessSection = () => {
                </p>
             </div>
             
-            {/* Enhanced calendar centering for mobile */}
-            <div className="flex-1 w-full max-w-[320px] md:max-w-sm lg:max-w-none flex justify-center lg:justify-start">
-              <div className="w-full flex justify-center lg:justify-start">
+            {/* Calendar back to left alignment for mobile */}
+            <div className="flex-1 w-full max-w-[320px] md:max-w-sm lg:max-w-none flex justify-start lg:justify-start">
+              <div className="w-full flex justify-start lg:justify-start">
                 <CalendarMockup />
               </div>
             </div>
