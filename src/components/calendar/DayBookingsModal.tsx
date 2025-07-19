@@ -93,7 +93,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
   const modalContent = (
     <div 
       data-popup="true"
-      className="absolute z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg backdrop-blur-sm shadow-2xl min-w-[240px] max-w-[280px] sm:min-w-[280px] sm:max-w-[320px]"
+      className="absolute z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg backdrop-blur-sm shadow-2xl min-w-[180px] max-w-[200px] sm:min-w-[280px] sm:max-w-[320px]"
       style={{
         left: `${position?.x || 0}px`,
         top: `${position?.y || 0}px`,
