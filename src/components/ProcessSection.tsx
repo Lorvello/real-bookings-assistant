@@ -32,18 +32,18 @@ const ProcessSection = () => {
         >
           {/* Section header - HEADERS (Largest) */}
           <div className="text-center">
-            <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-6 md:mb-6 px-3 sm:px-0">
               See How It <span className="text-emerald-400">Works</span>
             </h2>
-            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0">
+            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-12 md:mb-8">
               From first message to confirmed appointment in less than 30 seconds. 
               Watch how our AI handles the entire booking process automatically.
             </p>
           </div>
 
           {/* Step 1: WhatsApp Chat */}
-          <div className="flex flex-col lg:flex-row items-center gap-4 md:gap-12">
-            <div className="flex-1 space-y-3 md:space-y-6 text-center lg:text-left">
+          <div className="flex flex-col lg:flex-row items-center gap-6 md:gap-12 pt-8 md:pt-0">
+            <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left">
               <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   1
@@ -57,15 +57,15 @@ const ProcessSection = () => {
               </p>
             </div>
             
-            <div className="flex-1 w-full max-w-[280px] md:max-w-sm lg:max-w-none">
+            <div className="flex-1 w-full max-w-[220px] md:max-w-sm lg:max-w-none">
               <WhatsAppChat />
             </div>
           </div>
 
           {/* Step 2: Calendar Result */}
-          <div className="flex flex-col lg:flex-row-reverse items-center gap-4 md:gap-12">
-            <div className="flex-1 space-y-3 md:space-y-6 text-center lg:text-left">
-              <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
+          <div className="flex flex-col lg:flex-row-reverse items-start lg:items-center gap-6 md:gap-12 pt-12 md:pt-8">
+            <div className="flex-1 space-y-4 md:space-y-6 text-left lg:text-left">
+              <div className="flex items-center gap-2 md:gap-4 justify-start lg:justify-start">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   2
                 </div>
@@ -76,21 +76,21 @@ const ProcessSection = () => {
                </p>
             </div>
             
-            <div className="flex-1 w-full max-w-[280px] md:max-w-sm lg:max-w-none">
+            <div className="flex-1 w-full max-w-[320px] md:max-w-sm lg:max-w-none">
               <CalendarMockup />
             </div>
           </div>
 
           {/* AI Agent Test Section */}
-          <div className="space-y-3 md:space-y-8">
+          <div className="space-y-4 md:space-y-8 pt-12 md:pt-8">
             <div className="text-center">
-              <div className="flex items-center gap-2 md:gap-4 justify-center mb-3 md:mb-6">
+              <div className="flex items-center gap-2 md:gap-4 justify-center mb-4 md:mb-6">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   3
                 </div>
                 <h3 className="text-lg md:text-2xl font-bold text-white">Test The AI Agent Yourself</h3>
               </div>
-              <p className="text-xs md:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-4 md:mb-8 px-3 sm:px-0">
+              <p className="text-xs md:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-6 md:mb-8 px-3 sm:px-0">
                 Try it yourself! Chat with our AI agent and experience how fast and natural 
                 the booking process is. No registration required.
               </p>
