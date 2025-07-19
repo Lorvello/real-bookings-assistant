@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { WhatsAppBenefits } from "@/components/ui/feature-whatsapp-benefits";
 import { MessageCircle, Brain, Target, Clock, Users, TrendingUp } from "lucide-react";
@@ -86,7 +87,7 @@ const Solution = () => {
                 Booking Assistant
               </span>
             </h2>
-            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
+            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-8">
               <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
               <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
               faster than any human could.</span>
