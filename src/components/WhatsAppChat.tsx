@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 const WhatsAppChat = () => {
@@ -38,19 +39,19 @@ const WhatsAppChat = () => {
             </div>
           </div>
           
-          {/* Enhanced chat area - increased min-height for mobile to show all messages */}
-          <div className="whatsapp-chat-bg min-h-[240px] md:min-h-[280px] p-2 md:p-3 space-y-2 md:space-y-3 relative">
+          {/* Enhanced chat area - reduced spacing for mobile to fit all messages */}
+          <div className="whatsapp-chat-bg min-h-[240px] md:min-h-[280px] p-2 md:p-3 space-y-1 md:space-y-3 relative">
             {/* Subtle background overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.02] to-transparent"></div>
 
-            {/* User message - enhanced for better readability */}
+            {/* User message - much smaller text for mobile */}
             <div className="flex justify-end relative z-10">
               <div className="whatsapp-bubble-user-modern max-w-[75%] group">
-                <p className="text-white text-[10px] md:text-xs leading-relaxed font-medium">Hi! I'd like to book a haircut for tomorrow.</p>
+                <p className="text-white text-[8px] md:text-xs leading-tight md:leading-relaxed font-medium">Hi! I'd like to book a haircut for tomorrow.</p>
                 <div className="flex items-center justify-end gap-1 mt-1 md:mt-1">
-                  <span className="text-white/70 text-[9px] md:text-xs font-medium">10:30</span>
+                  <span className="text-white/70 text-[7px] md:text-xs font-medium">10:30</span>
                   <div className="flex items-center">
-                    <svg viewBox="0 0 16 15" width="10" height="10" className="md:w-2.5 md:h-2.5 text-white/80">
+                    <svg viewBox="0 0 16 15" width="8" height="8" className="md:w-2.5 md:h-2.5 text-white/80">
                       <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L3.724 9.587a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51z"/>
                     </svg>
                   </div>
@@ -58,24 +59,24 @@ const WhatsAppChat = () => {
               </div>
             </div>
             
-            {/* AI response - enhanced styling */}
+            {/* AI response - much smaller text for mobile */}
             <div className="flex justify-start relative z-10">
               <div className="whatsapp-bubble-ai-modern max-w-[75%] group">
-                <p className="text-gray-800 text-[10px] md:text-xs leading-relaxed">Hi! I'd be happy to help. What time works best for you tomorrow?</p>
+                <p className="text-gray-800 text-[8px] md:text-xs leading-tight md:leading-relaxed">Hi! I'd be happy to help. What time works best for you tomorrow?</p>
                 <div className="flex items-center justify-end mt-1 md:mt-1">
-                  <span className="text-gray-500 text-[9px] md:text-xs font-medium">10:30</span>
+                  <span className="text-gray-500 text-[7px] md:text-xs font-medium">10:30</span>
                 </div>
               </div>
             </div>
             
-            {/* User provides details */}
+            {/* User provides details - much smaller text for mobile */}
             <div className="flex justify-end relative z-10">
               <div className="whatsapp-bubble-user-modern max-w-[75%] group">
-                <p className="text-white text-[10px] md:text-xs leading-relaxed font-medium">Around 2 PM would be perfect!</p>
+                <p className="text-white text-[8px] md:text-xs leading-tight md:leading-relaxed font-medium">Around 2 PM would be perfect!</p>
                 <div className="flex items-center justify-end gap-1 mt-1 md:mt-1">
-                  <span className="text-white/70 text-[9px] md:text-xs font-medium">10:31</span>
+                  <span className="text-white/70 text-[7px] md:text-xs font-medium">10:31</span>
                   <div className="flex items-center">
-                    <svg viewBox="0 0 16 15" width="10" height="10" className="md:w-2.5 md:h-2.5 text-emerald-300">
+                    <svg viewBox="0 0 16 15" width="8" height="8" className="md:w-2.5 md:h-2.5 text-emerald-300">
                       <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L3.724 9.587a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51z"/>
                     </svg>
                   </div>
@@ -83,12 +84,12 @@ const WhatsAppChat = () => {
               </div>
             </div>
             
-            {/* Final AI confirmation */}
+            {/* Final AI confirmation - much smaller text for mobile */}
             <div className="flex justify-start relative z-10">
               <div className="whatsapp-bubble-ai-modern max-w-[75%] group">
-                <p className="text-gray-800 text-[10px] md:text-xs leading-relaxed">Perfect! I have 2:00 PM available. You'll receive confirmation shortly! 💇‍♀️</p>
+                <p className="text-gray-800 text-[8px] md:text-xs leading-tight md:leading-relaxed">Perfect! I have 2:00 PM available. You'll receive confirmation shortly! 💇‍♀️</p>
                 <div className="flex items-center justify-end mt-1 md:mt-1">
-                  <span className="text-gray-500 text-[9px] md:text-xs font-medium">10:31</span>
+                  <span className="text-gray-500 text-[7px] md:text-xs font-medium">10:31</span>
                 </div>
               </div>
             </div>
