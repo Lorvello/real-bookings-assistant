@@ -68,11 +68,11 @@ export const WhatsAppBenefits = ({
   const slideRef = useRef<HTMLDivElement>(null);
   
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % enhancedBenefits.length);
+    setCurrentSlide((prev) => Math.min(prev + 1, enhancedBenefits.length - 1));
   };
   
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + enhancedBenefits.length) % enhancedBenefits.length);
+    setCurrentSlide((prev) => Math.max(prev - 1, 0));
   };
   
   const goToSlide = (index: number) => {
@@ -100,9 +100,9 @@ export const WhatsAppBenefits = ({
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
 
-    if (isLeftSwipe) {
+    if (isLeftSwipe && currentSlide < enhancedBenefits.length - 1) {
       nextSlide();
-    } else if (isRightSwipe) {
+    } else if (isRightSwipe && currentSlide > 0) {
       prevSlide();
     }
   };
@@ -121,15 +121,15 @@ export const WhatsAppBenefits = ({
           >
             <div 
               ref={slideRef}
-              className="flex transition-transform duration-700 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              className="flex gap-4 transition-transform duration-700 ease-in-out"
+              style={{ transform: `translateX(-${currentSlide * (100 + 4)}%)` }}
             >
               {enhancedBenefits.map((benefit, index) => (
                 <div
                   key={benefit.id}
                   className="w-full flex-shrink-0 opacity-100"
                 >
-                  <div className="bg-slate-900/95 rounded-lg border border-slate-700/50 shadow-lg overflow-hidden">
+                  <div className="bg-slate-900/95 rounded-lg border border-slate-700/50 shadow-lg overflow-hidden mx-2">
                     <div className="h-48 overflow-hidden">
                       <img
                         src={benefit.image}
@@ -152,24 +152,28 @@ export const WhatsAppBenefits = ({
           </div>
           
           {/* Navigation arrows positioned outside */}
-          <div className="absolute top-1/2 -translate-y-1/2 -left-2 z-20">
-            <button
-              onClick={prevSlide}
-              className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
-              aria-label="Previous slide"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="absolute top-1/2 -translate-y-1/2 -right-2 z-20">
-            <button
-              onClick={nextSlide}
-              className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
-              aria-label="Next slide"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          {currentSlide > 0 && (
+            <div className="absolute top-1/2 -translate-y-1/2 -left-2 z-20">
+              <button
+                onClick={prevSlide}
+                className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          {currentSlide < enhancedBenefits.length - 1 && (
+            <div className="absolute top-1/2 -translate-y-1/2 -right-2 z-20">
+              <button
+                onClick={nextSlide}
+                className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
           
           {/* Slide indicators */}
           <div className="flex justify-center mt-4 space-x-2">
