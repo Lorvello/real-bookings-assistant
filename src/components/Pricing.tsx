@@ -15,6 +15,7 @@ export const Pricing = () => {
       description: "Essential booking automation for solo entrepreneurs and new businesses getting started",
       features: [
         "Own WhatsApp number",
+        "Up to 500 WhatsApp contacts",
         "Up to 2 calendars",
         "Unlimited bookings",
         "Automated reminders",
@@ -36,6 +37,7 @@ export const Pricing = () => {
       description: "Advanced booking intelligence with team management and CRM integrations",
       features: [
         "All Starter features included",
+        "Up to 2500 WhatsApp contacts",
         "Unlimited Calendars",
         "Priority support",
         "Review system"
@@ -51,6 +53,7 @@ export const Pricing = () => {
       description: "Custom solution for large organizations",
       features: [
         "Everything in Professional",
+        "Unlimited WhatsApp contacts",
         "White-label solution",
         "Custom integrations",
         "Dedicated account manager",
