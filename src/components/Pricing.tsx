@@ -5,7 +5,7 @@ import { useState } from "react";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 
 export const Pricing = () => {
-  const [isAnnual, setIsAnnual] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const plans = [
@@ -28,8 +28,8 @@ export const Pricing = () => {
     },
     {
       name: "Professional",
-      monthlyPrice: 48,
-      annualPrice: 38,
+      monthlyPrice: 50,
+      annualPrice: 40,
       description: "Advanced booking intelligence with team management and CRM integrations",
       features: [
         "All Starter features included",
