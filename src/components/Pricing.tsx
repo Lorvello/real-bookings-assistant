@@ -1,5 +1,3 @@
-
-
 import { Check, Star, ArrowRight, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -242,10 +240,10 @@ export const Pricing = () => {
 
         {/* Mobile: Slideshow */}
         <div className="md:hidden relative py-4">
-          <div className="max-w-sm mx-auto px-4 relative">
+          <div className="w-full max-w-xs mx-auto relative">
             {/* Slide container */}
             <div 
-              className="relative overflow-hidden rounded-lg"
+              className="relative overflow-hidden rounded-lg pt-6"
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
@@ -257,33 +255,33 @@ export const Pricing = () => {
                 {plans.map((plan, index) => (
                   <div
                     key={plan.name}
-                    className="w-full flex-shrink-0"
+                    className="w-full flex-shrink-0 px-2"
                   >
-                    <div className={`bg-slate-900/95 rounded-lg border shadow-lg overflow-hidden mx-2 ${
+                    <div className={`bg-slate-900/95 rounded-lg border shadow-lg overflow-hidden relative ${
                       plan.isEnterprise
                         ? 'border-slate-600'
                         : 'border-slate-700/50'
                     } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}>
                       {plan.popular && (
-                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                          <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
+                          <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
                             Most Popular
                           </div>
                         </div>
                       )}
 
-                      <div className="p-6">
-                        <div className="text-center mb-6">
+                      <div className="p-5">
+                        <div className="text-center mb-5">
                           <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                          <p className="text-slate-400 text-sm mb-4">{plan.description}</p>
+                          <p className="text-slate-400 text-sm mb-4 leading-snug">{plan.description}</p>
                           
                           {plan.monthlyPrice ? (
                             <div className="mb-4">
                               <div className="flex items-center justify-center">
-                                <span className="text-3xl font-bold text-emerald-400">
+                                <span className="text-2xl font-bold text-emerald-400">
                                   €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                                 </span>
-                                <span className="text-slate-400 text-lg ml-2">/month</span>
+                                <span className="text-slate-400 text-base ml-1">/month</span>
                               </div>
                               {isAnnual && (
                                 <div className="text-xs text-emerald-400 mt-1">
@@ -293,19 +291,19 @@ export const Pricing = () => {
                             </div>
                           ) : (
                             <div className="mb-4">
-                              <div className="text-3xl font-bold text-white mb-1">Custom</div>
+                              <div className="text-2xl font-bold text-white mb-1">Custom</div>
                               <div className="text-slate-400 text-sm">Contact us for pricing</div>
                             </div>
                           )}
                         </div>
 
-                        <div className="space-y-3 mb-6">
+                        <div className="space-y-2.5 mb-5">
                           {plan.features.map((feature, idx) => (
                             <div key={idx} className="flex items-start space-x-2">
                               <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                                 <Check className="w-2.5 h-2.5 text-white" />
                               </div>
-                              <span className="text-slate-300 text-xs">{feature}</span>
+                              <span className="text-slate-300 text-xs leading-relaxed">{feature}</span>
                             </div>
                           ))}
                         </div>
@@ -331,10 +329,10 @@ export const Pricing = () => {
             
             {/* Navigation arrows */}
             {currentSlide > 0 && (
-              <div className="absolute top-1/2 -translate-y-1/2 -left-2 z-20">
+              <div className="absolute top-1/2 -translate-y-1/2 -left-4 z-20">
                 <button
                   onClick={prevSlide}
-                  className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+                  className="p-2.5 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
                   aria-label="Previous slide"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -342,10 +340,10 @@ export const Pricing = () => {
               </div>
             )}
             {currentSlide < plans.length - 1 && (
-              <div className="absolute top-1/2 -translate-y-1/2 -right-2 z-20">
+              <div className="absolute top-1/2 -translate-y-1/2 -right-4 z-20">
                 <button
                   onClick={nextSlide}
-                  className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+                  className="p-2.5 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
                   aria-label="Next slide"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -388,4 +386,3 @@ export const Pricing = () => {
     </section>
   );
 };
-
