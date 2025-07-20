@@ -1,3 +1,4 @@
+
 import { Check, Star, ArrowRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -198,14 +199,14 @@ export const Pricing = () => {
 
         {/* Mobile: Carousel */}
         <div className="md:hidden">
-          <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain">
-            <div className="flex gap-6 pb-4 px-4">
+          <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain scroll-pl-4 scroll-pr-4">
+            <div className="flex gap-4 pb-4">
               {plans.map((plan, index) => (
                 <ScrollAnimatedSection
                   key={plan.name}
                   animation="fade-up"
                   delay={400 + index * 150}
-                  className={`w-[90vw] flex-none snap-start snap-always relative rounded-3xl p-6 border transition-all ${
+                  className={`w-[85vw] flex-none snap-start snap-always relative rounded-3xl p-6 border transition-all ${
                     plan.isEnterprise
                       ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
                       : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
