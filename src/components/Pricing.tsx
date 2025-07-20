@@ -12,16 +12,20 @@ export const Pricing = () => {
       name: "Starter",
       monthlyPrice: 20,
       annualPrice: 16,
-      description: "Perfect for small businesses getting started",
+      description: "Essential booking automation for solo entrepreneurs and new businesses getting started",
       features: [
-        "Up to 100 WhatsApp conversations/month",
-        "Basic AI booking assistant", 
-        "Calendar integration",
-        "Email notifications",
-        "Standard support"
+        "Own WhatsApp number",
+        "Unlimited bookings",
+        "Automated reminders",
+        "Detailed analytics",
+        "Multi-language support",
+        "Automated booking rescheduling & canceling system",
+        "Available 24/7",
+        "Dedicated support",
+        "Quick setup"
       ],
       popular: false,
-      cta: "Start Free Trial",
+      cta: "Start Your Free Trial Now",
       color: "from-slate-600 to-slate-700"
     },
     {
