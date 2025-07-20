@@ -14,7 +14,6 @@ export const Pricing = () => {
       annualPrice: 16,
       description: "Essential booking automation for solo entrepreneurs and new businesses getting started",
       features: [
-        "Own WhatsApp number",
         "Up to 500 WhatsApp contacts",
         "Up to 2 calendars",
         "Automated reminders",
