@@ -20,7 +20,8 @@ export const Pricing = () => {
         "Automated reminders",
         "Detailed analytics",
         "Multi-language support",
-        "Advance payment collection"
+        "Advance payment collection",
+        "" // Empty slot for uniformity
       ],
       popular: false,
       cta: "Start Your Free Trial Now",
@@ -78,7 +79,6 @@ export const Pricing = () => {
     setCurrentSlide(index);
   };
 
-  // Touch gesture support
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -114,7 +114,6 @@ export const Pricing = () => {
         <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
       </div>
       
-      {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
       
       <div className="max-w-6xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
@@ -163,85 +162,103 @@ export const Pricing = () => {
           </div>
         </ScrollAnimatedSection>
 
-        {/* Desktop: Grid layout */}
-        <div className="hidden md:grid md:grid-cols-3 gap-8">
+        {/* Desktop: Uniform Grid layout */}
+        <div className="hidden md:grid md:grid-cols-3 gap-8 items-stretch">
           {plans.map((plan, index) => (
             <ScrollAnimatedSection
               key={plan.name}
               animation="fade-up"
               delay={400 + index * 150}
-              className={`relative rounded-3xl p-8 border ${
+              className="h-full"
+              as="div"
+            >
+              <div className={`relative rounded-3xl border h-full flex flex-col ${
                 plan.isEnterprise
                   ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
                   : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
-              } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}
-              as="div"
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                  <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap shadow-lg">
-                    Most Popular
-                  </div>
-                </div>
-              )}
-
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                <p className="text-slate-400 text-sm mb-6">{plan.description}</p>
+              } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}>
                 
-                {plan.monthlyPrice ? (
-                  <div className="mb-6">
-                    <div className="flex items-center justify-center">
-                      <span className="text-4xl font-bold text-emerald-400">
-                        €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                      </span>
-                      <span className="text-slate-400 text-xl ml-2">/month</span>
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                    <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap shadow-lg">
+                      Most Popular
                     </div>
-                    {isAnnual && (
-                      <div className="text-sm text-emerald-400 mt-2">
-                        Billed annually (€{plan.annualPrice * 12}/year)
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="mb-6">
-                    <div className="text-4xl font-bold text-white mb-2">Custom</div>
-                    <div className="text-slate-400">Contact us for pricing</div>
                   </div>
                 )}
-              </div>
 
-              <div className="space-y-4 mb-8">
-                {plan.features.map((feature, idx) => (
-                  <div key={idx} className="flex items-start space-x-3">
-                    <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-white" />
+                {/* Header Section - Fixed Height */}
+                <div className="p-8 text-center" style={{ minHeight: '160px' }}>
+                  <h3 className="text-2xl font-bold text-white mb-3">{plan.name}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">{plan.description}</p>
+                </div>
+
+                {/* Pricing Section - Fixed Height */}
+                <div className="px-8 text-center" style={{ minHeight: '120px' }}>
+                  {plan.monthlyPrice ? (
+                    <div>
+                      <div className="flex items-center justify-center mb-2">
+                        <span className="text-4xl font-bold text-emerald-400">
+                          €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                        </span>
+                        <span className="text-slate-400 text-xl ml-2">/month</span>
+                      </div>
+                      {isAnnual && (
+                        <div className="text-sm text-emerald-400">
+                          Billed annually (€{plan.annualPrice * 12}/year)
+                        </div>
+                      )}
                     </div>
-                    <span className="text-slate-300 text-sm">{feature}</span>
-                  </div>
-                ))}
-              </div>
+                  ) : (
+                    <div>
+                      <div className="text-4xl font-bold text-white mb-2">Custom</div>
+                      <div className="text-slate-400">Contact us for pricing</div>
+                    </div>
+                  )}
+                </div>
 
-              <Button 
-                className={`w-full font-semibold py-3 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
-                  plan.isEnterprise
-                    ? 'bg-white text-black hover:bg-gray-100'
-                    : plan.popular
-                    ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white'
-                    : 'bg-slate-700 hover:bg-slate-600 text-white'
-                }`}
-              >
-                {plan.cta}
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
+                {/* Features Section - Flexible Height */}
+                <div className="px-8 flex-1 flex flex-col justify-center">
+                  <div className="space-y-4">
+                    {plan.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-start space-x-3 min-h-[24px]">
+                        {feature ? (
+                          <>
+                            <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Check className="w-3 h-3 text-white" />
+                            </div>
+                            <span className="text-slate-300 text-sm leading-relaxed">{feature}</span>
+                          </>
+                        ) : (
+                          <div className="w-5 h-5 flex-shrink-0"></div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Button Section - Fixed Height */}
+                <div className="p-8">
+                  <Button 
+                    className={`w-full font-semibold py-3 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
+                      plan.isEnterprise
+                        ? 'bg-white text-black hover:bg-gray-100'
+                        : plan.popular
+                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white'
+                        : 'bg-slate-700 hover:bg-slate-600 text-white'
+                    }`}
+                  >
+                    {plan.cta}
+                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              </div>
             </ScrollAnimatedSection>
           ))}
         </div>
 
-        {/* Mobile: Slideshow */}
+        {/* Mobile: Uniform Slideshow */}
         <div className="md:hidden relative py-4">
           <div className="w-full max-w-xs mx-auto relative">
-            {/* Slide container */}
             <div 
               className="relative overflow-hidden rounded-lg"
               onTouchStart={onTouchStart}
@@ -257,11 +274,12 @@ export const Pricing = () => {
                     key={plan.name}
                     className="w-full flex-shrink-0 px-2"
                   >
-                    <div className={`rounded-lg border shadow-lg overflow-hidden relative ${
+                    <div className={`rounded-lg border shadow-lg overflow-hidden relative flex flex-col ${
                       plan.isEnterprise
                         ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
                         : 'bg-slate-900/95 border-slate-700/50'
-                    }`}>
+                    }`} style={{ minHeight: '500px' }}>
+                      
                       {plan.popular && (
                         <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
                           <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
@@ -270,44 +288,58 @@ export const Pricing = () => {
                         </div>
                       )}
 
-                      <div className={`p-5 ${plan.popular ? 'pt-12' : ''}`}>
-                        <div className="text-center mb-5">
-                          <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                          <p className="text-slate-400 text-sm mb-4 leading-snug">{plan.description}</p>
-                          
-                          {plan.monthlyPrice ? (
-                            <div className="mb-4">
-                              <div className="flex items-center justify-center">
-                                <span className="text-2xl font-bold text-emerald-400">
-                                  €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                                </span>
-                                <span className="text-slate-400 text-base ml-1">/month</span>
-                              </div>
-                              {isAnnual && (
-                                <div className="text-xs text-emerald-400 mt-1">
-                                  Billed annually (€{(plan.annualPrice || 0) * 12}/year)
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="mb-4">
-                              <div className="text-2xl font-bold text-white mb-1">Custom</div>
-                              <div className="text-slate-400 text-sm">Contact us for pricing</div>
-                            </div>
-                          )}
-                        </div>
+                      {/* Header Section */}
+                      <div className={`p-5 text-center ${plan.popular ? 'pt-12' : ''}`} style={{ minHeight: '140px' }}>
+                        <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                        <p className="text-slate-400 text-sm leading-snug">{plan.description}</p>
+                      </div>
 
-                        <div className="space-y-2.5 mb-5">
-                          {plan.features.map((feature, idx) => (
-                            <div key={idx} className="flex items-start space-x-2">
-                              <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <Check className="w-2.5 h-2.5 text-white" />
+                      {/* Pricing Section */}
+                      <div className="px-5 text-center" style={{ minHeight: '80px' }}>
+                        {plan.monthlyPrice ? (
+                          <div>
+                            <div className="flex items-center justify-center mb-1">
+                              <span className="text-2xl font-bold text-emerald-400">
+                                €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                              </span>
+                              <span className="text-slate-400 text-base ml-1">/month</span>
+                            </div>
+                            {isAnnual && (
+                              <div className="text-xs text-emerald-400">
+                                Billed annually (€{(plan.annualPrice || 0) * 12}/year)
                               </div>
-                              <span className="text-slate-300 text-xs leading-relaxed">{feature}</span>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="text-2xl font-bold text-white mb-1">Custom</div>
+                            <div className="text-slate-400 text-sm">Contact us for pricing</div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Features Section */}
+                      <div className="px-5 flex-1 flex flex-col justify-center">
+                        <div className="space-y-2.5">
+                          {plan.features.map((feature, idx) => (
+                            <div key={idx} className="flex items-start space-x-2 min-h-[20px]">
+                              {feature ? (
+                                <>
+                                  <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <Check className="w-2.5 h-2.5 text-white" />
+                                  </div>
+                                  <span className="text-slate-300 text-xs leading-relaxed">{feature}</span>
+                                </>
+                              ) : (
+                                <div className="w-4 h-4 flex-shrink-0"></div>
+                              )}
                             </div>
                           ))}
                         </div>
+                      </div>
 
+                      {/* Button Section */}
+                      <div className="p-5">
                         <Button 
                           className={`w-full font-semibold py-2.5 px-4 rounded-xl text-sm shadow-lg transition-all duration-300 group ${
                             plan.isEnterprise
@@ -351,7 +383,6 @@ export const Pricing = () => {
               </div>
             )}
             
-            {/* Slide indicators */}
             <div className="flex justify-center mt-4 space-x-2">
               {plans.map((_, index) => (
                 <button
@@ -367,7 +398,6 @@ export const Pricing = () => {
               ))}
             </div>
             
-            {/* Swipe hint */}
             <div className="text-center mt-3">
               <p className="text-xs text-slate-500">
                 Swipe or tap arrows to explore
