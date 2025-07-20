@@ -57,11 +57,6 @@ export const Pricing = () => {
         "Custom AI workflows & advanced logic",
         "SLA & dedicated priority support",
         "Done-for-you onboarding & integration support",
-        "Ultimate lead qualification",
-        "Automated email marketing",
-        "Automated social media content creation",
-        "Competitor tracker",
-        "Google trend analytics",
         "Social media DM integration"
       ],
       popular: false,
