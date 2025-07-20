@@ -49,7 +49,7 @@ export const Pricing = () => {
       annualPrice: null,
       description: "Complete business automation with AI marketing and competitive intelligence",
       features: [
-        "Everything in Professional",
+        "All professional features included",
         "Own WhatsApp number with dedicated branding",
         "Unlimited WhatsApp contacts",
         "Voice call routing",
