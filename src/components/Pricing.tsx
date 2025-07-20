@@ -170,7 +170,7 @@ export const Pricing = () => {
               key={plan.name}
               animation="fade-up"
               delay={400 + index * 150}
-              className={`relative rounded-3xl p-8 border transition-all duration-300 hover:scale-105 ${
+              className={`relative rounded-3xl p-8 border ${
                 plan.isEnterprise
                   ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
                   : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
