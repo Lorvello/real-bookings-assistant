@@ -41,7 +41,8 @@ export const Pricing = () => {
         "Unlimited Calendars",
         "Priority support",
         "Review system",
-        "Future Insights"
+        "Future Insights",
+        "Team collaboration (3+ users)"
       ],
       popular: true,
       cta: "Start Your Free Trial Now",
