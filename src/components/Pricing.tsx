@@ -11,8 +11,8 @@ export const Pricing = () => {
   const plans = [
     {
       name: "Starter",
-      monthlyPrice: 20,
-      annualPrice: 16,
+      monthlyPrice: 19,
+      annualPrice: 15,
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
         "Up to 500 WhatsApp contacts",
@@ -28,8 +28,8 @@ export const Pricing = () => {
     },
     {
       name: "Professional",
-      monthlyPrice: 50,
-      annualPrice: 40,
+      monthlyPrice: 49,
+      annualPrice: 39,
       description: "Advanced features for teams with extended contact management and collaboration tools",
       features: [
         "All Starter features included",
