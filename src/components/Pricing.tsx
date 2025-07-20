@@ -19,7 +19,8 @@ export const Pricing = () => {
         "Up to 2 calendars",
         "Automated reminders",
         "Detailed analytics",
-        "Multi-language support"
+        "Multi-language support",
+        "Advance payment collection"
       ],
       popular: false,
       cta: "Start Your Free Trial Now",
