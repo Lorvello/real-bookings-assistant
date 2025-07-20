@@ -1,11 +1,13 @@
 
-import { Check, Star, ArrowRight, Zap } from "lucide-react";
+
+import { Check, Star, ArrowRight, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 
 export const Pricing = () => {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const plans = [
     {
@@ -64,6 +66,47 @@ export const Pricing = () => {
       isEnterprise: true
     }
   ];
+
+  // Slideshow navigation functions
+  const nextSlide = () => {
+    setCurrentSlide((prev) => Math.min(prev + 1, plans.length - 1));
+  };
+  
+  const prevSlide = () => {
+    setCurrentSlide((prev) => Math.max(prev - 1, 0));
+  };
+  
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
+  // Touch gesture support
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && currentSlide < plans.length - 1) {
+      nextSlide();
+    } else if (isRightSwipe && currentSlide > 0) {
+      prevSlide();
+    }
+  };
 
   return (
     <section className="py-16 md:py-20 relative overflow-hidden">
@@ -197,81 +240,140 @@ export const Pricing = () => {
           ))}
         </div>
 
-        {/* Mobile: Carousel */}
-        <div className="md:hidden">
-          <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain scroll-pl-4 scroll-pr-4">
-            <div className="flex gap-4 pb-4">
-              {plans.map((plan, index) => (
-                <ScrollAnimatedSection
-                  key={plan.name}
-                  animation="fade-up"
-                  delay={400 + index * 150}
-                  className={`w-[85vw] flex-none snap-start snap-always relative rounded-3xl p-6 border transition-all ${
-                    plan.isEnterprise
-                      ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
-                      : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
-                  } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}
-                  as="div"
-                >
-                   {plan.popular && (
-                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                       <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">
-                         Most Popular
-                       </div>
-                     </div>
-                   )}
-
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                    <p className="text-slate-400 text-sm mb-4">{plan.description}</p>
-                    
-                    {plan.monthlyPrice ? (
-                      <div className="mb-4">
-                        <div className="flex items-center justify-center">
-                          <span className="text-3xl font-bold text-emerald-400">
-                            €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                          </span>
-                          <span className="text-slate-400 text-lg ml-2">/month</span>
-                        </div>
-                        {isAnnual && (
-                          <div className="text-xs text-emerald-400 mt-1">
-                            Billed annually (€{(plan.annualPrice || 0) * 12}/year)
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="mb-4">
-                        <div className="text-3xl font-bold text-white mb-1">Custom</div>
-                        <div className="text-slate-400 text-sm">Contact us for pricing</div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-3 mb-6">
-                    {plan.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start space-x-2">
-                        <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Check className="w-2.5 h-2.5 text-white" />
-                        </div>
-                        <span className="text-slate-300 text-xs">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Button 
-                    className={`w-full font-semibold py-2.5 px-4 rounded-xl text-sm shadow-lg transition-all duration-300 group ${
-                      plan.isEnterprise
-                        ? 'bg-white text-black hover:bg-gray-100'
-                        : plan.popular
-                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white'
-                        : 'bg-slate-700 hover:bg-slate-600 text-white'
-                    }`}
+        {/* Mobile: Slideshow */}
+        <div className="md:hidden relative py-4">
+          <div className="max-w-sm mx-auto px-4 relative">
+            {/* Slide container */}
+            <div 
+              className="relative overflow-hidden rounded-lg"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
+              <div 
+                className="flex transition-transform duration-700 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {plans.map((plan, index) => (
+                  <div
+                    key={plan.name}
+                    className="w-full flex-shrink-0"
                   >
-                    {plan.cta}
-                    <ArrowRight className="ml-2 w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </ScrollAnimatedSection>
+                    <div className={`bg-slate-900/95 rounded-lg border shadow-lg overflow-hidden mx-2 ${
+                      plan.isEnterprise
+                        ? 'border-slate-600'
+                        : 'border-slate-700/50'
+                    } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}>
+                      {plan.popular && (
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                          <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">
+                            Most Popular
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="p-6">
+                        <div className="text-center mb-6">
+                          <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                          <p className="text-slate-400 text-sm mb-4">{plan.description}</p>
+                          
+                          {plan.monthlyPrice ? (
+                            <div className="mb-4">
+                              <div className="flex items-center justify-center">
+                                <span className="text-3xl font-bold text-emerald-400">
+                                  €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                                </span>
+                                <span className="text-slate-400 text-lg ml-2">/month</span>
+                              </div>
+                              {isAnnual && (
+                                <div className="text-xs text-emerald-400 mt-1">
+                                  Billed annually (€{(plan.annualPrice || 0) * 12}/year)
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="mb-4">
+                              <div className="text-3xl font-bold text-white mb-1">Custom</div>
+                              <div className="text-slate-400 text-sm">Contact us for pricing</div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-3 mb-6">
+                          {plan.features.map((feature, idx) => (
+                            <div key={idx} className="flex items-start space-x-2">
+                              <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <Check className="w-2.5 h-2.5 text-white" />
+                              </div>
+                              <span className="text-slate-300 text-xs">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <Button 
+                          className={`w-full font-semibold py-2.5 px-4 rounded-xl text-sm shadow-lg transition-all duration-300 group ${
+                            plan.isEnterprise
+                              ? 'bg-white text-black hover:bg-gray-100'
+                              : plan.popular
+                              ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white'
+                              : 'bg-slate-700 hover:bg-slate-600 text-white'
+                          }`}
+                        >
+                          {plan.cta}
+                          <ArrowRight className="ml-2 w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Navigation arrows */}
+            {currentSlide > 0 && (
+              <div className="absolute top-1/2 -translate-y-1/2 -left-2 z-20">
+                <button
+                  onClick={prevSlide}
+                  className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+                  aria-label="Previous slide"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            {currentSlide < plans.length - 1 && (
+              <div className="absolute top-1/2 -translate-y-1/2 -right-2 z-20">
+                <button
+                  onClick={nextSlide}
+                  className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+                  aria-label="Next slide"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            
+            {/* Slide indicators */}
+            <div className="flex justify-center mt-4 space-x-2">
+              {plans.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    index === currentSlide 
+                      ? 'bg-emerald-400 w-6' 
+                      : 'bg-slate-600 hover:bg-slate-500'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
               ))}
+            </div>
+            
+            {/* Swipe hint */}
+            <div className="text-center mt-3">
+              <p className="text-xs text-slate-500">
+                Swipe or tap arrows to explore
+              </p>
             </div>
           </div>
         </div>
@@ -286,3 +388,4 @@ export const Pricing = () => {
     </section>
   );
 };
+
