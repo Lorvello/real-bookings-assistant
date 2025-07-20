@@ -17,14 +17,9 @@ export const Pricing = () => {
         "Own WhatsApp number",
         "Up to 500 WhatsApp contacts",
         "Up to 2 calendars",
-        "Unlimited bookings",
         "Automated reminders",
         "Detailed analytics",
-        "Multi-language support",
-        "Automated booking rescheduling & canceling system",
-        "Available 24/7",
-        "Dedicated support",
-        "Quick setup"
+        "Multi-language support"
       ],
       popular: false,
       cta: "Start Your Free Trial Now",
