@@ -31,7 +31,13 @@ export const Pricing = () => {
       annualPrice: 38,
       description: "Advanced booking intelligence with team management and CRM integrations",
       features: [
-        "All professional features included"
+        "All Starter features included",
+        "Up to 2500 WhatsApp contacts",
+        "Unlimited Calendars",
+        "Priority support",
+        "Review system",
+        "Future Insights",
+        "Team collaboration (3+ users)"
       ],
       popular: true,
       cta: "Start Your Free Trial Now",
