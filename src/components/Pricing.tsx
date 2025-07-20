@@ -13,7 +13,7 @@ export const Pricing = () => {
       name: "Starter",
       monthlyPrice: 20,
       annualPrice: 16,
-      description: "Essential booking automation for solo entrepreneurs and new businesses getting started",
+      description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
         "Up to 500 WhatsApp contacts",
         "Up to 2 calendars",
@@ -30,7 +30,7 @@ export const Pricing = () => {
       name: "Professional",
       monthlyPrice: 50,
       annualPrice: 40,
-      description: "Advanced booking intelligence with team management and CRM integrations",
+      description: "Advanced features for teams with extended contact management and collaboration tools",
       features: [
         "All Starter features included",
         "Up to 2500 WhatsApp contacts",
@@ -48,7 +48,7 @@ export const Pricing = () => {
       name: "Enterprise",
       monthlyPrice: null,
       annualPrice: null,
-      description: "Complete business automation with AI marketing and competitive intelligence",
+      description: "Complete business solution with dedicated WhatsApp number and premium support",
       features: [
         "All professional features included",
         "Unlimited WhatsApp contacts",
@@ -187,7 +187,7 @@ export const Pricing = () => {
 
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                <p className="text-slate-400 mb-6">{plan.description}</p>
+                <p className="text-slate-400 text-sm mb-6">{plan.description}</p>
                 
                 {plan.monthlyPrice ? (
                   <div className="mb-6">
