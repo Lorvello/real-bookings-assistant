@@ -33,19 +33,15 @@ export const Pricing = () => {
       name: "Professional",
       monthlyPrice: 48,
       annualPrice: 38,
-      description: "Best for growing businesses with high volume",
+      description: "Advanced booking intelligence with team management and CRM integrations",
       features: [
-        "Unlimited WhatsApp conversations",
-        "Advanced AI booking assistant",
-        "Full calendar integration",
-        "Advanced dashboard & analytics",
-        "Automatic reminders & confirmations",
-        "Multi-language support",
+        "All Starter features included",
+        "Unlimited Calendars",
         "Priority support",
-        "Custom branding"
+        "Review system"
       ],
       popular: true,
-      cta: "Start Free Trial",
+      cta: "Start Your Free Trial Now",
       color: "from-emerald-500 to-green-500"
     },
     {
