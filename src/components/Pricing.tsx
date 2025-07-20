@@ -243,7 +243,7 @@ export const Pricing = () => {
           <div className="w-full max-w-xs mx-auto relative">
             {/* Slide container */}
             <div 
-              className="relative overflow-hidden rounded-lg pt-6"
+              className="relative overflow-hidden rounded-lg"
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
@@ -257,20 +257,20 @@ export const Pricing = () => {
                     key={plan.name}
                     className="w-full flex-shrink-0 px-2"
                   >
-                    <div className={`bg-slate-900/95 rounded-lg border shadow-lg overflow-hidden relative ${
+                    <div className={`rounded-lg border shadow-lg overflow-hidden relative ${
                       plan.isEnterprise
-                        ? 'border-slate-600'
-                        : 'border-slate-700/50'
-                    } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}>
+                        ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
+                        : 'bg-slate-900/95 border-slate-700/50'
+                    }`}>
                       {plan.popular && (
-                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
+                        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
                           <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
                             Most Popular
                           </div>
                         </div>
                       )}
 
-                      <div className="p-5">
+                      <div className={`p-5 ${plan.popular ? 'pt-12' : ''}`}>
                         <div className="text-center mb-5">
                           <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
                           <p className="text-slate-400 text-sm mb-4 leading-snug">{plan.description}</p>
