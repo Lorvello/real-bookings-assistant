@@ -192,8 +192,8 @@ export const Pricing = () => {
                   <p className="text-slate-400 text-sm leading-relaxed">{plan.description}</p>
                 </div>
 
-                {/* Pricing Section - Fixed Height */}
-                <div className="px-8 text-center" style={{ minHeight: '120px' }}>
+                {/* Pricing Section - Reduced Height */}
+                <div className="px-8 text-center mb-6">
                   {plan.monthlyPrice ? (
                     <div>
                       <div className="flex items-center justify-center mb-2">
@@ -217,7 +217,7 @@ export const Pricing = () => {
                 </div>
 
                 {/* Features Section - Flexible Height */}
-                <div className="px-8 flex-1 flex flex-col justify-center">
+                <div className="px-8 flex-1 flex flex-col justify-start">
                   <div className="space-y-4">
                     {plan.features.map((feature, idx) => (
                       <div key={idx} className="flex items-start space-x-3 min-h-[24px]">
@@ -295,7 +295,7 @@ export const Pricing = () => {
                       </div>
 
                       {/* Pricing Section */}
-                      <div className="px-5 text-center" style={{ minHeight: '80px' }}>
+                      <div className="px-5 text-center mb-4">
                         {plan.monthlyPrice ? (
                           <div>
                             <div className="flex items-center justify-center mb-1">
@@ -319,7 +319,7 @@ export const Pricing = () => {
                       </div>
 
                       {/* Features Section */}
-                      <div className="px-5 flex-1 flex flex-col justify-center">
+                      <div className="px-5 flex-1 flex flex-col justify-start">
                         <div className="space-y-2.5">
                           {plan.features.map((feature, idx) => (
                             <div key={idx} className="flex items-start space-x-2 min-h-[20px]">
