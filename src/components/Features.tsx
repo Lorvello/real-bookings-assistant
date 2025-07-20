@@ -26,7 +26,7 @@ const Features = () => {
         >
           {/* Header - HEADERS (Largest) */}
           <div className="text-center pt-16 md:pt-20">
-            <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-2xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               Everything You Need To{" "}
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
                 Automate Bookings
