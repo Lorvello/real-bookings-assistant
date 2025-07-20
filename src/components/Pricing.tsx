@@ -1,4 +1,3 @@
-
 import { Check, Star, ArrowRight, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -20,8 +19,7 @@ export const Pricing = () => {
         "Automated reminders",
         "Detailed analytics",
         "Multi-language support",
-        "Advance payment collection",
-        "" // Empty slot for uniformity
+        "Advance payment collection"
       ],
       popular: false,
       cta: "Start Your Free Trial Now",
@@ -145,24 +143,24 @@ export const Pricing = () => {
               >
                 Monthly
               </button>
-                  <button
-                    onClick={() => setIsAnnual(true)}
-                    className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
-                      isAnnual
-                        ? 'bg-emerald-500 text-white shadow-lg'
-                        : 'text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    Annual
-                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                      Save 20%
-                    </span>
-                  </button>
+              <button
+                onClick={() => setIsAnnual(true)}
+                className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
+                  isAnnual
+                    ? 'bg-emerald-500 text-white shadow-lg'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                Annual
+                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                  Save 20%
+                </span>
+              </button>
             </div>
           </div>
         </ScrollAnimatedSection>
 
-        {/* Desktop: Uniform Grid layout */}
+        {/* Desktop: Restructured Grid layout */}
         <div className="hidden md:grid md:grid-cols-3 gap-8 items-stretch">
           {plans.map((plan, index) => (
             <ScrollAnimatedSection
@@ -186,13 +184,12 @@ export const Pricing = () => {
                   </div>
                 )}
 
-                {/* Header Section - Fixed Height */}
-                <div className="p-8 text-center" style={{ minHeight: '160px' }}>
-                  <h3 className="text-2xl font-bold text-white mb-3">{plan.name}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed">{plan.description}</p>
+                {/* Header Section - Just Plan Name */}
+                <div className="p-8 text-center">
+                  <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
                 </div>
 
-                {/* Pricing Section - Reduced Height */}
+                {/* Pricing Section */}
                 <div className="px-8 text-center mb-6">
                   {plan.monthlyPrice ? (
                     <div>
@@ -216,28 +213,8 @@ export const Pricing = () => {
                   )}
                 </div>
 
-                {/* Features Section - Flexible Height */}
-                <div className="px-8 flex-1 flex flex-col justify-start">
-                  <div className="space-y-4">
-                    {plan.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start space-x-3 min-h-[24px]">
-                        {feature ? (
-                          <>
-                            <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                            <span className="text-slate-300 text-sm leading-relaxed">{feature}</span>
-                          </>
-                        ) : (
-                          <div className="w-5 h-5 flex-shrink-0"></div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Button Section - Fixed Height */}
-                <div className="p-8">
+                {/* CTA Button Section */}
+                <div className="px-8 mb-6">
                   <Button 
                     className={`w-full font-semibold py-3 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
                       plan.isEnterprise
@@ -251,12 +228,26 @@ export const Pricing = () => {
                     <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </div>
+
+                {/* Features Section - At Bottom */}
+                <div className="px-8 pb-8 flex-1">
+                  <div className="space-y-3">
+                    {plan.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-start space-x-3">
+                        <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                        <span className="text-slate-300 text-sm leading-relaxed">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </ScrollAnimatedSection>
           ))}
         </div>
 
-        {/* Mobile: Uniform Slideshow */}
+        {/* Mobile: Restructured Slideshow */}
         <div className="md:hidden relative py-4">
           <div className="w-full max-w-xs mx-auto relative">
             <div 
@@ -288,10 +279,9 @@ export const Pricing = () => {
                         </div>
                       )}
 
-                      {/* Header Section */}
-                      <div className={`p-5 text-center ${plan.popular ? 'pt-12' : ''}`} style={{ minHeight: '140px' }}>
-                        <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                        <p className="text-slate-400 text-sm leading-snug">{plan.description}</p>
+                      {/* Header Section - Just Plan Name */}
+                      <div className={`p-5 text-center ${plan.popular ? 'pt-12' : ''}`}>
+                        <h3 className="text-xl font-bold text-white">{plan.name}</h3>
                       </div>
 
                       {/* Pricing Section */}
@@ -318,28 +308,8 @@ export const Pricing = () => {
                         )}
                       </div>
 
-                      {/* Features Section */}
-                      <div className="px-5 flex-1 flex flex-col justify-start">
-                        <div className="space-y-2.5">
-                          {plan.features.map((feature, idx) => (
-                            <div key={idx} className="flex items-start space-x-2 min-h-[20px]">
-                              {feature ? (
-                                <>
-                                  <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <Check className="w-2.5 h-2.5 text-white" />
-                                  </div>
-                                  <span className="text-slate-300 text-xs leading-relaxed">{feature}</span>
-                                </>
-                              ) : (
-                                <div className="w-4 h-4 flex-shrink-0"></div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Button Section */}
-                      <div className="p-5">
+                      {/* CTA Button Section */}
+                      <div className="px-5 mb-4">
                         <Button 
                           className={`w-full font-semibold py-2.5 px-4 rounded-xl text-sm shadow-lg transition-all duration-300 group ${
                             plan.isEnterprise
@@ -352,6 +322,20 @@ export const Pricing = () => {
                           {plan.cta}
                           <ArrowRight className="ml-2 w-3 h-3 group-hover:translate-x-1 transition-transform" />
                         </Button>
+                      </div>
+
+                      {/* Features Section - At Bottom */}
+                      <div className="px-5 pb-5 flex-1">
+                        <div className="space-y-2">
+                          {plan.features.map((feature, idx) => (
+                            <div key={idx} className="flex items-start space-x-2">
+                              <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <Check className="w-2.5 h-2.5 text-white" />
+                              </div>
+                              <span className="text-slate-300 text-xs leading-relaxed">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
