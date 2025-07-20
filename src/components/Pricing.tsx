@@ -1,3 +1,4 @@
+
 import { Check, Star, ArrowRight, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -34,10 +35,10 @@ export const Pricing = () => {
         "All Starter features included",
         "Up to 2500 WhatsApp contacts",
         "Unlimited Calendars",
-        "Priority support",
+        "Team collaboration (3+ users)",
         "Review system",
         "Future Insights",
-        "Team collaboration (3+ users)"
+        "Priority support"
       ],
       popular: true,
       cta: "Start Your Free Trial Now",
@@ -50,12 +51,12 @@ export const Pricing = () => {
       description: "Complete business automation with AI marketing and competitive intelligence",
       features: [
         "All professional features included",
-        "Own WhatsApp number with dedicated branding",
         "Unlimited WhatsApp contacts",
+        "Own WhatsApp number with dedicated branding",
         "Voice call routing",
+        "Social media DM integration",
         "SLA & dedicated priority support",
-        "Done-for-you onboarding & integration support",
-        "Social media DM integration"
+        "Done-for-you onboarding & integration support"
       ],
       popular: false,
       cta: "Contact Sales",
