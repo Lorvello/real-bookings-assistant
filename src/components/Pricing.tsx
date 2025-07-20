@@ -15,6 +15,7 @@ export const Pricing = () => {
       description: "Essential booking automation for solo entrepreneurs and new businesses getting started",
       features: [
         "Own WhatsApp number",
+        "Up to 2 calendars",
         "Unlimited bookings",
         "Automated reminders",
         "Detailed analytics",
