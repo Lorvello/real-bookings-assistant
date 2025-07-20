@@ -6,9 +6,9 @@ export const BookingCard = () => {
     <div className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
       
-      {/* iPhone Mockup - positioned directly on card background */}
-      <div className="absolute top-3 left-3 right-3 h-[75%] flex justify-center items-center">
-        <div className="w-60 h-[85%] transform rotate-3 hover:rotate-0 transition-transform duration-500 ease-in-out">
+      {/* iPhone Mockup - positioned with mobile considerations */}
+      <div className="absolute top-2 left-2 right-2 flex justify-center items-center lg:top-3 lg:left-3 lg:right-3 lg:h-[75%]" style={{ height: 'calc(100% - 3rem)' }}>
+        <div className="w-40 h-full transform rotate-2 hover:rotate-0 transition-transform duration-500 ease-in-out sm:w-48 lg:w-60 lg:h-[85%] lg:rotate-3">
           {/* iPhone outer frame */}
           <div className="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-[2.5rem] p-[3px] shadow-2xl h-full border border-gray-700">
             {/* iPhone screen bezel */}
