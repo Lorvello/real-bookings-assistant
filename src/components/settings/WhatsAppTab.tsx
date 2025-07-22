@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { MessageSquare, Phone, Settings } from 'lucide-react';
@@ -22,7 +23,7 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
 
   return (
     <div className="space-y-8">
-      <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
+      <div className="bg-card border border-border rounded-2xl shadow-lg p-6">
         <div className="flex items-center space-x-3 mb-6">
           <MessageSquare className="h-6 w-6 text-green-500" />
           <div>
@@ -32,7 +33,7 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
         </div>
 
         <div className="space-y-6">
-          <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
             <div className="flex items-center space-x-3">
               <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
               <span className="text-white font-medium">
@@ -52,7 +53,7 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="+31 6 12345678"
-                className="bg-slate-700/50 border-slate-600 text-white"
+                className="bg-input border-border text-white"
               />
             </div>
 

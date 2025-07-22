@@ -4,7 +4,7 @@ import React from 'react';
 export const BillingTab: React.FC = () => {
   return (
     <div className="space-y-8">
-      <div style={{ backgroundColor: '#1F2937' }} className="rounded-xl p-6 border border-border">
+      <div className="bg-card rounded-xl p-6 border border-border">
         <h2 className="text-xl font-semibold text-foreground mb-6">Billing & Subscription</h2>
         <div className="text-center py-16">
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">

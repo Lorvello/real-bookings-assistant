@@ -33,7 +33,7 @@ export default {
 					foreground: '#FFFFFF'
 				},
 				background: {
-					DEFAULT: '#111827', // Darker background for better hierarchy
+					DEFAULT: '#1F2937', // Lighter background (was #111827)
 					secondary: '#0F172A' // Sidebar color (darkest)
 				},
 				foreground: '#FFFFFF', // Primary text
@@ -46,11 +46,11 @@ export default {
 				
 				// Additional design system colors
 				card: {
-					DEFAULT: '#1F2937', // Settings sections color
+					DEFAULT: '#111827', // Dark cards/sections (similar to sidebar tone)
 					foreground: '#FFFFFF'
 				},
 				border: '#374151', // Subtle border for cards
-				input: '#374151', // Input fields color (lightest for contrast)
+				input: '#4B5563', // Lighter input fields color
 				ring: '#10B981',
 				
 				muted: {
@@ -62,7 +62,7 @@ export default {
 					foreground: '#FFFFFF'
 				},
 				popover: {
-					DEFAULT: '#1F2937',
+					DEFAULT: '#111827',
 					foreground: '#FFFFFF'
 				},
 				

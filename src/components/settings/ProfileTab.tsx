@@ -29,7 +29,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   return (
     <div className="space-y-8">
       {/* Basic Information */}
-      <Card style={{ backgroundColor: '#1F2937' }} className="border-border">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <User className="h-5 w-5" />
@@ -91,7 +91,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       </Card>
 
       {/* Social Media & Website */}
-      <Card style={{ backgroundColor: '#1F2937' }} className="border-border">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Globe className="h-5 w-5" />
@@ -124,7 +124,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       </Card>
 
       {/* Business Information */}
-      <Card style={{ backgroundColor: '#1F2937' }} className="border-border">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Building className="h-5 w-5" />
@@ -247,7 +247,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       </Card>
 
       {/* Business Knowledge Base */}
-      <Card style={{ backgroundColor: '#1F2937' }} className="border-border">
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <BookOpen className="h-5 w-5" />
