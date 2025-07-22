@@ -19,11 +19,10 @@ const AITestSection = () => {
           <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-8 md:mb-20">
 
             {/* Main Title with Professional Styling */}
-            <ScrollAnimatedSection animation="fade-up" delay={200} as="h2" className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight">
+            <ScrollAnimatedSection animation="fade-up" delay={200} as="h2" className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-1 sm:px-0 tracking-tight">
               <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
                 Test Our{' '}
               </span>
-              <br className="md:hidden" />
               <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
                 AI Assistant
               </span>
