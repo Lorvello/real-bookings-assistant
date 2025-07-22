@@ -35,7 +35,6 @@ export const Pricing = () => {
         "Up to 2500 WhatsApp contacts",
         "Unlimited Calendars",
         "Team collaboration (3+ users)",
-        "Review system",
         "Future Insights",
         "Priority support"
       ],
@@ -54,6 +53,7 @@ export const Pricing = () => {
         "Own WhatsApp number with dedicated branding",
         "Voice call routing",
         "Social media DM integration",
+        "Review system",
         "SLA & dedicated priority support",
         "Done-for-you onboarding & integration support"
       ],
