@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { getMockBusinessIntelligenceData } from '../useMockDataGenerator';
 
 interface BusinessIntelligenceData {
   current_period_revenue: number;
@@ -97,24 +96,6 @@ export function useOptimizedBusinessIntelligence(
         revenue: stats.revenue,
         avg_price: stats.count > 0 ? stats.revenue / stats.count : 0
       }));
-
-      // If no real data exists, return mock data for trial users
-      if (currentPeriodBookings.length === 0) {
-        return {
-          current_period_revenue: 139.02,
-          prev_period_revenue: 125.00,
-          avg_booking_value: 139.02,
-          monthly_growth: 11.22,
-          revenue_per_day: 4.63,
-          service_performance: [{
-            service_name: 'Training',
-            booking_count: 1,
-            revenue: 139.02,
-            avg_price: 139.02
-          }],
-          last_updated: new Date().toISOString()
-        };
-      }
 
       return {
         current_period_revenue: currentPeriodRevenue,

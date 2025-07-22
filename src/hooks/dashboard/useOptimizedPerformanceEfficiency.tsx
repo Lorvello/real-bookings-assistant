@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { getMockPerformanceData } from '../useMockDataGenerator';
 
 interface PerformanceEfficiencyData {
   no_show_rate: number;
@@ -61,10 +60,14 @@ export function useOptimizedPerformanceEfficiency(
         .lt('start_time', startDate.toISOString());
 
       const historicalEmails = new Set(historicalBookings?.map(b => b.customer_email) || []);
+      
+      // Correct customer logic:
+      // - unique_customers: New customers (not in historical data)
+      // - returning_customers: Customers who are also in historical data
+      // - total_customers: unique_customers + returning_customers
       const returningCustomers = [...currentPeriodEmails].filter(email => historicalEmails.has(email)).length;
-
-      // Calculate total customers for the selected period across all calendars
-      const totalCustomers = currentPeriodEmails.size;
+      const uniqueCustomers = [...currentPeriodEmails].filter(email => !historicalEmails.has(email)).length;
+      const totalCustomers = uniqueCustomers + returningCustomers;
 
       // Calculate peak hours for confirmed bookings only - aggregate across all calendars
       const hourCounts = new Map();
@@ -84,30 +87,12 @@ export function useOptimizedPerformanceEfficiency(
       // Calculate rates based on total bookings (including cancelled/no-show) across all calendars
       const totalBookings = allBookings.length;
 
-      if (totalBookings === 0) {
-        return {
-          no_show_rate: 1.2,
-          cancellation_rate: 2.3,
-          customer_satisfaction_score: 4.6,
-          booking_completion_rate: 96.5,
-          unique_customers: 3,
-          returning_customers: 1,
-          total_customers: 12,
-          peak_hours: [
-            { hour: 14, bookings: 3, hour_label: "14:00" },
-            { hour: 16, bookings: 2, hour_label: "16:00" },
-            { hour: 10, bookings: 1, hour_label: "10:00" }
-          ],
-          last_updated: new Date().toISOString()
-        };
-      }
-
       return {
         no_show_rate: totalBookings > 0 ? (noShowBookings.length / totalBookings) * 100 : 0,
         cancellation_rate: totalBookings > 0 ? (cancelledBookings.length / totalBookings) * 100 : 0,
         customer_satisfaction_score: 4.2 + Math.random() * 0.8, // Mock score 4.2-5.0
         booking_completion_rate: totalBookings > 0 ? (confirmedBookings.length / totalBookings) * 100 : 0,
-        unique_customers: currentPeriodEmails.size,
+        unique_customers: uniqueCustomers,
         returning_customers: returningCustomers,
         total_customers: totalCustomers,
         peak_hours: peakHours,

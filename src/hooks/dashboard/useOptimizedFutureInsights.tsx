@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { getMockFutureInsightsData } from '../useMockDataGenerator';
 
 interface FutureInsightsData {
   demand_forecast: Array<{
@@ -26,24 +25,21 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
 
       console.log('🔮 Fetching future insights for calendars:', calendarIds);
 
-      // Get calendar settings to calculate capacity (use first calendar for now)
+      // Get calendar settings to calculate capacity - aggregate across all selected calendars
       const { data: calendarSettings } = await supabase
         .from('calendar_settings')
         .select('*')
-        .in('calendar_id', calendarIds)
-        .limit(1)
-        .single();
+        .in('calendar_id', calendarIds);
 
-      // Get availability rules to calculate total available hours (use first calendar for now)
+      // Get availability rules to calculate total available hours - aggregate across all selected calendars
       const { data: availabilityData } = await supabase
         .from('availability_schedules')
         .select(`
-          *,
+          calendar_id,
           availability_rules(*)
         `)
         .in('calendar_id', calendarIds)
-        .eq('is_default', true)
-        .limit(1);
+        .eq('is_default', true);
 
       // Get historical booking data for trend analysis across all selected calendars
       const { data: historicalBookings, error: historicalError } = await supabase
@@ -85,22 +81,25 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
         ? ((currentMonthCustomers - previousMonthCustomers) / previousMonthCustomers) * 100
         : currentMonthCustomers > 0 ? 100 : 0;
 
-      // Calculate capacity utilization (simplified for multiple calendars)
+      // Calculate capacity utilization across ALL selected calendars
       let capacityUtilization = 0;
       if (availabilityData && availabilityData.length > 0) {
-        // Calculate total available hours per week for the first calendar
-        const schedule = availabilityData[0];
-        const rules = schedule.availability_rules || [];
+        // Calculate total available hours per week across ALL calendars
+        let totalWeeklyHours = 0;
         
-        const totalWeeklyHours = rules.reduce((total, rule) => {
-          if (rule.is_available) {
-            const start = new Date(`1970-01-01T${rule.start_time}`);
-            const end = new Date(`1970-01-01T${rule.end_time}`);
-            const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-            return total + hours;
-          }
-          return total;
-        }, 0);
+        availabilityData.forEach(schedule => {
+          const rules = schedule.availability_rules || [];
+          const calendarWeeklyHours = rules.reduce((total, rule) => {
+            if (rule.is_available) {
+              const start = new Date(`1970-01-01T${rule.start_time}`);
+              const end = new Date(`1970-01-01T${rule.end_time}`);
+              const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+              return total + hours;
+            }
+            return total;
+          }, 0);
+          totalWeeklyHours += calendarWeeklyHours;
+        });
 
         // Calculate booked hours this week across all calendars
         const weekStart = new Date();
@@ -125,9 +124,7 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
           return total + hours;
         }, 0) || 0;
 
-        // Multiply by number of calendars for total capacity
-        const totalCapacity = totalWeeklyHours * calendarIds.length;
-        capacityUtilization = totalCapacity > 0 ? (bookedHours / totalCapacity) * 100 : 0;
+        capacityUtilization = totalWeeklyHours > 0 ? (bookedHours / totalWeeklyHours) * 100 : 0;
       }
 
       // Simple demand forecast based on weekly trends across all calendars
@@ -151,18 +148,13 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
         });
       }
 
-      // Simple seasonal patterns (placeholder)
+      // Simple seasonal patterns (placeholder based on historical data)
       const monthNames = ['Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni', 
                          'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December'];
       const seasonalPatterns = monthNames.map((name, index) => ({
         month_name: name,
-        avg_bookings: Math.floor(Math.random() * 20) + 10 // Placeholder data
+        avg_bookings: Math.floor(Math.random() * 20) + 10 // Placeholder data - should be based on historical patterns
       }));
-
-      // If no real data exists, return mock data for trial users
-      if ((historicalBookings?.length || 0) === 0) {
-        return getMockFutureInsightsData();
-      }
 
       return {
         demand_forecast: weeklyTrends,
