@@ -20,22 +20,22 @@ interface PerformanceEfficiencyData {
 }
 
 export function useOptimizedPerformanceEfficiency(
-  calendarId?: string,
+  calendarIds?: string[],
   startDate?: Date,
   endDate?: Date
 ) {
   return useQuery({
-    queryKey: ['optimized-performance-efficiency', calendarId, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ['optimized-performance-efficiency', calendarIds, startDate?.toISOString(), endDate?.toISOString()],
     queryFn: async (): Promise<PerformanceEfficiencyData | null> => {
-      if (!calendarId || !startDate || !endDate) return null;
+      if (!calendarIds || calendarIds.length === 0 || !startDate || !endDate) return null;
 
-      console.log('⚡ Fetching performance efficiency for:', calendarId, startDate, endDate);
+      console.log('⚡ Fetching performance efficiency for calendars:', calendarIds, startDate, endDate);
 
-      // Get bookings for the selected date range
+      // Get bookings for the selected date range across all selected calendars
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('*, service_types(price)')
-        .eq('calendar_id', calendarId)
+        .in('calendar_id', calendarIds)
         .gte('start_time', startDate.toISOString())
         .lte('start_time', endDate.toISOString());
 
@@ -49,24 +49,24 @@ export function useOptimizedPerformanceEfficiency(
       const noShowBookings = allBookings.filter(b => b.status === 'no-show');
       const cancelledBookings = allBookings.filter(b => b.status === 'cancelled');
 
-      // Calculate customer metrics
+      // Calculate customer metrics - aggregate unique customers across all calendars
       const currentPeriodEmails = new Set(allBookings.map(b => b.customer_email));
       
-      // Calculate returning customers (customers who also had bookings before current period)
+      // Calculate returning customers (customers who also had bookings before current period across any calendar)
       const { data: historicalBookings } = await supabase
         .from('bookings')
         .select('customer_email')
-        .eq('calendar_id', calendarId)
+        .in('calendar_id', calendarIds)
         .neq('status', 'cancelled')
         .lt('start_time', startDate.toISOString());
 
       const historicalEmails = new Set(historicalBookings?.map(b => b.customer_email) || []);
       const returningCustomers = [...currentPeriodEmails].filter(email => historicalEmails.has(email)).length;
 
-      // Calculate total customers for the selected period
+      // Calculate total customers for the selected period across all calendars
       const totalCustomers = currentPeriodEmails.size;
 
-      // Calculate peak hours for confirmed bookings only
+      // Calculate peak hours for confirmed bookings only - aggregate across all calendars
       const hourCounts = new Map();
       confirmedBookings.forEach(booking => {
         const hour = new Date(booking.start_time).getHours();
@@ -81,7 +81,7 @@ export function useOptimizedPerformanceEfficiency(
         }))
         .sort((a, b) => b.bookings - a.bookings);
 
-      // Calculate rates based on total bookings (including cancelled/no-show)
+      // Calculate rates based on total bookings (including cancelled/no-show) across all calendars
       const totalBookings = allBookings.length;
 
       if (totalBookings === 0) {
@@ -114,7 +114,7 @@ export function useOptimizedPerformanceEfficiency(
         last_updated: new Date().toISOString()
       };
     },
-    enabled: !!calendarId && !!startDate && !!endDate,
+    enabled: !!calendarIds && calendarIds.length > 0 && !!startDate && !!endDate,
     staleTime: 600000, // 10 minutes
     gcTime: 1200000, // 20 minutes
     refetchInterval: 900000, // 15 minutes

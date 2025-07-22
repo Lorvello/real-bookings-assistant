@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
@@ -11,8 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { motion } from 'framer-motion';
 
 interface PerformanceEfficiencyTabProps {
-  calendarId: string;
-  calendarIds?: string[];
+  calendarIds: string[];
   dateRange: DateRange;
 }
 
@@ -36,7 +34,7 @@ const getDynamicPeriodText = (dateRange: DateRange): string => {
   }
 };
 
-export function PerformanceEfficiencyTab({ calendarId, calendarIds, dateRange }: PerformanceEfficiencyTabProps) {
+export function PerformanceEfficiencyTab({ calendarIds, dateRange }: PerformanceEfficiencyTabProps) {
   const { accessControl } = useAccessControl();
 
   // Add safety check for dateRange
@@ -57,11 +55,15 @@ export function PerformanceEfficiencyTab({ calendarId, calendarIds, dateRange }:
   }
 
   const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(
-    calendarId,
+    calendarIds,
     dateRange.startDate,
     dateRange.endDate
   );
-  useRealtimeSubscription(calendarId);
+  
+  // Subscribe to real-time updates for all selected calendars
+  calendarIds.forEach(calendarId => {
+    useRealtimeSubscription(calendarId);
+  });
 
   const isLoading = performanceLoading;
   const error = performanceError;

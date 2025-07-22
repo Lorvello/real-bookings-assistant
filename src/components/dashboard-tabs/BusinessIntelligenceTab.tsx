@@ -11,8 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { motion } from 'framer-motion';
 
 interface BusinessIntelligenceTabProps {
-  calendarId: string;
-  calendarIds?: string[];
+  calendarIds: string[];
   dateRange: DateRange;
 }
 
@@ -36,18 +35,22 @@ const getDynamicPeriodText = (dateRange: DateRange): string => {
   }
 };
 
-export function BusinessIntelligenceTab({ calendarId, calendarIds, dateRange }: BusinessIntelligenceTabProps) {
+export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessIntelligenceTabProps) {
   // Add safety check for dateRange
   if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
     return <BusinessIntelligenceLoading />;
   }
 
   const { data: businessIntel, isLoading, error } = useOptimizedBusinessIntelligence(
-    calendarId, 
+    calendarIds, 
     dateRange.startDate, 
     dateRange.endDate
   );
-  useRealtimeSubscription(calendarId);
+  
+  // Subscribe to real-time updates for all selected calendars
+  calendarIds.forEach(calendarId => {
+    useRealtimeSubscription(calendarId);
+  });
 
   if (isLoading) {
     return <BusinessIntelligenceLoading />;
