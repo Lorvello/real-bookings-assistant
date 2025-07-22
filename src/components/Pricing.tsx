@@ -204,7 +204,7 @@ export const Pricing = () => {
                         <span className="text-2xl font-semibold text-emerald-400">From €499</span>
                         <span className="text-slate-400 text-lg ml-2">/month</span>
                       </div>
-                      <div className="text-slate-400">Contact us for pricing</div>
+                      
                     </div>
                   )}
                 </div>
@@ -302,7 +302,7 @@ export const Pricing = () => {
                               <span className="text-xl font-semibold text-emerald-400 drop-shadow-lg">From €499</span>
                               <span className="text-slate-300/90 text-sm ml-1">/month</span>
                             </div>
-                            <div className="text-slate-300/90 text-sm">Contact us for pricing</div>
+                            
                           </div>
                         )}
                       </div>
