@@ -47,7 +47,7 @@ const SeeHowItWorks = () => {
             animation="fade-up" 
             delay={200}
             as="h1" 
-            className="text-2xl md:text-5xl xl:text-6xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
+            className="text-3xl md:text-5xl xl:text-6xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
           >
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               How does{' '}
@@ -63,7 +63,7 @@ const SeeHowItWorks = () => {
             animation="fade-up" 
             delay={400}
             as="p" 
-            className="text-base md:text-xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
+            className="text-xs md:text-xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
           >
             Step by step explanation of how easy it is to get started with our system. 
             <br className="hidden md:block" />
