@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
@@ -229,8 +228,6 @@ const WhyUs = () => {
     }
   ];
 
-
-
   // Carousel scroll handlers
   useEffect(() => {
     const setupCarousel = (ref: React.RefObject<HTMLDivElement>, setActiveIndex: (index: number) => void) => {
@@ -284,7 +281,6 @@ const WhyUs = () => {
       return newFlipped;
     });
   };
-
 
   // Detailed explanations for card backs
   const cardBackContent = [
@@ -355,7 +351,7 @@ const WhyUs = () => {
             animation="fade-up" 
             delay={200}
             as="h1" 
-            className="text-xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
+            className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
           >
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               Why{' '}
@@ -374,7 +370,7 @@ const WhyUs = () => {
             animation="fade-up" 
             delay={400}
             as="p" 
-            className="text-sm md:text-lg text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
+            className="text-xs md:text-lg text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
           >
             95% higher response rates vs phone calls, 18x faster than web forms, 50% fewer no-shows than manual booking.
           </ScrollAnimatedSection>
@@ -448,12 +444,12 @@ const WhyUs = () => {
          <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
            <div className="text-center mb-12 md:mb-20">
              <ScrollAnimatedSection delay={100}>
-                   <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-center mb-6 md:mb-8 bg-gradient-to-r from-emerald-400 via-white to-emerald-400 bg-clip-text text-transparent">
+                   <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-center mb-6 md:mb-8 bg-gradient-to-r from-emerald-400 via-white to-emerald-400 bg-clip-text text-transparent">
                      WhatsApp vs Traditional Booking
                    </h2>
               </ScrollAnimatedSection>
               <ScrollAnimatedSection delay={200}>
-                 <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+                 <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
                   <span className="md:hidden">Data from thousands of businesses</span>
                   <span className="hidden md:inline">Data-driven comparison across thousands of businesses worldwide</span>
                 </p>
@@ -587,7 +583,7 @@ const WhyUs = () => {
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-12 md:mb-20">
             <ScrollAnimatedSection delay={100}>
-              <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
+              <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
                 Why WhatsApp Works{" "}
                 <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent">
                   <span className="md:hidden">Better</span>
@@ -597,7 +593,7 @@ const WhyUs = () => {
               </h2>
             </ScrollAnimatedSection>
             <ScrollAnimatedSection delay={200}>
-              <p className="text-sm md:text-lg text-slate-300 max-w-4xl mx-auto px-3 sm:px-0">
+              <p className="text-xs md:text-lg text-slate-300 max-w-4xl mx-auto px-3 sm:px-0">
                 <span className="md:hidden">How people feel and behave matters</span>
                 <span className="hidden md:inline">It's not just about numbers - it's about how people feel and behave</span>
               </p>
@@ -693,10 +689,10 @@ const WhyUs = () => {
       <ScrollAnimatedSection as="section" className="pt-24 md:pt-32 pb-12 md:pb-16">
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
-            <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
               <span className="text-green-400">Proven Results</span> Across All Sectors
             </h2>
-            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
               <span className="md:hidden">Real businesses, dramatic improvements</span>
               <span className="hidden md:inline">In-depth case studies of real businesses that saw dramatic improvements</span>
             </p>
@@ -871,7 +867,7 @@ const WhyUs = () => {
               animation="fade-up" 
               delay={0}
               as="h2" 
-              className="text-xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 tracking-tight"
+              className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 tracking-tight"
             >
               <span className="text-white">Why </span>
               <span className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent">
@@ -884,7 +880,7 @@ const WhyUs = () => {
               animation="fade-up" 
               delay={200}
               as="p" 
-              className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed font-light"
+              className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed font-light"
             >
               Three fundamental shifts driving customer behavior and business success
             </ScrollAnimatedSection>
