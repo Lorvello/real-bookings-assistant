@@ -54,7 +54,7 @@ export const Pricing = () => {
         "Own WhatsApp number with dedicated branding",
         "Voice call routing",
         "Social media DM integration",
-        "Review system",
+        "Advanced reputation management & review analytics",
         "SLA & dedicated priority support",
         "Done-for-you onboarding & integration support"
       ],
