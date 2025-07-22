@@ -35,6 +35,7 @@ export const Pricing = () => {
         "Up to 2500 WhatsApp contacts",
         "Unlimited Calendars",
         "Team collaboration (3+ users)",
+        "Multi-location support",
         "Future Insights",
         "Priority support"
       ],
