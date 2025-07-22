@@ -117,11 +117,11 @@ const SocialProof = () => {
       
       <div className="max-w-6xl mx-auto relative z-10 px-6 md:px-8 lg:px-12">
         {/* Header */}
-        <div className="text-center mb-8 md:mb-20">
-          <h2 className="text-xl md:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+        <div className="text-center mb-6 md:mb-20">
+          <h2 className="text-lg md:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
             Trusted by <span className="text-emerald-400">10,000+</span> Businesses
           </h2>
-          <p className="text-sm md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+          <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
             <span className="md:hidden">Thousands trust our booking automation</span>
             <span className="hidden md:inline">Join thousands of business owners who've revolutionized their booking process</span>
           </p>
@@ -147,20 +147,20 @@ const SocialProof = () => {
           })}
         </div>
 
-        {/* Mobile: Stats grid (replaced carousel) */}
-        <div className="md:hidden mb-8">
-          <div className="grid grid-cols-3 gap-3">
+        {/* Mobile: Stats grid (compact) */}
+        <div className="md:hidden mb-6">
+          <div className="grid grid-cols-3 gap-2">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               return (
-                <div key={index} className="text-center bg-slate-800/30 rounded-xl p-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center mb-3 mx-auto shadow-lg">
-                    <Icon className="w-5 h-5 text-white" />
+                <div key={index} className="text-center bg-slate-800/30 rounded-xl p-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center mb-2 mx-auto shadow-lg">
+                    <Icon className="w-4 h-4 text-white" />
                   </div>
-                  <div className="text-lg font-bold text-emerald-400 mb-1">
+                  <div className="text-base font-bold text-emerald-400 mb-1">
                     {stat.value}
                   </div>
-                  <div className="text-slate-400 text-xs">
+                  <div className="text-slate-400 text-[10px]">
                     {stat.label}
                   </div>
                 </div>
@@ -214,7 +214,7 @@ const SocialProof = () => {
           ))}
         </div>
 
-        {/* Mobile: Testimonials carousel */}
+        {/* Mobile: Testimonials carousel (compact) */}
         <div className="md:hidden">
           <div 
             ref={testimonialsCarouselRef}
@@ -225,44 +225,44 @@ const SocialProof = () => {
               WebkitOverflowScrolling: 'touch'
             }}
           >
-            <div className="flex pb-4">
+            <div className="flex pb-3">
               {testimonials.map((testimonial, index) => (
                 <div key={index} className="w-[calc(100vw-2rem)] flex-none snap-start snap-always mx-4">
-                  <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 h-full">
-                    <div className="flex items-center mb-4">
+                  <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 h-full">
+                    <div className="flex items-center mb-3">
                       <img 
                         src={testimonial.image} 
                         alt={testimonial.name}
-                        className="w-12 h-12 rounded-full mr-4 object-cover"
+                        className="w-10 h-10 rounded-full mr-3 object-cover"
                       />
                       <div className="flex-1">
-                        <h4 className="text-white font-semibold text-sm">{testimonial.name}</h4>
-                        <p className="text-slate-400 text-xs">{testimonial.business}</p>
+                        <h4 className="text-white font-semibold text-xs">{testimonial.name}</h4>
+                        <p className="text-slate-400 text-[10px]">{testimonial.business}</p>
                         <div className="flex items-center mt-1">
                           <MapPin className="w-3 h-3 text-slate-500 mr-1" />
-                          <span className="text-slate-500 text-xs">{testimonial.location}</span>
+                          <span className="text-slate-500 text-[10px]">{testimonial.location}</span>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center mb-3">
+                    <div className="flex items-center mb-2">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                        <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
                       ))}
-                      <span className="ml-2 text-emerald-400 font-semibold text-xs">
+                      <span className="ml-2 text-emerald-400 font-semibold text-[10px]">
                         {testimonial.stats}
                       </span>
                     </div>
                     
                     <div className="relative">
-                      <Quote className="absolute -top-2 -left-2 w-6 h-6 text-emerald-400/30" />
-                      <p className="text-slate-300 text-xs leading-relaxed pl-4">
+                      <Quote className="absolute -top-1 -left-1 w-5 h-5 text-emerald-400/30" />
+                      <p className="text-slate-300 text-[10px] leading-relaxed pl-3">
                         {testimonial.testimonial}
                       </p>
                     </div>
                     
-                    <div className="mt-4 pt-4 border-t border-slate-700/50">
-                      <span className="text-emerald-400 text-xs font-medium">
+                    <div className="mt-3 pt-3 border-t border-slate-700/50">
+                      <span className="text-emerald-400 text-[10px] font-medium">
                         {testimonial.service}
                       </span>
                     </div>
@@ -273,7 +273,7 @@ const SocialProof = () => {
           </div>
           
           {/* Testimonials indicators */}
-          <div className="flex justify-center space-x-2 mt-4">
+          <div className="flex justify-center space-x-2 mt-3">
             {testimonials.map((_, index) => (
               <button
                 key={index}
