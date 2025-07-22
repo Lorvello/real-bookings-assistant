@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
@@ -16,7 +15,7 @@ const FAQ = () => {
 
   const recommendedQuestions = [
     "What does it cost?",
-    "Do you provide the WhatsApp number and calendar?",
+    "Do you provide the WhatsApp number and calendar?", 
     "For which types of businesses is this suitable?",
     "Is it difficult to set up?",
     "Can I use my existing WhatsApp number instead?"
@@ -296,7 +295,7 @@ const FAQ = () => {
         </div>
         
         <div className="max-w-6xl mx-auto text-center relative z-10 px-4 md:px-6 lg:px-8">
-          {/* Floating Badge */}
+          {/* Floating Badge - Made smaller on mobile */}
           <ScrollAnimatedSection 
             animation="fade-up" 
             delay={0}
@@ -305,16 +304,16 @@ const FAQ = () => {
           >
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
               <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
-              <span className="text-emerald-300 text-sm font-medium tracking-wide">Get Instant Answers</span>
+              <span className="text-emerald-300 text-xs md:text-sm font-medium tracking-wide">Get Instant Answers</span>
             </div>
           </ScrollAnimatedSection>
 
-          {/* Premium Main Heading */}
+          {/* Premium Main Heading - Made larger on mobile */}
           <ScrollAnimatedSection 
             animation="fade-up" 
             delay={200}
             as="h1" 
-            className="text-xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
+            className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
           >
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               Frequently Asked{' '}
@@ -325,34 +324,34 @@ const FAQ = () => {
             </span>
           </ScrollAnimatedSection>
 
-          {/* Enhanced Subtitle */}
+          {/* Enhanced Subtitle - Made smaller on mobile */}
           <ScrollAnimatedSection 
             animation="fade-up" 
             delay={400}
             as="p" 
-            className="text-sm md:text-lg text-slate-300 max-w-4xl mx-auto mb-8 md:mb-12 px-3 sm:px-0 leading-relaxed font-light"
+            className="text-xs md:text-lg text-slate-300 max-w-4xl mx-auto mb-8 md:mb-12 px-3 sm:px-0 leading-relaxed font-light"
           >
             Everything you need to know about our AI-powered WhatsApp booking platform. 
             <br className="hidden md:block" />
             <span className="text-emerald-300">Can't find what you're looking for? Contact our support team</span>.
           </ScrollAnimatedSection>
 
-          {/* Integrated Search Section */}
+          {/* Integrated Search Section - Made smaller on mobile */}
           <ScrollAnimatedSection 
             animation="fade-up" 
             delay={600}
             className="max-w-4xl mx-auto"
           >
-            {/* Search Bar */}
+            {/* Search Bar - Made smaller on mobile */}
             <div className="relative mb-8">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 md:w-5 md:h-5" />
                   <Input
                     type="text"
                     placeholder="Search frequently asked questions..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-12 pr-4 py-4 h-14 text-lg bg-transparent border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
+                    className="pl-10 md:pl-12 pr-4 py-4 h-12 md:h-14 text-base md:text-lg bg-transparent border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
                   />
               </div>
               {searchTerm && (
