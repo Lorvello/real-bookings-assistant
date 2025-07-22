@@ -1,4 +1,5 @@
 
+
 import { ReactNode } from "react";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
@@ -65,10 +66,8 @@ const BentoCard = ({
     <div className="relative h-full">{background}</div>
     <div className={cn(
       "pointer-events-none z-10 flex flex-col",
-      // Mobile responsive content positioning and sizing
-      name === "100% Automatic Bookings" 
-        ? "absolute bottom-3 left-3 right-3 text-left gap-1 lg:bottom-6 lg:left-6 lg:right-6 lg:gap-2" 
-        : "absolute bottom-3 left-3 right-3 gap-1 lg:static lg:p-6 lg:gap-2"
+      // All cards now use consistent absolute positioning - no more lg:static
+      "absolute bottom-3 left-3 right-3 text-left gap-1 lg:bottom-6 lg:left-6 lg:right-6 lg:gap-2"
     )}>
       <Icon className={cn(
         "text-slate-200 group-hover:text-primary transition-colors duration-300",
@@ -96,3 +95,4 @@ const BentoCard = ({
 );
 
 export { BentoGrid, BentoCard };
+
