@@ -90,10 +90,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       )}
 
       {/* Basic Information */}
-      <div 
-        className="rounded-xl p-6 border border-gray-700"
-        style={{ backgroundColor: '#0F172A' }}
-      >
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <h2 className="text-xl font-semibold text-white mb-6">Basic Information</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -205,10 +202,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 
 
       {/* Social Media */}
-      <div 
-        className="rounded-xl p-6 border border-gray-700"
-        style={{ backgroundColor: '#0F172A' }}
-      >
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <div className="flex items-center gap-2 mb-6">
           <h2 className="text-xl font-semibold text-white">Social Media & Website</h2>
           <Tooltip>
@@ -275,10 +269,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       </div>
 
       {/* Business Information with Address */}
-      <div 
-        className="rounded-xl p-6 border border-gray-700"
-        style={{ backgroundColor: '#0F172A' }}
-      >
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <div className="flex items-center gap-2 mb-6">
           <h2 className="text-xl font-semibold text-white">Business Information</h2>
           <Tooltip>
@@ -468,10 +459,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       </div>
 
       {/* Business Knowledge Base */}
-      <div 
-        className="rounded-xl p-6 border border-gray-700"
-        style={{ backgroundColor: '#0F172A' }}
-      >
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <div className="flex items-center gap-2 mb-6">
           <h2 className="text-xl font-semibold text-white">Booking Agent Knowledge Base</h2>
           <Tooltip>
