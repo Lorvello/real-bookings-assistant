@@ -658,8 +658,8 @@ const WhyUs = () => {
                           </h3>
                           
                           {/* Description with integrated statistics - LEFT ALIGNED AND LARGER TEXT FOR MOBILE */}
-                          <p className="text-slate-300 text-[11px] md:text-base leading-tight md:leading-relaxed text-left">
-                            <span className="md:hidden">{benefit.mobileDescription}</span>
+                          <p className="text-slate-300 text-[11px] md:text-base leading-tight md:leading-relaxed md:text-left">
+                            <span className="md:hidden text-left">{benefit.mobileDescription}</span>
                             <span className="hidden md:inline">{benefit.description}</span>
                           </p>
                         </div>
