@@ -600,7 +600,7 @@ const WhyUs = () => {
               <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
                 Why WhatsApp Works{" "}
                 <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent">
-                  <span className="md:hidden">Better</span>
+                  <span className="md:hidden">Psychologically</span>
                   <span className="hidden md:inline">Psychologically</span>
                 </span>{" "}
                 Better
@@ -614,7 +614,7 @@ const WhyUs = () => {
             </ScrollAnimatedSection>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+          <div className="grid grid-cols-2 lg:grid-cols-2 gap-3 md:gap-12">
             {psychologicalBenefits.map((benefit, index) => (
               <ScrollAnimatedSection 
                 key={index} 
@@ -623,7 +623,7 @@ const WhyUs = () => {
               >
                 {/* Flip Card Container */}
                 <div 
-                  className="relative cursor-pointer h-48 md:h-52"
+                  className="relative cursor-pointer h-32 md:h-52"
                   onClick={() => togglePsychCardFlip(index)}
                   style={{
                     transformStyle: 'preserve-3d',
@@ -633,32 +633,32 @@ const WhyUs = () => {
                 >
                   {/* Front Side */}
                   <div 
-                    className="absolute inset-0 p-5 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-slate-600/30 shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:shadow-[0_24px_48px_rgba(16,185,129,0.12)] hover:border-emerald-400/40 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1 transition-all duration-500"
+                    className="absolute inset-0 p-3 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-slate-600/30 shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:shadow-[0_24px_48px_rgba(16,185,129,0.12)] hover:border-emerald-400/40 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1 transition-all duration-500"
                     style={{
                       backfaceVisibility: 'hidden'
                     }}
                   >
                     {/* Content Layout */}
                     <div className="flex flex-col justify-between h-full">
-                      <div className="flex items-start space-x-4">
+                      <div className="flex items-start space-x-2 md:space-x-4">
                         {/* Icon Container */}
-                        <div className="relative w-12 h-12 md:w-14 md:h-14 flex-shrink-0">
+                        <div className="relative w-8 h-8 md:w-14 md:h-14 flex-shrink-0">
                           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/25 via-emerald-400/20 to-emerald-600/25 rounded-xl shadow-lg transform group-hover:scale-105 transition-transform duration-300"></div>
                           <div className="absolute inset-0.5 bg-gradient-to-tr from-slate-800/70 to-slate-700/50 rounded-lg backdrop-blur-sm"></div>
                           <div className="relative w-full h-full flex items-center justify-center">
-                            <benefit.icon className="w-6 h-6 md:w-7 md:h-7 text-emerald-400 drop-shadow-lg group-hover:text-emerald-300 transition-colors duration-300" />
+                            <benefit.icon className="w-4 h-4 md:w-7 md:h-7 text-emerald-400 drop-shadow-lg group-hover:text-emerald-300 transition-colors duration-300" />
                           </div>
                         </div>
                         
                         {/* Content Container */}
-                        <div className="flex-1 space-y-3">
+                        <div className="flex-1 space-y-1 md:space-y-3">
                           {/* Title */}
-                          <h3 className="text-lg md:text-xl font-bold bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent leading-tight">
+                          <h3 className="text-sm md:text-xl font-bold bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent leading-tight">
                             {benefit.title}
                           </h3>
                           
                           {/* Description with integrated statistics */}
-                          <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+                          <p className="text-slate-300 text-xs md:text-base leading-relaxed">
                             <span className="md:hidden">{benefit.mobileDescription}</span>
                             <span className="hidden md:inline">{benefit.description}</span>
                           </p>
@@ -666,8 +666,8 @@ const WhyUs = () => {
                       </div>
                       
                       {/* Bottom Element */}
-                      <div className="mt-4 text-right">
-                        <span className="text-emerald-400 text-xs md:text-sm font-medium opacity-80">
+                      <div className="mt-1 md:mt-4 text-right">
+                        <span className="text-emerald-400 text-[9px] md:text-sm font-medium opacity-80">
                           See evidence →
                         </span>
                       </div>
@@ -676,7 +676,7 @@ const WhyUs = () => {
 
                    {/* Back Side */}
                   <div 
-                    className="absolute inset-0 p-5 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-slate-600/30 shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:shadow-[0_24px_48px_rgba(16,185,129,0.12)] hover:border-emerald-400/40 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1 transition-all duration-500 flex items-center justify-center"
+                    className="absolute inset-0 p-3 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-slate-600/30 shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:shadow-[0_24px_48px_rgba(16,185,129,0.12)] hover:border-emerald-400/40 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1 transition-all duration-500 flex items-center justify-center"
                     style={{
                       backfaceVisibility: 'hidden',
                       transform: 'rotateY(180deg)'
@@ -684,7 +684,7 @@ const WhyUs = () => {
                   >
                     {/* Text Content Only */}
                     <div className="text-left">
-                      <p className="text-slate-300 text-sm md:text-base leading-relaxed italic">
+                      <p className="text-slate-300 text-[8px] md:text-base leading-relaxed italic">
                         {psychBackContent[index]}
                       </p>
                     </div>
