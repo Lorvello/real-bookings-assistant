@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 
 const StepIndicator = () => {
   return (
-    <div className="text-center relative py-16">
+    <div className="text-center relative py-12 md:py-16">
       {/* Enhanced Background decoration with emerald accents */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-r from-emerald-600/10 via-emerald-500/5 to-emerald-400/10 rounded-full blur-3xl"></div>
@@ -14,7 +14,7 @@ const StepIndicator = () => {
       
       <div className="relative z-10">
         {/* Premium Step indicators with enhanced animations */}
-        <div className="inline-flex items-center gap-6 md:gap-16 mb-6 md:mb-10">
+        <div className="inline-flex items-center gap-4 md:gap-16 mb-6 md:mb-10">
           {[
             { number: '1', delay: '0ms', title: 'Connect' },
             { number: '2', delay: '200ms', title: 'Setup' },
@@ -32,18 +32,18 @@ const StepIndicator = () => {
                 <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500/30 via-emerald-400/20 to-emerald-600/30 rounded-full blur-xl opacity-50 group-hover:opacity-100 transition-all duration-500"></div>
                 
                 {/* Main circle with premium gradient */}
-                <div className="relative w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-2xl shadow-emerald-500/25 group-hover:shadow-emerald-400/40 hover:scale-110 transition-all duration-500 border border-emerald-300/50">
+                <div className="relative w-12 h-12 md:w-20 md:h-20 bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-2xl shadow-emerald-500/25 group-hover:shadow-emerald-400/40 hover:scale-110 transition-all duration-500 border border-emerald-300/50">
                   {/* Inner gradient overlay */}
                   <div className="absolute inset-1 bg-gradient-to-br from-emerald-200/30 via-transparent to-emerald-800/30 rounded-full"></div>
                   
                   {/* Pulse ring */}
                   <div className="absolute inset-0 rounded-full border-2 border-emerald-300/50 animate-ping opacity-20"></div>
                   
-                  <span className="relative text-white text-lg md:text-xl font-bold z-10 drop-shadow-lg">{step.number}</span>
+                  <span className="relative text-white text-base md:text-xl font-bold z-10 drop-shadow-lg">{step.number}</span>
                 </div>
                 
                 {/* Step label */}
-                <span className="mt-3 text-sm md:text-base font-semibold bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent">
+                <span className="mt-2 md:mt-3 text-xs md:text-base font-semibold bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent">
                   {step.title}
                 </span>
               </div>
@@ -57,7 +57,7 @@ const StepIndicator = () => {
                   }}
                 >
                   {/* Enhanced connecting line */}
-                  <div className="relative w-12 md:w-20 h-1 bg-gradient-to-r from-emerald-500/30 via-emerald-400/50 to-emerald-500/30 rounded-full overflow-hidden">
+                  <div className="relative w-8 md:w-20 h-1 bg-gradient-to-r from-emerald-500/30 via-emerald-400/50 to-emerald-500/30 rounded-full overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/80 to-transparent w-6 animate-[pulse_2s_ease-in-out_infinite] rounded-full"></div>
                   </div>
                   
@@ -75,7 +75,7 @@ const StepIndicator = () => {
         <div className="relative">
           <div className="flex items-center justify-center mb-6">
             {/* Left sparkle */}
-            <div className="w-6 h-6 md:w-8 md:h-8 text-emerald-400 animate-spin mr-4" style={{ animationDuration: '3s' }}>
+            <div className="w-4 h-4 md:w-8 md:h-8 text-emerald-400 animate-spin mr-4" style={{ animationDuration: '3s' }}>
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0L14.09 8.26L22 5L14.09 8.26L12 0ZM0 12L8.26 9.91L5 2L8.26 9.91L0 12ZM12 24L9.91 15.74L2 19L9.91 15.74L12 24ZM24 12L15.74 14.09L19 22L15.74 14.09L24 12Z"/>
               </svg>
@@ -86,7 +86,7 @@ const StepIndicator = () => {
             </h3>
             
             {/* Right sparkle */}
-            <div className="w-6 h-6 md:w-8 md:h-8 text-emerald-400 animate-spin ml-4" style={{ animationDuration: '3s', animationDelay: '1.5s' }}>
+            <div className="w-4 h-4 md:w-8 md:h-8 text-emerald-400 animate-spin ml-4" style={{ animationDuration: '3s', animationDelay: '1.5s' }}>
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0L14.09 8.26L22 5L14.09 8.26L12 0ZM0 12L8.26 9.91L5 2L8.26 9.91L0 12ZM12 24L9.91 15.74L2 19L9.91 15.74L12 24ZM24 12L15.74 14.09L19 22L15.74 14.09L24 12Z"/>
               </svg>

@@ -36,7 +36,7 @@ const SeeHowItWorks = () => {
             as="div" 
             className="mb-6 md:mb-8"
           >
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
+            <div className="inline-flex items-center px-3 py-1 md:px-4 md:py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
               <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
               <span className="text-emerald-300 text-sm font-medium tracking-wide">3 Steps to Success</span>
             </div>
