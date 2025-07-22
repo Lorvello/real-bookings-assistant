@@ -17,7 +17,7 @@ export const Pricing = () => {
         "Strategic WhatsApp contact management (up to 500)",
         "Dual-calendar orchestration system", 
         "AI-powered intelligent reminder sequences",
-        "Advanced performance analytics & insights",
+        "Essential dashboard overview & live operations monitoring",
         "Global multi-language localization",
         "Streamlined payment processing & collection"
       ],
@@ -36,7 +36,7 @@ export const Pricing = () => {
         "Unlimited calendar orchestration platform",
         "Advanced team collaboration suite (3+ users)",
         "Multi-location business coordination",
-        "Predictive business intelligence & insights",
+        "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
         "Dedicated priority customer success"
       ],
       popular: true,

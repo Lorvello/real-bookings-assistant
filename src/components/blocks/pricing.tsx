@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +37,71 @@ export const Pricing: React.FC<PricingProps> = ({
 }) => {
   const [billingPeriod, setBillingPeriod] = useState<string>("yearly");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+
+  // Update default features to match actual dashboard capabilities
+  const defaultPlans = [
+    {
+      name: "Starter",
+      price: "19",
+      yearlyPrice: "15",
+      period: "/month",
+      description: "Perfect for beginners with basic WhatsApp automation and calendar management",
+      features: [
+        "Strategic WhatsApp contact management (up to 500)",
+        "Dual-calendar orchestration system", 
+        "AI-powered intelligent reminder sequences",
+        "Essential dashboard overview & live operations monitoring",
+        "Global multi-language localization",
+        "Streamlined payment processing & collection"
+      ],
+      buttonText: "Start Your Free Trial Now",
+      href: "#",
+      isPopular: false
+    },
+    {
+      name: "Professional",
+      price: "49",
+      yearlyPrice: "39",
+      period: "/month",
+      description: "Advanced features for teams with extended contact management and collaboration tools",
+      features: [
+        "All Starter premium features included",
+        "Professional WhatsApp contact management (up to 2,500)",
+        "Unlimited calendar orchestration platform",
+        "Advanced team collaboration suite (3+ users)",
+        "Multi-location business coordination",
+        "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
+        "Dedicated priority customer success"
+      ],
+      buttonText: "Start Your Free Trial Now",
+      href: "#",
+      isPopular: true
+    },
+    {
+      name: "Enterprise",
+      price: "Custom",
+      yearlyPrice: "Custom",
+      period: "/month",
+      description: "Complete business solution with dedicated WhatsApp number and premium support",
+      features: [
+        "Complete professional suite included",
+        "Unlimited enterprise WhatsApp contact management",
+        "Dedicated WhatsApp Business API with custom branding",
+        "Intelligent voice call routing & distribution",
+        "Omnichannel social media DM orchestration",
+        "Advanced reputation management & review analytics",
+        "Enterprise SLA with dedicated success management",
+        "White-glove onboarding & strategic integration consulting"
+      ],
+      buttonText: "Contact Sales",
+      href: "#",
+      isPopular: false,
+      isCustom: true
+    }
+  ];
+
+  // Use provided plans or default plans with updated features
+  const displayPlans = plans.length > 0 ? plans : defaultPlans;
 
   const handleCardHover = (planName: string) => {
     setHoveredCard(planName);
@@ -121,7 +185,7 @@ export const Pricing: React.FC<PricingProps> = ({
           <RadioGroup value={selectedPlan} onValueChange={onPlanSelect} className="mb-8">
             {/* Desktop: Grid layout */}
             <div className="hidden md:grid md:grid-cols-3 gap-8">
-              {plans.map((plan, index) => (
+              {displayPlans.map((plan, index) => (
                 <div key={index} className="relative">
                   <Card 
                     onClick={() => handlePlanClick(plan.name)}
@@ -216,7 +280,7 @@ export const Pricing: React.FC<PricingProps> = ({
             <div className="md:hidden">
               <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth">
                 <div className="flex space-x-4">
-                  {plans.map((plan, index) => (
+                  {displayPlans.map((plan, index) => (
                     <div key={index} className="w-[85vw] flex-none snap-start snap-always">
                       <Card 
                         onClick={() => handlePlanClick(plan.name)}
@@ -312,7 +376,7 @@ export const Pricing: React.FC<PricingProps> = ({
               </div>
               {/* Carousel indicators */}
               <div className="flex justify-center space-x-2 mt-4">
-                {plans.map((_, index) => (
+                {displayPlans.map((_, index) => (
                   <div key={index} className="w-2 h-2 bg-gray-400 rounded-full"></div>
                 ))}
               </div>
@@ -324,7 +388,7 @@ export const Pricing: React.FC<PricingProps> = ({
           <>
             {/* Desktop: Grid layout */}
             <div className="hidden md:grid md:grid-cols-3 gap-8">
-              {plans.map((plan, index) => (
+              {displayPlans.map((plan, index) => (
                 <Card 
                   key={index}
                   onMouseEnter={() => handleCardHover(plan.name)} 
@@ -404,7 +468,7 @@ export const Pricing: React.FC<PricingProps> = ({
             <div className="md:hidden">
               <div className="overflow-x-auto snap-x snap-mandatory scroll-smooth">
                 <div className="flex space-x-4">
-                  {plans.map((plan, index) => (
+                  {displayPlans.map((plan, index) => (
                     <div key={index} className="w-[85vw] flex-none snap-start snap-always">
                       <Card 
                         className={`relative cursor-pointer transition-all duration-300 ${
@@ -484,7 +548,7 @@ export const Pricing: React.FC<PricingProps> = ({
               </div>
               {/* Carousel indicators */}
               <div className="flex justify-center space-x-2 mt-4">
-                {plans.map((_, index) => (
+                {displayPlans.map((_, index) => (
                   <div key={index} className="w-2 h-2 bg-gray-600 rounded-full"></div>
                 ))}
               </div>
