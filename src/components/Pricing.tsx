@@ -335,13 +335,7 @@ export const Pricing = () => {
 
                       <div className="px-3.5 mb-2.5 relative z-10">
                         <Button 
-                          className={`w-full font-semibold py-2.5 px-3.5 rounded-xl text-xs shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm ${
-                            plan.isEnterprise
-                              ? 'bg-gradient-to-r from-white to-slate-100 text-slate-900 hover:from-slate-100 hover:to-white border border-white/30 shadow-white/30'
-                              : plan.popular
-                              ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/50'
-                              : 'bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white border border-slate-600/50 shadow-slate-700/50'
-                          }`}
+                          className="w-full font-semibold py-2.5 px-3.5 rounded-xl text-xs shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/50"
                         >
                           {plan.cta}
                           <ArrowRight className="ml-1.5 w-2.5 h-2.5 group-hover:translate-x-1 transition-transform" />
