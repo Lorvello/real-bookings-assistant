@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -6,6 +7,7 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { DashboardTabs } from '@/components/DashboardTabs';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
+import { DashboardCalendarSelector } from '@/components/dashboard/DashboardCalendarSelector';
 import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { UserStatusSwitcher } from '@/components/developer/UserStatusSwitcher';
@@ -14,7 +16,7 @@ import { SubscriptionTierSwitcher } from '@/components/developer/SubscriptionTie
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { calendars, selectedCalendar, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
+  const { calendars, selectedCalendarIds, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
   const { userStatus } = useUserStatus();
 
   // Date range state for the dashboard
@@ -67,7 +69,6 @@ const Dashboard = () => {
   }
 
   const activeCalendarIds = getActiveCalendarIds();
-  const primaryCalendarId = activeCalendarIds.length > 0 ? activeCalendarIds[0] : undefined;
 
   // Show "No calendar found" only for non-setup-incomplete users
   if (!userStatus.isSetupIncomplete && calendars.length === 0) {
@@ -89,6 +90,21 @@ const Dashboard = () => {
       </DashboardLayout>
     );
   }
+
+  // Generate display text for selected calendars
+  const getCalendarDisplayText = () => {
+    if (viewingAllCalendars || activeCalendarIds.length === calendars.length) {
+      return ` - All calendars (${activeCalendarIds.length})`;
+    }
+    if (activeCalendarIds.length === 1) {
+      const calendar = calendars.find(cal => cal.id === activeCalendarIds[0]);
+      return calendar ? ` - ${calendar.name}` : '';
+    }
+    if (activeCalendarIds.length > 1) {
+      return ` - ${activeCalendarIds.length} calendars selected`;
+    }
+    return '';
+  };
 
   return (
     <DashboardLayout>
@@ -116,47 +132,50 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
-            {/* Dashboard Header with Conditional Date Filter */}
+            {/* Dashboard Header with Calendar and Date Filters */}
             <div className="mb-4 md:mb-8">
               <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-3 md:p-6">
-                <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
+                <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
                   <div>
                     <h1 className="text-base md:text-3xl font-bold text-white">
                       Dashboard
                       <span className="hidden md:inline">
-                        {viewingAllCalendars 
-                          ? ' - All calendars'
-                          : selectedCalendar 
-                            ? ` - ${selectedCalendar.name}`
-                            : ''
-                        }
+                        {getCalendarDisplayText()}
                       </span>
                     </h1>
                     <p className="text-gray-400 mt-1 text-xs md:text-base">
-                      {viewingAllCalendars
+                      {activeCalendarIds.length > 1
                         ? `Overview of ${activeCalendarIds.length} calendars`
                         : 'Overview of your bookings and performance'
                       }
                     </p>
                   </div>
                   
-                  {/* Conditional Date Filter in Header */}
-                  {showDateFilter && (
-                    <div className="flex-shrink-0">
-                      <DateRangeFilter 
-                        selectedRange={selectedDateRange}
-                        onRangeChange={setSelectedDateRange}
-                      />
+                  {/* Filter Controls */}
+                  <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+                    {/* Calendar Selector */}
+                    <div className="order-1">
+                      <DashboardCalendarSelector />
                     </div>
-                  )}
+                    
+                    {/* Conditional Date Filter */}
+                    {showDateFilter && (
+                      <div className="order-2">
+                        <DateRangeFilter 
+                          selectedRange={selectedDateRange}
+                          onRangeChange={setSelectedDateRange}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Dashboard Tabs */}
-            {primaryCalendarId && (
+            {activeCalendarIds.length > 0 && (
               <DashboardTabs 
-                calendarId={primaryCalendarId} 
+                calendarIds={activeCalendarIds} 
                 dateRange={selectedDateRange}
                 onTabChange={setActiveTab}
               />
