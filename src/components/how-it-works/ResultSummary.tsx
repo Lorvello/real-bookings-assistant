@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { CheckCircle, Sparkles, TrendingUp, Clock, Users, Zap, ArrowRight } from 'lucide-react';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
@@ -207,7 +206,7 @@ const ResultSummary = () => {
                     transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
                   }}
                 >
-                  {/* Mobile Front Side - drastically smaller icons, values and labels */}
+                  {/* Mobile Front Side - smaller icons and subtexts */}
                   <div 
                     className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 text-center flex flex-col justify-center items-center"
                     style={{
@@ -227,18 +226,18 @@ const ResultSummary = () => {
                     </div>
                     
                     <div className="flex flex-col items-center justify-center h-full w-full">
-                      {/* Drastically smaller mobile icon */}
-                      <div className="mb-3">
-                        <Icon className="w-5 h-5 mx-auto text-emerald-400 drop-shadow-xl" />
+                      {/* Smaller mobile icon, closer to header */}
+                      <div className="mb-2">
+                        <Icon className="w-4 h-4 mx-auto text-emerald-400 drop-shadow-xl" />
                       </div>
                       
-                      {/* Drastically smaller mobile statistic */}
+                      {/* Mobile statistic - keeping same size as requested */}
                       <div className="text-xl font-black text-emerald-400 mb-2 tracking-tighter drop-shadow-xl">
                         {stat.value}
                       </div>
                       
-                      {/* Much smaller mobile label text */}
-                      <div className="text-[10px] text-slate-300/90 leading-tight font-light tracking-wide text-center">
+                      {/* Smaller mobile label text */}
+                      <div className="text-[9px] text-slate-300/90 leading-tight font-light tracking-wide text-center">
                         {stat.label}
                       </div>
                     </div>
@@ -246,7 +245,7 @@ const ResultSummary = () => {
 
                   {/* Mobile Back Side - smaller text with better fit */}
                   <div 
-                    className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-3 text-center flex flex-col justify-center items-center overflow-hidden"
+                    className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-2 text-center flex flex-col justify-center items-center overflow-hidden"
                     style={{
                       backfaceVisibility: 'hidden',
                       transform: 'rotateY(180deg)',
@@ -263,8 +262,8 @@ const ResultSummary = () => {
                     <div className="absolute inset-0 rounded-2xl bg-white/[0.03]" />
                     
                     <div className="relative z-10 flex items-start justify-start h-full w-full">
-                      {/* Smaller detailed text with better fit for mobile - no icon */}
-                      <div className="text-[10px] text-slate-300/90 leading-snug font-light tracking-wide text-left italic">
+                      {/* Much smaller detailed text with tighter fit for mobile */}
+                      <div className="text-[8px] text-slate-300/90 leading-tight font-light tracking-wide text-left italic">
                         {stat.detailText}
                       </div>
                     </div>
