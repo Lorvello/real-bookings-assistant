@@ -57,7 +57,7 @@ const StepThreeDetails = () => {
             </div>
             <div>
               <h4 className="font-bold text-white text-xs md:text-base mb-0.5">Instant activation</h4>
-              <p className="text-slate-300 text-xs md:text-sm leading-relaxed">Everything works immediately after account creation</p>
+              <p className="text-slate-300 text-[10px] md:text-sm leading-relaxed">Everything works immediately after account creation</p>
             </div>
           </div>
           
@@ -69,7 +69,7 @@ const StepThreeDetails = () => {
             </div>
             <div>
               <h4 className="font-bold text-white text-xs md:text-base mb-0.5">Optional customization</h4>
-              <p className="text-slate-300 text-xs md:text-sm leading-relaxed">Adjust settings anytime to match your preferences</p>
+              <p className="text-slate-300 text-[10px] md:text-sm leading-relaxed">Adjust settings anytime to match your preferences</p>
             </div>
           </div>
           
@@ -81,7 +81,7 @@ const StepThreeDetails = () => {
             </div>
             <div>
               <h4 className="font-bold text-white text-xs md:text-base mb-0.5">24/7 ready to serve</h4>
-              <p className="text-slate-300 text-xs md:text-sm leading-relaxed">Your customers can book immediately via WhatsApp</p>
+              <p className="text-slate-300 text-[10px] md:text-sm leading-relaxed">Your customers can book immediately via WhatsApp</p>
             </div>
           </div>
         </div>
@@ -90,13 +90,13 @@ const StepThreeDetails = () => {
         <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-500/15 to-emerald-600/10 
                       border border-emerald-400/40 p-1 md:p-4 rounded-lg md:rounded-xl
                       shadow-sm md:shadow-lg shadow-emerald-500/10
-                      relative overflow-hidden">
+                      relative overflow-hidden text-center">
           <div className="relative z-10">
-            <div className="flex items-center gap-1 md:gap-3 mb-0.5 md:mb-2">
+            <div className="flex items-center justify-center gap-1 md:gap-3 mb-0.5 md:mb-2">
               <div className="w-2 h-2 md:w-3 md:h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
               <span className="text-emerald-200 font-bold text-sm md:text-lg tracking-wide">Live Status</span>
             </div>
-            <p className="text-emerald-100 text-xs md:text-sm leading-relaxed">
+            <p className="text-emerald-100 text-[10px] md:text-sm leading-relaxed">
               Your complete booking system is active and serving customers
             </p>
           </div>
@@ -127,23 +127,23 @@ const StepThreeDetails = () => {
               <div className="bg-gradient-to-r from-slate-700/60 to-slate-600/40 
                             border border-slate-500/30 p-1 md:p-4 rounded-lg md:rounded-xl
                             shadow-sm md:shadow-lg shadow-black/20
-                            transition-all duration-300 hover:shadow-emerald-500/10">
-                <div className="flex items-center gap-1 md:gap-3 mb-0.5 md:mb-2">
+                            transition-all duration-300 hover:shadow-emerald-500/10 text-center">
+                <div className="flex items-center justify-center gap-1 md:gap-3 mb-0.5 md:mb-2">
                   <Calendar className="w-3 h-3 md:w-5 md:h-5 text-emerald-400" />
                   <span className="text-white font-bold text-xs md:text-sm">Calendar Live</span>
                 </div>
-                <p className="text-slate-300 text-xs">Accepting bookings instantly</p>
+                <p className="text-slate-300 text-[10px]">Accepting bookings instantly</p>
               </div>
               
               <div className="bg-gradient-to-r from-slate-700/60 to-slate-600/40 
                             border border-slate-500/30 p-1 md:p-4 rounded-lg md:rounded-xl
                             shadow-sm md:shadow-lg shadow-black/20
-                            transition-all duration-300 hover:shadow-emerald-500/10">
-                <div className="flex items-center gap-1 md:gap-3 mb-0.5 md:mb-2">
+                            transition-all duration-300 hover:shadow-emerald-500/10 text-center">
+                <div className="flex items-center justify-center gap-1 md:gap-3 mb-0.5 md:mb-2">
                   <Users className="w-3 h-3 md:w-5 md:h-5 text-emerald-400" />
                   <span className="text-white font-bold text-xs md:text-sm">AI Assistant</span>
                 </div>
-                <p className="text-slate-300 text-xs">Ready to help customers</p>
+                <p className="text-slate-300 text-[10px]">Ready to help customers</p>
               </div>
               
               <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-500/15 to-emerald-600/10 
