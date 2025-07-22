@@ -1,17 +1,48 @@
+
 import React from 'react';
-import { Clock, AlertTriangle, CheckCircle, XCircle, Zap } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle, XCircle, Zap, Crown } from 'lucide-react';
 import { UserStatus } from '@/types/userStatus';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useProfile } from '@/hooks/useProfile';
 
 interface StatusIndicatorProps {
   userStatus: UserStatus;
   isExpanded: boolean;
 }
 
+const formatSubscriptionTier = (tier?: string) => {
+  if (!tier) return null;
+  
+  switch (tier) {
+    case 'starter':
+      return 'Starter Plan';
+    case 'professional':
+      return 'Professional Plan';
+    case 'enterprise':
+      return 'Enterprise Plan';
+    default:
+      return null;
+  }
+};
+
+const getTierColor = (tier?: string) => {
+  switch (tier) {
+    case 'starter':
+      return 'text-gray-400';
+    case 'professional':
+      return 'text-blue-400';
+    case 'enterprise':
+      return 'text-yellow-400';
+    default:
+      return 'text-gray-400';
+  }
+};
+
 export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps) {
   const { userType, statusMessage, statusColor, daysRemaining } = userStatus;
   const navigate = useNavigate();
+  const { profile } = useProfile();
 
   const getIcon = () => {
     switch (userType) {
@@ -56,6 +87,9 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
     }
   };
 
+  const tierDisplay = formatSubscriptionTier(profile?.subscription_tier);
+  const hasActiveSubscription = profile?.subscription_status === 'active';
+
   return (
     <div className={`px-3 py-2 rounded-lg border mb-4 ${getBgColor()}`}>
       <div className="flex items-center">
@@ -83,6 +117,14 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
                 <p className={`text-xs font-medium ${getColorClass()}`}>
                   {statusMessage}
                 </p>
+                {userType === 'subscriber' && hasActiveSubscription && tierDisplay && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <Crown className={`h-3 w-3 ${getTierColor(profile?.subscription_tier)}`} />
+                    <p className={`text-xs ${getTierColor(profile?.subscription_tier)}`}>
+                      {tierDisplay}
+                    </p>
+                  </div>
+                )}
                 {userType === 'trial' && daysRemaining <= 3 && (
                   <p className="text-xs text-gray-400 mt-1">
                     Upgrade to keep access
