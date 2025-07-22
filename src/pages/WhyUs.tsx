@@ -340,7 +340,11 @@ const WhyUs = () => {
             as="div" 
             className="mb-6 md:mb-8"
           >
-            <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
+            <div className="hidden md:inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
+              <span className="text-emerald-300 text-sm font-medium tracking-wide">Proven Results</span>
+            </div>
+            <div className="md:hidden inline-flex items-center px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
               <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 animate-pulse"></div>
               <span className="text-emerald-300 text-xs font-medium tracking-wide">Proven Results</span>
             </div>
@@ -351,7 +355,7 @@ const WhyUs = () => {
             animation="fade-up" 
             delay={200}
             as="h1" 
-            className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
+            className="text-2xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-0 sm:px-0 tracking-tight"
           >
             <span className="hidden md:inline bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               Why{' '}
@@ -362,7 +366,7 @@ const WhyUs = () => {
             <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
               10,000+ Businesses
             </span>
-            <br className="md:hidden" />
+            <div className="md:hidden h-1"></div>
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               {' '}Choose WhatsApp
             </span>
