@@ -63,14 +63,14 @@ const ProcessSection = () => {
 
           {/* Step 2: Calendar Result - Centered on mobile, left on desktop */}
           <div className="flex flex-col lg:flex-row-reverse items-start lg:items-center gap-6 md:gap-12 pt-12 md:pt-8">
-            <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left max-w-lg lg:max-w-none mx-auto lg:mx-0">
+            <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left">
               <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500 aspect-square">
                   2
                 </div>
                 <h3 className="text-lg md:text-2xl font-bold text-white">Appointment Automatically Booked</h3>
               </div>
-               <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0 max-w-md lg:max-w-none mx-auto lg:mx-0">
+               <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
                  Integrate with your existing calendar system, or use our professional high-end calendar solution designed for optimal appointment management.
                </p>
             </div>
