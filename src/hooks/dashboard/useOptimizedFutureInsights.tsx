@@ -18,22 +18,19 @@ interface FutureInsightsData {
   last_updated: string;
 }
 
-export function useOptimizedFutureInsights(calendarIds?: string | string[]) {
+export function useOptimizedFutureInsights(calendarIds?: string[]) {
   return useQuery({
     queryKey: ['optimized-future-insights', calendarIds],
     queryFn: async (): Promise<FutureInsightsData | null> => {
-      if (!calendarIds) return null;
+      if (!calendarIds || calendarIds.length === 0) return null;
 
-      const ids = Array.isArray(calendarIds) ? calendarIds : [calendarIds];
-      if (ids.length === 0) return null;
-
-      console.log('🔮 Fetching future insights for calendars:', ids);
+      console.log('🔮 Fetching future insights for calendars:', calendarIds);
 
       // Get calendar settings to calculate capacity (use first calendar for now)
       const { data: calendarSettings } = await supabase
         .from('calendar_settings')
         .select('*')
-        .in('calendar_id', ids)
+        .in('calendar_id', calendarIds)
         .limit(1)
         .single();
 
@@ -44,7 +41,7 @@ export function useOptimizedFutureInsights(calendarIds?: string | string[]) {
           *,
           availability_rules(*)
         `)
-        .in('calendar_id', ids)
+        .in('calendar_id', calendarIds)
         .eq('is_default', true)
         .limit(1);
 
@@ -52,7 +49,7 @@ export function useOptimizedFutureInsights(calendarIds?: string | string[]) {
       const { data: historicalBookings, error: historicalError } = await supabase
         .from('bookings')
         .select('start_time, status, customer_email, calendar_id')
-        .in('calendar_id', ids)
+        .in('calendar_id', calendarIds)
         .gte('start_time', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()) // 60 days
         .neq('status', 'cancelled');
 
@@ -69,14 +66,14 @@ export function useOptimizedFutureInsights(calendarIds?: string | string[]) {
       const { data: currentMonthBookings } = await supabase
         .from('bookings')
         .select('customer_email')
-        .in('calendar_id', ids)
+        .in('calendar_id', calendarIds)
         .gte('start_time', startOfCurrentMonth.toISOString())
         .neq('status', 'cancelled');
 
       const { data: previousMonthBookings } = await supabase
         .from('bookings')
         .select('customer_email')
-        .in('calendar_id', ids)
+        .in('calendar_id', calendarIds)
         .gte('start_time', startOfPreviousMonth.toISOString())
         .lt('start_time', startOfCurrentMonth.toISOString())
         .neq('status', 'cancelled');
@@ -116,7 +113,7 @@ export function useOptimizedFutureInsights(calendarIds?: string | string[]) {
         const { data: weekBookings } = await supabase
           .from('bookings')
           .select('start_time, end_time')
-          .in('calendar_id', ids)
+          .in('calendar_id', calendarIds)
           .neq('status', 'cancelled')
           .gte('start_time', weekStart.toISOString())
           .lt('start_time', weekEnd.toISOString());
@@ -129,7 +126,7 @@ export function useOptimizedFutureInsights(calendarIds?: string | string[]) {
         }, 0) || 0;
 
         // Multiply by number of calendars for total capacity
-        const totalCapacity = totalWeeklyHours * ids.length;
+        const totalCapacity = totalWeeklyHours * calendarIds.length;
         capacityUtilization = totalCapacity > 0 ? (bookedHours / totalCapacity) * 100 : 0;
       }
 
@@ -175,7 +172,7 @@ export function useOptimizedFutureInsights(calendarIds?: string | string[]) {
         last_updated: new Date().toISOString()
       };
     },
-    enabled: !!calendarIds && (Array.isArray(calendarIds) ? calendarIds.length > 0 : true),
+    enabled: !!calendarIds && calendarIds.length > 0,
     staleTime: 900000, // 15 minutes
     gcTime: 1800000, // 30 minutes
     refetchInterval: 1200000, // 20 minutes

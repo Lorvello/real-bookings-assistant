@@ -12,16 +12,13 @@ interface LiveOperationsData {
   last_updated: string;
 }
 
-export function useOptimizedLiveOperations(calendarIds?: string | string[]) {
+export function useOptimizedLiveOperations(calendarIds?: string[]) {
   return useQuery({
     queryKey: ['optimized-live-operations', calendarIds],
     queryFn: async (): Promise<LiveOperationsData | null> => {
-      if (!calendarIds) return null;
+      if (!calendarIds || calendarIds.length === 0) return null;
 
-      const ids = Array.isArray(calendarIds) ? calendarIds : [calendarIds];
-      if (ids.length === 0) return null;
-
-      console.log('🔄 Fetching live operations data for calendars:', ids);
+      console.log('🔄 Fetching live operations data for calendars:', calendarIds);
 
       const now = new Date();
       const todayStart = new Date();
@@ -33,7 +30,7 @@ export function useOptimizedLiveOperations(calendarIds?: string | string[]) {
       const { data: todayBookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
-        .in('calendar_id', ids)
+        .in('calendar_id', calendarIds)
         .eq('status', 'confirmed')
         .gte('start_time', todayStart.toISOString())
         .lte('start_time', todayEnd.toISOString())
@@ -48,7 +45,7 @@ export function useOptimizedLiveOperations(calendarIds?: string | string[]) {
       const { data: conversationsData, error: conversationsError } = await supabase
         .from('whatsapp_conversations')
         .select('id, last_message_at')
-        .in('calendar_id', ids)
+        .in('calendar_id', calendarIds)
         .eq('status', 'active')
         .gte('last_message_at', todayStart.toISOString());
 
@@ -113,7 +110,7 @@ export function useOptimizedLiveOperations(calendarIds?: string | string[]) {
         last_updated: new Date().toISOString()
       };
     },
-    enabled: !!calendarIds && (Array.isArray(calendarIds) ? calendarIds.length > 0 : true),
+    enabled: !!calendarIds && calendarIds.length > 0,
     staleTime: 30000, // Data is fresh for 30 seconds for real-time feel
     gcTime: 120000, // Keep in cache for 2 minutes
     refetchInterval: 60000, // Background refetch every minute for live updates
