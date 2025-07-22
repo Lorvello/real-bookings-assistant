@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Star, TrendingUp, AlertTriangle, User, Building2 } from 'lucide-react';
+import { Calendar, Clock, Star, TrendingUp, AlertTriangle, User, Building2, Crown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendars } from '@/hooks/useCalendars';
@@ -13,6 +13,34 @@ import { useCapacityAlerts } from '@/hooks/useCapacityAlerts';
 interface OverviewTabProps {
   calendarId: string;
 }
+
+const formatSubscriptionTier = (tier?: string) => {
+  if (!tier) return null;
+  
+  switch (tier) {
+    case 'starter':
+      return 'Starter Plan';
+    case 'professional':
+      return 'Professional Plan';
+    case 'enterprise':
+      return 'Enterprise Plan';
+    default:
+      return null;
+  }
+};
+
+const getTierColor = (tier?: string) => {
+  switch (tier) {
+    case 'starter':
+      return 'text-slate-400';
+    case 'professional':
+      return 'text-blue-400';
+    case 'enterprise':
+      return 'text-yellow-400';
+    default:
+      return 'text-slate-400';
+  }
+};
 
 export function OverviewTab({ calendarId }: OverviewTabProps) {
   const { user } = useAuth();
@@ -36,6 +64,9 @@ export function OverviewTab({ calendarId }: OverviewTabProps) {
     if (hours === 0) return `${minutes}m`;
     return `${hours}h ${minutes}m`;
   };
+
+  const tierDisplay = formatSubscriptionTier(profile?.subscription_tier);
+  const hasActiveSubscription = profile?.subscription_status === 'active';
 
   return (
     <div className="space-y-6">
@@ -241,20 +272,28 @@ export function OverviewTab({ calendarId }: OverviewTabProps) {
       </div>
 
       {/* Compact Profile Info */}
-      {(user?.email || profile?.business_name) && (
+      {(user?.email || profile?.business_name || (hasActiveSubscription && tierDisplay)) && (
         <div className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-slate-600/10 via-slate-500/5 to-slate-600/10 rounded-2xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
           
           <div className="relative bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/50 backdrop-blur-2xl border border-slate-600/30 rounded-2xl shadow-2xl shadow-slate-600/5 p-4">
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-slate-400" />
-                <span className="text-slate-400">{user?.email}</span>
-              </div>
+            <div className="flex items-center gap-4 text-sm flex-wrap">
+              {user?.email && (
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-slate-400" />
+                  <span className="text-slate-400">{user.email}</span>
+                </div>
+              )}
               {profile?.business_name && (
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-slate-400" />
                   <span className="text-slate-400">{profile.business_name}</span>
+                </div>
+              )}
+              {hasActiveSubscription && tierDisplay && (
+                <div className="flex items-center gap-2">
+                  <Crown className={`h-4 w-4 ${getTierColor(profile?.subscription_tier)}`} />
+                  <span className={getTierColor(profile?.subscription_tier)}>{tierDisplay}</span>
                 </div>
               )}
             </div>
