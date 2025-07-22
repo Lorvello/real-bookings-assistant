@@ -563,25 +563,25 @@ const WhyUs = () => {
               </ScrollAnimatedSection>
 
                {/* Mobile Enhanced Credibility Footer */}
-                <div className="md:hidden text-center mb-6 space-y-1">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 text-[8px] font-medium">
+                <div className="md:hidden text-center mb-6">
+                  <div className="flex items-center justify-center gap-1 text-[8px] text-slate-400 font-medium mb-1.5">
                     <span className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></span>
                     <span>Based on data from 10,000+ businesses</span>
                   </div>
-                 <div className="space-y-1">
-                  <button 
-                    onClick={openMethodologyModal}
-                    className="text-emerald-400 text-[8px] font-medium hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70 block"
-                  >
-                    View methodology
-                  </button>
+                  
                   <div className="flex items-center justify-center gap-2 text-[7px] text-slate-500">
+                    <button 
+                      onClick={openMethodologyModal}
+                      className="text-emerald-400 font-medium hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70"
+                    >
+                      View methodology
+                    </button>
+                    <span>•</span>
                     <span>Data updated monthly</span>
                     <span>•</span>
                     <span>Results may vary</span>
                   </div>
                 </div>
-              </div>
           </div>
         </ScrollAnimatedSection>
 
