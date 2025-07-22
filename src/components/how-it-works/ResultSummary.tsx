@@ -208,7 +208,7 @@ const ResultSummary = () => {
                 >
                   {/* Mobile Front Side - smaller icons and subtexts */}
                   <div 
-                    className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 text-center flex flex-col justify-center items-center"
+                    className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl px-4 py-6 text-center flex flex-col justify-center items-center"
                     style={{
                       backfaceVisibility: 'hidden',
                       boxShadow: `
@@ -237,7 +237,7 @@ const ResultSummary = () => {
                       </div>
                       
                       {/* Smaller mobile label text */}
-                      <div className="text-[8px] text-slate-300/90 leading-tight font-light tracking-wide text-left w-full">
+                      <div className="text-[8px] text-slate-300/90 leading-tight font-light tracking-wide text-center w-full">
                         {stat.label}
                       </div>
                     </div>
