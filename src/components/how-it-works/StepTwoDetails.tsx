@@ -89,6 +89,9 @@ const StepTwoDetails = () => {
               <div className="text-slate-300 text-xs">
                 <strong>Perfect for:</strong> Existing business number, brand consistency
               </div>
+              <div className="text-slate-400 text-[8px] md:text-[10px] mt-1 opacity-70">
+                *Enterprise subscribers only
+              </div>
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent"></div>
           </div>
