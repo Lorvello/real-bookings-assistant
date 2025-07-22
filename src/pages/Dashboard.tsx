@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -10,6 +9,7 @@ import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
 import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { UserStatusSwitcher } from '@/components/developer/UserStatusSwitcher';
+import { SubscriptionTierSwitcher } from '@/components/developer/SubscriptionTierSwitcher';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -93,9 +93,12 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-2 md:p-8">
-        {/* Developer Status Switcher */}
-        <div className="mb-4">
-          <UserStatusSwitcher />
+        {/* Developer Tools Section */}
+        <div className="mb-4 space-y-4">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <UserStatusSwitcher />
+            <SubscriptionTierSwitcher />
+          </div>
         </div>
 
         {/* Show Onboarding Wizard for Setup Incomplete Users */}
