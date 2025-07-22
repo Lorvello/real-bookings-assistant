@@ -653,7 +653,7 @@ const WhyUs = () => {
                         {/* Content Container */}
                         <div className="flex-1 space-y-1 md:space-y-3">
                           {/* Title */}
-                          <h3 className="text-sm md:text-xl font-bold bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent leading-tight">
+                          <h3 className="text-base md:text-xl font-bold bg-gradient-to-r from-white via-slate-100 to-emerald-100 bg-clip-text text-transparent leading-tight">
                             {benefit.title}
                           </h3>
                           
