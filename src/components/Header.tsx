@@ -53,7 +53,7 @@ const Header = () => {
     >
       <nav 
         className="max-w-7xl mx-auto mx-6 rounded-3xl px-8 py-4 shadow-lg"
-        style={{ backgroundColor: '#1E293B' }}
+        style={{ backgroundColor: '#0F172A' }}
       >
         <div className="flex justify-between items-center">
           {/* Logo/Brand */}
