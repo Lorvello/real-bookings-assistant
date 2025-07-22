@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -60,7 +59,7 @@ export const LoginForm: React.FC = () => {
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
-      navigate('/profile');
+      navigate('/dashboard');
     } catch (error) {
       console.error('[Login] Unexpected login error:', error);
       toast({

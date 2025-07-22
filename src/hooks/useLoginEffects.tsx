@@ -40,8 +40,8 @@ export const useLoginEffects = () => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        console.log('[Login] User already logged in, redirecting to profile');
-        navigate('/profile');
+        console.log('[Login] User already logged in, redirecting to dashboard');
+        navigate('/dashboard');
       }
     };
     
