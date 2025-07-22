@@ -168,10 +168,10 @@ export const Pricing = () => {
             >
               <div className={`relative rounded-3xl border h-full flex flex-col transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl ${
                 plan.isEnterprise
-                  ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-black/95 border-slate-600/50 shadow-xl shadow-slate-900/40'
+                  ? 'bg-gradient-to-br from-black/95 via-slate-900/95 to-black/95 border-slate-600/50 shadow-xl shadow-slate-900/40'
                   : plan.popular
-                  ? 'bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 backdrop-blur-sm border-emerald-500/30 shadow-xl shadow-emerald-500/20 ring-2 ring-emerald-500/30'
-                  : 'bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 backdrop-blur-sm border-slate-700/40 shadow-xl shadow-slate-900/30'
+                  ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-sm border-emerald-500/30 shadow-xl shadow-emerald-500/20 ring-2 ring-emerald-500/30'
+                  : 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-sm border-slate-700/40 shadow-xl shadow-slate-900/30'
               } group`}>
                 
                 <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent opacity-60 rounded-3xl pointer-events-none" />
@@ -274,10 +274,10 @@ export const Pricing = () => {
                   >
                     <div className={`rounded-2xl border overflow-hidden relative flex flex-col backdrop-blur-xl ${
                       plan.isEnterprise
-                        ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-black/95 border-slate-600/50 shadow-2xl shadow-slate-900/50'
+                        ? 'bg-gradient-to-br from-black/95 via-slate-900/95 to-black/95 border-slate-600/50 shadow-2xl shadow-slate-900/50'
                         : plan.popular
-                        ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-800/95 border-emerald-500/40 shadow-2xl shadow-emerald-500/30 ring-1 ring-emerald-500/40'
-                        : 'bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-800/95 border-slate-700/50 shadow-2xl shadow-slate-900/50'
+                        ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 border-emerald-500/40 shadow-2xl shadow-emerald-500/30 ring-1 ring-emerald-500/40'
+                        : 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 border-slate-700/50 shadow-2xl shadow-slate-900/50'
                     }`} style={{ minHeight: '420px' }}>
                       
                       <div className="absolute inset-0 bg-gradient-to-br from-white/[0.10] via-white/[0.02] to-transparent opacity-70 pointer-events-none rounded-2xl" />
