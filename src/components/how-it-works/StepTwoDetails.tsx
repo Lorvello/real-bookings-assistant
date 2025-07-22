@@ -42,7 +42,7 @@ const StepTwoDetails = () => {
           Get your WhatsApp number instantly
         </h3>
         
-        <p className="text-slate-300 text-xs md:text-base mb-2 md:mb-4 leading-relaxed font-light">
+        <p className="text-slate-300 text-[10px] md:text-base mb-2 md:mb-4 leading-relaxed font-light">
           Your account comes with an instant WhatsApp number assignment. You can also choose to 
           connect your existing business number if you prefer.
         </p>

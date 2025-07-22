@@ -42,7 +42,7 @@ const StepThreeDetails = () => {
           Your system goes live immediately
         </h3>
         
-        <p className="text-slate-300 text-xs md:text-base mb-2 md:mb-4 leading-relaxed font-light">
+        <p className="text-slate-300 text-[10px] md:text-base mb-2 md:mb-4 leading-relaxed font-light">
           That's it! Your entire booking system is instantly active and ready to serve customers 24/7. 
           You can adjust settings anytime, but everything works perfectly from day one.
         </p>

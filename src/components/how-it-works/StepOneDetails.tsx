@@ -42,7 +42,7 @@ const StepOneDetails = () => {
           Create account & get your professional calendar
         </h3>
         
-        <p className="text-slate-300 text-xs md:text-base mb-2 md:mb-4 leading-relaxed font-light">
+        <p className="text-slate-300 text-[10px] md:text-base mb-2 md:mb-4 leading-relaxed font-light">
           Simply create your account and get instant access to your professional calendar system. 
           You can also connect your existing calendar if you prefer.
         </p>
