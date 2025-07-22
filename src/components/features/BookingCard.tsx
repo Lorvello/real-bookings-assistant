@@ -7,7 +7,7 @@ export const BookingCard = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
       
       {/* iPhone Mockup - positioned with mobile considerations */}
-      <div className="absolute top-3 left-2 right-2 flex justify-center items-start lg:top-6 lg:left-3 lg:right-3 lg:h-[55%]" style={{ height: 'calc(100% - 2.5rem)' }}>
+      <div className="absolute top-4 left-2 right-2 flex justify-center items-start lg:top-8 lg:left-3 lg:right-3 lg:h-[55%]" style={{ height: 'calc(100% - 2.5rem)' }}>
         <div className="w-44 h-full transform rotate-2 hover:rotate-0 transition-transform duration-500 ease-in-out sm:w-52 lg:w-52 lg:h-[65%] lg:rotate-3">
           {/* iPhone outer frame */}
           <div className="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 rounded-[2.5rem] p-[3px] shadow-2xl h-full border border-gray-700">
