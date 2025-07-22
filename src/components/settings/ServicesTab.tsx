@@ -14,7 +14,7 @@ export function ServicesTab() {
   if (calendars.length === 0) {
     return (
       <>
-        <Card className="bg-card border-border">
+        <Card className="border-border">
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
               <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -44,7 +44,7 @@ export function ServicesTab() {
 
   if (!selectedCalendar) {
     return (
-      <Card className="bg-card border-border">
+      <Card className="border-border">
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

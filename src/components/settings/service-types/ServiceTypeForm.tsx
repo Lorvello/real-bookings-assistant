@@ -36,7 +36,7 @@ export function ServiceTypeForm({
   isEditing 
 }: ServiceTypeFormProps) {
   return (
-    <div className="mb-6 p-4 border border-border rounded-lg bg-card">
+    <div className="mb-6 p-4 border border-border rounded-lg bg-background-secondary">
       <h3 className="text-lg font-medium text-foreground mb-4">
         {isEditing ? 'Service Bewerken' : 'Nieuwe Service'}
       </h3>
@@ -50,7 +50,7 @@ export function ServiceTypeForm({
             type="text"
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-input text-foreground"
+            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             placeholder="Bijv. Knipbeurt"
           />
         </div>
@@ -63,7 +63,7 @@ export function ServiceTypeForm({
             type="number"
             value={formData.duration}
             onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-input text-foreground"
+            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             min="1"
             placeholder="30"
           />
@@ -77,7 +77,7 @@ export function ServiceTypeForm({
             type="number"
             value={formData.price}
             onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-input text-foreground"
+            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             min="0"
             step="0.01"
             placeholder="0.00"
@@ -92,7 +92,7 @@ export function ServiceTypeForm({
             type="number"
             value={formData.max_attendees}
             onChange={(e) => setFormData(prev => ({ ...prev, max_attendees: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-input text-foreground"
+            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             min="1"
             placeholder="1"
           />
@@ -106,7 +106,7 @@ export function ServiceTypeForm({
             type="number"
             value={formData.preparation_time}
             onChange={(e) => setFormData(prev => ({ ...prev, preparation_time: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-input text-foreground"
+            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             min="0"
             placeholder="0"
           />
@@ -120,7 +120,7 @@ export function ServiceTypeForm({
             type="number"
             value={formData.cleanup_time}
             onChange={(e) => setFormData(prev => ({ ...prev, cleanup_time: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-input text-foreground"
+            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             min="0"
             placeholder="0"
           />
@@ -133,7 +133,7 @@ export function ServiceTypeForm({
           <textarea
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-input text-foreground"
+            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
             rows={3}
             placeholder="Optionele beschrijving van de service"
           />

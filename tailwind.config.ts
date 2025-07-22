@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -33,8 +32,8 @@ export default {
 					foreground: '#FFFFFF'
 				},
 				background: {
-					DEFAULT: '#0F1419', // Very dark blue-black background
-					secondary: '#0F172A' // Sidebar color (darkest)
+					DEFAULT: '#1F2937', // Dark grey-blue
+					secondary: '#111827' // Even darker for contrast
 				},
 				foreground: '#FFFFFF', // Primary text
 				
@@ -46,11 +45,11 @@ export default {
 				
 				// Additional design system colors
 				card: {
-					DEFAULT: '#111827', // Dark cards/sections (similar to sidebar tone)
+					DEFAULT: '#1F2937',
 					foreground: '#FFFFFF'
 				},
 				border: '#374151', // Subtle border for cards
-				input: '#4B5563', // Lighter input fields color
+				input: '#374151',
 				ring: '#10B981',
 				
 				muted: {
@@ -62,7 +61,7 @@ export default {
 					foreground: '#FFFFFF'
 				},
 				popover: {
-					DEFAULT: '#111827',
+					DEFAULT: '#1F2937',
 					foreground: '#FFFFFF'
 				},
 				

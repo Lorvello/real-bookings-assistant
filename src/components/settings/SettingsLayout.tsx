@@ -38,7 +38,7 @@ export const SettingsLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-2 md:p-6">
+    <div className="min-h-screen bg-gray-900 p-2 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-3 md:mb-8">
