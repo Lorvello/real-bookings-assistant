@@ -13,16 +13,16 @@ const PsychologyDataDisclaimer: React.FC<PsychologyDataDisclaimerProps> = ({ onM
         Based on behavioral psychology research from 10,000+ businesses across 15 countries
       </p>
       
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-6 text-[8px] sm:text-xs text-slate-400">
+      <div className="flex flex-row sm:flex-row items-center justify-center gap-1 sm:gap-6 text-[8px] sm:text-xs text-slate-400">
         <button
           onClick={onMethodologyClick}
           className="text-emerald-400 hover:text-emerald-300 transition-colors duration-200 font-medium underline decoration-emerald-400/50 hover:decoration-emerald-300"
         >
           View methodology
         </button>
-        <span className="hidden sm:inline text-slate-600">•</span>
+        <span className="inline sm:inline text-slate-600">•</span>
         <span>Consumer behavior analysis</span>
-        <span className="hidden sm:inline text-slate-600">•</span>
+        <span className="inline sm:inline text-slate-600">•</span>
         <span>Cross-cultural validation</span>
       </div>
     </div>

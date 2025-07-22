@@ -623,7 +623,7 @@ const WhyUs = () => {
               >
                 {/* Flip Card Container */}
                 <div 
-                  className="relative cursor-pointer h-32 md:h-52"
+                  className="relative cursor-pointer h-40 md:h-52"
                   onClick={() => togglePsychCardFlip(index)}
                   style={{
                     transformStyle: 'preserve-3d',
@@ -657,17 +657,17 @@ const WhyUs = () => {
                             {benefit.title}
                           </h3>
                           
-                          {/* Description with integrated statistics */}
-                          <p className="text-slate-300 text-xs md:text-base leading-relaxed">
+                          {/* Description with integrated statistics - SMALLER TEXT FOR MOBILE */}
+                          <p className="text-slate-300 text-[9px] md:text-base leading-tight md:leading-relaxed">
                             <span className="md:hidden">{benefit.mobileDescription}</span>
                             <span className="hidden md:inline">{benefit.description}</span>
                           </p>
                         </div>
                       </div>
                       
-                      {/* Bottom Element */}
+                      {/* Bottom Element - RESTORED AND IMPROVED FOR MOBILE */}
                       <div className="mt-1 md:mt-4 text-right">
-                        <span className="text-emerald-400 text-[9px] md:text-sm font-medium opacity-80">
+                        <span className="text-emerald-400 text-[8px] md:text-sm font-medium opacity-80">
                           See evidence →
                         </span>
                       </div>
