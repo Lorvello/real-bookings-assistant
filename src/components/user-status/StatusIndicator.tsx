@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, AlertTriangle, CheckCircle, XCircle, Zap, Crown } from 'lucide-react';
 import { UserStatus } from '@/types/userStatus';
 import { useNavigate } from 'react-router-dom';
@@ -29,7 +28,7 @@ const formatSubscriptionTier = (tier?: string) => {
 const getTierColor = (tier?: string) => {
   switch (tier) {
     case 'starter':
-      return 'text-gray-400';
+      return 'text-green-400';
     case 'professional':
       return 'text-blue-400';
     case 'enterprise':
@@ -43,6 +42,26 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
   const { userType, statusMessage, statusColor, daysRemaining } = userStatus;
   const navigate = useNavigate();
   const { profile } = useProfile();
+
+  // Local state to cache tier info and prevent disappearing during navigation
+  const [cachedTierInfo, setCachedTierInfo] = useState<{
+    tier: string | null;
+    isActive: boolean;
+  }>({ tier: null, isActive: false });
+
+  // Update cached tier info when profile changes
+  useEffect(() => {
+    if (profile?.subscription_tier && profile?.subscription_status === 'active') {
+      setCachedTierInfo({
+        tier: profile.subscription_tier,
+        isActive: true
+      });
+    }
+  }, [profile?.subscription_tier, profile?.subscription_status]);
+
+  // Use cached data or fallback to current profile data
+  const tierDisplay = formatSubscriptionTier(cachedTierInfo.tier || profile?.subscription_tier);
+  const hasActiveSubscription = cachedTierInfo.isActive || profile?.subscription_status === 'active';
 
   const getIcon = () => {
     switch (userType) {
@@ -87,9 +106,6 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
     }
   };
 
-  const tierDisplay = formatSubscriptionTier(profile?.subscription_tier);
-  const hasActiveSubscription = profile?.subscription_status === 'active';
-
   return (
     <div className={`px-3 py-2 rounded-lg border mb-4 ${getBgColor()}`}>
       <div className="flex items-center">
@@ -119,8 +135,8 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
                 </p>
                 {userType === 'subscriber' && hasActiveSubscription && tierDisplay && (
                   <div className="flex items-center gap-1 mt-1">
-                    <Crown className={`h-3 w-3 ${getTierColor(profile?.subscription_tier)}`} />
-                    <p className={`text-xs ${getTierColor(profile?.subscription_tier)}`}>
+                    <Crown className={`h-3 w-3 ${getTierColor(cachedTierInfo.tier || profile?.subscription_tier)}`} />
+                    <p className={`text-xs ${getTierColor(cachedTierInfo.tier || profile?.subscription_tier)}`}>
                       {tierDisplay}
                     </p>
                   </div>
