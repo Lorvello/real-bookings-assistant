@@ -562,26 +562,26 @@ const WhyUs = () => {
                 </div>
               </ScrollAnimatedSection>
 
-              {/* Mobile Enhanced Credibility Footer */}
-               <div className="md:hidden text-center mb-12 space-y-4">
-                 <div className="flex items-center justify-center gap-2 text-slate-400 text-sm font-medium">
-                   <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                   <span>Based on data from 10,000+ businesses worldwide</span>
-                 </div>
-                <div className="space-y-2">
-                 <button 
-                   onClick={openMethodologyModal}
-                   className="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70 block"
-                 >
-                   View methodology
-                 </button>
-                 <div className="flex items-center justify-center gap-3 text-xs text-slate-500">
-                   <span>Data updated monthly</span>
-                   <span>•</span>
-                   <span>Results may vary</span>
-                 </div>
-               </div>
-             </div>
+               {/* Mobile Enhanced Credibility Footer */}
+                <div className="md:hidden text-center mb-6 space-y-1">
+                  <div className="flex items-center justify-center gap-1 text-slate-400 text-[8px] font-medium">
+                    <span className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></span>
+                    <span>Based on data from 10,000+ businesses</span>
+                  </div>
+                 <div className="space-y-1">
+                  <button 
+                    onClick={openMethodologyModal}
+                    className="text-emerald-400 text-[8px] font-medium hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70 block"
+                  >
+                    View methodology
+                  </button>
+                  <div className="flex items-center justify-center gap-2 text-[7px] text-slate-500">
+                    <span>Data updated monthly</span>
+                    <span>•</span>
+                    <span>Results may vary</span>
+                  </div>
+                </div>
+              </div>
           </div>
         </ScrollAnimatedSection>
 
