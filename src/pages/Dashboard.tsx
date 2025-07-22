@@ -6,6 +6,7 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { DashboardTabs } from '@/components/DashboardTabs';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
+import { CalendarSelector } from '@/components/dashboard/CalendarSelector';
 import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { UserStatusSwitcher } from '@/components/developer/UserStatusSwitcher';
@@ -140,15 +141,16 @@ const Dashboard = () => {
                     </p>
                   </div>
                   
-                  {/* Conditional Date Filter in Header */}
-                  {showDateFilter && (
-                    <div className="flex-shrink-0">
+                  {/* Calendar Selector and Date Filter */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <CalendarSelector />
+                    {showDateFilter && (
                       <DateRangeFilter 
                         selectedRange={selectedDateRange}
                         onRangeChange={setSelectedDateRange}
                       />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -156,7 +158,8 @@ const Dashboard = () => {
             {/* Dashboard Tabs */}
             {primaryCalendarId && (
               <DashboardTabs 
-                calendarId={primaryCalendarId} 
+                calendarId={primaryCalendarId}
+                calendarIds={activeCalendarIds}
                 dateRange={selectedDateRange}
                 onTabChange={setActiveTab}
               />

@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 
 interface PerformanceEfficiencyTabProps {
   calendarId: string;
+  calendarIds?: string[];
   dateRange: DateRange;
 }
 
@@ -35,7 +36,7 @@ const getDynamicPeriodText = (dateRange: DateRange): string => {
   }
 };
 
-export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceEfficiencyTabProps) {
+export function PerformanceEfficiencyTab({ calendarId, calendarIds, dateRange }: PerformanceEfficiencyTabProps) {
   const { accessControl } = useAccessControl();
 
   // Add safety check for dateRange

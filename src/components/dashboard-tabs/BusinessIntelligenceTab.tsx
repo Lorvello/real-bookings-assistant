@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 
 interface BusinessIntelligenceTabProps {
   calendarId: string;
+  calendarIds?: string[];
   dateRange: DateRange;
 }
 
@@ -35,7 +36,7 @@ const getDynamicPeriodText = (dateRange: DateRange): string => {
   }
 };
 
-export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntelligenceTabProps) {
+export function BusinessIntelligenceTab({ calendarId, calendarIds, dateRange }: BusinessIntelligenceTabProps) {
   // Add safety check for dateRange
   if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
     return <BusinessIntelligenceLoading />;

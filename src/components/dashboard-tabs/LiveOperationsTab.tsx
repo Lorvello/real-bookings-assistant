@@ -15,9 +15,10 @@ import { MetricCard } from './business-intelligence/MetricCard';
 
 interface LiveOperationsTabProps {
   calendarId: string;
+  calendarIds?: string[];
 }
 
-export function LiveOperationsTab({ calendarId }: LiveOperationsTabProps) {
+export function LiveOperationsTab({ calendarId, calendarIds }: LiveOperationsTabProps) {
   const navigate = useNavigate();
   const { data: liveOps, isLoading } = useOptimizedLiveOperations(calendarId);
   const { userStatus, accessControl } = useUserStatus();

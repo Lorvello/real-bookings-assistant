@@ -12,6 +12,7 @@ import { useCapacityAlerts } from '@/hooks/useCapacityAlerts';
 
 interface OverviewTabProps {
   calendarId: string;
+  calendarIds?: string[];
 }
 
 const formatSubscriptionTier = (tier?: string) => {
@@ -42,7 +43,7 @@ const getTierColor = (tier?: string) => {
   }
 };
 
-export function OverviewTab({ calendarId }: OverviewTabProps) {
+export function OverviewTab({ calendarId, calendarIds }: OverviewTabProps) {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { calendars } = useCalendars();

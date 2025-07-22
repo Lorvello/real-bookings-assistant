@@ -12,9 +12,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 interface FutureInsightsTabProps {
   calendarId: string;
+  calendarIds?: string[];
 }
 
-export function FutureInsightsTab({ calendarId }: FutureInsightsTabProps) {
+export function FutureInsightsTab({ calendarId, calendarIds }: FutureInsightsTabProps) {
   const { data: futureInsights, isLoading, error } = useOptimizedFutureInsights(calendarId);
   useRealtimeSubscription(calendarId);
 
