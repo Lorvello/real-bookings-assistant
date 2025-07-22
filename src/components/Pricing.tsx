@@ -14,9 +14,9 @@ export const Pricing = () => {
       annualPrice: 15,
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
-        "Strategic contact management (up to 500)",
+        "Strategic WhatsApp contact management (up to 500)",
         "Dual-calendar orchestration system", 
-        "AI-powered automated engagement sequences",
+        "AI-powered intelligent reminder sequences",
         "Advanced performance analytics & insights",
         "Global multi-language localization",
         "Streamlined payment processing & collection"
