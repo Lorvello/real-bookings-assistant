@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import WhatsAppChat from './WhatsAppChat';
 import CalendarMockup from './CalendarMockup';
 import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Bot, Sparkles } from 'lucide-react';
 import StaggeredAnimationContainer from './StaggeredAnimationContainer';
@@ -111,6 +111,10 @@ const ProcessSection = () => {
               </DialogTrigger>
                 {/* Significantly reduced modal size for mobile */}
                 <DialogContent className="max-w-[85vw] w-[85vw] md:max-w-2xl md:w-full h-[60vh] md:h-[80vh] max-h-[400px] md:max-h-[600px] p-0 bg-slate-900 border-slate-700 data-[state=open]:animate-in data-[state=open]:fade-in-100 data-[state=open]:scale-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:scale-out-95 duration-300">
+                  <DialogTitle className="sr-only">AI Agent Demo</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Test our AI booking agent in this demo chat interface
+                  </DialogDescription>
                   <AIAgentTestChat />
                 </DialogContent>
               </Dialog>

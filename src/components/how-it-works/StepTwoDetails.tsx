@@ -23,10 +23,10 @@ const StepTwoDetails = () => {
         <div className="flex items-center gap-4 mb-6">
           <div className="relative">
             <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 
-                          rounded-xl flex items-center justify-center
+                          rounded-full flex items-center justify-center
                           shadow-lg shadow-emerald-500/30
-                          before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent before:rounded-xl
-                          after:absolute after:-inset-1 after:bg-gradient-to-br after:from-emerald-400/50 after:to-transparent after:rounded-xl after:blur-sm after:-z-10">
+                          before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent before:rounded-full
+                          after:absolute after:-inset-1 after:bg-gradient-to-br after:from-emerald-400/50 after:to-transparent after:rounded-full after:blur-sm after:-z-10">
               <span className="text-white text-lg font-bold relative z-10">2</span>
             </div>
           </div>

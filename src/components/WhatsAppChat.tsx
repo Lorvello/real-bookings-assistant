@@ -7,12 +7,12 @@ const WhatsAppChat = () => {
       {/* Professional tablet-style interface for mobile, iPhone for desktop */}
       <div className="relative bg-gradient-to-b from-slate-800 via-slate-700 to-slate-900 rounded-lg md:rounded-[2.5rem] p-1.5 md:p-1 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-500 aspect-[3/4] md:aspect-[9/19] border border-slate-600/40 md:border-none backdrop-blur-sm">
         {/* Tablet screen for mobile, phone screen for desktop */}
-        <div className="bg-white rounded-md md:rounded-[2rem] overflow-hidden relative h-full shadow-inner">
+        <div className="bg-white rounded-md md:rounded-[2rem] overflow-hidden relative h-full shadow-inner flex flex-col">
           {/* No notch on mobile (tablet style), show notch on desktop (iPhone style) */}
           <div className="hidden md:block absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-4 bg-black rounded-b-xl z-10 shadow-sm"></div>
           
           {/* Enhanced WhatsApp header with better mobile styling */}
-          <div className="bg-gradient-to-r from-whatsapp via-emerald-600 to-whatsapp text-white px-3 md:px-3 py-2 md:py-2.5 flex items-center gap-2 md:gap-2 pt-2 md:pt-5 shadow-lg">
+          <div className="bg-gradient-to-r from-whatsapp via-emerald-600 to-whatsapp text-white px-3 md:px-3 py-2 md:py-2.5 flex items-center gap-2 md:gap-2 pt-2 md:pt-5 shadow-lg flex-shrink-0">
             <div className="w-6 h-6 md:w-8 md:h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center overflow-hidden shadow-md border border-white/30">
               <div className="w-5 h-5 md:w-6 md:h-6 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs md:text-xs font-semibold">🤖</span>
@@ -39,8 +39,8 @@ const WhatsAppChat = () => {
             </div>
           </div>
           
-          {/* Enhanced chat area - increased height and smaller text for mobile */}
-          <div className="whatsapp-chat-bg min-h-[260px] md:min-h-[280px] p-2 md:p-3 space-y-1 md:space-y-3 relative">
+          {/* Enhanced chat area - proper flex-1 to fill space */}
+          <div className="whatsapp-chat-bg flex-1 p-2 md:p-3 space-y-1 md:space-y-3 relative overflow-y-auto">
             {/* Subtle background overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.02] to-transparent"></div>
 
@@ -106,8 +106,8 @@ const WhatsAppChat = () => {
             </div>
           </div>
 
-          {/* Enhanced input area */}
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-3 md:px-3 py-2 md:py-2 flex items-center gap-2 md:gap-2 border-t border-gray-200/50">
+          {/* Enhanced input area - flex-shrink-0 to prevent shrinking */}
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-3 md:px-3 py-2 md:py-2 flex items-center gap-2 md:gap-2 border-t border-gray-200/50 flex-shrink-0">
             <div className="w-4 h-4 md:w-5 md:h-5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
               <svg viewBox="0 0 24 24" width="14" height="14" className="md:w-4 md:h-4" fill="currentColor">
                 <path d="M9.153 11.603c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962zm-3.204 1.362c-.026-.307-.131 5.218 6.063 5.551 6.066-.25 6.066-5.551 6.066-5.551-6.078 1.416-12.129 0-12.129 0zm11.363 1.108s-.669 1.959-5.051 1.959c-4.27 0-5.064-1.959-5.064-1.959s.201.543 5.064.543c4.865 0 5.051-.543 5.051-.543zm-2.635-9.066c-.711-.002-1.312.618-1.312 1.312s.601 1.312 1.312 1.312 1.312-.601 1.312-1.312-.601-1.312-1.312-1.312z"/>
