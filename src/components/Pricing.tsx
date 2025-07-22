@@ -119,7 +119,7 @@ export const Pricing = () => {
             <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
             <span className="text-emerald-400 font-semibold text-sm md:text-base">Simple Pricing</span>
           </div>
-          <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
+          <h2 className="text-2xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
             Choose Your <span className="text-emerald-400">Perfect Plan</span>
           </h2>
           <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">

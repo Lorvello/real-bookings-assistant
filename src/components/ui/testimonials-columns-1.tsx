@@ -136,7 +136,7 @@ const Testimonials = () => {
             <span className="text-emerald-400 font-semibold text-xs md:text-base">Testimonials</span>
           </div>
 
-          <h2 className="text-xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
+          <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
             What our <span className="text-emerald-400">users say</span>
           </h2>
           <p className="text-[10px] md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
