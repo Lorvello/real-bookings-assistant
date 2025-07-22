@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { CheckCircle, Sparkles, TrendingUp, Clock, Users, Zap, ArrowRight } from 'lucide-react';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
@@ -74,9 +75,9 @@ const ResultSummary = () => {
   return (
     <div className="relative">
       <div className="relative rounded-3xl p-3 md:p-8">
-        {/* Powerful direct header */}
-        <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-20 md:mb-24">
-          <h2 className="text-3xl md:text-3xl lg:text-4xl font-black bg-gradient-to-r from-white via-slate-100 to-emerald-200 bg-clip-text text-transparent tracking-wide leading-tight drop-shadow-2xl">
+        {/* Powerful direct header - reduced size on mobile and less spacing */}
+        <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-12 md:mb-24">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-black bg-gradient-to-r from-white via-slate-100 to-emerald-200 bg-clip-text text-transparent tracking-wide leading-tight drop-shadow-2xl">
             Proven results that transform businesses
           </h2>
         </ScrollAnimatedSection>
@@ -181,7 +182,7 @@ const ResultSummary = () => {
           })}
         </div>
 
-        {/* Mobile: 2x2 square grid layout with flip functionality */}
+        {/* Mobile: 2x2 square grid layout with flip functionality - optimized sizes */}
         <div className="md:hidden grid grid-cols-2 gap-8 max-w-md mx-auto" style={{ perspective: '1000px' }}>
           {stats.map((stat, index) => {
             const mobileAnimationTypes: Array<'fade-up' | 'slide-left' | 'slide-right' | 'scale'> = ['fade-up', 'slide-right', 'slide-left', 'scale'];
@@ -206,7 +207,7 @@ const ResultSummary = () => {
                     transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
                   }}
                 >
-                  {/* Mobile Front Side */}
+                  {/* Mobile Front Side - drastically smaller icons, values and labels */}
                   <div 
                     className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 text-center flex flex-col justify-center items-center"
                     style={{
@@ -226,26 +227,26 @@ const ResultSummary = () => {
                     </div>
                     
                     <div className="flex flex-col items-center justify-center h-full w-full">
-                      {/* Prominent mobile icon */}
-                      <div className="mb-6">
-                        <Icon className="w-10 h-10 mx-auto text-emerald-400 drop-shadow-xl" />
+                      {/* Drastically smaller mobile icon */}
+                      <div className="mb-3">
+                        <Icon className="w-5 h-5 mx-auto text-emerald-400 drop-shadow-xl" />
                       </div>
                       
-                      {/* Large mobile statistic */}
-                      <div className="text-4xl font-black text-emerald-400 mb-4 tracking-tighter drop-shadow-xl">
+                      {/* Drastically smaller mobile statistic */}
+                      <div className="text-xl font-black text-emerald-400 mb-2 tracking-tighter drop-shadow-xl">
                         {stat.value}
                       </div>
                       
-                      {/* Subtle mobile text */}
-                      <div className="text-xs text-slate-300/90 leading-tight font-light tracking-wide text-center">
+                      {/* Much smaller mobile label text */}
+                      <div className="text-[10px] text-slate-300/90 leading-tight font-light tracking-wide text-center">
                         {stat.label}
                       </div>
                     </div>
                   </div>
 
-                  {/* Mobile Back Side */}
+                  {/* Mobile Back Side - smaller text with better fit */}
                   <div 
-                    className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-1 text-center flex flex-col justify-center items-center overflow-hidden"
+                    className="absolute inset-0 w-full h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-3 text-center flex flex-col justify-center items-center overflow-hidden"
                     style={{
                       backfaceVisibility: 'hidden',
                       transform: 'rotateY(180deg)',
@@ -261,9 +262,9 @@ const ResultSummary = () => {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-emerald-500/15 via-emerald-400/8 to-transparent" />
                     <div className="absolute inset-0 rounded-2xl bg-white/[0.03]" />
                     
-                    <div className="relative z-10 flex items-start justify-start h-full w-full p-2">
-                      {/* Detailed text with larger font and top-left aligned for mobile - no icon */}
-                      <div className="text-[12px] text-slate-300/90 leading-tight font-light tracking-wide text-left italic">
+                    <div className="relative z-10 flex items-start justify-start h-full w-full">
+                      {/* Smaller detailed text with better fit for mobile - no icon */}
+                      <div className="text-[10px] text-slate-300/90 leading-snug font-light tracking-wide text-left italic">
                         {stat.detailText}
                       </div>
                     </div>
