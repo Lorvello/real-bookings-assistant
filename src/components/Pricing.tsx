@@ -113,7 +113,7 @@ export const Pricing = () => {
       
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
       
-      <div className="max-w-6xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
         <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-8 md:mb-16">
           <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
             <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
@@ -166,58 +166,71 @@ export const Pricing = () => {
               className="h-full"
               as="div"
             >
-              <div className={`relative rounded-3xl border h-full flex flex-col ${
+              <div className={`relative rounded-3xl border h-full flex flex-col transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl ${
                 plan.isEnterprise
-                  ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
-                  : 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-slate-700/50'
-              } ${plan.popular ? 'ring-2 ring-emerald-500/50' : ''}`}>
+                  ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-black/95 border-slate-600/50 shadow-xl shadow-slate-900/40'
+                  : plan.popular
+                  ? 'bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 backdrop-blur-sm border-emerald-500/30 shadow-xl shadow-emerald-500/20 ring-2 ring-emerald-500/30'
+                  : 'bg-gradient-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 backdrop-blur-sm border-slate-700/40 shadow-xl shadow-slate-900/30'
+              } group`}>
+                
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent opacity-60 rounded-3xl pointer-events-none" />
+                <div className={`absolute inset-0 rounded-3xl pointer-events-none ${
+                  plan.popular ? 'bg-gradient-to-t from-emerald-500/[0.08] via-transparent to-transparent' : 'bg-gradient-to-t from-slate-500/[0.05] via-transparent to-transparent'
+                }`} />
                 
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                    <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap shadow-lg">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap shadow-lg shadow-emerald-500/30">
                       Most Popular
                     </div>
                   </div>
                 )}
 
-                <div className="p-8 text-center">
-                  <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
+                <div className="p-6 text-center relative z-10">
+                  <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-sm">{plan.name}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">{plan.description}</p>
                 </div>
 
-                <div className="px-8 text-center mb-6">
+                <div className="px-6 text-center mb-6 relative z-10">
                   {plan.monthlyPrice ? (
                     <div>
-                      <div className="flex items-center justify-center mb-2">
-                        <span className="text-4xl font-bold text-emerald-400">
+                      <div className="flex items-baseline justify-center mb-2">
+                        <span className="text-4xl font-bold text-emerald-400 drop-shadow-sm">
                           €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                         </span>
-                        <span className="text-slate-400 text-xl ml-2">/month</span>
+                        <span className="text-slate-400 text-lg ml-2">/month</span>
                       </div>
                       {isAnnual && (
-                        <div className="text-sm text-emerald-400">
+                        <div className="text-sm text-emerald-400/90 mb-1">
                           Billed annually (€{plan.annualPrice * 12}/year)
                         </div>
                       )}
+                      <div className="text-xs text-slate-500">
+                        Save €{((plan.monthlyPrice - plan.annualPrice) * 12)} per year
+                      </div>
                     </div>
                   ) : (
                     <div>
-                      <div className="flex items-center justify-center mb-2">
-                        <span className="text-2xl font-semibold text-emerald-400">From €499</span>
+                      <div className="flex items-baseline justify-center mb-2">
+                        <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €499</span>
                         <span className="text-slate-400 text-lg ml-2">/month</span>
                       </div>
-                      
+                      <div className="text-xs text-slate-500">
+                        Custom pricing based on your needs
+                      </div>
                     </div>
                   )}
                 </div>
 
-                <div className="px-8 mb-6">
+                <div className="px-6 mb-6 relative z-10">
                   <Button 
-                    className={`w-full font-semibold py-3 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
+                    className={`w-full font-semibold py-3.5 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
                       plan.isEnterprise
-                        ? 'bg-white text-black hover:bg-gray-100'
+                        ? 'bg-gradient-to-r from-white to-slate-100 text-slate-900 hover:from-slate-100 hover:to-white shadow-white/20 hover:shadow-white/30'
                         : plan.popular
-                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white'
-                        : 'bg-slate-700 hover:bg-slate-600 text-white'
+                        ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/40 hover:shadow-emerald-500/60'
+                        : 'bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white shadow-slate-700/40 hover:shadow-slate-600/60'
                     }`}
                   >
                     {plan.cta}
@@ -225,14 +238,14 @@ export const Pricing = () => {
                   </Button>
                 </div>
 
-                <div className="px-8 pb-8 flex-1">
-                  <div className="space-y-3">
+                <div className="px-6 pb-8 flex-1 relative z-10">
+                  <div className="space-y-4">
                     {plan.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start space-x-3">
-                        <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div key={idx} className="flex items-start space-x-3 group">
+                        <div className="w-5 h-5 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm group-hover:shadow-emerald-400/30 transition-all duration-200">
                           <Check className="w-3 h-3 text-white" />
                         </div>
-                        <span className="text-slate-300 text-sm leading-relaxed">{feature}</span>
+                        <span className="text-slate-300 text-sm leading-relaxed font-medium">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -257,65 +270,75 @@ export const Pricing = () => {
                 {plans.map((plan, index) => (
                   <div
                     key={plan.name}
-                    className="w-full flex-shrink-0 px-2"
+                    className="w-full flex-shrink-0 px-3"
                   >
                     <div className={`rounded-2xl border overflow-hidden relative flex flex-col backdrop-blur-xl ${
                       plan.isEnterprise
-                        ? 'bg-gradient-to-br from-slate-900/95 to-black/95 border-slate-600/50 shadow-2xl shadow-slate-900/50'
+                        ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-black/95 border-slate-600/50 shadow-2xl shadow-slate-900/50'
                         : plan.popular
-                        ? 'bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-emerald-500/30 shadow-2xl shadow-emerald-500/20 ring-1 ring-emerald-500/30'
-                        : 'bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-slate-700/50 shadow-2xl shadow-slate-900/50'
-                    }`} style={{ minHeight: '320px' }}>
+                        ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-800/95 border-emerald-500/40 shadow-2xl shadow-emerald-500/30 ring-1 ring-emerald-500/40'
+                        : 'bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-800/95 border-slate-700/50 shadow-2xl shadow-slate-900/50'
+                    }`} style={{ minHeight: '420px' }}>
                       
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent opacity-60 pointer-events-none" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/[0.05] via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.10] via-white/[0.02] to-transparent opacity-70 pointer-events-none rounded-2xl" />
+                      <div className={`absolute inset-0 rounded-2xl pointer-events-none ${
+                        plan.popular 
+                          ? 'bg-gradient-to-t from-emerald-500/[0.08] via-emerald-400/[0.02] to-transparent' 
+                          : 'bg-gradient-to-t from-slate-500/[0.05] via-transparent to-transparent'
+                      }`} />
                       
                       {plan.popular && (
-                        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
-                          <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap shadow-lg shadow-emerald-500/30">
+                        <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-10">
+                          <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shadow-lg shadow-emerald-500/40">
                             Most Popular
                           </div>
                         </div>
                       )}
 
-                      <div className={`p-4 text-center relative z-10 ${plan.popular ? 'pt-12' : ''}`}>
-                        <h3 className="text-xl font-bold text-white drop-shadow-lg">{plan.name}</h3>
+                      <div className={`p-5 text-center relative z-10 ${plan.popular ? 'pt-14' : 'pt-6'}`}>
+                        <h3 className="text-xl font-bold text-white drop-shadow-lg mb-2">{plan.name}</h3>
+                        <p className="text-slate-400 text-xs leading-relaxed px-1">{plan.description}</p>
                       </div>
 
-                      <div className="px-4 text-center mb-3 relative z-10">
+                      <div className="px-5 text-center mb-4 relative z-10">
                         {plan.monthlyPrice ? (
                           <div>
-                            <div className="flex items-center justify-center mb-1">
+                            <div className="flex items-baseline justify-center mb-1">
                               <span className="text-2xl font-bold text-emerald-400 drop-shadow-lg">
                                 €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                               </span>
                               <span className="text-slate-300/90 text-base ml-1">/month</span>
                             </div>
                             {isAnnual && (
-                              <div className="text-xs text-emerald-400/90">
+                              <div className="text-xs text-emerald-400/90 mb-1">
                                 Billed annually (€{(plan.annualPrice || 0) * 12}/year)
                               </div>
                             )}
+                            <div className="text-xs text-slate-500">
+                              Save €{((plan.monthlyPrice - (plan.annualPrice || 0)) * 12)} per year
+                            </div>
                           </div>
                         ) : (
                           <div>
-                            <div className="flex items-center justify-center mb-1">
+                            <div className="flex items-baseline justify-center mb-1">
                               <span className="text-xl font-semibold text-emerald-400 drop-shadow-lg">From €499</span>
                               <span className="text-slate-300/90 text-sm ml-1">/month</span>
                             </div>
-                            
+                            <div className="text-xs text-slate-500">
+                              Custom pricing
+                            </div>
                           </div>
                         )}
                       </div>
 
-                      <div className="px-4 mb-3 relative z-10">
+                      <div className="px-5 mb-4 relative z-10">
                         <Button 
-                          className={`w-full font-semibold py-2.5 px-4 rounded-xl text-sm shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm ${
+                          className={`w-full font-semibold py-3 px-4 rounded-xl text-sm shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm ${
                             plan.isEnterprise
-                              ? 'bg-white/95 text-black hover:bg-white border border-white/20 shadow-white/20'
+                              ? 'bg-gradient-to-r from-white to-slate-100 text-slate-900 hover:from-slate-100 hover:to-white border border-white/30 shadow-white/30'
                               : plan.popular
-                              ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/40'
-                              : 'bg-slate-700/80 hover:bg-slate-600/80 text-white border border-slate-600/50'
+                              ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/50'
+                              : 'bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white border border-slate-600/50 shadow-slate-700/50'
                           }`}
                         >
                           {plan.cta}
@@ -323,14 +346,14 @@ export const Pricing = () => {
                         </Button>
                       </div>
 
-                      <div className="px-4 pb-0 flex-1 relative z-10">
-                        <div className="space-y-1.5">
+                      <div className="px-5 pb-6 flex-1 relative z-10">
+                        <div className="space-y-2.5">
                           {plan.features.map((feature, idx) => (
-                            <div key={idx} className="flex items-start space-x-2">
-                              <div className="w-3.5 h-3.5 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-                                <Check className="w-2 h-2 text-white" />
+                            <div key={idx} className="flex items-start space-x-2.5">
+                              <div className="w-4 h-4 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm shadow-emerald-400/30">
+                                <Check className="w-2.5 h-2.5 text-white" />
                               </div>
-                              <span className="text-slate-200/90 text-xs leading-tight font-light tracking-wide">{feature}</span>
+                              <span className="text-slate-200/95 text-xs leading-relaxed font-medium tracking-wide">{feature}</span>
                             </div>
                           ))}
                         </div>
@@ -342,10 +365,10 @@ export const Pricing = () => {
             </div>
             
             {currentSlide > 0 && (
-              <div className="absolute top-1/2 -translate-y-1/2 -left-4 z-20">
+              <div className="absolute top-1/2 -translate-y-1/2 -left-5 z-20">
                 <button
                   onClick={prevSlide}
-                  className="p-2.5 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg backdrop-blur-sm"
+                  className="p-3 rounded-full bg-slate-800/95 text-white hover:bg-slate-700/95 transition-colors duration-200 shadow-lg backdrop-blur-sm border border-slate-700/50"
                   aria-label="Previous slide"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -353,10 +376,10 @@ export const Pricing = () => {
               </div>
             )}
             {currentSlide < plans.length - 1 && (
-              <div className="absolute top-1/2 -translate-y-1/2 -right-4 z-20">
+              <div className="absolute top-1/2 -translate-y-1/2 -right-5 z-20">
                 <button
                   onClick={nextSlide}
-                  className="p-2.5 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg backdrop-blur-sm"
+                  className="p-3 rounded-full bg-slate-800/95 text-white hover:bg-slate-700/95 transition-colors duration-200 shadow-lg backdrop-blur-sm border border-slate-700/50"
                   aria-label="Next slide"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -364,31 +387,31 @@ export const Pricing = () => {
               </div>
             )}
             
-            <div className="flex justify-center mt-4 space-x-2">
+            <div className="flex justify-center mt-6 space-x-2">
               {plans.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                  className={`h-2 rounded-full transition-all duration-300 ${
                     index === currentSlide 
-                      ? 'bg-emerald-400 w-6 shadow-sm shadow-emerald-400/30' 
-                      : 'bg-slate-600 hover:bg-slate-500'
+                      ? 'bg-emerald-400 w-8 shadow-md shadow-emerald-400/30' 
+                      : 'bg-slate-600 hover:bg-slate-500 w-2'
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
             </div>
             
-            <div className="text-center mt-3">
+            <div className="text-center mt-4">
               <p className="text-xs text-slate-500">
-                Swipe or tap arrows to explore
+                Swipe or tap arrows to explore plans
               </p>
             </div>
           </div>
         </div>
 
-        <ScrollAnimatedSection animation="fade-up" delay={800} className="text-center mt-8">
-          <p className="text-slate-500 text-sm">
+        <ScrollAnimatedSection animation="fade-up" delay={800} className="text-center mt-12">
+          <p className="text-slate-400 text-sm">
             30 days free trial • No credit card required • Cancel anytime
           </p>
         </ScrollAnimatedSection>
