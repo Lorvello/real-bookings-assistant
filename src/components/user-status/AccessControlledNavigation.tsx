@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
@@ -196,9 +195,9 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
               : item.name
           }
         >
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <item.icon
-              className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200 ${
+              className={`mr-3 h-5 w-5 transition-colors duration-200 ${
                 item.isActive 
                   ? 'text-white' 
                   : item.isRestricted 
