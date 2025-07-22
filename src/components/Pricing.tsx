@@ -15,7 +15,7 @@ export const Pricing = () => {
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
         "Up to 500 WhatsApp contacts",
-        "Up to 2 calendars",
+        "Up to 2 calendars", 
         "Automated reminders",
         "Detailed analytics",
         "Multi-language support",
@@ -64,7 +64,6 @@ export const Pricing = () => {
     }
   ];
 
-  // Slideshow navigation functions
   const nextSlide = () => {
     setCurrentSlide((prev) => Math.min(prev + 1, plans.length - 1));
   };
@@ -106,7 +105,6 @@ export const Pricing = () => {
 
   return (
     <section className="py-16 md:py-20 relative overflow-hidden">
-      {/* Background decoration */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
@@ -115,7 +113,6 @@ export const Pricing = () => {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
       
       <div className="max-w-6xl mx-auto relative z-10 px-4 md:px-6 lg:px-8">
-        {/* Header */}
         <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-8 md:mb-16">
           <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
             <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
@@ -129,7 +126,6 @@ export const Pricing = () => {
           </p>
         </ScrollAnimatedSection>
 
-        {/* Pricing toggle */}
         <ScrollAnimatedSection animation="fade-up" delay={200} className="flex items-center justify-center mb-8 md:mb-12">
           <div className="bg-slate-800/50 rounded-full p-1 border border-slate-700/50">
             <div className="flex">
@@ -160,7 +156,6 @@ export const Pricing = () => {
           </div>
         </ScrollAnimatedSection>
 
-        {/* Desktop: Restructured Grid layout */}
         <div className="hidden md:grid md:grid-cols-3 gap-8 items-stretch">
           {plans.map((plan, index) => (
             <ScrollAnimatedSection
@@ -184,12 +179,10 @@ export const Pricing = () => {
                   </div>
                 )}
 
-                {/* Header Section - Just Plan Name */}
                 <div className="p-8 text-center">
                   <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
                 </div>
 
-                {/* Pricing Section */}
                 <div className="px-8 text-center mb-6">
                   {plan.monthlyPrice ? (
                     <div>
@@ -216,7 +209,6 @@ export const Pricing = () => {
                   )}
                 </div>
 
-                {/* CTA Button Section */}
                 <div className="px-8 mb-6">
                   <Button 
                     className={`w-full font-semibold py-3 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
@@ -232,7 +224,6 @@ export const Pricing = () => {
                   </Button>
                 </div>
 
-                {/* Features Section - At Bottom */}
                 <div className="px-8 pb-8 flex-1">
                   <div className="space-y-3">
                     {plan.features.map((feature, idx) => (
@@ -250,9 +241,8 @@ export const Pricing = () => {
           ))}
         </div>
 
-        {/* Mobile: Restructured Slideshow */}
         <div className="md:hidden relative py-4">
-          <div className="w-full max-w-xs mx-auto relative">
+          <div className="w-full max-w-sm mx-auto relative">
             <div 
               className="relative overflow-hidden rounded-lg"
               onTouchStart={onTouchStart}
@@ -268,37 +258,40 @@ export const Pricing = () => {
                     key={plan.name}
                     className="w-full flex-shrink-0 px-2"
                   >
-                    <div className={`rounded-lg border shadow-lg overflow-hidden relative flex flex-col ${
+                    <div className={`rounded-2xl border overflow-hidden relative flex flex-col backdrop-blur-xl ${
                       plan.isEnterprise
-                        ? 'bg-gradient-to-br from-slate-900 to-black border-slate-600'
-                        : 'bg-slate-900/95 border-slate-700/50'
-                    }`} style={{ minHeight: '500px' }}>
+                        ? 'bg-gradient-to-br from-slate-900/95 to-black/95 border-slate-600/50 shadow-2xl shadow-slate-900/50'
+                        : plan.popular
+                        ? 'bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-emerald-500/30 shadow-2xl shadow-emerald-500/20 ring-1 ring-emerald-500/30'
+                        : 'bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-slate-700/50 shadow-2xl shadow-slate-900/50'
+                    }`} style={{ minHeight: '420px' }}>
+                      
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent opacity-60 pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/[0.05] via-transparent to-transparent pointer-events-none" />
                       
                       {plan.popular && (
                         <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10">
-                          <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                          <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap shadow-lg shadow-emerald-500/30">
                             Most Popular
                           </div>
                         </div>
                       )}
 
-                      {/* Header Section - Just Plan Name */}
-                      <div className={`p-5 text-center ${plan.popular ? 'pt-12' : ''}`}>
-                        <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+                      <div className={`p-4 text-center relative z-10 ${plan.popular ? 'pt-12' : ''}`}>
+                        <h3 className="text-xl font-bold text-white drop-shadow-lg">{plan.name}</h3>
                       </div>
 
-                      {/* Pricing Section */}
-                      <div className="px-5 text-center mb-4">
+                      <div className="px-4 text-center mb-3 relative z-10">
                         {plan.monthlyPrice ? (
                           <div>
                             <div className="flex items-center justify-center mb-1">
-                              <span className="text-2xl font-bold text-emerald-400">
+                              <span className="text-2xl font-bold text-emerald-400 drop-shadow-lg">
                                 €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                               </span>
-                              <span className="text-slate-400 text-base ml-1">/month</span>
+                              <span className="text-slate-300/90 text-base ml-1">/month</span>
                             </div>
                             {isAnnual && (
-                              <div className="text-xs text-emerald-400">
+                              <div className="text-xs text-emerald-400/90">
                                 Billed annually (€{(plan.annualPrice || 0) * 12}/year)
                               </div>
                             )}
@@ -306,23 +299,22 @@ export const Pricing = () => {
                         ) : (
                           <div>
                             <div className="flex items-center justify-center mb-1">
-                              <span className="text-xl font-semibold text-emerald-400">From €499</span>
-                              <span className="text-slate-400 text-sm ml-1">/month</span>
+                              <span className="text-xl font-semibold text-emerald-400 drop-shadow-lg">From €499</span>
+                              <span className="text-slate-300/90 text-sm ml-1">/month</span>
                             </div>
-                            <div className="text-slate-400 text-sm">Contact us for pricing</div>
+                            <div className="text-slate-300/90 text-sm">Contact us for pricing</div>
                           </div>
                         )}
                       </div>
 
-                      {/* CTA Button Section */}
-                      <div className="px-5 mb-4">
+                      <div className="px-4 mb-3 relative z-10">
                         <Button 
-                          className={`w-full font-semibold py-2.5 px-4 rounded-xl text-sm shadow-lg transition-all duration-300 group ${
+                          className={`w-full font-semibold py-2.5 px-4 rounded-xl text-sm shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm ${
                             plan.isEnterprise
-                              ? 'bg-white text-black hover:bg-gray-100'
+                              ? 'bg-white/95 text-black hover:bg-white border border-white/20 shadow-white/20'
                               : plan.popular
-                              ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white'
-                              : 'bg-slate-700 hover:bg-slate-600 text-white'
+                              ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/40'
+                              : 'bg-slate-700/80 hover:bg-slate-600/80 text-white border border-slate-600/50'
                           }`}
                         >
                           {plan.cta}
@@ -330,15 +322,14 @@ export const Pricing = () => {
                         </Button>
                       </div>
 
-                      {/* Features Section - At Bottom */}
-                      <div className="px-5 pb-5 flex-1">
-                        <div className="space-y-2">
+                      <div className="px-4 pb-4 flex-1 relative z-10">
+                        <div className="space-y-1.5">
                           {plan.features.map((feature, idx) => (
                             <div key={idx} className="flex items-start space-x-2">
-                              <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <Check className="w-2.5 h-2.5 text-white" />
+                              <div className="w-3.5 h-3.5 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                                <Check className="w-2 h-2 text-white" />
                               </div>
-                              <span className="text-slate-300 text-xs leading-relaxed">{feature}</span>
+                              <span className="text-slate-200/90 text-xs leading-tight font-light tracking-wide">{feature}</span>
                             </div>
                           ))}
                         </div>
@@ -349,12 +340,11 @@ export const Pricing = () => {
               </div>
             </div>
             
-            {/* Navigation arrows */}
             {currentSlide > 0 && (
               <div className="absolute top-1/2 -translate-y-1/2 -left-4 z-20">
                 <button
                   onClick={prevSlide}
-                  className="p-2.5 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+                  className="p-2.5 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg backdrop-blur-sm"
                   aria-label="Previous slide"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -365,7 +355,7 @@ export const Pricing = () => {
               <div className="absolute top-1/2 -translate-y-1/2 -right-4 z-20">
                 <button
                   onClick={nextSlide}
-                  className="p-2.5 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+                  className="p-2.5 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg backdrop-blur-sm"
                   aria-label="Next slide"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -380,7 +370,7 @@ export const Pricing = () => {
                   onClick={() => goToSlide(index)}
                   className={`w-2 h-2 rounded-full transition-all duration-200 ${
                     index === currentSlide 
-                      ? 'bg-emerald-400 w-6' 
+                      ? 'bg-emerald-400 w-6 shadow-sm shadow-emerald-400/30' 
                       : 'bg-slate-600 hover:bg-slate-500'
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
@@ -396,7 +386,6 @@ export const Pricing = () => {
           </div>
         </div>
 
-        {/* Additional info */}
         <ScrollAnimatedSection animation="fade-up" delay={800} className="text-center mt-8">
           <p className="text-slate-500 text-sm">
             30 days free trial • No credit card required • Cancel anytime
