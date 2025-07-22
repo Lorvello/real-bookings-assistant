@@ -76,8 +76,8 @@ const ProcessSection = () => {
              </div>
              
              {/* Calendar centered for mobile, left for desktop */}
-             <div className="w-full flex justify-center lg:justify-start lg:flex-shrink-0">
-               <div className="max-w-[320px] md:max-w-sm lg:max-w-md">
+             <div className="w-full flex justify-center lg:justify-start flex-shrink-0">
+               <div className="max-w-[280px] md:max-w-[320px] lg:max-w-[400px]">
                 <CalendarMockup />
               </div>
             </div>
