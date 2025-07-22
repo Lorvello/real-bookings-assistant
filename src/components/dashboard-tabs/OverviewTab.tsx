@@ -47,10 +47,14 @@ export function OverviewTab({ calendarId, calendarIds }: OverviewTabProps) {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { calendars } = useCalendars();
-  const { data: nextAppointment } = useNextAppointment(calendarId);
-  const { data: popularService } = usePopularService(calendarId);
-  const { data: weeklyInsights } = useWeeklyInsights(calendarId);
-  const { data: capacityAlerts } = useCapacityAlerts(calendarId);
+  
+  // Use calendarIds if provided, otherwise fallback to single calendarId
+  const activeCalendarIds = calendarIds && calendarIds.length > 0 ? calendarIds : [calendarId];
+  
+  const { data: nextAppointment } = useNextAppointment(activeCalendarIds);
+  const { data: popularService } = usePopularService(activeCalendarIds);
+  const { data: weeklyInsights } = useWeeklyInsights(activeCalendarIds[0]); // Keep single for now
+  const { data: capacityAlerts } = useCapacityAlerts(activeCalendarIds);
 
   const formatTimeUntilAppointment = (startTime: string) => {
     const now = new Date();

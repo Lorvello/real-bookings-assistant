@@ -23,7 +23,7 @@ export function CalendarSelector() {
 
   const getDisplayText = () => {
     if (viewingAllCalendars) {
-      return `All Calendars (${calendars.length})`;
+      return `All Calendars`;
     }
     if (selectedCalendar) {
       return selectedCalendar.name;
@@ -33,10 +33,10 @@ export function CalendarSelector() {
 
   const getDisplaySubtext = () => {
     if (viewingAllCalendars) {
-      return 'Combined data from all calendars';
+      return `${calendars.length} calendars`;
     }
     if (selectedCalendar) {
-      return 'Individual calendar data';
+      return `/${selectedCalendar.slug}`;
     }
     return '';
   };
@@ -50,49 +50,53 @@ export function CalendarSelector() {
       <DropdownMenuTrigger asChild>
         <Button 
           variant="outline" 
-          className="bg-card border-border text-foreground hover:bg-muted hover:text-foreground min-w-[200px] justify-between transition-colors"
+          className="bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-cyan-500/30 text-slate-100 hover:bg-slate-700/90 hover:border-cyan-400/40 min-w-[240px] h-12 justify-between transition-all duration-200 shadow-lg shadow-cyan-500/5"
         >
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-lg flex items-center justify-center">
+              <Calendar className="h-4 w-4 text-cyan-400" />
+            </div>
             <div className="flex flex-col items-start">
-              <span className="text-sm font-medium">{getDisplayText()}</span>
+              <span className="text-sm font-semibold text-slate-100">{getDisplayText()}</span>
               {getDisplaySubtext() && (
-                <span className="text-xs text-muted-foreground">{getDisplaySubtext()}</span>
+                <span className="text-xs text-cyan-400/70">{getDisplaySubtext()}</span>
               )}
             </div>
           </div>
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 text-cyan-400/70" />
         </Button>
       </DropdownMenuTrigger>
       
       <DropdownMenuContent 
         align="end" 
-        className="w-64 bg-card border-border z-50"
+        className="w-64 bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-2xl border border-cyan-500/30 shadow-2xl shadow-cyan-500/10 z-50"
       >
         {/* All Calendars Option - only show if multiple calendars */}
         {calendars.length > 1 && (
           <>
             <DropdownMenuItem
               onClick={selectAllCalendars}
-              className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
+              className="flex items-center justify-between p-4 cursor-pointer hover:bg-cyan-500/10 hover:text-slate-100 focus:bg-cyan-500/10 focus:text-slate-100 transition-colors rounded-lg m-1"
             >
               <div className="flex items-center gap-3">
-                <Calendar className="h-4 w-4 text-primary" />
+                <div className="w-8 h-8 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-lg flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-cyan-400" />
+                </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-foreground">
+                  <span className="text-sm font-semibold text-slate-100">
                     All Calendars
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-cyan-400/70">
                     Combined data from {calendars.length} calendars
                   </span>
                 </div>
               </div>
               {viewingAllCalendars && (
-                <Check className="h-4 w-4 text-primary" />
+                <Check className="h-4 w-4 text-cyan-400" />
               )}
             </DropdownMenuItem>
 
-            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuSeparator className="bg-cyan-500/20 my-2" />
           </>
         )}
 
@@ -101,21 +105,26 @@ export function CalendarSelector() {
           <DropdownMenuItem
             key={calendar.id}
             onClick={() => selectCalendar(calendar)}
-            className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
+            className="flex items-center justify-between p-4 cursor-pointer hover:bg-cyan-500/10 hover:text-slate-100 focus:bg-cyan-500/10 focus:text-slate-100 transition-colors rounded-lg m-1"
           >
             <div className="flex items-center gap-3">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <div className="w-8 h-8 bg-gradient-to-br from-slate-600/30 to-slate-700/30 rounded-lg flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-slate-400" />
+              </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-sm font-semibold text-slate-100">
                   {calendar.name}
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-cyan-400/70">
                     /{calendar.slug}
                   </span>
                   <Badge 
                     variant={calendar.is_active ? "default" : "secondary"}
-                    className="text-xs px-1.5 py-0.5"
+                    className={calendar.is_active 
+                      ? "bg-green-500/20 text-green-300 border-green-500/30 text-xs px-2 py-0.5" 
+                      : "bg-slate-600/20 text-slate-400 border-slate-600/30 text-xs px-2 py-0.5"
+                    }
                   >
                     {calendar.is_active ? "Active" : "Inactive"}
                   </Badge>
@@ -123,7 +132,7 @@ export function CalendarSelector() {
               </div>
             </div>
             {selectedCalendar?.id === calendar.id && !viewingAllCalendars && (
-              <Check className="h-4 w-4 text-primary" />
+              <Check className="h-4 w-4 text-cyan-400" />
             )}
           </DropdownMenuItem>
         ))}

@@ -12,13 +12,16 @@ interface LiveOperationsData {
   last_updated: string;
 }
 
-export function useOptimizedLiveOperations(calendarId?: string) {
+export function useOptimizedLiveOperations(calendarIds?: string | string[]) {
   return useQuery({
-    queryKey: ['optimized-live-operations', calendarId],
+    queryKey: ['optimized-live-operations', calendarIds],
     queryFn: async (): Promise<LiveOperationsData | null> => {
-      if (!calendarId) return null;
+      if (!calendarIds) return null;
 
-      console.log('🔄 Fetching live operations data for:', calendarId);
+      const ids = Array.isArray(calendarIds) ? calendarIds : [calendarIds];
+      if (ids.length === 0) return null;
+
+      console.log('🔄 Fetching live operations data for calendars:', ids);
 
       const now = new Date();
       const todayStart = new Date();
@@ -26,11 +29,11 @@ export function useOptimizedLiveOperations(calendarId?: string) {
       const todayEnd = new Date();
       todayEnd.setHours(23, 59, 59, 999);
 
-      // Get today's confirmed bookings with real-time accuracy
+      // Get today's confirmed bookings with real-time accuracy across all selected calendars
       const { data: todayBookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
-        .eq('calendar_id', calendarId)
+        .in('calendar_id', ids)
         .eq('status', 'confirmed')
         .gte('start_time', todayStart.toISOString())
         .lte('start_time', todayEnd.toISOString())
@@ -41,11 +44,11 @@ export function useOptimizedLiveOperations(calendarId?: string) {
         throw bookingsError;
       }
 
-      // Get active WhatsApp conversations that had activity today
+      // Get active WhatsApp conversations that had activity today across all selected calendars
       const { data: conversationsData, error: conversationsError } = await supabase
         .from('whatsapp_conversations')
         .select('id, last_message_at')
-        .eq('calendar_id', calendarId)
+        .in('calendar_id', ids)
         .eq('status', 'active')
         .gte('last_message_at', todayStart.toISOString());
 
@@ -110,7 +113,7 @@ export function useOptimizedLiveOperations(calendarId?: string) {
         last_updated: new Date().toISOString()
       };
     },
-    enabled: !!calendarId,
+    enabled: !!calendarIds && (Array.isArray(calendarIds) ? calendarIds.length > 0 : true),
     staleTime: 30000, // Data is fresh for 30 seconds for real-time feel
     gcTime: 120000, // Keep in cache for 2 minutes
     refetchInterval: 60000, // Background refetch every minute for live updates

@@ -1,35 +1,44 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export function useNextAppointment(calendarId: string) {
+export function useNextAppointment(calendarIds: string | string[]) {
   return useQuery({
-    queryKey: ['next-appointment', calendarId],
+    queryKey: ['next-appointment', calendarIds],
     queryFn: async () => {
-      const now = new Date().toISOString();
+      if (!calendarIds) return null;
+      
+      const ids = Array.isArray(calendarIds) ? calendarIds : [calendarIds];
+      if (ids.length === 0) return null;
+
+      console.log('🔍 Fetching next appointment for calendars:', ids);
+
+      const now = new Date();
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
       
       const { data, error } = await supabase
         .from('bookings')
         .select(`
-          id,
-          customer_name,
-          start_time,
-          end_time,
-          service_name,
-          service_types (
-            name
-          )
+          *,
+          service_types(name)
         `)
-        .eq('calendar_id', calendarId)
-        .gte('start_time', now)
-        .neq('status', 'cancelled')
+        .in('calendar_id', ids)
+        .eq('status', 'confirmed')
+        .gte('start_time', now.toISOString())
+        .lte('start_time', todayEnd.toISOString())
         .order('start_time', { ascending: true })
         .limit(1);
 
-      if (error) throw error;
-      
+      if (error) {
+        console.error('Error fetching next appointment:', error);
+        throw error;
+      }
+
       return data?.[0] || null;
     },
-    enabled: !!calendarId,
-    refetchInterval: 60000, // Refresh every minute
+    enabled: !!calendarIds && (Array.isArray(calendarIds) ? calendarIds.length > 0 : true),
+    staleTime: 60000, // 1 minute
+    refetchInterval: 60000, // Refetch every minute
   });
 }

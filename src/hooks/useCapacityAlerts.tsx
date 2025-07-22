@@ -1,70 +1,61 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export function useCapacityAlerts(calendarId: string) {
+export function useCapacityAlerts(calendarIds: string | string[]) {
   return useQuery({
-    queryKey: ['capacity-alerts', calendarId],
+    queryKey: ['capacity-alerts', calendarIds],
     queryFn: async () => {
-      const today = new Date();
-      const nextWeek = new Date();
-      nextWeek.setDate(nextWeek.getDate() + 7);
+      if (!calendarIds) return [];
       
-      // Get bookings for the next 7 days
-      const { data: bookings, error } = await supabase
-        .from('bookings')
-        .select('start_time, end_time')
-        .eq('calendar_id', calendarId)
-        .gte('start_time', today.toISOString())
-        .lt('start_time', nextWeek.toISOString())
-        .neq('status', 'cancelled');
+      const ids = Array.isArray(calendarIds) ? calendarIds : [calendarIds];
+      if (ids.length === 0) return [];
 
-      if (error) throw error;
-      
-      // Get calendar settings for max bookings per day
-      const { data: settings } = await supabase
-        .from('calendar_settings')
-        .select('max_bookings_per_day')
-        .eq('calendar_id', calendarId)
-        .single();
-      
-      const maxBookingsPerDay = settings?.max_bookings_per_day || 10;
-      
-      // Group bookings by date
-      const bookingsByDate = bookings?.reduce((acc: Record<string, number>, booking) => {
-        const date = new Date(booking.start_time).toDateString();
-        acc[date] = (acc[date] || 0) + 1;
-        return acc;
-      }, {}) || {};
-      
-      // Find days approaching or exceeding capacity
+      console.log('🔍 Fetching capacity alerts for calendars:', ids);
+
       const alerts = [];
-      
-      for (const [date, count] of Object.entries(bookingsByDate)) {
-        if (count >= maxBookingsPerDay) {
+      const next7Days = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+        return date;
+      });
+
+      for (const date of next7Days) {
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Get bookings for this day across all selected calendars
+        const { data: bookings } = await supabase
+          .from('bookings')
+          .select('calendar_id')
+          .in('calendar_id', ids)
+          .gte('start_time', startOfDay.toISOString())
+          .lte('start_time', endOfDay.toISOString())
+          .neq('status', 'cancelled');
+
+        const bookingCount = bookings?.length || 0;
+
+        // Simple capacity logic - consider 8+ bookings as high capacity
+        if (bookingCount >= 8) {
           alerts.push({
-            type: 'fully-booked',
-            date: new Date(date),
-            count,
-            maxBookings: maxBookingsPerDay,
-            message: `Fully booked (${count}/${maxBookingsPerDay} bookings)`
+            date,
+            type: 'fully-booked' as const,
+            message: `${bookingCount} bookings scheduled`
           });
-        } else if (count >= maxBookingsPerDay * 0.8) {
+        } else if (bookingCount >= 6) {
           alerts.push({
-            type: 'near-capacity',
-            date: new Date(date),
-            count,
-            maxBookings: maxBookingsPerDay,
-            message: `Near capacity (${count}/${maxBookingsPerDay} bookings)`
+            date,
+            type: 'near-capacity' as const,
+            message: `${bookingCount} bookings - near capacity`
           });
         }
       }
-      
-      // Sort alerts by date
-      alerts.sort((a, b) => a.date.getTime() - b.date.getTime());
-      
-      return alerts.slice(0, 3); // Return max 3 alerts
+
+      return alerts;
     },
-    enabled: !!calendarId,
+    enabled: !!calendarIds && (Array.isArray(calendarIds) ? calendarIds.length > 0 : true),
     staleTime: 300000, // 5 minutes
   });
 }

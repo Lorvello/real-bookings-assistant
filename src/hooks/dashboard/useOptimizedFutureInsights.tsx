@@ -18,36 +18,41 @@ interface FutureInsightsData {
   last_updated: string;
 }
 
-export function useOptimizedFutureInsights(calendarId?: string) {
+export function useOptimizedFutureInsights(calendarIds?: string | string[]) {
   return useQuery({
-    queryKey: ['optimized-future-insights', calendarId],
+    queryKey: ['optimized-future-insights', calendarIds],
     queryFn: async (): Promise<FutureInsightsData | null> => {
-      if (!calendarId) return null;
+      if (!calendarIds) return null;
 
-      console.log('🔮 Fetching future insights for calendar:', calendarId);
+      const ids = Array.isArray(calendarIds) ? calendarIds : [calendarIds];
+      if (ids.length === 0) return null;
 
-      // Get calendar settings to calculate capacity
+      console.log('🔮 Fetching future insights for calendars:', ids);
+
+      // Get calendar settings to calculate capacity (use first calendar for now)
       const { data: calendarSettings } = await supabase
         .from('calendar_settings')
         .select('*')
-        .eq('calendar_id', calendarId)
+        .in('calendar_id', ids)
+        .limit(1)
         .single();
 
-      // Get availability rules to calculate total available hours
+      // Get availability rules to calculate total available hours (use first calendar for now)
       const { data: availabilityData } = await supabase
         .from('availability_schedules')
         .select(`
           *,
           availability_rules(*)
         `)
-        .eq('calendar_id', calendarId)
-        .eq('is_default', true);
+        .in('calendar_id', ids)
+        .eq('is_default', true)
+        .limit(1);
 
-      // Get historical booking data for trend analysis
+      // Get historical booking data for trend analysis across all selected calendars
       const { data: historicalBookings, error: historicalError } = await supabase
         .from('bookings')
-        .select('start_time, status, customer_email')
-        .eq('calendar_id', calendarId)
+        .select('start_time, status, customer_email, calendar_id')
+        .in('calendar_id', ids)
         .gte('start_time', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()) // 60 days
         .neq('status', 'cancelled');
 
@@ -56,7 +61,7 @@ export function useOptimizedFutureInsights(calendarId?: string) {
         throw historicalError;
       }
 
-      // Calculate customer growth rate (current month vs previous month)
+      // Calculate customer growth rate (current month vs previous month) across all calendars
       const currentMonth = new Date();
       const startOfCurrentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
       const startOfPreviousMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
@@ -64,14 +69,14 @@ export function useOptimizedFutureInsights(calendarId?: string) {
       const { data: currentMonthBookings } = await supabase
         .from('bookings')
         .select('customer_email')
-        .eq('calendar_id', calendarId)
+        .in('calendar_id', ids)
         .gte('start_time', startOfCurrentMonth.toISOString())
         .neq('status', 'cancelled');
 
       const { data: previousMonthBookings } = await supabase
         .from('bookings')
         .select('customer_email')
-        .eq('calendar_id', calendarId)
+        .in('calendar_id', ids)
         .gte('start_time', startOfPreviousMonth.toISOString())
         .lt('start_time', startOfCurrentMonth.toISOString())
         .neq('status', 'cancelled');
@@ -83,10 +88,10 @@ export function useOptimizedFutureInsights(calendarId?: string) {
         ? ((currentMonthCustomers - previousMonthCustomers) / previousMonthCustomers) * 100
         : currentMonthCustomers > 0 ? 100 : 0;
 
-      // Calculate capacity utilization
+      // Calculate capacity utilization (simplified for multiple calendars)
       let capacityUtilization = 0;
       if (availabilityData && availabilityData.length > 0) {
-        // Calculate total available hours per week
+        // Calculate total available hours per week for the first calendar
         const schedule = availabilityData[0];
         const rules = schedule.availability_rules || [];
         
@@ -100,7 +105,7 @@ export function useOptimizedFutureInsights(calendarId?: string) {
           return total;
         }, 0);
 
-        // Calculate booked hours this week
+        // Calculate booked hours this week across all calendars
         const weekStart = new Date();
         weekStart.setDate(weekStart.getDate() - weekStart.getDay());
         weekStart.setHours(0, 0, 0, 0);
@@ -111,7 +116,7 @@ export function useOptimizedFutureInsights(calendarId?: string) {
         const { data: weekBookings } = await supabase
           .from('bookings')
           .select('start_time, end_time')
-          .eq('calendar_id', calendarId)
+          .in('calendar_id', ids)
           .neq('status', 'cancelled')
           .gte('start_time', weekStart.toISOString())
           .lt('start_time', weekEnd.toISOString());
@@ -123,10 +128,12 @@ export function useOptimizedFutureInsights(calendarId?: string) {
           return total + hours;
         }, 0) || 0;
 
-        capacityUtilization = totalWeeklyHours > 0 ? (bookedHours / totalWeeklyHours) * 100 : 0;
+        // Multiply by number of calendars for total capacity
+        const totalCapacity = totalWeeklyHours * ids.length;
+        capacityUtilization = totalCapacity > 0 ? (bookedHours / totalCapacity) * 100 : 0;
       }
 
-      // Simple demand forecast based on weekly trends
+      // Simple demand forecast based on weekly trends across all calendars
       const weeklyTrends = [];
       const bookingsByWeek = new Map();
       
@@ -168,7 +175,7 @@ export function useOptimizedFutureInsights(calendarId?: string) {
         last_updated: new Date().toISOString()
       };
     },
-    enabled: !!calendarId,
+    enabled: !!calendarIds && (Array.isArray(calendarIds) ? calendarIds.length > 0 : true),
     staleTime: 900000, // 15 minutes
     gcTime: 1800000, // 30 minutes
     refetchInterval: 1200000, // 20 minutes
