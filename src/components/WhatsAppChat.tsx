@@ -5,7 +5,7 @@ const WhatsAppChat = () => {
   return (
     <div className="w-full max-w-[280px] md:max-w-xs mx-auto">
       {/* Professional tablet-style interface for mobile, iPhone for desktop */}
-      <div className="relative bg-gradient-to-b from-slate-800 via-slate-700 to-slate-900 rounded-lg md:rounded-[2.5rem] p-1.5 md:p-1 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-500 aspect-[3/4] md:aspect-[9/19] border border-slate-600/40 md:border-none backdrop-blur-sm">
+      <div className="relative bg-gradient-to-b from-slate-800 via-slate-700 to-slate-900 rounded-lg md:rounded-[2.5rem] p-1.5 md:p-1 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-500 aspect-[3/4] md:aspect-[9/17] border border-slate-600/40 md:border-none backdrop-blur-sm">
         {/* Tablet screen for mobile, phone screen for desktop */}
         <div className="bg-white rounded-md md:rounded-[2rem] overflow-hidden relative h-full shadow-inner flex flex-col">
           {/* No notch on mobile (tablet style), show notch on desktop (iPhone style) */}
