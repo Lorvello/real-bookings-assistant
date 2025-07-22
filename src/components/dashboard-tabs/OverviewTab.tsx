@@ -11,8 +11,7 @@ import { useWeeklyInsights } from '@/hooks/useWeeklyInsights';
 import { useCapacityAlerts } from '@/hooks/useCapacityAlerts';
 
 interface OverviewTabProps {
-  calendarId: string;
-  calendarIds?: string[];
+  calendarIds: string[];
 }
 
 const formatSubscriptionTier = (tier?: string) => {
@@ -43,13 +42,13 @@ const getTierColor = (tier?: string) => {
   }
 };
 
-export function OverviewTab({ calendarId, calendarIds }: OverviewTabProps) {
+export function OverviewTab({ calendarIds }: OverviewTabProps) {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { calendars } = useCalendars();
   
-  // Use calendarIds if provided, otherwise fallback to single calendarId
-  const activeCalendarIds = calendarIds && calendarIds.length > 0 ? calendarIds : [calendarId];
+  // Use the provided calendarIds
+  const activeCalendarIds = calendarIds;
   
   const { data: nextAppointment } = useNextAppointment(activeCalendarIds);
   const { data: popularService } = usePopularService(activeCalendarIds);

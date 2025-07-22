@@ -156,9 +156,8 @@ const Dashboard = () => {
             </div>
 
             {/* Dashboard Tabs */}
-            {primaryCalendarId && (
+            {activeCalendarIds.length > 0 && (
               <DashboardTabs 
-                calendarId={primaryCalendarId}
                 calendarIds={activeCalendarIds}
                 dateRange={selectedDateRange}
                 onTabChange={setActiveTab}

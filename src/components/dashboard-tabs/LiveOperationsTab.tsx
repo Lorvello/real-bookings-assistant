@@ -14,13 +14,13 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/comp
 import { MetricCard } from './business-intelligence/MetricCard';
 
 interface LiveOperationsTabProps {
-  calendarId: string;
-  calendarIds?: string[];
+  calendarIds: string[];
 }
 
-export function LiveOperationsTab({ calendarId, calendarIds }: LiveOperationsTabProps) {
+export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
   const navigate = useNavigate();
-  const { data: liveOps, isLoading } = useOptimizedLiveOperations(calendarId);
+  const calendarId = calendarIds[0]; // Use first calendar for single-calendar features
+  const { data: liveOps, isLoading } = useOptimizedLiveOperations(calendarIds);
   const { userStatus, accessControl } = useUserStatus();
   const { selectedCalendar } = useCalendarContext();
   const { data: botStatus } = useBotStatus(calendarId);

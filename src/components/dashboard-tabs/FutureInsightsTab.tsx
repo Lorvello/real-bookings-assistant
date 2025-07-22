@@ -11,12 +11,12 @@ import { IntelligentRecommendations } from './future-insights/IntelligentRecomme
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FutureInsightsTabProps {
-  calendarId: string;
-  calendarIds?: string[];
+  calendarIds: string[];
 }
 
-export function FutureInsightsTab({ calendarId, calendarIds }: FutureInsightsTabProps) {
-  const { data: futureInsights, isLoading, error } = useOptimizedFutureInsights(calendarId);
+export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
+  const calendarId = calendarIds[0]; // Use first calendar for single-calendar features
+  const { data: futureInsights, isLoading, error } = useOptimizedFutureInsights(calendarIds);
   useRealtimeSubscription(calendarId);
 
   if (isLoading) {

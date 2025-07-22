@@ -35,13 +35,13 @@ export function IntelligentRecommendations({
   const thirtyDaysAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
   
   const { data: businessIntel } = useOptimizedBusinessIntelligence(
-    calendarId, 
+    [calendarId], 
     thirtyDaysAgo, 
     currentDate
   );
   
   const { data: performance } = useOptimizedPerformanceEfficiency(
-    calendarId,
+    [calendarId],
     thirtyDaysAgo,
     currentDate
   );
