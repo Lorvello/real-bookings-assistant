@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
@@ -7,11 +8,10 @@ import { MetricCard } from './business-intelligence/MetricCard';
 import { ServicePerformanceChart } from './business-intelligence/ServicePerformanceChart';
 import { DateRange } from '@/components/dashboard/DateRangeFilter';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 
 interface BusinessIntelligenceTabProps {
-  calendarIds: string[];
+  calendarId: string;
   dateRange: DateRange;
 }
 
@@ -35,21 +35,18 @@ const getDynamicPeriodText = (dateRange: DateRange): string => {
   }
 };
 
-export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessIntelligenceTabProps) {
+export function BusinessIntelligenceTab({ calendarId, dateRange }: BusinessIntelligenceTabProps) {
   // Add safety check for dateRange
   if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
     return <BusinessIntelligenceLoading />;
   }
 
-  // For now, use the first calendar ID - in the future this should aggregate across all calendars
-  const primaryCalendarId = calendarIds.length > 0 ? calendarIds[0] : '';
-  
   const { data: businessIntel, isLoading, error } = useOptimizedBusinessIntelligence(
-    primaryCalendarId, 
+    calendarId, 
     dateRange.startDate, 
     dateRange.endDate
   );
-  useRealtimeSubscription(primaryCalendarId);
+  useRealtimeSubscription(calendarId);
 
   if (isLoading) {
     return <BusinessIntelligenceLoading />;
@@ -84,19 +81,6 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
   return (
     <TooltipProvider>
       <div className="space-y-12">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-100">Business Intelligence</h2>
-            <p className="text-slate-400 mt-1">Financial metrics and performance analytics</p>
-          </div>
-          {calendarIds.length > 1 && (
-            <Badge variant="secondary" className="bg-orange-600/20 text-orange-300 border-orange-500/30">
-              {calendarIds.length} calendars • Primary view
-            </Badge>
-          )}
-        </div>
-
         {/* Financial & Business Metrics - Orange Theme */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <Tooltip>

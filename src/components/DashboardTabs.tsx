@@ -20,12 +20,12 @@ import {
 } from 'lucide-react';
 
 interface DashboardTabsProps {
-  calendarIds: string[];
+  calendarId: string;
   dateRange: DateRange;
   onTabChange?: (tab: string) => void;
 }
 
-export function DashboardTabs({ calendarIds, dateRange, onTabChange }: DashboardTabsProps) {
+export function DashboardTabs({ calendarId, dateRange, onTabChange }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const { checkAccess, requireAccess } = useAccessControl();
   const navigate = useNavigate();
@@ -58,9 +58,6 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
   const hasBusinessIntelligenceAccess = checkAccess('canAccessBusinessIntelligence');
   const hasPerformanceAccess = checkAccess('canAccessPerformance');
   const hasFutureInsightsAccess = checkAccess('canAccessFutureInsights');
-
-  // Use the first calendar ID for tabs that need a single ID
-  const primaryCalendarId = calendarIds.length > 0 ? calendarIds[0] : '';
 
   return (
     <div className="space-y-6">
@@ -141,7 +138,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
         {/* Tab Content */}
         <TabsContent value="overview">
           <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-3 md:p-6">
-            <OverviewTab calendarIds={calendarIds} />
+            <OverviewTab calendarId={calendarId} />
           </div>
         </TabsContent>
 
@@ -149,7 +146,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
           <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-3 md:p-6">
             {hasBusinessIntelligenceAccess ? (
               <BusinessIntelligenceTab 
-                calendarIds={calendarIds}
+                calendarId={calendarId} 
                 dateRange={dateRange}
               />
             ) : (
@@ -170,7 +167,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
           <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-3 md:p-6">
             {hasPerformanceAccess ? (
               <PerformanceEfficiencyTab 
-                calendarIds={calendarIds}
+                calendarId={calendarId}
                 dateRange={dateRange}
               />
             ) : (
@@ -189,14 +186,14 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
 
         <TabsContent value="live-operations">
           <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-3 md:p-6">
-            <LiveOperationsTab calendarIds={calendarIds} />
+            <LiveOperationsTab calendarId={calendarId} />
           </div>
         </TabsContent>
 
         <TabsContent value="future-insights">
           <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-3 md:p-6">
             {hasFutureInsightsAccess ? (
-              <FutureInsightsTab calendarIds={calendarIds} />
+              <FutureInsightsTab calendarId={calendarId} />
             ) : (
               <AccessBlockedOverlay
                 userStatus={{ 
