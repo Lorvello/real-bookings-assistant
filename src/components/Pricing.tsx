@@ -32,7 +32,7 @@ export const Pricing = () => {
       description: "Advanced features for teams with extended contact management and collaboration tools",
       features: [
         "All Starter premium features included",
-        "WhatsApp contact management (up to 2,500)",
+        "Professional WhatsApp contact management (up to 2,500)",
         "Unlimited calendar orchestration platform",
         "Advanced team collaboration suite (3+ users)",
         "Multi-location business coordination",
