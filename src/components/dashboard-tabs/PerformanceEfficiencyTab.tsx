@@ -2,6 +2,7 @@
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
+import { useAccessControl } from '@/hooks/useAccessControl';
 import { AlertTriangle, XCircle, Star, CheckCircle, Activity, Info, Users, UserCheck, User } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
@@ -35,6 +36,8 @@ const getDynamicPeriodText = (dateRange: DateRange): string => {
 };
 
 export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceEfficiencyTabProps) {
+  const { accessControl } = useAccessControl();
+
   // Add safety check for dateRange
   if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
     return (
@@ -102,7 +105,7 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
     <TooltipProvider>
       <div className="space-y-12">
         {/* Operational Performance Metrics - Blue Theme */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${accessControl.canAccessCustomerSatisfaction ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div
@@ -165,43 +168,46 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
             </TooltipContent>
           </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.3 }}
-                className="relative"
+          {/* Customer Satisfaction - Only for Enterprise users */}
+          {accessControl.canAccessCustomerSatisfaction && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.3 }}
+                  className="relative"
+                >
+                  <MetricCard
+                    title="Customer Satisfaction"
+                    value={`${performance?.customer_satisfaction_score?.toFixed(1) || '0.0'}/5`}
+                    subtitle={getMetricSubtitle('service quality')}
+                    icon={Star}
+                    variant="blue"
+                    delay={0.3}
+                  />
+                  <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                    <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                  </div>
+                </motion.div>
+              </TooltipTrigger>
+              <TooltipContent 
+                className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+                side="top"
+                align="center"
+                sideOffset={8}
               >
-                <MetricCard
-                  title="Customer Satisfaction"
-                  value={`${performance?.customer_satisfaction_score?.toFixed(1) || '0.0'}/5`}
-                  subtitle={getMetricSubtitle('service quality')}
-                  icon={Star}
-                  variant="blue"
-                  delay={0.3}
-                />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
-                </div>
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
-              side="top"
-              align="center"
-              sideOffset={8}
-            >
-              <p className="text-sm">Average customer rating based on post-appointment feedback and reviews {periodText}. Scale of 1-5 stars measuring service quality.</p>
-            </TooltipContent>
-          </Tooltip>
+                <p className="text-sm">Average customer rating based on post-appointment feedback and reviews {periodText}. Scale of 1-5 stars measuring service quality.</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
+                transition={{ duration: 0.3, delay: accessControl.canAccessCustomerSatisfaction ? 0.4 : 0.3 }}
                 className="relative"
               >
                 <MetricCard
@@ -210,7 +216,7 @@ export function PerformanceEfficiencyTab({ calendarId, dateRange }: PerformanceE
                   subtitle={getMetricSubtitle('success rate')}
                   icon={CheckCircle}
                   variant="blue"
-                  delay={0.4}
+                  delay={accessControl.canAccessCustomerSatisfaction ? 0.4 : 0.3}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />

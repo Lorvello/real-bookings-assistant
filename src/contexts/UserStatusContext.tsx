@@ -381,6 +381,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             canUseWhiteLabel: false,
             hasPrioritySupport: false,
             canAccessFutureInsights: false,
+            canAccessCustomerSatisfaction: false,
             maxCalendars: 1,
             maxBookingsPerMonth: 50,
             maxTeamMembers: 1
@@ -392,6 +393,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             canUseWhiteLabel: false,
             hasPrioritySupport: true,
             canAccessFutureInsights: true,
+            canAccessCustomerSatisfaction: false,
             maxCalendars: 5,
             maxBookingsPerMonth: 500,
             maxTeamMembers: 5
@@ -403,6 +405,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             canUseWhiteLabel: true,
             hasPrioritySupport: true,
             canAccessFutureInsights: true,
+            canAccessCustomerSatisfaction: true,
             maxCalendars: 25,
             maxBookingsPerMonth: 10000,
             maxTeamMembers: 50
@@ -414,6 +417,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             canUseWhiteLabel: false,
             hasPrioritySupport: false,
             canAccessFutureInsights: false,
+            canAccessCustomerSatisfaction: false,
             maxCalendars: 1,
             maxBookingsPerMonth: 50,
             maxTeamMembers: 1
@@ -437,6 +441,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canUseWhiteLabel: false,
         hasPrioritySupport: false,
         canAccessFutureInsights: false,
+        canAccessCustomerSatisfaction: false,
         maxCalendars: 0,
         maxBookingsPerMonth: 0,
         maxTeamMembers: 0
@@ -459,6 +464,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canUseWhiteLabel: false,
         hasPrioritySupport: false,
         canAccessFutureInsights: false,
+        canAccessCustomerSatisfaction: false,
         maxCalendars: 1,
         maxBookingsPerMonth: 50,
         maxTeamMembers: 1
@@ -481,6 +487,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canUseWhiteLabel: false,
         hasPrioritySupport: false,
         canAccessFutureInsights: false,
+        canAccessCustomerSatisfaction: false,
         maxCalendars: 1,
         maxBookingsPerMonth: 25,
         maxTeamMembers: 1
@@ -502,6 +509,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       canUseWhiteLabel: false,
       hasPrioritySupport: false,
       canAccessFutureInsights: false,
+      canAccessCustomerSatisfaction: false,
       maxCalendars: hasFullAccess ? 1 : 0,
       maxBookingsPerMonth: hasFullAccess ? 50 : 0,
       maxTeamMembers: hasFullAccess ? 1 : 0
