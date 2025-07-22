@@ -33,7 +33,7 @@ export default {
 					foreground: '#FFFFFF'
 				},
 				background: {
-					DEFAULT: '#1F2937', // Lighter background (was #111827)
+					DEFAULT: '#374151', // Medium gray background
 					secondary: '#0F172A' // Sidebar color (darkest)
 				},
 				foreground: '#FFFFFF', // Primary text
