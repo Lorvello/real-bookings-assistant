@@ -280,7 +280,7 @@ export const Pricing = () => {
                         : plan.popular
                         ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 border-emerald-500/40 shadow-2xl shadow-emerald-500/30 ring-1 ring-emerald-500/40'
                         : 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 border-slate-700/50 shadow-2xl shadow-slate-900/50'
-                    }`} style={{ minHeight: '360px' }}>
+                    }`} style={{ minHeight: '320px' }}>
                       
                       <div className="absolute inset-0 bg-gradient-to-br from-white/[0.10] via-white/[0.02] to-transparent opacity-70 pointer-events-none rounded-2xl" />
                       <div className={`absolute inset-0 rounded-2xl pointer-events-none ${
@@ -290,52 +290,52 @@ export const Pricing = () => {
                       }`} />
                       
                       {plan.popular && (
-                        <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-10">
-                          <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shadow-lg shadow-emerald-500/40">
+                        <div className="absolute top-2.5 left-1/2 transform -translate-x-1/2 z-10">
+                          <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shadow-lg shadow-emerald-500/40">
                             Most Popular
                           </div>
                         </div>
                       )}
 
-                      <div className={`p-4 text-center relative z-10 ${plan.popular ? 'pt-12' : 'pt-5'}`}>
-                        <h3 className="text-xl font-bold text-white drop-shadow-lg mb-2">{plan.name}</h3>
-                        <p className="text-slate-400 text-xs leading-tight px-1">{plan.description}</p>
+                      <div className={`p-3.5 text-center relative z-10 ${plan.popular ? 'pt-10' : 'pt-4'}`}>
+                        <h3 className="text-lg font-bold text-white drop-shadow-lg mb-1.5">{plan.name}</h3>
+                        <p className="text-slate-400 text-[10px] leading-tight px-1">{plan.description}</p>
                       </div>
 
-                      <div className="px-4 text-center mb-3 relative z-10">
+                      <div className="px-3.5 text-center mb-2.5 relative z-10">
                         {plan.monthlyPrice ? (
                           <div>
                             <div className="flex items-baseline justify-center mb-1">
-                              <span className="text-2xl font-bold text-emerald-400 drop-shadow-lg">
+                              <span className="text-xl font-bold text-emerald-400 drop-shadow-lg">
                                 €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                               </span>
-                              <span className="text-slate-300/90 text-base ml-1">/month</span>
+                              <span className="text-slate-300/90 text-sm ml-1">/month</span>
                             </div>
                             {isAnnual && (
-                              <div className="text-xs text-emerald-400/90 mb-1">
+                              <div className="text-[10px] text-emerald-400/90 mb-0.5">
                                 Billed annually (€{(plan.annualPrice || 0) * 12}/year)
                               </div>
                             )}
-                            <div className="text-xs text-slate-500">
+                            <div className="text-[9px] text-slate-500">
                               Save €{((plan.monthlyPrice - (plan.annualPrice || 0)) * 12)} per year
                             </div>
                           </div>
                         ) : (
                           <div>
                             <div className="flex items-baseline justify-center mb-1">
-                              <span className="text-xl font-semibold text-emerald-400 drop-shadow-lg">From €499</span>
-                              <span className="text-slate-300/90 text-sm ml-1">/month</span>
+                              <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg">From €499</span>
+                              <span className="text-slate-300/90 text-xs ml-1">/month</span>
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-[9px] text-slate-500">
                               Custom pricing
                             </div>
                           </div>
                         )}
                       </div>
 
-                      <div className="px-4 mb-3 relative z-10">
+                      <div className="px-3.5 mb-2.5 relative z-10">
                         <Button 
-                          className={`w-full font-semibold py-3 px-4 rounded-xl text-sm shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm ${
+                          className={`w-full font-semibold py-2.5 px-3.5 rounded-xl text-xs shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm ${
                             plan.isEnterprise
                               ? 'bg-gradient-to-r from-white to-slate-100 text-slate-900 hover:from-slate-100 hover:to-white border border-white/30 shadow-white/30'
                               : plan.popular
@@ -344,11 +344,11 @@ export const Pricing = () => {
                           }`}
                         >
                           {plan.cta}
-                          <ArrowRight className="ml-2 w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                          <ArrowRight className="ml-1.5 w-2.5 h-2.5 group-hover:translate-x-1 transition-transform" />
                         </Button>
                       </div>
 
-                      <div className="px-4 pb-4 flex-1 relative z-10">
+                      <div className="px-3.5 pb-3.5 flex-1 relative z-10">
                         <div className="space-y-1.5">
                           {plan.features.map((feature, idx) => (
                             <div key={idx} className="flex items-start space-x-2">
