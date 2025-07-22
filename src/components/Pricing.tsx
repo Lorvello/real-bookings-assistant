@@ -149,9 +149,11 @@ export const Pricing = () => {
                 }`}
               >
                 Annual
-                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                  Save 20%
-                </span>
+                {isAnnual && (
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-br from-black via-slate-800 to-black text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg border border-slate-600/30 ring-1 ring-white/10 backdrop-blur-sm">
+                    Save 20%
+                  </span>
+                )}
               </button>
             </div>
           </div>
