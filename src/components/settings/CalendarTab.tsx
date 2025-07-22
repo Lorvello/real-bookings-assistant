@@ -12,7 +12,7 @@ export function CalendarTab() {
 
   if (calendars.length === 0) {
     return (
-      <Card className="border-border">
+      <Card style={{ backgroundColor: '#1F2937' }} className="border-border">
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -28,7 +28,7 @@ export function CalendarTab() {
 
   if (!selectedCalendar) {
     return (
-      <Card className="border-border">
+      <Card style={{ backgroundColor: '#1F2937' }} className="border-border">
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
