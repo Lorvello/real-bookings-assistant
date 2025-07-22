@@ -57,17 +57,19 @@ const StepTwoDetails = () => {
               <Star className="w-3 h-3 md:w-5 md:h-5 text-emerald-400 fill-current drop-shadow-sm" />
             </div>
             <div className="relative z-10">
-              <div className="flex items-center gap-1 md:gap-3 mb-1 md:mb-3">
-                <Shield className="w-3 h-3 md:w-6 md:h-6 text-emerald-400" />
-                <h4 className="text-sm md:text-lg font-bold text-white">Instant number assignment</h4>
+              <div className="flex items-center justify-between mb-1 md:mb-3">
+                <div className="flex items-center gap-1 md:gap-3">
+                  <Shield className="w-3 h-3 md:w-6 md:h-6 text-emerald-400" />
+                  <h4 className="text-sm md:text-lg font-bold text-white">Instant number assignment</h4>
+                </div>
                 <span className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-1 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-bold tracking-wide shadow-lg">
                   Automatic
                 </span>
               </div>
-              <p className="text-emerald-100 text-xs md:text-sm mb-1 md:mb-3 leading-relaxed">
+              <p className="text-emerald-100 text-[10px] md:text-sm mb-1 md:mb-3 leading-relaxed">
                 Your unique WhatsApp number is assigned immediately upon account creation.
               </p>
-              <div className="text-emerald-200 text-xs">
+              <div className="text-emerald-200 text-[10px]">
                 <strong>Perfect for:</strong> Immediate start, zero configuration
               </div>
             </div>
@@ -83,10 +85,10 @@ const StepTwoDetails = () => {
                 <MessageSquare className="w-3 h-3 md:w-6 md:h-6 text-emerald-400" />
                 <h4 className="text-sm md:text-lg font-bold text-white">Connect existing number</h4>
               </div>
-              <p className="text-slate-200 text-xs md:text-sm mb-1 md:mb-3 leading-relaxed">
+              <p className="text-slate-200 text-[10px] md:text-sm mb-1 md:mb-3 leading-relaxed">
                 You can also connect your existing business WhatsApp number to our system.
               </p>
-              <div className="text-slate-300 text-xs">
+              <div className="text-slate-300 text-[10px]">
                 <strong>Perfect for:</strong> Existing business number, brand consistency
               </div>
               <div className="text-slate-400 text-[8px] md:text-[10px] mt-1 opacity-70">
