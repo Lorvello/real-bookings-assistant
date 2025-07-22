@@ -1,3 +1,4 @@
+
 export type UserType = 'trial' | 'expired_trial' | 'subscriber' | 'canceled_subscriber' | 'canceled_and_inactive' | 'setup_incomplete' | 'unknown';
 
 export interface UserStatus {
@@ -33,6 +34,7 @@ export interface AccessControl {
   canAccessAPI: boolean;
   canUseWhiteLabel: boolean;
   hasPrioritySupport: boolean;
+  canAccessFutureInsights: boolean;
   maxCalendars: number;
   maxBookingsPerMonth: number;
   maxTeamMembers: number;

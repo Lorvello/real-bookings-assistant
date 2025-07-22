@@ -6,13 +6,17 @@ import { BusinessIntelligenceTab } from './dashboard-tabs/BusinessIntelligenceTa
 import { PerformanceEfficiencyTab } from './dashboard-tabs/PerformanceEfficiencyTab';
 import { LiveOperationsTab } from './dashboard-tabs/LiveOperationsTab';
 import { FutureInsightsTab } from './dashboard-tabs/FutureInsightsTab';
+import { AccessBlockedOverlay } from './user-status/AccessBlockedOverlay';
 import { DateRange } from '@/utils/dateRangePresets';
+import { useAccessControl } from '@/hooks/useAccessControl';
+import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard,
   TrendingUp, 
   Activity, 
   Radio, 
-  Brain
+  Brain,
+  Lock
 } from 'lucide-react';
 
 interface DashboardTabsProps {
@@ -23,11 +27,24 @@ interface DashboardTabsProps {
 
 export function DashboardTabs({ calendarId, dateRange, onTabChange }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState('overview');
+  const { checkAccess } = useAccessControl();
+  const navigate = useNavigate();
 
   const handleTabChange = (value: string) => {
+    // Check access for Future Insights tab
+    if (value === 'future-insights' && !checkAccess('canAccessFutureInsights')) {
+      return; // Access control will show the toast
+    }
+    
     setActiveTab(value);
     onTabChange?.(value);
   };
+
+  const handleUpgrade = () => {
+    navigate('/pricing');
+  };
+
+  const hasFutureInsightsAccess = checkAccess('canAccessFutureInsights');
 
   return (
     <div className="space-y-6">
@@ -69,11 +86,20 @@ export function DashboardTabs({ calendarId, dateRange, onTabChange }: DashboardT
             </TabsTrigger>
             <TabsTrigger 
               value="future-insights" 
-              className="flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-purple-600 rounded-lg px-2 md:px-4"
+              className={`flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-purple-600 rounded-lg px-2 md:px-4 ${
+                !hasFutureInsightsAccess ? 'opacity-60' : ''
+              }`}
             >
-              <Brain className="h-3 w-3 md:h-4 md:w-4" />
+              {hasFutureInsightsAccess ? (
+                <Brain className="h-3 w-3 md:h-4 md:w-4" />
+              ) : (
+                <Lock className="h-3 w-3 md:h-4 md:w-4" />
+              )}
               <span className="hidden sm:inline text-xs md:text-sm">Future Insights</span>
               <span className="sm:hidden text-xs">Future</span>
+              {!hasFutureInsightsAccess && (
+                <span className="text-xs bg-orange-500 text-white px-1 rounded ml-1">Pro</span>
+              )}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -111,7 +137,19 @@ export function DashboardTabs({ calendarId, dateRange, onTabChange }: DashboardT
 
         <TabsContent value="future-insights">
           <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-3 md:p-6">
-            <FutureInsightsTab calendarId={calendarId} />
+            {hasFutureInsightsAccess ? (
+              <FutureInsightsTab calendarId={calendarId} />
+            ) : (
+              <AccessBlockedOverlay
+                userStatus={{ 
+                  userType: 'trial',
+                  statusMessage: 'Future Insights is alleen beschikbaar voor Professional en Enterprise abonnementen'
+                } as any}
+                feature="Future Insights"
+                description="Krijg toegang tot geavanceerde voorspellingen, seizoenspatronen en AI-aanbevelingen om je bedrijf te laten groeien."
+                onUpgrade={handleUpgrade}
+              />
+            )}
           </div>
         </TabsContent>
       </Tabs>
