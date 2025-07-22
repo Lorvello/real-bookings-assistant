@@ -562,8 +562,8 @@ const WhyUs = () => {
                 </div>
               </ScrollAnimatedSection>
 
-               {/* Mobile Enhanced Credibility Footer */}
-                <div className="md:hidden text-center mb-6">
+                {/* Mobile Enhanced Credibility Footer */}
+                <div className="md:hidden text-center mb-4 mt-1">
                   <div className="flex items-center justify-center gap-1 text-[8px] text-slate-400 font-medium mb-1.5">
                     <span className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></span>
                     <span>Based on data from 10,000+ businesses</span>
