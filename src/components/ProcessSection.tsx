@@ -70,14 +70,14 @@ const ProcessSection = () => {
                 </div>
                 <h3 className="text-lg md:text-2xl font-bold text-white">Appointment Automatically Booked</h3>
               </div>
-               <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
+               <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-1 lg:px-0">
                  Integrate with your existing calendar system, or use our professional high-end calendar solution designed for optimal appointment management.
                </p>
-            </div>
-            
-            {/* Calendar centered for mobile, left for desktop */}
-            <div className="w-full flex justify-center lg:justify-start">
-              <div className="max-w-[320px] md:max-w-sm lg:max-w-none">
+             </div>
+             
+             {/* Calendar centered for mobile, left for desktop */}
+             <div className="w-full flex justify-center lg:justify-start lg:flex-shrink-0">
+               <div className="max-w-[320px] md:max-w-sm lg:max-w-md">
                 <CalendarMockup />
               </div>
             </div>
