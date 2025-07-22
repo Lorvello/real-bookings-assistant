@@ -1089,12 +1089,14 @@ const WhyUs = () => {
                 </div>
               </div>
             </ScrollAnimatedSection>
-            
-            {/* Desktop Disclaimer - Outside the card */}
-            <MobileFirstDataDisclaimer onMethodologyClick={openMobileFirstMethodologyModal} />
           </div>
         </div>
       </ScrollAnimatedSection>
+      
+      {/* Desktop Disclaimer - Moved down */}
+      <div className="hidden md:block">
+        <MobileFirstDataDisclaimer onMethodologyClick={openMobileFirstMethodologyModal} />
+      </div>
 
       {/* Pricing Section */}
       <ScrollAnimatedSection delay={200}>
