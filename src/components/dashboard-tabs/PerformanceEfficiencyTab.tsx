@@ -60,10 +60,9 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
     dateRange.endDate
   );
   
-  // Subscribe to real-time updates for all selected calendars
-  calendarIds.forEach(calendarId => {
-    useRealtimeSubscription(calendarId);
-  });
+  // Subscribe to real-time updates for the primary calendar (first in array)
+  const primaryCalendarId = calendarIds[0];
+  useRealtimeSubscription(primaryCalendarId);
 
   const isLoading = performanceLoading;
   const error = performanceError;

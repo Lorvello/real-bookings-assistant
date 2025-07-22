@@ -47,10 +47,9 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
     dateRange.endDate
   );
   
-  // Subscribe to real-time updates for all selected calendars
-  calendarIds.forEach(calendarId => {
-    useRealtimeSubscription(calendarId);
-  });
+  // Subscribe to real-time updates for the primary calendar (first in array)
+  const primaryCalendarId = calendarIds[0];
+  useRealtimeSubscription(primaryCalendarId);
 
   if (isLoading) {
     return <BusinessIntelligenceLoading />;
