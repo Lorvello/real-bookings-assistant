@@ -74,6 +74,14 @@ export function DashboardTabs({ calendarId, dateRange, onTabChange }: DashboardT
               <span className="sm:hidden text-xs">Home</span>
             </TabsTrigger>
             <TabsTrigger 
+              value="live-operations" 
+              className="flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg px-2 md:px-4"
+            >
+              <Radio className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline text-xs md:text-sm">Live Operations</span>
+              <span className="sm:hidden text-xs">Live</span>
+            </TabsTrigger>
+            <TabsTrigger 
               value="business-intelligence" 
               className={`flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-orange-600 rounded-lg px-2 md:px-4 ${
                 !hasBusinessIntelligenceAccess ? 'opacity-60' : ''
@@ -106,14 +114,6 @@ export function DashboardTabs({ calendarId, dateRange, onTabChange }: DashboardT
               {!hasPerformanceAccess && (
                 <span className="text-xs bg-orange-500 text-white px-1 rounded ml-1">Pro</span>
               )}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="live-operations" 
-              className="flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg px-2 md:px-4"
-            >
-              <Radio className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden sm:inline text-xs md:text-sm">Live Operations</span>
-              <span className="sm:hidden text-xs">Live</span>
             </TabsTrigger>
             <TabsTrigger 
               value="future-insights" 
