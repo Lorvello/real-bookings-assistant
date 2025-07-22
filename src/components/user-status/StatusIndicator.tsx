@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Clock, AlertTriangle, CheckCircle, XCircle, Zap, Crown } from 'lucide-react';
 import { UserStatus } from '@/types/userStatus';
@@ -43,25 +44,51 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
   const navigate = useNavigate();
   const { profile } = useProfile();
 
-  // Local state to cache tier info and prevent disappearing during navigation
+  // Initialize cache from localStorage (same as useProfile does)
   const [cachedTierInfo, setCachedTierInfo] = useState<{
     tier: string | null;
     isActive: boolean;
-  }>({ tier: null, isActive: false });
+  }>(() => {
+    // Try to get cached profile data from localStorage to initialize with
+    try {
+      const cached = localStorage.getItem('userProfile');
+      if (cached) {
+        const { data } = JSON.parse(cached);
+        if (data?.subscription_tier && data?.subscription_status === 'active') {
+          return {
+            tier: data.subscription_tier,
+            isActive: true
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Error loading cached profile for StatusIndicator:', error);
+    }
+    return { tier: null, isActive: false };
+  });
 
-  // Update cached tier info when profile changes
+  // Only update cache when we get valid new subscription data
   useEffect(() => {
+    // Only update if we have valid subscription data
     if (profile?.subscription_tier && profile?.subscription_status === 'active') {
-      setCachedTierInfo({
-        tier: profile.subscription_tier,
-        isActive: true
+      setCachedTierInfo(prev => {
+        // Only update if the data actually changed
+        if (prev.tier !== profile.subscription_tier || !prev.isActive) {
+          return {
+            tier: profile.subscription_tier,
+            isActive: true
+          };
+        }
+        return prev;
       });
     }
+    // IMPORTANT: Don't clear cache when profile becomes null during navigation
+    // Only clear if user actually logs out (which would be handled by parent components)
   }, [profile?.subscription_tier, profile?.subscription_status]);
 
-  // Use cached data or fallback to current profile data
-  const tierDisplay = formatSubscriptionTier(cachedTierInfo.tier || profile?.subscription_tier);
-  const hasActiveSubscription = cachedTierInfo.isActive || profile?.subscription_status === 'active';
+  // Always prefer cached data for stability
+  const tierDisplay = formatSubscriptionTier(cachedTierInfo.tier);
+  const hasActiveSubscription = cachedTierInfo.isActive;
 
   const getIcon = () => {
     switch (userType) {
@@ -135,8 +162,8 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
                 </p>
                 {userType === 'subscriber' && hasActiveSubscription && tierDisplay && (
                   <div className="flex items-center gap-1 mt-1">
-                    <Crown className={`h-3 w-3 ${getTierColor(cachedTierInfo.tier || profile?.subscription_tier)}`} />
-                    <p className={`text-xs ${getTierColor(cachedTierInfo.tier || profile?.subscription_tier)}`}>
+                    <Crown className={`h-3 w-3 ${getTierColor(cachedTierInfo.tier)}`} />
+                    <p className={`text-xs ${getTierColor(cachedTierInfo.tier)}`}>
                       {tierDisplay}
                     </p>
                   </div>
