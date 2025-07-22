@@ -280,7 +280,7 @@ export const Pricing = () => {
                         : plan.popular
                         ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 border-emerald-500/40 shadow-2xl shadow-emerald-500/30 ring-1 ring-emerald-500/40'
                         : 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 border-slate-700/50 shadow-2xl shadow-slate-900/50'
-                    }`} style={{ minHeight: '420px' }}>
+                    }`} style={{ minHeight: '360px' }}>
                       
                       <div className="absolute inset-0 bg-gradient-to-br from-white/[0.10] via-white/[0.02] to-transparent opacity-70 pointer-events-none rounded-2xl" />
                       <div className={`absolute inset-0 rounded-2xl pointer-events-none ${
@@ -297,12 +297,12 @@ export const Pricing = () => {
                         </div>
                       )}
 
-                      <div className={`p-5 text-center relative z-10 ${plan.popular ? 'pt-14' : 'pt-6'}`}>
+                      <div className={`p-4 text-center relative z-10 ${plan.popular ? 'pt-12' : 'pt-5'}`}>
                         <h3 className="text-xl font-bold text-white drop-shadow-lg mb-2">{plan.name}</h3>
-                        <p className="text-slate-400 text-xs leading-relaxed px-1">{plan.description}</p>
+                        <p className="text-slate-400 text-xs leading-tight px-1">{plan.description}</p>
                       </div>
 
-                      <div className="px-5 text-center mb-4 relative z-10">
+                      <div className="px-4 text-center mb-3 relative z-10">
                         {plan.monthlyPrice ? (
                           <div>
                             <div className="flex items-baseline justify-center mb-1">
@@ -333,7 +333,7 @@ export const Pricing = () => {
                         )}
                       </div>
 
-                      <div className="px-5 mb-4 relative z-10">
+                      <div className="px-4 mb-3 relative z-10">
                         <Button 
                           className={`w-full font-semibold py-3 px-4 rounded-xl text-sm shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm ${
                             plan.isEnterprise
@@ -348,14 +348,14 @@ export const Pricing = () => {
                         </Button>
                       </div>
 
-                      <div className="px-5 pb-6 flex-1 relative z-10">
-                        <div className="space-y-2.5">
+                      <div className="px-4 pb-4 flex-1 relative z-10">
+                        <div className="space-y-1.5">
                           {plan.features.map((feature, idx) => (
-                            <div key={idx} className="flex items-start space-x-2.5">
-                              <div className="w-4 h-4 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm shadow-emerald-400/30">
-                                <Check className="w-2.5 h-2.5 text-white" />
+                            <div key={idx} className="flex items-start space-x-2">
+                              <div className="w-3.5 h-3.5 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm shadow-emerald-400/30">
+                                <Check className="w-2 h-2 text-white" />
                               </div>
-                              <span className="text-slate-200/95 text-xs leading-relaxed font-medium tracking-wide">{feature}</span>
+                              <span className="text-slate-200/95 text-[10px] leading-tight font-medium tracking-wide">{feature}</span>
                             </div>
                           ))}
                         </div>
