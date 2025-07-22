@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Check, Calendar, ChevronDown } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -40,8 +41,8 @@ export function CalendarSelector() {
     return '';
   };
 
-  if (calendars.length <= 1) {
-    return null; // Don't show selector if there's only one or no calendars
+  if (calendars.length === 0) {
+    return null; // Don't show selector if there are no calendars
   }
 
   return (
@@ -68,28 +69,32 @@ export function CalendarSelector() {
         align="end" 
         className="w-64 bg-card border-border z-50"
       >
-        {/* All Calendars Option */}
-        <DropdownMenuItem
-          onClick={selectAllCalendars}
-          className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
-        >
-          <div className="flex items-center gap-3">
-            <Calendar className="h-4 w-4 text-primary" />
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">
-                All Calendars
-              </span>
-              <span className="text-xs text-muted-foreground">
-                Combined data from {calendars.length} calendars
-              </span>
-            </div>
-          </div>
-          {viewingAllCalendars && (
-            <Check className="h-4 w-4 text-primary" />
-          )}
-        </DropdownMenuItem>
+        {/* All Calendars Option - only show if multiple calendars */}
+        {calendars.length > 1 && (
+          <>
+            <DropdownMenuItem
+              onClick={selectAllCalendars}
+              className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted hover:text-foreground focus:bg-muted focus:text-foreground"
+            >
+              <div className="flex items-center gap-3">
+                <Calendar className="h-4 w-4 text-primary" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">
+                    All Calendars
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Combined data from {calendars.length} calendars
+                  </span>
+                </div>
+              </div>
+              {viewingAllCalendars && (
+                <Check className="h-4 w-4 text-primary" />
+              )}
+            </DropdownMenuItem>
 
-        <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuSeparator className="bg-border" />
+          </>
+        )}
 
         {/* Individual Calendar Options */}
         {calendars.map((calendar) => (
