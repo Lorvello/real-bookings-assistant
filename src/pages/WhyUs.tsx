@@ -410,13 +410,13 @@ const WhyUs = () => {
                            <ArrowRight className="w-2 h-2 md:w-2.5 md:h-2.5" />
                          </div>
                         
-                        <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-3 md:mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
-                          <stat.icon className="w-6 h-6 md:w-8 md:h-8 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
+                        <div className="w-8 h-8 md:w-16 md:h-16 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center mb-3 md:mb-4 mx-auto group-hover:scale-110 transition-transform duration-300">
+                          <stat.icon className="w-4 h-4 md:w-8 md:h-8 text-emerald-300 group-hover:text-emerald-200 transition-colors duration-300" />
                         </div>
                         <div className="text-xl md:text-2xl xl:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-2 md:mb-3 group-hover:from-emerald-300 group-hover:to-green-300 transition-all duration-300">
                           {stat.number}
                         </div>
-                        <div className="text-xs md:text-sm font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300 leading-tight">{stat.label}</div>
+                        <div className="text-[9px] md:text-sm font-semibold text-slate-300 group-hover:text-slate-200 transition-colors duration-300 leading-tight">{stat.label}</div>
                      </div>
                     
                      {/* Back Side */}
@@ -428,7 +428,7 @@ const WhyUs = () => {
                        }}
                      >
                        <div className="text-left">
-                         <p className="text-[10px] md:text-[12px] lg:text-[13px] text-slate-300 leading-relaxed italic">{cardBackContent[index].content}</p>
+                         <p className="text-[7px] md:text-[12px] lg:text-[13px] text-slate-300 leading-snug italic">{cardBackContent[index].content}</p>
                        </div>
                      </div>
                   </div>
