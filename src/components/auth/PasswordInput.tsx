@@ -1,6 +1,9 @@
 
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface PasswordInputProps {
   id: string;
@@ -24,12 +27,12 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-2">
+    <div className="space-y-2">
+      <Label htmlFor={id} className="text-foreground">
         Password
-      </label>
+      </Label>
       <div className="relative">
-        <input 
+        <Input 
           type={showPassword ? "text" : "password"}
           id={id}
           required={required}
@@ -37,21 +40,23 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           onChange={onChange}
           disabled={disabled}
           autoComplete={autoComplete}
-          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-900" 
           placeholder={placeholder}
+          className="pr-10"
         />
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => setShowPassword(!showPassword)}
           disabled={disabled}
-          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
+          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground hover:text-foreground"
         >
           {showPassword ? (
-            <EyeOff className="h-5 w-5" />
+            <EyeOff className="h-4 w-4" />
           ) : (
-            <Eye className="h-5 w-5" />
+            <Eye className="h-4 w-4" />
           )}
-        </button>
+        </Button>
       </div>
     </div>
   );

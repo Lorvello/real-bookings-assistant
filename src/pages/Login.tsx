@@ -8,12 +8,10 @@ const Login = () => {
   useLoginEffects();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: '#2C3E50' }}>
       <Navbar />
-      <div className="py-20 px-4">
-        <div className="flex justify-center">
-          <LoginForm />
-        </div>
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <LoginForm />
       </div>
     </div>
   );

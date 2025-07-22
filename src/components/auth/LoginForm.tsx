@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordInput } from './PasswordInput';
@@ -71,55 +74,61 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-        <p className="text-gray-600">Sign in to your AI booking assistant</p>
-      </div>
+    <Card className="w-full max-w-md bg-card border-border shadow-xl">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl font-bold text-foreground">
+          Welcome Back
+        </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          Sign in to your AI booking assistant
+        </CardDescription>
+      </CardHeader>
       
-      <form onSubmit={handleLogin} className="space-y-6">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-            Email Address
-          </label>
-          <input 
-            type="email" 
-            id="email" 
-            required 
-            value={formData.email}
+      <CardContent>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-foreground">
+              Email Address
+            </Label>
+            <Input 
+              type="email" 
+              id="email" 
+              required 
+              value={formData.email}
+              onChange={handleInputChange}
+              disabled={loading}
+              autoComplete="email"
+              placeholder="Enter your email" 
+            />
+          </div>
+          
+          <PasswordInput
+            id="password"
+            value={formData.password}
             onChange={handleInputChange}
             disabled={loading}
-            autoComplete="email"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-900" 
-            placeholder="Enter your email" 
+            required
           />
+
+          <Button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 mt-6"
+            style={{ backgroundColor: '#10B981' }}
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{' '}
+            <Link to="/signup" className="font-medium text-primary hover:text-primary/80 underline">
+              Sign up
+            </Link>
+          </p>
         </div>
-        
-        <PasswordInput
-          id="password"
-          value={formData.password}
-          onChange={handleInputChange}
-          disabled={loading}
-          required
-        />
-
-        <Button 
-          type="submit" 
-          disabled={loading}
-          className="w-full bg-green-600 hover:bg-green-700 text-lg py-3 disabled:bg-green-400 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Signing In...' : 'Sign In'}
-        </Button>
-      </form>
-
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <Link to="/signup" className="font-medium text-green-600 hover:text-green-500">
-            Sign up
-          </Link>
-        </p>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
