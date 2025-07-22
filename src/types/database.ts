@@ -5,9 +5,10 @@ export interface SubscriptionTierConfig {
   tier_name: SubscriptionTier;
   display_name: string;
   description?: string;
-  max_calendars: number;
-  max_bookings_per_month: number;
+  max_calendars: number | null;
+  max_bookings_per_month: number | null;
   max_team_members: number;
+  max_whatsapp_contacts: number | null;
   api_access: boolean;
   white_label: boolean;
   priority_support: boolean;

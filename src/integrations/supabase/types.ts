@@ -1062,6 +1062,7 @@ export type Database = {
           max_bookings_per_month: number | null
           max_calendars: number | null
           max_team_members: number | null
+          max_whatsapp_contacts: number | null
           price_monthly: number | null
           price_yearly: number | null
           priority_support: boolean | null
@@ -1080,6 +1081,7 @@ export type Database = {
           max_bookings_per_month?: number | null
           max_calendars?: number | null
           max_team_members?: number | null
+          max_whatsapp_contacts?: number | null
           price_monthly?: number | null
           price_yearly?: number | null
           priority_support?: boolean | null
@@ -1098,6 +1100,7 @@ export type Database = {
           max_bookings_per_month?: number | null
           max_calendars?: number | null
           max_team_members?: number | null
+          max_whatsapp_contacts?: number | null
           price_monthly?: number | null
           price_yearly?: number | null
           priority_support?: boolean | null

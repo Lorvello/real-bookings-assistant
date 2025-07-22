@@ -382,9 +382,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             hasPrioritySupport: false,
             canAccessFutureInsights: false,
             canAccessCustomerSatisfaction: false,
-            maxCalendars: 1,
-            maxBookingsPerMonth: 50,
-            maxTeamMembers: 1
+            maxCalendars: 2,
+            maxBookingsPerMonth: null,
+            maxTeamMembers: 2,
+            maxWhatsAppContacts: 500
           };
         case 'professional':
           return {
@@ -394,9 +395,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             hasPrioritySupport: true,
             canAccessFutureInsights: true,
             canAccessCustomerSatisfaction: false,
-            maxCalendars: 5,
-            maxBookingsPerMonth: 500,
-            maxTeamMembers: 5
+            maxCalendars: null,
+            maxBookingsPerMonth: null,
+            maxTeamMembers: 5,
+            maxWhatsAppContacts: 2500
           };
         case 'enterprise':
           return {
@@ -406,9 +408,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             hasPrioritySupport: true,
             canAccessFutureInsights: true,
             canAccessCustomerSatisfaction: true,
-            maxCalendars: 25,
-            maxBookingsPerMonth: 10000,
-            maxTeamMembers: 50
+            maxCalendars: null,
+            maxBookingsPerMonth: null,
+            maxTeamMembers: 50,
+            maxWhatsAppContacts: null
           };
         default:
           return {
@@ -418,9 +421,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             hasPrioritySupport: false,
             canAccessFutureInsights: false,
             canAccessCustomerSatisfaction: false,
-            maxCalendars: 1,
-            maxBookingsPerMonth: 50,
-            maxTeamMembers: 1
+            maxCalendars: 2,
+            maxBookingsPerMonth: null,
+            maxTeamMembers: 2,
+            maxWhatsAppContacts: 500
           };
       }
     }
@@ -444,7 +448,8 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canAccessCustomerSatisfaction: false,
         maxCalendars: 0,
         maxBookingsPerMonth: 0,
-        maxTeamMembers: 0
+        maxTeamMembers: 0,
+        maxWhatsAppContacts: 0
       };
     }
 
@@ -465,9 +470,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         hasPrioritySupport: false,
         canAccessFutureInsights: false,
         canAccessCustomerSatisfaction: false,
-        maxCalendars: 1,
-        maxBookingsPerMonth: 50,
-        maxTeamMembers: 1
+        maxCalendars: 2,
+        maxBookingsPerMonth: null,
+        maxTeamMembers: 2,
+        maxWhatsAppContacts: 500
       };
     }
 
@@ -490,7 +496,8 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canAccessCustomerSatisfaction: false,
         maxCalendars: 1,
         maxBookingsPerMonth: 25,
-        maxTeamMembers: 1
+        maxTeamMembers: 1,
+        maxWhatsAppContacts: 0
       };
     }
 
@@ -510,9 +517,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       hasPrioritySupport: false,
       canAccessFutureInsights: false,
       canAccessCustomerSatisfaction: false,
-      maxCalendars: hasFullAccess ? 1 : 0,
-      maxBookingsPerMonth: hasFullAccess ? 50 : 0,
-      maxTeamMembers: hasFullAccess ? 1 : 0
+      maxCalendars: hasFullAccess ? 2 : 0,
+      maxBookingsPerMonth: hasFullAccess ? null : 0,
+      maxTeamMembers: hasFullAccess ? 2 : 0,
+      maxWhatsAppContacts: hasFullAccess ? 500 : 0
     };
   }, [userStatus, profile?.subscription_tier]);
 

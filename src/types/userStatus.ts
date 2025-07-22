@@ -36,7 +36,8 @@ export interface AccessControl {
   hasPrioritySupport: boolean;
   canAccessFutureInsights: boolean;
   canAccessCustomerSatisfaction: boolean;
-  maxCalendars: number;
-  maxBookingsPerMonth: number;
+  maxCalendars: number | null;
+  maxBookingsPerMonth: number | null;
   maxTeamMembers: number;
+  maxWhatsAppContacts: number | null;
 }
