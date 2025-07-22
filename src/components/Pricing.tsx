@@ -322,7 +322,7 @@ export const Pricing = () => {
                         </Button>
                       </div>
 
-                      <div className="px-4 pb-4 flex-1 relative z-10">
+                      <div className="px-4 pb-2 flex-1 relative z-10">
                         <div className="space-y-1.5">
                           {plan.features.map((feature, idx) => (
                             <div key={idx} className="flex items-start space-x-2">
