@@ -264,7 +264,7 @@ export const Pricing = () => {
                         : plan.popular
                         ? 'bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-emerald-500/30 shadow-2xl shadow-emerald-500/20 ring-1 ring-emerald-500/30'
                         : 'bg-gradient-to-br from-slate-900/95 to-slate-800/95 border-slate-700/50 shadow-2xl shadow-slate-900/50'
-                    }`} style={{ minHeight: '420px' }}>
+                    }`} style={{ minHeight: '320px' }}>
                       
                       <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent opacity-60 pointer-events-none" />
                       <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/[0.05] via-transparent to-transparent pointer-events-none" />
