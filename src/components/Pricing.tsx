@@ -14,12 +14,12 @@ export const Pricing = () => {
       annualPrice: 15,
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
-        "Up to 500 WhatsApp contacts",
-        "Up to 2 calendars", 
-        "Automated reminders",
-        "Detailed analytics",
-        "Multi-language support",
-        "Advance payment collection"
+        "Strategic contact management (up to 500)",
+        "Dual-calendar orchestration system", 
+        "AI-powered automated engagement sequences",
+        "Advanced performance analytics & insights",
+        "Global multi-language localization",
+        "Streamlined payment processing & collection"
       ],
       popular: false,
       cta: "Start Your Free Trial Now",
@@ -31,13 +31,13 @@ export const Pricing = () => {
       annualPrice: 39,
       description: "Advanced features for teams with extended contact management and collaboration tools",
       features: [
-        "All Starter features included",
-        "Up to 2500 WhatsApp contacts",
-        "Unlimited Calendars",
-        "Team collaboration (3+ users)",
-        "Multi-location support",
-        "Future Insights",
-        "Priority support"
+        "All Starter premium features included",
+        "Enterprise contact management (up to 2,500)",
+        "Unlimited calendar orchestration platform",
+        "Advanced team collaboration suite (3+ users)",
+        "Multi-location business coordination",
+        "Predictive business intelligence & insights",
+        "Dedicated priority customer success"
       ],
       popular: true,
       cta: "Start Your Free Trial Now",
@@ -49,14 +49,14 @@ export const Pricing = () => {
       annualPrice: null,
       description: "Complete business solution with dedicated WhatsApp number and premium support",
       features: [
-        "All professional features included",
-        "Unlimited WhatsApp contacts",
-        "Own WhatsApp number with dedicated branding",
-        "Voice call routing",
-        "Social media DM integration",
+        "Complete professional suite included",
+        "Unlimited enterprise contact management",
+        "Dedicated WhatsApp Business API with custom branding",
+        "Intelligent voice call routing & distribution",
+        "Omnichannel social media DM orchestration",
         "Advanced reputation management & review analytics",
-        "SLA & dedicated priority support",
-        "Done-for-you onboarding & integration support"
+        "Enterprise SLA with dedicated success management",
+        "White-glove onboarding & strategic integration consulting"
       ],
       popular: false,
       cta: "Contact Sales",
