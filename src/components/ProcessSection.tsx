@@ -63,7 +63,7 @@ const ProcessSection = () => {
 
           {/* Step 2: Calendar Result - Centered on mobile, left on desktop */}
           <div className="flex flex-col lg:flex-row-reverse items-start lg:items-center gap-6 md:gap-12 pt-12 md:pt-8">
-            <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left">
+            <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left max-w-lg lg:max-w-none">
               <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500 aspect-square">
                   2
@@ -75,9 +75,9 @@ const ProcessSection = () => {
                </p>
              </div>
              
-             {/* Calendar centered for mobile, left for desktop */}
-             <div className="w-full flex justify-center lg:justify-start flex-shrink-0">
-               <div className="max-w-[280px] md:max-w-[320px] lg:max-w-[400px]">
+             {/* Calendar centered for mobile, right-aligned for desktop */}
+             <div className="flex-1 flex justify-center lg:justify-end">
+               <div className="max-w-[300px] md:max-w-[350px] lg:max-w-[450px]">
                 <CalendarMockup />
               </div>
             </div>
