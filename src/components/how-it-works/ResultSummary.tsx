@@ -237,7 +237,7 @@ const ResultSummary = () => {
                       </div>
                       
                       {/* Smaller mobile label text */}
-                      <div className="text-[9px] text-slate-300/90 leading-tight font-light tracking-wide text-center">
+                      <div className="text-[8px] text-slate-300/90 leading-tight font-light tracking-wide text-center">
                         {stat.label}
                       </div>
                     </div>
