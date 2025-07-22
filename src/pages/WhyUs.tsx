@@ -355,7 +355,7 @@ const WhyUs = () => {
             animation="fade-up" 
             delay={200}
             as="h1" 
-            className="text-2xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-0 sm:px-0 tracking-tight"
+            className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 -mx-3 md:mx-0 tracking-tight"
           >
             <span className="hidden md:inline bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               Why{' '}
@@ -366,7 +366,7 @@ const WhyUs = () => {
             <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
               10,000+ Businesses
             </span>
-            <div className="md:hidden h-1"></div>
+            <div className="md:hidden h-0"></div>
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
               {' '}Choose WhatsApp
             </span>
