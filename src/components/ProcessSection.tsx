@@ -76,11 +76,11 @@ const ProcessSection = () => {
              </div>
              
              {/* Calendar centered for mobile, right-aligned for desktop */}
-             <div className="flex-1 flex justify-center lg:justify-end">
-               <div className="max-w-[300px] md:max-w-[350px] lg:max-w-[450px]">
-                <CalendarMockup />
-              </div>
-            </div>
+             <div className="flex-1 flex justify-center lg:justify-start">
+               <div className="max-w-[350px] md:max-w-[400px] lg:max-w-[520px]">
+                 <CalendarMockup />
+               </div>
+             </div>
           </div>
 
           {/* AI Agent Test Section */}
