@@ -951,6 +951,43 @@ const WhyUs = () => {
                 </div>
               </ScrollAnimatedSection>
             ))}
+
+            {/* Mobile-First Advantage Summary for Mobile */}
+            <ScrollAnimatedSection 
+              animation="fade-up" 
+              delay={850}
+            >
+              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.05] hover:border-emerald-500/20 transition-all duration-300">
+                <div className="text-center space-y-4">
+                  <h3 className="text-xl font-bold text-white">
+                    The Mobile-First Advantage
+                  </h3>
+                  
+                  <p className="text-slate-300 text-sm leading-relaxed">
+                    WhatsApp delivers <span className="text-emerald-300 font-medium">18x faster responses</span>, 
+                    <span className="text-emerald-300 font-medium"> 50% higher attendance</span>, and 
+                    <span className="text-emerald-300 font-medium"> 95% customer satisfaction</span> compared to traditional booking methods.
+                  </p>
+
+                  {/* Mobile Metrics Grid */}
+                  <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/[0.06]">
+                    {[
+                      { label: "Faster", value: "18x" },
+                      { label: "Attendance", value: "+50%" },
+                      { label: "Satisfaction", value: "95%" }
+                    ].map((metric, index) => (
+                      <div key={index} className="text-center">
+                        <div className="text-emerald-300 text-lg font-bold">{metric.value}</div>
+                        <div className="text-slate-400 text-xs">{metric.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </ScrollAnimatedSection>
+
+            {/* Mobile Disclaimer */}
+            <MobileFirstDataDisclaimer onMethodologyClick={openMobileFirstMethodologyModal} />
           </div>
 
           {/* Desktop: Refined Three-Column Layout */}
