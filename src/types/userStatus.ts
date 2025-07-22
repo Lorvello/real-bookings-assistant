@@ -35,6 +35,8 @@ export interface AccessControl {
   canUseWhiteLabel: boolean;
   hasPrioritySupport: boolean;
   canAccessFutureInsights: boolean;
+  canAccessBusinessIntelligence: boolean;
+  canAccessPerformance: boolean;
   canAccessCustomerSatisfaction: boolean;
   maxCalendars: number | null;
   maxBookingsPerMonth: number | null;

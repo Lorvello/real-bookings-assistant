@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
@@ -26,12 +27,30 @@ export const useAccessControl = () => {
     }
     
     if (!checkAccess(feature)) {
-      // Special handling for WhatsApp for expired trial and canceled_and_inactive users
+      // Special handling for different features
       if (feature === 'canAccessWhatsApp' && 
           (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive')) {
         toast({
           title: "WhatsApp Booking Agent Not Active",
           description: "Your booking assistant is not active. Upgrade now or resubscribe to activate it.",
+          variant: "destructive",
+        });
+      } else if (feature === 'canAccessBusinessIntelligence') {
+        toast({
+          title: "Professional Feature",
+          description: "Business Intelligence is alleen beschikbaar voor Professional en Enterprise abonnementen.",
+          variant: "destructive",
+        });
+      } else if (feature === 'canAccessPerformance') {
+        toast({
+          title: "Professional Feature", 
+          description: "Performance & Efficiency is alleen beschikbaar voor Professional en Enterprise abonnementen.",
+          variant: "destructive",
+        });
+      } else if (feature === 'canAccessFutureInsights') {
+        toast({
+          title: "Professional Feature",
+          description: "Future Insights is alleen beschikbaar voor Professional en Enterprise abonnementen.",
           variant: "destructive",
         });
       } else {
