@@ -1,9 +1,6 @@
-
 import { Calendar, Users, MessageCircle, CheckCircle, Activity } from "lucide-react";
-
 export const MonitoringCard = () => {
-  return (
-    <div className="absolute inset-0">
+  return <div className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
       
       {/* Monitoring Dashboard positioned to leave room for BentoCard footer */}
@@ -22,7 +19,9 @@ export const MonitoringCard = () => {
                   </div>
                   <div className="text-emerald-300 text-xs font-medium mb-1 group-hover:text-emerald-200 transition-colors duration-300">Today</div>
                   <div className="w-full bg-emerald-800/30 rounded-full h-1">
-                    <div className="bg-emerald-400 h-1 rounded-full transition-all duration-300 group-hover:bg-emerald-300" style={{width: '60%'}}></div>
+                    <div className="bg-emerald-400 h-1 rounded-full transition-all duration-300 group-hover:bg-emerald-300" style={{
+                    width: '60%'
+                  }}></div>
                   </div>
                   <div className="text-emerald-400 text-[6px] mt-1 opacity-70 group-hover:opacity-100 group-hover:text-emerald-300 transition-all duration-300">€375 revenue</div>
                 </div>
@@ -74,10 +73,7 @@ export const MonitoringCard = () => {
       
       {/* Timestamp positioned in middle area between stats and BentoCard footer */}
       <div className="absolute bottom-14 left-4 right-4">
-        <div className="text-center">
-          <span className="text-slate-400 text-[10px]">Last update {new Date().toLocaleTimeString('en-US')}</span>
-        </div>
+        
       </div>
-    </div>
-  );
+    </div>;
 };
