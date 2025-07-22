@@ -355,22 +355,22 @@ const FAQ = () => {
                   />
               </div>
               {searchTerm && (
-                <div className="mt-4 text-sm text-gray-300 text-center">
+                <div className="mt-4 text-xs md:text-sm text-gray-300 text-center">
                   {filteredSections.reduce((total, section) => total + section.items.length, 0)} results found
                 </div>
               )}
             </div>
 
-            {/* Recommended Questions */}
+            {/* Recommended Questions - Made smaller on mobile */}
             {!searchTerm && (
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-white mb-4">Popular questions:</h3>
+                <h3 className="text-sm md:text-lg font-semibold text-white mb-4">Popular questions:</h3>
                 <div className="flex flex-wrap justify-center gap-3">
                   {recommendedQuestions.map((question, index) => (
                     <button
                       key={index}
                       onClick={() => handleRecommendedClick(question)}
-                      className="bg-transparent hover:bg-emerald-500/20 text-gray-300 hover:text-emerald-400 px-4 py-2 rounded-xl text-sm transition-all duration-300 border border-slate-600/50 hover:border-emerald-500/50"
+                      className="bg-transparent hover:bg-emerald-500/20 text-gray-300 hover:text-emerald-400 px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs md:text-sm transition-all duration-300 border border-slate-600/50 hover:border-emerald-500/50"
                     >
                       {question}
                     </button>
@@ -382,56 +382,56 @@ const FAQ = () => {
         </div>
       </section>
 
-      {/* FAQ Sections */}
+      {/* FAQ Sections - Made smaller on mobile */}
       <section className="py-8 px-4 md:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {filteredSections.length === 0 ? (
             <ScrollAnimatedSection>
               <div className="text-center py-16">
-                <div className="w-24 h-24 bg-transparent border border-slate-700/50 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                  <Search className="w-12 h-12 text-slate-400" />
+                <div className="w-16 h-16 md:w-24 md:h-24 bg-transparent border border-slate-700/50 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                  <Search className="w-8 h-8 md:w-12 md:h-12 text-slate-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4">No results found</h3>
-                <p className="text-gray-300 mb-6">Try a different search term or view all FAQs below.</p>
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-4">No results found</h3>
+                <p className="text-sm text-gray-300 md:text-base mb-6">Try a different search term or view all FAQs below.</p>
                 <button 
                   onClick={() => setSearchTerm('')}
-                  className="bg-emerald-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-600 transition-colors"
+                  className="bg-emerald-500 text-white px-4 py-2 md:px-6 md:py-3 rounded-xl text-sm font-semibold md:text-base hover:bg-emerald-600 transition-colors"
                 >
                   Show all FAQs
                 </button>
               </div>
             </ScrollAnimatedSection>
           ) : (
-            <div className="space-y-12">
+            <div className="space-y-8 md:space-y-12">
               {filteredSections.map((section, sectionIndex) => (
                 <ScrollAnimatedSection 
                   key={sectionIndex} 
-                  className="rounded-2xl p-8 transition-all duration-300"
+                  className="rounded-2xl p-4 md:p-8 transition-all duration-300"
                   delay={sectionIndex * 100}
                 >
-                  {/* Section Header */}
-                  <div className="flex items-center space-x-4 mb-8">
-                    <div className="w-16 h-16 bg-transparent border border-slate-700/50 rounded-2xl flex items-center justify-center">
-                      <section.icon className="w-8 h-8 text-emerald-400" />
+                  {/* Section Header - Made smaller on mobile */}
+                  <div className="flex items-center space-x-4 mb-4 md:mb-8">
+                    <div className="w-12 h-12 md:w-16 md:h-16 bg-transparent border border-slate-700/50 rounded-2xl flex items-center justify-center">
+                      <section.icon className="w-6 h-6 md:w-8 md:h-8 text-emerald-400" />
                     </div>
                     <div>
-                      <h2 className="text-3xl font-bold text-white mb-2">{section.title}</h2>
-                      <div className="h-1 w-20 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full"></div>
+                      <h2 className="text-xl md:text-3xl font-bold text-white mb-1 md:mb-2">{section.title}</h2>
+                      <div className="h-0.5 w-16 md:h-1 md:w-20 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full"></div>
                     </div>
                   </div>
 
-                  {/* FAQ Items */}
-                  <Accordion type="single" collapsible className="w-full space-y-4">
+                  {/* FAQ Items - Made smaller on mobile */}
+                  <Accordion type="single" collapsible className="w-full space-y-3 md:space-y-4">
                     {section.items.map((item, itemIndex) => (
                       <AccordionItem 
                         key={itemIndex} 
                         value={`${sectionIndex}-${itemIndex}`}
-                        className="bg-transparent rounded-xl border border-slate-700/50 px-6 hover:bg-slate-800/20 transition-all duration-300"
+                        className="bg-transparent rounded-xl border border-slate-700/50 px-4 md:px-6 hover:bg-slate-800/20 transition-all duration-300"
                       >
-                        <AccordionTrigger className="text-left hover:no-underline hover:text-emerald-400 transition-colors py-6">
-                          <span className="font-semibold text-white text-lg">{item.question}</span>
+                        <AccordionTrigger className="text-left hover:no-underline hover:text-emerald-400 transition-colors py-4 md:py-6">
+                          <span className="font-semibold text-white text-base md:text-lg">{item.question}</span>
                         </AccordionTrigger>
-                        <AccordionContent className="text-gray-300 leading-relaxed pb-6 text-base">
+                        <AccordionContent className="text-gray-300 leading-relaxed pb-4 md:pb-6 text-sm md:text-base">
                           {item.answer}
                         </AccordionContent>
                       </AccordionItem>
