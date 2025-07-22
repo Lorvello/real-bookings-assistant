@@ -55,7 +55,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="flex h-screen bg-gray-900 w-full">
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} bg-gray-800 transition-all duration-300 ease-in-out flex-shrink-0 relative`}>
+      <div 
+        className={`${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative`}
+        style={{ backgroundColor: '#0F172A' }}
+      >
         <div className="flex h-full flex-col">
           <SidebarHeader 
             isSidebarOpen={isSidebarOpen} 
