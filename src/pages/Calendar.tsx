@@ -44,9 +44,9 @@ const Calendar = () => {
         <div className="bg-gray-900 min-h-full p-3 md:p-8">
           <div className="space-y-4 md:space-y-6">
             {/* Calendar Header */}
-            <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-2 md:p-4">
-              <h1 className="text-base md:text-xl font-bold text-white">Calendar</h1>
-              <p className="text-gray-400 mt-1 text-xs md:text-sm">
+            <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-3 md:p-6">
+              <h1 className="text-lg md:text-3xl font-bold text-white">Calendar</h1>
+              <p className="text-gray-400 mt-1 text-xs md:text-base">
                 Create your first calendar to start managing appointments
               </p>
             </div>
@@ -94,9 +94,9 @@ const Calendar = () => {
       <div className="bg-gray-900 min-h-full p-3 md:p-8">
         <div className="space-y-4 md:space-y-6">
           {/* Calendar Header */}
-          <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-2 md:p-4">
-            <h1 className="text-base md:text-xl font-bold text-white">{displayTitle}</h1>
-            <p className="text-gray-400 mt-1 text-xs md:text-sm">
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-3 md:p-6">
+            <h1 className="text-lg md:text-3xl font-bold text-white">{displayTitle}</h1>
+            <p className="text-gray-400 mt-1 text-xs md:text-base">
               {viewingAllCalendars 
                 ? `Manage appointments from ${calendars.length} calendars`
                 : 'Manage your appointments and availability'

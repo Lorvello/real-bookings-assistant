@@ -10,18 +10,18 @@ export function DashboardHeader({ calendarName }: DashboardHeaderProps) {
     <div className="relative">
       <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-purple-500/15 to-blue-500/20 blur-2xl rounded-3xl"></div>
       
-      <div className="relative bg-gradient-to-br from-card/90 via-card/70 to-card/50 backdrop-blur-2xl border border-primary/20 shadow-2xl p-4 rounded-3xl">
+      <div className="relative bg-gradient-to-br from-card/90 via-card/70 to-card/50 backdrop-blur-2xl border border-primary/20 shadow-2xl p-8 rounded-3xl">
         <div className="flex items-center justify-between">
-          <div className="space-y-2">
+          <div className="space-y-4">
             <div className="flex items-center gap-6">
-              <h1 className="text-2xl font-black bg-gradient-to-r from-foreground via-primary to-purple-400 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-black bg-gradient-to-r from-foreground via-primary to-purple-400 bg-clip-text text-transparent">
                 Dashboard
               </h1>
               <div className="px-4 py-1.5 bg-gradient-to-r from-primary/20 via-primary/15 to-purple-500/20 text-primary text-sm font-bold border border-primary/30 shadow-lg rounded-2xl">
                 Live
               </div>
             </div>
-            <p className="text-muted-foreground text-base font-medium">
+            <p className="text-muted-foreground text-lg font-medium">
               Realtime overzicht van je boekingen en performance voor{' '}
               <span className="font-bold text-foreground bg-gradient-to-r from-primary/20 to-transparent px-2 py-1 rounded-xl">
                 {calendarName}

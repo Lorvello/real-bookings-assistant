@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,9 +41,9 @@ export const SettingsLayout = () => {
     <div className="min-h-screen bg-gray-900 p-2 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-2 md:mb-4">
-          <h1 className="text-base md:text-xl font-bold text-white mb-1 md:mb-2">Settings</h1>
-          <p className="text-gray-400 text-xs md:text-sm">Manage your settings</p>
+        <div className="mb-3 md:mb-8">
+          <h1 className="text-base md:text-3xl font-bold text-white mb-1 md:mb-2">Settings</h1>
+          <p className="text-gray-400 text-xs md:text-base">Manage your settings</p>
         </div>
 
         {/* Settings Tabs */}

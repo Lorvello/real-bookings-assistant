@@ -9,9 +9,9 @@ const Availability = () => {
       <div className="bg-gray-900 min-h-full p-2 md:p-8">
         <div className="space-y-3 md:space-y-6">
           {/* Availability Header */}
-          <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-2 md:p-4">
-            <h1 className="text-base md:text-xl font-bold text-white">Availability</h1>
-            <p className="text-gray-400 mt-1 text-xs md:text-sm">
+          <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-2 md:p-6">
+            <h1 className="text-base md:text-3xl font-bold text-white">Availability</h1>
+            <p className="text-gray-400 mt-1 text-xs md:text-base">
               Manage availability
             </p>
           </div>
