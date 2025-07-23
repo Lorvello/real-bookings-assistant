@@ -6,8 +6,9 @@ import { usePopularService } from '@/hooks/dashboard/usePopularService';
 import { useWeeklyInsights } from '@/hooks/dashboard/useWeeklyInsights';
 import { CalendarManagement } from '@/components/dashboard/CalendarManagement';
 import { DateRange } from '@/components/dashboard/DateRangeFilter';
-import { Clock, Star, TrendingUp, Calendar, User } from 'lucide-react';
+import { Clock, Star, TrendingUp, TrendingDown, Calendar, User, Award, Activity, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 
 interface OverviewTabProps {
@@ -58,27 +59,39 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <Card className="border-border/60 bg-card/80 backdrop-blur-sm hover:bg-card/90 transition-colors">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Next Appointment
+          <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg hover:scale-105 transition-all duration-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Volgende Afspraak
               </CardTitle>
+              <Clock className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               {nextAppointment ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-primary" />
-                    <p className="font-semibold text-foreground">{nextAppointment.customer_name}</p>
+                <div className="space-y-3">
+                  <div className="text-2xl font-bold text-foreground">
+                    {nextAppointment.time_until}
                   </div>
-                  <p className="text-sm text-muted-foreground">{nextAppointment.service_name}</p>
-                  <p className="text-lg font-bold text-primary">{nextAppointment.time_until}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <User className="h-3 w-3 text-primary" />
+                      <p className="text-sm font-medium text-foreground">{nextAppointment.customer_name}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{nextAppointment.service_name}</p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    <Activity className="h-3 w-3 mr-1" />
+                    Vandaag
+                  </Badge>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">No upcoming appointments</p>
-                  <p className="text-lg font-bold text-muted-foreground">-</p>
+                <div className="space-y-3">
+                  <div className="text-2xl font-bold text-muted-foreground">-</div>
+                  <p className="text-sm text-muted-foreground">Geen afspraken vandaag</p>
+                  <Badge variant="outline" className="text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    Vrije dag
+                  </Badge>
                 </div>
               )}
             </CardContent>
@@ -91,26 +104,43 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
         >
-          <Card className="border-border/60 bg-card/80 backdrop-blur-sm hover:bg-card/90 transition-colors">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Star className="h-4 w-4" />
-                Popular Service
+          <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg hover:scale-105 transition-all duration-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Populairste Service
               </CardTitle>
+              <Award className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               {popularService ? (
-                <div className="space-y-2">
-                  <p className="font-semibold text-foreground">{popularService.service_name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {popularService.booking_count} bookings ({popularService.percentage}%)
-                  </p>
-                  <p className="text-lg font-bold text-primary">Last 30 days</p>
+                <div className="space-y-3">
+                  <div className="text-2xl font-bold text-foreground">
+                    {popularService.percentage}%
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">{popularService.service_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {popularService.booking_count} {popularService.booking_count === 1 ? 'boeking' : 'boekingen'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="flex-1 bg-muted rounded-full h-2">
+                      <div 
+                        className="bg-green-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(popularService.percentage, 100)}%` }}
+                      />
+                    </div>
+                    <Target className="h-3 w-3 text-green-600" />
+                  </div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">No service data</p>
-                  <p className="text-lg font-bold text-muted-foreground">-</p>
+                <div className="space-y-3">
+                  <div className="text-2xl font-bold text-muted-foreground">-</div>
+                  <p className="text-sm text-muted-foreground">Geen service data</p>
+                  <Badge variant="outline" className="text-xs text-muted-foreground">
+                    <Star className="h-3 w-3 mr-1" />
+                    Laatste 30 dagen
+                  </Badge>
                 </div>
               )}
             </CardContent>
@@ -123,39 +153,71 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.3 }}
         >
-          <Card className="border-border/60 bg-card/80 backdrop-blur-sm hover:bg-card/90 transition-colors">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Weekly Insights
+          <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg hover:scale-105 transition-all duration-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Week Trend
               </CardTitle>
+              <div className="flex items-center gap-1">
+                {weeklyInsights && weeklyInsights.trend === 'up' ? (
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                ) : weeklyInsights && weeklyInsights.trend === 'down' ? (
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                ) : (
+                  <Activity className="h-4 w-4 text-purple-600" />
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {weeklyInsights ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">This week:</span>
-                    <span className="font-semibold text-foreground">{weeklyInsights.current_week}</span>
+                <div className="space-y-3">
+                  <div className="text-2xl font-bold text-foreground">
+                    {weeklyInsights.growth_percentage >= 0 ? '+' : ''}{weeklyInsights.growth_percentage}%
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Last week:</span>
-                    <span className="font-semibold text-foreground">{weeklyInsights.previous_week}</span>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Deze week:</span>
+                      <span className="font-medium text-foreground">{weeklyInsights.current_week}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Vorige week:</span>
+                      <span className="font-medium text-foreground">{weeklyInsights.previous_week}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className={`h-4 w-4 ${
-                      weeklyInsights.trend === 'up' ? 'text-green-500' : 
-                      weeklyInsights.trend === 'down' ? 'text-red-500' : 
-                      'text-muted-foreground'
-                    }`} />
-                    <p className="text-lg font-bold text-primary">
-                      {weeklyInsights.growth_percentage >= 0 ? '+' : ''}{weeklyInsights.growth_percentage}%
-                    </p>
-                  </div>
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs ${
+                      weeklyInsights.trend === 'up' ? 'border-green-600 text-green-600' :
+                      weeklyInsights.trend === 'down' ? 'border-red-600 text-red-600' :
+                      'border-muted text-muted-foreground'
+                    }`}
+                  >
+                    {weeklyInsights.trend === 'up' ? (
+                      <>
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        Groei
+                      </>
+                    ) : weeklyInsights.trend === 'down' ? (
+                      <>
+                        <TrendingDown className="h-3 w-3 mr-1" />
+                        Daling
+                      </>
+                    ) : (
+                      <>
+                        <Activity className="h-3 w-3 mr-1" />
+                        Stabiel
+                      </>
+                    )}
+                  </Badge>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">No insights available</p>
-                  <p className="text-lg font-bold text-muted-foreground">-</p>
+                <div className="space-y-3">
+                  <div className="text-2xl font-bold text-muted-foreground">-</div>
+                  <p className="text-sm text-muted-foreground">Geen week data</p>
+                  <Badge variant="outline" className="text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    7 dagen
+                  </Badge>
                 </div>
               )}
             </CardContent>
