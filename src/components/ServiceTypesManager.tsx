@@ -24,10 +24,7 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
     description: '',
     duration: '',
     price: '',
-    color: '#3B82F6',
-    max_attendees: '1',
-    preparation_time: '0',
-    cleanup_time: '0'
+    color: '#3B82F6'
   });
 
   const getCalendarName = (id: string) => {
@@ -47,9 +44,9 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
         price: parseFloat(formData.price) || undefined,
         color: formData.color,
         is_active: true,
-        max_attendees: parseInt(formData.max_attendees) || 1,
-        preparation_time: parseInt(formData.preparation_time) || 0,
-        cleanup_time: parseInt(formData.cleanup_time) || 0,
+        max_attendees: 1,
+        preparation_time: 0,
+        cleanup_time: 0,
         created_at: new Date().toISOString()
       });
       
@@ -59,10 +56,7 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
         description: '',
         duration: '',
         price: '',
-        color: '#3B82F6',
-        max_attendees: '1',
-        preparation_time: '0',
-        cleanup_time: '0'
+        color: '#3B82F6'
       });
       setShowCreateDialog(false);
       refetch();
@@ -79,10 +73,7 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
       description: '',
       duration: '',
       price: '',
-      color: '#3B82F6',
-      max_attendees: '1',
-      preparation_time: '0',
-      cleanup_time: '0'
+      color: '#3B82F6'
     });
     setShowCreateDialog(false);
   };

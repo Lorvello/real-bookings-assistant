@@ -5,12 +5,9 @@ import { Button } from '@/components/ui/button';
 interface ServiceTypeFormData {
   name: string;
   description: string;
-  duration: string; // Changed from number to string
+  duration: string;
   price: string;
   color: string;
-  max_attendees: string; // Changed from number to string
-  preparation_time: string; // Changed from number to string
-  cleanup_time: string; // Changed from number to string
 }
 
 interface ServiceTypeFormProps {
@@ -36,34 +33,30 @@ export function ServiceTypeForm({
   isEditing 
 }: ServiceTypeFormProps) {
   return (
-    <div className="mb-6 p-4 border border-border rounded-lg bg-background-secondary">
-      <h3 className="text-lg font-medium text-foreground mb-4">
-        {isEditing ? 'Service Bewerken' : 'Nieuwe Service'}
-      </h3>
-      
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
-            Service Naam *
+            Service Name *
           </label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
-            placeholder="Bijv. Knipbeurt"
+            className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+            placeholder="e.g. Haircut"
           />
         </div>
         
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
-            Duur (minuten) *
+            Duration (minutes) *
           </label>
           <input
             type="number"
             value={formData.duration}
             onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+            className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
             min="1"
             placeholder="30"
           />
@@ -71,13 +64,13 @@ export function ServiceTypeForm({
         
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
-            Prijs (€)
+            Price (€)
           </label>
           <input
             type="number"
             value={formData.price}
             onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
+            className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
             min="0"
             step="0.01"
             placeholder="0.00"
@@ -86,64 +79,9 @@ export function ServiceTypeForm({
         
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
-            Max Personen
+            Color
           </label>
-          <input
-            type="number"
-            value={formData.max_attendees}
-            onChange={(e) => setFormData(prev => ({ ...prev, max_attendees: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
-            min="1"
-            placeholder="1"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Voorbereiding (min)
-          </label>
-          <input
-            type="number"
-            value={formData.preparation_time}
-            onChange={(e) => setFormData(prev => ({ ...prev, preparation_time: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
-            min="0"
-            placeholder="0"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Opruimen (min)
-          </label>
-          <input
-            type="number"
-            value={formData.cleanup_time}
-            onChange={(e) => setFormData(prev => ({ ...prev, cleanup_time: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
-            min="0"
-            placeholder="0"
-          />
-        </div>
-        
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Beschrijving
-          </label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="w-full p-2 border border-border rounded-md bg-background text-foreground"
-            rows={3}
-            placeholder="Optionele beschrijving van de service"
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Kleur
-          </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-1">
             {colorOptions.map((color) => (
               <button
                 key={color}
@@ -157,14 +95,27 @@ export function ServiceTypeForm({
             ))}
           </div>
         </div>
+        
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-foreground mb-1">
+            Description
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+            rows={3}
+            placeholder="Optional description of the service"
+          />
+        </div>
       </div>
       
-      <div className="flex justify-end space-x-2 mt-4">
+      <div className="flex justify-end space-x-3">
         <Button variant="outline" onClick={onCancel} disabled={saving}>
-          Annuleren
+          Cancel
         </Button>
         <Button onClick={onSave} disabled={saving || !formData.name.trim()}>
-          {saving ? 'Opslaan...' : isEditing ? 'Bijwerken' : 'Aanmaken'}
+          {saving ? 'Saving...' : isEditing ? 'Update' : 'Create'}
         </Button>
       </div>
     </div>
