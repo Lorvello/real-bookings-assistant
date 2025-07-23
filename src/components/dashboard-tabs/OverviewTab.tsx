@@ -64,7 +64,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-44 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
-                Volgende Afspraak
+                Next Appointment
               </h3>
               <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-xl flex items-center justify-center shadow-lg">
                 <Clock className="h-6 w-6 text-cyan-400" />
@@ -87,7 +87,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
                     --:--
                   </div>
                   <div className="text-sm text-slate-400 font-medium">
-                    Geen afspraken vandaag
+                    No appointments today
                   </div>
                 </>
               )}
@@ -106,7 +106,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-44 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
-                Populairste Service
+                Popular Service
               </h3>
               <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-xl flex items-center justify-center shadow-lg">
                 <TrendingUp className="h-6 w-6 text-cyan-400" />
@@ -120,7 +120,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
                     {popularService.percentage.toFixed(0)}%
                   </div>
                   <div className="text-sm text-slate-400 font-medium">
-                    {popularService.service_name} • {popularService.booking_count} boekingen
+                    {popularService.service_name} • {popularService.booking_count} bookings
                   </div>
                 </>
               ) : (
@@ -129,7 +129,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
                     --%
                   </div>
                   <div className="text-sm text-slate-400 font-medium">
-                    Geen data beschikbaar
+                    No data available
                   </div>
                 </>
               )}
@@ -148,7 +148,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-44 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
-                Weekelijkse Groei
+                Weekly Growth
               </h3>
               <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-xl flex items-center justify-center shadow-lg">
                 <BarChart3 className="h-6 w-6 text-cyan-400" />
@@ -163,7 +163,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
                     {Math.abs(weeklyInsights.growth_percentage)}%
                   </div>
                   <div className="text-sm text-slate-400 font-medium">
-                    {weeklyInsights.trend === 'up' ? '↗️ Stijgend' : weeklyInsights.trend === 'down' ? '↘️ Dalend' : 'Stabiel'} • vs vorige week
+                    {weeklyInsights.trend === 'up' ? '↗️ Rising' : weeklyInsights.trend === 'down' ? '↘️ Falling' : 'Stable'} • vs last week
                   </div>
                 </>
               ) : (
@@ -172,7 +172,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
                     --.--%
                   </div>
                   <div className="text-sm text-slate-400 font-medium">
-                    Geen data beschikbaar
+                    No data available
                   </div>
                 </>
               )}
