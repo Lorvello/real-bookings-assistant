@@ -40,6 +40,7 @@ export function CreateCalendarDialog({
   trigger = 'dropdown',
   onCalendarCreated
 }: CreateCalendarDialogProps) {
+  // Fixed: Removed newMemberName references, using dropdown for team selection
   const { profile } = useProfile();
   const { serviceTypes, loading: serviceTypesLoading } = useServiceTypes();
   const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
