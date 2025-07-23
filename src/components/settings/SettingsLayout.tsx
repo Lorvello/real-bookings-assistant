@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Calendar, CreditCard, MessageSquare, Wrench } from 'lucide-react';
+import { User, Calendar, CreditCard, Brain, Wrench } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
+import { AIKnowledgeTab } from './AIKnowledgeTab';
 import { CalendarTab } from './CalendarTab';
 import { ServicesTab } from './ServicesTab';
 import { BillingTab } from './BillingTab';
@@ -12,7 +13,7 @@ import { useSettingsData } from '@/hooks/useSettingsData';
 
 export const SettingsLayout = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('users');
   const {
     profileData,
     setProfileData,
@@ -26,7 +27,7 @@ export const SettingsLayout = () => {
   // Handle tab from URL parameters
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['profile', 'calendar', 'services', 'billing'].includes(tabParam)) {
+    if (tabParam && ['users', 'knowledge', 'calendar', 'services', 'billing'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -49,10 +50,14 @@ export const SettingsLayout = () => {
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-3 md:space-y-6">
           <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-4 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2 h-12 md:h-14">
-              <TabsTrigger value="profile" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
+            <TabsList className="grid w-full grid-cols-5 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2 h-12 md:h-14">
+              <TabsTrigger value="users" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <User className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="text-xs md:text-sm">Profile</span>
+                <span className="text-xs md:text-sm">Users</span>
+              </TabsTrigger>
+              <TabsTrigger value="knowledge" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
+                <Brain className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="text-xs md:text-sm">AI Knowledge</span>
               </TabsTrigger>
               <TabsTrigger value="calendar" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Calendar className="h-3 w-3 md:h-4 md:w-4" />
@@ -69,7 +74,7 @@ export const SettingsLayout = () => {
             </TabsList>
           </div>
 
-          <TabsContent value="profile" className="space-y-4 md:space-y-6">
+          <TabsContent value="users" className="space-y-4 md:space-y-6">
             <ProfileTab
               profileData={profileData}
               setProfileData={setProfileData}
@@ -81,6 +86,17 @@ export const SettingsLayout = () => {
             />
           </TabsContent>
 
+          <TabsContent value="knowledge" className="space-y-4 md:space-y-6">
+            <AIKnowledgeTab
+              profileData={profileData}
+              setProfileData={setProfileData}
+              businessData={businessData}
+              setBusinessData={setBusinessData}
+              loading={loading}
+              handleUpdateProfile={handleUpdateProfile}
+              handleUpdateBusiness={handleUpdateBusiness}
+            />
+          </TabsContent>
 
           <TabsContent value="calendar" className="space-y-4 md:space-y-6">
             <CalendarTab />
