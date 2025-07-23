@@ -4,9 +4,11 @@ import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { ServiceTypesEmptyState } from '@/components/settings/service-types/ServiceTypesEmptyState';
 import { ServiceTypeForm } from '@/components/settings/service-types/ServiceTypeForm';
+import { ServiceTypeCard } from '@/components/settings/service-types/ServiceTypeCard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface ServiceTypesManagerProps {
   // No props needed - always show all user service types
@@ -14,10 +16,12 @@ interface ServiceTypesManagerProps {
 
 export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
   const { calendars } = useCalendarContext();
-  const { serviceTypes, loading, refetch, createServiceType, updateServiceType } = useServiceTypes();
+  const { serviceTypes, loading, refetch, createServiceType, updateServiceType, deleteServiceType } = useServiceTypes();
   const [showDialog, setShowDialog] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingService, setDeletingService] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -106,6 +110,30 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
     setShowDialog(true);
   };
 
+  const handleDelete = (serviceId: string) => {
+    setDeletingService(serviceId);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deletingService) {
+      try {
+        await deleteServiceType(deletingService);
+        refetch();
+      } catch (error) {
+        console.error('Error deleting service type:', error);
+      } finally {
+        setShowDeleteDialog(false);
+        setDeletingService(null);
+      }
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteDialog(false);
+    setDeletingService(null);
+  };
+
   if (loading) {
     return <div>Loading service types...</div>;
   }
@@ -116,38 +144,12 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {serviceTypes.map(service => (
-              <div 
-                key={service.id} 
-                className="bg-gray-900 p-4 rounded-lg border border-gray-700 relative"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg text-white font-medium">{service.name}</h3>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleEdit(service)}
-                      className="p-1 text-gray-400 hover:text-white transition-colors"
-                      title="Edit service"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: service.color }}
-                    />
-                  </div>
-                </div>
-                <p className="text-sm text-gray-400 mt-2">
-                  Duration: {service.duration} minutes
-                </p>
-                {service.price && (
-                  <p className="text-sm text-gray-400">
-                    Price: €{service.price}
-                  </p>
-                )}
-                <p className="text-sm text-gray-400 mt-2 line-clamp-2">
-                  {service.description || 'No description'}
-                </p>
-              </div>
+              <ServiceTypeCard
+                key={service.id}
+                service={service}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
           
@@ -182,6 +184,23 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
           />
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this service type. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
