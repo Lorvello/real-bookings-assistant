@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { X, Plus, User, Settings, ChevronDown } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useCreateCalendar } from '@/hooks/useCreateCalendar';
@@ -53,8 +54,6 @@ export function CreateCalendarDialog({
 
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
-  const [pendingServiceTypes, setPendingServiceTypes] = useState<string[]>([]);
-  const [pendingTeamMembers, setPendingTeamMembers] = useState<string[]>([]);
   const [showServiceTypeDialog, setShowServiceTypeDialog] = useState(false);
 
   const { createCalendar, loading: creating } = useCreateCalendar(onCalendarCreated);
@@ -92,45 +91,12 @@ export function CreateCalendarDialog({
     return `${userName} Calendar`;
   };
 
-  const handleTeamMemberSelect = (value: string) => {
-    if (!selectedTeamMembers.includes(value)) {
-      setSelectedTeamMembers([...selectedTeamMembers, value]);
-    }
+  const removeServiceType = (serviceTypeId: string) => {
+    setSelectedServiceTypes(selectedServiceTypes.filter(id => id !== serviceTypeId));
   };
 
   const removeTeamMember = (email: string) => {
     setSelectedTeamMembers(selectedTeamMembers.filter(m => m !== email));
-  };
-
-  const handleServiceTypeSelect = (value: string) => {
-    if (value === 'create_new') {
-      setShowServiceTypeDialog(true);
-      return;
-    }
-    
-    if (!pendingServiceTypes.includes(value) && !selectedServiceTypes.includes(value)) {
-      setPendingServiceTypes([...pendingServiceTypes, value]);
-    }
-  };
-
-  const addPendingServiceTypes = () => {
-    setSelectedServiceTypes([...selectedServiceTypes, ...pendingServiceTypes]);
-    setPendingServiceTypes([]);
-  };
-
-  const handleTeamMemberPendingSelect = (value: string) => {
-    if (!pendingTeamMembers.includes(value) && !selectedTeamMembers.includes(value)) {
-      setPendingTeamMembers([...pendingTeamMembers, value]);
-    }
-  };
-
-  const addPendingTeamMembers = () => {
-    setSelectedTeamMembers([...selectedTeamMembers, ...pendingTeamMembers]);
-    setPendingTeamMembers([]);
-  };
-
-  const removeServiceType = (serviceTypeId: string) => {
-    setSelectedServiceTypes(selectedServiceTypes.filter(id => id !== serviceTypeId));
   };
 
   const handleCreateCalendar = async () => {
@@ -169,8 +135,6 @@ export function CreateCalendarDialog({
       });
       setSelectedServiceTypes([]);
       setSelectedTeamMembers([]);
-      setPendingServiceTypes([]);
-      setPendingTeamMembers([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating calendar:', error);
@@ -218,6 +182,29 @@ export function CreateCalendarDialog({
 
   const getServiceTypeName = (id: string) => {
     return serviceTypes.find(st => st.id === id)?.name || 'Unknown Service';
+  };
+
+  // Helper functions for MultiSelect data formatting
+  const getServiceTypeOptions = () => {
+    return serviceTypes.map(serviceType => ({
+      value: serviceType.id,
+      label: serviceType.name
+    }));
+  };
+
+  const getTeamMemberOptions = () => {
+    return getAvailableTeamMembers().map(member => ({
+      value: member.email,
+      label: `${member.name} - ${member.email}`
+    }));
+  };
+
+  const handleServiceTypeChange = (selectedValues: string[]) => {
+    setSelectedServiceTypes(selectedValues);
+  };
+
+  const handleTeamMemberChange = (selectedValues: string[]) => {
+    setSelectedTeamMembers(selectedValues);
   };
 
   return (
@@ -281,74 +268,26 @@ export function CreateCalendarDialog({
               </div>
               
               <div className="space-y-3">
-                <div className="flex space-x-2">
-                  <Select onValueChange={handleServiceTypeSelect}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select service types..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {serviceTypesLoading ? (
-                        <SelectItem value="loading" disabled>Loading...</SelectItem>
-                      ) : (
-                        <>
-                          {serviceTypes.map((serviceType) => (
-                            <SelectItem 
-                              key={serviceType.id} 
-                              value={serviceType.id}
-                              disabled={selectedServiceTypes.includes(serviceType.id) || pendingServiceTypes.includes(serviceType.id)}
-                            >
-                              {serviceType.name}
-                            </SelectItem>
-                          ))}
-                          <SelectItem value="create_new">
-                            <div className="flex items-center space-x-2">
-                              <Plus className="h-4 w-4" />
-                              <span>Create New Service Type</span>
-                            </div>
-                          </SelectItem>
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <Button 
-                    type="button" 
-                    onClick={addPendingServiceTypes}
-                    disabled={pendingServiceTypes.length === 0}
+                <MultiSelect
+                  options={getServiceTypeOptions()}
+                  selected={selectedServiceTypes}
+                  onChange={handleServiceTypeChange}
+                  placeholder="Select service types..."
+                  disabled={serviceTypesLoading}
+                />
+                
+                <div className="flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
                     size="sm"
+                    onClick={() => setShowServiceTypeDialog(true)}
+                    className="flex items-center space-x-2"
                   >
-                    Add
+                    <Plus className="h-4 w-4" />
+                    <span>Create New Service Type</span>
                   </Button>
                 </div>
-                
-                {pendingServiceTypes.length > 0 && (
-                  <div className="flex flex-wrap gap-2 p-2 bg-muted/50 rounded-md">
-                    <span className="text-xs text-muted-foreground self-center">Ready to add:</span>
-                    {pendingServiceTypes.map((serviceTypeId) => (
-                      <Badge key={serviceTypeId} variant="outline" className="text-xs">
-                        {getServiceTypeName(serviceTypeId)}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-                
-                {selectedServiceTypes.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedServiceTypes.map((serviceTypeId) => (
-                      <Badge key={serviceTypeId} variant="secondary" className="flex items-center space-x-1">
-                        <span>{getServiceTypeName(serviceTypeId)}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-4 w-4 p-0 hover:bg-transparent"
-                          onClick={() => removeServiceType(serviceTypeId)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
                 
                 <p className="text-xs text-muted-foreground">
                   Select the service types this calendar will offer
@@ -364,75 +303,13 @@ export function CreateCalendarDialog({
               </div>
               
               <div className="space-y-3">
-                <div className="flex space-x-2">
-                  <Select onValueChange={handleTeamMemberPendingSelect}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select team members..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {membersLoading ? (
-                        <SelectItem value="loading" disabled>Loading...</SelectItem>
-                      ) : (
-                        <>
-                          {getAvailableTeamMembers().map((member) => (
-                            <SelectItem 
-                              key={member.email} 
-                              value={member.email}
-                              disabled={selectedTeamMembers.includes(member.email) || pendingTeamMembers.includes(member.email)}
-                            >
-                              <div className="flex items-center space-x-2">
-                                <span>{member.name}</span>
-                                <span className="text-sm text-foreground">({member.email})</span>
-                                <Badge variant="outline" className="text-xs">
-                                  {member.role}
-                                </Badge>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <Button 
-                    type="button" 
-                    onClick={addPendingTeamMembers}
-                    disabled={pendingTeamMembers.length === 0}
-                    size="sm"
-                  >
-                    Add
-                  </Button>
-                </div>
-                
-                {pendingTeamMembers.length > 0 && (
-                  <div className="flex flex-wrap gap-2 p-2 bg-muted/50 rounded-md">
-                    <span className="text-xs text-muted-foreground self-center">Ready to add:</span>
-                    {pendingTeamMembers.map((email) => (
-                      <Badge key={email} variant="outline" className="text-xs">
-                        {getTeamMemberName(email)}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-                
-                {selectedTeamMembers.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedTeamMembers.map((email) => (
-                      <Badge key={email} variant="secondary" className="flex items-center space-x-1">
-                        <span>{getTeamMemberName(email)}</span>
-                        <span className="text-xs text-muted-foreground">({email})</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-4 w-4 p-0 hover:bg-transparent"
-                          onClick={() => removeTeamMember(email)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+                <MultiSelect
+                  options={getTeamMemberOptions()}
+                  selected={selectedTeamMembers}
+                  onChange={handleTeamMemberChange}
+                  placeholder="Select team members..."
+                  disabled={membersLoading}
+                />
                 
                 <p className="text-xs text-muted-foreground">
                   Select team members who will have access to this calendar. Multiple members can be selected.
