@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { ServiceType } from '@/types/calendar';
 
-export const useServiceTypes = (calendarId?: string) => {
+export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false) => {
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -16,8 +16,11 @@ export const useServiceTypes = (calendarId?: string) => {
     try {
       let query = supabase.from('service_types').select('*').order('created_at', { ascending: false });
       
-      // If a calendarId is provided, filter by it
-      if (calendarId) {
+      // If showAllServiceTypes is true, fetch all service types without filtering  
+      if (showAllServiceTypes) {
+        // No filtering - show all service types from all calendars
+      } else if (calendarId) {
+        // If a calendarId is provided, filter by it
         query = query.eq('calendar_id', calendarId);
       } else {
         // If no calendarId, only show services from user's own calendars
@@ -131,7 +134,7 @@ export const useServiceTypes = (calendarId?: string) => {
 
   useEffect(() => {
     fetchServiceTypes();
-  }, [calendarId]);
+  }, [calendarId, showAllServiceTypes]);
 
   return {
     serviceTypes,
