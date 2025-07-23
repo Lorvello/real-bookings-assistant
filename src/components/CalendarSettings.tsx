@@ -44,25 +44,6 @@ export function CalendarSettings({
       </Card>;
   }
   return <div className="space-y-6">
-      {/* Global Settings */}
-      <Card className="border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground">Global Settings</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Settings that apply across all calendars
-          </p>
-        </CardHeader>
-        <CardContent>
-          <GlobalSettings 
-            settings={settings} 
-            onUpdate={updatePendingSettings} 
-            calendarId={calendarId}
-          />
-        </CardContent>
-      </Card>
-
-      <Separator />
-
       {/* Per-Calendar Settings */}
       <Card className="border-border">
         <CardHeader>
