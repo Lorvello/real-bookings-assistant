@@ -1,55 +1,140 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export interface ServiceType {
   id: string;
   name: string;
-  description: string | null;
+  description?: string;
   duration: number;
-  price: number | null;
+  price?: number;
   color: string;
-  is_active: boolean;
   calendar_id: string;
 }
 
 export const useServiceTypes = (calendarId?: string) => {
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchServiceTypes();
-  }, [calendarId]);
+  const { toast } = useToast();
 
   const fetchServiceTypes = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
+      let query = supabase.from('service_types').select('*').order('created_at', { ascending: false });
       
-      let query = supabase
-        .from('service_types')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      // If calendarId is provided, filter by it
+      // If a calendarId is provided, filter by it
       if (calendarId) {
         query = query.eq('calendar_id', calendarId);
       }
       
       const { data, error } = await query;
 
-      if (error) throw error;
-      
+      if (error) {
+        throw error;
+      }
+
       setServiceTypes(data || []);
     } catch (error) {
       console.error('Error fetching service types:', error);
+      toast({
+        title: "Error fetching service types",
+        description: "Could not load service types. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  const createServiceType = async (serviceData: Omit<ServiceType, 'id'>) => {
+    try {
+      const { data, error } = await supabase.from('service_types').insert([serviceData]).select('*').single();
+
+      if (error) {
+        throw error;
+      }
+
+      setServiceTypes(prev => [data as ServiceType, ...prev]);
+      toast({
+        title: "Service created",
+        description: "The service type was created successfully.",
+      });
+      
+      return data as ServiceType;
+    } catch (error) {
+      console.error('Error creating service type:', error);
+      toast({
+        title: "Error creating service",
+        description: "Could not create the service type. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const updateServiceType = async (id: string, serviceData: Partial<ServiceType>) => {
+    try {
+      const { error } = await supabase.from('service_types').update(serviceData).eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setServiceTypes(prev => prev.map(service => 
+        service.id === id ? { ...service, ...serviceData } : service
+      ));
+
+      toast({
+        title: "Service updated",
+        description: "The service type was updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error updating service type:', error);
+      toast({
+        title: "Error updating service",
+        description: "Could not update the service type. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteServiceType = async (id: string) => {
+    try {
+      const { error } = await supabase.from('service_types').delete().eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setServiceTypes(prev => prev.filter(service => service.id !== id));
+
+      toast({
+        title: "Service deleted",
+        description: "The service type was deleted successfully.",
+      });
+    } catch (error) {
+      console.error('Error deleting service type:', error);
+      toast({
+        title: "Error deleting service",
+        description: "Could not delete the service type. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchServiceTypes();
+  }, [calendarId]);
+
   return {
     serviceTypes,
     loading,
+    createServiceType,
+    updateServiceType,
+    deleteServiceType,
     refetch: fetchServiceTypes
   };
 };

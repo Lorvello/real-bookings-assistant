@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -74,18 +73,8 @@ export const useCalendarMembers = (calendarId?: string) => {
     }
   };
 
-  const inviteMember = async (email: string, calendarIdForInvite: string, role: 'editor' | 'viewer' = 'viewer', fullName: string = '') => {
-    const targetCalendarId = calendarIdForInvite || calendarId;
-
-    if (!targetCalendarId) {
-      toast({
-        title: "Fout bij uitnodigen",
-        description: "Selecteer eerst een kalender",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  // Check if user exists or create new user
+  const findOrCreateUser = async (email: string, fullName: string = '') => {
     try {
       // First check if user exists
       const { data: userData, error: userError } = await supabase
@@ -94,58 +83,98 @@ export const useCalendarMembers = (calendarId?: string) => {
         .eq('email', email)
         .single();
 
-      if (userError || !userData) {
-        toast({
-          title: "Gebruiker niet gevonden",
-          description: "Er is geen gebruiker gevonden met dit e-mailadres",
-          variant: "destructive",
-        });
-        return;
+      if (userData) {
+        // User exists, update name if provided
+        if (fullName) {
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ full_name: fullName })
+            .eq('id', userData.id);
+
+          if (updateError) {
+            console.error('Error updating user name:', updateError);
+          }
+        }
+        return userData;
       }
 
-      // Check if already a member
-      const { data: existingMember } = await supabase
-        .from('calendar_members')
-        .select('id')
-        .eq('calendar_id', targetCalendarId)
-        .eq('user_id', userData.id)
-        .single();
+      // User doesn't exist, create new user
+      const newUserId = crypto.randomUUID();
+      const { error: createError } = await supabase
+        .from('users')
+        .insert({
+          id: newUserId,
+          email: email,
+          full_name: fullName || email.split('@')[0]
+        });
 
-      if (existingMember) {
+      if (createError) {
+        throw createError;
+      }
+
+      return { id: newUserId, email };
+    } catch (error) {
+      console.error('Error finding or creating user:', error);
+      throw error;
+    }
+  };
+
+  const inviteMemberToMultipleCalendars = async (
+    email: string, 
+    calendarIds: string[], 
+    role: 'editor' | 'viewer' = 'viewer', 
+    fullName: string = ''
+  ) => {
+    if (calendarIds.length === 0) {
+      toast({
+        title: "Fout bij uitnodigen",
+        description: "Selecteer ten minste één kalender",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Find or create user
+      const userData = await findOrCreateUser(email, fullName);
+      
+      // Check for existing memberships and create new ones
+      const { data: existingMemberships } = await supabase
+        .from('calendar_members')
+        .select('calendar_id')
+        .eq('user_id', userData.id)
+        .in('calendar_id', calendarIds);
+      
+      const existingCalendarIds = existingMemberships?.map(m => m.calendar_id) || [];
+      const newCalendarIds = calendarIds.filter(id => !existingCalendarIds.includes(id));
+      
+      if (newCalendarIds.length === 0) {
         toast({
           title: "Gebruiker is al lid",
-          description: "Deze gebruiker heeft al toegang tot deze kalender",
+          description: "Deze gebruiker heeft al toegang tot alle geselecteerde kalenders",
           variant: "destructive",
         });
         return;
       }
 
-      // If fullName is provided, update the user's full_name
-      if (fullName) {
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ full_name: fullName })
-          .eq('id', userData.id);
-
-        if (updateError) {
-          console.error('Error updating user name:', updateError);
-        }
-      }
+      // Create memberships for calendars user isn't already part of
+      const invitedBy = (await supabase.auth.getUser()).data.user?.id;
+      const memberships = newCalendarIds.map(calendarId => ({
+        calendar_id: calendarId,
+        user_id: userData.id,
+        role: role,
+        invited_by: invitedBy
+      }));
 
       const { error } = await supabase
         .from('calendar_members')
-        .insert({
-          calendar_id: targetCalendarId,
-          user_id: userData.id,
-          role: role,
-          invited_by: (await supabase.auth.getUser()).data.user?.id
-        });
+        .insert(memberships);
 
       if (error) throw error;
 
       toast({
         title: "Uitnodiging verstuurd",
-        description: `${email} is uitgenodigd als ${role}`,
+        description: `${email} is uitgenodigd voor ${newCalendarIds.length} kalender(s) als ${role}`,
       });
 
       fetchMembers();
@@ -157,6 +186,11 @@ export const useCalendarMembers = (calendarId?: string) => {
         variant: "destructive",
       });
     }
+  };
+
+  // Keep the original function for backward compatibility
+  const inviteMember = async (email: string, calendarIdForInvite: string, role: 'editor' | 'viewer' = 'viewer', fullName: string = '') => {
+    return inviteMemberToMultipleCalendars(email, [calendarIdForInvite], role, fullName);
   };
 
   const removeMember = async (memberId: string) => {
@@ -217,6 +251,7 @@ export const useCalendarMembers = (calendarId?: string) => {
     members,
     loading,
     inviteMember,
+    inviteMemberToMultipleCalendars,
     removeMember,
     updateMemberRole,
     refetch: fetchMembers

@@ -11,12 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Edit, Trash2, Crown, User, Eye, Calendar } from 'lucide-react';
+import { UserPlus, Edit, Trash2, Crown, User, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { MultiSelect } from '@/components/ui/multi-select';
 
 export const UserManagement = () => {
   const { calendars } = useCalendarContext();
-  const { members, loading, inviteMember, removeMember, updateMemberRole } = useCalendarMembers(); // No specific calendar ID
+  const { members, loading, inviteMemberToMultipleCalendars, removeMember, updateMemberRole } = useCalendarMembers(); // No specific calendar ID
   const { profile } = useProfile();
   const { toast } = useToast();
   
@@ -24,7 +25,7 @@ export const UserManagement = () => {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserRole, setNewUserRole] = useState<'editor' | 'viewer'>('viewer');
-  const [selectedCalendarForNewUser, setSelectedCalendarForNewUser] = useState<string>('');
+  const [selectedCalendarsForNewUser, setSelectedCalendarsForNewUser] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddUser = async () => {
@@ -37,10 +38,10 @@ export const UserManagement = () => {
       return;
     }
 
-    if (!selectedCalendarForNewUser) {
+    if (selectedCalendarsForNewUser.length === 0) {
       toast({
         title: "Calendar required",
-        description: "Please select a calendar to add a user to",
+        description: "Please select at least one calendar",
         variant: "destructive",
       });
       return;
@@ -48,11 +49,16 @@ export const UserManagement = () => {
 
     setIsSubmitting(true);
     try {
-      await inviteMember(newUserEmail, selectedCalendarForNewUser, newUserRole, newUserName);
+      await inviteMemberToMultipleCalendars(
+        newUserEmail, 
+        selectedCalendarsForNewUser, 
+        newUserRole, 
+        newUserName
+      );
       setNewUserEmail('');
       setNewUserName('');
       setNewUserRole('viewer');
-      setSelectedCalendarForNewUser('');
+      setSelectedCalendarsForNewUser([]);
       setIsAddUserOpen(false);
     } finally {
       setIsSubmitting(false);
@@ -95,21 +101,19 @@ export const UserManagement = () => {
     }
   };
 
-  // Group members by calendar for display
-  const groupMembersByCalendar = () => {
-    const grouped = members.reduce((acc, member) => {
-      const calendarId = member.calendar_id;
-      if (!acc[calendarId]) {
-        acc[calendarId] = [];
-      }
-      acc[calendarId].push(member);
-      return acc;
-    }, {} as Record<string, typeof members>);
-    
-    return grouped;
-  };
-  
-  const groupedMembers = groupMembersByCalendar();
+  // Combine all users including the account owner into one list
+  const allUsers = [
+    ...(profile ? [{
+      id: 'owner',
+      user: {
+        full_name: profile.full_name || 'Account Owner',
+        email: profile.email
+      },
+      role: 'owner',
+      calendar: { name: 'All Calendars' }
+    }] : []),
+    ...members
+  ];
 
   return (
     <Card className="border-gray-700 bg-gray-800">
@@ -168,22 +172,14 @@ export const UserManagement = () => {
                 </Select>
               </div>
               <div>
-                <Label className="text-gray-300">Calendar</Label>
-                <Select 
-                  value={selectedCalendarForNewUser} 
-                  onValueChange={(value) => setSelectedCalendarForNewUser(value)}
-                >
-                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                    <SelectValue placeholder="Select a calendar" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    {calendars.map(calendar => (
-                      <SelectItem key={calendar.id} value={calendar.id}>
-                        {calendar.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-gray-300">Calendars</Label>
+                <MultiSelect
+                  options={calendars.map(cal => ({ value: cal.id, label: cal.name }))}
+                  selected={selectedCalendarsForNewUser}
+                  onChange={setSelectedCalendarsForNewUser}
+                  placeholder="Select calendars"
+                  className="bg-gray-900 border-gray-700 text-white"
+                />
               </div>
               <div className="flex justify-end space-x-2">
                 <Button
@@ -195,7 +191,7 @@ export const UserManagement = () => {
                 </Button>
                 <Button
                   onClick={handleAddUser}
-                  disabled={isSubmitting || !selectedCalendarForNewUser}
+                  disabled={isSubmitting || selectedCalendarsForNewUser.length === 0}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   {isSubmitting ? 'Adding...' : 'Add User'}
@@ -212,112 +208,82 @@ export const UserManagement = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {/* Current User (Account Owner) */}
-            <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Crown className="h-5 w-5 text-yellow-500" />
-                  <div>
-                    <p className="text-white font-medium">{profile?.full_name || 'Account Owner'}</p>
-                    <p className="text-sm text-gray-400">{profile?.email}</p>
-                  </div>
-                </div>
-                <Badge variant="secondary" className="bg-yellow-900/30 text-yellow-400 border-yellow-700">
-                  Account Owner
-                </Badge>
-              </div>
-              <div className="mt-3 text-sm text-gray-400">
-                <p>• Access to all {calendars.length} calendar{calendars.length !== 1 ? 's' : ''}</p>
-                <p>• Full administrative privileges</p>
-              </div>
-            </div>
-
-            {/* Team Members - Show all calendars and their members */}
-            {Object.keys(groupedMembers).length > 0 ? (
-              <div>
-                <h4 className="text-white font-medium mb-3">Team Members</h4>
-                <div className="space-y-6">
-                  {Object.entries(groupedMembers).map(([calendarId, calendarMembers]) => {
-                    const calendar = calendars.find(cal => cal.id === calendarId);
-                    
-                    return (
-                      <div key={calendarId} className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
-                        <div className="bg-gray-800 p-3 border-b border-gray-700">
-                          <div className="flex items-center space-x-2">
-                            <Calendar className="h-4 w-4 text-blue-500" />
-                            <h5 className="text-white font-medium">{calendar?.name || 'Unknown Calendar'}</h5>
-                          </div>
+          <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-gray-700">
+                  <TableHead className="text-gray-300">User</TableHead>
+                  <TableHead className="text-gray-300">Role</TableHead>
+                  <TableHead className="text-gray-300">Calendar</TableHead>
+                  <TableHead className="text-gray-300">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allUsers.length > 0 ? (
+                  allUsers.map((user) => (
+                    <TableRow key={user.id} className="border-gray-700">
+                      <TableCell>
+                        <div>
+                          <p className="text-white font-medium">
+                            {user.user?.full_name || 'Unknown User'}
+                          </p>
+                          <p className="text-sm text-gray-400">{user.user?.email}</p>
                         </div>
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="border-gray-700">
-                              <TableHead className="text-gray-300">User</TableHead>
-                              <TableHead className="text-gray-300">Role</TableHead>
-                              <TableHead className="text-gray-300">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {calendarMembers.map((member) => (
-                              <TableRow key={member.id} className="border-gray-700">
-                                <TableCell>
-                                  <div>
-                                    <p className="text-white font-medium">
-                                      {member.user?.full_name || 'Unknown User'}
-                                    </p>
-                                    <p className="text-sm text-gray-400">{member.user?.email}</p>
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex items-center space-x-2">
-                                    {getRoleIcon(member.role)}
-                                    <span className="text-gray-300">{getRoleName(member.role)}</span>
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  {member.role !== 'owner' && (
-                                    <div className="flex items-center space-x-2">
-                                      <Select
-                                        value={member.role}
-                                        onValueChange={(value: 'editor' | 'viewer') => handleRoleChange(member.id, value)}
-                                      >
-                                        <SelectTrigger className="w-24 h-8 bg-gray-800 border-gray-700 text-white text-xs">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-gray-800 border-gray-700">
-                                          <SelectItem value="viewer">Viewer</SelectItem>
-                                          <SelectItem value="editor">Editor</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleRemoveUser(member.id)}
-                                        className="h-8 px-2 border-red-700 text-red-400 hover:bg-red-900/30"
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <User className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400">No team members yet</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Invite team members to collaborate on your calendars
-                </p>
-              </div>
-            )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {getRoleIcon(user.role)}
+                          <span className="text-gray-300">{getRoleName(user.role)}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {user.role === 'owner' ? (
+                          <Badge variant="secondary" className="bg-yellow-900/30 text-yellow-400 border-yellow-700">
+                            All Calendars
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-gray-300 border-gray-600">
+                            {user.calendar?.name || 'Unknown Calendar'}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {user.role !== 'owner' && (
+                          <div className="flex items-center space-x-2">
+                            <Select
+                              value={user.role}
+                              onValueChange={(value: 'editor' | 'viewer') => handleRoleChange(user.id, value)}
+                            >
+                              <SelectTrigger className="w-24 h-8 bg-gray-800 border-gray-700 text-white text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-gray-800 border-gray-700">
+                                <SelectItem value="viewer">Viewer</SelectItem>
+                                <SelectItem value="editor">Editor</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRemoveUser(user.id)}
+                              className="h-8 px-2 border-red-700 text-red-400 hover:bg-red-900/30"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-6 text-gray-400">
+                      No users found. Add team members to collaborate.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
         )}
       </CardContent>
