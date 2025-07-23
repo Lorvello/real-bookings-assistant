@@ -28,6 +28,7 @@ export function MultiSelect({
   className,
   disabled = false,
 }: MultiSelectProps) {
+  console.log('MultiSelect render - options:', options, 'selected:', selected);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
