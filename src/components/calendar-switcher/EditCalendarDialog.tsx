@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -15,30 +15,33 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus, User } from 'lucide-react';
-import { useProfile } from '@/hooks/useProfile';
-import { useCreateCalendar } from '@/hooks/useCreateCalendar';
+import { useCalendarMembers } from '@/hooks/useCalendarMembers';
+import { useCalendarSettings } from '@/hooks/useCalendarSettings';
+import { useToast } from '@/hooks/use-toast';
+import type { Calendar } from '@/types/database';
 
 interface TeamMember {
+  id?: string;
   email: string;
   role: 'owner' | 'editor' | 'viewer';
   name?: string;
 }
 
-interface CreateCalendarDialogProps {
+interface EditCalendarDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  trigger?: 'dropdown' | 'button';
-  onCalendarCreated?: () => void;
+  calendar: Calendar | null;
+  onCalendarUpdated?: () => void;
 }
 
-export function CreateCalendarDialog({ 
+export function EditCalendarDialog({ 
   open, 
   onOpenChange, 
-  trigger = 'dropdown',
-  onCalendarCreated
-}: CreateCalendarDialogProps) {
-  const { profile } = useProfile();
-  const [newCalendar, setNewCalendar] = useState({
+  calendar,
+  onCalendarUpdated
+}: EditCalendarDialogProps) {
+  const { toast } = useToast();
+  const [calendarData, setCalendarData] = useState({
     name: '',
     description: '',
     color: '#3B82F6',
@@ -50,73 +53,100 @@ export function CreateCalendarDialog({
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberRole, setNewMemberRole] = useState<'editor' | 'viewer'>('viewer');
+  const [loading, setLoading] = useState(false);
 
-  const { createCalendar, loading: creating } = useCreateCalendar(onCalendarCreated);
+  const { 
+    members, 
+    inviteMember, 
+    removeMember, 
+    updateMemberRole 
+  } = useCalendarMembers(calendar?.id || '');
 
-  const generateCalendarName = () => {
-    const userName = profile?.full_name?.split(' ')[0] || 'My';
-    const businessName = newCalendar.businessName || profile?.business_name;
-    
-    if (businessName) {
-      return `${businessName} Calendar`;
-    }
-    return `${userName} Calendar`;
-  };
+  const { updateCalendarName } = useCalendarSettings(calendar?.id);
 
-  const addTeamMember = () => {
-    if (!newMemberEmail.trim()) return;
-    
-    const member: TeamMember = {
-      email: newMemberEmail.trim(),
-      role: newMemberRole
-    };
-    
-    setTeamMembers([...teamMembers, member]);
-    setNewMemberEmail('');
-    setNewMemberRole('viewer');
-  };
-
-  const removeTeamMember = (index: number) => {
-    setTeamMembers(teamMembers.filter((_, i) => i !== index));
-  };
-
-  const handleCreateCalendar = async () => {
-    if (!newCalendar.name.trim()) return;
-
-    try {
-      await createCalendar({
-        name: newCalendar.name,
-        description: newCalendar.description,
-        color: newCalendar.color,
-        businessName: newCalendar.businessName,
-        location: newCalendar.location,
-        specialization: newCalendar.specialization,
-        teamMembers: teamMembers
-      });
-      
-      // Reset form
-      setNewCalendar({ 
-        name: '', 
-        description: '', 
-        color: '#3B82F6',
-        businessName: '',
+  // Load calendar data when dialog opens
+  useEffect(() => {
+    if (calendar && open) {
+      setCalendarData({
+        name: calendar.name || '',
+        description: calendar.description || '',
+        color: calendar.color || '#3B82F6',
+        businessName: '', // These would come from extended calendar data
         location: '',
         specialization: ''
       });
-      setTeamMembers([]);
-      onOpenChange(false);
+    }
+  }, [calendar, open]);
+
+  // Convert members to team members format
+  useEffect(() => {
+    if (members) {
+      const convertedMembers: TeamMember[] = members.map(member => ({
+        id: member.id,
+        email: member.user?.email || '',
+        role: member.role,
+        name: member.user?.full_name
+      }));
+      setTeamMembers(convertedMembers);
+    }
+  }, [members]);
+
+  const addTeamMember = async () => {
+    if (!newMemberEmail.trim() || !calendar?.id) return;
+    
+    try {
+      await inviteMember(newMemberEmail.trim(), newMemberRole);
+      setNewMemberEmail('');
+      setNewMemberRole('viewer');
     } catch (error) {
-      console.error('Error creating calendar:', error);
+      console.error('Error inviting member:', error);
     }
   };
+
+  const removeTeamMember = async (memberId: string) => {
+    try {
+      await removeMember(memberId);
+    } catch (error) {
+      console.error('Error removing member:', error);
+    }
+  };
+
+  const handleUpdateCalendar = async () => {
+    if (!calendarData.name.trim() || !calendar?.id) return;
+
+    setLoading(true);
+    try {
+      // Update calendar name
+      await updateCalendarName(calendarData.name);
+      
+      toast({
+        title: "Calendar updated",
+        description: "Calendar has been updated successfully",
+      });
+      
+      onCalendarUpdated?.();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error updating calendar:', error);
+      toast({
+        title: "Error updating calendar",
+        description: "Could not update calendar. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!calendar) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>      
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create new calendar</DialogTitle>
+          <DialogTitle>Edit calendar</DialogTitle>
           <DialogDescription>
-            Create a new calendar with team members and settings. You can always adjust these later.
+            Update your calendar settings and manage team members.
           </DialogDescription>
         </DialogHeader>
         
@@ -127,29 +157,26 @@ export function CreateCalendarDialog({
               <Label htmlFor="calendar-name">Calendar name *</Label>
               <Input
                 id="calendar-name"
-                placeholder={generateCalendarName()}
-                value={newCalendar.name}
-                onChange={(e) => setNewCalendar(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Calendar name"
+                value={calendarData.name}
+                onChange={(e) => setCalendarData(prev => ({ ...prev, name: e.target.value }))}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                E.g: {generateCalendarName()}, "John Smith", "Treatment Room 2"
-              </p>
             </div>
             
             <div>
-              <Label htmlFor="calendar-description">Description (optional)</Label>
+              <Label htmlFor="calendar-description">Description</Label>
               <Textarea
                 id="calendar-description"
-                placeholder="For which team member, location, or service is this calendar?"
-                value={newCalendar.description}
-                onChange={(e) => setNewCalendar(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Calendar description"
+                value={calendarData.description}
+                onChange={(e) => setCalendarData(prev => ({ ...prev, description: e.target.value }))}
               />
             </div>
           </div>
 
           {/* Additional Information */}
           <div className="space-y-4">
-            <h4 className="font-medium text-foreground">Additional Information (Optional)</h4>
+            <h4 className="font-medium text-foreground">Additional Information</h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -157,8 +184,8 @@ export function CreateCalendarDialog({
                 <Input
                   id="business-name"
                   placeholder="Your business name"
-                  value={newCalendar.businessName}
-                  onChange={(e) => setNewCalendar(prev => ({ ...prev, businessName: e.target.value }))}
+                  value={calendarData.businessName}
+                  onChange={(e) => setCalendarData(prev => ({ ...prev, businessName: e.target.value }))}
                 />
               </div>
               
@@ -167,8 +194,8 @@ export function CreateCalendarDialog({
                 <Input
                   id="location"
                   placeholder="Office, Room 1, etc."
-                  value={newCalendar.location}
-                  onChange={(e) => setNewCalendar(prev => ({ ...prev, location: e.target.value }))}
+                  value={calendarData.location}
+                  onChange={(e) => setCalendarData(prev => ({ ...prev, location: e.target.value }))}
                 />
               </div>
             </div>
@@ -178,8 +205,8 @@ export function CreateCalendarDialog({
               <Input
                 id="specialization"
                 placeholder="What services does this calendar focus on?"
-                value={newCalendar.specialization}
-                onChange={(e) => setNewCalendar(prev => ({ ...prev, specialization: e.target.value }))}
+                value={calendarData.specialization}
+                onChange={(e) => setCalendarData(prev => ({ ...prev, specialization: e.target.value }))}
               />
             </div>
           </div>
@@ -223,29 +250,27 @@ export function CreateCalendarDialog({
               {teamMembers.length > 0 && (
                 <div className="space-y-2">
                   {teamMembers.map((member, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 border border-border rounded-md bg-muted/20">
+                    <div key={member.id || index} className="flex items-center justify-between p-2 border border-border rounded-md bg-muted/20">
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm">{member.email}</span>
+                        <span className="text-sm">{member.name || member.email}</span>
                         <Badge variant="outline" className="text-xs">
                           {member.role}
                         </Badge>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeTeamMember(index)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+                      {member.role !== 'owner' && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => member.id && removeTeamMember(member.id)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>
               )}
-              
-              <p className="text-xs text-muted-foreground">
-                Team members will receive an invitation to access this calendar
-              </p>
             </div>
           </div>
 
@@ -256,12 +281,11 @@ export function CreateCalendarDialog({
               <input
                 type="color"
                 id="calendar-color"
-                value={newCalendar.color}
-                onChange={(e) => setNewCalendar(prev => ({ ...prev, color: e.target.value }))}
+                value={calendarData.color}
+                onChange={(e) => setCalendarData(prev => ({ ...prev, color: e.target.value }))}
                 className="w-8 h-8 rounded border"
               />
-              <span className="text-sm text-muted-foreground">{newCalendar.color}</span>
-              <span className="text-xs text-muted-foreground">Choose a color to distinguish the calendar</span>
+              <span className="text-sm text-muted-foreground">{calendarData.color}</span>
             </div>
           </div>
         </div>
@@ -271,10 +295,10 @@ export function CreateCalendarDialog({
             Cancel
           </Button>
           <Button 
-            onClick={handleCreateCalendar}
-            disabled={!newCalendar.name.trim() || creating}
+            onClick={handleUpdateCalendar}
+            disabled={!calendarData.name.trim() || loading}
           >
-            {creating ? 'Creating...' : 'Create calendar'}
+            {loading ? 'Updating...' : 'Update calendar'}
           </Button>
         </DialogFooter>
       </DialogContent>

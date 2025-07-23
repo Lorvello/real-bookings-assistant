@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Check, ChevronDown, Grid3X3, Calendar, Plus } from 'lucide-react';
+import { Check, ChevronDown, Grid3X3, Calendar, Plus, Edit } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
+import { EditCalendarDialog } from '@/components/calendar-switcher/EditCalendarDialog';
 
 export function CalendarSelector() {
   const { 
@@ -20,10 +21,24 @@ export function CalendarSelector() {
     selectedCalendar, 
     viewingAllCalendars, 
     selectCalendar, 
-    selectAllCalendars 
+    selectAllCalendars,
+    refreshCalendars
   } = useCalendarContext();
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingCalendar, setEditingCalendar] = useState(null);
+
+  const handleEditCalendar = (calendar: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingCalendar(calendar);
+    setShowEditDialog(true);
+  };
+
+  const handleCalendarUpdated = () => {
+    refreshCalendars();
+    setEditingCalendar(null);
+  };
 
   const getDisplayText = () => {
     if (viewingAllCalendars) {
@@ -46,7 +61,7 @@ export function CalendarSelector() {
   };
 
   if (calendars.length === 0) {
-    return null; // Don't show selector if there are no calendars
+    return null;
   }
 
   return (
@@ -120,7 +135,7 @@ export function CalendarSelector() {
             <DropdownMenuItem
               key={calendar.id}
               onClick={() => selectCalendar(calendar)}
-              className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted"
+              className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group"
             >
               <div 
                 className="w-3 h-3 rounded-full flex-shrink-0 border border-border" 
@@ -142,9 +157,19 @@ export function CalendarSelector() {
                   Owner: You
                 </p>
               </div>
-              {selectedCalendar?.id === calendar.id && !viewingAllCalendars && (
-                <div className="w-2 h-2 bg-primary rounded-full" />
-              )}
+              <div className="flex items-center space-x-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => handleEditCalendar(calendar, e)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+                {selectedCalendar?.id === calendar.id && !viewingAllCalendars && (
+                  <div className="w-2 h-2 bg-primary rounded-full" />
+                )}
+              </div>
             </DropdownMenuItem>
           ))}
           
@@ -168,6 +193,15 @@ export function CalendarSelector() {
         open={showCreateDialog} 
         onOpenChange={setShowCreateDialog}
         trigger="button"
+        onCalendarCreated={handleCalendarUpdated}
+      />
+
+      {/* Edit Calendar Dialog */}
+      <EditCalendarDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        calendar={editingCalendar}
+        onCalendarUpdated={handleCalendarUpdated}
       />
     </>
   );

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronDown, Calendar, Grid3X3 } from 'lucide-react';
+import { Plus, ChevronDown, Calendar, Grid3X3, Edit } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -15,14 +15,28 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { UserContextDisplay } from './calendar-switcher/UserContextDisplay';
 import { CreateCalendarDialog } from './calendar-switcher/CreateCalendarDialog';
+import { EditCalendarDialog } from './calendar-switcher/EditCalendarDialog';
 
 interface CalendarSwitcherProps {
   hideAllCalendarsOption?: boolean;
 }
 
 export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwitcherProps) {
-  const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading } = useCalendarContext();
+  const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading, refreshCalendars } = useCalendarContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingCalendar, setEditingCalendar] = useState(null);
+
+  const handleEditCalendar = (calendar: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingCalendar(calendar);
+    setShowEditDialog(true);
+  };
+
+  const handleCalendarUpdated = () => {
+    refreshCalendars();
+    setEditingCalendar(null);
+  };
 
   if (loading) {
     return (
@@ -100,7 +114,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                 <DropdownMenuItem
                   key={calendar.id}
                   onClick={() => selectCalendar(calendar)}
-                  className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted"
+                  className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group"
                 >
                   <div 
                     className="w-3 h-3 rounded-full flex-shrink-0 border border-border" 
@@ -122,9 +136,19 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                       Owner: You
                     </p>
                   </div>
-                  {(!viewingAllCalendars || hideAllCalendarsOption) && selectedCalendar?.id === calendar.id && (
-                    <div className="w-2 h-2 bg-primary rounded-full" />
-                  )}
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => handleEditCalendar(calendar, e)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                    {(!viewingAllCalendars || hideAllCalendarsOption) && selectedCalendar?.id === calendar.id && (
+                      <div className="w-2 h-2 bg-primary rounded-full" />
+                    )}
+                  </div>
                 </DropdownMenuItem>
               ))}
               
@@ -143,11 +167,20 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
         </div>
       </div>
 
-      {/* Standalone CreateCalendarDialog for the button */}
+      {/* Create Calendar Dialog */}
       <CreateCalendarDialog 
         open={showCreateDialog} 
         onOpenChange={setShowCreateDialog}
         trigger="button"
+        onCalendarCreated={handleCalendarUpdated}
+      />
+
+      {/* Edit Calendar Dialog */}
+      <EditCalendarDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        calendar={editingCalendar}
+        onCalendarUpdated={handleCalendarUpdated}
       />
     </>
   );

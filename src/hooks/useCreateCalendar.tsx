@@ -5,10 +5,20 @@ import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useAuth } from '@/hooks/useAuth';
 
+interface TeamMember {
+  email: string;
+  role: 'owner' | 'editor' | 'viewer';
+  name?: string;
+}
+
 interface CreateCalendarData {
   name: string;
   description?: string;
   color?: string;
+  businessName?: string;
+  location?: string;
+  specialization?: string;
+  teamMembers?: TeamMember[];
 }
 
 export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
@@ -50,7 +60,7 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
           description: data.description,
           color: data.color || '#3B82F6',
           slug: slug,
-          user_id: user.id, // Expliciet user_id meegeven
+          user_id: user.id,
           is_active: true,
           is_default: false
         })
@@ -76,7 +86,41 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
 
       if (memberError) {
         console.error('Error adding user as calendar member:', memberError);
-        // Don't throw here as the calendar was created successfully
+      }
+
+      // Invite team members if provided
+      if (data.teamMembers && data.teamMembers.length > 0) {
+        for (const member of data.teamMembers) {
+          try {
+            // First check if user exists
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('id, email')
+              .eq('email', member.email)
+              .single();
+
+            if (userData && !userError) {
+              // Add member to calendar
+              const { error: inviteError } = await supabase
+                .from('calendar_members')
+                .insert({
+                  calendar_id: calendar.id,
+                  user_id: userData.id,
+                  role: member.role,
+                  invited_by: user.id,
+                  invited_at: new Date().toISOString()
+                });
+
+              if (inviteError) {
+                console.error(`Error inviting ${member.email}:`, inviteError);
+              }
+            } else {
+              console.log(`User ${member.email} not found - they would need to be invited when they sign up`);
+            }
+          } catch (error) {
+            console.error(`Error processing team member ${member.email}:`, error);
+          }
+        }
       }
 
       toast({
