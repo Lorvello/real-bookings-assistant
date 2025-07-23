@@ -28,7 +28,7 @@ export const SettingsLayout = () => {
   // Handle tab from URL parameters
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['users', 'knowledge', 'calendar', 'services', 'billing'].includes(tabParam)) {
+    if (tabParam && ['users', 'knowledge', 'operations', 'services', 'billing'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -60,7 +60,7 @@ export const SettingsLayout = () => {
                 <Brain className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">AI Knowledge</span>
               </TabsTrigger>
-              <TabsTrigger value="calendar" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
+              <TabsTrigger value="operations" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Calendar className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Operations</span>
               </TabsTrigger>
@@ -99,7 +99,7 @@ export const SettingsLayout = () => {
             />
           </TabsContent>
 
-          <TabsContent value="calendar" className="space-y-4 md:space-y-6">
+          <TabsContent value="operations" className="space-y-4 md:space-y-6">
             <CalendarTab />
           </TabsContent>
 
