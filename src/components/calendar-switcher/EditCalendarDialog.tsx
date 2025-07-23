@@ -17,6 +17,7 @@ import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { useDeleteCalendar } from '@/hooks/useDeleteCalendar';
+import { useCalendarActions } from '@/hooks/calendar-settings/useCalendarActions';
 import { SimpleMultiSelect } from '@/components/ui/simple-multi-select';
 import { ServiceTypeQuickCreateDialog } from './ServiceTypeQuickCreateDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -45,6 +46,7 @@ export function EditCalendarDialog({
   const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
   const { updateCalendarName } = useCalendarSettings(calendar?.id);
   const { deleteCalendar } = useDeleteCalendar();
+  const { updateFullCalendar } = useCalendarActions();
 
   const [editCalendar, setEditCalendar] = useState({
     name: '',
@@ -78,15 +80,18 @@ export function EditCalendarDialog({
 
     setLoading(true);
     try {
-      await updateCalendarName(editCalendar.name);
-      
-      toast({
-        title: "Calendar updated",
-        description: "Calendar has been updated successfully",
+      const success = await updateFullCalendar(calendar.id, {
+        name: editCalendar.name,
+        description: editCalendar.description,
+        color: editCalendar.color,
+        serviceTypeIds: selectedServiceTypes,
+        memberUserIds: selectedTeamMembers
       });
       
-      onCalendarUpdated?.();
-      onOpenChange(false);
+      if (success) {
+        onCalendarUpdated?.();
+        onOpenChange(false);
+      }
     } catch (error) {
       console.error('Error updating calendar:', error);
       toast({
