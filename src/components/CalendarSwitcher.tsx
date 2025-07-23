@@ -36,8 +36,6 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
   return (
     <>
       <div className="flex items-center space-x-3">
-        <UserContextDisplay />
-
         <div className="flex items-center space-x-2">
           {/* Calendar Switcher Dropdown */}
           <DropdownMenu>

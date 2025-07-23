@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronDown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,105 +27,105 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
 
   return (
     <>
-      <div className="border-t border-gray-700 p-4">
+      <div className="border-t border-border p-4">
         <div className="mb-3">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Switch Calendar
           </p>
         </div>
         
-        {/* Calendar Dropdown - More neutral styling */}
+        {/* Calendar Dropdown - Clean styling to match calendar tab */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
-              variant="ghost" 
-              className="w-full justify-between text-gray-300 hover:bg-gray-700/50 hover:text-gray-200 border border-gray-600/50 hover:border-gray-500/50"
+              variant="outline" 
+              className="w-full justify-between border-border hover:border-border/80 hover:bg-muted/50"
             >
               <div className="flex items-center space-x-2 min-w-0">
                 {viewingAllCalendars ? (
                   <>
-                    <div className="w-3 h-3 bg-gray-500 rounded-full flex-shrink-0" />
-                    <span className="truncate">All calendars</span>
+                    <div className="w-3 h-3 bg-muted-foreground rounded-full flex-shrink-0" />
+                    <span className="truncate text-sm">All calendars</span>
                   </>
                 ) : (
                   <>
                     <div 
-                      className="w-3 h-3 rounded-full flex-shrink-0" 
+                      className="w-3 h-3 rounded-full flex-shrink-0 border border-border" 
                       style={{ backgroundColor: selectedCalendar?.color || '#6B7280' }}
                     />
-                    <span className="truncate">
+                    <span className="truncate text-sm">
                       {selectedCalendar ? selectedCalendar.name : 'Select calendar'}
                     </span>
                   </>
                 )}
               </div>
-              <ChevronDown className="w-4 h-4 opacity-50 flex-shrink-0" />
+              <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             </Button>
           </DropdownMenuTrigger>
           
-          <DropdownMenuContent className="w-64 bg-gray-800 border-gray-700" align="end">
-            <DropdownMenuLabel className="text-gray-300">Select Calendar</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-gray-700" />
+          <DropdownMenuContent className="w-64 bg-card border-border z-50" align="end">
+            <DropdownMenuLabel className="text-foreground">Select Calendar</DropdownMenuLabel>
+            <DropdownMenuSeparator />
             
-            {/* All calendars option - neutral styling */}
+            {/* All calendars option */}
             <DropdownMenuItem
               onClick={() => selectAllCalendars()}
-              className="flex items-center space-x-3 p-3 text-gray-300 hover:bg-gray-700 focus:bg-gray-700"
+              className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted"
             >
-              <div className="w-3 h-3 bg-gray-500 rounded-full" />
+              <div className="w-3 h-3 bg-muted-foreground rounded-full" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium">All calendars</span>
-                  <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">Mixed</Badge>
+                  <span className="font-medium text-foreground">All calendars</span>
+                  <Badge variant="outline" className="text-xs border-border">Mixed</Badge>
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   View all appointments together
                 </p>
               </div>
               {viewingAllCalendars && (
-                <div className="w-2 h-2 bg-gray-400 rounded-full" />
+                <div className="w-2 h-2 bg-primary rounded-full" />
               )}
             </DropdownMenuItem>
             
-            <DropdownMenuSeparator className="bg-gray-700" />
+            <DropdownMenuSeparator />
             
             {calendars.map((calendar) => (
               <DropdownMenuItem
                 key={calendar.id}
                 onClick={() => selectCalendar(calendar)}
-                className="flex items-center space-x-3 p-3 text-gray-300 hover:bg-gray-700 focus:bg-gray-700"
+                className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted"
               >
                 <div 
-                  className="w-3 h-3 rounded-full flex-shrink-0" 
+                  className="w-3 h-3 rounded-full flex-shrink-0 border border-border" 
                   style={{ backgroundColor: calendar.color || '#6B7280' }}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2">
-                    <span className="font-medium truncate">{calendar.name}</span>
+                    <span className="font-medium truncate text-foreground">{calendar.name}</span>
                     {calendar.is_default && (
-                      <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">Default</Badge>
+                      <Badge variant="outline" className="text-xs border-border">Default</Badge>
                     )}
                   </div>
                   {calendar.description && (
-                    <p className="text-xs text-gray-400 truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {calendar.description}
                     </p>
                   )}
                 </div>
                 {!viewingAllCalendars && selectedCalendar?.id === calendar.id && (
-                  <div className="w-2 h-2 bg-gray-400 rounded-full" />
+                  <div className="w-2 h-2 bg-primary rounded-full" />
                 )}
               </DropdownMenuItem>
             ))}
             
-            <DropdownMenuSeparator className="bg-gray-700" />
+            <DropdownMenuSeparator />
             
             <DropdownMenuItem 
               onSelect={(e) => {
                 e.preventDefault();
                 setShowCreateDialog(true);
               }}
-              className="text-gray-300 hover:bg-gray-700 focus:bg-gray-700"
+              className="hover:bg-muted focus:bg-muted"
             >
               <Plus className="w-4 h-4 mr-2" />
               New calendar
