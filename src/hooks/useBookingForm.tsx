@@ -116,7 +116,18 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose }: UseBoo
 
   const handleServiceTypeChange = (value: string) => {
     form.setValue('serviceTypeId', value);
-    setAutoUpdateEndTime(false); // Disable auto-update when user manually selects a service type
+    
+    // If auto-update is enabled, calculate end time based on new service type
+    if (autoUpdateEndTime) {
+      const selectedService = serviceTypes.find(s => s.id === value);
+      if (selectedService) {
+        const startTime = form.getValues('startTime');
+        if (startTime) {
+          const endTime = calculateEndTimeFromService(startTime, selectedService.duration);
+          form.setValue('endTime', endTime);
+        }
+      }
+    }
   };
 
   const getDuration = () => calculateDuration(startTime, endTime);

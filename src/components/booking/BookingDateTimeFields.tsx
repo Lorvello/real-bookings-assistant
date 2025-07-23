@@ -8,6 +8,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -100,7 +101,7 @@ export function BookingDateTimeFields({
         )}
       />
 
-      {/* Time selection - now always visible */}
+      {/* Time selection with both input and dropdown */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <FormField
@@ -109,20 +110,28 @@ export function BookingDateTimeFields({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Start time *</FormLabel>
-                <Select onValueChange={(value) => onTimeChange('startTime', value)} value={field.value}>
+                <div className="space-y-2">
                   <FormControl>
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Select time" />
-                    </SelectTrigger>
+                    <Input
+                      {...field}
+                      type="time"
+                      className="bg-background"
+                      onChange={(e) => onTimeChange('startTime', e.target.value)}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    {timeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <Select onValueChange={(value) => onTimeChange('startTime', value)} value={field.value}>
+                    <SelectTrigger className="bg-background text-xs">
+                      <SelectValue placeholder="Quick select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -134,20 +143,33 @@ export function BookingDateTimeFields({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>End time *</FormLabel>
-                <Select onValueChange={(value) => onTimeChange('endTime', value)} value={field.value}>
+                <div className="space-y-2">
                   <FormControl>
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Select time" />
-                    </SelectTrigger>
+                    <Input
+                      {...field}
+                      type="time"
+                      className="bg-background"
+                      onChange={(e) => onTimeChange('endTime', e.target.value)}
+                      disabled={autoUpdateEndTime}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    {timeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <Select 
+                    onValueChange={(value) => onTimeChange('endTime', value)} 
+                    value={field.value}
+                    disabled={autoUpdateEndTime}
+                  >
+                    <SelectTrigger className="bg-background text-xs">
+                      <SelectValue placeholder="Quick select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
