@@ -127,7 +127,7 @@ export function SimpleMultiSelect({
                 <div
                   key={option.value}
                   data-dropdown-item
-                  className="relative w-full flex cursor-pointer select-none items-center px-3 py-2.5 text-sm text-left hover:bg-accent hover:text-accent-foreground transition-colors pointer-events-auto"
+                  className="relative w-full flex cursor-pointer select-none items-center px-3 py-2.5 text-sm text-left transition-colors pointer-events-auto"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
