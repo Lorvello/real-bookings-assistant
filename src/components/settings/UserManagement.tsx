@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { useProfile } from '@/hooks/useProfile';
@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import PhoneInput from 'react-phone-number-input';
+import { parsePhoneNumber, isValidPhoneNumber } from 'react-phone-number-input';
 import './phone-input.css';
 
 // Comprehensive timezone options
@@ -141,8 +142,15 @@ export const UserManagement = () => {
   const [tempValues, setTempValues] = useState<any>({});
   const [saving, setSaving] = useState<string | null>(null);
 
+  // Stabilize refetch function
+  const stableRefetch = useCallback(() => {
+    if (!loading) {
+      refetch();
+    }
+  }, [refetch, loading]);
+
   // Handle adding a new user (simplified - no calendar selection)
-  const handleAddUser = async () => {
+  const handleAddUser = useCallback(async () => {
     if (!newUserEmail.trim()) {
       toast({
         title: "Email required",
@@ -179,26 +187,45 @@ export const UserManagement = () => {
         title: "User invited",
         description: "User has been added successfully",
       });
-      // Force refresh members list
-      await refetch();
+      stableRefetch();
+    } catch (error) {
+      toast({
+        title: "Error adding user",
+        description: "Could not add the user. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [newUserEmail, newUserName, newUserRole, calendars, inviteMember, toast, stableRefetch]);
 
-  const handleRoleChange = async (memberId: string, newRole: 'editor' | 'viewer') => {
-    await updateMemberRole(memberId, newRole);
-    // Force refresh members list
-    await refetch();
-  };
-
-  const handleRemoveUser = async (memberId: string) => {
-    if (confirm('Are you sure you want to remove this user?')) {
-      await removeMember(memberId);
-      // Force refresh members list
-      await refetch();
+  const handleRoleChange = useCallback(async (memberId: string, newRole: 'editor' | 'viewer') => {
+    try {
+      await updateMemberRole(memberId, newRole);
+      stableRefetch();
+    } catch (error) {
+      toast({
+        title: "Error updating role",
+        description: "Could not update the user role",
+        variant: "destructive",
+      });
     }
-  };
+  }, [updateMemberRole, stableRefetch, toast]);
+
+  const handleRemoveUser = useCallback(async (memberId: string) => {
+    if (confirm('Are you sure you want to remove this user?')) {
+      try {
+        await removeMember(memberId);
+        stableRefetch();
+      } catch (error) {
+        toast({
+          title: "Error removing user",
+          description: "Could not remove the user",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [removeMember, stableRefetch, toast]);
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -226,16 +253,8 @@ export const UserManagement = () => {
     }
   };
 
-  // Auto-refresh members when component mounts or when a member is added
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!loading) {
-        refetch();
-      }
-    }, 5000); // Refresh every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [loading, refetch]);
+  // Debounce timer for auto-save
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Profile editing functions
   const startEditing = (field: string, currentValue: any) => {
@@ -269,48 +288,94 @@ export const UserManagement = () => {
     }
   };
 
-  // Auto-save for certain fields
-  const handleAutoSave = async (field: string, value: any) => {
-    setSaving(field);
-    try {
-      await updateProfile({ [field]: value });
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error updating profile",
-        description: "Could not update your profile",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(null);
+  // Auto-save with debouncing for certain fields
+  const handleAutoSave = useCallback(async (field: string, value: any) => {
+    // Clear existing timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
     }
-  };
 
-  // Combine users without duplications
-  // Ensure owner is only included once at the top
-  const ownerUser = profile ? {
-    id: 'owner',
-    user: {
-      full_name: profile.full_name || 'Account Owner',
-      email: profile.email
-    },
-    role: 'owner',
-    calendar: { name: 'All Calendars' }
-  } : null;
+    // Set new timer
+    const timer = setTimeout(async () => {
+      setSaving(field);
+      try {
+        await updateProfile({ [field]: value });
+        toast({
+          title: "Profile updated",
+          description: "Your profile has been updated successfully",
+        });
+      } catch (error) {
+        console.error('Profile update error:', error);
+        toast({
+          title: "Error updating profile",
+          description: "Could not update your profile",
+          variant: "destructive",
+        });
+      } finally {
+        setSaving(null);
+      }
+    }, 1000); // Debounce for 1 second
 
-  // Filter out any team members who have the same email as the owner
-  const teamMembers = members.filter(
-    member => member.user?.email !== profile?.email
-  );
+    setDebounceTimer(timer);
+  }, [debounceTimer, updateProfile, toast]);
 
-  // Combine owner and team members
-  const allUsers = [
-    ...(ownerUser ? [ownerUser] : []),
-    ...teamMembers
-  ];
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [debounceTimer]);
+
+  // Memoize computed users to prevent unnecessary recalculations
+  const allUsers = useMemo(() => {
+    // Ensure owner is only included once at the top
+    const ownerUser = profile ? {
+      id: 'owner',
+      user: {
+        full_name: profile.full_name || 'Account Owner',
+        email: profile.email
+      },
+      role: 'owner',
+      calendar: { name: 'All Calendars' }
+    } : null;
+
+    // Filter out any team members who have the same email as the owner
+    const teamMembers = members.filter(
+      member => member.user?.email !== profile?.email
+    );
+
+    // Combine owner and team members
+    return [
+      ...(ownerUser ? [ownerUser] : []),
+      ...teamMembers
+    ];
+  }, [profile, members]);
+
+  // Format phone number to E.164 format for validation
+  const formatPhoneForInput = useCallback((phone: string | null | undefined) => {
+    if (!phone) return undefined;
+    
+    try {
+      // If the phone is already in E.164 format, return it
+      if (phone.startsWith('+') && isValidPhoneNumber(phone)) {
+        return phone;
+      }
+      
+      // Try to parse and format the phone number
+      const parsed = parsePhoneNumber(phone, 'NL'); // Default to NL country code
+      if (parsed && parsed.isValid()) {
+        return parsed.number;
+      }
+      
+      // If parsing fails, return undefined to avoid validation errors
+      return undefined;
+    } catch (error) {
+      console.warn('Phone number formatting error:', error);
+      return undefined;
+    }
+  }, []);
 
   return (
     <Card className="border-gray-700 bg-gray-800">
@@ -437,9 +502,9 @@ export const UserManagement = () => {
                           international
                           countryCallingCodeEditable={false}
                           defaultCountry="NL"
-                          value={profile.phone || ''}
+                          value={formatPhoneForInput(profile.phone)}
                           onChange={(value) => {
-                            if (value) {
+                            if (value && isValidPhoneNumber(value)) {
                               handleAutoSave('phone', value);
                             }
                           }}
