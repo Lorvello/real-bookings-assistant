@@ -29,7 +29,7 @@ export function CalendarSettingsDialog({
           </DialogTitle>
         </DialogHeader>
         <div className="mt-6">
-          <CalendarSettings calendarId={calendarId} />
+          <CalendarSettings calendarId={calendarId} showGlobalSettings={false} />
         </div>
       </DialogContent>
     </Dialog>
