@@ -65,7 +65,7 @@ export function CreateCalendarDialog({
       const currentUserEmail = profile.email || '';
       
       // Get unique team members (avoid duplicates by email)
-      const uniqueMembers = availableMembers.reduce((acc, member) => {
+      const uniqueMembers = (availableMembers || []).reduce((acc, member) => {
         const email = member.user?.email;
         if (email && !acc.find(m => m.user?.email === email)) {
           acc.push(member);
@@ -107,7 +107,7 @@ export function CreateCalendarDialog({
     try {
       // Convert selected team members to TeamMember format
       const teamMembersForCreation = selectedTeamMembers.map(email => {
-        const member = availableMembers.find(m => m.user?.email === email);
+        const member = (availableMembers || []).find(m => m.user?.email === email);
         const isCurrentUser = email === profile?.email;
         
         return {
@@ -145,7 +145,7 @@ export function CreateCalendarDialog({
     if (email === profile?.email) {
       return profile?.full_name || 'Current User';
     }
-    const member = availableMembers.find(m => m.user?.email === email);
+    const member = (availableMembers || []).find(m => m.user?.email === email);
     return member?.user?.full_name || email.split('@')[0];
   };
 
@@ -165,7 +165,7 @@ export function CreateCalendarDialog({
     }
     
     // Add other team members
-    availableMembers.forEach(member => {
+    (availableMembers || []).forEach(member => {
       const email = member.user?.email;
       if (email && !seenEmails.has(email)) {
         uniqueMembers.push({
@@ -181,11 +181,14 @@ export function CreateCalendarDialog({
   };
 
   const getServiceTypeName = (id: string) => {
-    return serviceTypes.find(st => st.id === id)?.name || 'Unknown Service';
+    return (serviceTypes || []).find(st => st.id === id)?.name || 'Unknown Service';
   };
 
   // Helper functions for MultiSelect data formatting
   const getServiceTypeOptions = () => {
+    if (!serviceTypes || !Array.isArray(serviceTypes)) {
+      return [];
+    }
     return serviceTypes.map(serviceType => ({
       value: serviceType.id,
       label: serviceType.name
@@ -193,7 +196,11 @@ export function CreateCalendarDialog({
   };
 
   const getTeamMemberOptions = () => {
-    return getAvailableTeamMembers().map(member => ({
+    const availableMembers = getAvailableTeamMembers();
+    if (!availableMembers || !Array.isArray(availableMembers)) {
+      return [];
+    }
+    return availableMembers.map(member => ({
       value: member.email,
       label: `${member.name} - ${member.email}`
     }));
