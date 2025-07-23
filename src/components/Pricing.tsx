@@ -15,7 +15,8 @@ export const Pricing = () => {
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
         "Strategic WhatsApp contact management (up to 500)",
-        "Dual-calendar orchestration system", 
+        "Unified calendar orchestration platform",
+        "Individual user access management",
         "AI-powered intelligent reminder sequences",
         "Essential dashboard overview & live operations monitoring",
         "Global multi-language localization",
@@ -34,7 +35,7 @@ export const Pricing = () => {
         "All Starter premium features included",
         "Professional WhatsApp contact management (up to 2,500)",
         "Unlimited calendar orchestration platform",
-        "Advanced team collaboration suite (3+ users)",
+        "Advanced team collaboration suite (2-10 users)",
         "Multi-location business coordination",
         "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
         "Dedicated priority customer success"
@@ -51,6 +52,7 @@ export const Pricing = () => {
       features: [
         "Complete professional suite included",
         "Unlimited enterprise WhatsApp contact management",
+        "Unlimited enterprise user access management",
         "Dedicated WhatsApp Business API with custom branding",
         "Intelligent voice call routing & distribution",
         "Omnichannel social media DM orchestration",
