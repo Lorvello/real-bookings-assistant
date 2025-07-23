@@ -16,9 +16,17 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
     try {
       let query = supabase.from('service_types').select('*').order('created_at', { ascending: false });
       
-      // If showAllServiceTypes is true, fetch all service types without filtering  
+      // If showAllServiceTypes is true, show service types from all user's calendars
       if (showAllServiceTypes) {
-        // No filtering - show all service types from all calendars
+        const userCalendarIds = getActiveCalendarIds();
+        if (userCalendarIds.length > 0) {
+          query = query.in('calendar_id', userCalendarIds);
+        } else {
+          // No calendars available, return empty result
+          setServiceTypes([]);
+          setLoading(false);
+          return;
+        }
       } else if (calendarId) {
         // If a calendarId is provided, filter by it
         query = query.eq('calendar_id', calendarId);
