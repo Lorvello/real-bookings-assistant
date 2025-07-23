@@ -24,6 +24,15 @@ interface Booking {
     duration: number;
     description?: string;
   } | null;
+  calendar?: {
+    id?: string;
+    name: string;
+    color: string;
+    user_id?: string;
+    users?: {
+      full_name: string;
+    };
+  };
 }
 
 interface ModernMonthViewProps {

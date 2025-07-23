@@ -17,9 +17,13 @@ interface Booking {
   internal_notes?: string;
   total_price?: number;
   calendar?: {
-    id: string;
+    id?: string;
     name: string;
     color: string;
+    user_id?: string;
+    users?: {
+      full_name: string;
+    };
   };
   service_types?: {
     name: string;
@@ -122,14 +126,24 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
                 <Calendar className="w-4 h-4" />
                 <span className="font-medium">Calendar</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: booking.calendar.color }}
-                />
-                <span className="font-semibold text-foreground">
-                  {booking.calendar.name}
-                </span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: booking.calendar.color }}
+                  />
+                  <span className="font-semibold text-foreground">
+                    {booking.calendar.name}
+                  </span>
+                </div>
+                {booking.calendar.users?.full_name && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <User className="w-3 h-3" />
+                    <span className="text-sm">
+                      {booking.calendar.users.full_name}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}

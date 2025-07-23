@@ -18,9 +18,13 @@ interface Booking {
   internal_notes?: string;
   total_price?: number;
   calendar?: {
-    id: string;
+    id?: string;
     name: string;
     color: string;
+    user_id?: string;
+    users?: {
+      full_name: string;
+    };
   };
   service_types?: {
     name: string;

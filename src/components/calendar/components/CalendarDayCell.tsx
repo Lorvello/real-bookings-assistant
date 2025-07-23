@@ -19,6 +19,15 @@ interface Booking {
     duration: number;
     description?: string;
   } | null;
+  calendar?: {
+    id?: string;
+    name: string;
+    color: string;
+    user_id?: string;
+    users?: {
+      full_name: string;
+    };
+  };
 }
 
 interface CalendarDayCellProps {
@@ -100,14 +109,30 @@ export function CalendarDayCell({
         
         {hasSingleBooking && (
           <div
-            className="group/booking p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
+            className="group/booking p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md relative"
             style={{
               backgroundColor: dayBookings[0].service_types?.color || '#3B82F6',
               backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`
             }}
-            title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name} (${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'})`}
+            title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name}\nKalender: ${dayBookings[0].calendar?.name || 'Onbekend'}\nPersoon: ${dayBookings[0].calendar?.users?.full_name || 'Onbekend'}\nService: ${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}`}
             onClick={(e) => handleSingleBookingClick(dayBookings[0], e)}
           >
+            {/* Calendar and person indicators */}
+            <div className="absolute top-0.5 right-0.5 flex gap-0.5">
+              {/* Calendar indicator */}
+              <div 
+                className="w-2 h-2 rounded-full border border-white/50"
+                style={{ backgroundColor: dayBookings[0].calendar?.color || '#6B7280' }}
+                title={`Kalender: ${dayBookings[0].calendar?.name || 'Onbekend'}`}
+              />
+              {/* Person indicator */}
+              <div className="w-2 h-2 rounded-full bg-white/80 flex items-center justify-center">
+                <span className="text-[6px] font-bold text-gray-700">
+                  {dayBookings[0].calendar?.users?.full_name?.charAt(0) || '?'}
+                </span>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
               <div className="text-white text-xs font-semibold">
                 {format(new Date(dayBookings[0].start_time), 'HH:mm')}

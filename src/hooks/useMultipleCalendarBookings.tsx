@@ -25,6 +25,10 @@ interface BookingData {
   calendar?: {
     name: string;
     color: string;
+    user_id: string;
+    users?: {
+      full_name: string;
+    };
   };
 }
 
@@ -59,7 +63,11 @@ export const useMultipleCalendarBookings = (calendarIds: string[]) => {
           ),
           calendars!inner (
             name,
-            color
+            color,
+            user_id,
+            users (
+              full_name
+            )
           )
         `)
         .in('calendar_id', calendarIds)

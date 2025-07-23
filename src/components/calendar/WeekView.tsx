@@ -15,6 +15,15 @@ interface Booking {
   notes?: string;
   internal_notes?: string;
   total_price?: number;
+  calendar?: {
+    id?: string;
+    name: string;
+    color: string;
+    user_id?: string;
+    users?: {
+      full_name: string;
+    };
+  };
   service_types?: {
     name: string;
     color: string;
@@ -102,16 +111,32 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
 
   return (
     <div
-      className="absolute inset-x-0 mx-1 p-2 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 group hover:scale-105 border border-white/20"
+      className="absolute inset-x-0 mx-1 p-2 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 group hover:scale-105 border border-white/20 relative"
       style={{
         background: `linear-gradient(135deg, ${booking.service_types?.color || '#3B82F6'}, ${booking.service_types?.color || '#3B82F6'}dd)`,
         height: `${height}px`,
         top: `${topOffset}px`,
         boxShadow: `0 2px 10px ${booking.service_types?.color || '#3B82F6'}40`
       }}
-      title={`${booking.customer_name} - ${booking.service_types?.name || 'Appointment'} (${booking.customer_phone || 'No phone'})`}
+      title={`${booking.customer_name} - ${booking.service_types?.name || 'Appointment'}\nKalender: ${booking.calendar?.name || 'Onbekend'}\nPersoon: ${booking.calendar?.users?.full_name || 'Onbekend'}\nTelefoon: ${booking.customer_phone || 'Geen telefoon'}`}
       onClick={() => onBookingClick(booking)}
     >
+      {/* Calendar and person indicators */}
+      <div className="absolute top-1 right-1 flex gap-0.5">
+        {/* Calendar indicator */}
+        <div 
+          className="w-2 h-2 rounded-full border border-white/50"
+          style={{ backgroundColor: booking.calendar?.color || '#6B7280' }}
+          title={`Kalender: ${booking.calendar?.name || 'Onbekend'}`}
+        />
+        {/* Person indicator */}
+        <div className="w-2 h-2 rounded-full bg-white/80 flex items-center justify-center">
+          <span className="text-[6px] font-bold text-gray-700">
+            {booking.calendar?.users?.full_name?.charAt(0) || '?'}
+          </span>
+        </div>
+      </div>
+
       <div className="text-white">
         <div className="flex items-center justify-between mb-1">
           <div className="font-bold text-xs truncate">{booking.customer_name}</div>
