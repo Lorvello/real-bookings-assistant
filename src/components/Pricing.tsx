@@ -437,7 +437,7 @@ export const Pricing = () => {
                                 </div>
                                  <Tooltip>
                                    <TooltipTrigger asChild>
-                                     <div className="flex-1 cursor-help">
+                                     <div className="flex-1 cursor-help p-1 -m-1">
                                        <span className="text-slate-200/95 text-[10px] leading-tight font-medium tracking-wide hover:text-slate-100 transition-colors">
                                          {feature.text}
                                          <Info className="w-2 h-2 text-slate-500 hover:text-slate-400 transition-colors ml-0.5 inline align-baseline" />
