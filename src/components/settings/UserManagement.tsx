@@ -11,12 +11,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Edit, Trash2, Crown, User, Eye } from 'lucide-react';
+import { UserPlus, Edit, Trash2, Crown, User, Eye, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export const UserManagement = () => {
-  const { selectedCalendar, calendars } = useCalendarContext();
-  const { members, loading, inviteMember, removeMember, updateMemberRole } = useCalendarMembers(selectedCalendar?.id || '');
+  const { calendars } = useCalendarContext();
+  const { members, loading, inviteMember, removeMember, updateMemberRole } = useCalendarMembers(); // No specific calendar ID
   const { profile } = useProfile();
   const { toast } = useToast();
   
@@ -24,6 +24,7 @@ export const UserManagement = () => {
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserRole, setNewUserRole] = useState<'editor' | 'viewer'>('viewer');
+  const [selectedCalendarForNewUser, setSelectedCalendarForNewUser] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddUser = async () => {
@@ -36,7 +37,7 @@ export const UserManagement = () => {
       return;
     }
 
-    if (!selectedCalendar?.id) {
+    if (!selectedCalendarForNewUser) {
       toast({
         title: "Calendar required",
         description: "Please select a calendar to add a user to",
@@ -47,10 +48,11 @@ export const UserManagement = () => {
 
     setIsSubmitting(true);
     try {
-      await inviteMember(newUserEmail, newUserRole, newUserName);
+      await inviteMember(newUserEmail, selectedCalendarForNewUser, newUserRole, newUserName);
       setNewUserEmail('');
       setNewUserName('');
       setNewUserRole('viewer');
+      setSelectedCalendarForNewUser('');
       setIsAddUserOpen(false);
     } finally {
       setIsSubmitting(false);
@@ -93,15 +95,29 @@ export const UserManagement = () => {
     }
   };
 
+  // Group members by calendar for display
+  const groupMembersByCalendar = () => {
+    const grouped = members.reduce((acc, member) => {
+      const calendarId = member.calendar_id;
+      if (!acc[calendarId]) {
+        acc[calendarId] = [];
+      }
+      acc[calendarId].push(member);
+      return acc;
+    }, {} as Record<string, typeof members>);
+    
+    return grouped;
+  };
+  
+  const groupedMembers = groupMembersByCalendar();
+
   return (
     <Card className="border-gray-700 bg-gray-800">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle className="text-white">Users Management</CardTitle>
           <p className="text-sm text-gray-400 mt-1">
-            {selectedCalendar 
-              ? `Manage who has access to your calendar "${selectedCalendar.name}"`
-              : "Select a calendar to manage users or add new team members"}
+            Manage who has access to your calendars
           </p>
         </div>
         
@@ -153,11 +169,21 @@ export const UserManagement = () => {
               </div>
               <div>
                 <Label className="text-gray-300">Calendar</Label>
-                <p className="text-sm text-gray-400 mt-1">
-                  {selectedCalendar
-                    ? `User will be added to "${selectedCalendar.name}"`
-                    : "Please select a calendar first"}
-                </p>
+                <Select 
+                  value={selectedCalendarForNewUser} 
+                  onValueChange={(value) => setSelectedCalendarForNewUser(value)}
+                >
+                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                    <SelectValue placeholder="Select a calendar" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    {calendars.map(calendar => (
+                      <SelectItem key={calendar.id} value={calendar.id}>
+                        {calendar.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex justify-end space-x-2">
                 <Button
@@ -169,7 +195,7 @@ export const UserManagement = () => {
                 </Button>
                 <Button
                   onClick={handleAddUser}
-                  disabled={isSubmitting || !selectedCalendar}
+                  disabled={isSubmitting || !selectedCalendarForNewUser}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   {isSubmitting ? 'Adding...' : 'Add User'}
@@ -207,90 +233,88 @@ export const UserManagement = () => {
               </div>
             </div>
 
-            {/* Team Members */}
-            {selectedCalendar ? (
-              members.length > 0 ? (
-                <div>
-                  <h4 className="text-white font-medium mb-3">Team Members</h4>
-                  <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-gray-700">
-                          <TableHead className="text-gray-300">User</TableHead>
-                          <TableHead className="text-gray-300">Role</TableHead>
-                          <TableHead className="text-gray-300">Access</TableHead>
-                          <TableHead className="text-gray-300">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {members.map((member) => (
-                          <TableRow key={member.id} className="border-gray-700">
-                            <TableCell>
-                              <div>
-                                <p className="text-white font-medium">
-                                  {member.user?.full_name || 'Unknown User'}
-                                </p>
-                                <p className="text-sm text-gray-400">{member.user?.email}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                {getRoleIcon(member.role)}
-                                <span className="text-gray-300">{getRoleName(member.role)}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <p className="text-sm text-gray-400">
-                                Calendar: {selectedCalendar.name}
-                              </p>
-                            </TableCell>
-                            <TableCell>
-                              {member.role !== 'owner' && (
-                                <div className="flex items-center space-x-2">
-                                  <Select
-                                    value={member.role}
-                                    onValueChange={(value: 'editor' | 'viewer') => handleRoleChange(member.id, value)}
-                                  >
-                                    <SelectTrigger className="w-24 h-8 bg-gray-800 border-gray-700 text-white text-xs">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-gray-800 border-gray-700">
-                                      <SelectItem value="viewer">Viewer</SelectItem>
-                                      <SelectItem value="editor">Editor</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleRemoveUser(member.id)}
-                                    className="h-8 px-2 border-red-700 text-red-400 hover:bg-red-900/30"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+            {/* Team Members - Show all calendars and their members */}
+            {Object.keys(groupedMembers).length > 0 ? (
+              <div>
+                <h4 className="text-white font-medium mb-3">Team Members</h4>
+                <div className="space-y-6">
+                  {Object.entries(groupedMembers).map(([calendarId, calendarMembers]) => {
+                    const calendar = calendars.find(cal => cal.id === calendarId);
+                    
+                    return (
+                      <div key={calendarId} className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
+                        <div className="bg-gray-800 p-3 border-b border-gray-700">
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="h-4 w-4 text-blue-500" />
+                            <h5 className="text-white font-medium">{calendar?.name || 'Unknown Calendar'}</h5>
+                          </div>
+                        </div>
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="border-gray-700">
+                              <TableHead className="text-gray-300">User</TableHead>
+                              <TableHead className="text-gray-300">Role</TableHead>
+                              <TableHead className="text-gray-300">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {calendarMembers.map((member) => (
+                              <TableRow key={member.id} className="border-gray-700">
+                                <TableCell>
+                                  <div>
+                                    <p className="text-white font-medium">
+                                      {member.user?.full_name || 'Unknown User'}
+                                    </p>
+                                    <p className="text-sm text-gray-400">{member.user?.email}</p>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center space-x-2">
+                                    {getRoleIcon(member.role)}
+                                    <span className="text-gray-300">{getRoleName(member.role)}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  {member.role !== 'owner' && (
+                                    <div className="flex items-center space-x-2">
+                                      <Select
+                                        value={member.role}
+                                        onValueChange={(value: 'editor' | 'viewer') => handleRoleChange(member.id, value)}
+                                      >
+                                        <SelectTrigger className="w-24 h-8 bg-gray-800 border-gray-700 text-white text-xs">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-gray-800 border-gray-700">
+                                          <SelectItem value="viewer">Viewer</SelectItem>
+                                          <SelectItem value="editor">Editor</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleRemoveUser(member.id)}
+                                        className="h-8 px-2 border-red-700 text-red-400 hover:bg-red-900/30"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    );
+                  })}
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <User className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-400">No team members yet</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Invite team members to collaborate on your calendar
-                  </p>
-                </div>
-              )
+              </div>
             ) : (
               <div className="text-center py-8">
                 <User className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400">Select a calendar to manage team members</p>
+                <p className="text-gray-400">No team members yet</p>
                 <p className="text-sm text-gray-500 mt-1">
-                  You can add users once you've selected a calendar
+                  Invite team members to collaborate on your calendars
                 </p>
               </div>
             )}

@@ -16,29 +16,35 @@ interface CalendarMember {
     full_name?: string;
     email: string;
   };
+  calendar?: {
+    id: string;
+    name: string;
+  };
 }
 
-export const useCalendarMembers = (calendarId: string) => {
+export const useCalendarMembers = (calendarId?: string) => {
   const [members, setMembers] = useState<CalendarMember[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchMembers = async () => {
-    if (!calendarId) {
-      setMembers([]);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      let query = supabase
         .from('calendar_members')
         .select(`
           *,
-          users!calendar_members_user_id_fkey(full_name, email)
+          users!calendar_members_user_id_fkey(full_name, email),
+          calendars!calendar_members_calendar_id_fkey(id, name)
         `)
-        .eq('calendar_id', calendarId)
         .order('created_at', { ascending: false });
+
+      // If a specific calendarId is provided, filter by it
+      if (calendarId) {
+        query = query.eq('calendar_id', calendarId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       
@@ -48,6 +54,10 @@ export const useCalendarMembers = (calendarId: string) => {
         user: member.users ? {
           full_name: member.users.full_name,
           email: member.users.email
+        } : undefined,
+        calendar: member.calendars ? {
+          id: member.calendars.id,
+          name: member.calendars.name
         } : undefined
       }));
       
@@ -64,8 +74,10 @@ export const useCalendarMembers = (calendarId: string) => {
     }
   };
 
-  const inviteMember = async (email: string, role: 'editor' | 'viewer' = 'viewer', fullName: string = '') => {
-    if (!calendarId) {
+  const inviteMember = async (email: string, calendarIdForInvite: string, role: 'editor' | 'viewer' = 'viewer', fullName: string = '') => {
+    const targetCalendarId = calendarIdForInvite || calendarId;
+
+    if (!targetCalendarId) {
       toast({
         title: "Fout bij uitnodigen",
         description: "Selecteer eerst een kalender",
@@ -95,7 +107,7 @@ export const useCalendarMembers = (calendarId: string) => {
       const { data: existingMember } = await supabase
         .from('calendar_members')
         .select('id')
-        .eq('calendar_id', calendarId)
+        .eq('calendar_id', targetCalendarId)
         .eq('user_id', userData.id)
         .single();
 
@@ -123,7 +135,7 @@ export const useCalendarMembers = (calendarId: string) => {
       const { error } = await supabase
         .from('calendar_members')
         .insert({
-          calendar_id: calendarId,
+          calendar_id: targetCalendarId,
           user_id: userData.id,
           role: role,
           invited_by: (await supabase.auth.getUser()).data.user?.id

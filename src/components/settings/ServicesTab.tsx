@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ServiceTypesManager } from '@/components/ServiceTypesManager';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Plus } from 'lucide-react';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
@@ -44,7 +44,19 @@ export function ServicesTab() {
 
   return (
     <div className="space-y-6">
-      <ServiceTypesManager calendarId={selectedCalendar?.id} />
+      <Card className="border-border">
+        <CardHeader>
+          <CardTitle className="text-foreground">Services Management</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {selectedCalendar 
+              ? `Manage services for "${selectedCalendar.name}"`
+              : "Select a calendar above or view all services across calendars"}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <ServiceTypesManager calendarId={selectedCalendar?.id} showCalendarLabels={!selectedCalendar} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

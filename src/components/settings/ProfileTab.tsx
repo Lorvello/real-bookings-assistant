@@ -62,7 +62,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
       )}
 
-      {/* Users Management Section */}
+      {/* Users Management Section - Independent of calendar selection */}
       <UserManagement />
 
       {/* Basic Information */}
