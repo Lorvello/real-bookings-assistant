@@ -22,6 +22,11 @@ import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { ServiceTypeQuickCreateDialog } from './ServiceTypeQuickCreateDialog';
 
+const colorOptions = [
+  '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+  '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6B7280'
+];
+
 interface TeamMember {
   email: string;
   name: string;
@@ -327,17 +332,20 @@ export function CreateCalendarDialog({
             {/* Color */}
             <div>
               <Label htmlFor="calendar-color">Color</Label>
-              <div className="flex items-center space-x-2 mt-1">
-                <input
-                  type="color"
-                  id="calendar-color"
-                  value={newCalendar.color}
-                  onChange={(e) => setNewCalendar(prev => ({ ...prev, color: e.target.value }))}
-                  className="w-8 h-8 rounded border"
-                />
-                <span className="text-sm text-muted-foreground">{newCalendar.color}</span>
-                <span className="text-xs text-muted-foreground">Choose a color to distinguish the calendar</span>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setNewCalendar(prev => ({ ...prev, color }))}
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      newCalendar.color === color ? 'border-foreground scale-110' : 'border-border'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    type="button"
+                  />
+                ))}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">Choose a color to distinguish the calendar</p>
             </div>
           </div>
           
