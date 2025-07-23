@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Check, Calendar, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, Grid3X3 } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import {
   DropdownMenu,
@@ -53,8 +53,15 @@ export function CalendarSelector() {
           className="border-border hover:border-border/80 hover:bg-muted/50 min-w-[240px] h-12 justify-between"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-muted/50 rounded-lg flex items-center justify-center border border-border">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center justify-center">
+              {viewingAllCalendars ? (
+                <Grid3X3 className="w-3 h-3 text-muted-foreground" />
+              ) : (
+                <div 
+                  className="w-3 h-3 rounded-full border border-border" 
+                  style={{ backgroundColor: selectedCalendar?.color || '#6B7280' }}
+                />
+              )}
             </div>
             <div className="flex flex-col items-start">
               <span className="text-sm font-medium text-foreground">{getDisplayText()}</span>
@@ -79,9 +86,7 @@ export function CalendarSelector() {
               className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted focus:bg-muted transition-colors rounded-md m-1"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-muted/50 rounded-lg flex items-center justify-center border border-border">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                </div>
+                <Grid3X3 className="w-3 h-3 text-muted-foreground" />
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-foreground">
                     All Calendars
@@ -108,9 +113,10 @@ export function CalendarSelector() {
             className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted focus:bg-muted transition-colors rounded-md m-1"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-muted/50 rounded-lg flex items-center justify-center border border-border">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </div>
+              <div 
+                className="w-3 h-3 rounded-full border border-border flex-shrink-0" 
+                style={{ backgroundColor: calendar.color || '#6B7280' }}
+              />
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-foreground">
                   {calendar.name}
