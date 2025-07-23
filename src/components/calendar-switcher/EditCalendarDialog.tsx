@@ -79,10 +79,10 @@ export function EditCalendarDialog({
           setSelectedServiceTypes([]);
         }
         
-        // Load currently linked team members
+        // Load currently linked team members (calendar_member IDs)
         try {
-          const linkedMembers = await fetchCalendarMembers(calendar.id);
-          setSelectedTeamMembers(linkedMembers);
+          const linkedMemberIds = await fetchCalendarMembers(calendar.id);
+          setSelectedTeamMembers(linkedMemberIds);
         } catch (error) {
           console.error('Error loading calendar members:', error);
           setSelectedTeamMembers([]);
@@ -98,12 +98,17 @@ export function EditCalendarDialog({
 
     setLoading(true);
     try {
+      // Convert selected calendar member IDs to user IDs
+      const memberUserIds = selectedTeamMembers
+        .map(memberId => availableMembers.find(member => member.id === memberId)?.user_id)
+        .filter(Boolean) as string[];
+
       const success = await updateFullCalendar(calendar.id, {
         name: editCalendar.name,
         description: editCalendar.description,
         color: editCalendar.color,
         serviceTypeIds: selectedServiceTypes,
-        memberUserIds: selectedTeamMembers
+        memberUserIds: memberUserIds
       });
       
       if (success) {
