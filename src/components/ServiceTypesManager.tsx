@@ -5,6 +5,8 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { ServiceTypesEmptyState } from '@/components/settings/service-types/ServiceTypesEmptyState';
 import { ServiceTypeForm } from '@/components/settings/service-types/ServiceTypeForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface ServiceTypesManagerProps {
   calendarId?: string;
@@ -83,40 +85,52 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
   }
 
   return (
-    <div>
+    <div className="space-y-4">
       {serviceTypes.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {serviceTypes.map(service => (
-            <div 
-              key={service.id} 
-              className="bg-gray-900 p-4 rounded-lg border border-gray-700"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg text-white font-medium">{service.name}</h3>
-                <div 
-                  className="w-4 h-4 rounded-full" 
-                  style={{ backgroundColor: service.color }}
-                />
-              </div>
-              {showCalendarLabels && (
-                <div className="mt-1 text-xs text-gray-400">
-                  {getCalendarName(service.calendar_id)}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {serviceTypes.map(service => (
+              <div 
+                key={service.id} 
+                className="bg-gray-900 p-4 rounded-lg border border-gray-700"
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg text-white font-medium">{service.name}</h3>
+                  <div 
+                    className="w-4 h-4 rounded-full" 
+                    style={{ backgroundColor: service.color }}
+                  />
                 </div>
-              )}
-              <p className="text-sm text-gray-400 mt-2">
-                Duration: {service.duration} minutes
-              </p>
-              {service.price && (
-                <p className="text-sm text-gray-400">
-                  Price: €{service.price}
+                {showCalendarLabels && (
+                  <div className="mt-1 text-xs text-gray-400">
+                    {getCalendarName(service.calendar_id)}
+                  </div>
+                )}
+                <p className="text-sm text-gray-400 mt-2">
+                  Duration: {service.duration} minutes
                 </p>
-              )}
-              <p className="text-sm text-gray-400 mt-2 line-clamp-2">
-                {service.description || 'No description'}
-              </p>
-            </div>
-          ))}
-        </div>
+                {service.price && (
+                  <p className="text-sm text-gray-400">
+                    Price: €{service.price}
+                  </p>
+                )}
+                <p className="text-sm text-gray-400 mt-2 line-clamp-2">
+                  {service.description || 'No description'}
+                </p>
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex justify-center">
+            <Button 
+              onClick={() => setShowCreateDialog(true)}
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Service Type
+            </Button>
+          </div>
+        </>
       ) : (
         <ServiceTypesEmptyState 
           onAddService={() => setShowCreateDialog(true)} 
