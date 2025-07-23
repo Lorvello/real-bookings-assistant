@@ -58,36 +58,41 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="relative group"
         >
-          <Card className="bg-cyan-900/20 border-gray-700 hover:scale-105 transition-transform duration-200 h-44">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">
-                Next Appointment
-              </CardTitle>
-              <Clock className="h-4 w-4 text-cyan-400" />
-            </CardHeader>
-            <CardContent>
+          <div className="absolute -inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
+          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-44 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+                Volgende Afspraak
+              </h3>
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-xl flex items-center justify-center shadow-lg">
+                <Clock className="h-6 w-6 text-cyan-400" />
+              </div>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center">
               {nextAppointment ? (
-                <div className="space-y-3">
-                  <div className="text-2xl font-bold text-white">
+                <>
+                  <div className="text-4xl font-black text-slate-100 leading-none tabular-nums mb-2">
                     {nextAppointment.time_until}
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-white">
-                      {nextAppointment.service_name}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {nextAppointment.customer_name}
-                    </p>
+                  <div className="text-sm text-slate-400 font-medium">
+                    {nextAppointment.service_name} • {nextAppointment.customer_name}
                   </div>
-                </div>
+                </>
               ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-gray-400 text-center text-sm">No upcoming appointments</p>
-                </div>
+                <>
+                  <div className="text-4xl font-black text-slate-100 leading-none tabular-nums mb-2">
+                    --:--
+                  </div>
+                  <div className="text-sm text-slate-400 font-medium">
+                    Geen afspraken vandaag
+                  </div>
+                </>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
 
         {/* Popular Service Card */}
@@ -95,92 +100,84 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
+          className="relative group"
         >
-          <Card className="bg-cyan-900/20 border-gray-700 hover:scale-105 transition-transform duration-200 h-44">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">
-                Popular Service
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-cyan-400" />
-            </CardHeader>
-            <CardContent>
+          <div className="absolute -inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
+          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-44 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+                Populairste Service
+              </h3>
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-xl flex items-center justify-center shadow-lg">
+                <TrendingUp className="h-6 w-6 text-cyan-400" />
+              </div>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center">
               {popularService ? (
-                <div className="space-y-3">
-                  <div className="text-2xl font-bold text-white">
+                <>
+                  <div className="text-4xl font-black text-slate-100 leading-none tabular-nums mb-2">
                     {popularService.percentage.toFixed(0)}%
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-white">
-                      {popularService.service_name}
-                    </p>
-                    <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
-                      <div 
-                        className="bg-cyan-400 h-2 rounded-full transition-all duration-500" 
-                        style={{ width: `${popularService.percentage}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-400">
-                      {popularService.booking_count} bookings this month
-                    </p>
+                  <div className="text-sm text-slate-400 font-medium">
+                    {popularService.service_name} • {popularService.booking_count} boekingen
                   </div>
-                </div>
+                </>
               ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-gray-400 text-center text-sm">No booking data available</p>
-                </div>
+                <>
+                  <div className="text-4xl font-black text-slate-100 leading-none tabular-nums mb-2">
+                    --%
+                  </div>
+                  <div className="text-sm text-slate-400 font-medium">
+                    Geen data beschikbaar
+                  </div>
+                </>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Weekly Insights Card */}
+        {/* Weekly Growth Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
+          className="relative group"
         >
-          <Card className="bg-cyan-900/20 border-gray-700 hover:scale-105 transition-transform duration-200 h-44">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">
-                Weekly Growth
-              </CardTitle>
-              <BarChart3 className="h-4 w-4 text-cyan-400" />
-            </CardHeader>
-            <CardContent>
+          <div className="absolute -inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
+          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-44 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">
+                Weekelijkse Groei
+              </h3>
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-xl flex items-center justify-center shadow-lg">
+                <BarChart3 className="h-6 w-6 text-cyan-400" />
+              </div>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center">
               {weeklyInsights ? (
-                <div className="space-y-3">
-                  <div className={`text-2xl font-bold ${
-                    weeklyInsights.trend === 'up' ? 'text-green-400' : 
-                    weeklyInsights.trend === 'down' ? 'text-red-400' : 'text-cyan-400'
-                  }`}>
+                <>
+                  <div className="text-4xl font-black text-slate-100 leading-none tabular-nums mb-2">
                     {weeklyInsights.trend === 'up' ? '+' : weeklyInsights.trend === 'down' ? '-' : ''}
                     {Math.abs(weeklyInsights.growth_percentage)}%
                   </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      {weeklyInsights.trend === 'up' ? (
-                        <ArrowUp className="h-4 w-4 text-green-400" />
-                      ) : weeklyInsights.trend === 'down' ? (
-                        <ArrowDown className="h-4 w-4 text-red-400" />
-                      ) : (
-                        <TrendingUp className="h-4 w-4 text-cyan-400" />
-                      )}
-                      <span className="text-xs text-gray-400">
-                        vs last week
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-400">
-                      This week: {weeklyInsights.current_week} • Last week: {weeklyInsights.previous_week}
-                    </p>
+                  <div className="text-sm text-slate-400 font-medium">
+                    {weeklyInsights.trend === 'up' ? '↗️ Stijgend' : weeklyInsights.trend === 'down' ? '↘️ Dalend' : 'Stabiel'} • vs vorige week
                   </div>
-                </div>
+                </>
               ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-gray-400 text-center text-sm">No weekly data available</p>
-                </div>
+                <>
+                  <div className="text-4xl font-black text-slate-100 leading-none tabular-nums mb-2">
+                    --.--%
+                  </div>
+                  <div className="text-sm text-slate-400 font-medium">
+                    Geen data beschikbaar
+                  </div>
+                </>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       </div>
 
