@@ -98,8 +98,6 @@ export function MultiSelect({
           </div>
         )}
         <CommandPrimitive
-          open={open}
-          onOpenChange={setOpen}
           className="w-full"
           onKeyDown={handleKeyDown}
         >

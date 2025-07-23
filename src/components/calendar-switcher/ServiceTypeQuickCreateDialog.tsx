@@ -65,18 +65,11 @@ export function ServiceTypeQuickCreateDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button 
-            variant="outline"
-            size="sm"
-            className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Quick Add Service
-          </Button>
-        )}
-      </DialogTrigger>
+      {trigger && (
+        <DialogTrigger asChild>
+          {trigger}
+        </DialogTrigger>
+      )}
       <DialogContent className="bg-gray-800 border-gray-700">
         <DialogHeader>
           <DialogTitle className="text-white">Add New Service</DialogTitle>

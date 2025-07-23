@@ -376,13 +376,15 @@ export function CreateCalendarDialog({
         </DialogContent>
       </Dialog>
 
-      <ServiceTypeQuickCreateDialog
-        open={showServiceTypeDialog}
-        onOpenChange={setShowServiceTypeDialog}
-        onServiceTypeCreated={(serviceType) => {
-          setSelectedServiceTypes([...selectedServiceTypes, serviceType.id]);
-        }}
-      />
+      {showServiceTypeDialog && (
+        <ServiceTypeQuickCreateDialog
+          onServiceCreated={(serviceId) => {
+            setSelectedServiceTypes([...selectedServiceTypes, serviceId]);
+            setShowServiceTypeDialog(false);
+          }}
+          trigger={null}
+        />
+      )}
     </>
   );
 }
