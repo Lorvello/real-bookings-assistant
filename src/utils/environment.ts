@@ -1,3 +1,4 @@
+
 /**
  * Environment detection utility
  * Distinguishes between development and production environments
@@ -25,16 +26,22 @@ export const getEnvironmentType = () => {
   return isProductionEnvironment() ? 'production' : 'development';
 };
 
-// Environment-specific configuration
-export const getEnvironmentConfig = () => {
+// Environment-specific configuration with user context
+export const getEnvironmentConfig = (userEmail?: string) => {
   const env = getEnvironmentType();
+  const isDeveloperEmail = userEmail && (
+    userEmail.endsWith('@brandevolves.com') || 
+    userEmail.endsWith('@dev.local') ||
+    userEmail === 'developer@example.com' ||
+    userEmail === 'admin@example.com'
+  );
   
   return {
     environment: env,
     isProduction: env === 'production',
     isDevelopment: env === 'development',
-    allowMockData: env === 'development',
-    allowDeveloperTools: env === 'development',
-    debugMode: env === 'development'
+    allowMockData: env === 'development' && isDeveloperEmail,
+    allowDeveloperTools: env === 'development' && isDeveloperEmail,
+    debugMode: env === 'development' && isDeveloperEmail
   };
 };

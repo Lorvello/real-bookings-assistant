@@ -1,6 +1,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useMockDataControl } from '@/hooks/useMockDataControl';
+import { getMockFutureInsightsData } from '@/hooks/useMockDataGenerator';
 
 interface FutureInsightsData {
   demand_forecast: Array<{
@@ -18,12 +20,22 @@ interface FutureInsightsData {
 }
 
 export function useOptimizedFutureInsights(calendarIds?: string[]) {
+  const { useMockData } = useMockDataControl();
+  
   return useQuery({
     queryKey: ['optimized-future-insights', calendarIds],
     queryFn: async (): Promise<FutureInsightsData | null> => {
       if (!calendarIds || calendarIds.length === 0) return null;
 
       console.log('🔮 Fetching future insights for calendars:', calendarIds);
+
+      // Return mock data for developers or setup_incomplete users
+      if (useMockData) {
+        return {
+          ...getMockFutureInsightsData(),
+          last_updated: new Date().toISOString()
+        };
+      }
 
       // Get calendar settings to calculate capacity - aggregate across all selected calendars
       const { data: calendarSettings } = await supabase

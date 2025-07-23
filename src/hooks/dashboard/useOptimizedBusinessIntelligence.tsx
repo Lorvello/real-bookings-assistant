@@ -1,6 +1,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useMockDataControl } from '@/hooks/useMockDataControl';
+import { getMockBusinessIntelligenceData } from '@/hooks/useMockDataGenerator';
 
 interface BusinessIntelligenceData {
   current_period_revenue: number;
@@ -22,12 +24,22 @@ export function useOptimizedBusinessIntelligence(
   startDate?: Date, 
   endDate?: Date
 ) {
+  const { useMockData } = useMockDataControl();
+  
   return useQuery({
     queryKey: ['optimized-business-intelligence', calendarIds, startDate?.toISOString(), endDate?.toISOString()],
     queryFn: async (): Promise<BusinessIntelligenceData | null> => {
       if (!calendarIds || calendarIds.length === 0 || !startDate || !endDate) return null;
 
       console.log('📊 Fetching business intelligence for calendars:', calendarIds, startDate, endDate);
+
+      // Return mock data for developers or setup_incomplete users
+      if (useMockData) {
+        return {
+          ...getMockBusinessIntelligenceData(),
+          last_updated: new Date().toISOString()
+        };
+      }
 
       // Calculate the previous period of the same length for comparison
       const periodLength = endDate.getTime() - startDate.getTime();

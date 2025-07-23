@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useMockDataControl } from '@/hooks/useMockDataControl';
 import { getMockLiveOperationsData } from '../useMockDataGenerator';
 
 interface LiveOperationsData {
@@ -13,12 +14,22 @@ interface LiveOperationsData {
 }
 
 export function useOptimizedLiveOperations(calendarIds?: string[]) {
+  const { useMockData } = useMockDataControl();
+  
   return useQuery({
     queryKey: ['optimized-live-operations', calendarIds],
     queryFn: async (): Promise<LiveOperationsData | null> => {
       if (!calendarIds || calendarIds.length === 0) return null;
 
       console.log('🔄 Fetching live operations data for calendars:', calendarIds);
+
+      // Return mock data for developers or setup_incomplete users
+      if (useMockData) {
+        return {
+          ...getMockLiveOperationsData(),
+          last_updated: new Date().toISOString()
+        };
+      }
 
       const now = new Date();
       const todayStart = new Date();
@@ -91,15 +102,6 @@ export function useOptimizedLiveOperations(calendarIds?: string[]) {
         const lastMessage = new Date(conv.last_message_at);
         return lastMessage >= todayStart && lastMessage <= todayEnd;
       }).length || 0;
-      
-      // If no real data exists and it's a trial/demo, return mock data
-      if (todayBookings.length === 0 && activeConversationsToday === 0) {
-        const mockData = getMockLiveOperationsData();
-        return {
-          ...mockData,
-          last_updated: new Date().toISOString()
-        };
-      }
       
       return {
         today_bookings: todayBookings.length,

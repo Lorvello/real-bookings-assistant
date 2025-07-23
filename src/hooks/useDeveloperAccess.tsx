@@ -1,3 +1,4 @@
+
 import { useAuth } from './useAuth';
 import { getEnvironmentConfig } from '@/utils/environment';
 
@@ -12,9 +13,14 @@ export const useDeveloperAccess = () => {
   const { user } = useAuth();
 
   const isDeveloper = () => {
-    const { allowDeveloperTools } = getEnvironmentConfig();
+    const { allowDeveloperTools, isProduction } = getEnvironmentConfig(user?.email);
     
-    // In production, never show developer tools regardless of email
+    // NEVER show developer tools in production, regardless of email
+    if (isProduction) {
+      return false;
+    }
+    
+    // In development, only show for specific conditions
     if (!allowDeveloperTools) {
       return false;
     }

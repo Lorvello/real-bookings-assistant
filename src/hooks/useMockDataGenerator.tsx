@@ -1,3 +1,4 @@
+
 export const getMockDashboardAnalytics = () => ({
   today_bookings: 5,
   pending_bookings: 2,
@@ -52,6 +53,8 @@ export const getMockBusinessIntelligenceData = () => ({
   unique_customers: 45,
   returning_customers: 18,
   avg_booking_value: 78.25,
+  monthly_growth: 15.5,
+  revenue_per_day: 161.69,
   service_performance: [
     { service_name: "Knippen & Stylen", booking_count: 25, revenue: 1875.00, avg_price: 75.00 },
     { service_name: "Kleur Behandeling", booking_count: 18, revenue: 1980.00, avg_price: 110.00 },

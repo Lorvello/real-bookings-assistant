@@ -1,6 +1,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useMockDataControl } from '@/hooks/useMockDataControl';
+import { getMockPerformanceData } from '@/hooks/useMockDataGenerator';
 
 interface PerformanceEfficiencyData {
   no_show_rate: number;
@@ -23,12 +25,30 @@ export function useOptimizedPerformanceEfficiency(
   startDate?: Date,
   endDate?: Date
 ) {
+  const { useMockData } = useMockDataControl();
+  
   return useQuery({
     queryKey: ['optimized-performance-efficiency', calendarIds, startDate?.toISOString(), endDate?.toISOString()],
     queryFn: async (): Promise<PerformanceEfficiencyData | null> => {
       if (!calendarIds || calendarIds.length === 0 || !startDate || !endDate) return null;
 
       console.log('⚡ Fetching performance efficiency for calendars:', calendarIds, startDate, endDate);
+
+      // Return mock data for developers or setup_incomplete users
+      if (useMockData) {
+        const mockData = getMockPerformanceData();
+        return {
+          no_show_rate: mockData.no_show_rate || 8.2,
+          cancellation_rate: mockData.cancellation_rate || 12.5,
+          customer_satisfaction_score: 4.2 + Math.random() * 0.8,
+          booking_completion_rate: 87.5,
+          unique_customers: 24,
+          returning_customers: 18,
+          total_customers: 42, // unique + returning
+          peak_hours: mockData.peak_hours || [],
+          last_updated: new Date().toISOString()
+        };
+      }
 
       // Get bookings for the selected date range across all selected calendars
       const { data: bookingsData, error: bookingsError } = await supabase
@@ -49,7 +69,7 @@ export function useOptimizedPerformanceEfficiency(
       const cancelledBookings = allBookings.filter(b => b.status === 'cancelled');
 
       // Calculate customer metrics - aggregate unique customers across all calendars
-      const currentPeriodEmails = new Set(allBookings.map(b => b.customer_email));
+      const currentPeriodEmails = new Set(allBookings.map(b => b.customer_email).filter(Boolean));
       
       // Calculate returning customers (customers who also had bookings before current period across any calendar)
       const { data: historicalBookings } = await supabase
@@ -59,14 +79,17 @@ export function useOptimizedPerformanceEfficiency(
         .neq('status', 'cancelled')
         .lt('start_time', startDate.toISOString());
 
-      const historicalEmails = new Set(historicalBookings?.map(b => b.customer_email) || []);
+      const historicalEmails = new Set(historicalBookings?.map(b => b.customer_email).filter(Boolean) || []);
       
-      // Correct customer logic:
+      // Fixed customer logic:
       // - unique_customers: New customers (not in historical data)
       // - returning_customers: Customers who are also in historical data
       // - total_customers: unique_customers + returning_customers
-      const returningCustomers = [...currentPeriodEmails].filter(email => historicalEmails.has(email)).length;
-      const uniqueCustomers = [...currentPeriodEmails].filter(email => !historicalEmails.has(email)).length;
+      const returningCustomersSet = new Set([...currentPeriodEmails].filter(email => historicalEmails.has(email)));
+      const uniqueCustomersSet = new Set([...currentPeriodEmails].filter(email => !historicalEmails.has(email)));
+      
+      const returningCustomers = returningCustomersSet.size;
+      const uniqueCustomers = uniqueCustomersSet.size;
       const totalCustomers = uniqueCustomers + returningCustomers;
 
       // Calculate peak hours for confirmed bookings only - aggregate across all calendars
