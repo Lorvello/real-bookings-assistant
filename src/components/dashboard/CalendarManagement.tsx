@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Calendar, Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { CalendarSettingsDialog } from '@/components/calendar-settings/CalendarSettingsDialog';
 import type { Calendar as CalendarType } from '@/types/calendar';
 
 interface CalendarManagementProps {
@@ -11,6 +12,16 @@ interface CalendarManagementProps {
 }
 
 export function CalendarManagement({ calendars }: CalendarManagementProps) {
+  const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+
+  const handleSettingsClick = (calendarId: string) => {
+    setSelectedCalendarId(calendarId);
+    setSettingsDialogOpen(true);
+  };
+
+  const selectedCalendar = calendars.find(cal => cal.id === selectedCalendarId);
+
   return (
     <Card className="border-border">
       <CardHeader>
@@ -52,7 +63,11 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
                   <Badge variant={calendar.is_active ? "default" : "secondary"}>
                     {calendar.is_active ? "Active" : "Inactive"}
                   </Badge>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleSettingsClick(calendar.id)}
+                  >
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                   </Button>
@@ -74,6 +89,16 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
           </div>
         )}
       </CardContent>
+      
+      {/* Calendar Settings Dialog */}
+      {selectedCalendarId && (
+        <CalendarSettingsDialog
+          open={settingsDialogOpen}
+          onOpenChange={setSettingsDialogOpen}
+          calendarId={selectedCalendarId}
+          calendarName={selectedCalendar?.name}
+        />
+      )}
     </Card>
   );
 }
