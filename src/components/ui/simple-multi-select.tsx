@@ -35,6 +35,7 @@ export function SimpleMultiSelect({
   const safeSelected = Array.isArray(selected) ? selected : [];
 
   const handleSelect = (optionValue: string) => {
+    console.log('SimpleMultiSelect: handleSelect called with:', optionValue);
     if (safeSelected.includes(optionValue)) {
       // Remove if already selected
       onChange(safeSelected.filter(item => item !== optionValue));
@@ -42,6 +43,7 @@ export function SimpleMultiSelect({
       // Add if not selected
       onChange([...safeSelected, optionValue]);
     }
+    // Don't close dropdown immediately to allow multiple selections
   };
 
   const handleUnselect = (optionValue: string) => {
@@ -105,23 +107,33 @@ export function SimpleMultiSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="p-0 z-50 bg-popover border border-border shadow-lg" 
+          className="p-0 z-[100] bg-popover border border-border shadow-lg" 
           align="start"
           style={{ 
             width: triggerRef.current?.offsetWidth || 200,
             minWidth: '200px'
           }}
+          onCloseAutoFocus={(e) => e.preventDefault()}
         >
           <div className="max-h-60 overflow-y-auto bg-popover">
             {availableOptions.length > 0 ? (
               availableOptions.map((option) => (
-                <div
+                <button
                   key={option.value}
-                  className="relative flex cursor-pointer select-none items-center px-3 py-2.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
-                  onClick={() => handleSelect(option.value)}
+                  type="button"
+                  className="relative w-full flex cursor-pointer select-none items-center px-3 py-2.5 text-sm text-left hover:bg-accent hover:text-accent-foreground transition-colors border-none bg-transparent"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Option clicked:', option.value);
+                    handleSelect(option.value);
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                  }}
                 >
                   <span className="truncate">{option.label}</span>
-                </div>
+                </button>
               ))
             ) : (
               <div className="py-6 text-center text-sm text-muted-foreground px-4">
