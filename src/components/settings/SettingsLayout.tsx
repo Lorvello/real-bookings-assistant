@@ -8,6 +8,7 @@ import { AIKnowledgeTab } from './AIKnowledgeTab';
 import { CalendarTab } from './CalendarTab';
 import { ServicesTab } from './ServicesTab';
 import { BillingTab } from './BillingTab';
+import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 
 import { useSettingsData } from '@/hooks/useSettingsData';
 
@@ -42,9 +43,14 @@ export const SettingsLayout = () => {
     <div className="min-h-screen bg-gray-900 p-2 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-3 md:mb-8">
-          <h1 className="text-base md:text-3xl font-bold text-white mb-1 md:mb-2">Settings</h1>
-          <p className="text-gray-400 text-xs md:text-base">Manage your settings</p>
+        <div className="mb-3 md:mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-base md:text-3xl font-bold text-white mb-1 md:mb-2">Settings</h1>
+            <p className="text-gray-400 text-xs md:text-base">Manage your settings</p>
+          </div>
+          <div className="mt-1">
+            <CalendarSwitcher />
+          </div>
         </div>
 
         {/* Settings Tabs */}
