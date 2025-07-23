@@ -6,7 +6,7 @@ import { ServiceTypesEmptyState } from '@/components/settings/service-types/Serv
 import { ServiceTypeForm } from '@/components/settings/service-types/ServiceTypeForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Edit } from 'lucide-react';
 
 interface ServiceTypesManagerProps {
   calendarId?: string;
@@ -18,8 +18,9 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
   showCalendarLabels = false 
 }) => {
   const { calendars, selectedCalendar } = useCalendarContext();
-  const { serviceTypes, loading, refetch, createServiceType } = useServiceTypes(calendarId);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const { serviceTypes, loading, refetch, createServiceType, updateServiceType } = useServiceTypes(calendarId);
+  const [showDialog, setShowDialog] = useState(false);
+  const [editingService, setEditingService] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -38,38 +39,42 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
     
     setSaving(true);
     try {
-      await createServiceType({
-        calendar_id: calendarId || selectedCalendar?.id || '',
-        name: formData.name,
-        description: formData.description,
-        duration: parseInt(formData.duration) || 30,
-        price: parseFloat(formData.price) || undefined,
-        color: formData.color,
-        is_active: true,
-        max_attendees: 1,
-        preparation_time: 0,
-        cleanup_time: 0,
-        created_at: new Date().toISOString()
-      });
+      if (editingService) {
+        // Update existing service
+        await updateServiceType(editingService.id, {
+          name: formData.name,
+          description: formData.description,
+          duration: parseInt(formData.duration) || 30,
+          price: parseFloat(formData.price) || undefined,
+          color: formData.color
+        });
+      } else {
+        // Create new service
+        await createServiceType({
+          calendar_id: calendarId || selectedCalendar?.id || '',
+          name: formData.name,
+          description: formData.description,
+          duration: parseInt(formData.duration) || 30,
+          price: parseFloat(formData.price) || undefined,
+          color: formData.color,
+          is_active: true,
+          max_attendees: 1,
+          preparation_time: 0,
+          cleanup_time: 0,
+          created_at: new Date().toISOString()
+        });
+      }
       
-      // Reset form
-      setFormData({
-        name: '',
-        description: '',
-        duration: '',
-        price: '',
-        color: '#3B82F6'
-      });
-      setShowCreateDialog(false);
+      handleClose();
       refetch();
     } catch (error) {
-      console.error('Error creating service type:', error);
+      console.error('Error saving service type:', error);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleCancel = () => {
+  const handleClose = () => {
     setFormData({
       name: '',
       description: '',
@@ -77,7 +82,32 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
       price: '',
       color: '#3B82F6'
     });
-    setShowCreateDialog(false);
+    setEditingService(null);
+    setShowDialog(false);
+  };
+
+  const handleEdit = (service: any) => {
+    setFormData({
+      name: service.name,
+      description: service.description || '',
+      duration: service.duration.toString(),
+      price: service.price?.toString() || '',
+      color: service.color
+    });
+    setEditingService(service);
+    setShowDialog(true);
+  };
+
+  const handleCreate = () => {
+    setFormData({
+      name: '',
+      description: '',
+      duration: '',
+      price: '',
+      color: '#3B82F6'
+    });
+    setEditingService(null);
+    setShowDialog(true);
   };
 
   if (loading) {
@@ -92,14 +122,23 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
             {serviceTypes.map(service => (
               <div 
                 key={service.id} 
-                className="bg-gray-900 p-4 rounded-lg border border-gray-700"
+                className="bg-gray-900 p-4 rounded-lg border border-gray-700 relative"
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg text-white font-medium">{service.name}</h3>
-                  <div 
-                    className="w-4 h-4 rounded-full" 
-                    style={{ backgroundColor: service.color }}
-                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleEdit(service)}
+                      className="p-1 text-gray-400 hover:text-white transition-colors"
+                      title="Edit service"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <div 
+                      className="w-4 h-4 rounded-full" 
+                      style={{ backgroundColor: service.color }}
+                    />
+                  </div>
                 </div>
                 {showCalendarLabels && (
                   <div className="mt-1 text-xs text-gray-400">
@@ -123,7 +162,7 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
           
           <div className="flex justify-center">
             <Button 
-              onClick={() => setShowCreateDialog(true)}
+              onClick={handleCreate}
               className="bg-accent hover:bg-accent/90 text-accent-foreground"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -133,22 +172,22 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
         </>
       ) : (
         <ServiceTypesEmptyState 
-          onAddService={() => setShowCreateDialog(true)} 
+          onAddService={handleCreate} 
         />
       )}
       
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Add Service</DialogTitle>
+            <DialogTitle>{editingService ? 'Edit Service' : 'Add Service'}</DialogTitle>
           </DialogHeader>
           <ServiceTypeForm
             formData={formData}
             setFormData={setFormData}
             onSave={handleSave}
-            onCancel={handleCancel}
+            onCancel={handleClose}
             saving={saving}
-            isEditing={false}
+            isEditing={!!editingService}
           />
         </DialogContent>
       </Dialog>
