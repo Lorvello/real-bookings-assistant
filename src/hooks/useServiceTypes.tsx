@@ -3,16 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-
-export interface ServiceType {
-  id: string;
-  name: string;
-  description?: string;
-  duration: number;
-  price?: number;
-  color: string;
-  calendar_id: string;
-}
+import { ServiceType } from '@/types/calendar';
 
 export const useServiceTypes = (calendarId?: string) => {
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);

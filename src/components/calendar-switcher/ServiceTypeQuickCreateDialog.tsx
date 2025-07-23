@@ -48,7 +48,12 @@ export function ServiceTypeQuickCreateDialog({
         name: serviceName,
         duration: parseInt(serviceDuration),
         color: '#3B82F6',
-        calendar_id: targetCalendarId
+        calendar_id: targetCalendarId,
+        is_active: true,
+        max_attendees: 1,
+        preparation_time: 0,
+        cleanup_time: 0,
+        created_at: new Date().toISOString()
       });
       
       if (onServiceCreated && newService) {
