@@ -303,9 +303,7 @@ export const Pricing = () => {
                       className={`w-full font-semibold py-3.5 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
                         plan.isEnterprise
                           ? 'bg-gradient-to-r from-white to-slate-100 text-slate-900 hover:from-slate-100 hover:to-white shadow-white/20 hover:shadow-white/30'
-                          : plan.popular
-                          ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/40 hover:shadow-emerald-500/60'
-                          : 'bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white shadow-slate-700/40 hover:shadow-slate-600/60'
+                          : 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/40 hover:shadow-emerald-500/60'
                       }`}
                     >
                       {plan.cta}
@@ -325,7 +323,7 @@ export const Pricing = () => {
                               <div className="flex-1 cursor-help">
                                 <span className="text-slate-300 text-sm leading-relaxed font-medium hover:text-slate-200 transition-colors">
                                   {feature.text}
-                                  <Info className="w-3 h-3 text-slate-500 hover:text-slate-400 transition-colors ml-1.5 inline-block" />
+                                  <Info className="w-2 h-2 text-slate-700 hover:text-slate-600 transition-colors ml-0.5 inline align-baseline" />
                                 </span>
                               </div>
                             </TooltipTrigger>
@@ -442,7 +440,7 @@ export const Pricing = () => {
                                     <div className="flex-1 cursor-help">
                                       <span className="text-slate-200/95 text-[10px] leading-tight font-medium tracking-wide hover:text-slate-100 transition-colors">
                                         {feature.text}
-                                        <Info className="w-2.5 h-2.5 text-slate-500 hover:text-slate-400 transition-colors ml-1 inline-block" />
+                                        <Info className="w-1.5 h-1.5 text-slate-700 hover:text-slate-600 transition-colors ml-0.5 inline align-baseline" />
                                       </span>
                                     </div>
                                   </TooltipTrigger>
