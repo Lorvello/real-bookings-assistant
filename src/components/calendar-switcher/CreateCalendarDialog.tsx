@@ -186,17 +186,13 @@ export function CreateCalendarDialog({
 
   // Helper functions for MultiSelect data formatting
   const getServiceTypeOptions = () => {
-    console.log('getServiceTypeOptions called, serviceTypes:', serviceTypes);
     if (!serviceTypes || !Array.isArray(serviceTypes)) {
-      console.log('serviceTypes is undefined or not array, returning empty array');
       return [];
     }
-    const options = serviceTypes.map(serviceType => ({
+    return serviceTypes.map(serviceType => ({
       value: serviceType.id,
       label: serviceType.name
     }));
-    console.log('serviceType options:', options);
-    return options;
   };
 
   const getTeamMemberOptions = () => {
@@ -211,7 +207,6 @@ export function CreateCalendarDialog({
   };
 
   const handleServiceTypeChange = (selectedValues: string[]) => {
-    console.log('handleServiceTypeChange called with:', selectedValues);
     setSelectedServiceTypes(selectedValues);
   };
 

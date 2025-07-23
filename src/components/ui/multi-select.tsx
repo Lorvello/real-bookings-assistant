@@ -28,21 +28,26 @@ export function MultiSelect({
   className,
   disabled = false,
 }: MultiSelectProps) {
-  console.log('MultiSelect render - options:', options, 'selected:', selected);
+  // Ensure options and selected are always arrays
+  const safeOptions = Array.isArray(options) ? options : [];
+  const safeSelected = Array.isArray(selected) ? selected : [];
+  
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
 
   const handleUnselect = React.useCallback((item: string) => {
-    onChange((selected || []).filter((i) => i !== item));
-  }, [onChange, selected]);
+    if (onChange) {
+      onChange(safeSelected.filter((i) => i !== item));
+    }
+  }, [onChange, safeSelected]);
 
   const handleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     const input = inputRef.current;
     if (input) {
       if (e.key === "Delete" || e.key === "Backspace") {
-        if (input.value === "" && (selected || []).length > 0) {
-          handleUnselect((selected || [])[(selected || []).length - 1]);
+        if (input.value === "" && safeSelected.length > 0) {
+          handleUnselect(safeSelected[safeSelected.length - 1]);
         }
       }
       // Prevent keyboard navigation when we're not focused on the input
@@ -50,9 +55,9 @@ export function MultiSelect({
         e.preventDefault();
       }
     }
-  }, [selected, handleUnselect]);
+  }, [safeSelected, handleUnselect]);
 
-  const selectables = (options || []).filter((item) => !(selected || []).includes(item.value));
+  const selectables = safeOptions.filter((item) => !safeSelected.includes(item.value));
 
   return (
     <div className={cn("relative", className)}>
@@ -66,10 +71,10 @@ export function MultiSelect({
           setOpen(true);
         }}
       >
-        {(selected || []).length > 0 && (
+        {safeSelected.length > 0 && (
           <div className="flex flex-wrap gap-1 mr-1">
-            {(selected || []).map((item) => {
-              const label = (options || []).find((option) => option.value === item)?.label || item;
+            {safeSelected.map((item) => {
+              const label = safeOptions.find((option) => option.value === item)?.label || item;
               return (
                 <Badge
                   key={item}
@@ -108,9 +113,9 @@ export function MultiSelect({
             onChange={(e) => setInputValue(e.target.value)}
             className={cn(
               "flex-1 bg-transparent outline-none placeholder:text-muted-foreground",
-              (selected || []).length > 0 && "w-[50px]"
+              safeSelected.length > 0 && "w-[50px]"
             )}
-            placeholder={(selected || []).length ? "" : placeholder}
+            placeholder={safeSelected.length ? "" : placeholder}
             disabled={disabled}
             onBlur={() => setOpen(false)}
             onFocus={() => setOpen(true)}
@@ -129,7 +134,9 @@ export function MultiSelect({
                         }}
                         onSelect={() => {
                           setInputValue("");
-                          onChange([...(selected || []), option.value]);
+                          if (onChange) {
+                            onChange([...safeSelected, option.value]);
+                          }
                         }}
                         className="cursor-pointer"
                       >
