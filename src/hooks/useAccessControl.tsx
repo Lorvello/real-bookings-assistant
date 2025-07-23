@@ -53,6 +53,12 @@ export const useAccessControl = () => {
           description: "Future Insights is alleen beschikbaar voor Professional en Enterprise abonnementen.",
           variant: "destructive",
         });
+      } else if (feature === 'canAccessTeamMembers') {
+        toast({
+          title: "Professional Feature",
+          description: "Team Members management is alleen beschikbaar voor Professional en Enterprise abonnementen.",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Access Restricted",

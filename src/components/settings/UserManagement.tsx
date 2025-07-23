@@ -11,15 +11,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Edit, Trash2, Crown, User, Eye, Save } from 'lucide-react';
+import { UserPlus, Edit, Trash2, Crown, User, Eye, Save, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAccessControl } from '@/hooks/useAccessControl';
 
 export const UserManagement = () => {
   const { calendars } = useCalendarContext();
   const { members, loading, inviteMember, removeMember, updateMemberRole } = useCalendarMembers();
   const { profile, updateProfile, loading: profileLoading } = useProfile();
   const { toast } = useToast();
+  const { accessControl, requireAccess } = useAccessControl();
   
   // Add User Modal state
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
@@ -174,79 +176,13 @@ export const UserManagement = () => {
 
   return (
     <Card className="border-gray-700 bg-gray-800">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <div>
           <CardTitle className="text-white">Users & Team Management</CardTitle>
           <p className="text-sm text-gray-400 mt-1">
             Manage your profile and team access
           </p>
         </div>
-        
-        <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              className="bg-green-600 hover:bg-green-700"
-              disabled={calendars.length === 0}
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Team Member
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-gray-800 border-gray-700">
-            <DialogHeader>
-              <DialogTitle className="text-white">Add New Team Member</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label className="text-gray-300">Full Name</Label>
-                <Input
-                  value={newUserName}
-                  onChange={(e) => setNewUserName(e.target.value)}
-                  placeholder="John Doe"
-                  className="bg-gray-900 border-gray-700 text-white"
-                />
-              </div>
-              <div>
-                <Label className="text-gray-300">Email Address</Label>
-                <Input
-                  type="email"
-                  value={newUserEmail}
-                  onChange={(e) => setNewUserEmail(e.target.value)}
-                  placeholder="user@example.com"
-                  className="bg-gray-900 border-gray-700 text-white"
-                />
-              </div>
-              <div>
-                <Label className="text-gray-300">Role</Label>
-                <Select value={newUserRole} onValueChange={(value: 'editor' | 'viewer') => setNewUserRole(value)}>
-                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="viewer">Viewer - Can only view bookings</SelectItem>
-                    <SelectItem value="editor">Editor - Can manage bookings and settings</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAddUserOpen(false)}
-                  className="border-gray-700 text-gray-300 hover:bg-gray-700"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleAddUser}
-                  disabled={isSubmitting}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {isSubmitting ? 'Adding...' : 'Add Team Member'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </CardHeader>
 
       <CardContent>
@@ -255,101 +191,24 @@ export const UserManagement = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
           </div>
         ) : (
-          <Tabs defaultValue="team" className="w-full">
+          <Tabs defaultValue="profile" className="w-full">
             <TabsList className="bg-gray-900 mb-6">
-              <TabsTrigger value="team" className="data-[state=active]:bg-gray-700">Team Members</TabsTrigger>
               <TabsTrigger value="profile" className="data-[state=active]:bg-gray-700">Your Profile</TabsTrigger>
+              <TabsTrigger 
+                value="team" 
+                className="data-[state=active]:bg-gray-700 flex items-center gap-2"
+                disabled={!accessControl.canAccessTeamMembers}
+                onClick={(e) => {
+                  if (!accessControl.canAccessTeamMembers) {
+                    e.preventDefault();
+                    requireAccess('canAccessTeamMembers');
+                  }
+                }}
+              >
+                Team Members
+                {!accessControl.canAccessTeamMembers && <Lock className="h-3 w-3" />}
+              </TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="team">
-              <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-gray-700">
-                      <TableHead className="text-gray-300">User</TableHead>
-                      <TableHead className="text-gray-300">Role</TableHead>
-                      <TableHead className="text-gray-300">Calendar</TableHead>
-                      <TableHead className="text-gray-300">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allUsers.length > 0 ? (
-                      allUsers.map((user) => (
-                        <TableRow key={user.id} className="border-gray-700">
-                          <TableCell>
-                            <div>
-                              <p className="text-white font-medium">
-                                {user.user?.full_name || 'Unknown User'}
-                              </p>
-                              <p className="text-sm text-gray-400">{user.user?.email}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              {getRoleIcon(user.role)}
-                              <span className="text-gray-300">{getRoleName(user.role)}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {user.role === 'owner' ? (
-                              <Badge variant="secondary" className="bg-yellow-900/30 text-yellow-400 border-yellow-700">
-                                All Calendars
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-gray-300 border-gray-600">
-                                {user.calendar?.name || 'Unknown Calendar'}
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {user.role === 'owner' ? (
-                              <Button
-                                variant="outline" 
-                                size="sm"
-                                onClick={openEditUserDialog}
-                                className="h-8 px-3 border-blue-700 text-blue-400 hover:bg-blue-900/30"
-                              >
-                                <Edit className="h-3 w-3 mr-2" />
-                                Edit Profile
-                              </Button>
-                            ) : (
-                              <div className="flex items-center space-x-2">
-                                <Select
-                                  value={user.role}
-                                  onValueChange={(value: 'editor' | 'viewer') => handleRoleChange(user.id, value)}
-                                >
-                                  <SelectTrigger className="w-24 h-8 bg-gray-800 border-gray-700 text-white text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-gray-800 border-gray-700">
-                                    <SelectItem value="viewer">Viewer</SelectItem>
-                                    <SelectItem value="editor">Editor</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleRemoveUser(user.id)}
-                                  className="h-8 px-2 border-red-700 text-red-400 hover:bg-red-900/30"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-6 text-gray-400">
-                          No users found. Add team members to collaborate.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
             
             <TabsContent value="profile">
               {profile && (
@@ -410,6 +269,164 @@ export const UserManagement = () => {
                   </div>
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="team">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-medium text-white">Team Members</h3>
+                    <p className="text-sm text-gray-400">Manage your team access and permissions</p>
+                  </div>
+                  <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        className="bg-green-600 hover:bg-green-700"
+                        disabled={calendars.length === 0}
+                      >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Add Team Member
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-gray-800 border-gray-700">
+                      <DialogHeader>
+                        <DialogTitle className="text-white">Add New Team Member</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label className="text-gray-300">Full Name</Label>
+                          <Input
+                            value={newUserName}
+                            onChange={(e) => setNewUserName(e.target.value)}
+                            placeholder="John Doe"
+                            className="bg-gray-900 border-gray-700 text-white"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-gray-300">Email Address</Label>
+                          <Input
+                            type="email"
+                            value={newUserEmail}
+                            onChange={(e) => setNewUserEmail(e.target.value)}
+                            placeholder="user@example.com"
+                            className="bg-gray-900 border-gray-700 text-white"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-gray-300">Role</Label>
+                          <Select value={newUserRole} onValueChange={(value: 'editor' | 'viewer') => setNewUserRole(value)}>
+                            <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-gray-800 border-gray-700">
+                              <SelectItem value="viewer">Viewer - Can only view bookings</SelectItem>
+                              <SelectItem value="editor">Editor - Can manage bookings and settings</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsAddUserOpen(false)}
+                            className="border-gray-700 text-gray-300 hover:bg-gray-700"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleAddUser}
+                            disabled={isSubmitting}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {isSubmitting ? 'Adding...' : 'Add Team Member'}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                
+                <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-gray-700">
+                        <TableHead className="text-gray-300">User</TableHead>
+                        <TableHead className="text-gray-300">Role</TableHead>
+                        <TableHead className="text-gray-300">Calendar</TableHead>
+                        <TableHead className="text-gray-300">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allUsers.length > 0 ? (
+                        allUsers.map((user) => (
+                          <TableRow key={user.id} className="border-gray-700">
+                            <TableCell>
+                              <div>
+                                <p className="text-white font-medium">
+                                  {user.user?.full_name || 'Unknown User'}
+                                </p>
+                                <p className="text-sm text-gray-400">{user.user?.email}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                {getRoleIcon(user.role)}
+                                <span className="text-gray-300">{getRoleName(user.role)}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {user.role === 'owner' ? (
+                                <Badge variant="secondary" className="bg-yellow-900/30 text-yellow-400 border-yellow-700">
+                                  All Calendars
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-gray-300 border-gray-600">
+                                  {user.calendar?.name || 'Unknown Calendar'}
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {user.role === 'owner' ? (
+                                <Badge variant="secondary" className="bg-blue-900/30 text-blue-400 border-blue-700">
+                                  Owner
+                                </Badge>
+                              ) : (
+                                <div className="flex items-center space-x-2">
+                                  <Select
+                                    value={user.role}
+                                    onValueChange={(value: 'editor' | 'viewer') => handleRoleChange(user.id, value)}
+                                  >
+                                    <SelectTrigger className="w-24 h-8 bg-gray-800 border-gray-700 text-white text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-gray-800 border-gray-700">
+                                      <SelectItem value="viewer">Viewer</SelectItem>
+                                      <SelectItem value="editor">Editor</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleRemoveUser(user.id)}
+                                    className="h-8 px-2 border-red-700 text-red-400 hover:bg-red-900/30"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-6 text-gray-400">
+                            No team members found. Add team members to collaborate.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         )}

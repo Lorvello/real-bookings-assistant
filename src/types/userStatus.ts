@@ -38,6 +38,7 @@ export interface AccessControl {
   canAccessBusinessIntelligence: boolean;
   canAccessPerformance: boolean;
   canAccessCustomerSatisfaction: boolean;
+  canAccessTeamMembers: boolean;
   maxCalendars: number | null;
   maxBookingsPerMonth: number | null;
   maxTeamMembers: number;
