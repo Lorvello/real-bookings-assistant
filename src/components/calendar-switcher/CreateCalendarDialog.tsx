@@ -53,6 +53,8 @@ export function CreateCalendarDialog({
 
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
+  const [pendingServiceTypes, setPendingServiceTypes] = useState<string[]>([]);
+  const [pendingTeamMembers, setPendingTeamMembers] = useState<string[]>([]);
   const [showServiceTypeDialog, setShowServiceTypeDialog] = useState(false);
 
   const { createCalendar, loading: creating } = useCreateCalendar(onCalendarCreated);
@@ -106,9 +108,25 @@ export function CreateCalendarDialog({
       return;
     }
     
-    if (!selectedServiceTypes.includes(value)) {
-      setSelectedServiceTypes([...selectedServiceTypes, value]);
+    if (!pendingServiceTypes.includes(value) && !selectedServiceTypes.includes(value)) {
+      setPendingServiceTypes([...pendingServiceTypes, value]);
     }
+  };
+
+  const addPendingServiceTypes = () => {
+    setSelectedServiceTypes([...selectedServiceTypes, ...pendingServiceTypes]);
+    setPendingServiceTypes([]);
+  };
+
+  const handleTeamMemberPendingSelect = (value: string) => {
+    if (!pendingTeamMembers.includes(value) && !selectedTeamMembers.includes(value)) {
+      setPendingTeamMembers([...pendingTeamMembers, value]);
+    }
+  };
+
+  const addPendingTeamMembers = () => {
+    setSelectedTeamMembers([...selectedTeamMembers, ...pendingTeamMembers]);
+    setPendingTeamMembers([]);
   };
 
   const removeServiceType = (serviceTypeId: string) => {
@@ -151,6 +169,8 @@ export function CreateCalendarDialog({
       });
       setSelectedServiceTypes([]);
       setSelectedTeamMembers([]);
+      setPendingServiceTypes([]);
+      setPendingTeamMembers([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating calendar:', error);
@@ -261,34 +281,55 @@ export function CreateCalendarDialog({
               </div>
               
               <div className="space-y-3">
-                <Select onValueChange={handleServiceTypeSelect}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select service types..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {serviceTypesLoading ? (
-                      <SelectItem value="loading" disabled>Loading...</SelectItem>
-                    ) : (
-                      <>
-                        {serviceTypes.map((serviceType) => (
-                          <SelectItem 
-                            key={serviceType.id} 
-                            value={serviceType.id}
-                            disabled={selectedServiceTypes.includes(serviceType.id)}
-                          >
-                            {serviceType.name}
+                <div className="flex space-x-2">
+                  <Select onValueChange={handleServiceTypeSelect}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select service types..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {serviceTypesLoading ? (
+                        <SelectItem value="loading" disabled>Loading...</SelectItem>
+                      ) : (
+                        <>
+                          {serviceTypes.map((serviceType) => (
+                            <SelectItem 
+                              key={serviceType.id} 
+                              value={serviceType.id}
+                              disabled={selectedServiceTypes.includes(serviceType.id) || pendingServiceTypes.includes(serviceType.id)}
+                            >
+                              {serviceType.name}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="create_new">
+                            <div className="flex items-center space-x-2">
+                              <Plus className="h-4 w-4" />
+                              <span>Create New Service Type</span>
+                            </div>
                           </SelectItem>
-                        ))}
-                        <SelectItem value="create_new">
-                          <div className="flex items-center space-x-2">
-                            <Plus className="h-4 w-4" />
-                            <span>Create New Service Type</span>
-                          </div>
-                        </SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    type="button" 
+                    onClick={addPendingServiceTypes}
+                    disabled={pendingServiceTypes.length === 0}
+                    size="sm"
+                  >
+                    Add
+                  </Button>
+                </div>
+                
+                {pendingServiceTypes.length > 0 && (
+                  <div className="flex flex-wrap gap-2 p-2 bg-muted/50 rounded-md">
+                    <span className="text-xs text-muted-foreground self-center">Ready to add:</span>
+                    {pendingServiceTypes.map((serviceTypeId) => (
+                      <Badge key={serviceTypeId} variant="outline" className="text-xs">
+                        {getServiceTypeName(serviceTypeId)}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
                 
                 {selectedServiceTypes.length > 0 && (
                   <div className="flex flex-wrap gap-2">
@@ -323,34 +364,55 @@ export function CreateCalendarDialog({
               </div>
               
               <div className="space-y-3">
-                <Select onValueChange={handleTeamMemberSelect}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select team members..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {membersLoading ? (
-                      <SelectItem value="loading" disabled>Loading...</SelectItem>
-                    ) : (
-                      <>
-                        {getAvailableTeamMembers().map((member) => (
-                          <SelectItem 
-                            key={member.email} 
-                            value={member.email}
-                            disabled={selectedTeamMembers.includes(member.email)}
-                          >
-                            <div className="flex items-center space-x-2">
-                              <span>{member.name}</span>
-                              <span className="text-xs text-muted-foreground">({member.email})</span>
-                              <Badge variant="outline" className="text-xs">
-                                {member.role}
-                              </Badge>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
+                <div className="flex space-x-2">
+                  <Select onValueChange={handleTeamMemberPendingSelect}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select team members..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {membersLoading ? (
+                        <SelectItem value="loading" disabled>Loading...</SelectItem>
+                      ) : (
+                        <>
+                          {getAvailableTeamMembers().map((member) => (
+                            <SelectItem 
+                              key={member.email} 
+                              value={member.email}
+                              disabled={selectedTeamMembers.includes(member.email) || pendingTeamMembers.includes(member.email)}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <span>{member.name}</span>
+                                <span className="text-sm text-foreground">({member.email})</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {member.role}
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    type="button" 
+                    onClick={addPendingTeamMembers}
+                    disabled={pendingTeamMembers.length === 0}
+                    size="sm"
+                  >
+                    Add
+                  </Button>
+                </div>
+                
+                {pendingTeamMembers.length > 0 && (
+                  <div className="flex flex-wrap gap-2 p-2 bg-muted/50 rounded-md">
+                    <span className="text-xs text-muted-foreground self-center">Ready to add:</span>
+                    {pendingTeamMembers.map((email) => (
+                      <Badge key={email} variant="outline" className="text-xs">
+                        {getTeamMemberName(email)}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
                 
                 {selectedTeamMembers.length > 0 && (
                   <div className="flex flex-wrap gap-2">
