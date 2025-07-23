@@ -16,6 +16,11 @@ interface Booking {
   notes?: string;
   internal_notes?: string;
   total_price?: number;
+  calendar?: {
+    id: string;
+    name: string;
+    color: string;
+  };
   service_types?: {
     name: string;
     color: string;
@@ -28,9 +33,10 @@ interface BookingDetailModalProps {
   open: boolean;
   onClose: () => void;
   booking: Booking | null;
+  viewingAllCalendars?: boolean;
 }
 
-export function BookingDetailModal({ open, onClose, booking }: BookingDetailModalProps) {
+export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars = false }: BookingDetailModalProps) {
   if (!booking) return null;
 
   const startTime = new Date(booking.start_time);
@@ -108,6 +114,25 @@ export function BookingDetailModal({ open, onClose, booking }: BookingDetailModa
               )}
             </div>
           </div>
+
+          {/* Calendar Information - only show when viewing all calendars */}
+          {viewingAllCalendars && booking.calendar && (
+            <div className="bg-card/50 rounded-lg p-4 border">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Calendar className="w-4 h-4" />
+                <span className="font-medium">Calendar</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: booking.calendar.color }}
+                />
+                <span className="font-semibold text-foreground">
+                  {booking.calendar.name}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Time & Duration */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

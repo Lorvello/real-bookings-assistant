@@ -17,6 +17,11 @@ interface Booking {
   notes?: string;
   internal_notes?: string;
   total_price?: number;
+  calendar?: {
+    id: string;
+    name: string;
+    color: string;
+  };
   service_types?: {
     name: string;
     color: string;
@@ -31,9 +36,10 @@ interface DayBookingsModalProps {
   date: Date | null;
   bookings: Booking[];
   position?: { x: number; y: number };
+  viewingAllCalendars?: boolean;
 }
 
-export function DayBookingsModal({ open, onClose, date, bookings, position }: DayBookingsModalProps) {
+export function DayBookingsModal({ open, onClose, date, bookings, position, viewingAllCalendars = false }: DayBookingsModalProps) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showDetail, setShowDetail] = useState(false);
 
@@ -142,6 +148,17 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
                         <div className="text-[10px] sm:text-xs font-medium text-white truncate">
                           {booking.service_types?.name || booking.service_name || 'Appointment'}
                         </div>
+                        {viewingAllCalendars && booking.calendar && (
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <div
+                              className="w-1.5 h-1.5 rounded-full"
+                              style={{ backgroundColor: booking.calendar.color }}
+                            />
+                            <span className="text-[9px] sm:text-xs text-slate-400 truncate">
+                              {booking.calendar.name}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
                           <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
                           <span className="text-[9px] sm:text-xs text-slate-300">
@@ -212,6 +229,23 @@ export function DayBookingsModal({ open, onClose, date, bookings, position }: Da
                   </div>
                 </div>
               </div>
+
+              {/* Calendar Information - only show when viewing all calendars */}
+              {viewingAllCalendars && selectedBooking.calendar && (
+                <div className="space-y-1.5 sm:space-y-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div
+                      className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
+                      style={{ backgroundColor: selectedBooking.calendar.color }}
+                    />
+                    <div>
+                      <div className="text-xs sm:text-sm text-white">
+                        Calendar: {selectedBooking.calendar.name}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Time Information */}
               <div className="space-y-1.5 sm:space-y-2">

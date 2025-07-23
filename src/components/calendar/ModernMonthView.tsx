@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { DayBookingsModal } from './DayBookingsModal';
@@ -30,9 +29,10 @@ interface Booking {
 interface ModernMonthViewProps {
   bookings: Booking[];
   currentDate: Date;
+  viewingAllCalendars?: boolean;
 }
 
-export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps) {
+export function ModernMonthView({ bookings, currentDate, viewingAllCalendars = false }: ModernMonthViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [dayModalOpen, setDayModalOpen] = useState(false);
@@ -130,12 +130,14 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
         date={selectedDate}
         bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
         position={modalPosition}
+        viewingAllCalendars={viewingAllCalendars}
       />
 
       <BookingDetailModal
         open={bookingDetailOpen}
         onClose={closeBookingDetail}
         booking={selectedBooking}
+        viewingAllCalendars={viewingAllCalendars}
       />
     </div>
   );
