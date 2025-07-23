@@ -39,30 +39,30 @@ export function CalendarHeader({
   };
 
   return (
-    <div className="bg-gradient-to-r from-card/95 via-card to-card/95 backdrop-blur-xl border-b border-border/40 px-3 sm:px-4 py-2 rounded-t-3xl shadow-lg shadow-black/5">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-3">
+    <div className="bg-card border-b border-border px-3 sm:px-4 py-3 rounded-t-lg">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         {/* Left Section - Title & Navigation */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-          <div className="flex items-center space-x-2 px-3 py-2 bg-primary/5 rounded-lg border">
-            <Calendar className="h-4 w-4 text-primary" />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center space-x-3 px-3 py-2 bg-muted/50 rounded-lg border border-border">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
             
             <div>
-              <h1 className="text-lg font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+              <h1 className="text-lg font-semibold text-foreground">
                 {formatTitle()}
               </h1>
-              <p className="text-xs text-muted-foreground font-medium">
+              <p className="text-xs text-muted-foreground">
                 Manage your appointments and availability
               </p>
             </div>
           </div>
 
           {/* Navigation Controls */}
-          <div className="flex items-center gap-1 bg-muted/50 rounded-xl p-1 border border-border/60 shadow-sm">
+          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-border">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onNavigate('prev')}
-              className="h-7 w-7 rounded-lg hover:bg-accent/80 transition-colors duration-200"
+              className="h-8 w-8 rounded-md hover:bg-muted transition-colors"
               disabled={loading}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -72,7 +72,7 @@ export function CalendarHeader({
               variant="ghost"
               size="icon"
               onClick={() => onNavigate('next')}
-              className="h-7 w-7 rounded-lg hover:bg-accent/80 transition-colors duration-200"
+              className="h-8 w-8 rounded-md hover:bg-muted transition-colors"
               disabled={loading}
             >
               <ChevronRight className="h-4 w-4" />
@@ -81,7 +81,7 @@ export function CalendarHeader({
         </div>
 
         {/* Right Section - View Controls & Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           {/* Time Range Selector - Only show for week view */}
           {currentView === 'week' && timeRange && onTimeRangeChange && (
             <div className="order-2 sm:order-none">
@@ -94,17 +94,17 @@ export function CalendarHeader({
           )}
 
           {/* View Switcher */}
-          <div className="flex items-center bg-muted/50 rounded-xl p-1 border border-border/60 shadow-sm order-1 sm:order-none">
+          <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-border order-1 sm:order-none">
             {(['month', 'week', 'year'] as const).map((view) => (
               <Button
                 key={view}
                 variant={currentView === view ? "default" : "ghost"}
                 size="sm"
                 onClick={() => onViewChange(view)}
-                className={`px-2 sm:px-3 py-1.5 h-7 rounded-lg font-medium transition-all duration-200 text-xs ${
+                className={`px-3 py-1.5 h-8 rounded-md font-medium transition-colors text-sm ${
                   currentView === view 
-                    ? 'bg-primary text-primary-foreground shadow-md' 
-                    : 'hover:bg-accent/80'
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:bg-muted'
                 }`}
               >
                 {view === 'month' ? 'Month' : view === 'week' ? 'Week' : 'Year'}
@@ -117,9 +117,9 @@ export function CalendarHeader({
             <Button
               onClick={onNewBooking}
               disabled={loading}
-              className="h-8 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/25 transition-all duration-200 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 text-xs"
+              className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"
             >
-              <Plus className="h-3 w-3 mr-1.5" />
+              <Plus className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">New Appointment</span>
               <span className="sm:hidden">New</span>
             </Button>
@@ -129,10 +129,10 @@ export function CalendarHeader({
 
       {/* Loading State */}
       {loading && (
-        <div className="absolute inset-0 bg-card/80 backdrop-blur-sm rounded-t-3xl flex items-center justify-center">
+        <div className="absolute inset-0 bg-card/80 backdrop-blur-sm rounded-t-lg flex items-center justify-center">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-            <span className="text-xs font-medium text-muted-foreground">Loading...</span>
+            <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin" />
+            <span className="text-sm font-medium text-muted-foreground">Loading...</span>
           </div>
         </div>
       )}

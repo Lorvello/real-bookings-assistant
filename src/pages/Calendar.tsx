@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { CalendarView } from '@/components/CalendarView';
+import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
@@ -24,10 +25,10 @@ const Calendar = () => {
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full bg-gray-900">
+        <div className="flex items-center justify-center h-full bg-background">
           <div className="text-center">
-            <div className="w-6 h-6 bg-green-600 rounded-full animate-spin mx-auto mb-3"></div>
-            <div className="text-base text-gray-300">Loading Calendar...</div>
+            <div className="w-6 h-6 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
+            <div className="text-base text-muted-foreground">Loading Calendar...</div>
           </div>
         </div>
       </DashboardLayout>
@@ -41,31 +42,31 @@ const Calendar = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-full p-3 md:p-8">
+        <div className="bg-background min-h-full p-3 md:p-8">
           <div className="space-y-4 md:space-y-6">
             {/* Calendar Header */}
-            <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-3 md:p-6">
-              <h1 className="text-lg md:text-3xl font-bold text-white">Calendar</h1>
-              <p className="text-gray-400 mt-1 text-xs md:text-base">
+            <div className="bg-card border border-border rounded-lg shadow-sm p-3 md:p-6">
+              <h1 className="text-lg md:text-3xl font-semibold text-foreground">Calendar</h1>
+              <p className="text-muted-foreground mt-1 text-xs md:text-base">
                 Create your first calendar to start managing appointments
               </p>
             </div>
 
             {/* Create Calendar Section */}
-            <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
+            <div className="bg-card border border-border shadow-sm rounded-lg p-8">
               <div className="text-center space-y-6">
-                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                  <CalendarIcon className="w-8 h-8 text-primary" />
+                <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                  <CalendarIcon className="w-8 h-8 text-muted-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-100 mb-2">Create Your First Calendar</h2>
-                  <p className="text-gray-400 max-w-md mx-auto">
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Create Your First Calendar</h2>
+                  <p className="text-muted-foreground max-w-md mx-auto">
                     Get started by creating a calendar to organize your appointments and availability.
                   </p>
                 </div>
                 <Button 
                   onClick={() => setCreateDialogOpen(true)}
-                  className="bg-primary hover:bg-primary/90 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   size="lg"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -91,21 +92,29 @@ const Calendar = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-3 md:p-8">
+      <div className="bg-background min-h-full p-3 md:p-8">
         <div className="space-y-4 md:space-y-6">
-          {/* Calendar Header */}
-          <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-3 md:p-6">
-            <h1 className="text-lg md:text-3xl font-bold text-white">{displayTitle}</h1>
-            <p className="text-gray-400 mt-1 text-xs md:text-base">
-              {viewingAllCalendars 
-                ? `Manage appointments from ${calendars.length} calendars`
-                : 'Manage your appointments and availability'
-              }
-            </p>
+          {/* Calendar Header with Switcher */}
+          <div className="bg-card border border-border rounded-lg shadow-sm p-3 md:p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <h1 className="text-lg md:text-3xl font-semibold text-foreground">{displayTitle}</h1>
+                <p className="text-muted-foreground mt-1 text-xs md:text-base">
+                  {viewingAllCalendars 
+                    ? `Manage appointments from ${calendars.length} calendars`
+                    : 'Manage your appointments and availability'
+                  }
+                </p>
+              </div>
+              
+              <div className="flex-shrink-0">
+                <CalendarSwitcher />
+              </div>
+            </div>
           </div>
 
           {/* Calendar Content */}
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-2 md:p-4">
+          <div className="bg-card border border-border shadow-sm rounded-lg p-2 md:p-4">
             <CalendarView calendarIds={activeCalendarIds} />
           </div>
         </div>
