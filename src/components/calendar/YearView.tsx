@@ -36,6 +36,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [dayModalOpen, setDayModalOpen] = useState(false);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
+  const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>();
 
   const yearStart = startOfYear(currentDate);
   const yearEnd = endOfYear(currentDate);
@@ -56,13 +57,20 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
     }).length;
   };
 
-  const handleDayClick = (day: Date, dayBookings: Booking[]) => {
+  const handleDayClick = (day: Date, dayBookings: Booking[], event?: React.MouseEvent) => {
     if (dayBookings.length === 1) {
       // Single appointment - show detailed modal directly
       setSelectedBooking(dayBookings[0]);
       setBookingDetailOpen(true);
     } else if (dayBookings.length > 1) {
       // Multiple appointments - show day modal first
+      if (event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        setModalPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top
+        });
+      }
       setSelectedDate(day);
       setDayModalOpen(true);
     }
@@ -71,6 +79,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
   const closeDayModal = () => {
     setDayModalOpen(false);
     setSelectedDate(null);
+    setModalPosition(undefined);
   };
 
   const closeBookingDetail = () => {
@@ -120,6 +129,12 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
               const isToday = isSameDay(day, new Date());
               const hasBookings = dayBookings.length > 0;
 
+              const handleDayClickEvent = (event: React.MouseEvent) => {
+                if (hasBookings) {
+                  handleDayClick(day, dayBookings, event);
+                }
+              };
+
               return (
                 <div
                   key={day.toISOString()}
@@ -133,7 +148,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
                       : 'text-muted-foreground/50'
                   }`}
                   title={hasBookings ? `${dayBookings.length} appointment${dayBookings.length > 1 ? 's' : ''}` : ''}
-                  onClick={() => hasBookings && handleDayClick(day, dayBookings)}
+                  onClick={handleDayClickEvent}
                 >
                   {format(day, 'd')}
                 </div>
@@ -213,6 +228,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
         onClose={closeDayModal}
         date={selectedDate}
         bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
+        position={modalPosition}
       />
 
       <BookingDetailModal

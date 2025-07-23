@@ -37,6 +37,7 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [dayModalOpen, setDayModalOpen] = useState(false);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
+  const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>();
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -52,13 +53,20 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
     );
   };
 
-  const handleDayClick = (day: Date, dayBookings: Booking[]) => {
+  const handleDayClick = (day: Date, dayBookings: Booking[], event?: React.MouseEvent) => {
     if (dayBookings.length === 1) {
       // Single appointment - show detailed modal directly
       setSelectedBooking(dayBookings[0]);
       setBookingDetailOpen(true);
     } else if (dayBookings.length > 1) {
       // Multiple appointments - show day modal first
+      if (event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        setModalPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top
+        });
+      }
       setSelectedDate(day);
       setDayModalOpen(true);
     }
@@ -73,6 +81,7 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
   const closeDayModal = () => {
     setDayModalOpen(false);
     setSelectedDate(null);
+    setModalPosition(undefined);
   };
 
   const closeBookingDetail = () => {
@@ -112,6 +121,7 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
         onClose={closeDayModal}
         date={selectedDate}
         bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
+        position={modalPosition}
       />
 
       <BookingDetailModal

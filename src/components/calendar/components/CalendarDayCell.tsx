@@ -25,7 +25,7 @@ interface CalendarDayCellProps {
   day: Date;
   currentDate: Date;
   dayBookings: Booking[];
-  onDayClick: (day: Date, dayBookings: Booking[]) => void;
+  onDayClick: (day: Date, dayBookings: Booking[], event?: React.MouseEvent) => void;
   onSingleBookingClick?: (booking: Booking, event: React.MouseEvent) => void;
 }
 
@@ -48,10 +48,21 @@ export function CalendarDayCell({
     }
   };
 
+  const handleMultipleBookingsClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    onDayClick(day, dayBookings, event);
+  };
+
+  const handleDayCellClick = (event: React.MouseEvent) => {
+    if (dayBookings.length > 0) {
+      onDayClick(day, dayBookings, event);
+    }
+  };
+
   return (
     <div
       className={`group rounded-xl p-1.5 min-h-[80px] transition-all duration-200 hover:shadow-lg ${
-        hasMultipleBookings ? 'cursor-pointer' : ''
+        dayBookings.length > 0 ? 'cursor-pointer' : ''
       } ${
         isCurrentMonth 
           ? isToday
@@ -59,7 +70,7 @@ export function CalendarDayCell({
             : 'bg-card/90 backdrop-blur-sm border border-border/60 hover:border-primary/30 hover:bg-card/95'
           : 'bg-muted/30 border border-border/30 opacity-60'
       }`}
-      onClick={() => hasMultipleBookings && onDayClick(day, dayBookings)}
+      onClick={handleDayCellClick}
     >
       <div className={`flex items-center justify-between mb-1 ${
         isToday ? 'text-primary font-bold' : 'text-foreground'
@@ -117,7 +128,10 @@ export function CalendarDayCell({
         )}
         
         {hasMultipleBookings && (
-          <div className="text-center py-2 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20 hover:from-blue-500/15 hover:to-blue-500/10 hover:border-blue-500/30 transition-all duration-200 cursor-pointer group-hover:scale-105">
+          <div 
+            className="text-center py-2 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20 hover:from-blue-500/15 hover:to-blue-500/10 hover:border-blue-500/30 transition-all duration-200 cursor-pointer group-hover:scale-105"
+            onClick={handleMultipleBookingsClick}
+          >
             <div className="text-blue-600 font-semibold text-xs mb-0.5">
               {dayBookings.length} appointments
             </div>
