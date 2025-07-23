@@ -2,10 +2,10 @@
 import { useState } from 'react';
 import { startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { DayBookingsModal } from './DayBookingsModal';
+import { BookingDetailModal } from './BookingDetailModal';
 
 import { CalendarWeekHeader } from './components/CalendarWeekHeader';
 import { CalendarDayCell } from './components/CalendarDayCell';
-import { GradientContainer } from '@/components/ui/GradientContainer';
 
 interface Booking {
   id: string;
@@ -34,7 +34,9 @@ interface ModernMonthViewProps {
 
 export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [dayModalOpen, setDayModalOpen] = useState(false);
+  const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -51,15 +53,31 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
   };
 
   const handleDayClick = (day: Date, dayBookings: Booking[]) => {
-    if (dayBookings.length > 1) {
+    if (dayBookings.length === 1) {
+      // Single appointment - show detailed modal directly
+      setSelectedBooking(dayBookings[0]);
+      setBookingDetailOpen(true);
+    } else if (dayBookings.length > 1) {
+      // Multiple appointments - show day modal first
       setSelectedDate(day);
-      setModalOpen(true);
+      setDayModalOpen(true);
     }
   };
 
-  const closeModal = () => {
-    setModalOpen(false);
+  const handleSingleBookingClick = (booking: Booking, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedBooking(booking);
+    setBookingDetailOpen(true);
+  };
+
+  const closeDayModal = () => {
+    setDayModalOpen(false);
     setSelectedDate(null);
+  };
+
+  const closeBookingDetail = () => {
+    setBookingDetailOpen(false);
+    setSelectedBooking(null);
   };
 
   return (
@@ -81,7 +99,7 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
                   currentDate={currentDate}
                   dayBookings={dayBookings}
                   onDayClick={handleDayClick}
-                  
+                  onSingleBookingClick={handleSingleBookingClick}
                 />
               );
             })}
@@ -90,10 +108,16 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
       </div>
 
       <DayBookingsModal
-        open={modalOpen}
-        onClose={closeModal}
+        open={dayModalOpen}
+        onClose={closeDayModal}
         date={selectedDate}
         bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
+      />
+
+      <BookingDetailModal
+        open={bookingDetailOpen}
+        onClose={closeBookingDetail}
+        booking={selectedBooking}
       />
     </div>
   );

@@ -1,7 +1,10 @@
 
+import { useState } from 'react';
 import { format, startOfYear, endOfYear, eachMonthOfInterval, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { Calendar, TrendingUp, CheckCircle, Clock } from 'lucide-react';
+import { DayBookingsModal } from './DayBookingsModal';
+import { BookingDetailModal } from './BookingDetailModal';
 
 interface Booking {
   id: string;
@@ -9,11 +12,17 @@ interface Booking {
   end_time: string;
   customer_name: string;
   customer_phone?: string;
+  customer_email?: string;
   status: string;
+  service_name?: string;
+  notes?: string;
+  internal_notes?: string;
+  total_price?: number;
   service_types?: {
     name: string;
     color: string;
     duration: number;
+    description?: string;
   } | null;
 }
 
@@ -23,6 +32,11 @@ interface YearViewProps {
 }
 
 export function YearView({ bookings, currentDate }: YearViewProps) {
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [dayModalOpen, setDayModalOpen] = useState(false);
+  const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
+
   const yearStart = startOfYear(currentDate);
   const yearEnd = endOfYear(currentDate);
   const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
@@ -40,6 +54,28 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
       const bookingDate = new Date(booking.start_time);
       return bookingDate >= monthStart && bookingDate <= monthEnd;
     }).length;
+  };
+
+  const handleDayClick = (day: Date, dayBookings: Booking[]) => {
+    if (dayBookings.length === 1) {
+      // Single appointment - show detailed modal directly
+      setSelectedBooking(dayBookings[0]);
+      setBookingDetailOpen(true);
+    } else if (dayBookings.length > 1) {
+      // Multiple appointments - show day modal first
+      setSelectedDate(day);
+      setDayModalOpen(true);
+    }
+  };
+
+  const closeDayModal = () => {
+    setDayModalOpen(false);
+    setSelectedDate(null);
+  };
+
+  const closeBookingDetail = () => {
+    setBookingDetailOpen(false);
+    setSelectedBooking(null);
   };
 
   const MiniMonth = ({ month }: { month: Date }) => {
@@ -90,13 +126,14 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
                   className={`text-xs text-center p-1.5 rounded-xl transition-all duration-150 ${
                     isCurrentMonth 
                       ? hasBookings 
-                        ? 'bg-primary text-primary-foreground font-bold shadow-sm hover:shadow-md transform hover:scale-110' 
+                        ? 'bg-primary text-primary-foreground font-bold shadow-sm hover:shadow-md transform hover:scale-110 cursor-pointer' 
                         : isToday 
                           ? 'bg-accent text-primary font-bold border-2 border-primary/50' 
                           : 'text-foreground hover:bg-accent/50'
                       : 'text-muted-foreground/50'
                   }`}
                   title={hasBookings ? `${dayBookings.length} appointment${dayBookings.length > 1 ? 's' : ''}` : ''}
+                  onClick={() => hasBookings && handleDayClick(day, dayBookings)}
                 >
                   {format(day, 'd')}
                 </div>
@@ -170,6 +207,19 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
           </div>
         </div>
       </div>
+
+      <DayBookingsModal
+        open={dayModalOpen}
+        onClose={closeDayModal}
+        date={selectedDate}
+        bookings={selectedDate ? getBookingsForDay(selectedDate) : []}
+      />
+
+      <BookingDetailModal
+        open={bookingDetailOpen}
+        onClose={closeBookingDetail}
+        booking={selectedBooking}
+      />
     </div>
   );
 }

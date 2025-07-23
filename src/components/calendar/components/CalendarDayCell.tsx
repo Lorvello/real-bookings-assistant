@@ -26,17 +26,27 @@ interface CalendarDayCellProps {
   currentDate: Date;
   dayBookings: Booking[];
   onDayClick: (day: Date, dayBookings: Booking[]) => void;
+  onSingleBookingClick?: (booking: Booking, event: React.MouseEvent) => void;
 }
 
 export function CalendarDayCell({ 
   day, 
   currentDate, 
   dayBookings, 
-  onDayClick
+  onDayClick,
+  onSingleBookingClick
 }: CalendarDayCellProps) {
   const isCurrentMonth = isSameMonth(day, currentDate);
   const isToday = isSameDay(day, new Date());
   const hasMultipleBookings = dayBookings.length > 1;
+  const hasSingleBooking = dayBookings.length === 1;
+
+  const handleSingleBookingClick = (booking: Booking, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (onSingleBookingClick) {
+      onSingleBookingClick(booking, event);
+    }
+  };
 
   return (
     <div
@@ -49,7 +59,7 @@ export function CalendarDayCell({
             : 'bg-card/90 backdrop-blur-sm border border-border/60 hover:border-primary/30 hover:bg-card/95'
           : 'bg-muted/30 border border-border/30 opacity-60'
       }`}
-      onClick={() => onDayClick(day, dayBookings)}
+      onClick={() => hasMultipleBookings && onDayClick(day, dayBookings)}
     >
       <div className={`flex items-center justify-between mb-1 ${
         isToday ? 'text-primary font-bold' : 'text-foreground'
@@ -77,7 +87,7 @@ export function CalendarDayCell({
           </div>
         )}
         
-        {dayBookings.length === 1 && (
+        {hasSingleBooking && (
           <div
             className="group/booking p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
             style={{
@@ -85,6 +95,7 @@ export function CalendarDayCell({
               backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`
             }}
             title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name} (${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'})`}
+            onClick={(e) => handleSingleBookingClick(dayBookings[0], e)}
           >
             <div className="flex items-center justify-between">
               <div className="text-white text-xs font-semibold">
@@ -105,7 +116,7 @@ export function CalendarDayCell({
           </div>
         )}
         
-        {dayBookings.length > 1 && (
+        {hasMultipleBookings && (
           <div className="text-center py-2 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20 hover:from-blue-500/15 hover:to-blue-500/10 hover:border-blue-500/30 transition-all duration-200 cursor-pointer group-hover:scale-105">
             <div className="text-blue-600 font-semibold text-xs mb-0.5">
               {dayBookings.length} appointments
