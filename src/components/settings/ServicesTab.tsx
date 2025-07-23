@@ -6,10 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Plus } from 'lucide-react';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
-import { CalendarSelectionCard } from './CalendarSelectionCard';
 
 export function ServicesTab() {
-  const { selectedCalendar, calendars } = useCalendarContext();
+  const { calendars } = useCalendarContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   if (calendars.length === 0) {
@@ -45,19 +44,15 @@ export function ServicesTab() {
 
   return (
     <div className="space-y-6">
-      <CalendarSelectionCard />
-      
       <Card className="border-border">
         <CardHeader>
-          <CardTitle className="text-foreground">Services Management</CardTitle>
+          <CardTitle className="text-foreground">Global Services Management</CardTitle>
           <p className="text-sm text-muted-foreground">
-            {selectedCalendar 
-              ? `Manage services for "${selectedCalendar.name}"`
-              : "Select a calendar above or view all services across calendars"}
+            Manage all your business services. These can be assigned to any calendar when creating or editing calendars.
           </p>
         </CardHeader>
         <CardContent>
-          <ServiceTypesManager calendarId={selectedCalendar?.id} showCalendarLabels={!selectedCalendar} />
+          <ServiceTypesManager />
         </CardContent>
       </Card>
     </div>

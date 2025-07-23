@@ -64,21 +64,7 @@ export function ProfileDashboard() {
           </TabsContent>
 
           <TabsContent value="services" className="space-y-6">
-            {activeCalendar ? (
-              <ServiceTypesManager calendarId={activeCalendar.id} />
-            ) : (
-              <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="flex items-center justify-center py-12">
-                  <div className="text-center">
-                    <Wrench className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-white mb-2">No Active Calendar</h3>
-                    <p className="text-gray-400 mb-4">
-                      Create or activate a calendar first to manage service types
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <ServiceTypesManager />
           </TabsContent>
         </Tabs>
       </div>

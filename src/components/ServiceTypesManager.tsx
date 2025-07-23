@@ -9,16 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Plus, Edit } from 'lucide-react';
 
 interface ServiceTypesManagerProps {
-  calendarId?: string;
-  showCalendarLabels?: boolean;
+  // No props needed - always show all user service types
 }
 
-export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({ 
-  calendarId,
-  showCalendarLabels = false 
-}) => {
-  const { calendars, selectedCalendar } = useCalendarContext();
-  const { serviceTypes, loading, refetch, createServiceType, updateServiceType } = useServiceTypes(calendarId);
+export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
+  const { calendars } = useCalendarContext();
+  const { serviceTypes, loading, refetch, createServiceType, updateServiceType } = useServiceTypes();
   const [showDialog, setShowDialog] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
   const [saving, setSaving] = useState(false);
@@ -49,9 +45,8 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
           color: formData.color
         });
       } else {
-        // Create new service
+        // Create new service (global, not calendar-specific)
         await createServiceType({
-          calendar_id: calendarId || selectedCalendar?.id || '',
           name: formData.name,
           description: formData.description,
           duration: parseInt(formData.duration) || 30,
@@ -61,7 +56,8 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
           max_attendees: 1,
           preparation_time: 0,
           cleanup_time: 0,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          calendar_id: null // Global service, not tied to specific calendar
         });
       }
       
@@ -140,11 +136,6 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
                     />
                   </div>
                 </div>
-                {showCalendarLabels && (
-                  <div className="mt-1 text-xs text-gray-400">
-                    {getCalendarName(service.calendar_id)}
-                  </div>
-                )}
                 <p className="text-sm text-gray-400 mt-2">
                   Duration: {service.duration} minutes
                 </p>
