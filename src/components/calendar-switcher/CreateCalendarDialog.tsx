@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { SimpleMultiSelect } from '@/components/ui/simple-multi-select';
 import { X, Plus, User, Settings, ChevronDown } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useCreateCalendar } from '@/hooks/useCreateCalendar';
@@ -275,7 +275,7 @@ export function CreateCalendarDialog({
               </div>
               
               <div className="space-y-3">
-                <MultiSelect
+                <SimpleMultiSelect
                   options={getServiceTypeOptions()}
                   selected={selectedServiceTypes}
                   onChange={handleServiceTypeChange}
@@ -310,7 +310,7 @@ export function CreateCalendarDialog({
               </div>
               
               <div className="space-y-3">
-                <MultiSelect
+                <SimpleMultiSelect
                   options={getTeamMemberOptions()}
                   selected={selectedTeamMembers}
                   onChange={handleTeamMemberChange}
