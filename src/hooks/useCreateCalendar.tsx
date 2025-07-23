@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -73,50 +72,82 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
 
       console.log('Calendar created successfully:', calendar);
 
-      // Add team members to the calendar
+      // Always add the owner as a calendar member
+      try {
+        const { error: ownerError } = await supabase
+          .from('calendar_members')
+          .insert({
+            calendar_id: calendar.id,
+            user_id: user.id,
+            role: 'owner',
+            accepted_at: new Date().toISOString()
+          });
+
+        if (ownerError) {
+          console.error('Error adding owner as calendar member:', ownerError);
+        }
+      } catch (error) {
+        console.error('Error adding owner as calendar member:', error);
+      }
+
+      // Link selected service types to the calendar via junction table
+      if (data.serviceTypes && data.serviceTypes.length > 0) {
+        try {
+          const serviceTypeLinks = data.serviceTypes.map(serviceTypeId => ({
+            calendar_id: calendar.id,
+            service_type_id: serviceTypeId
+          }));
+
+          const { error: serviceTypeError } = await supabase
+            .from('calendar_service_types')
+            .insert(serviceTypeLinks);
+
+          if (serviceTypeError) {
+            console.error('Error linking service types to calendar:', serviceTypeError);
+            toast({
+              title: "Partial Success",
+              description: "Calendar created but some service types couldn't be linked",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error('Error linking service types:', error);
+        }
+      }
+
+      // Add additional team members to the calendar
       if (data.teamMembers && data.teamMembers.length > 0) {
         for (const member of data.teamMembers) {
           try {
+            // Skip owner since we already added them above
             if (member.role === 'owner') {
-              // Add the owner directly
-              const { error: memberError } = await supabase
+              continue;
+            }
+            
+            // For other members, check if user exists
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('id, email')
+              .eq('email', member.email)
+              .single();
+
+            if (userData && !userError) {
+              // Add member to calendar
+              const { error: inviteError } = await supabase
                 .from('calendar_members')
                 .insert({
                   calendar_id: calendar.id,
-                  user_id: user.id,
-                  role: 'owner',
-                  accepted_at: new Date().toISOString()
+                  user_id: userData.id,
+                  role: member.role,
+                  invited_by: user.id,
+                  invited_at: new Date().toISOString()
                 });
 
-              if (memberError) {
-                console.error('Error adding owner as calendar member:', memberError);
+              if (inviteError) {
+                console.error(`Error inviting ${member.email}:`, inviteError);
               }
             } else {
-              // For other members, check if user exists
-              const { data: userData, error: userError } = await supabase
-                .from('users')
-                .select('id, email')
-                .eq('email', member.email)
-                .single();
-
-              if (userData && !userError) {
-                // Add member to calendar
-                const { error: inviteError } = await supabase
-                  .from('calendar_members')
-                  .insert({
-                    calendar_id: calendar.id,
-                    user_id: userData.id,
-                    role: member.role,
-                    invited_by: user.id,
-                    invited_at: new Date().toISOString()
-                  });
-
-                if (inviteError) {
-                  console.error(`Error inviting ${member.email}:`, inviteError);
-                }
-              } else {
-                console.log(`User ${member.email} not found - they would need to be invited when they sign up`);
-              }
+              console.log(`User ${member.email} not found - they would need to be invited when they sign up`);
             }
           } catch (error) {
             console.error(`Error processing team member ${member.email}:`, error);

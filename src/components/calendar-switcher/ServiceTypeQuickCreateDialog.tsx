@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { Plus } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const colorOptions = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -39,6 +40,7 @@ export function ServiceTypeQuickCreateDialog({
   
   const { selectedCalendar } = useCalendarContext();
   const { createServiceType } = useServiceTypes(selectedCalendar?.id);
+  const { user } = useAuth();
 
   const handleCreateService = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +51,11 @@ export function ServiceTypeQuickCreateDialog({
     
     if (!targetCalendarId) {
       console.error("No calendar selected");
+      return;
+    }
+    
+    if (!user) {
+      console.error("User not authenticated");
       return;
     }
     

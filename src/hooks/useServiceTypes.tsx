@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -23,22 +22,35 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
       }
 
       if (calendarId && !showAllServiceTypes) {
-        // Fetch service types linked to specific calendar via junction table
-        const { data, error } = await supabase
+        // Fetch service types linked to specific calendar via junction table OR directly via calendar_id
+        const { data: junctionData, error: junctionError } = await supabase
           .from('service_types')
           .select(`
             *,
             calendar_service_types!inner(calendar_id)
           `)
           .eq('calendar_service_types.calendar_id', calendarId)
-          .eq('user_id', userData.user.id)
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          throw error;
+          .eq('user_id', userData.user.id);
+
+        const { data: directData, error: directError } = await supabase
+          .from('service_types')
+          .select('*')
+          .eq('calendar_id', calendarId)
+          .eq('user_id', userData.user.id);
+
+        if (junctionError || directError) {
+          throw junctionError || directError;
         }
-        
-        setServiceTypes(data || []);
+
+        // Combine both results and remove duplicates
+        const allServiceTypes = [...(junctionData || []), ...(directData || [])];
+        const uniqueServiceTypes = allServiceTypes.filter((item, index, self) => 
+          index === self.findIndex(t => t.id === item.id)
+        );
+
+        setServiceTypes(uniqueServiceTypes.sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        ));
       } else {
         // Fetch all service types for the current user
         const { data, error } = await supabase
@@ -67,9 +79,22 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
 
   const createServiceType = async (serviceData: Omit<ServiceType, 'id'>) => {
     try {
-      const { data, error } = await supabase.from('service_types').insert([serviceData]).select('*').single();
+      // Get current user to ensure user_id is set
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Ensure user_id is included in service data
+      const serviceDataWithUser = {
+        ...serviceData,
+        user_id: userData.user.id
+      };
+
+      const { data, error } = await supabase.from('service_types').insert([serviceDataWithUser]).select('*').single();
 
       if (error) {
+        console.error('Supabase error creating service type:', error);
         throw error;
       }
 
