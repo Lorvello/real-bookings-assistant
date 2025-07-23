@@ -122,7 +122,7 @@ export const useCalendarMembers = (calendarId?: string) => {
     }
   };
 
-  // Simplified function to invite a member to one calendar
+  // New invitation system using email invitations
   const inviteMember = async (
     email: string, 
     calendarIdForInvite: string, 
@@ -130,52 +130,47 @@ export const useCalendarMembers = (calendarId?: string) => {
     fullName: string = ''
   ) => {
     try {
-      // Find or create user (pass calendarId for potential user creation)
-      const userData = await findOrCreateUser(email, fullName, calendarIdForInvite);
+      setLoading(true);
       
-      // Check if the user is already a member of this calendar
-      const { data: existingMembership } = await supabase
-        .from('calendar_members')
-        .select('id')
-        .eq('user_id', userData.id)
-        .eq('calendar_id', calendarIdForInvite)
-        .single();
+      console.log('Inviting member via new system:', { email, calendarIdForInvite, role, fullName });
       
-      if (existingMembership) {
+      // Use the new edge function to send invitation
+      const { error } = await supabase.functions.invoke('send-team-invitation', {
+        body: {
+          calendar_id: calendarIdForInvite,
+          email: email,
+          full_name: fullName || '',
+          role: role
+        }
+      });
+
+      if (error) {
+        console.error('Error sending invitation:', error);
         toast({
-          title: "User is already a member",
-          description: "This user already has access to this calendar",
+          title: "Fout",
+          description: error.message || "Kon uitnodiging niet versturen.",
           variant: "destructive",
         });
         return;
       }
 
-      // Create the membership
-      const invitedBy = (await supabase.auth.getUser()).data.user?.id;
-      const { error } = await supabase
-        .from('calendar_members')
-        .insert({
-          calendar_id: calendarIdForInvite,
-          user_id: userData.id,
-          role: role,
-          invited_by: invitedBy
-        });
-
-      if (error) throw error;
-
+      // Refresh the members list to show any updates
+      await fetchMembers();
+      
       toast({
-        title: "User invited",
-        description: `${email} has been added successfully`,
+        title: "Uitnodiging verzonden! 📧",
+        description: `Een uitnodiging is verzonden naar ${email}. Ze hebben 48 uur om te accepteren.`,
       });
-
-      fetchMembers();
+      
     } catch (error) {
       console.error('Error inviting member:', error);
       toast({
-        title: "Error inviting user",
-        description: "Could not invite the user",
+        title: "Fout",
+        description: "Er ging iets mis bij het versturen van de uitnodiging.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 

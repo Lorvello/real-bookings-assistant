@@ -1110,6 +1110,91 @@ export type Database = {
         }
         Relationships: []
       }
+      team_invitations: {
+        Row: {
+          accepted_at: string | null
+          calendar_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          full_name: string | null
+          id: string
+          invited_by: string
+          role: string
+          status: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          calendar_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          full_name?: string | null
+          id?: string
+          invited_by: string
+          role?: string
+          status?: string
+          token: string
+        }
+        Update: {
+          accepted_at?: string | null
+          calendar_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          full_name?: string | null
+          id?: string
+          invited_by?: string
+          role?: string
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invitations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_invitations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_invitations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_invitations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_invitations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_invitations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
       users: {
         Row: {
           accessibility_info: string | null
@@ -2335,6 +2420,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_team_invitation: {
+        Args: { p_token: string }
+        Returns: Json
+      }
       add_to_waitlist: {
         Args: {
           p_calendar_slug: string
@@ -2407,6 +2496,10 @@ export type Database = {
         Returns: undefined
       }
       cleanup_expired_context: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_invitations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -2593,6 +2686,15 @@ export type Database = {
       get_whatsapp_data_retention_days: {
         Args: { p_calendar_id: string }
         Returns: number
+      }
+      invite_team_member: {
+        Args: {
+          p_calendar_id: string
+          p_email: string
+          p_full_name: string
+          p_role?: string
+        }
+        Returns: Json
       }
       link_existing_whatsapp_conversations: {
         Args: Record<PropertyKey, never>

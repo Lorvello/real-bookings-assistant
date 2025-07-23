@@ -22,6 +22,7 @@ import FAQ from '@/pages/FAQ';
 import TestAIAgent from '@/pages/TestAIAgent';
 import WhatsAppBookingAssistantPage from '@/pages/WhatsAppBookingAssistant';
 import Profile from '@/pages/Profile';
+import TeamInvite from '@/pages/TeamInvite';
 
 // Pages
 import Index from '@/pages/Index';
@@ -68,6 +69,7 @@ function App() {
                 <Route path="/test-ai-agent" element={<TestAIAgent />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/testing" element={<Testing />} />
+                <Route path="/team-invite" element={<TeamInvite />} />
                 <Route path="/how-it-works" element={<SeeHowItWorks />} />
                 <Route path="/why-us" element={<WhyUs />} />
                 <Route path="/faq" element={<FAQ />} />
