@@ -64,7 +64,7 @@ export function SimpleMultiSelect({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-full justify-between min-h-10 h-auto",
+              "w-full justify-between min-h-10 h-auto hover:bg-transparent hover:text-current",
               disabled && "cursor-not-allowed opacity-50"
             )}
             disabled={disabled}
@@ -77,7 +77,7 @@ export function SimpleMultiSelect({
                     <Badge
                       key={value}
                       variant="secondary"
-                      className="flex items-center gap-1 px-2 py-0.5"
+                      className="flex items-center gap-1 px-2 py-0.5 hover:bg-secondary"
                     >
                       <span>{option?.label || value}</span>
                       <button
@@ -127,7 +127,7 @@ export function SimpleMultiSelect({
                 <div
                   key={option.value}
                   data-dropdown-item
-                  className="relative w-full flex cursor-pointer select-none items-center px-3 py-2.5 text-sm text-left transition-colors pointer-events-auto"
+                  className="relative w-full flex cursor-pointer select-none items-center px-3 py-2.5 text-sm text-left hover:bg-muted transition-colors pointer-events-auto"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
