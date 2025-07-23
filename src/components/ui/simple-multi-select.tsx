@@ -28,6 +28,7 @@ export function SimpleMultiSelect({
   disabled = false,
 }: SimpleMultiSelectProps) {
   const [open, setOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
   
   // Ensure we always have arrays
   const safeOptions = Array.isArray(options) ? options : [];
@@ -56,6 +57,7 @@ export function SimpleMultiSelect({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
+            ref={triggerRef}
             variant="outline"
             role="combobox"
             aria-expanded={open}
@@ -102,20 +104,27 @@ export function SimpleMultiSelect({
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0" align="start">
-          <div className="max-h-60 overflow-auto">
+        <PopoverContent 
+          className="p-0 z-50 bg-popover border border-border shadow-lg" 
+          align="start"
+          style={{ 
+            width: triggerRef.current?.offsetWidth || 200,
+            minWidth: '200px'
+          }}
+        >
+          <div className="max-h-60 overflow-y-auto bg-popover">
             {availableOptions.length > 0 ? (
               availableOptions.map((option) => (
                 <div
                   key={option.value}
-                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                  className="relative flex cursor-pointer select-none items-center px-3 py-2.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                   onClick={() => handleSelect(option.value)}
                 >
-                  {option.label}
+                  <span className="truncate">{option.label}</span>
                 </div>
               ))
             ) : (
-              <div className="py-6 text-center text-sm text-muted-foreground">
+              <div className="py-6 text-center text-sm text-muted-foreground px-4">
                 {safeSelected.length === safeOptions.length 
                   ? "All items selected" 
                   : "No items available"
