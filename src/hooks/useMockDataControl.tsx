@@ -18,7 +18,7 @@ export const useMockDataControl = () => {
     }
     
     // For setup_incomplete users, show mock data to help them understand the platform
-    if (userStatus.status === 'setup_incomplete') {
+    if (userStatus.isSetupIncomplete) {
       return true;
     }
     
@@ -28,6 +28,6 @@ export const useMockDataControl = () => {
   return {
     useMockData: shouldUseMockData(),
     isDeveloper: getEnvironmentConfig(user?.email).allowDeveloperTools,
-    userStatus: userStatus.status
+    userStatus: userStatus.userType
   };
 };
