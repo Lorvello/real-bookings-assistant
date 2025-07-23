@@ -6,7 +6,7 @@ import { usePopularService } from '@/hooks/dashboard/usePopularService';
 import { useWeeklyInsights } from '@/hooks/dashboard/useWeeklyInsights';
 import { CalendarManagement } from '@/components/dashboard/CalendarManagement';
 import { DateRange } from '@/components/dashboard/DateRangeFilter';
-import { Clock, Star, TrendingUp, TrendingDown, Calendar, User, Award, Activity, Target } from 'lucide-react';
+import { Clock, Star, TrendingUp, TrendingDown, Calendar, User, Award, Activity, Target, ArrowUp, ArrowDown, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
@@ -57,171 +57,152 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
+          transition={{ duration: 0.5 }}
+          className="group"
         >
-          <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg hover:scale-105 transition-all duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Volgende Afspraak
-              </CardTitle>
-              <Clock className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              {nextAppointment ? (
-                <div className="space-y-3">
-                  <div className="text-2xl font-bold text-foreground">
-                    {nextAppointment.time_until}
+          <div className="relative h-44 rounded-xl bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 p-6 border border-rose-500/30 backdrop-blur-sm shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-rose-500/25">
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-rose-500/40 to-pink-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl" />
+            
+            <div className="flex items-start justify-between h-full">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 bg-gradient-to-br from-rose-500/20 to-pink-500/20 rounded-xl border border-rose-500/30">
+                    <Clock className="h-5 w-5 text-rose-400" />
                   </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <User className="h-3 w-3 text-primary" />
-                      <p className="text-sm font-medium text-foreground">{nextAppointment.customer_name}</p>
+                  <h3 className="text-sm font-medium text-slate-400">Next Appointment</h3>
+                </div>
+                
+                {nextAppointment ? (
+                  <div className="space-y-3">
+                    <div className="text-4xl font-bold bg-gradient-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent">
+                      {nextAppointment.time_until}
                     </div>
-                    <p className="text-xs text-muted-foreground">{nextAppointment.service_name}</p>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-white">
+                        {nextAppointment.service_name}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {nextAppointment.customer_name}
+                      </p>
+                    </div>
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    <Activity className="h-3 w-3 mr-1" />
-                    Vandaag
-                  </Badge>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="text-2xl font-bold text-muted-foreground">-</div>
-                  <p className="text-sm text-muted-foreground">Geen afspraken vandaag</p>
-                  <Badge variant="outline" className="text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    Vrije dag
-                  </Badge>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-slate-400 text-center text-sm">No upcoming appointments</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Popular Service Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="group"
         >
-          <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg hover:scale-105 transition-all duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Populairste Service
-              </CardTitle>
-              <Award className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              {popularService ? (
-                <div className="space-y-3">
-                  <div className="text-2xl font-bold text-foreground">
-                    {popularService.percentage}%
+          <div className="relative h-44 rounded-xl bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 p-6 border border-rose-500/30 backdrop-blur-sm shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-rose-500/25">
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-rose-500/40 to-pink-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl" />
+            
+            <div className="flex items-start justify-between h-full">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 bg-gradient-to-br from-rose-500/20 to-pink-500/20 rounded-xl border border-rose-500/30">
+                    <TrendingUp className="h-5 w-5 text-rose-400" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground">{popularService.service_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {popularService.booking_count} {popularService.booking_count === 1 ? 'boeking' : 'boekingen'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="flex-1 bg-muted rounded-full h-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(popularService.percentage, 100)}%` }}
-                      />
+                  <h3 className="text-sm font-medium text-slate-400">Popular Service</h3>
+                </div>
+                
+                {popularService ? (
+                  <div className="space-y-3">
+                    <div className="text-4xl font-bold bg-gradient-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent">
+                      {popularService.percentage.toFixed(0)}%
                     </div>
-                    <Target className="h-3 w-3 text-green-600" />
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-white">
+                        {popularService.service_name}
+                      </p>
+                      <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
+                        <div 
+                          className="bg-gradient-to-r from-rose-500 to-pink-500 h-2 rounded-full transition-all duration-500" 
+                          style={{ width: `${popularService.percentage}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        {popularService.booking_count} bookings this month
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="text-2xl font-bold text-muted-foreground">-</div>
-                  <p className="text-sm text-muted-foreground">Geen service data</p>
-                  <Badge variant="outline" className="text-xs text-muted-foreground">
-                    <Star className="h-3 w-3 mr-1" />
-                    Laatste 30 dagen
-                  </Badge>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-slate-400 text-center text-sm">No booking data available</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Weekly Insights Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="group"
         >
-          <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg hover:scale-105 transition-all duration-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Week Trend
-              </CardTitle>
-              <div className="flex items-center gap-1">
-                {weeklyInsights && weeklyInsights.trend === 'up' ? (
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                ) : weeklyInsights && weeklyInsights.trend === 'down' ? (
-                  <TrendingDown className="h-4 w-4 text-red-600" />
+          <div className="relative h-44 rounded-xl bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 p-6 border border-rose-500/30 backdrop-blur-sm shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-rose-500/25">
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-rose-500/40 to-pink-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl" />
+            
+            <div className="flex items-start justify-between h-full">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 bg-gradient-to-br from-rose-500/20 to-pink-500/20 rounded-xl border border-rose-500/30">
+                    <BarChart3 className="h-5 w-5 text-rose-400" />
+                  </div>
+                  <h3 className="text-sm font-medium text-slate-400">Weekly Growth</h3>
+                </div>
+                
+                {weeklyInsights ? (
+                  <div className="space-y-3">
+                    <div className={`text-4xl font-bold ${
+                      weeklyInsights.trend === 'up' ? 'bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent' : 
+                      weeklyInsights.trend === 'down' ? 'bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent' : 
+                      'bg-gradient-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent'
+                    }`}>
+                      {weeklyInsights.trend === 'up' ? '+' : weeklyInsights.trend === 'down' ? '-' : ''}
+                      {Math.abs(weeklyInsights.growth_percentage)}%
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        {weeklyInsights.trend === 'up' ? (
+                          <ArrowUp className="h-4 w-4 text-emerald-400" />
+                        ) : weeklyInsights.trend === 'down' ? (
+                          <ArrowDown className="h-4 w-4 text-red-400" />
+                        ) : (
+                          <TrendingUp className="h-4 w-4 text-rose-400" />
+                        )}
+                        <span className="text-xs text-slate-400">
+                          vs last week
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        This week: {weeklyInsights.current_week} • Last week: {weeklyInsights.previous_week}
+                      </p>
+                    </div>
+                  </div>
                 ) : (
-                  <Activity className="h-4 w-4 text-purple-600" />
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-slate-400 text-center text-sm">No weekly data available</p>
+                  </div>
                 )}
               </div>
-            </CardHeader>
-            <CardContent>
-              {weeklyInsights ? (
-                <div className="space-y-3">
-                  <div className="text-2xl font-bold text-foreground">
-                    {weeklyInsights.growth_percentage >= 0 ? '+' : ''}{weeklyInsights.growth_percentage}%
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Deze week:</span>
-                      <span className="font-medium text-foreground">{weeklyInsights.current_week}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Vorige week:</span>
-                      <span className="font-medium text-foreground">{weeklyInsights.previous_week}</span>
-                    </div>
-                  </div>
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs ${
-                      weeklyInsights.trend === 'up' ? 'border-green-600 text-green-600' :
-                      weeklyInsights.trend === 'down' ? 'border-red-600 text-red-600' :
-                      'border-muted text-muted-foreground'
-                    }`}
-                  >
-                    {weeklyInsights.trend === 'up' ? (
-                      <>
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        Groei
-                      </>
-                    ) : weeklyInsights.trend === 'down' ? (
-                      <>
-                        <TrendingDown className="h-3 w-3 mr-1" />
-                        Daling
-                      </>
-                    ) : (
-                      <>
-                        <Activity className="h-3 w-3 mr-1" />
-                        Stabiel
-                      </>
-                    )}
-                  </Badge>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="text-2xl font-bold text-muted-foreground">-</div>
-                  <p className="text-sm text-muted-foreground">Geen week data</p>
-                  <Badge variant="outline" className="text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    7 dagen
-                  </Badge>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       </div>
 
