@@ -4,6 +4,8 @@ import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { ServiceTypesEmptyState } from '@/components/settings/service-types/ServiceTypesEmptyState';
 import { ServiceTypeQuickCreateDialog } from '@/components/calendar-switcher/ServiceTypeQuickCreateDialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface ServiceTypesManagerProps {
   calendarId?: string;
@@ -27,7 +29,18 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
   }
 
   return (
-    <div>
+    <div className="space-y-4">
+      {/* Permanent Add Service Button */}
+      <div className="flex justify-end">
+        <Button 
+          onClick={() => setShowCreateDialog(true)}
+          className="bg-accent hover:bg-accent/90 text-accent-foreground"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Service
+        </Button>
+      </div>
+
       {serviceTypes.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {serviceTypes.map(service => (
@@ -67,15 +80,14 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
         />
       )}
       
-      {showCreateDialog && (
-        <ServiceTypeQuickCreateDialog
-          onServiceCreated={(serviceId) => {
-            setShowCreateDialog(false);
-            refetch();
-          }}
-          trigger={null}
-        />
-      )}
+      <ServiceTypeQuickCreateDialog
+        calendarId={calendarId || selectedCalendar?.id}
+        open={showCreateDialog}
+        onServiceCreated={(serviceId) => {
+          setShowCreateDialog(false);
+          refetch();
+        }}
+      />
     </div>
   );
 };

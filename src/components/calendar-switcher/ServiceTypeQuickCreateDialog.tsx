@@ -12,12 +12,14 @@ interface ServiceTypeQuickCreateDialogProps {
   calendarId?: string;
   onServiceCreated?: (serviceId: string) => void;
   trigger?: React.ReactNode;
+  open?: boolean;
 }
 
 export function ServiceTypeQuickCreateDialog({ 
   calendarId,
   onServiceCreated,
-  trigger 
+  trigger,
+  open 
 }: ServiceTypeQuickCreateDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [serviceName, setServiceName] = useState('');
@@ -62,6 +64,13 @@ export function ServiceTypeQuickCreateDialog({
       setIsSubmitting(false);
     }
   };
+
+  // Auto-open dialog when open prop is true
+  React.useEffect(() => {
+    if (open !== undefined) {
+      setIsOpen(open);
+    }
+  }, [open]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
