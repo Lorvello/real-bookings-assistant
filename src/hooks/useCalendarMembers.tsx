@@ -109,6 +109,7 @@ export const useCalendarMembers = (calendarId?: string) => {
         });
 
       if (createError) {
+        console.error('Error creating user:', createError);
         throw createError;
       }
 
@@ -119,16 +120,74 @@ export const useCalendarMembers = (calendarId?: string) => {
     }
   };
 
+  // Simplified function to invite a member to one calendar
+  const inviteMember = async (
+    email: string, 
+    calendarIdForInvite: string, 
+    role: 'editor' | 'viewer' = 'viewer', 
+    fullName: string = ''
+  ) => {
+    try {
+      // Find or create user
+      const userData = await findOrCreateUser(email, fullName);
+      
+      // Check if the user is already a member of this calendar
+      const { data: existingMembership } = await supabase
+        .from('calendar_members')
+        .select('id')
+        .eq('user_id', userData.id)
+        .eq('calendar_id', calendarIdForInvite)
+        .single();
+      
+      if (existingMembership) {
+        toast({
+          title: "User is already a member",
+          description: "This user already has access to this calendar",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create the membership
+      const invitedBy = (await supabase.auth.getUser()).data.user?.id;
+      const { error } = await supabase
+        .from('calendar_members')
+        .insert({
+          calendar_id: calendarIdForInvite,
+          user_id: userData.id,
+          role: role,
+          invited_by: invitedBy
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "User invited",
+        description: `${email} has been invited as ${role}`,
+      });
+
+      fetchMembers();
+    } catch (error) {
+      console.error('Error inviting member:', error);
+      toast({
+        title: "Error inviting user",
+        description: "Could not invite the user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Keep for multi-calendar invitations when needed
   const inviteMemberToMultipleCalendars = async (
     email: string, 
     calendarIds: string[], 
     role: 'editor' | 'viewer' = 'viewer', 
     fullName: string = ''
   ) => {
-    if (calendarIds.length === 0) {
+    if (!calendarIds.length) {
       toast({
-        title: "Fout bij uitnodigen",
-        description: "Selecteer ten minste één kalender",
+        title: "No calendars selected",
+        description: "Please select at least one calendar",
         variant: "destructive",
       });
       return;
@@ -150,8 +209,8 @@ export const useCalendarMembers = (calendarId?: string) => {
       
       if (newCalendarIds.length === 0) {
         toast({
-          title: "Gebruiker is al lid",
-          description: "Deze gebruiker heeft al toegang tot alle geselecteerde kalenders",
+          title: "User is already a member",
+          description: "This user already has access to all selected calendars",
           variant: "destructive",
         });
         return;
@@ -173,24 +232,19 @@ export const useCalendarMembers = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Uitnodiging verstuurd",
-        description: `${email} is uitgenodigd voor ${newCalendarIds.length} kalender(s) als ${role}`,
+        title: "User invited",
+        description: `${email} has been invited to ${newCalendarIds.length} calendar(s) as ${role}`,
       });
 
       fetchMembers();
     } catch (error) {
       console.error('Error inviting member:', error);
       toast({
-        title: "Fout bij uitnodigen",
-        description: "Kon gebruiker niet uitnodigen",
+        title: "Error inviting user",
+        description: "Could not invite the user",
         variant: "destructive",
       });
     }
-  };
-
-  // Keep the original function for backward compatibility
-  const inviteMember = async (email: string, calendarIdForInvite: string, role: 'editor' | 'viewer' = 'viewer', fullName: string = '') => {
-    return inviteMemberToMultipleCalendars(email, [calendarIdForInvite], role, fullName);
   };
 
   const removeMember = async (memberId: string) => {
@@ -203,16 +257,16 @@ export const useCalendarMembers = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Lid verwijderd",
-        description: "Gebruiker heeft geen toegang meer tot deze kalender",
+        title: "Member removed",
+        description: "User no longer has access to this calendar",
       });
 
       fetchMembers();
     } catch (error) {
       console.error('Error removing member:', error);
       toast({
-        title: "Fout bij verwijderen",
-        description: "Kon lid niet verwijderen",
+        title: "Error removing member",
+        description: "Could not remove the member",
         variant: "destructive",
       });
     }
@@ -228,16 +282,16 @@ export const useCalendarMembers = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Rol bijgewerkt",
-        description: "De rol van het lid is succesvol bijgewerkt",
+        title: "Role updated",
+        description: "The member's role has been updated successfully",
       });
 
       fetchMembers();
     } catch (error) {
       console.error('Error updating member role:', error);
       toast({
-        title: "Fout bij bijwerken rol",
-        description: "Kon rol niet bijwerken",
+        title: "Error updating role",
+        description: "Could not update the role",
         variant: "destructive",
       });
     }
