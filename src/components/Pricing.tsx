@@ -320,20 +320,22 @@ export const Pricing = () => {
                           <div className="w-5 h-5 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm group-hover:shadow-emerald-400/30 transition-all duration-200">
                             <Check className="w-3 h-3 text-white" />
                           </div>
-                          <div className="flex items-center space-x-2 flex-1">
-                            <span className="text-slate-300 text-sm leading-relaxed font-medium">{feature.text}</span>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="w-3 h-3 text-slate-500 hover:text-slate-400 transition-colors cursor-help flex-shrink-0" />
-                              </TooltipTrigger>
-                              <TooltipContent 
-                                side="top" 
-                                className="max-w-xs bg-slate-900 border-slate-700 text-slate-200 text-xs p-3 shadow-xl"
-                              >
-                                <p>{feature.tooltip}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex-1 cursor-help">
+                                <span className="text-slate-300 text-sm leading-relaxed font-medium hover:text-slate-200 transition-colors">
+                                  {feature.text}
+                                  <Info className="w-3 h-3 text-slate-500 hover:text-slate-400 transition-colors ml-1.5 inline-block" />
+                                </span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent 
+                              side="top" 
+                              className="max-w-xs bg-slate-900 border-slate-700 text-slate-200 text-xs p-3 shadow-xl z-[9999]"
+                            >
+                              <p>{feature.tooltip}</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       ))}
                     </div>
@@ -435,20 +437,22 @@ export const Pricing = () => {
                                 <div className="w-3.5 h-3.5 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm shadow-emerald-400/30">
                                   <Check className="w-2 h-2 text-white" />
                                 </div>
-                                <div className="flex items-center space-x-1.5 flex-1">
-                                  <span className="text-slate-200/95 text-[10px] leading-tight font-medium tracking-wide">{feature.text}</span>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Info className="w-2.5 h-2.5 text-slate-500 hover:text-slate-400 transition-colors cursor-help flex-shrink-0" />
-                                    </TooltipTrigger>
-                                    <TooltipContent 
-                                      side="top" 
-                                      className="max-w-xs bg-slate-900 border-slate-700 text-slate-200 text-xs p-2 shadow-xl"
-                                    >
-                                      <p>{feature.tooltip}</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </div>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex-1 cursor-help">
+                                      <span className="text-slate-200/95 text-[10px] leading-tight font-medium tracking-wide hover:text-slate-100 transition-colors">
+                                        {feature.text}
+                                        <Info className="w-2.5 h-2.5 text-slate-500 hover:text-slate-400 transition-colors ml-1 inline-block" />
+                                      </span>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent 
+                                    side="top" 
+                                    className="max-w-xs bg-slate-900 border-slate-700 text-slate-200 text-xs p-2 shadow-xl z-[9999]"
+                                  >
+                                    <p>{feature.tooltip}</p>
+                                  </TooltipContent>
+                                </Tooltip>
                               </div>
                             ))}
                           </div>
