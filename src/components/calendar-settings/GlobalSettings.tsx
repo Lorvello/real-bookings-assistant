@@ -1,36 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
-import { CalendarSettings } from '@/types/database';
-import { useQueryClient } from '@tanstack/react-query';
+import { useGlobalBotStatus } from '@/hooks/useGlobalBotStatus';
 
 interface GlobalSettingsProps {
-  settings: CalendarSettings;
-  onUpdate: (updates: Partial<CalendarSettings>) => void;
+  // Legacy props for compatibility - not used anymore
+  settings?: any;
+  onUpdate?: (updates: any) => void;
   calendarId?: string;
 }
 
-export function GlobalSettings({ 
-  settings, 
-  onUpdate, 
-  calendarId 
-}: GlobalSettingsProps) {
-  const queryClient = useQueryClient();
+export function GlobalSettings({}: GlobalSettingsProps) {
+  const { data: botStatus, isLoading, toggleBot, isToggling } = useGlobalBotStatus();
 
-  const handleWhatsAppBotToggle = async (checked: boolean) => {
-    // Update the setting
-    onUpdate({ whatsapp_bot_active: checked });
-    
-    // Subtle refresh: invalidate relevant queries after a short delay
-    setTimeout(() => {
-      if (calendarId) {
-        queryClient.invalidateQueries({ queryKey: ['bot-status', calendarId] });
-        queryClient.invalidateQueries({ queryKey: ['optimized-live-operations', calendarId] });
-        queryClient.invalidateQueries({ queryKey: ['user-status'] });
-      }
-    }, 1500); // Wait for auto-save to complete
+  const handleWhatsAppBotToggle = (checked: boolean) => {
+    toggleBot(checked);
   };
 
   return (
@@ -57,8 +43,9 @@ export function GlobalSettings({
             </p>
           </div>
           <Switch
-            checked={settings.whatsapp_bot_active ?? false}
+            checked={botStatus?.whatsapp_bot_active ?? false}
             onCheckedChange={handleWhatsAppBotToggle}
+            disabled={isLoading || isToggling}
           />
         </div>
       </div>

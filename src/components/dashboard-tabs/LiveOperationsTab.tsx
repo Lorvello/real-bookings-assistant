@@ -5,10 +5,12 @@ import { motion } from 'framer-motion';
 import { useOptimizedLiveOperations } from '@/hooks/dashboard/useOptimizedLiveOperations';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { useRealtimeConnectionStatus } from '@/hooks/useRealtimeConnectionStatus';
-import { useBotStatus } from '@/hooks/useBotStatus';
+import { useGlobalBotStatus } from '@/hooks/useGlobalBotStatus';
+import { useMultipleCalendarRealtimeStatus } from '@/hooks/useMultipleCalendarRealtimeStatus';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { Calendar, Clock, MessageCircle, Users, Activity, Zap, Info, ArrowRight } from 'lucide-react';
+import { useCalendars } from '@/hooks/useCalendars';
+import { Calendar, Clock, MessageCircle, Users, Activity, Zap, Info, ArrowRight, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { MetricCard } from './business-intelligence/MetricCard';
@@ -19,21 +21,52 @@ interface LiveOperationsTabProps {
 
 export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
   const navigate = useNavigate();
-  const calendarId = calendarIds[0]; // Use first calendar for single-calendar features
   const { data: liveOps, isLoading } = useOptimizedLiveOperations(calendarIds);
   const { userStatus, accessControl } = useUserStatus();
-  const { selectedCalendar } = useCalendarContext();
-  const { data: botStatus } = useBotStatus(calendarId);
-  const realtimeStatus = useRealtimeConnectionStatus(calendarId);
+  const { calendars } = useCalendars();
+  const { data: globalBotStatus } = useGlobalBotStatus();
+  const multipleRealtimeStatus = useMultipleCalendarRealtimeStatus(calendarIds);
   
-  useRealtimeSubscription(calendarId);
+  // Setup realtime subscription for first calendar (for backward compatibility)
+  useRealtimeSubscription(calendarIds[0]);
 
   // Calculate system statuses
   const getCalendarStatus = () => {
-    if (!selectedCalendar?.is_active) {
-      return { status: 'Offline', color: 'red', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/30', textColor: 'text-red-400' };
+    // For multiple calendars, check if ALL are online
+    const relevantCalendars = calendars.filter(cal => calendarIds.includes(cal.id));
+    const onlineCount = relevantCalendars.filter(cal => cal.is_active).length;
+    const totalCount = relevantCalendars.length;
+    
+    if (totalCount === 0) {
+      return { 
+        status: 'Offline', 
+        color: 'red', 
+        bgColor: 'bg-red-500/10', 
+        borderColor: 'border-red-500/30', 
+        textColor: 'text-red-400',
+        detail: 'No calendars found'
+      };
     }
-    return { status: 'Online', color: 'green', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/30', textColor: 'text-green-400' };
+    
+    if (onlineCount === totalCount) {
+      return { 
+        status: 'Online', 
+        color: 'green', 
+        bgColor: 'bg-green-500/10', 
+        borderColor: 'border-green-500/30', 
+        textColor: 'text-green-400',
+        detail: `${onlineCount} of ${totalCount} calendars online`
+      };
+    }
+    
+    return { 
+      status: 'Partial', 
+      color: 'yellow', 
+      bgColor: 'bg-yellow-500/10', 
+      borderColor: 'border-yellow-500/30', 
+      textColor: 'text-yellow-400',
+      detail: `${onlineCount} of ${totalCount} calendars online`
+    };
   };
 
   const getBookingsAssistantStatus = () => {
@@ -45,19 +78,21 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
         bgColor: 'bg-red-500/10', 
         borderColor: 'border-red-500/30', 
         textColor: 'text-red-400',
-        reason: userStatus.isExpired ? 'Subscription expired' : 'No WhatsApp access'
+        reason: userStatus.isExpired ? 'Subscription expired' : 'No WhatsApp access',
+        clickable: false
       };
     }
     
-    // Check if bot is enabled
-    if (!botStatus?.whatsapp_bot_active) {
+    // Check if global bot is enabled
+    if (!globalBotStatus?.whatsapp_bot_active) {
       return { 
         status: 'Paused', 
         color: 'yellow', 
         bgColor: 'bg-yellow-500/10', 
         borderColor: 'border-yellow-500/30', 
         textColor: 'text-yellow-400',
-        reason: 'Bot disabled in settings'
+        reason: 'Bot disabled in settings',
+        clickable: true
       };
     }
     
@@ -67,19 +102,23 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
       bgColor: 'bg-green-500/10', 
       borderColor: 'border-green-500/30', 
       textColor: 'text-green-400',
-      reason: 'Bot is responding to messages'
+      reason: 'Bot is responding to messages globally',
+      clickable: true
     };
   };
 
   const getRealtimeStatus = () => {
-    if (!realtimeStatus.isConnected) {
+    const { isConnected, connectionCount, totalCalendars } = multipleRealtimeStatus;
+    
+    if (!isConnected) {
       return { 
         status: 'Disconnected', 
         color: 'red', 
         bgColor: 'bg-red-500/10', 
         borderColor: 'border-red-500/30', 
         textColor: 'text-red-400',
-        reason: 'No real-time connection'
+        reason: `${connectionCount} of ${totalCalendars} calendars connected`,
+        detail: 'Real-time sync keeps your bookings updated instantly across all systems'
       };
     }
     return { 
@@ -88,7 +127,8 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
       bgColor: 'bg-green-500/10', 
       borderColor: 'border-green-500/30', 
       textColor: 'text-green-400',
-      reason: 'Real-time sync active'
+      reason: `All ${totalCalendars} calendars connected`,
+      detail: 'Real-time sync keeps your bookings updated instantly across all systems'
     };
   };
 
@@ -98,6 +138,10 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
 
   const handleTodayScheduleClick = () => {
     navigate('/calendar?view=week');
+  };
+
+  const handleBookingAssistantClick = () => {
+    navigate('/settings?tab=operations');
   };
 
   if (isLoading) {
@@ -290,7 +334,13 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                     <TooltipTrigger asChild>
                       <div className="flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30 cursor-help relative">
                         <div className="flex items-center gap-3">
-                          <div className={`w-2 h-2 ${calendarStatus.color === 'green' ? 'bg-green-400' : 'bg-red-400'} rounded-full ${calendarStatus.color === 'green' ? 'animate-pulse' : ''} shadow-sm ${calendarStatus.color === 'green' ? 'shadow-green-400/50' : 'shadow-red-400/50'}`}></div>
+                          <div className={`w-2 h-2 ${
+                            calendarStatus.color === 'green' ? 'bg-green-400' : 
+                            calendarStatus.color === 'yellow' ? 'bg-yellow-400' : 'bg-red-400'
+                          } rounded-full ${calendarStatus.color === 'green' ? 'animate-pulse' : ''} shadow-sm ${
+                            calendarStatus.color === 'green' ? 'shadow-green-400/50' : 
+                            calendarStatus.color === 'yellow' ? 'shadow-yellow-400/50' : 'shadow-red-400/50'
+                          }`}></div>
                           <span className="text-sm font-medium text-slate-200">Calendar Status</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -307,16 +357,23 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                       align="center"
                     >
                       <p className="text-sm">
-                        {calendarStatus.status === 'Online' 
-                          ? 'Your booking calendar is online and accepting new appointments.'
-                          : 'Your calendar is offline. Customers cannot book new slots.'}
+                        {calendarStatus.detail}. {calendarStatus.status === 'Online' 
+                          ? 'All calendars are accepting new appointments.'
+                          : calendarStatus.status === 'Partial'
+                          ? 'Some calendars are offline. Check individual calendar settings.'
+                          : 'Customers cannot book new slots on offline calendars.'}
                       </p>
                     </TooltipContent>
                   </Tooltip>
                   
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30 cursor-help relative">
+                      <div 
+                        className={`flex items-center justify-between p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/30 relative transition-colors ${
+                          bookingsAssistantStatus.clickable ? 'cursor-pointer hover:bg-slate-700/50' : 'cursor-help'
+                        }`}
+                        onClick={bookingsAssistantStatus.clickable ? handleBookingAssistantClick : undefined}
+                      >
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 ${
                             bookingsAssistantStatus.color === 'green' ? 'bg-green-400' : 
@@ -331,7 +388,11 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                           <Badge variant="outline" className={`${bookingsAssistantStatus.borderColor} ${bookingsAssistantStatus.textColor} ${bookingsAssistantStatus.bgColor}`}>
                             {bookingsAssistantStatus.status}
                           </Badge>
-                          <Info className={`h-3 w-3 ${bookingsAssistantStatus.textColor}/70 hover:${bookingsAssistantStatus.textColor} transition-colors`} />
+                          {bookingsAssistantStatus.clickable ? (
+                            <Settings className={`h-3 w-3 ${bookingsAssistantStatus.textColor}/70 hover:${bookingsAssistantStatus.textColor} transition-colors`} />
+                          ) : (
+                            <Info className={`h-3 w-3 ${bookingsAssistantStatus.textColor}/70 hover:${bookingsAssistantStatus.textColor} transition-colors`} />
+                          )}
                         </div>
                       </div>
                     </TooltipTrigger>
@@ -341,7 +402,10 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                       align="center"
                     >
                       <p className="text-sm">
-                        {bookingsAssistantStatus.reason}. Your AI booking assistant helps customers book appointments via WhatsApp.
+                        {bookingsAssistantStatus.reason}. Your AI booking assistant helps customers book appointments via WhatsApp globally across all calendars.
+                        {bookingsAssistantStatus.clickable && (
+                          <span className="block mt-1 text-xs opacity-75">Click to open settings</span>
+                        )}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -367,7 +431,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                       align="center"
                     >
                       <p className="text-sm">
-                        {realtimeSyncStatus.reason}. This ensures all bookings and updates are current and synchronized.
+                        {realtimeSyncStatus.reason}. {realtimeSyncStatus.detail}
                       </p>
                     </TooltipContent>
                   </Tooltip>

@@ -1343,6 +1343,7 @@ export type Database = {
           trial_start_date: string | null
           updated_at: string | null
           website: string | null
+          whatsapp_bot_active: boolean | null
         }
         Insert: {
           accessibility_info?: string | null
@@ -1396,6 +1397,7 @@ export type Database = {
           trial_start_date?: string | null
           updated_at?: string | null
           website?: string | null
+          whatsapp_bot_active?: boolean | null
         }
         Update: {
           accessibility_info?: string | null
@@ -1449,6 +1451,7 @@ export type Database = {
           trial_start_date?: string | null
           updated_at?: string | null
           website?: string | null
+          whatsapp_bot_active?: boolean | null
         }
         Relationships: []
       }
