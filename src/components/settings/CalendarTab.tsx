@@ -29,17 +29,15 @@ export function CalendarTab() {
 
   if (!selectedCalendar) {
     return (
-      <Card className="border-border">
-        <CardContent className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No calendar selected</h3>
-            <p className="text-muted-foreground">
-              Select a calendar to modify settings.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <div className="text-center mb-6">
+          <h3 className="text-lg font-semibold text-foreground mb-2">Select a Calendar</h3>
+          <p className="text-muted-foreground">
+            Choose a calendar to manage its operations settings.
+          </p>
+        </div>
+        <CalendarSelectionCard hideAllCalendarsOption={true} />
+      </div>
     );
   }
 
