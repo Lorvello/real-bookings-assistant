@@ -28,31 +28,31 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
 
   return (
     <>
-      <div className="border-t border-gray-700 p-4 transition-all duration-300">
+      <div className="border-t border-gray-700 p-4">
         <div className="mb-3">
           <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
             Switch Calendar
           </p>
         </div>
         
-        {/* Calendar Dropdown */}
+        {/* Calendar Dropdown - More neutral styling */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
               variant="ghost" 
-              className="w-full justify-between text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 hover:scale-105"
+              className="w-full justify-between text-gray-300 hover:bg-gray-700/50 hover:text-gray-200 border border-gray-600/50 hover:border-gray-500/50"
             >
               <div className="flex items-center space-x-2 min-w-0">
                 {viewingAllCalendars ? (
                   <>
-                    <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex-shrink-0" />
+                    <div className="w-3 h-3 bg-gray-500 rounded-full flex-shrink-0" />
                     <span className="truncate">All calendars</span>
                   </>
                 ) : (
                   <>
                     <div 
                       className="w-3 h-3 rounded-full flex-shrink-0" 
-                      style={{ backgroundColor: selectedCalendar?.color || '#3B82F6' }}
+                      style={{ backgroundColor: selectedCalendar?.color || '#6B7280' }}
                     />
                     <span className="truncate">
                       {selectedCalendar ? selectedCalendar.name : 'Select calendar'}
@@ -60,7 +60,7 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                   </>
                 )}
               </div>
-              <ChevronDown className="w-4 h-4 opacity-50 flex-shrink-0 transition-transform duration-200" />
+              <ChevronDown className="w-4 h-4 opacity-50 flex-shrink-0" />
             </Button>
           </DropdownMenuTrigger>
           
@@ -68,23 +68,23 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
             <DropdownMenuLabel className="text-gray-300">Select Calendar</DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-gray-700" />
             
-            {/* All calendars option */}
+            {/* All calendars option - neutral styling */}
             <DropdownMenuItem
               onClick={() => selectAllCalendars()}
               className="flex items-center space-x-3 p-3 text-gray-300 hover:bg-gray-700 focus:bg-gray-700"
             >
-              <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-full" />
+              <div className="w-3 h-3 bg-gray-500 rounded-full" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
                   <span className="font-medium">All calendars</span>
-                  <Badge variant="outline" className="text-xs border-gray-600">Mixed</Badge>
+                  <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">Mixed</Badge>
                 </div>
                 <p className="text-xs text-gray-400">
                   View all appointments together
                 </p>
               </div>
               {viewingAllCalendars && (
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <div className="w-2 h-2 bg-gray-400 rounded-full" />
               )}
             </DropdownMenuItem>
             
@@ -98,13 +98,13 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
               >
                 <div 
                   className="w-3 h-3 rounded-full flex-shrink-0" 
-                  style={{ backgroundColor: calendar.color || '#3B82F6' }}
+                  style={{ backgroundColor: calendar.color || '#6B7280' }}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2">
                     <span className="font-medium truncate">{calendar.name}</span>
                     {calendar.is_default && (
-                      <Badge variant="outline" className="text-xs border-gray-600">Default</Badge>
+                      <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">Default</Badge>
                     )}
                   </div>
                   {calendar.description && (
@@ -114,7 +114,7 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                   )}
                 </div>
                 {!viewingAllCalendars && selectedCalendar?.id === calendar.id && (
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <div className="w-2 h-2 bg-gray-400 rounded-full" />
                 )}
               </DropdownMenuItem>
             ))}

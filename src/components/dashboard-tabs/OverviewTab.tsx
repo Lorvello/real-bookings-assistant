@@ -1,161 +1,144 @@
 
 import React from 'react';
-import { useNextAppointment } from '@/hooks/dashboard/useNextAppointment';
-import { usePopularService } from '@/hooks/dashboard/usePopularService';
-import { useWeeklyInsights } from '@/hooks/dashboard/useWeeklyInsights';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, Star, TrendingUp, Calendar } from 'lucide-react';
+import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useOptimizedLiveOperations } from '@/hooks/dashboard/useOptimizedLiveOperations';
+import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
+import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
+import { MetricCard } from './business-intelligence/MetricCard';
+import { DateRange } from '@/components/dashboard/DateRangeFilter';
+import { Clock, Euro, TrendingUp, Users, Calendar, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface OverviewTabProps {
   calendarIds: string[];
+  dateRange: DateRange;
 }
 
-export function OverviewTab({ calendarIds }: OverviewTabProps) {
-  const { data: nextAppointment, isLoading: nextLoading } = useNextAppointment(calendarIds);
-  const { data: popularService, isLoading: popularLoading } = usePopularService(calendarIds);
-  const { data: weeklyInsights, isLoading: weeklyLoading } = useWeeklyInsights(calendarIds);
+export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
+  // Get current data
+  const { data: liveOps, isLoading: liveLoading } = useOptimizedLiveOperations(calendarIds);
+  const { data: businessData, isLoading: businessLoading } = useOptimizedBusinessIntelligence(
+    calendarIds,
+    dateRange?.startDate,
+    dateRange?.endDate
+  );
+  const { data: performanceData, isLoading: performanceLoading } = useOptimizedPerformanceEfficiency(
+    calendarIds,
+    dateRange?.startDate,
+    dateRange?.endDate
+  );
 
-  if (nextLoading || popularLoading || weeklyLoading) {
+  const isLoading = liveLoading || businessLoading || performanceLoading;
+
+  if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="pb-2">
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div 
+            key={i} 
+            className="h-44 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"
+          />
         ))}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {/* Next Appointment Card */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Today's Bookings */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-blue-800 flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Volgende Afspraak
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {nextAppointment ? (
-              <>
-                <div className="text-2xl font-bold text-blue-900 mb-1">
-                  {nextAppointment.time_until}
-                </div>
-                <div className="text-sm text-blue-700">
-                  {nextAppointment.customer_name}
-                </div>
-                <div className="text-xs text-blue-600 mt-1">
-                  {nextAppointment.service_name}
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold text-blue-900 mb-1">
-                  Geen afspraken
-                </div>
-                <div className="text-sm text-blue-700">
-                  Vandaag geen afspraken gepland
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <MetricCard
+          title="Today's Bookings"
+          value={String(liveOps?.today_bookings || 0)}
+          subtitle="confirmed appointments"
+          icon={Calendar}
+          variant="blue"
+          delay={0.1}
+        />
       </motion.div>
 
-      {/* Popular Service Card */}
+      {/* Active Now */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
       >
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-green-800 flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              Populairste Service
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {popularService ? (
-              <>
-                <div className="text-2xl font-bold text-green-900 mb-1">
-                  {popularService.percentage}%
-                </div>
-                <div className="text-sm text-green-700">
-                  {popularService.service_name}
-                </div>
-                <div className="text-xs text-green-600 mt-1">
-                  {popularService.booking_count} boekingen deze maand
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold text-green-900 mb-1">
-                  Geen data
-                </div>
-                <div className="text-sm text-green-700">
-                  Nog geen boekingen
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <MetricCard
+          title="Active Now"
+          value={String(liveOps?.active_appointments || 0)}
+          subtitle="appointments in progress"
+          icon={Clock}
+          variant="green"
+          delay={0.2}
+        />
       </motion.div>
 
-      {/* Weekly Growth Card */}
+      {/* Period Revenue */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
       >
-        <Card className="bg-gradient-to-br from-purple-50 to-violet-100 border-purple-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-purple-800 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Weekgroei
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {weeklyInsights ? (
-              <>
-                <div className="text-2xl font-bold text-purple-900 mb-1 flex items-center gap-2">
-                  {weeklyInsights.growth_percentage >= 0 ? '+' : ''}{weeklyInsights.growth_percentage.toFixed(1)}%
-                  {weeklyInsights.trend === 'up' && <TrendingUp className="h-4 w-4 text-green-600" />}
-                  {weeklyInsights.trend === 'down' && <TrendingUp className="h-4 w-4 text-red-600 rotate-180" />}
-                </div>
-                <div className="text-sm text-purple-700">
-                  {weeklyInsights.current_week} deze week
-                </div>
-                <div className="text-xs text-purple-600 mt-1">
-                  vs {weeklyInsights.previous_week} vorige week
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold text-purple-900 mb-1">
-                  Geen data
-                </div>
-                <div className="text-sm text-purple-700">
-                  Nog geen vergelijking mogelijk
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <MetricCard
+          title="Period Revenue"
+          value={`€${businessData?.current_period_revenue?.toFixed(0) || '0'}`}
+          subtitle={dateRange?.label?.toLowerCase() || 'selected period'}
+          icon={Euro}
+          variant="purple"
+          delay={0.3}
+        />
+      </motion.div>
+
+      {/* Growth Rate */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+      >
+        <MetricCard
+          title="Growth Rate"
+          value={`${businessData?.monthly_growth >= 0 ? '+' : ''}${businessData?.monthly_growth?.toFixed(1) || '0.0'}%`}
+          subtitle="vs previous period"
+          icon={TrendingUp}
+          variant="blue"
+          delay={0.4}
+        />
+      </motion.div>
+
+      {/* Total Customers */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.5 }}
+      >
+        <MetricCard
+          title="Total Customers"
+          value={String(performanceData?.total_customers || 0)}
+          subtitle={dateRange?.label?.toLowerCase() || 'selected period'}
+          icon={Users}
+          variant="green"
+          delay={0.5}
+        />
+      </motion.div>
+
+      {/* Booking Success Rate */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.6 }}
+      >
+        <MetricCard
+          title="Success Rate"
+          value={`${performanceData?.booking_completion_rate?.toFixed(1) || '0.0'}%`}
+          subtitle="booking completion"
+          icon={CheckCircle}
+          variant="purple"
+          delay={0.6}
+        />
       </motion.div>
     </div>
   );

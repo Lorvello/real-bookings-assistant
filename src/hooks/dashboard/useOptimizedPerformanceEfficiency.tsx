@@ -68,10 +68,14 @@ export function useOptimizedPerformanceEfficiency(
       const noShowBookings = allBookings.filter(b => b.status === 'no-show');
       const cancelledBookings = allBookings.filter(b => b.status === 'cancelled');
 
-      // Calculate customer metrics - aggregate unique customers across all calendars
-      const currentPeriodEmails = new Set(allBookings.map(b => b.customer_email).filter(Boolean));
+      // Calculate customer metrics - FIXED: Proper aggregation across all calendars
+      const currentPeriodEmails = new Set(
+        allBookings
+          .map(b => b.customer_email)
+          .filter(email => email && email.trim() !== '')
+      );
       
-      // Calculate returning customers (customers who also had bookings before current period across any calendar)
+      // Calculate returning customers (customers who also had bookings before current period across any of the selected calendars)
       const { data: historicalBookings } = await supabase
         .from('bookings')
         .select('customer_email')
@@ -79,18 +83,23 @@ export function useOptimizedPerformanceEfficiency(
         .neq('status', 'cancelled')
         .lt('start_time', startDate.toISOString());
 
-      const historicalEmails = new Set(historicalBookings?.map(b => b.customer_email).filter(Boolean) || []);
+      const historicalEmails = new Set(
+        (historicalBookings || [])
+          .map(b => b.customer_email)
+          .filter(email => email && email.trim() !== '')
+      );
       
-      // Fixed customer logic:
-      // - unique_customers: New customers (not in historical data)
-      // - returning_customers: Customers who are also in historical data
-      // - total_customers: unique_customers + returning_customers
-      const returningCustomersSet = new Set([...currentPeriodEmails].filter(email => historicalEmails.has(email)));
-      const uniqueCustomersSet = new Set([...currentPeriodEmails].filter(email => !historicalEmails.has(email)));
+      // FIXED: Correct customer logic for aggregated data
+      // - unique_customers: New customers in current period (not in historical data)
+      // - returning_customers: Customers in current period who also exist in historical data
+      // - total_customers: All unique customers in current period (unique + returning)
+      const currentPeriodEmailsArray = Array.from(currentPeriodEmails);
+      const returningCustomersInPeriod = currentPeriodEmailsArray.filter(email => historicalEmails.has(email));
+      const newCustomersInPeriod = currentPeriodEmailsArray.filter(email => !historicalEmails.has(email));
       
-      const returningCustomers = returningCustomersSet.size;
-      const uniqueCustomers = uniqueCustomersSet.size;
-      const totalCustomers = uniqueCustomers + returningCustomers;
+      const returningCustomers = returningCustomersInPeriod.length;
+      const uniqueCustomers = newCustomersInPeriod.length;
+      const totalCustomers = currentPeriodEmails.size; // Total unique customers in period
 
       // Calculate peak hours for confirmed bookings only - aggregate across all calendars
       const hourCounts = new Map();

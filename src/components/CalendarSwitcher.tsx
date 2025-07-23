@@ -39,21 +39,21 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
         <UserContextDisplay />
 
         <div className="flex items-center space-x-2">
-          {/* Calendar Switcher Dropdown */}
+          {/* Calendar Switcher Dropdown - More neutral styling */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="justify-between min-w-[250px]">
+              <Button variant="outline" className="justify-between min-w-[250px] border-border/60 hover:border-border">
                 <div className="flex items-center space-x-2">
                   {viewingAllCalendars && !hideAllCalendarsOption ? (
                     <>
-                      <Grid3X3 className="w-3 h-3 text-primary" />
+                      <Grid3X3 className="w-3 h-3 text-muted-foreground" />
                       <span className="truncate">All calendars</span>
                     </>
                   ) : (
                     <>
                       <div 
                         className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: selectedCalendar?.color || '#3B82F6' }}
+                        style={{ backgroundColor: selectedCalendar?.color || '#6B7280' }}
                       />
                       <span className="truncate">
                         {selectedCalendar ? selectedCalendar.name : 'Select calendar'}
@@ -79,7 +79,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                     onClick={() => selectAllCalendars()}
                     className="flex items-center space-x-3 p-3"
                   >
-                    <Grid3X3 className="w-3 h-3 text-primary" />
+                    <Grid3X3 className="w-3 h-3 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
                         <span className="font-medium">All calendars</span>
@@ -90,7 +90,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                       </p>
                     </div>
                     {viewingAllCalendars && (
-                      <div className="w-2 h-2 bg-primary rounded-full" />
+                      <div className="w-2 h-2 bg-muted-foreground rounded-full" />
                     )}
                   </DropdownMenuItem>
                   
@@ -106,7 +106,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                 >
                   <div 
                     className="w-3 h-3 rounded-full flex-shrink-0" 
-                    style={{ backgroundColor: calendar.color || '#3B82F6' }}
+                    style={{ backgroundColor: calendar.color || '#6B7280' }}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
@@ -125,7 +125,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                     </p>
                   </div>
                   {(!viewingAllCalendars || hideAllCalendarsOption) && selectedCalendar?.id === calendar.id && (
-                    <div className="w-2 h-2 bg-primary rounded-full" />
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full" />
                   )}
                 </DropdownMenuItem>
               ))}
@@ -142,12 +142,12 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Prominent "New Calendar" button */}
+          {/* More neutral "New Calendar" button */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowCreateDialog(true)}
-            className="flex items-center gap-2 border-dashed border-2 hover:border-solid hover:bg-accent"
+            className="flex items-center gap-2 border-dashed border-border/60 hover:border-border text-muted-foreground hover:text-foreground"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">New calendar</span>
