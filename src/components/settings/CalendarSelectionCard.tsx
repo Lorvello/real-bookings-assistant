@@ -2,7 +2,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 
-export function CalendarSelectionCard() {
+interface CalendarSelectionCardProps {
+  hideAllCalendarsOption?: boolean;
+}
+
+export function CalendarSelectionCard({ hideAllCalendarsOption = false }: CalendarSelectionCardProps) {
   return (
     <Card className="border-border">
       <CardHeader className="pb-3">
@@ -12,7 +16,7 @@ export function CalendarSelectionCard() {
         </p>
       </CardHeader>
       <CardContent className="pt-0">
-        <CalendarSwitcher />
+        <CalendarSwitcher hideAllCalendarsOption={hideAllCalendarsOption} />
       </CardContent>
     </Card>
   );

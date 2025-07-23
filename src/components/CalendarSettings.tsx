@@ -5,6 +5,7 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { CalendarBasicSettings } from './calendar-settings/CalendarBasicSettings';
 import { CalendarPolicySettings } from './calendar-settings/CalendarPolicySettings';
 import { CalendarRequiredFields } from './calendar-settings/CalendarRequiredFields';
+import { GlobalSettings } from './calendar-settings/GlobalSettings';
 import { Separator } from '@/components/ui/separator';
 interface CalendarSettingsProps {
   calendarId: string;
@@ -43,10 +44,32 @@ export function CalendarSettings({
       </Card>;
   }
   return <div className="space-y-6">
-      {/* Basic Settings */}
+      {/* Global Settings */}
       <Card className="border-border">
         <CardHeader>
-          <CardTitle className="text-foreground">Basic Settings</CardTitle>
+          <CardTitle className="text-foreground">Global Settings</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Settings that apply across all calendars
+          </p>
+        </CardHeader>
+        <CardContent>
+          <GlobalSettings 
+            settings={settings} 
+            onUpdate={updatePendingSettings} 
+            calendarId={calendarId}
+          />
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Per-Calendar Settings */}
+      <Card className="border-border">
+        <CardHeader>
+          <CardTitle className="text-foreground">Per-Calendar Settings</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Settings specific to {selectedCalendar?.name || 'this calendar'}
+          </p>
         </CardHeader>
         <CardContent>
           <CalendarBasicSettings 

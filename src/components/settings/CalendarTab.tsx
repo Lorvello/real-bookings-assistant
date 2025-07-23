@@ -45,7 +45,7 @@ export function CalendarTab() {
 
   return (
     <div className="space-y-6">
-      <CalendarSelectionCard />
+      <CalendarSelectionCard hideAllCalendarsOption={true} />
       
       {/* Auto-save indicator */}
       {saving && (
