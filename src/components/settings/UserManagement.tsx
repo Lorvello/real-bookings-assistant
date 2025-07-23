@@ -174,7 +174,7 @@ export const UserManagement = () => {
               <div>
                 <Label className="text-gray-300">Calendars</Label>
                 <MultiSelect
-                  options={calendars.map(cal => ({ value: cal.id, label: cal.name }))}
+                  options={(calendars || []).map(cal => ({ value: cal.id, label: cal.name }))}
                   selected={selectedCalendarsForNewUser}
                   onChange={setSelectedCalendarsForNewUser}
                   placeholder="Select calendars"

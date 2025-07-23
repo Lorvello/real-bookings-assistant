@@ -21,8 +21,8 @@ interface MultiSelectProps {
 }
 
 export function MultiSelect({
-  options,
-  selected,
+  options = [],
+  selected = [],
   onChange,
   placeholder = "Select items",
   className,
@@ -33,15 +33,15 @@ export function MultiSelect({
   const [inputValue, setInputValue] = React.useState("");
 
   const handleUnselect = React.useCallback((item: string) => {
-    onChange(selected.filter((i) => i !== item));
+    onChange((selected || []).filter((i) => i !== item));
   }, [onChange, selected]);
 
   const handleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     const input = inputRef.current;
     if (input) {
       if (e.key === "Delete" || e.key === "Backspace") {
-        if (input.value === "" && selected.length > 0) {
-          handleUnselect(selected[selected.length - 1]);
+        if (input.value === "" && (selected || []).length > 0) {
+          handleUnselect((selected || [])[(selected || []).length - 1]);
         }
       }
       // Prevent keyboard navigation when we're not focused on the input
@@ -51,7 +51,7 @@ export function MultiSelect({
     }
   }, [selected, handleUnselect]);
 
-  const selectables = options.filter((item) => !selected.includes(item.value));
+  const selectables = (options || []).filter((item) => !(selected || []).includes(item.value));
 
   return (
     <div className={cn("relative", className)}>
@@ -65,10 +65,10 @@ export function MultiSelect({
           setOpen(true);
         }}
       >
-        {selected.length > 0 && (
+        {(selected || []).length > 0 && (
           <div className="flex flex-wrap gap-1 mr-1">
-            {selected.map((item) => {
-              const label = options.find((option) => option.value === item)?.label || item;
+            {(selected || []).map((item) => {
+              const label = (options || []).find((option) => option.value === item)?.label || item;
               return (
                 <Badge
                   key={item}
@@ -107,9 +107,9 @@ export function MultiSelect({
             onChange={(e) => setInputValue(e.target.value)}
             className={cn(
               "flex-1 bg-transparent outline-none placeholder:text-muted-foreground",
-              selected.length > 0 && "w-[50px]"
+              (selected || []).length > 0 && "w-[50px]"
             )}
-            placeholder={selected.length ? "" : placeholder}
+            placeholder={(selected || []).length ? "" : placeholder}
             disabled={disabled}
             onBlur={() => setOpen(false)}
             onFocus={() => setOpen(true)}
@@ -128,7 +128,7 @@ export function MultiSelect({
                         }}
                         onSelect={() => {
                           setInputValue("");
-                          onChange([...selected, option.value]);
+                          onChange([...(selected || []), option.value]);
                         }}
                         className="cursor-pointer"
                       >
