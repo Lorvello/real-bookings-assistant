@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { useProfile } from '@/hooks/useProfile';
@@ -11,14 +10,49 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Edit, Trash2, Crown, User, Eye, Save, Lock } from 'lucide-react';
+import { UserPlus, Trash2, Crown, User, Eye, Lock, Check, X, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAccessControl } from '@/hooks/useAccessControl';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+
+// Common timezone options
+const TIMEZONE_OPTIONS = [
+  { value: 'Europe/Amsterdam', label: 'Amsterdam (GMT+1)' },
+  { value: 'Europe/London', label: 'London (GMT+0)' },
+  { value: 'Europe/Berlin', label: 'Berlin (GMT+1)' },
+  { value: 'Europe/Paris', label: 'Paris (GMT+1)' },
+  { value: 'Europe/Madrid', label: 'Madrid (GMT+1)' },
+  { value: 'Europe/Rome', label: 'Rome (GMT+1)' },
+  { value: 'Europe/Brussels', label: 'Brussels (GMT+1)' },
+  { value: 'Europe/Vienna', label: 'Vienna (GMT+1)' },
+  { value: 'Europe/Zurich', label: 'Zurich (GMT+1)' },
+  { value: 'America/New_York', label: 'New York (GMT-5)' },
+  { value: 'America/Los_Angeles', label: 'Los Angeles (GMT-8)' },
+  { value: 'America/Chicago', label: 'Chicago (GMT-6)' },
+  { value: 'America/Toronto', label: 'Toronto (GMT-5)' },
+  { value: 'Asia/Tokyo', label: 'Tokyo (GMT+9)' },
+  { value: 'Asia/Shanghai', label: 'Shanghai (GMT+8)' },
+  { value: 'Asia/Dubai', label: 'Dubai (GMT+4)' },
+  { value: 'Australia/Sydney', label: 'Sydney (GMT+10)' },
+];
+
+const LANGUAGE_OPTIONS = [
+  { value: 'nl', label: 'Nederlands' },
+  { value: 'en', label: 'English' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'fr', label: 'Français' },
+  { value: 'es', label: 'Español' },
+  { value: 'tr', label: 'Türkçe' },
+  { value: 'ar', label: 'العربية' },
+];
 
 export const UserManagement = () => {
   const { calendars } = useCalendarContext();
-  const { members, loading, inviteMember, removeMember, updateMemberRole } = useCalendarMembers();
+  const { members, loading, inviteMember, removeMember, updateMemberRole, refetch } = useCalendarMembers();
   const { profile, updateProfile, loading: profileLoading } = useProfile();
   const { toast } = useToast();
   const { accessControl, requireAccess } = useAccessControl();
@@ -29,33 +63,11 @@ export const UserManagement = () => {
   const [newUserName, setNewUserName] = useState('');
   const [newUserRole, setNewUserRole] = useState<'editor' | 'viewer'>('viewer');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Edit User Modal state
-  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-  const [editProfileData, setEditProfileData] = useState({
-    full_name: '',
-    email: '',
-    phone: '',
-    date_of_birth: '',
-    language: 'nl',
-    timezone: 'Europe/Amsterdam',
-  });
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
-  // Initialize edit profile data when dialog opens
-  const openEditUserDialog = () => {
-    if (profile) {
-      setEditProfileData({
-        full_name: profile.full_name || '',
-        email: profile.email || '',
-        phone: profile.phone || '',
-        date_of_birth: profile.date_of_birth || '',
-        language: profile.language || 'nl',
-        timezone: profile.timezone || 'Europe/Amsterdam',
-      });
-    }
-    setIsEditUserOpen(true);
-  };
+  // Profile editing states
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [tempValues, setTempValues] = useState<any>({});
+  const [saving, setSaving] = useState<string | null>(null);
 
   // Handle adding a new user (simplified - no calendar selection)
   const handleAddUser = async () => {
@@ -95,33 +107,24 @@ export const UserManagement = () => {
         title: "User invited",
         description: "User has been added successfully",
       });
+      // Force refresh members list
+      await refetch();
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Handle updating the owner's profile information
-  const handleUpdateProfile = async () => {
-    setIsSavingProfile(true);
-    try {
-      await updateProfile(editProfileData);
-      setIsEditUserOpen(false);
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully",
-      });
-    } finally {
-      setIsSavingProfile(false);
-    }
-  };
-
   const handleRoleChange = async (memberId: string, newRole: 'editor' | 'viewer') => {
     await updateMemberRole(memberId, newRole);
+    // Force refresh members list
+    await refetch();
   };
 
   const handleRemoveUser = async (memberId: string) => {
     if (confirm('Are you sure you want to remove this user?')) {
       await removeMember(memberId);
+      // Force refresh members list
+      await refetch();
     }
   };
 
@@ -130,7 +133,7 @@ export const UserManagement = () => {
       case 'owner':
         return <Crown className="h-4 w-4 text-yellow-500" />;
       case 'editor':
-        return <Edit className="h-4 w-4 text-blue-500" />;
+        return <User className="h-4 w-4 text-blue-500" />;
       case 'viewer':
         return <Eye className="h-4 w-4 text-gray-500" />;
       default:
@@ -148,6 +151,69 @@ export const UserManagement = () => {
         return 'Viewer';
       default:
         return 'Unknown';
+    }
+  };
+
+  // Auto-refresh members when component mounts or when a member is added
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading) {
+        refetch();
+      }
+    }, 5000); // Refresh every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [loading, refetch]);
+
+  // Profile editing functions
+  const startEditing = (field: string, currentValue: any) => {
+    setEditingField(field);
+    setTempValues({ [field]: currentValue });
+  };
+
+  const cancelEditing = () => {
+    setEditingField(null);
+    setTempValues({});
+  };
+
+  const saveField = async (field: string) => {
+    setSaving(field);
+    try {
+      await updateProfile({ [field]: tempValues[field] });
+      setEditingField(null);
+      setTempValues({});
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error updating profile",
+        description: "Could not update your profile",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  // Auto-save for certain fields
+  const handleAutoSave = async (field: string, value: any) => {
+    setSaving(field);
+    try {
+      await updateProfile({ [field]: value });
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error updating profile",
+        description: "Could not update your profile",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(null);
     }
   };
 
@@ -214,58 +280,196 @@ export const UserManagement = () => {
               {profile && (
                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Full Name */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Full Name</Label>
-                      <div className="text-white bg-gray-800 border border-gray-700 rounded-md p-3">
-                        {profile.full_name || 'Not set'}
-                      </div>
+                      {editingField === 'full_name' ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={tempValues.full_name || ''}
+                            onChange={(e) => setTempValues({ ...tempValues, full_name: e.target.value })}
+                            className="bg-gray-800 border-gray-700 text-white"
+                            autoFocus
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => saveField('full_name')}
+                            disabled={saving === 'full_name'}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={cancelEditing}
+                            className="border-gray-700 text-gray-300 hover:bg-gray-700"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div 
+                          className="text-white bg-gray-800 border border-gray-700 rounded-md p-3 cursor-pointer hover:bg-gray-700 transition-colors"
+                          onClick={() => startEditing('full_name', profile.full_name || '')}
+                        >
+                          {profile.full_name || 'Click to edit'}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Email */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Email</Label>
-                      <div className="text-white bg-gray-800 border border-gray-700 rounded-md p-3">
-                        {profile.email}
-                      </div>
+                      {editingField === 'email' ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="email"
+                            value={tempValues.email || ''}
+                            onChange={(e) => setTempValues({ ...tempValues, email: e.target.value })}
+                            className="bg-gray-800 border-gray-700 text-white"
+                            autoFocus
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => saveField('email')}
+                            disabled={saving === 'email'}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={cancelEditing}
+                            className="border-gray-700 text-gray-300 hover:bg-gray-700"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div 
+                          className="text-white bg-gray-800 border border-gray-700 rounded-md p-3 cursor-pointer hover:bg-gray-700 transition-colors"
+                          onClick={() => startEditing('email', profile.email || '')}
+                        >
+                          {profile.email}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Phone Number */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</Label>
-                      <div className="text-white bg-gray-800 border border-gray-700 rounded-md p-3">
-                        {profile.phone || 'Not set'}
-                      </div>
+                      {editingField === 'phone' ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="tel"
+                            value={tempValues.phone || ''}
+                            onChange={(e) => setTempValues({ ...tempValues, phone: e.target.value })}
+                            className="bg-gray-800 border-gray-700 text-white"
+                            autoFocus
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => saveField('phone')}
+                            disabled={saving === 'phone'}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={cancelEditing}
+                            className="border-gray-700 text-gray-300 hover:bg-gray-700"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div 
+                          className="text-white bg-gray-800 border border-gray-700 rounded-md p-3 cursor-pointer hover:bg-gray-700 transition-colors"
+                          onClick={() => startEditing('phone', profile.phone || '')}
+                        >
+                          {profile.phone || 'Click to add'}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Date of Birth */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</Label>
-                      <div className="text-white bg-gray-800 border border-gray-700 rounded-md p-3">
-                        {profile.date_of_birth || 'Not set'}
-                      </div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal bg-gray-800 border-gray-700 text-white hover:bg-gray-700",
+                              !profile.date_of_birth && "text-gray-400"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {profile.date_of_birth ? format(new Date(profile.date_of_birth), "PPP") : "Click to select"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={profile.date_of_birth ? new Date(profile.date_of_birth) : undefined}
+                            onSelect={(date) => {
+                              if (date) {
+                                handleAutoSave('date_of_birth', format(date, 'yyyy-MM-dd'));
+                              }
+                            }}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                            className="p-3 pointer-events-auto bg-gray-800"
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
+
+                    {/* Language */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Language</Label>
-                      <div className="text-white bg-gray-800 border border-gray-700 rounded-md p-3">
-                        {profile.language === 'nl' ? 'Dutch' : 
-                         profile.language === 'en' ? 'English' :
-                         profile.language === 'de' ? 'German' :
-                         profile.language === 'fr' ? 'French' :
-                         profile.language === 'es' ? 'Spanish' :
-                         profile.language === 'tr' ? 'Turkish' :
-                         profile.language === 'ar' ? 'Arabic' :
-                         profile.language || 'Not set'}
-                      </div>
+                      <Select
+                        value={profile.language || 'nl'}
+                        onValueChange={(value) => handleAutoSave('language', value)}
+                      >
+                        <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700">
+                          {LANGUAGE_OPTIONS.map((lang) => (
+                            <SelectItem key={lang.value} value={lang.value}>
+                              {lang.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
+
+                    {/* Timezone */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Timezone</Label>
-                      <div className="text-white bg-gray-800 border border-gray-700 rounded-md p-3">
-                        {profile.timezone || 'Not set'}
-                      </div>
+                      <Select
+                        value={profile.timezone || 'Europe/Amsterdam'}
+                        onValueChange={(value) => handleAutoSave('timezone', value)}
+                      >
+                        <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700">
+                          {TIMEZONE_OPTIONS.map((tz) => (
+                            <SelectItem key={tz.value} value={tz.value}>
+                              {tz.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </div>
-                  <div className="mt-6 flex justify-center">
-                    <Button
-                      onClick={openEditUserDialog}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
                   </div>
                 </div>
               )}
@@ -431,115 +635,6 @@ export const UserManagement = () => {
           </Tabs>
         )}
       </CardContent>
-
-      {/* Edit Profile Dialog */}
-      <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent className="bg-gray-800 border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="text-white">Edit Profile</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label className="text-gray-300">Full Name</Label>
-              <Input
-                value={editProfileData.full_name}
-                onChange={(e) => setEditProfileData({...editProfileData, full_name: e.target.value})}
-                className="bg-gray-900 border-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <Label className="text-gray-300">Email</Label>
-              <Input
-                type="email"
-                value={editProfileData.email}
-                onChange={(e) => setEditProfileData({...editProfileData, email: e.target.value})}
-                className="bg-gray-900 border-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <Label className="text-gray-300">Phone Number</Label>
-              <Input
-                type="tel"
-                value={editProfileData.phone}
-                onChange={(e) => setEditProfileData({...editProfileData, phone: e.target.value})}
-                className="bg-gray-900 border-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <Label className="text-gray-300">Date of Birth</Label>
-              <Input
-                type="date"
-                value={editProfileData.date_of_birth}
-                onChange={(e) => setEditProfileData({...editProfileData, date_of_birth: e.target.value})}
-                className="bg-gray-900 border-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <Label className="text-gray-300">Language</Label>
-              <Select 
-                value={editProfileData.language} 
-                onValueChange={(value) => setEditProfileData({...editProfileData, language: value})}
-              >
-                <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="nl">Dutch</SelectItem>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="de">German</SelectItem>
-                  <SelectItem value="fr">French</SelectItem>
-                  <SelectItem value="es">Spanish</SelectItem>
-                  <SelectItem value="tr">Turkish</SelectItem>
-                  <SelectItem value="ar">Arabic</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-gray-300">Timezone</Label>
-              <Select 
-                value={editProfileData.timezone} 
-                onValueChange={(value) => setEditProfileData({...editProfileData, timezone: value})}
-              >
-                <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="Europe/Amsterdam">Amsterdam (CET)</SelectItem>
-                  <SelectItem value="Europe/London">London (GMT)</SelectItem>
-                  <SelectItem value="America/New_York">New York (EST)</SelectItem>
-                  <SelectItem value="America/Los_Angeles">Los Angeles (PST)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex justify-end space-x-2 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsEditUserOpen(false)}
-                className="border-gray-700 text-gray-300 hover:bg-gray-700"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleUpdateProfile}
-                disabled={isSavingProfile}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {isSavingProfile ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Saving...
-                  </div>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 };
