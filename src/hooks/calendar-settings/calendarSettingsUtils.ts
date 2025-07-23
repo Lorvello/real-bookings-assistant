@@ -190,6 +190,26 @@ export const updateCalendarServiceTypes = async (calendarId: string, serviceType
   }
 };
 
+// Fetch calendar members for a specific calendar
+export const fetchCalendarMembers = async (calendarId: string): Promise<string[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('calendar_members')
+      .select('user_id')
+      .eq('calendar_id', calendarId);
+
+    if (error) {
+      console.error('Error fetching calendar members:', error);
+      return [];
+    }
+
+    return data?.map(item => item.user_id) || [];
+  } catch (error) {
+    console.error('Error fetching calendar members:', error);
+    return [];
+  }
+};
+
 export const updateCalendarMembers = async (calendarId: string, memberUserIds: string[]): Promise<boolean> => {
   try {
     console.log('Updating calendar members:', memberUserIds);

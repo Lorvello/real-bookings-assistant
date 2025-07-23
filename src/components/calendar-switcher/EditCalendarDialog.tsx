@@ -18,7 +18,7 @@ import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { useDeleteCalendar } from '@/hooks/useDeleteCalendar';
 import { useCalendarActions } from '@/hooks/calendar-settings/useCalendarActions';
-import { fetchCalendarServiceTypes } from '@/hooks/calendar-settings/calendarSettingsUtils';
+import { fetchCalendarServiceTypes, fetchCalendarMembers } from '@/hooks/calendar-settings/calendarSettingsUtils';
 import { SimpleMultiSelect } from '@/components/ui/simple-multi-select';
 import { ServiceTypeQuickCreateDialog } from './ServiceTypeQuickCreateDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -53,7 +53,6 @@ export function EditCalendarDialog({
     name: '',
     description: '',
     color: '#3B82F6',
-    location: '',
   });
 
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
@@ -69,7 +68,6 @@ export function EditCalendarDialog({
           name: calendar.name || '',
           description: calendar.description || '',
           color: calendar.color || '#3B82F6',
-          location: '',
         });
         
         // Load currently linked service types
@@ -81,8 +79,14 @@ export function EditCalendarDialog({
           setSelectedServiceTypes([]);
         }
         
-        // TODO: Load selected team members from calendar
-        setSelectedTeamMembers([]);
+        // Load currently linked team members
+        try {
+          const linkedMembers = await fetchCalendarMembers(calendar.id);
+          setSelectedTeamMembers(linkedMembers);
+        } catch (error) {
+          console.error('Error loading calendar members:', error);
+          setSelectedTeamMembers([]);
+        }
       }
     };
 
@@ -239,20 +243,6 @@ export function EditCalendarDialog({
             />
           </div>
 
-          {/* Additional Information */}
-          <div className="space-y-4">
-            <h4 className="font-medium text-foreground">Additional Information</h4>
-            
-            <div>
-              <Label htmlFor="location">Location (optional)</Label>
-              <Input
-                id="location"
-                placeholder="Office, Room 1, etc."
-                value={editCalendar.location}
-                onChange={(e) => setEditCalendar(prev => ({ ...prev, location: e.target.value }))}
-              />
-            </div>
-          </div>
 
           {/* Service Types */}
           <div className="space-y-4">
