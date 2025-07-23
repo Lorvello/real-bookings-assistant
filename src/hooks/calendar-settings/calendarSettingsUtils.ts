@@ -131,24 +131,61 @@ export const updateCalendarInfo = async (calendarId: string, updates: {
   }
 };
 
+// Fetch service types linked to a calendar
+export const fetchCalendarServiceTypes = async (calendarId: string): Promise<string[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('calendar_service_types')
+      .select('service_type_id')
+      .eq('calendar_id', calendarId);
+
+    if (error) {
+      console.error('Error fetching calendar service types:', error);
+      return [];
+    }
+
+    return data?.map(item => item.service_type_id) || [];
+  } catch (error) {
+    console.error('Error fetching calendar service types:', error);
+    return [];
+  }
+};
+
 export const updateCalendarServiceTypes = async (calendarId: string, serviceTypeIds: string[]): Promise<boolean> => {
   try {
     console.log('Updating calendar service types:', serviceTypeIds);
 
-    // Update service types to link them to this calendar
-    const { error } = await supabase
-      .from('service_types')
-      .update({ calendar_id: calendarId })
-      .in('id', serviceTypeIds);
+    // First, remove all existing associations for this calendar
+    const { error: deleteError } = await supabase
+      .from('calendar_service_types')
+      .delete()
+      .eq('calendar_id', calendarId);
 
-    if (error) {
-      console.error('Error updating service types:', error);
+    if (deleteError) {
+      console.error('Error removing existing service type associations:', deleteError);
       return false;
+    }
+
+    // Then, add new associations
+    if (serviceTypeIds.length > 0) {
+      const associations = serviceTypeIds.map(serviceTypeId => ({
+        calendar_id: calendarId,
+        service_type_id: serviceTypeId
+      }));
+
+      const { error: insertError } = await supabase
+        .from('calendar_service_types')
+        .insert(associations);
+
+      if (insertError) {
+        console.error('Error inserting service type associations:', insertError);
+        return false;
+      }
     }
 
     return true;
   } catch (error) {
-    console.error('Error updating service types:', error);
+    console.error('Error updating calendar service types:', error);
     return false;
   }
 };

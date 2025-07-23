@@ -551,6 +551,98 @@ export type Database = {
           },
         ]
       }
+      calendar_service_types: {
+        Row: {
+          calendar_id: string
+          created_at: string | null
+          id: string
+          service_type_id: string
+        }
+        Insert: {
+          calendar_id: string
+          created_at?: string | null
+          id?: string
+          service_type_id: string
+        }
+        Update: {
+          calendar_id?: string
+          created_at?: string | null
+          id?: string
+          service_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_type_stats"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_settings: {
         Row: {
           allow_cancellations: boolean | null
@@ -976,6 +1068,7 @@ export type Database = {
           name: string
           preparation_time: number | null
           price: number | null
+          user_id: string | null
         }
         Insert: {
           calendar_id?: string | null
@@ -990,6 +1083,7 @@ export type Database = {
           name: string
           preparation_time?: number | null
           price?: number | null
+          user_id?: string | null
         }
         Update: {
           calendar_id?: string | null
@@ -1004,6 +1098,7 @@ export type Database = {
           name?: string
           preparation_time?: number | null
           price?: number | null
+          user_id?: string | null
         }
         Relationships: [
           {

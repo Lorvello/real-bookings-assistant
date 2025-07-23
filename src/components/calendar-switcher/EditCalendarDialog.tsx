@@ -18,6 +18,7 @@ import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { useDeleteCalendar } from '@/hooks/useDeleteCalendar';
 import { useCalendarActions } from '@/hooks/calendar-settings/useCalendarActions';
+import { fetchCalendarServiceTypes } from '@/hooks/calendar-settings/calendarSettingsUtils';
 import { SimpleMultiSelect } from '@/components/ui/simple-multi-select';
 import { ServiceTypeQuickCreateDialog } from './ServiceTypeQuickCreateDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -62,17 +63,30 @@ export function EditCalendarDialog({
 
   // Load calendar data when dialog opens
   useEffect(() => {
-    if (calendar && open) {
-      setEditCalendar({
-        name: calendar.name || '',
-        description: calendar.description || '',
-        color: calendar.color || '#3B82F6',
-        location: '',
-      });
-      // TODO: Load selected service types and team members from calendar
-      setSelectedServiceTypes([]);
-      setSelectedTeamMembers([]);
-    }
+    const loadCalendarData = async () => {
+      if (calendar && open) {
+        setEditCalendar({
+          name: calendar.name || '',
+          description: calendar.description || '',
+          color: calendar.color || '#3B82F6',
+          location: '',
+        });
+        
+        // Load currently linked service types
+        try {
+          const linkedServiceTypes = await fetchCalendarServiceTypes(calendar.id);
+          setSelectedServiceTypes(linkedServiceTypes);
+        } catch (error) {
+          console.error('Error loading calendar service types:', error);
+          setSelectedServiceTypes([]);
+        }
+        
+        // TODO: Load selected team members from calendar
+        setSelectedTeamMembers([]);
+      }
+    };
+
+    loadCalendarData();
   }, [calendar, open]);
 
   const handleUpdateCalendar = async () => {

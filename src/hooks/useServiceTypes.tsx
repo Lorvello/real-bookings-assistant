@@ -14,42 +14,45 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
   const fetchServiceTypes = async () => {
     setLoading(true);
     try {
-      let query = supabase.from('service_types').select('*').order('created_at', { ascending: false });
-      
-      // If showAllServiceTypes is true, show service types from all user's calendars
-      if (showAllServiceTypes) {
-        const userCalendarIds = getActiveCalendarIds();
-        if (userCalendarIds.length > 0) {
-          query = query.in('calendar_id', userCalendarIds);
-        } else {
-          // No calendars available, return empty result
-          setServiceTypes([]);
-          setLoading(false);
-          return;
+      // Get current user
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        setServiceTypes([]);
+        setLoading(false);
+        return;
+      }
+
+      if (calendarId && !showAllServiceTypes) {
+        // Fetch service types linked to specific calendar via junction table
+        const { data, error } = await supabase
+          .from('service_types')
+          .select(`
+            *,
+            calendar_service_types!inner(calendar_id)
+          `)
+          .eq('calendar_service_types.calendar_id', calendarId)
+          .eq('user_id', userData.user.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          throw error;
         }
-      } else if (calendarId) {
-        // If a calendarId is provided, filter by it
-        query = query.eq('calendar_id', calendarId);
+        
+        setServiceTypes(data || []);
       } else {
-        // If no calendarId, only show services from user's own calendars
-        const userCalendarIds = getActiveCalendarIds();
-        if (userCalendarIds.length > 0) {
-          query = query.in('calendar_id', userCalendarIds);
-        } else {
-          // No calendars available, return empty result
-          setServiceTypes([]);
-          setLoading(false);
-          return;
+        // Fetch all service types for the current user
+        const { data, error } = await supabase
+          .from('service_types')
+          .select('*')
+          .eq('user_id', userData.user.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          throw error;
         }
+        
+        setServiceTypes(data || []);
       }
-      
-      const { data, error } = await query;
-
-      if (error) {
-        throw error;
-      }
-
-      setServiceTypes(data || []);
     } catch (error) {
       console.error('Error fetching service types:', error);
       toast({
