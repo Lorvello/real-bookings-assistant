@@ -48,7 +48,7 @@ export function CreateCalendarDialog({
 }: CreateCalendarDialogProps) {
   // Fixed: Now using SimpleMultiSelect instead of problematic MultiSelect
   const { profile } = useProfile();
-  const { serviceTypes, loading: serviceTypesLoading } = useServiceTypes();
+  const { serviceTypes, loading: serviceTypesLoading, refetch: refetchServiceTypes } = useServiceTypes();
   const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
   const [newCalendar, setNewCalendar] = useState({
     name: '',
@@ -370,8 +370,10 @@ export function CreateCalendarDialog({
 
       {showServiceTypeDialog && (
         <ServiceTypeQuickCreateDialog
-          onServiceCreated={(serviceId) => {
+          open={showServiceTypeDialog}
+          onServiceCreated={async (serviceId) => {
             setSelectedServiceTypes([...selectedServiceTypes, serviceId]);
+            await refetchServiceTypes(); // Refresh the service types list
             setShowServiceTypeDialog(false);
           }}
           trigger={null}

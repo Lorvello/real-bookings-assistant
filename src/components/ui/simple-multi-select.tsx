@@ -146,9 +146,11 @@ export function SimpleMultiSelect({
               ))
             ) : (
               <div className="py-6 text-center text-sm text-muted-foreground px-4">
-                {safeSelected.length === safeOptions.length 
-                  ? "All items selected" 
-                  : "No items available"
+                {safeOptions.length === 0 
+                  ? "No items available"
+                  : safeSelected.length === safeOptions.length 
+                    ? "All items selected" 
+                    : "No items available"
                 }
               </div>
             )}

@@ -27,7 +27,7 @@ export function ServiceTypeQuickCreateDialog({
   trigger,
   open 
 }: ServiceTypeQuickCreateDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(open || false);
   const [formData, setFormData] = useState({
     name: '',
     duration: '60',
@@ -88,7 +88,7 @@ export function ServiceTypeQuickCreateDialog({
     }
   };
 
-  // Auto-open dialog when open prop is true
+  // Auto-open dialog when open prop changes
   React.useEffect(() => {
     if (open !== undefined) {
       setIsOpen(open);
