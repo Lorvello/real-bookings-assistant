@@ -8,9 +8,8 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ProfessionalTimePicker } from '@/components/availability/ProfessionalTimePicker';
 import { cn } from '@/lib/utils';
 
 interface BookingDateTimeFieldsProps {
@@ -23,12 +22,6 @@ interface BookingDateTimeFieldsProps {
   calculateDuration: () => number;
 }
 
-const timeOptions = Array.from({ length: 48 }, (_, i) => {
-  const hours = Math.floor(i / 2);
-  const minutes = i % 2 === 0 ? '00' : '30';
-  const timeString = `${hours.toString().padStart(2, '0')}:${minutes}`;
-  return { value: timeString, label: timeString };
-});
 
 export function BookingDateTimeFields({ 
   form, 
@@ -40,6 +33,8 @@ export function BookingDateTimeFields({
   calculateDuration 
 }: BookingDateTimeFieldsProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isStartTimePickerOpen, setIsStartTimePickerOpen] = useState(false);
+  const [isEndTimePickerOpen, setIsEndTimePickerOpen] = useState(false);
 
   const handleDateSelect = (date: Date | undefined, onChange: (date: Date | undefined) => void) => {
     onChange(date);
@@ -101,7 +96,7 @@ export function BookingDateTimeFields({
         )}
       />
 
-      {/* Time selection with both input and dropdown */}
+      {/* Time selection with professional time pickers */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <FormField
@@ -110,28 +105,18 @@ export function BookingDateTimeFields({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Start time *</FormLabel>
-                <div className="space-y-2">
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="time"
-                      className="bg-background"
-                      onChange={(e) => onTimeChange('startTime', e.target.value)}
-                    />
-                  </FormControl>
-                  <Select onValueChange={(value) => onTimeChange('startTime', value)} value={field.value}>
-                    <SelectTrigger className="bg-background text-xs">
-                      <SelectValue placeholder="Quick select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <FormControl>
+                  <ProfessionalTimePicker
+                    value={field.value || ''}
+                    onChange={(value) => onTimeChange('startTime', value)}
+                    isOpen={isStartTimePickerOpen}
+                    onToggle={() => {
+                      setIsStartTimePickerOpen(!isStartTimePickerOpen);
+                      if (isEndTimePickerOpen) setIsEndTimePickerOpen(false);
+                    }}
+                    onClose={() => setIsStartTimePickerOpen(false)}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -143,33 +128,22 @@ export function BookingDateTimeFields({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>End time *</FormLabel>
-                <div className="space-y-2">
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="time"
-                      className="bg-background"
-                      onChange={(e) => onTimeChange('endTime', e.target.value)}
-                      disabled={autoUpdateEndTime}
+                <FormControl>
+                  <div className={cn(autoUpdateEndTime && "opacity-50 pointer-events-none")}>
+                    <ProfessionalTimePicker
+                      value={field.value || ''}
+                      onChange={(value) => onTimeChange('endTime', value)}
+                      isOpen={isEndTimePickerOpen && !autoUpdateEndTime}
+                      onToggle={() => {
+                        if (!autoUpdateEndTime) {
+                          setIsEndTimePickerOpen(!isEndTimePickerOpen);
+                          if (isStartTimePickerOpen) setIsStartTimePickerOpen(false);
+                        }
+                      }}
+                      onClose={() => setIsEndTimePickerOpen(false)}
                     />
-                  </FormControl>
-                  <Select 
-                    onValueChange={(value) => onTimeChange('endTime', value)} 
-                    value={field.value}
-                    disabled={autoUpdateEndTime}
-                  >
-                    <SelectTrigger className="bg-background text-xs">
-                      <SelectValue placeholder="Quick select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  </div>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
