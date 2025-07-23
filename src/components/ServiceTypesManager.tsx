@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { ServiceTypesEmptyState } from '@/components/settings/service-types/ServiceTypesEmptyState';
+import { ServiceTypeQuickCreateDialog } from '@/components/calendar-switcher/ServiceTypeQuickCreateDialog';
 
 interface ServiceTypesManagerProps {
   calendarId?: string;
@@ -12,8 +14,9 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
   calendarId,
   showCalendarLabels = false 
 }) => {
-  const { calendars } = useCalendarContext();
-  const { serviceTypes, loading } = useServiceTypes(calendarId);
+  const { calendars, selectedCalendar } = useCalendarContext();
+  const { serviceTypes, loading, refetch } = useServiceTypes(calendarId);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const getCalendarName = (id: string) => {
     return calendars.find(cal => cal.id === id)?.name || 'Unknown Calendar';
@@ -59,14 +62,19 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = ({
           ))}
         </div>
       ) : (
-        <div className="text-center py-6">
-          <p className="text-gray-400">No service types found</p>
-          <p className="text-sm text-gray-500 mt-1">
-            {calendarId ? 
-              "Create a new service type for this calendar" : 
-              "Select a calendar to manage service types"}
-          </p>
-        </div>
+        <ServiceTypesEmptyState 
+          onAddService={() => setShowCreateDialog(true)} 
+        />
+      )}
+      
+      {showCreateDialog && (
+        <ServiceTypeQuickCreateDialog
+          onServiceCreated={(serviceId) => {
+            setShowCreateDialog(false);
+            refetch();
+          }}
+          trigger={null}
+        />
       )}
     </div>
   );

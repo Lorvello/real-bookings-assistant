@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 
 export interface ServiceType {
   id: string;
@@ -17,6 +18,7 @@ export const useServiceTypes = (calendarId?: string) => {
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { getActiveCalendarIds } = useCalendarContext();
 
   const fetchServiceTypes = async () => {
     setLoading(true);
@@ -26,6 +28,17 @@ export const useServiceTypes = (calendarId?: string) => {
       // If a calendarId is provided, filter by it
       if (calendarId) {
         query = query.eq('calendar_id', calendarId);
+      } else {
+        // If no calendarId, only show services from user's own calendars
+        const userCalendarIds = getActiveCalendarIds();
+        if (userCalendarIds.length > 0) {
+          query = query.in('calendar_id', userCalendarIds);
+        } else {
+          // No calendars available, return empty result
+          setServiceTypes([]);
+          setLoading(false);
+          return;
+        }
       }
       
       const { data, error } = await query;
