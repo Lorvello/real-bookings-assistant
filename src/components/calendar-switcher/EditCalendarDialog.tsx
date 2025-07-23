@@ -138,8 +138,20 @@ export function EditCalendarDialog({
     return member?.user?.full_name || member?.user?.email || memberId;
   };
 
+  // Deduplicate members by email to prevent showing same user multiple times
+  const getUniqueMembers = () => {
+    const seen = new Set();
+    return availableMembers.filter(member => {
+      const email = member.user?.email;
+      if (seen.has(email)) return false;
+      seen.add(email);
+      return true;
+    });
+  };
+
   const getAvailableTeamMembers = () => {
-    return availableMembers.filter(member => !selectedTeamMembers.includes(member.id));
+    const uniqueMembers = getUniqueMembers();
+    return uniqueMembers.filter(member => !selectedTeamMembers.includes(member.id));
   };
 
   const getServiceTypeName = (serviceTypeId: string) => {
