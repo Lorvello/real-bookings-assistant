@@ -18,6 +18,15 @@ interface Booking {
   notes?: string;
   internal_notes?: string;
   total_price?: number;
+  calendar?: {
+    id?: string;
+    name: string;
+    color: string;
+    user_id?: string;
+    users?: {
+      full_name: string;
+    };
+  };
   service_types?: {
     name: string;
     color: string;
@@ -29,9 +38,10 @@ interface Booking {
 interface YearViewProps {
   bookings: Booking[];
   currentDate: Date;
+  viewingAllCalendars?: boolean;
 }
 
-export function YearView({ bookings, currentDate }: YearViewProps) {
+export function YearView({ bookings, currentDate, viewingAllCalendars = false }: YearViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [dayModalOpen, setDayModalOpen] = useState(false);
@@ -235,6 +245,7 @@ export function YearView({ bookings, currentDate }: YearViewProps) {
         open={bookingDetailOpen}
         onClose={closeBookingDetail}
         booking={selectedBooking}
+        viewingAllCalendars={viewingAllCalendars}
       />
     </div>
   );

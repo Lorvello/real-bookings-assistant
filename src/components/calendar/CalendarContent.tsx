@@ -71,9 +71,9 @@ export function CalendarContent({
     case 'month':
       return <ModernMonthView bookings={bookings} currentDate={currentDate} viewingAllCalendars={viewingAllCalendars} />;
     case 'week':
-      return <WeekView bookings={bookings} currentDate={currentDate} timeRange={timeRange} />;
+      return <WeekView bookings={bookings} currentDate={currentDate} timeRange={timeRange} viewingAllCalendars={viewingAllCalendars} />;
     case 'year':
-      return <YearView bookings={bookings} currentDate={currentDate} />;
+      return <YearView bookings={bookings} currentDate={currentDate} viewingAllCalendars={viewingAllCalendars} />;
     default:
       return <ModernMonthView bookings={bookings} currentDate={currentDate} viewingAllCalendars={viewingAllCalendars} />;
   }

@@ -36,6 +36,7 @@ interface WeekViewProps {
   bookings: Booking[];
   currentDate: Date;
   timeRange?: { startTime: string; endTime: string };
+  viewingAllCalendars?: boolean;
 }
 
 // Helper functions
@@ -165,7 +166,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
   );
 }
 
-export function WeekView({ bookings, currentDate, timeRange }: WeekViewProps) {
+export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars = false }: WeekViewProps) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
   
@@ -261,6 +262,7 @@ export function WeekView({ bookings, currentDate, timeRange }: WeekViewProps) {
         open={bookingDetailOpen}
         onClose={closeBookingDetail}
         booking={selectedBooking}
+        viewingAllCalendars={viewingAllCalendars}
       />
     </div>
   );
