@@ -1,0 +1,57 @@
+/* Phone Input Dark Theme Styling */
+.phone-input-container .PhoneInput {
+  --PhoneInputCountryFlag-height: 1em;
+  --PhoneInputCountryFlag-width: 1.5em;
+  --PhoneInputCountrySelect-backgroundColor: #1f2937;
+  --PhoneInputCountrySelect-color: #ffffff;
+  --PhoneInputCountrySelect-borderColor: #374151;
+  --PhoneInput-color: #ffffff;
+  --PhoneInput-backgroundColor: #1f2937;
+  --PhoneInput-borderColor: #374151;
+}
+
+.phone-input-container .PhoneInputInput {
+  background-color: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  color: #ffffff !important;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  width: 100%;
+}
+
+.phone-input-container .PhoneInputInput:focus {
+  outline: none;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.phone-input-container .PhoneInputCountrySelect {
+  background-color: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  color: #ffffff !important;
+  border-radius: 0.375rem 0 0 0.375rem;
+  padding: 0.75rem 0.5rem;
+}
+
+.phone-input-container .PhoneInputCountrySelect:focus {
+  outline: none;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.phone-input-container .PhoneInputCountrySelectArrow {
+  color: #9ca3af;
+}
+
+.phone-input-container .PhoneInputCountrySelect:hover {
+  background-color: #374151 !important;
+}
+
+.phone-input-container .PhoneInputInternationalIconGlobe {
+  color: #9ca3af;
+}
+
+.phone-input-container .PhoneInputCountryIcon {
+  margin-right: 0.5rem;
+}

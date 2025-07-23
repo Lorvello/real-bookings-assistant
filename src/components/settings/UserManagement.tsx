@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Trash2, Crown, User, Eye, Lock, Check, X, Calendar as CalendarIcon } from 'lucide-react';
+import { UserPlus, Trash2, Crown, User, Eye, Lock, Check, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAccessControl } from '@/hooks/useAccessControl';
@@ -18,36 +18,108 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import PhoneInput from 'react-phone-number-input';
+import './phone-input.css';
 
-// Common timezone options
+// Comprehensive timezone options
 const TIMEZONE_OPTIONS = [
-  { value: 'Europe/Amsterdam', label: 'Amsterdam (GMT+1)' },
-  { value: 'Europe/London', label: 'London (GMT+0)' },
-  { value: 'Europe/Berlin', label: 'Berlin (GMT+1)' },
-  { value: 'Europe/Paris', label: 'Paris (GMT+1)' },
-  { value: 'Europe/Madrid', label: 'Madrid (GMT+1)' },
-  { value: 'Europe/Rome', label: 'Rome (GMT+1)' },
-  { value: 'Europe/Brussels', label: 'Brussels (GMT+1)' },
-  { value: 'Europe/Vienna', label: 'Vienna (GMT+1)' },
-  { value: 'Europe/Zurich', label: 'Zurich (GMT+1)' },
-  { value: 'America/New_York', label: 'New York (GMT-5)' },
-  { value: 'America/Los_Angeles', label: 'Los Angeles (GMT-8)' },
-  { value: 'America/Chicago', label: 'Chicago (GMT-6)' },
-  { value: 'America/Toronto', label: 'Toronto (GMT-5)' },
-  { value: 'Asia/Tokyo', label: 'Tokyo (GMT+9)' },
-  { value: 'Asia/Shanghai', label: 'Shanghai (GMT+8)' },
-  { value: 'Asia/Dubai', label: 'Dubai (GMT+4)' },
-  { value: 'Australia/Sydney', label: 'Sydney (GMT+10)' },
+  // Europe
+  { value: 'Europe/Amsterdam', label: 'Amsterdam, Netherlands (GMT+1)' },
+  { value: 'Europe/London', label: 'London, United Kingdom (GMT+0)' },
+  { value: 'Europe/Berlin', label: 'Berlin, Germany (GMT+1)' },
+  { value: 'Europe/Paris', label: 'Paris, France (GMT+1)' },
+  { value: 'Europe/Madrid', label: 'Madrid, Spain (GMT+1)' },
+  { value: 'Europe/Rome', label: 'Rome, Italy (GMT+1)' },
+  { value: 'Europe/Brussels', label: 'Brussels, Belgium (GMT+1)' },
+  { value: 'Europe/Vienna', label: 'Vienna, Austria (GMT+1)' },
+  { value: 'Europe/Zurich', label: 'Zurich, Switzerland (GMT+1)' },
+  { value: 'Europe/Prague', label: 'Prague, Czech Republic (GMT+1)' },
+  { value: 'Europe/Budapest', label: 'Budapest, Hungary (GMT+1)' },
+  { value: 'Europe/Warsaw', label: 'Warsaw, Poland (GMT+1)' },
+  { value: 'Europe/Stockholm', label: 'Stockholm, Sweden (GMT+1)' },
+  { value: 'Europe/Oslo', label: 'Oslo, Norway (GMT+1)' },
+  { value: 'Europe/Copenhagen', label: 'Copenhagen, Denmark (GMT+1)' },
+  { value: 'Europe/Helsinki', label: 'Helsinki, Finland (GMT+2)' },
+  { value: 'Europe/Dublin', label: 'Dublin, Ireland (GMT+0)' },
+  { value: 'Europe/Lisbon', label: 'Lisbon, Portugal (GMT+0)' },
+  { value: 'Europe/Athens', label: 'Athens, Greece (GMT+2)' },
+  { value: 'Europe/Istanbul', label: 'Istanbul, Turkey (GMT+3)' },
+  { value: 'Europe/Moscow', label: 'Moscow, Russia (GMT+3)' },
+  
+  // North America
+  { value: 'America/New_York', label: 'New York, USA (GMT-5)' },
+  { value: 'America/Los_Angeles', label: 'Los Angeles, USA (GMT-8)' },
+  { value: 'America/Chicago', label: 'Chicago, USA (GMT-6)' },
+  { value: 'America/Denver', label: 'Denver, USA (GMT-7)' },
+  { value: 'America/Phoenix', label: 'Phoenix, USA (GMT-7)' },
+  { value: 'America/Toronto', label: 'Toronto, Canada (GMT-5)' },
+  { value: 'America/Vancouver', label: 'Vancouver, Canada (GMT-8)' },
+  { value: 'America/Montreal', label: 'Montreal, Canada (GMT-5)' },
+  { value: 'America/Mexico_City', label: 'Mexico City, Mexico (GMT-6)' },
+  
+  // South America
+  { value: 'America/Sao_Paulo', label: 'São Paulo, Brazil (GMT-3)' },
+  { value: 'America/Buenos_Aires', label: 'Buenos Aires, Argentina (GMT-3)' },
+  { value: 'America/Santiago', label: 'Santiago, Chile (GMT-3)' },
+  { value: 'America/Lima', label: 'Lima, Peru (GMT-5)' },
+  { value: 'America/Bogota', label: 'Bogotá, Colombia (GMT-5)' },
+  
+  // Asia
+  { value: 'Asia/Tokyo', label: 'Tokyo, Japan (GMT+9)' },
+  { value: 'Asia/Shanghai', label: 'Shanghai, China (GMT+8)' },
+  { value: 'Asia/Hong_Kong', label: 'Hong Kong (GMT+8)' },
+  { value: 'Asia/Singapore', label: 'Singapore (GMT+8)' },
+  { value: 'Asia/Seoul', label: 'Seoul, South Korea (GMT+9)' },
+  { value: 'Asia/Bangkok', label: 'Bangkok, Thailand (GMT+7)' },
+  { value: 'Asia/Jakarta', label: 'Jakarta, Indonesia (GMT+7)' },
+  { value: 'Asia/Manila', label: 'Manila, Philippines (GMT+8)' },
+  { value: 'Asia/Kuala_Lumpur', label: 'Kuala Lumpur, Malaysia (GMT+8)' },
+  { value: 'Asia/Dubai', label: 'Dubai, UAE (GMT+4)' },
+  { value: 'Asia/Riyadh', label: 'Riyadh, Saudi Arabia (GMT+3)' },
+  { value: 'Asia/Mumbai', label: 'Mumbai, India (GMT+5:30)' },
+  { value: 'Asia/Kolkata', label: 'Kolkata, India (GMT+5:30)' },
+  { value: 'Asia/Karachi', label: 'Karachi, Pakistan (GMT+5)' },
+  { value: 'Asia/Tehran', label: 'Tehran, Iran (GMT+3:30)' },
+  
+  // Africa
+  { value: 'Africa/Cairo', label: 'Cairo, Egypt (GMT+2)' },
+  { value: 'Africa/Lagos', label: 'Lagos, Nigeria (GMT+1)' },
+  { value: 'Africa/Johannesburg', label: 'Johannesburg, South Africa (GMT+2)' },
+  { value: 'Africa/Casablanca', label: 'Casablanca, Morocco (GMT+1)' },
+  { value: 'Africa/Nairobi', label: 'Nairobi, Kenya (GMT+3)' },
+  
+  // Oceania
+  { value: 'Australia/Sydney', label: 'Sydney, Australia (GMT+10)' },
+  { value: 'Australia/Melbourne', label: 'Melbourne, Australia (GMT+10)' },
+  { value: 'Australia/Perth', label: 'Perth, Australia (GMT+8)' },
+  { value: 'Pacific/Auckland', label: 'Auckland, New Zealand (GMT+12)' },
 ];
 
 const LANGUAGE_OPTIONS = [
-  { value: 'nl', label: 'Nederlands' },
-  { value: 'en', label: 'English' },
-  { value: 'de', label: 'Deutsch' },
-  { value: 'fr', label: 'Français' },
-  { value: 'es', label: 'Español' },
-  { value: 'tr', label: 'Türkçe' },
-  { value: 'ar', label: 'العربية' },
+  { value: 'nl', label: '🇳🇱 Nederlands' },
+  { value: 'en', label: '🇺🇸 English' },
+  { value: 'de', label: '🇩🇪 Deutsch' },
+  { value: 'fr', label: '🇫🇷 Français' },
+  { value: 'es', label: '🇪🇸 Español' },
+  { value: 'it', label: '🇮🇹 Italiano' },
+  { value: 'pt', label: '🇵🇹 Português' },
+  { value: 'ru', label: '🇷🇺 Русский' },
+  { value: 'zh', label: '🇨🇳 中文' },
+  { value: 'ja', label: '🇯🇵 日本語' },
+  { value: 'ko', label: '🇰🇷 한국어' },
+  { value: 'ar', label: '🇸🇦 العربية' },
+  { value: 'tr', label: '🇹🇷 Türkçe' },
+  { value: 'hi', label: '🇮🇳 हिन्दी' },
+  { value: 'th', label: '🇹🇭 ไทย' },
+  { value: 'vi', label: '🇻🇳 Tiếng Việt' },
+  { value: 'pl', label: '🇵🇱 Polski' },
+  { value: 'cs', label: '🇨🇿 Čeština' },
+  { value: 'hu', label: '🇭🇺 Magyar' },
+  { value: 'ro', label: '🇷🇴 Română' },
+  { value: 'sv', label: '🇸🇪 Svenska' },
+  { value: 'da', label: '🇩🇰 Dansk' },
+  { value: 'no', label: '🇳🇴 Norsk' },
+  { value: 'fi', label: '🇫🇮 Suomi' },
 ];
 
 export const UserManagement = () => {
@@ -357,46 +429,35 @@ export const UserManagement = () => {
                       )}
                     </div>
 
-                    {/* Phone Number */}
+                    {/* Phone Number with Country Code */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</Label>
-                      {editingField === 'phone' ? (
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="tel"
-                            value={tempValues.phone || ''}
-                            onChange={(e) => setTempValues({ ...tempValues, phone: e.target.value })}
-                            className="bg-gray-800 border-gray-700 text-white"
-                            autoFocus
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => saveField('phone')}
-                            disabled={saving === 'phone'}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <Check className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={cancelEditing}
-                            className="border-gray-700 text-gray-300 hover:bg-gray-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <div 
-                          className="text-white bg-gray-800 border border-gray-700 rounded-md p-3 cursor-pointer hover:bg-gray-700 transition-colors"
-                          onClick={() => startEditing('phone', profile.phone || '')}
-                        >
-                          {profile.phone || 'Click to add'}
-                        </div>
-                      )}
+                      <div className="phone-input-container">
+                        <PhoneInput
+                          international
+                          countryCallingCodeEditable={false}
+                          defaultCountry="NL"
+                          value={profile.phone || ''}
+                          onChange={(value) => {
+                            if (value) {
+                              handleAutoSave('phone', value);
+                            }
+                          }}
+                          className="phone-input bg-gray-800 border-gray-700 text-white"
+                          style={{
+                            '--PhoneInputCountryFlag-height': '1em',
+                            '--PhoneInputCountryFlag-width': '1.5em',
+                            '--PhoneInputCountrySelect-backgroundColor': '#1f2937',
+                            '--PhoneInputCountrySelect-color': '#ffffff',
+                            '--PhoneInput-color': '#ffffff',
+                            '--PhoneInput-backgroundColor': '#1f2937',
+                            '--PhoneInput-borderColor': '#374151',
+                          }}
+                        />
+                      </div>
                     </div>
 
-                    {/* Date of Birth */}
+                    {/* Date of Birth with Year Selector */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</Label>
                       <Popover>
@@ -413,20 +474,75 @@ export const UserManagement = () => {
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={profile.date_of_birth ? new Date(profile.date_of_birth) : undefined}
-                            onSelect={(date) => {
-                              if (date) {
-                                handleAutoSave('date_of_birth', format(date, 'yyyy-MM-dd'));
+                          <div className="bg-gray-800 p-4">
+                            {/* Year and Month Selectors */}
+                            <div className="flex items-center justify-between mb-4 gap-2">
+                              <Select
+                                value={profile.date_of_birth ? new Date(profile.date_of_birth).getFullYear().toString() : new Date().getFullYear().toString()}
+                                onValueChange={(year) => {
+                                  const currentDate = profile.date_of_birth ? new Date(profile.date_of_birth) : new Date();
+                                  const newDate = new Date();
+                                  newDate.setFullYear(parseInt(year));
+                                  newDate.setMonth(currentDate.getMonth());
+                                  newDate.setDate(Math.min(currentDate.getDate(), new Date(parseInt(year), currentDate.getMonth() + 1, 0).getDate()));
+                                  handleAutoSave('date_of_birth', format(newDate, 'yyyy-MM-dd'));
+                                }}
+                              >
+                                <SelectTrigger className="w-20 bg-gray-700 border-gray-600 text-white text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-gray-700 border-gray-600 max-h-60">
+                                  {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                                    <SelectItem key={year} value={year.toString()}>
+                                      {year}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              
+                              <Select
+                                value={profile.date_of_birth ? new Date(profile.date_of_birth).getMonth().toString() : new Date().getMonth().toString()}
+                                onValueChange={(month) => {
+                                  const currentDate = profile.date_of_birth ? new Date(profile.date_of_birth) : new Date();
+                                  const newDate = new Date();
+                                  newDate.setFullYear(currentDate.getFullYear());
+                                  newDate.setMonth(parseInt(month));
+                                  newDate.setDate(Math.min(currentDate.getDate(), new Date(currentDate.getFullYear(), parseInt(month) + 1, 0).getDate()));
+                                  handleAutoSave('date_of_birth', format(newDate, 'yyyy-MM-dd'));
+                                }}
+                              >
+                                <SelectTrigger className="w-28 bg-gray-700 border-gray-600 text-white text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-gray-700 border-gray-600">
+                                  {Array.from({ length: 12 }, (_, i) => ({
+                                    value: i.toString(),
+                                    label: format(new Date(2024, i, 1), 'MMMM')
+                                  })).map((month) => (
+                                    <SelectItem key={month.value} value={month.value}>
+                                      {month.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            {/* Calendar for day selection */}
+                            <Calendar
+                              mode="single"
+                              selected={profile.date_of_birth ? new Date(profile.date_of_birth) : undefined}
+                              onSelect={(date) => {
+                                if (date) {
+                                  handleAutoSave('date_of_birth', format(date, 'yyyy-MM-dd'));
+                                }
+                              }}
+                              disabled={(date) =>
+                                date > new Date() || date < new Date("1900-01-01")
                               }
-                            }}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                            className="p-3 pointer-events-auto bg-gray-800"
-                          />
+                              month={profile.date_of_birth ? new Date(profile.date_of_birth) : new Date()}
+                              className="pointer-events-auto bg-gray-800 border-gray-700"
+                            />
+                          </div>
                         </PopoverContent>
                       </Popover>
                     </div>
