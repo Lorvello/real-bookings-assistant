@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
+import { useTeamInvitations } from '@/hooks/useTeamInvitations';
 import { useProfile } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Trash2, Crown, User, Eye, Lock, Check, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UserPlus, Trash2, Crown, User, Eye, Lock, Check, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Mail, RotateCcw, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAccessControl } from '@/hooks/useAccessControl';
@@ -78,6 +79,7 @@ const TIMEZONE_OPTIONS = COMPREHENSIVE_TIMEZONES.map(tz => ({
 export const UserManagement = () => {
   const { calendars } = useCalendarContext();
   const { members, loading, inviteMember, removeMember, updateMemberRole, refetch } = useCalendarMembers();
+  const { invitations, loading: invitationsLoading, cancelInvitation, resendInvitation, refetch: refetchInvitations } = useTeamInvitations();
   const { profile, updateProfile, loading: profileLoading } = useProfile();
   const { toast } = useToast();
   const { accessControl, requireAccess } = useAccessControl();
@@ -96,10 +98,11 @@ export const UserManagement = () => {
 
   // Stabilize refetch function
   const stableRefetch = useCallback(() => {
-    if (!loading) {
+    if (!loading && !invitationsLoading) {
       refetch();
+      refetchInvitations();
     }
-  }, [refetch, loading]);
+  }, [refetch, refetchInvitations, loading, invitationsLoading]);
 
   // Handle adding a new user (simplified - no calendar selection)
   const handleAddUser = useCallback(async () => {
@@ -205,6 +208,68 @@ export const UserManagement = () => {
     }
   };
 
+  const getStatusBadge = (user: any) => {
+    if (user.type === 'invitation') {
+      switch (user.status) {
+        case 'pending':
+          return (
+            <Badge variant="outline" className="text-yellow-400 border-yellow-600 bg-yellow-900/20">
+              <Clock className="h-3 w-3 mr-1" />
+              Invited
+            </Badge>
+          );
+        case 'expired':
+          return (
+            <Badge variant="outline" className="text-red-400 border-red-600 bg-red-900/20">
+              <X className="h-3 w-3 mr-1" />
+              Expired
+            </Badge>
+          );
+        case 'cancelled':
+          return (
+            <Badge variant="outline" className="text-gray-400 border-gray-600 bg-gray-900/20">
+              <X className="h-3 w-3 mr-1" />
+              Cancelled
+            </Badge>
+          );
+        default:
+          return null;
+      }
+    }
+    return (
+      <Badge variant="outline" className="text-green-400 border-green-600 bg-green-900/20">
+        <Check className="h-3 w-3 mr-1" />
+        Active
+      </Badge>
+    );
+  };
+
+  const handleCancelInvitation = useCallback(async (invitationId: string) => {
+    try {
+      await cancelInvitation(invitationId);
+      stableRefetch();
+    } catch (error) {
+      toast({
+        title: "Error cancelling invitation",
+        description: "Could not cancel the invitation",
+        variant: "destructive",
+      });
+    }
+  }, [cancelInvitation, stableRefetch, toast]);
+
+  const handleResendInvitation = useCallback(async (invitationId: string) => {
+    try {
+      await resendInvitation(invitationId);
+      stableRefetch();
+    } catch (error) {
+      toast({
+        title: "Error resending invitation",
+        description: "Could not resend the invitation",
+        variant: "destructive",
+      });
+    }
+  }, [resendInvitation, stableRefetch, toast]);
+
   // Debounce timer for auto-save
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
@@ -290,20 +355,40 @@ export const UserManagement = () => {
         email: profile.email
       },
       role: 'owner',
-      calendar: { name: 'All Calendars' }
+      calendar: { name: 'All Calendars' },
+      type: 'member' as const
     } : null;
 
     // Filter out any team members who have the same email as the owner
     const teamMembers = members.filter(
       member => member.user?.email !== profile?.email
-    );
+    ).map(member => ({
+      ...member,
+      type: 'member' as const
+    }));
 
-    // Combine owner and team members
+    // Add pending invitations
+    const pendingInvitations = invitations.map(invitation => ({
+      id: invitation.id,
+      user: {
+        full_name: invitation.full_name,
+        email: invitation.email
+      },
+      role: invitation.role,
+      calendar: invitation.calendars ? { name: invitation.calendars.name } : { name: 'Unknown Calendar' },
+      type: 'invitation' as const,
+      status: invitation.status,
+      expires_at: invitation.expires_at,
+      created_at: invitation.created_at
+    }));
+
+    // Combine owner, team members, and pending invitations
     return [
       ...(ownerUser ? [ownerUser] : []),
-      ...teamMembers
+      ...teamMembers,
+      ...pendingInvitations
     ];
-  }, [profile, members]);
+  }, [profile, members, invitations]);
 
   // Format phone number to E.164 format for validation
   const formatPhoneForInput = useCallback((phone: string | null | undefined) => {
@@ -341,7 +426,7 @@ export const UserManagement = () => {
       </CardHeader>
 
       <CardContent>
-        {(loading || profileLoading) ? (
+        {(loading || profileLoading || invitationsLoading) ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
           </div>
@@ -577,6 +662,7 @@ export const UserManagement = () => {
                       <TableRow className="border-gray-700">
                         <TableHead className="text-gray-300">User</TableHead>
                         <TableHead className="text-gray-300">Role</TableHead>
+                        <TableHead className="text-gray-300">Status</TableHead>
                         <TableHead className="text-gray-300">Calendar</TableHead>
                         <TableHead className="text-gray-300">Actions</TableHead>
                       </TableRow>
@@ -591,6 +677,11 @@ export const UserManagement = () => {
                                   {user.user?.full_name || 'Unknown User'}
                                 </p>
                                 <p className="text-sm text-gray-400">{user.user?.email}</p>
+                                {user.type === 'invitation' && user.status === 'pending' && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Expires: {new Date(user.expires_at).toLocaleDateString()}
+                                  </p>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell>
@@ -598,6 +689,9 @@ export const UserManagement = () => {
                                 {getRoleIcon(user.role)}
                                 <span className="text-gray-300">{getRoleName(user.role)}</span>
                               </div>
+                            </TableCell>
+                            <TableCell>
+                              {getStatusBadge(user)}
                             </TableCell>
                             <TableCell>
                               {user.role === 'owner' ? (
@@ -615,6 +709,42 @@ export const UserManagement = () => {
                                 <Badge variant="secondary" className="bg-blue-900/30 text-blue-400 border-blue-700">
                                   Owner
                                 </Badge>
+                              ) : user.type === 'invitation' ? (
+                                <div className="flex items-center space-x-2">
+                                  {user.status === 'pending' && (
+                                    <>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleResendInvitation(user.id)}
+                                        className="h-8 px-2 border-blue-700 text-blue-400 hover:bg-blue-900/30"
+                                        title="Resend invitation"
+                                      >
+                                        <RotateCcw className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleCancelInvitation(user.id)}
+                                        className="h-8 px-2 border-red-700 text-red-400 hover:bg-red-900/30"
+                                        title="Cancel invitation"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </>
+                                  )}
+                                  {user.status === 'expired' && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleResendInvitation(user.id)}
+                                      className="h-8 px-2 border-green-700 text-green-400 hover:bg-green-900/30"
+                                      title="Resend invitation"
+                                    >
+                                      <Mail className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
                               ) : (
                                 <div className="flex items-center space-x-2">
                                   <Select
@@ -644,7 +774,7 @@ export const UserManagement = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-6 text-gray-400">
+                          <TableCell colSpan={5} className="text-center py-6 text-gray-400">
                             No team members found. Add team members to collaborate.
                           </TableCell>
                         </TableRow>
