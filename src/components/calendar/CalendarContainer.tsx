@@ -12,9 +12,10 @@ type CalendarView = 'month' | 'week' | 'year';
 
 interface CalendarContainerProps {
   calendarIds: string[];
+  viewingAllCalendars?: boolean;
 }
 
-export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
+export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: CalendarContainerProps) {
   console.log('CalendarContainer rendering with calendarIds:', calendarIds);
   
   const [searchParams, setSearchParams] = useSearchParams();
@@ -134,6 +135,7 @@ export function CalendarContainer({ calendarIds }: CalendarContainerProps) {
             loading={loading}
             error={error}
             timeRange={timeRange}
+            viewingAllCalendars={viewingAllCalendars}
           />
         </div>
       </div>

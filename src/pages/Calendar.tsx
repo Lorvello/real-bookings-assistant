@@ -115,7 +115,7 @@ const Calendar = () => {
 
           {/* Calendar Content */}
           <div className="bg-card border border-border shadow-sm rounded-lg p-2 md:p-4">
-            <CalendarView calendarIds={activeCalendarIds} />
+            <CalendarView calendarIds={activeCalendarIds} viewingAllCalendars={viewingAllCalendars} />
           </div>
         </div>
       </div>

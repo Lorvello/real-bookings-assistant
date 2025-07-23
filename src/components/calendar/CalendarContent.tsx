@@ -26,6 +26,7 @@ interface CalendarContentProps {
   loading: boolean;
   error?: string | null;
   timeRange?: { startTime: string; endTime: string };
+  viewingAllCalendars?: boolean;
 }
 
 export function CalendarContent({
@@ -34,7 +35,8 @@ export function CalendarContent({
   currentDate,
   loading,
   error,
-  timeRange
+  timeRange,
+  viewingAllCalendars = false
 }: CalendarContentProps) {
   if (loading) {
     return (
@@ -67,12 +69,12 @@ export function CalendarContent({
 
   switch (currentView) {
     case 'month':
-      return <ModernMonthView bookings={bookings} currentDate={currentDate} />;
+      return <ModernMonthView bookings={bookings} currentDate={currentDate} viewingAllCalendars={viewingAllCalendars} />;
     case 'week':
       return <WeekView bookings={bookings} currentDate={currentDate} timeRange={timeRange} />;
     case 'year':
       return <YearView bookings={bookings} currentDate={currentDate} />;
     default:
-      return <ModernMonthView bookings={bookings} currentDate={currentDate} />;
+      return <ModernMonthView bookings={bookings} currentDate={currentDate} viewingAllCalendars={viewingAllCalendars} />;
   }
 }
