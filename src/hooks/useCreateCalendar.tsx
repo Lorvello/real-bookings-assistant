@@ -7,17 +7,16 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface TeamMember {
   email: string;
+  name: string;
   role: 'owner' | 'editor' | 'viewer';
-  name?: string;
 }
 
 interface CreateCalendarData {
   name: string;
   description?: string;
   color?: string;
-  businessName?: string;
   location?: string;
-  specialization?: string;
+  serviceTypes?: string[];
   teamMembers?: TeamMember[];
 }
 
@@ -74,48 +73,50 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
 
       console.log('Calendar created successfully:', calendar);
 
-      // Add the user as owner of their calendar
-      const { error: memberError } = await supabase
-        .from('calendar_members')
-        .insert({
-          calendar_id: calendar.id,
-          user_id: user.id,
-          role: 'owner',
-          accepted_at: new Date().toISOString()
-        });
-
-      if (memberError) {
-        console.error('Error adding user as calendar member:', memberError);
-      }
-
-      // Invite team members if provided
+      // Add team members to the calendar
       if (data.teamMembers && data.teamMembers.length > 0) {
         for (const member of data.teamMembers) {
           try {
-            // First check if user exists
-            const { data: userData, error: userError } = await supabase
-              .from('users')
-              .select('id, email')
-              .eq('email', member.email)
-              .single();
-
-            if (userData && !userError) {
-              // Add member to calendar
-              const { error: inviteError } = await supabase
+            if (member.role === 'owner') {
+              // Add the owner directly
+              const { error: memberError } = await supabase
                 .from('calendar_members')
                 .insert({
                   calendar_id: calendar.id,
-                  user_id: userData.id,
-                  role: member.role,
-                  invited_by: user.id,
-                  invited_at: new Date().toISOString()
+                  user_id: user.id,
+                  role: 'owner',
+                  accepted_at: new Date().toISOString()
                 });
 
-              if (inviteError) {
-                console.error(`Error inviting ${member.email}:`, inviteError);
+              if (memberError) {
+                console.error('Error adding owner as calendar member:', memberError);
               }
             } else {
-              console.log(`User ${member.email} not found - they would need to be invited when they sign up`);
+              // For other members, check if user exists
+              const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('id, email')
+                .eq('email', member.email)
+                .single();
+
+              if (userData && !userError) {
+                // Add member to calendar
+                const { error: inviteError } = await supabase
+                  .from('calendar_members')
+                  .insert({
+                    calendar_id: calendar.id,
+                    user_id: userData.id,
+                    role: member.role,
+                    invited_by: user.id,
+                    invited_at: new Date().toISOString()
+                  });
+
+                if (inviteError) {
+                  console.error(`Error inviting ${member.email}:`, inviteError);
+                }
+              } else {
+                console.log(`User ${member.email} not found - they would need to be invited when they sign up`);
+              }
             }
           } catch (error) {
             console.error(`Error processing team member ${member.email}:`, error);
@@ -128,7 +129,7 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
         description: `${data.name} is succesvol aangemaakt`,
       });
 
-      // CRITICAL FIX: Wait for calendar refresh before proceeding
+      // Wait for calendar refresh before proceeding
       console.log('Waiting for calendar refresh to complete...');
       await refreshCalendars();
       
