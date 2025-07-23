@@ -107,33 +107,42 @@ export function SimpleMultiSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="p-0 z-[100] bg-popover border border-border shadow-lg" 
+          className="p-0 z-[999] bg-popover border border-border shadow-lg pointer-events-auto" 
           align="start"
           style={{ 
             width: triggerRef.current?.offsetWidth || 200,
             minWidth: '200px'
           }}
           onCloseAutoFocus={(e) => e.preventDefault()}
+          onInteractOutside={(e) => {
+            // Allow interactions with dropdown items
+            if (e.target instanceof Element && e.target.closest('[data-dropdown-item]')) {
+              e.preventDefault();
+            }
+          }}
         >
-          <div className="max-h-60 overflow-y-auto bg-popover">
+          <div className="max-h-60 overflow-y-auto bg-popover pointer-events-auto">
             {availableOptions.length > 0 ? (
               availableOptions.map((option) => (
-                <button
+                <div
                   key={option.value}
-                  type="button"
-                  className="relative w-full flex cursor-pointer select-none items-center px-3 py-2.5 text-sm text-left hover:bg-accent hover:text-accent-foreground transition-colors border-none bg-transparent"
+                  data-dropdown-item
+                  className="relative w-full flex cursor-pointer select-none items-center px-3 py-2.5 text-sm text-left hover:bg-accent hover:text-accent-foreground transition-colors pointer-events-auto"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Option clicked:', option.value);
+                    handleSelect(option.value);
+                  }}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('Option clicked:', option.value);
                     handleSelect(option.value);
                   }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                  }}
                 >
-                  <span className="truncate">{option.label}</span>
-                </button>
+                  <span className="truncate pointer-events-none">{option.label}</span>
+                </div>
               ))
             ) : (
               <div className="py-6 text-center text-sm text-muted-foreground px-4">
