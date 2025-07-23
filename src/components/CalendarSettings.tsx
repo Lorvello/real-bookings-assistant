@@ -88,6 +88,9 @@ export function CalendarSettings({
       <Card className="border-border">
         <CardHeader>
           <CardTitle className="text-foreground">Booking Policies</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Settings specific to {selectedCalendar?.name || 'this calendar'}
+          </p>
         </CardHeader>
         <CardContent>
           <CalendarPolicySettings settings={settings} onUpdate={updatePendingSettings} />
