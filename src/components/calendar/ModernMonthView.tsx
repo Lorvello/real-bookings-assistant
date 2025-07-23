@@ -54,6 +54,10 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
   };
 
   const handleDayClick = (day: Date, dayBookings: Booking[], event?: React.MouseEvent) => {
+    // Always close any existing modals first
+    closeDayModal();
+    closeBookingDetail();
+    
     if (dayBookings.length === 1) {
       // Single appointment - show detailed modal directly
       setSelectedBooking(dayBookings[0]);
@@ -74,6 +78,10 @@ export function ModernMonthView({ bookings, currentDate }: ModernMonthViewProps)
 
   const handleSingleBookingClick = (booking: Booking, event: React.MouseEvent) => {
     event.stopPropagation();
+    // Always close any existing modals first
+    closeDayModal();
+    closeBookingDetail();
+    
     setSelectedBooking(booking);
     setBookingDetailOpen(true);
   };
