@@ -5,6 +5,7 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
+import { CalendarSelectionCard } from './CalendarSelectionCard';
 
 export function CalendarTab() {
   const { selectedCalendar, calendars } = useCalendarContext();
@@ -44,6 +45,8 @@ export function CalendarTab() {
 
   return (
     <div className="space-y-6">
+      <CalendarSelectionCard />
+      
       {/* Auto-save indicator */}
       {saving && (
         <div className="flex items-center justify-center bg-blue-800/90 border border-blue-700/50 rounded-2xl shadow-lg p-3">

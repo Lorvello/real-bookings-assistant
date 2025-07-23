@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Plus } from 'lucide-react';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
+import { CalendarSelectionCard } from './CalendarSelectionCard';
 
 export function ServicesTab() {
   const { selectedCalendar, calendars } = useCalendarContext();
@@ -44,6 +45,8 @@ export function ServicesTab() {
 
   return (
     <div className="space-y-6">
+      <CalendarSelectionCard />
+      
       <Card className="border-border">
         <CardHeader>
           <CardTitle className="text-foreground">Services Management</CardTitle>
