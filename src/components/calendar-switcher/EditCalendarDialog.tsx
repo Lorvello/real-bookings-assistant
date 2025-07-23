@@ -167,7 +167,8 @@ export function EditCalendarDialog({
   };
 
   const getTeamMemberOptions = () => {
-    return getAvailableTeamMembers().map(member => ({
+    const uniqueMembers = getUniqueMembers();
+    return uniqueMembers.map(member => ({
       value: member.id,
       label: member.user?.full_name || member.user?.email || member.id,
     }));
