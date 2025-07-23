@@ -41,7 +41,7 @@ export function CreateCalendarDialog({
   trigger = 'dropdown',
   onCalendarCreated
 }: CreateCalendarDialogProps) {
-  // Fixed: Removed newMemberName references, using dropdown for team selection
+  // Cache clear: Functions properly implemented with MultiSelect components
   const { profile } = useProfile();
   const { serviceTypes, loading: serviceTypesLoading } = useServiceTypes();
   const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
