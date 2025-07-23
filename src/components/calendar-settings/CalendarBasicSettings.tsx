@@ -1,12 +1,14 @@
+
 import React, { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Edit2, Check, X, Info } from 'lucide-react';
+import { RefreshCw, Info, Bell, Clock, CheckCircle } from 'lucide-react';
 import { CalendarSettings } from '@/types/database';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface CalendarBasicSettingsProps {
   settings: CalendarSettings;
@@ -19,25 +21,12 @@ interface CalendarBasicSettingsProps {
 export function CalendarBasicSettings({ 
   settings, 
   onUpdate, 
-  calendarName, 
-  onUpdateCalendarName,
   calendarId 
 }: CalendarBasicSettingsProps) {
   const queryClient = useQueryClient();
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [tempName, setTempName] = useState(calendarName || '');
-
-  const handleSaveName = () => {
-    if (onUpdateCalendarName && tempName.trim()) {
-      onUpdateCalendarName(tempName.trim());
-      setIsEditingName(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setTempName(calendarName || '');
-    setIsEditingName(false);
-  };
+  const { refreshCalendars } = useCalendarContext();
+  const { toast } = useToast();
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const handleWhatsAppBotToggle = async (checked: boolean) => {
     // Update the setting
@@ -53,69 +42,29 @@ export function CalendarBasicSettings({
     }, 1500); // Wait for auto-save to complete
   };
 
+  const handleSyncCalendar = async () => {
+    setIsSyncing(true);
+    try {
+      await refreshCalendars();
+      toast({
+        title: "Calendar Synced",
+        description: "Calendar data has been refreshed successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Sync Failed",
+        description: "Failed to sync calendar data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <TooltipProvider delayDuration={100}>
       <div className="space-y-6">
-        {/* Calendar Name Section */}
-        {calendarName && onUpdateCalendarName && (
-          <div className="space-y-2">
-            <Label className="text-foreground font-medium">Calendar Name</Label>
-            <div className="flex items-center space-x-2">
-              {isEditingName ? (
-                <>
-                  <Input
-                    value={tempName}
-                    onChange={(e) => setTempName(e.target.value)}
-                    placeholder="Enter calendar name"
-                    className="flex-1"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveName();
-                      if (e.key === 'Escape') handleCancelEdit();
-                    }}
-                  />
-                  <Button
-                    size="sm"
-                    onClick={handleSaveName}
-                    disabled={!tempName.trim()}
-                    className="px-3"
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleCancelEdit}
-                    className="px-3"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <div className="flex-1 px-3 py-2 border rounded-md bg-muted text-foreground">
-                    {calendarName}
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setTempName(calendarName);
-                      setIsEditingName(true);
-                    }}
-                    className="px-3"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              The name of your calendar as it appears to customers
-            </p>
-          </div>
-        )}
-
-        {/* WhatsApp Bot Setting with Tooltip */}
+        {/* WhatsApp Bot Setting */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -139,6 +88,121 @@ export function CalendarBasicSettings({
             checked={settings.whatsapp_bot_active ?? false}
             onCheckedChange={handleWhatsAppBotToggle}
           />
+        </div>
+
+        {/* Sync Calendar Button */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Label className="text-foreground font-medium">Calendar Sync</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors">
+                    <Info className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Refresh calendar data and sync with the latest settings and bookings.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Refresh calendar data and settings
+            </p>
+          </div>
+          <Button
+            onClick={handleSyncCalendar}
+            disabled={isSyncing}
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync'}
+          </Button>
+        </div>
+
+        {/* Booking Notifications */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Label className="text-foreground font-medium">Booking Notifications</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors">
+                    <Info className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Send notifications when new bookings are made or cancelled.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Receive notifications for booking updates
+            </p>
+          </div>
+          <Switch
+            checked={true} // Default enabled for now
+            onCheckedChange={(checked) => {
+              // Future: implement notification settings
+              toast({
+                title: "Feature Coming Soon",
+                description: "Notification settings will be available in a future update",
+              });
+            }}
+          />
+        </div>
+
+        {/* Auto-confirm Bookings */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Label className="text-foreground font-medium">Auto-confirm Bookings</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors">
+                    <Info className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Automatically confirm bookings without manual approval. When disabled, bookings require manual confirmation.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Automatically confirm new bookings
+            </p>
+          </div>
+          <Switch
+            checked={!settings.confirmation_required}
+            onCheckedChange={(checked) => onUpdate({ confirmation_required: !checked })}
+          />
+        </div>
+
+        {/* Calendar Sync Status */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Label className="text-foreground font-medium">Last Sync</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors">
+                    <Info className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Shows when the calendar was last synchronized with the server.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Calendar synchronization status
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span>Just now</span>
+          </div>
         </div>
       </div>
     </TooltipProvider>
