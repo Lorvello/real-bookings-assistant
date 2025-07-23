@@ -138,7 +138,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
         {/* Tab Content */}
         <TabsContent value="overview">
           <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-3 md:p-6">
-            <OverviewTab calendarIds={calendarIds} />
+            <OverviewTab calendarIds={calendarIds} dateRange={dateRange} />
           </div>
         </TabsContent>
 
