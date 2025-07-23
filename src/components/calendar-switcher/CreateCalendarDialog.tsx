@@ -14,10 +14,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, User, Settings } from 'lucide-react';
+import { X, Plus, User, Settings, ChevronDown } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useCreateCalendar } from '@/hooks/useCreateCalendar';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
+import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { ServiceTypeQuickCreateDialog } from './ServiceTypeQuickCreateDialog';
 
 interface TeamMember {
@@ -41,6 +42,7 @@ export function CreateCalendarDialog({
 }: CreateCalendarDialogProps) {
   const { profile } = useProfile();
   const { serviceTypes, loading: serviceTypesLoading } = useServiceTypes();
+  const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
   const [newCalendar, setNewCalendar] = useState({
     name: '',
     description: '',
@@ -49,55 +51,52 @@ export function CreateCalendarDialog({
   });
 
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [newMemberEmail, setNewMemberEmail] = useState('');
-  const [newMemberName, setNewMemberName] = useState('');
-  const [newMemberRole, setNewMemberRole] = useState<'editor' | 'viewer'>('viewer');
+  const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   const [showServiceTypeDialog, setShowServiceTypeDialog] = useState(false);
 
   const { createCalendar, loading: creating } = useCreateCalendar(onCalendarCreated);
 
-  // Initialize with current user as owner when dialog opens
+  // Auto-select current user and handle single team member case
   useEffect(() => {
-    if (open && profile && teamMembers.length === 0) {
-      const ownerMember: TeamMember = {
-        email: profile.email || '',
-        name: profile.full_name || 'Current User',
-        role: 'owner'
-      };
-      setTeamMembers([ownerMember]);
+    if (open && profile) {
+      // Always include current user as owner
+      const currentUserEmail = profile.email || '';
+      
+      // Get unique team members (avoid duplicates by email)
+      const uniqueMembers = availableMembers.reduce((acc, member) => {
+        const email = member.user?.email;
+        if (email && !acc.find(m => m.user?.email === email)) {
+          acc.push(member);
+        }
+        return acc;
+      }, [] as typeof availableMembers);
+
+      // If there's only the current user or no team members, auto-select current user
+      if (uniqueMembers.length <= 1 || !uniqueMembers.some(m => m.user?.email === currentUserEmail)) {
+        setSelectedTeamMembers([currentUserEmail]);
+      } else if (uniqueMembers.length === 1) {
+        // Auto-select the single team member
+        setSelectedTeamMembers([uniqueMembers[0].user?.email || '']);
+      } else {
+        // Multiple team members available, auto-select current user
+        setSelectedTeamMembers([currentUserEmail]);
+      }
     }
-  }, [open, profile]);
+  }, [open, profile, availableMembers]);
 
   const generateCalendarName = () => {
     const userName = profile?.full_name?.split(' ')[0] || 'My';
     return `${userName} Calendar`;
   };
 
-  const addTeamMember = () => {
-    if (!newMemberEmail.trim() || !newMemberName.trim()) return;
-    
-    // Check if email already exists
-    if (teamMembers.some(member => member.email === newMemberEmail.trim())) {
-      return; // Could show error toast here
+  const handleTeamMemberSelect = (value: string) => {
+    if (!selectedTeamMembers.includes(value)) {
+      setSelectedTeamMembers([...selectedTeamMembers, value]);
     }
-    
-    const member: TeamMember = {
-      email: newMemberEmail.trim(),
-      name: newMemberName.trim(),
-      role: newMemberRole
-    };
-    
-    setTeamMembers([...teamMembers, member]);
-    setNewMemberEmail('');
-    setNewMemberName('');
-    setNewMemberRole('viewer');
   };
 
-  const removeTeamMember = (index: number) => {
-    // Don't allow removing the owner (first member)
-    if (index === 0) return;
-    setTeamMembers(teamMembers.filter((_, i) => i !== index));
+  const removeTeamMember = (email: string) => {
+    setSelectedTeamMembers(selectedTeamMembers.filter(m => m !== email));
   };
 
   const handleServiceTypeSelect = (value: string) => {
@@ -118,16 +117,28 @@ export function CreateCalendarDialog({
   const handleCreateCalendar = async () => {
     if (!newCalendar.name.trim()) return;
     if (selectedServiceTypes.length === 0) return;
-    if (teamMembers.length === 0) return;
+    if (selectedTeamMembers.length === 0) return;
 
     try {
+      // Convert selected team members to TeamMember format
+      const teamMembersForCreation = selectedTeamMembers.map(email => {
+        const member = availableMembers.find(m => m.user?.email === email);
+        const isCurrentUser = email === profile?.email;
+        
+        return {
+          email: email,
+          name: isCurrentUser ? (profile?.full_name || 'Current User') : (member?.user?.full_name || email.split('@')[0]),
+          role: isCurrentUser ? 'owner' as const : 'viewer' as const
+        };
+      });
+
       await createCalendar({
         name: newCalendar.name,
         description: newCalendar.description,
         color: newCalendar.color,
         location: newCalendar.location,
         serviceTypes: selectedServiceTypes,
-        teamMembers: teamMembers
+        teamMembers: teamMembersForCreation
       });
       
       // Reset form
@@ -138,11 +149,50 @@ export function CreateCalendarDialog({
         location: ''
       });
       setSelectedServiceTypes([]);
-      setTeamMembers([]);
+      setSelectedTeamMembers([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating calendar:', error);
     }
+  };
+
+  const getTeamMemberName = (email: string) => {
+    if (email === profile?.email) {
+      return profile?.full_name || 'Current User';
+    }
+    const member = availableMembers.find(m => m.user?.email === email);
+    return member?.user?.full_name || email.split('@')[0];
+  };
+
+  const getAvailableTeamMembers = () => {
+    // Get unique team members including current user
+    const uniqueMembers = [];
+    const seenEmails = new Set();
+    
+    // Always include current user
+    if (profile?.email && !seenEmails.has(profile.email)) {
+      uniqueMembers.push({
+        email: profile.email,
+        name: profile.full_name || 'Current User',
+        role: 'owner'
+      });
+      seenEmails.add(profile.email);
+    }
+    
+    // Add other team members
+    availableMembers.forEach(member => {
+      const email = member.user?.email;
+      if (email && !seenEmails.has(email)) {
+        uniqueMembers.push({
+          email: email,
+          name: member.user?.full_name || email.split('@')[0],
+          role: member.role
+        });
+        seenEmails.add(email);
+      }
+    });
+    
+    return uniqueMembers;
   };
 
   const getServiceTypeName = (id: string) => {
@@ -272,70 +322,57 @@ export function CreateCalendarDialog({
               </div>
               
               <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
-                  <Input
-                    placeholder="Name"
-                    value={newMemberName}
-                    onChange={(e) => setNewMemberName(e.target.value)}
-                    className="md:col-span-2"
-                  />
-                  <Input
-                    placeholder="email@example.com"
-                    value={newMemberEmail}
-                    onChange={(e) => setNewMemberEmail(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addTeamMember()}
-                    className="md:col-span-2"
-                  />
-                  <div className="flex space-x-1">
-                    <Select value={newMemberRole} onValueChange={(value: 'editor' | 'viewer') => setNewMemberRole(value)}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="editor">Editor</SelectItem>
-                        <SelectItem value="viewer">Viewer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={addTeamMember}
-                      disabled={!newMemberEmail.trim() || !newMemberName.trim()}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                
-                {teamMembers.length > 0 && (
-                  <div className="space-y-2">
-                    {teamMembers.map((member, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 border border-border rounded-md bg-muted/20">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium">{member.name}</span>
-                          <span className="text-sm text-muted-foreground">({member.email})</span>
-                          <Badge variant="outline" className="text-xs">
-                            {member.role}
-                          </Badge>
-                        </div>
-                        {member.role !== 'owner' && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeTeamMember(index)}
+                <Select onValueChange={handleTeamMemberSelect}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select team members..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {membersLoading ? (
+                      <SelectItem value="loading" disabled>Loading...</SelectItem>
+                    ) : (
+                      <>
+                        {getAvailableTeamMembers().map((member) => (
+                          <SelectItem 
+                            key={member.email} 
+                            value={member.email}
+                            disabled={selectedTeamMembers.includes(member.email)}
                           >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
+                            <div className="flex items-center space-x-2">
+                              <span>{member.name}</span>
+                              <span className="text-xs text-muted-foreground">({member.email})</span>
+                              <Badge variant="outline" className="text-xs">
+                                {member.role}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+                
+                {selectedTeamMembers.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTeamMembers.map((email) => (
+                      <Badge key={email} variant="secondary" className="flex items-center space-x-1">
+                        <span>{getTeamMemberName(email)}</span>
+                        <span className="text-xs text-muted-foreground">({email})</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 hover:bg-transparent"
+                          onClick={() => removeTeamMember(email)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
                     ))}
                   </div>
                 )}
                 
                 <p className="text-xs text-muted-foreground">
-                  Team members will receive an invitation to access this calendar
+                  Select team members who will have access to this calendar. Multiple members can be selected.
                 </p>
               </div>
             </div>
@@ -366,7 +403,7 @@ export function CreateCalendarDialog({
               disabled={
                 !newCalendar.name.trim() || 
                 selectedServiceTypes.length === 0 || 
-                teamMembers.length === 0 || 
+                selectedTeamMembers.length === 0 || 
                 creating
               }
             >
