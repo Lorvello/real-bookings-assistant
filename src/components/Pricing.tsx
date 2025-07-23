@@ -15,7 +15,7 @@ export const Pricing = () => {
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
         "Strategic WhatsApp contact management (up to 500)",
-        "Unified calendar orchestration platform",
+        "Dual-calendar orchestration system",
         "Individual user access management",
         "AI-powered intelligent reminder sequences",
         "Essential dashboard overview & live operations monitoring",
