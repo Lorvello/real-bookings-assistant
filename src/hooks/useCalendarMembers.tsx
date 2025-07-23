@@ -24,7 +24,11 @@ export const useCalendarMembers = (calendarId: string) => {
   const { toast } = useToast();
 
   const fetchMembers = async () => {
-    if (!calendarId) return;
+    if (!calendarId) {
+      setMembers([]);
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -60,7 +64,16 @@ export const useCalendarMembers = (calendarId: string) => {
     }
   };
 
-  const inviteMember = async (email: string, role: 'editor' | 'viewer' = 'viewer') => {
+  const inviteMember = async (email: string, role: 'editor' | 'viewer' = 'viewer', fullName: string = '') => {
+    if (!calendarId) {
+      toast({
+        title: "Fout bij uitnodigen",
+        description: "Selecteer eerst een kalender",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // First check if user exists
       const { data: userData, error: userError } = await supabase
@@ -93,6 +106,18 @@ export const useCalendarMembers = (calendarId: string) => {
           variant: "destructive",
         });
         return;
+      }
+
+      // If fullName is provided, update the user's full_name
+      if (fullName) {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ full_name: fullName })
+          .eq('id', userData.id);
+
+        if (updateError) {
+          console.error('Error updating user name:', updateError);
+        }
       }
 
       const { error } = await supabase

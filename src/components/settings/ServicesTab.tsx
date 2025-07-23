@@ -42,25 +42,9 @@ export function ServicesTab() {
     );
   }
 
-  if (!selectedCalendar) {
-    return (
-      <Card className="border-border">
-        <CardContent className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No calendar selected</h3>
-             <p className="text-muted-foreground">
-               Select a calendar to manage services.
-             </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <ServiceTypesManager calendarId={selectedCalendar.id} />
+      <ServiceTypesManager calendarId={selectedCalendar?.id} />
     </div>
   );
 }

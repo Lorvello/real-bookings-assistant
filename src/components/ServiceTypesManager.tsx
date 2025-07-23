@@ -10,13 +10,15 @@ import { ServiceTypeForm } from '@/components/settings/service-types/ServiceType
 import { ServiceTypeCard } from '@/components/settings/service-types/ServiceTypeCard';
 import { ServiceTypesEmptyState } from '@/components/settings/service-types/ServiceTypesEmptyState';
 import { ServiceTypesLoadingState } from '@/components/settings/service-types/ServiceTypesLoadingState';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 
 interface ServiceTypesManagerProps {
-  calendarId: string;
+  calendarId?: string;
 }
 
 export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
   const { toast } = useToast();
+  const { selectedCalendar, calendars } = useCalendarContext();
   const { serviceTypes, loading, createServiceType, updateServiceType, deleteServiceType } = useServiceTypes();
   
   const [showAddModal, setShowAddModal] = useState(false);
@@ -66,6 +68,17 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
   };
 
   const handleSave = async () => {
+    const activeCalendarId = calendarId || selectedCalendar?.id;
+    
+    if (!activeCalendarId) {
+      toast({
+        title: "Error",
+        description: "Please select a calendar first",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (!formData.name.trim()) {
       toast({
         title: "Error",
@@ -97,7 +110,7 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
         max_attendees: parseInt(formData.max_attendees) || 1,
         preparation_time: parseInt(formData.preparation_time) || 0,
         cleanup_time: parseInt(formData.cleanup_time) || 0,
-        calendar_id: calendarId,
+        calendar_id: activeCalendarId,
         is_active: true,
       };
 
@@ -164,10 +177,18 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
     <Card className="border-border">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-foreground">Services</CardTitle>
+          <CardTitle className="text-foreground">
+            Services
+            {!selectedCalendar && calendars.length > 0 && (
+              <span className="text-sm font-normal text-muted-foreground ml-2">
+                (Select a calendar to manage services)
+              </span>
+            )}
+          </CardTitle>
           <Button 
             onClick={() => setShowAddModal(true)}
             className="bg-accent hover:bg-accent/90 text-accent-foreground"
+            disabled={!selectedCalendar && calendars.length > 0}
           >
             <Plus className="h-4 w-4 mr-2" />
             Nieuwe Service
@@ -200,7 +221,17 @@ export function ServiceTypesManager({ calendarId }: ServiceTypesManagerProps) {
              ))}
           </div>
         ) : (
-          <ServiceTypesEmptyState onAddService={() => setShowAddModal(true)} />
+          <>
+            {selectedCalendar || calendars.length === 0 ? (
+              <ServiceTypesEmptyState onAddService={() => setShowAddModal(true)} />
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  Please select a calendar to view or manage services
+                </p>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
