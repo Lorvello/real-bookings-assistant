@@ -4,6 +4,7 @@ import Select from 'react-select';
 import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { businessTypes } from '@/constants/settingsOptions';
+import { UserManagement } from './UserManagement';
 
 interface ProfileTabProps {
   profileData: any;
@@ -88,6 +89,9 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           </div>
         </div>
       )}
+
+      {/* Users Management Section */}
+      <UserManagement />
 
       {/* Basic Information */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
