@@ -41,7 +41,7 @@ export function CreateCalendarDialog({
   trigger = 'dropdown',
   onCalendarCreated
 }: CreateCalendarDialogProps) {
-  // Cache clear: Functions properly implemented with MultiSelect components
+  // Fixed: Now using SimpleMultiSelect instead of problematic MultiSelect
   const { profile } = useProfile();
   const { serviceTypes, loading: serviceTypesLoading } = useServiceTypes();
   const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
@@ -184,7 +184,7 @@ export function CreateCalendarDialog({
     return (serviceTypes || []).find(st => st.id === id)?.name || 'Unknown Service';
   };
 
-  // Helper functions for MultiSelect data formatting
+  // Helper functions for SimpleMultiSelect data formatting
   const getServiceTypeOptions = () => {
     if (!serviceTypes || !Array.isArray(serviceTypes)) {
       return [];
