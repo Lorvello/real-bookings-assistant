@@ -320,10 +320,10 @@ export const Pricing = () => {
                           </div>
                            <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="flex-1 cursor-help min-w-0">
-                                <span className="text-slate-300 text-sm leading-relaxed font-medium hover:text-slate-200 transition-colors inline-flex items-baseline gap-1 flex-wrap-reverse">
-                                  <span className="flex-shrink-0">{feature.text}</span>
-                                  <Info className="w-2.5 h-2.5 text-slate-500 hover:text-slate-400 transition-colors flex-shrink-0" />
+                              <div className="flex-1 cursor-help">
+                                <span className="text-slate-300 text-sm leading-relaxed font-medium hover:text-slate-200 transition-colors">
+                                  {feature.text}
+                                  <Info className="w-2.5 h-2.5 text-slate-500 hover:text-slate-400 transition-colors ml-0.5 inline align-baseline" />
                                 </span>
                               </div>
                             </TooltipTrigger>
@@ -437,10 +437,10 @@ export const Pricing = () => {
                                 </div>
                                  <Tooltip>
                                    <TooltipTrigger asChild>
-                                     <div className="flex-1 cursor-help min-w-0 p-2 -m-2">
-                                       <span className="text-slate-200/95 text-[10px] leading-tight font-medium tracking-wide hover:text-slate-100 transition-colors inline-flex items-baseline gap-1 flex-wrap-reverse">
-                                         <span className="flex-shrink-0">{feature.text}</span>
-                                         <Info className="w-2 h-2 text-slate-500 hover:text-slate-400 transition-colors flex-shrink-0" />
+                                     <div className="flex-1 cursor-help">
+                                       <span className="text-slate-200/95 text-[10px] leading-tight font-medium tracking-wide hover:text-slate-100 transition-colors">
+                                         {feature.text}
+                                         <Info className="w-2 h-2 text-slate-500 hover:text-slate-400 transition-colors ml-0.5 inline align-baseline" />
                                        </span>
                                      </div>
                                    </TooltipTrigger>
