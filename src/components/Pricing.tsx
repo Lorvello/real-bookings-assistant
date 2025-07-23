@@ -509,7 +509,7 @@ export const Pricing = () => {
 
           <ScrollAnimatedSection animation="fade-up" delay={800} className="text-center mt-12">
             <p className="text-slate-400 text-[10px] sm:text-sm">
-              30 days free trial • No credit card required • Cancel anytime
+              7 days free trial • No credit card required • Cancel anytime
             </p>
           </ScrollAnimatedSection>
         </div>
