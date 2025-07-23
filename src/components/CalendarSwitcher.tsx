@@ -140,16 +140,6 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* New Calendar button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowCreateDialog(true)}
-            className="flex items-center gap-2 border-dashed border-border hover:border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline text-xs">New calendar</span>
-          </Button>
         </div>
       </div>
 
