@@ -68,7 +68,7 @@ export function ServiceTypeQuickCreateDialog({
         price: formData.price ? parseFloat(formData.price) : undefined,
         color: formData.color,
         description: formData.description,
-        calendar_id: targetCalendarId,
+        calendar_id: null, // Global service type, not tied to specific calendar
         is_active: true,
         max_attendees: 1,
         preparation_time: 0,
