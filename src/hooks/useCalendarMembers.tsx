@@ -73,8 +73,8 @@ export const useCalendarMembers = (calendarId?: string) => {
     }
   };
 
-  // Check if user exists or create new user
-  const findOrCreateUser = async (email: string, fullName: string = '') => {
+  // Check if user exists or create new user using security definer function
+  const findOrCreateUser = async (email: string, fullName: string = '', calendarId?: string) => {
     try {
       // First check if user exists
       const { data: userData, error: userError } = await supabase
@@ -98,14 +98,16 @@ export const useCalendarMembers = (calendarId?: string) => {
         return userData;
       }
 
-      // User doesn't exist, create new user
-      const newUserId = crypto.randomUUID();
-      const { error: createError } = await supabase
-        .from('users')
-        .insert({
-          id: newUserId,
-          email: email,
-          full_name: fullName || email.split('@')[0]
+      // User doesn't exist, create new user using security definer function
+      if (!calendarId) {
+        throw new Error('Calendar ID is required for creating new users');
+      }
+
+      const { data: newUserId, error: createError } = await supabase
+        .rpc('create_team_member_user', {
+          p_email: email,
+          p_full_name: fullName || email.split('@')[0],
+          p_calendar_id: calendarId
         });
 
       if (createError) {
@@ -128,8 +130,8 @@ export const useCalendarMembers = (calendarId?: string) => {
     fullName: string = ''
   ) => {
     try {
-      // Find or create user
-      const userData = await findOrCreateUser(email, fullName);
+      // Find or create user (pass calendarId for potential user creation)
+      const userData = await findOrCreateUser(email, fullName, calendarIdForInvite);
       
       // Check if the user is already a member of this calendar
       const { data: existingMembership } = await supabase
@@ -163,7 +165,7 @@ export const useCalendarMembers = (calendarId?: string) => {
 
       toast({
         title: "User invited",
-        description: `${email} has been invited as ${role}`,
+        description: `${email} has been added successfully`,
       });
 
       fetchMembers();
@@ -194,8 +196,8 @@ export const useCalendarMembers = (calendarId?: string) => {
     }
 
     try {
-      // Find or create user
-      const userData = await findOrCreateUser(email, fullName);
+      // Find or create user (pass first calendar ID for potential user creation)
+      const userData = await findOrCreateUser(email, fullName, calendarIds[0]);
       
       // Check for existing memberships and create new ones
       const { data: existingMemberships } = await supabase

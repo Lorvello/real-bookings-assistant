@@ -2438,6 +2438,10 @@ export type Database = {
         Args: { p_calendar_id: string }
         Returns: undefined
       }
+      create_team_member_user: {
+        Args: { p_email: string; p_full_name: string; p_calendar_id: string }
+        Returns: string
+      }
       create_user_with_calendar: {
         Args: {
           p_email: string
