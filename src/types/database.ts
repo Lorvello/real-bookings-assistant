@@ -27,6 +27,9 @@ export interface UserProfile {
   business_name?: string;
   business_type?: string;
   phone?: string;
+  date_of_birth?: string;
+  language?: string;
+  timezone?: string;
   subscription_status?: 'trial' | 'active' | 'expired' | 'canceled' | 'paid';
   subscription_tier?: SubscriptionTier;
   trial_start_date?: string;
