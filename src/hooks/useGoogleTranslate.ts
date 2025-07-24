@@ -16,6 +16,7 @@ declare global {
 export const useGoogleTranslate = () => {
   const [isTranslated, setIsTranslated] = useState(false);
   const [detectedLanguage, setDetectedLanguage] = useState('en');
+  const [isLoading, setIsLoading] = useState(false);
 
   const detectBrowserLanguage = (): string => {
     const browserLang = navigator.language.toLowerCase();
@@ -30,6 +31,8 @@ export const useGoogleTranslate = () => {
   };
 
   const translateToLanguage = (targetLanguage: string) => {
+    setIsLoading(true);
+    
     if (targetLanguage === 'en') {
       // If English, show original content
       const frame = document.querySelector('.goog-te-menu-frame') as HTMLIFrameElement;
@@ -40,6 +43,7 @@ export const useGoogleTranslate = () => {
         }
       }
       setIsTranslated(false);
+      setIsLoading(false);
     } else {
       // Translate to target language
       const frame = document.querySelector('.goog-te-menu-frame') as HTMLIFrameElement;
@@ -56,6 +60,7 @@ export const useGoogleTranslate = () => {
           selectElement.value = targetLanguage;
           selectElement.dispatchEvent(new Event('change'));
           setIsTranslated(true);
+          setIsLoading(false);
         }
       }
     }
@@ -112,6 +117,7 @@ export const useGoogleTranslate = () => {
   return {
     isTranslated,
     detectedLanguage,
+    isLoading,
     translateToLanguage,
     initializeTranslation
   };
