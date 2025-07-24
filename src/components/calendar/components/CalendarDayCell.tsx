@@ -150,11 +150,11 @@ export function CalendarDayCell({
                 side="top" 
                 className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3"
               >
-                <div className="space-y-2">
-                  <div className="text-sm font-semibold text-foreground">
+                <div className="space-y-1.5">
+                  <div className="text-xs font-semibold text-foreground">
                     {format(new Date(dayBookings[0].start_time), 'HH:mm')} - {dayBookings[0].customer_name}
                   </div>
-                  <div className="space-y-1 text-xs">
+                  <div className="space-y-0.5 text-[10px]">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Calendar:</span>
                       <span className="text-foreground font-medium">{dayBookings[0].calendar?.name || 'Unknown'}</span>
