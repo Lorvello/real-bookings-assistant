@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Save } from 'lucide-react';
+import { CalendarSwitcher } from '@/components/CalendarSwitcher';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 
 interface AvailabilityHeaderProps {
   setToDefault: boolean;
@@ -21,6 +23,7 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
   onSave
 }) => {
   const navigate = useNavigate();
+  const { viewingAllCalendars } = useCalendarContext();
 
   return (
     <div className="border-b border-border bg-card/90 backdrop-blur-sm">
@@ -40,6 +43,10 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
           </div>
           
           <div className="flex items-center space-x-4">
+            {!viewingAllCalendars && (
+              <CalendarSwitcher hideAllCalendarsOption={true} />
+            )}
+            
             <div className="flex items-center space-x-2 bg-background/50 px-4 py-2 rounded-2xl border border-border/60">
               <span className="text-sm text-muted-foreground">Instellen als standaard</span>
               <Switch

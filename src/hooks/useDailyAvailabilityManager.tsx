@@ -44,9 +44,12 @@ const validateAndCleanTimeBlocks = (timeBlocks: TimeBlock[]): TimeBlock[] => {
   return uniqueBlocks.sort((a, b) => a.startTime.localeCompare(b.startTime));
 };
 
-export const useDailyAvailabilityManager = (onChange: () => void) => {
+export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: string) => {
   const { calendars, selectedCalendar } = useCalendarContext();
-  const defaultCalendar = selectedCalendar || calendars.find(cal => cal.is_default) || calendars[0];
+  
+  // Use provided calendarId or fall back to context selection
+  const targetCalendarId = calendarId || selectedCalendar?.id;
+  const defaultCalendar = calendars.find(cal => cal.id === targetCalendarId) || selectedCalendar || calendars.find(cal => cal.is_default) || calendars[0];
   
   const { schedules } = useAvailabilitySchedules(defaultCalendar?.id);
   const defaultSchedule = schedules.find(s => s.is_default) || schedules[0];

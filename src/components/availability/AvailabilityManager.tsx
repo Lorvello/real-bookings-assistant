@@ -18,21 +18,6 @@ export const AvailabilityManager = () => {
   const { calendars } = useCalendars();
   const [activeTab, setActiveTab] = useState('schedule');
 
-  // Voor availability gebruiken we altijd een specifieke kalender
-  // Als gebruiker "Alle kalenders" heeft geselecteerd, nemen we de eerste beschikbare kalender
-  const availabilityCalendar: Calendar | null = React.useMemo(() => {
-    if (!calendars.length) return null;
-    
-    // Als er een specifieke kalender geselecteerd is en niet "Alle kalenders", gebruik die
-    if (selectedCalendar && !viewingAllCalendars) {
-      return selectedCalendar;
-    }
-    
-    // Anders gebruik de eerste beschikbare kalender (default of eerste)
-    const defaultCalendar = calendars.find(cal => cal.is_default);
-    return defaultCalendar || calendars[0];
-  }, [selectedCalendar, viewingAllCalendars, calendars]);
-
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
@@ -55,7 +40,43 @@ export const AvailabilityManager = () => {
     return null;
   }
 
-  // Always show availability interface - calendar creation is handled in the flow
+  // Show message when "All Calendars" is selected
+  if (viewingAllCalendars) {
+    return (
+      <div className="bg-gray-900 min-h-full">
+        <div className="p-4 pt-3">
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
+            <div className="text-center space-y-4">
+              <div className="text-2xl">📅</div>
+              <h2 className="text-xl font-semibold text-foreground">Select a specific calendar</h2>
+              <p className="text-muted-foreground">
+                Availability settings are configured per calendar. Please select a specific calendar from the header to manage its availability.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message when no calendar is selected
+  if (!selectedCalendar) {
+    return (
+      <div className="bg-gray-900 min-h-full">
+        <div className="p-4 pt-3">
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
+            <div className="text-center space-y-4">
+              <div className="text-2xl">📅</div>
+              <h2 className="text-xl font-semibold text-foreground">No calendar selected</h2>
+              <p className="text-muted-foreground">
+                Please select a calendar to manage its availability settings.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-900 min-h-full">

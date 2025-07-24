@@ -3,128 +3,85 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarDays, Plus, Trash2, Calendar as CalendarIcon, Clock, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ProfessionalTimePicker } from './ProfessionalTimePicker';
-
-interface DateOverride {
-  id: string;
-  startDate: string;
-  endDate?: string; // For range selection
-  enabled: boolean;
-  startTime?: string;
-  endTime?: string;
-  reason?: string;
-  type: 'single' | 'range';
-}
+import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useAvailabilityOverrides } from '@/hooks/useAvailabilityOverrides';
+import type { AvailabilityOverride } from '@/types/database';
 
 interface DateOverridesProps {
   onChange?: () => void;
 }
 
 export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
-  const [overrides, setOverrides] = useState<DateOverride[]>([]);
+  const { selectedCalendar } = useCalendarContext();
+  const { overrides, createOverride, deleteOverride, loading } = useAvailabilityOverrides(selectedCalendar?.id);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedDates, setSelectedDates] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
-    from: undefined,
-    to: undefined
-  });
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTimeBlock, setSelectedTimeBlock] = useState<{field: 'startTime' | 'endTime'} | null>(null);
-  const [newOverride, setNewOverride] = useState<Partial<DateOverride>>({
-    type: 'single',
-    enabled: false,
-    startTime: '09:00',
-    endTime: '17:00',
+  const [newOverride, setNewOverride] = useState({
+    is_available: false,
+    start_time: '09:00',
+    end_time: '17:00',
     reason: ''
   });
 
-  const addOverride = () => {
-    if (!selectedDates.from) return;
+  const addOverride = async () => {
+    if (!selectedDate || !selectedCalendar?.id) return;
 
-    const override: DateOverride = {
-      id: Date.now().toString(),
-      startDate: selectedDates.from.toISOString().split('T')[0],
-      endDate: selectedDates.to ? selectedDates.to.toISOString().split('T')[0] : undefined,
-      type: selectedDates.to ? 'range' : 'single',
-      enabled: newOverride.enabled || false,
-      startTime: newOverride.enabled ? newOverride.startTime : undefined,
-      endTime: newOverride.enabled ? newOverride.endTime : undefined,
-      reason: newOverride.reason || ''
-    };
-
-    setOverrides(prev => [...prev, override].sort((a, b) => a.startDate.localeCompare(b.startDate)));
-    resetForm();
-    onChange?.();
+    try {
+      await createOverride({
+        calendar_id: selectedCalendar.id,
+        date: selectedDate.toISOString().split('T')[0],
+        is_available: newOverride.is_available,
+        start_time: newOverride.is_available ? newOverride.start_time : null,
+        end_time: newOverride.is_available ? newOverride.end_time : null,
+        reason: newOverride.reason || null
+      });
+      
+      resetForm();
+      onChange?.();
+    } catch (error) {
+      console.error('Error adding override:', error);
+    }
   };
 
   const resetForm = () => {
-    setSelectedDates({ from: undefined, to: undefined });
+    setSelectedDate(undefined);
     setNewOverride({
-      type: 'single',
-      enabled: false,
-      startTime: '09:00',
-      endTime: '17:00',
+      is_available: false,
+      start_time: '09:00',
+      end_time: '17:00',
       reason: ''
     });
     setShowAddForm(false);
   };
 
-  const removeOverride = (id: string) => {
-    setOverrides(prev => prev.filter(o => o.id !== id));
-    onChange?.();
-  };
-
-  const formatDateRange = (override: DateOverride) => {
-    const startDate = new Date(override.startDate);
-    const endDate = override.endDate ? new Date(override.endDate) : null;
-
-    if (override.type === 'range' && endDate) {
-      return `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
-    }
-    
-    return format(startDate, 'EEEE, MMMM d, yyyy');
-  };
-
-  const handleTypeChange = (type: 'single' | 'range') => {
-    setNewOverride(prev => ({ ...prev, type }));
-    setSelectedDates({ from: undefined, to: undefined });
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    if (!date) return;
-
-    if (newOverride.type === 'single') {
-      setSelectedDates({ from: date, to: undefined });
-    } else {
-      // Range selection logic
-      if (!selectedDates.from) {
-        setSelectedDates({ from: date, to: undefined });
-      } else if (!selectedDates.to) {
-        if (date > selectedDates.from) {
-          setSelectedDates(prev => ({ ...prev, to: date }));
-        } else {
-          setSelectedDates({ from: date, to: undefined });
-        }
-      } else {
-        setSelectedDates({ from: date, to: undefined });
-      }
+  const removeOverride = async (id: string) => {
+    try {
+      await deleteOverride(id);
+      onChange?.();
+    } catch (error) {
+      console.error('Error removing override:', error);
     }
   };
 
-  const handleRangeSelect = (range: { from: Date | undefined; to: Date | undefined } | undefined) => {
-    if (range) {
-      setSelectedDates(range);
-    }
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return format(date, 'EEEE, MMMM d, yyyy');
   };
 
-  const isDateSelected = selectedDates.from && (!newOverride.type || newOverride.type === 'single' || selectedDates.to);
+  if (!selectedCalendar) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Please select a calendar to manage date overrides.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -152,34 +109,9 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
               <h3 className="text-lg font-semibold text-foreground">New Exception</h3>
             </div>
 
-            {/* Date Selection Type */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">Selection Type</label>
-              <div className="flex space-x-2">
-                <Button
-                  variant={newOverride.type === 'single' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleTypeChange('single')}
-                  className="bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
-                >
-                  Single Day
-                </Button>
-                <Button
-                  variant={newOverride.type === 'range' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleTypeChange('range')}
-                  className="bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
-                >
-                  Date Range
-                </Button>
-              </div>
-            </div>
-
             {/* Date Picker */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">
-                {newOverride.type === 'range' ? 'Select Date Range' : 'Date'}
-              </label>
+              <label className="text-sm font-medium text-foreground">Date</label>
               
               <Popover>
                 <PopoverTrigger asChild>
@@ -187,55 +119,22 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal bg-background/80 border-border/60 rounded-2xl hover:border-primary/40 transition-colors h-12",
-                      !selectedDates.from && "text-muted-foreground"
+                      !selectedDate && "text-muted-foreground"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDates.from ? (
-                      selectedDates.to ? (
-                        <>
-                          {format(selectedDates.from, "LLL dd, y")} - {format(selectedDates.to, "LLL dd, y")}
-                        </>
-                      ) : (
-                        format(selectedDates.from, "LLL dd, y")
-                      )
-                    ) : (
-                      <span>{newOverride.type === 'range' ? 'Pick a date range' : 'Pick a date'}</span>
-                    )}
+                    {selectedDate ? format(selectedDate, "LLL dd, y") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-popover border-border rounded-2xl" align="start">
-                  {newOverride.type === 'range' ? (
-                    <Calendar
-                      initialFocus
-                      mode="range"
-                      defaultMonth={selectedDates.from}
-                      selected={selectedDates}
-                      onSelect={handleRangeSelect}
-                      numberOfMonths={2}
-                      className={cn(
-                        "rounded-2xl bg-card pointer-events-auto p-4",
-                        // Grid structure for months
-                        "[&_.rdp-months]:grid [&_.rdp-months]:grid-cols-2 [&_.rdp-months]:gap-8",
-                        // Month styling
-                        "[&_.rdp-month]:border [&_.rdp-month]:border-border/20 [&_.rdp-month]:rounded-xl [&_.rdp-month]:p-4"
-                      )}
-                    />
-                  ) : (
-                    <Calendar
-                      initialFocus
-                      mode="single"
-                      defaultMonth={selectedDates.from}
-                      selected={selectedDates.from}
-                      onSelect={handleDateSelect}
-                      numberOfMonths={1}
-                      className={cn(
-                        "rounded-2xl bg-card pointer-events-auto p-4",
-                        // Month styling
-                        "[&_.rdp-month]:border [&_.rdp-month]:border-border/20 [&_.rdp-month]:rounded-xl [&_.rdp-month]:p-4"
-                      )}
-                    />
-                  )}
+                  <Calendar
+                    initialFocus
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    numberOfMonths={1}
+                    className="rounded-2xl bg-card pointer-events-auto p-4"
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -245,18 +144,18 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
               <label className="text-sm font-medium text-foreground">Available on this day</label>
               <div className="flex items-center space-x-4 p-4 bg-muted/30 rounded-2xl">
                 <span className="text-sm font-medium text-foreground">
-                  {newOverride.enabled ? 'Available' : 'Not available'}
+                  {newOverride.is_available ? 'Available' : 'Not available'}
                 </span>
                 <Switch
-                  checked={newOverride.enabled}
-                  onCheckedChange={(enabled) => setNewOverride(prev => ({ ...prev, enabled }))}
+                  checked={newOverride.is_available}
+                  onCheckedChange={(is_available) => setNewOverride(prev => ({ ...prev, is_available }))}
                   className="data-[state=checked]:bg-primary"
                 />
               </div>
             </div>
 
             {/* Time Selection */}
-            {newOverride.enabled && (
+            {newOverride.is_available && (
               <div className="space-y-4">
                 <h4 className="text-sm font-medium text-foreground">Working Hours</h4>
                 <div className="bg-card/50 border border-border/40 rounded-2xl p-4 space-y-3">
@@ -264,8 +163,8 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-muted-foreground">Start Time</label>
                       <ProfessionalTimePicker
-                        value={newOverride.startTime || '09:00'}
-                        onChange={(value) => setNewOverride(prev => ({ ...prev, startTime: value }))}
+                        value={newOverride.start_time}
+                        onChange={(value) => setNewOverride(prev => ({ ...prev, start_time: value }))}
                         isOpen={selectedTimeBlock?.field === 'startTime'}
                         onToggle={() => setSelectedTimeBlock(
                           selectedTimeBlock?.field === 'startTime' ? null : { field: 'startTime' }
@@ -277,8 +176,8 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-muted-foreground">End Time</label>
                       <ProfessionalTimePicker
-                        value={newOverride.endTime || '17:00'}
-                        onChange={(value) => setNewOverride(prev => ({ ...prev, endTime: value }))}
+                        value={newOverride.end_time}
+                        onChange={(value) => setNewOverride(prev => ({ ...prev, end_time: value }))}
                         isOpen={selectedTimeBlock?.field === 'endTime'}
                         onToggle={() => setSelectedTimeBlock(
                           selectedTimeBlock?.field === 'endTime' ? null : { field: 'endTime' }
@@ -314,7 +213,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
               </Button>
               <Button
                 onClick={addOverride}
-                disabled={!isDateSelected}
+                disabled={!selectedDate}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl"
               >
                 Add Exception
@@ -325,7 +224,11 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
       )}
 
       {/* Existing Overrides */}
-      {overrides.length > 0 && (
+      {loading ? (
+        <div className="text-center py-4">
+          <div className="text-sm text-muted-foreground">Loading overrides...</div>
+        </div>
+      ) : overrides.length > 0 ? (
         <div className="space-y-4">
           {overrides.map((override) => (
             <div key={override.id} className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6 shadow-lg shadow-black/5">
@@ -336,32 +239,27 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                       <CalendarDays className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-foreground">{formatDateRange(override)}</h4>
+                      <h4 className="font-semibold text-foreground">{formatDate(override.date)}</h4>
                       <div className="flex items-center space-x-2 mt-1">
                         <Badge 
-                          variant={override.enabled ? "default" : "secondary"}
+                          variant={override.is_available ? "default" : "secondary"}
                           className={cn(
                             "rounded-full",
-                            override.enabled 
+                            override.is_available 
                               ? "bg-green-500/20 text-green-400 border-green-500/30" 
                               : "bg-red-500/20 text-red-400 border-red-500/30"
                           )}
                         >
-                          {override.enabled ? 'Available' : 'Not available'}
+                          {override.is_available ? 'Available' : 'Not available'}
                         </Badge>
-                        {override.type === 'range' && (
-                          <Badge variant="outline" className="rounded-full bg-blue-500/20 text-blue-400 border-blue-500/30">
-                            Range
-                          </Badge>
-                        )}
                       </div>
                     </div>
                   </div>
                   
-                  {override.enabled && override.startTime && override.endTime && (
+                  {override.is_available && override.start_time && override.end_time && (
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-2">
                       <Clock className="h-3 w-3" />
-                      <span>{override.startTime} - {override.endTime}</span>
+                      <span>{override.start_time} - {override.end_time}</span>
                     </div>
                   )}
                   
@@ -383,6 +281,10 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
               </div>
             </div>
           ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No schedule exceptions yet.</p>
         </div>
       )}
 
