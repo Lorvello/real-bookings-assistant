@@ -4,6 +4,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/hooks/useAuth';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -11,13 +13,14 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isHeaderVisible } = useScrollDirection(10);
+  const { t } = useTranslation();
   
   const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'How it Works', path: '/how-it-works' },
-    { name: 'Why Us', path: '/why-us' },
-    { name: 'Pricing', path: '/#pricing' },
-    { name: 'FAQ', path: '/faq' }
+    { name: t('header.home'), path: '/' },
+    { name: t('header.howItWorks'), path: '/how-it-works' },
+    { name: t('header.whyUs'), path: '/why-us' },
+    { name: t('header.pricing'), path: '/#pricing' },
+    { name: t('header.faq'), path: '/faq' }
   ];
 
   const handleNavClick = () => {
@@ -108,13 +111,14 @@ const Header = () => {
             })}
           </div>
           
-          {/* Desktop CTA Button */}
-          <div className="hidden lg:block">
+          {/* Language Switcher & Desktop CTA Button */}
+          <div className="hidden lg:flex items-center space-x-4">
+            <LanguageSwitcher />
             <Button 
               onClick={handleGetStarted}
               className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
             >
-              {user ? 'Dashboard' : 'Get Started'}
+              {user ? t('header.dashboard') : t('header.getStarted')}
             </Button>
           </div>
 
@@ -173,12 +177,15 @@ const Header = () => {
                   </Link>
                 );
               })}
-              <Button 
-                onClick={handleGetStarted}
-                className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl mt-4 w-full"
-              >
-                {user ? 'Dashboard' : 'Get Started'}
-              </Button>
+               <div className="mt-4 space-y-3">
+                <LanguageSwitcher />
+                <Button 
+                  onClick={handleGetStarted}
+                  className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl w-full"
+                >
+                  {user ? t('header.dashboard') : t('header.getStarted')}
+                </Button>
+              </div>
             </div>
           </div>
         )}
