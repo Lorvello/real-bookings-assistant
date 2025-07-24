@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,14 +12,28 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
+import { EditCalendarDialog } from '@/components/calendar-switcher/EditCalendarDialog';
 
 interface CalendarSwitcherSectionProps {
   isSidebarOpen: boolean;
 }
 
 export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSectionProps) {
-  const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading } = useCalendarContext();
+  const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading, refreshCalendars } = useCalendarContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingCalendar, setEditingCalendar] = useState(null);
+
+  const handleEditCalendar = (calendar: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingCalendar(calendar);
+    setShowEditDialog(true);
+  };
+
+  const handleCalendarUpdated = () => {
+    refreshCalendars();
+    setEditingCalendar(null);
+  };
 
   if (!isSidebarOpen || loading || calendars.length === 0) {
     return null;
@@ -93,7 +107,7 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
               <DropdownMenuItem
                 key={calendar.id}
                 onClick={() => selectCalendar(calendar)}
-                className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted"
+                className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group"
               >
                 <div 
                   className="w-3 h-3 rounded-full flex-shrink-0 border border-border" 
@@ -112,9 +126,19 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                     </p>
                   )}
                 </div>
-                {!viewingAllCalendars && selectedCalendar?.id === calendar.id && (
-                  <div className="w-2 h-2 bg-primary rounded-full" />
-                )}
+                <div className="flex items-center space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleEditCalendar(calendar, e)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                  {!viewingAllCalendars && selectedCalendar?.id === calendar.id && (
+                    <div className="w-2 h-2 bg-primary rounded-full" />
+                  )}
+                </div>
               </DropdownMenuItem>
             ))}
             
@@ -139,6 +163,15 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
         open={showCreateDialog} 
         onOpenChange={setShowCreateDialog}
         trigger="button"
+        onCalendarCreated={handleCalendarUpdated}
+      />
+
+      {/* Edit Calendar Dialog */}
+      <EditCalendarDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        calendar={editingCalendar}
+        onCalendarUpdated={handleCalendarUpdated}
       />
     </>
   );
