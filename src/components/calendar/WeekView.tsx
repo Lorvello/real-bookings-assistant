@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { BookingDetailModal } from './BookingDetailModal';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
 
 interface Booking {
   id: string;
@@ -111,58 +113,86 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
   const endTime = new Date(booking.end_time);
 
   return (
-    <div
-      className="absolute inset-x-0 mx-1 p-2 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 group hover:scale-105 border border-white/20 relative"
-      style={{
-        background: `linear-gradient(135deg, ${booking.service_types?.color || '#3B82F6'}, ${booking.service_types?.color || '#3B82F6'}dd)`,
-        height: `${height}px`,
-        top: `${topOffset}px`,
-        boxShadow: `0 2px 10px ${booking.service_types?.color || '#3B82F6'}40`
-      }}
-      title={`${booking.customer_name} - ${booking.service_types?.name || 'Appointment'}\nKalender: ${booking.calendar?.name || 'Onbekend'}\nPersoon: ${booking.calendar?.users?.full_name || 'Onbekend'}\nTelefoon: ${booking.customer_phone || 'Geen telefoon'}`}
-      onClick={() => onBookingClick(booking)}
-    >
-      {/* Calendar and person indicators */}
-      <div className="absolute top-1 right-1 flex gap-0.5">
-        {/* Calendar indicator */}
-        <div 
-          className="w-2 h-2 rounded-full border border-white/50"
-          style={{ backgroundColor: booking.calendar?.color || '#6B7280' }}
-          title={`Kalender: ${booking.calendar?.name || 'Onbekend'}`}
-        />
-        {/* Person indicator */}
-        <div className="w-2 h-2 rounded-full bg-white/80 flex items-center justify-center">
-          <span className="text-[6px] font-bold text-gray-700">
-            {booking.calendar?.users?.full_name?.charAt(0) || '?'}
-          </span>
-        </div>
-      </div>
+    <TooltipProvider>
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <div
+            className="absolute inset-x-0 mx-1 p-2 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 group hover:scale-105 border border-white/20 relative"
+            style={{
+              background: `linear-gradient(135deg, ${booking.service_types?.color || '#3B82F6'}, ${booking.service_types?.color || '#3B82F6'}dd)`,
+              height: `${height}px`,
+              top: `${topOffset}px`,
+              boxShadow: `0 2px 10px ${booking.service_types?.color || '#3B82F6'}40`
+            }}
+            onClick={() => onBookingClick(booking)}
+          >
+            {/* Info icon in top-right corner */}
+            <div className="absolute top-0.5 right-0.5">
+              <Info className="w-2.5 h-2.5 text-gray-700" />
+            </div>
 
-      <div className="text-white">
-        <div className="flex items-center justify-between mb-1">
-          <div className="font-bold text-xs truncate">{booking.customer_name}</div>
-          <div className={`w-1.5 h-1.5 rounded-full ${
-            booking.status === 'confirmed' ? 'bg-white/90' :
-            booking.status === 'pending' ? 'bg-yellow-300/90' :
-            'bg-red-300/90'
-          }`} />
-        </div>
-        <div className="text-white/90 text-xs font-medium truncate mb-1">
-          {booking.service_types?.name || 'Appointment'}
-        </div>
-        <div className="text-white/80 text-xs">
-          {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
-        </div>
-        {booking.customer_phone && (
-          <div className="text-white/70 text-xs truncate flex items-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg className="w-2.5 h-2.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-            </svg>
-            {booking.customer_phone}
+            {/* Calendar and person indicators */}
+            <div className="absolute top-1 right-1 flex gap-0.5">
+              {/* Calendar indicator */}
+              <div 
+                className="w-2 h-2 rounded-full border border-white/50"
+                style={{ backgroundColor: booking.calendar?.color || '#6B7280' }}
+              />
+              {/* Person indicator */}
+              <div className="w-2 h-2 rounded-full bg-white/80 flex items-center justify-center">
+                <span className="text-[6px] font-bold text-gray-700">
+                  {booking.calendar?.users?.full_name?.charAt(0) || '?'}
+                </span>
+              </div>
+            </div>
+
+            <div className="text-white">
+              <div className="flex items-center justify-between mb-1">
+                <div className="font-bold text-xs truncate">{booking.customer_name}</div>
+              </div>
+              <div className="text-white/90 text-xs font-medium truncate mb-1">
+                {booking.service_types?.name || 'Appointment'}
+              </div>
+              <div className="text-white/80 text-xs">
+                {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
+              </div>
+              {booking.customer_phone && (
+                <div className="text-white/70 text-xs truncate flex items-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg className="w-2.5 h-2.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                  </svg>
+                  {booking.customer_phone}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-    </div>
+        </TooltipTrigger>
+        <TooltipContent 
+          side="top" 
+          className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3"
+        >
+          <div className="space-y-1.5">
+            <div className="text-xs font-semibold text-foreground">
+              {format(new Date(booking.start_time), 'HH:mm')} - {booking.customer_name}
+            </div>
+            <div className="space-y-0.5 text-[10px]">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Calendar:</span>
+                <span className="text-foreground font-medium">{booking.calendar?.name || 'Unknown'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Person:</span>
+                <span className="text-foreground font-medium">{booking.calendar?.users?.full_name || 'Unknown'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Service:</span>
+                <span className="text-foreground font-medium">{booking.service_types?.name || booking.service_name || 'Appointment'}</span>
+              </div>
+            </div>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 

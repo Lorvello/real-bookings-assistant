@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import { format, startOfYear, endOfYear, eachMonthOfInterval, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { Calendar, TrendingUp, CheckCircle, Clock } from 'lucide-react';
+import { Calendar, TrendingUp, CheckCircle, Clock, Info } from 'lucide-react';
 import { DayBookingsModal } from './DayBookingsModal';
 import { BookingDetailModal } from './BookingDetailModal';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Booking {
   id: string;
@@ -145,24 +146,75 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                 }
               };
 
-              return (
-                <div
-                  key={day.toISOString()}
-                  className={`text-xs text-center p-1.5 rounded-xl transition-all duration-150 ${
-                    isCurrentMonth 
-                      ? hasBookings 
-                        ? 'bg-primary text-primary-foreground font-bold shadow-sm hover:shadow-md transform hover:scale-110 cursor-pointer' 
-                        : isToday 
-                          ? 'bg-accent text-primary font-bold border-2 border-primary/50' 
-                          : 'text-foreground hover:bg-accent/50'
-                      : 'text-muted-foreground/50'
-                  }`}
-                  title={hasBookings ? `${dayBookings.length} appointment${dayBookings.length > 1 ? 's' : ''}` : ''}
-                  onClick={handleDayClickEvent}
-                >
-                  {format(day, 'd')}
-                </div>
-              );
+              if (hasBookings && dayBookings.length === 1) {
+                // Single booking - show detailed tooltip
+                return (
+                  <TooltipProvider key={day.toISOString()}>
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={`text-xs text-center p-1.5 rounded-xl transition-all duration-150 relative ${
+                            isCurrentMonth 
+                              ? 'bg-primary text-primary-foreground font-bold shadow-sm hover:shadow-md transform hover:scale-110 cursor-pointer'
+                              : 'text-muted-foreground/50'
+                          }`}
+                          onClick={handleDayClickEvent}
+                        >
+                          {/* Info icon */}
+                          <div className="absolute top-0.5 right-0.5">
+                            <Info className="w-2 h-2 text-gray-700" />
+                          </div>
+                          {format(day, 'd')}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent 
+                        side="top" 
+                        className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="text-xs font-semibold text-foreground">
+                            {format(new Date(dayBookings[0].start_time), 'HH:mm')} - {dayBookings[0].customer_name}
+                          </div>
+                          <div className="space-y-0.5 text-[10px]">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Calendar:</span>
+                              <span className="text-foreground font-medium">{dayBookings[0].calendar?.name || 'Unknown'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Person:</span>
+                              <span className="text-foreground font-medium">{dayBookings[0].calendar?.users?.full_name || 'Unknown'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Service:</span>
+                              <span className="text-foreground font-medium">{dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              } else {
+                // No booking or multiple bookings - show regular day cell
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className={`text-xs text-center p-1.5 rounded-xl transition-all duration-150 ${
+                      isCurrentMonth 
+                        ? hasBookings 
+                          ? 'bg-primary text-primary-foreground font-bold shadow-sm hover:shadow-md transform hover:scale-110 cursor-pointer' 
+                          : isToday 
+                            ? 'bg-accent text-primary font-bold border-2 border-primary/50' 
+                            : 'text-foreground hover:bg-accent/50'
+                        : 'text-muted-foreground/50'
+                    }`}
+                    title={hasBookings ? `${dayBookings.length} appointment${dayBookings.length > 1 ? 's' : ''}` : ''}
+                    onClick={handleDayClickEvent}
+                  >
+                    {format(day, 'd')}
+                  </div>
+                );
+              }
             })}
           </div>
         </div>
