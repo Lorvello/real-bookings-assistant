@@ -142,7 +142,7 @@ export function CalendarDayCell({
               </TooltipTrigger>
               <TooltipContent 
                 side="top" 
-                className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3"
+                className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3 z-[9999]"
               >
                 <div className="space-y-1.5">
                   <div className="text-xs font-semibold text-foreground">
