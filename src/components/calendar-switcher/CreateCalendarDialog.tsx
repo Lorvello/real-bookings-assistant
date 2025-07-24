@@ -21,6 +21,7 @@ import { useCreateCalendar } from '@/hooks/useCreateCalendar';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { ServiceTypeQuickCreateDialog } from './ServiceTypeQuickCreateDialog';
+import { UpgradePrompt } from '@/components/ui/UpgradePrompt';
 
 const colorOptions = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -61,7 +62,7 @@ export function CreateCalendarDialog({
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   const [showServiceTypeDialog, setShowServiceTypeDialog] = useState(false);
 
-  const { createCalendar, loading: creating } = useCreateCalendar(onCalendarCreated);
+  const { createCalendar, loading: creating, canCreateMore, currentCount, maxCalendars } = useCreateCalendar(onCalendarCreated);
 
   // Auto-select current user and handle single team member case
   useEffect(() => {
@@ -230,6 +231,23 @@ export function CreateCalendarDialog({
             </DialogDescription>
           </DialogHeader>
           
+          {/* Calendar Limit Check */}
+          {!canCreateMore && (
+            <UpgradePrompt 
+              feature="Calendars"
+              currentUsage={`${currentCount}/${maxCalendars}`}
+              limit={`${maxCalendars} calendar${maxCalendars === 1 ? '' : 's'}`}
+              description="Upgrade to Professional to create unlimited calendars and access more features."
+              className="mb-6"
+            />
+          )}
+          
+          {canCreateMore && (
+            <div className="text-sm text-muted-foreground mb-4">
+              Calendar usage: {currentCount}/{maxCalendars === null ? '∞' : maxCalendars}
+            </div>
+          )}
+          
           <div className="space-y-6">
             {/* Basic Information */}
             <div className="space-y-4">
@@ -356,6 +374,7 @@ export function CreateCalendarDialog({
             <Button 
               onClick={handleCreateCalendar}
               disabled={
+                !canCreateMore ||
                 !newCalendar.name.trim() || 
                 selectedServiceTypes.length === 0 || 
                 selectedTeamMembers.length === 0 || 

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useCalendarLimits } from '@/hooks/useSubscriptionLimits';
 
 interface TeamMember {
   email: string;
@@ -24,12 +25,23 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
   const { toast } = useToast();
   const { refreshCalendars, selectCalendar } = useCalendarContext();
   const { user } = useAuth();
+  const { canCreateMore, currentCount, maxCalendars } = useCalendarLimits();
 
   const createCalendar = async (data: CreateCalendarData) => {
     if (!user) {
       toast({
-        title: "Niet ingelogd",
-        description: "Je moet ingelogd zijn om een kalender aan te maken",
+        title: "Not logged in",
+        description: "You must be logged in to create a calendar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check calendar limit
+    if (!canCreateMore) {
+      toast({
+        title: "Calendar Limit Reached",
+        description: `You can only create ${maxCalendars} calendar${maxCalendars === 1 ? '' : 's'} on your current plan. Please upgrade to create more calendars.`,
         variant: "destructive",
       });
       return;
@@ -156,8 +168,8 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
       }
 
       toast({
-        title: "Kalender aangemaakt",
-        description: `${data.name} is succesvol aangemaakt`,
+        title: "Calendar created",
+        description: `${data.name} was successfully created`,
       });
 
       // Wait for calendar refresh before proceeding
@@ -179,18 +191,18 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
     } catch (error: any) {
       console.error('Error creating calendar:', error);
       
-      let errorMessage = "Kon kalender niet aanmaken";
+      let errorMessage = "Could not create calendar";
       
       if (error.code === '42501') {
-        errorMessage = "Je hebt geen toestemming om een kalender aan te maken. Probeer opnieuw in te loggen.";
+        errorMessage = "You don't have permission to create a calendar. Try logging in again.";
       } else if (error.code === '23505') {
-        errorMessage = "Er bestaat al een kalender met deze naam";
+        errorMessage = "A calendar with this name already exists";
       } else if (error.message) {
         errorMessage = error.message;
       }
       
       toast({
-        title: "Fout bij aanmaken kalender",
+        title: "Error creating calendar",
         description: errorMessage,
         variant: "destructive",
       });
@@ -202,6 +214,9 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
 
   return {
     createCalendar,
-    loading
+    loading,
+    canCreateMore,
+    currentCount,
+    maxCalendars
   };
 };
