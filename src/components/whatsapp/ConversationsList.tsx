@@ -26,7 +26,7 @@ export function ConversationsList({
     const contact = conversation.whatsapp_contacts;
     const displayName = contact?.display_name || 
       `${contact?.first_name || ''} ${contact?.last_name || ''}`.trim() || 
-      'Onbekend contact';
+      'Unknown contact';
     
     return displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
            contact?.phone_number?.includes(searchTerm);
@@ -38,7 +38,7 @@ export function ConversationsList({
         <CardHeader className="border-b border-gray-700 bg-gray-800/50">
           <CardTitle className="flex items-center gap-2 text-white">
             <MessageSquare className="w-5 h-5 text-green-400" />
-            Gesprekken
+            Conversations
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
@@ -57,25 +57,25 @@ export function ConversationsList({
       case 'active':
         return (
           <Badge className="bg-green-500/20 text-green-300 border-green-500/30 hover:bg-green-500/30">
-            Actief
+            Active
           </Badge>
         );
       case 'closed':
         return (
           <Badge variant="secondary" className="bg-gray-600/20 text-gray-300 border-gray-600/30">
-            Gesloten
+            Closed
           </Badge>
         );
       case 'archived':
         return (
           <Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500/30">
-            Gearchiveerd
+            Archived
           </Badge>
         );
       default:
         return (
           <Badge variant="outline" className="bg-gray-600/20 text-gray-400 border-gray-600/30">
-            Onbekend
+            Unknown
           </Badge>
         );
     }
@@ -90,14 +90,14 @@ export function ConversationsList({
       <CardHeader className="border-b border-gray-700 bg-gray-800/50 pb-4">
         <CardTitle className="flex items-center gap-2 text-white mb-4">
           <MessageSquare className="w-5 h-5 text-green-400" />
-          Gesprekken ({filteredConversations.length})
+          Conversations ({filteredConversations.length})
         </CardTitle>
         
         {/* Search Input */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
           <Input
-            placeholder="Zoek gesprekken..."
+            placeholder="Search conversations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 border-gray-600 bg-gray-700/50 text-white placeholder:text-gray-400 focus:border-green-500 focus:ring-green-500/20"
@@ -111,9 +111,9 @@ export function ConversationsList({
             <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mb-4">
               <MessageSquare className="w-8 h-8 text-gray-500" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">Geen gesprekken</h3>
+            <h3 className="text-lg font-medium text-white mb-2">No conversations</h3>
             <p className="text-gray-400 text-center">
-              Er zijn nog geen WhatsApp gesprekken gevonden voor deze kalender.
+              No WhatsApp conversations found for this calendar yet.
             </p>
           </div>
         ) : filteredConversations.length === 0 ? (
@@ -121,9 +121,9 @@ export function ConversationsList({
             <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mb-4">
               <Search className="w-8 h-8 text-gray-500" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">Geen resultaten</h3>
+            <h3 className="text-lg font-medium text-white mb-2">No results</h3>
             <p className="text-gray-400 text-center">
-              Geen gesprekken gevonden voor "{searchTerm}"
+              No conversations found for "{searchTerm}"
             </p>
           </div>
         ) : (
@@ -132,7 +132,7 @@ export function ConversationsList({
               const contact = conversation.whatsapp_contacts;
               const displayName = contact?.display_name || 
                 `${contact?.first_name || ''} ${contact?.last_name || ''}`.trim() || 
-                'Onbekend contact';
+                'Unknown contact';
               
               const isSelected = selectedConversationId === conversation.id;
 

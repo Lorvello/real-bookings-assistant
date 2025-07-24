@@ -32,10 +32,10 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
       <Tabs defaultValue="overview" className="h-full">
         <TabsList className={`grid w-full ${isDeveloper ? 'grid-cols-5' : 'grid-cols-3'}`}>
           <TabsTrigger value="overview">
-            Contacten Overzicht
+            Contact Overview
           </TabsTrigger>
           <TabsTrigger value="conversations">
-            Live Gesprekken
+            Live Conversations
           </TabsTrigger>
           {isDeveloper && (
             <TabsTrigger value="webhook-flow">
@@ -58,7 +58,7 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
             </TabsTrigger>
           )}
           <TabsTrigger value="management">
-            Gespreksbeheer
+            Conversation Management
           </TabsTrigger>
         </TabsList>
         
@@ -68,7 +68,7 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
         
         <TabsContent value="conversations" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
-            {/* Conversations lijst */}
+            {/* Conversations list */}
             <div className="lg:col-span-1">
               <ConversationsList 
                 calendarId={calendarId} 

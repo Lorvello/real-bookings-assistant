@@ -17,7 +17,7 @@ export function ConversationManagement() {
         <CardHeader className="border-b border-border bg-muted/30">
           <CardTitle className="flex items-center gap-2 text-foreground">
             <MessageCircle className="w-5 h-5 text-primary" />
-            Gespreksbeheer
+            Conversation Management
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -35,7 +35,7 @@ export function ConversationManagement() {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-foreground">
             <MessageCircle className="w-5 h-5 text-primary" />
-            Gespreksbeheer
+            Conversation Management
             {unlinkedConversations && unlinkedConversations.length > 0 && (
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
                 {unlinkedConversations.length}
@@ -51,7 +51,7 @@ export function ConversationManagement() {
             className="border-border text-foreground hover:bg-muted"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Vernieuwen
+            Refresh
           </Button>
         </div>
       </CardHeader>
@@ -62,9 +62,9 @@ export function ConversationManagement() {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">Alle gesprekken zijn beheerd</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">All conversations are managed</h3>
             <p className="text-muted-foreground">
-              Er zijn momenteel geen WhatsApp gesprekken die aandacht behoeven.
+              There are currently no WhatsApp conversations that need attention.
             </p>
           </div>
         ) : (
@@ -73,10 +73,10 @@ export function ConversationManagement() {
               <div className="flex items-start gap-3">
                 <MessageCircle className="w-5 h-5 text-primary mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-foreground mb-1">WhatsApp Gesprekken Zonder Afspraak</h4>
+                  <h4 className="font-medium text-foreground mb-1">WhatsApp Conversations Without Appointment</h4>
                   <p className="text-sm text-muted-foreground">
-                    Deze klanten hebben contact opgenomen via WhatsApp maar hebben nog geen afspraak ingepland. 
-                    Bekijk hun berichten en help ze bij het maken van een afspraak.
+                    These customers have contacted you via WhatsApp but haven't scheduled an appointment yet. 
+                    Review their messages and help them make an appointment.
                   </p>
                 </div>
               </div>
@@ -92,10 +92,10 @@ export function ConversationManagement() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h4 className="font-medium text-foreground">
-                          {conversation.contact_name || 'Onbekend contact'}
+                          {conversation.contact_name || 'Unknown contact'}
                         </h4>
                         <Badge variant="outline" className="bg-background border-border text-foreground">
-                          Nieuwe lead
+                          New lead
                         </Badge>
                       </div>
                       
@@ -107,7 +107,7 @@ export function ConversationManagement() {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <MessageCircle className="w-3 h-3" />
-                          <span>{conversation.message_count} berichten</span>
+                          <span>{conversation.message_count} messages</span>
                         </div>
                         {conversation.last_activity && (
                           <div className="flex items-center gap-1">
@@ -127,14 +127,14 @@ export function ConversationManagement() {
                         className="border-primary/20 text-primary hover:bg-primary/10"
                       >
                         <MessageCircle className="w-4 h-4 mr-2" />
-                        Bekijk Chat
+                        View Chat
                       </Button>
                       <Button
                         size="sm"
                         className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       >
                         <Calendar className="w-4 h-4 mr-2" />
-                        Plan Afspraak
+                        Schedule Appointment
                       </Button>
                     </div>
                   </div>

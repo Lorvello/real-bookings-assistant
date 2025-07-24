@@ -32,7 +32,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
         <CardHeader className="border-b border-gray-700 bg-gray-800/50">
           <CardTitle className="flex items-center gap-2 text-white">
             <MessageSquare className="w-5 h-5 text-green-400" />
-            Berichten
+            Messages
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex items-center justify-center">
@@ -40,8 +40,8 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
             <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
               <MessageSquare className="w-8 h-8 text-gray-500" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">Geen gesprek geselecteerd</h3>
-            <p className="text-gray-400">Selecteer een gesprek uit de lijst om berichten te bekijken</p>
+            <h3 className="text-lg font-medium text-white mb-2">No conversation selected</h3>
+            <p className="text-gray-400">Select a conversation from the list to view messages</p>
           </div>
         </CardContent>
       </Card>
@@ -54,7 +54,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
         <CardHeader className="border-b border-gray-700 bg-gray-800/50">
           <CardTitle className="flex items-center gap-2 text-white">
             <MessageSquare className="w-5 h-5 text-green-400" />
-            Berichten
+            Messages
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 p-4">
@@ -71,13 +71,13 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'sent':
-        return <Badge variant="secondary" className="text-xs bg-gray-600/20 text-gray-300 border-gray-600/30">Verzonden</Badge>;
+        return <Badge variant="secondary" className="text-xs bg-gray-600/20 text-gray-300 border-gray-600/30">Sent</Badge>;
       case 'delivered':
-        return <Badge className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">Afgeleverd</Badge>;
+        return <Badge className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">Delivered</Badge>;
       case 'read':
-        return <Badge className="text-xs bg-green-500/20 text-green-300 border-green-500/30">Gelezen</Badge>;
+        return <Badge className="text-xs bg-green-500/20 text-green-300 border-green-500/30">Read</Badge>;
       case 'failed':
-        return <Badge variant="destructive" className="text-xs bg-red-500/20 text-red-300 border-red-500/30">Mislukt</Badge>;
+        return <Badge variant="destructive" className="text-xs bg-red-500/20 text-red-300 border-red-500/30">Failed</Badge>;
       default:
         return null;
     }
@@ -96,7 +96,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
       <CardHeader className="border-b border-gray-700 bg-gray-800/50">
         <CardTitle className="flex items-center gap-2 text-white">
           <MessageSquare className="w-5 h-5 text-green-400" />
-          Berichten ({messages?.length || 0})
+          Messages ({messages?.length || 0})
         </CardTitle>
       </CardHeader>
       
@@ -107,9 +107,9 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
             <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mb-4">
               <MessageSquare className="w-8 h-8 text-gray-500" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">Nog geen berichten</h3>
+            <h3 className="text-lg font-medium text-white mb-2">No messages yet</h3>
             <p className="text-gray-400 text-center">
-              Dit gesprek heeft nog geen berichten. Begin een gesprek door een bericht te sturen.
+              This conversation doesn't have any messages yet. Start a conversation by sending a message.
             </p>
           </div>
         ) : (
@@ -164,7 +164,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
       <div className="border-t border-gray-700 p-4 bg-gray-800/50">
         <div className="flex gap-2">
           <Input
-            placeholder="Type een bericht..."
+            placeholder="Type a message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => {

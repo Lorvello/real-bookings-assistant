@@ -53,7 +53,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
             <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
               <MessageCircle className="w-4 h-4 text-green-400" />
             </div>
-            <span className="text-white">WhatsApp Contacten Overzicht</span>
+            <span className="text-white">WhatsApp Contact Overview</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -75,7 +75,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
             <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
               <MessageCircle className="w-4 h-4 text-red-400" />
             </div>
-            WhatsApp Contacten Overzicht
+            WhatsApp Contact Overview
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -83,15 +83,15 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
             <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <MessageCircle className="w-8 h-8 text-red-400" />
             </div>
-            <h3 className="text-lg font-medium text-red-300 mb-2">Fout bij laden van contacten</h3>
-            <p className="text-red-400 mb-4">Er is een probleem opgetreden bij het ophalen van de contactgegevens.</p>
+            <h3 className="text-lg font-medium text-red-300 mb-2">Error loading contacts</h3>
+            <p className="text-red-400 mb-4">A problem occurred while retrieving contact data.</p>
             <Button 
               onClick={handleRefresh} 
               variant="outline" 
               className="border-red-500/30 text-red-300 hover:bg-red-500/10 hover:border-red-400"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Opnieuw proberen
+              Try Again
             </Button>
           </div>
         </CardContent>
@@ -108,10 +108,10 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
               <MessageCircle className="w-4 h-4 text-green-400" />
             </div>
             <div>
-              <div className="text-lg font-semibold text-white">WhatsApp Contacten</div>
+              <div className="text-lg font-semibold text-white">WhatsApp Contacts</div>
               <div className="text-sm text-gray-400 font-normal flex items-center gap-2 mt-1">
                 <Users className="w-4 h-4" />
-                {filteredContacts.length} {filteredContacts.length === 1 ? 'contact' : 'contacten'}
+                {filteredContacts.length} {filteredContacts.length === 1 ? 'contact' : 'contacts'}
               </div>
             </div>
           </CardTitle>
@@ -124,7 +124,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
             className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
-            Vernieuwen
+            Refresh
           </Button>
         </div>
         
@@ -149,12 +149,12 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
               )}
             </div>
             <h3 className="text-lg font-medium text-white mb-2">
-              {searchTerm ? 'Geen resultaten gevonden' : 'Geen contacten'}
+              {searchTerm ? 'No results found' : 'No contacts'}
             </h3>
             <p className="text-gray-400 mb-4">
               {searchTerm 
-                ? `Geen contacten gevonden voor "${searchTerm}"`
-                : 'Er zijn nog geen WhatsApp contacten in dit systeem.'
+                ? `No contacts found for "${searchTerm}"`
+                : 'There are no WhatsApp contacts in this system yet.'
               }
             </p>
             {searchTerm && (
@@ -164,7 +164,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
                 className="border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 <Search className="w-4 h-4 mr-2" />
-                Wis zoekopdracht
+                Clear search
               </Button>
             )}
           </div>
