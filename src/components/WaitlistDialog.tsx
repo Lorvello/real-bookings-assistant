@@ -41,7 +41,7 @@ export function WaitlistDialog({
   onSuccess 
 }: WaitlistDialogProps) {
   const { joinWaitlist, loading } = usePublicWaitlist();
-  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_email: '',

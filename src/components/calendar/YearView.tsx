@@ -47,7 +47,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [dayModalOpen, setDayModalOpen] = useState(false);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
-  const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>();
+  const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>(undefined);
 
   const yearStart = startOfYear(currentDate);
   const yearEnd = endOfYear(currentDate);

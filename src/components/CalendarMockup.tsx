@@ -29,7 +29,7 @@ const CalendarMockup = () => {
   const currentDate = new Date(2025, 6, 14); // July 14, 2025
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>();
+  const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>(undefined);
   const calendarRef = useRef<HTMLDivElement>(null);
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);

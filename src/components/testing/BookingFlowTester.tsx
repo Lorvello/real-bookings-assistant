@@ -24,7 +24,7 @@ interface BookingFlowTesterProps {
 
 export function BookingFlowTester({ onTestResult }: BookingFlowTesterProps) {
   const [selectedCalendar, setSelectedCalendar] = useState('beauty-salon-test');
-  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [testData, setTestData] = useState({
     name: 'Test Customer',
     email: 'test@example.com',

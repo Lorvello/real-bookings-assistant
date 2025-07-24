@@ -28,7 +28,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
   const { serviceTypes, loading: servicesLoading } = useServiceTypes();
   const { getAvailableSlots, loading: slotsLoading } = useAvailableSlots();
   
-  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedServiceType, setSelectedServiceType] = useState<string>('');
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [availableSlots, setAvailableSlots] = useState<any[]>([]);

@@ -46,7 +46,7 @@ export function ModernMonthView({ bookings, currentDate, viewingAllCalendars = f
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [dayModalOpen, setDayModalOpen] = useState(false);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
-  const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>();
+  const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | undefined>(undefined);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);

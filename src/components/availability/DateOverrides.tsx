@@ -21,7 +21,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
   const { selectedCalendar } = useCalendarContext();
   const { overrides, createOverride, deleteOverride, loading } = useAvailabilityOverrides(selectedCalendar?.id);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeBlock, setSelectedTimeBlock] = useState<{field: 'startTime' | 'endTime'} | null>(null);
   const [newOverride, setNewOverride] = useState({
     is_available: false,
