@@ -2,7 +2,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { WhatsAppContact } from '@/types/whatsapp';
-import { getMockWhatsAppContacts } from './useMockDataGenerator';
 
 export function useWhatsAppContacts(calendarId?: string) {
   return useQuery({
@@ -25,12 +24,7 @@ export function useWhatsAppContacts(calendarId?: string) {
       
       if (error) throw error;
       
-      // If no real data and calendarId exists, return mock data for trial users
-      if (!data || data.length === 0) {
-        return getMockWhatsAppContacts();
-      }
-      
-      return data as WhatsAppContact[];
+      return data as WhatsAppContact[] || [];
     },
     enabled: !!calendarId,
   });

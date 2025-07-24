@@ -1,7 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { getMockOrphanedConversations } from './useMockDataGenerator';
 
 interface OrphanedConversation {
   conversation_id: string;
@@ -19,12 +18,7 @@ export function useOrphanedConversations() {
       
       if (error) throw error;
       
-      // If no real orphaned conversations, return mock data for trial users
-      if (!data || data.length === 0) {
-        return getMockOrphanedConversations();
-      }
-      
-      return data as OrphanedConversation[];
+      return data as OrphanedConversation[] || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
