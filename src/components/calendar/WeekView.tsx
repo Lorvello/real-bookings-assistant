@@ -101,7 +101,7 @@ const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
   const topOffset = Math.max(0, (offsetMinutes / 30) * 40); // 30 min = 40px
   
   // Calculate height based on duration - 30 minutes = 40px height
-  const height = Math.max(32, (duration / 30) * 40); // minimum 32px, ensures 1 hour = 80px
+  const height = Math.max(44, (duration / 30) * 40); // minimum 44px for better text fitting
   
   return { topOffset, height };
 };
@@ -117,7 +117,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <div
-            className="absolute inset-x-0 mx-1 p-2 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 group hover:scale-105 border border-white/20 relative"
+            className="absolute inset-x-0 mx-1 p-2 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 group hover:scale-105 border border-white/20 relative overflow-hidden"
             style={{
               background: `linear-gradient(135deg, ${booking.service_types?.color || '#3B82F6'}, ${booking.service_types?.color || '#3B82F6'}dd)`,
               height: `${height}px`,
@@ -131,24 +131,14 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
               <Info className="w-3 h-3 text-gray-700" />
             </div>
 
-            <div className="text-white">
-              <div className="flex items-center justify-between mb-1">
-                <div className="font-bold text-xs truncate">{booking.customer_name}</div>
-              </div>
+            <div className="text-white overflow-hidden">
+              <div className="font-bold text-xs truncate mb-1">{booking.customer_name}</div>
               <div className="text-white/90 text-xs font-medium truncate mb-1">
                 {booking.service_types?.name || 'Appointment'}
               </div>
-              <div className="text-white/80 text-xs">
+              <div className="text-white/80 text-xs truncate">
                 {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
               </div>
-              {booking.customer_phone && (
-                <div className="text-white/70 text-xs truncate flex items-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <svg className="w-2.5 h-2.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                  </svg>
-                  {booking.customer_phone}
-                </div>
-              )}
             </div>
           </div>
         </TooltipTrigger>
