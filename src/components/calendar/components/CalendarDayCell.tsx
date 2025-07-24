@@ -123,8 +123,8 @@ export function CalendarDayCell({
                 >
                   {/* Info indicator */}
                   <div className="absolute top-0.5 right-0.5">
-                    <div className="w-4 h-4 rounded-full bg-white/90 flex items-center justify-center border border-white/50 shadow-sm">
-                      <Info className="w-2.5 h-2.5 text-gray-600" />
+                    <div className="w-4 h-4 rounded-full bg-black/10 flex items-center justify-center border border-white/30 shadow-sm backdrop-blur-sm">
+                      <Info className="w-2.5 h-2.5 text-white/80" />
                     </div>
                   </div>
 
@@ -156,12 +156,12 @@ export function CalendarDayCell({
                   </div>
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Kalender:</span>
-                      <span className="text-foreground font-medium">{dayBookings[0].calendar?.name || 'Onbekend'}</span>
+                      <span className="text-muted-foreground">Calendar:</span>
+                      <span className="text-foreground font-medium">{dayBookings[0].calendar?.name || 'Unknown'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Persoon:</span>
-                      <span className="text-foreground font-medium">{dayBookings[0].calendar?.users?.full_name || 'Onbekend'}</span>
+                      <span className="text-muted-foreground">Person:</span>
+                      <span className="text-foreground font-medium">{dayBookings[0].calendar?.users?.full_name || 'Unknown'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Service:</span>
