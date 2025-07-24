@@ -2700,13 +2700,20 @@ export type Database = {
         }[]
       }
       get_available_slots_range: {
-        Args: {
-          p_calendar_id: string
-          p_service_type_id: string
-          p_start_date: string
-          p_end_date: string
-          p_timezone?: string
-        }
+        Args:
+          | {
+              p_calendar_id: string
+              p_service_type_id: string
+              p_start_date: string
+              p_end_date: string
+            }
+          | {
+              p_calendar_id: string
+              p_service_type_id: string
+              p_start_date: string
+              p_end_date: string
+              p_timezone?: string
+            }
         Returns: {
           slot_date: string
           slot_start: string
