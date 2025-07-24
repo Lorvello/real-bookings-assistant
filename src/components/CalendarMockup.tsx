@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { generateEnglishSampleBookings } from './calendar/utils/englishSampleBookings';
 import { DayBookingsModal } from './calendar/DayBookingsModal';
+import { useTranslation } from '@/hooks/useTranslation';
 
 
 interface Booking {
@@ -26,6 +27,7 @@ interface Booking {
 }
 
 const CalendarMockup = () => {
+  const { t } = useTranslation();
   const currentDate = new Date(2025, 6, 14); // July 14, 2025
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -37,7 +39,7 @@ const CalendarMockup = () => {
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const weekDays = (t('calendar.weekDays') as any) || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   // Get sample bookings for this month
   const sampleBookings = generateEnglishSampleBookings(currentDate);
@@ -122,8 +124,8 @@ const CalendarMockup = () => {
       {/* Much more compact header for mobile */}
       <div className="bg-card/30 backdrop-blur-sm p-1.5 md:p-2 border-b border-border/20">
         <div className="text-center">
-          <h3 className="text-sm md:text-lg font-semibold text-foreground">July 2025</h3>
-          <p className="text-[10px] md:text-xs text-muted-foreground">Calendar Overview</p>
+          <h3 className="text-sm md:text-lg font-semibold text-foreground">{t('calendar.title')}</h3>
+          <p className="text-[10px] md:text-xs text-muted-foreground">{t('calendar.subtitle')}</p>
         </div>
       </div>
 
@@ -188,9 +190,9 @@ const CalendarMockup = () => {
                       <div className="text-[7px] md:text-[9px] sm:text-[8px] text-white font-medium text-left">
                         {dayBookings.length}
                       </div>
-                      <div className="text-[6px] md:text-[8px] sm:text-[7px] text-white/90 text-left leading-tight truncate">
-                        appointments
-                      </div>
+                       <div className="text-[6px] md:text-[8px] sm:text-[7px] text-white/90 text-left leading-tight truncate">
+                         {t('calendar.appointmentsCount')}
+                       </div>
                     </div>
                   )}
                 </div>
@@ -203,15 +205,15 @@ const CalendarMockup = () => {
       {/* Much more compact footer for mobile */}
       <div className="bg-card/20 px-1.5 md:px-2 py-0.5 md:py-1 border-t border-border/20">
         <div className="flex items-center justify-between text-[8px] md:text-[10px]">
-          <div className="flex items-center gap-1 md:gap-2">
-            <div className="flex items-center gap-0.5 md:gap-1">
-              <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-emerald-500"></div>
-              <span className="text-muted-foreground">Appointments</span>
+            <div className="flex items-center gap-1 md:gap-2">
+              <div className="flex items-center gap-0.5 md:gap-1">
+                <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-emerald-500"></div>
+                <span className="text-muted-foreground">{t('calendar.appointments')}</span>
+              </div>
             </div>
-          </div>
-          <div className="text-muted-foreground">
-            {sampleBookings.length} appointments
-          </div>
+            <div className="text-muted-foreground">
+              {sampleBookings.length} {t('calendar.appointmentsCount')}
+            </div>
         </div>
       </div>
 

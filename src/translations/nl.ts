@@ -122,4 +122,118 @@ export const nl = {
     testYourAI: 'Test je AI',
     agentsSettings: 'Agents & Instellingen',
   },
+  bookingFeatures: {
+    automation: {
+      name: '100% Automatische Boekingen',
+      description: 'Geen handmatige tussenkomst nodig. Boekt, bevestigt en plant automatisch om',
+      cta: 'Meer info'
+    },
+    personalization: {
+      name: 'Volledig Gepersonaliseerd',
+      description: 'Pas de AI Agent aan op jouw diensten, veelgestelde vragen en boekingslogica',
+      cta: 'Meer info'
+    },
+    calendar: {
+      name: 'Eigen Kalender',
+      description: 'Krijg je eigen professionele kalender met volledige controle',
+      cta: 'Meer info'
+    },
+    smartResponses: {
+      name: 'Slimme AI Reacties',
+      description: 'Zie hoe onze AI intelligente, contextuele reacties geeft',
+      cta: 'Meer info'
+    },
+    reminders: {
+      name: 'Automatische Herinneringen',
+      description: 'Stuurt bevestigings- en herinneringsberichten om no-shows te verminderen',
+      cta: 'Meer info'
+    },
+    analytics: {
+      name: 'Gedetailleerde Analytics',
+      description: 'Volg boekingspercentages, populaire tijden en gegenereerde omzet',
+      cta: 'Meer info'
+    },
+    multilanguage: {
+      name: 'Meertalige Ondersteuning',
+      description: 'Communiceert automatisch in de voorkeurstaal van je klanten',
+      cta: 'Meer info'
+    },
+    monitoring: {
+      name: 'Real-time Dashboard Monitoring',
+      description: 'Bekijk live boekingen, prestaties en klantinteracties',
+      cta: 'Meer info'
+    }
+  },
+  whatsappBenefits: {
+    heading: 'Waarom Kiezen voor WhatsApp Boekingen?',
+    description: 'Bewezen resultaten die je bedrijf transformeren. Bereik 2,95 miljard klanten direct met 24/7 automatisering en veilige betalingen.',
+    linkText: 'Start Gratis 7-Dagen Proef',
+    swipeHint: 'Swipe of tik op pijlen om te verkennen',
+    benefits: {
+      globalReach: {
+        title: '2,95 Miljard Klanten Klaar om te Boeken',
+        description: 'Bereik klanten waar ze al zijn. WhatsApp\'s universele adoptie betekent geen app downloads, geen nieuwe accounts. Gewoon directe boeking in \'s werelds populairste berichtenplatform.',
+        mobileDescription: 'Maak direct contact met miljarden gebruikers zonder app downloads. Boek direct via hun favoriete berichtenplatform.'
+      },
+      automation: {
+        title: '24/7 Boekingen Zonder Personeel',
+        description: 'Je AI assistent slaapt nooit. Klanten boeken direct afspraken om 3 uur \'s ochtends of tijdens drukke uren zonder extra personeelskosten. Pak elke boekingskans terwijl jij je focust op je bedrijf.',
+        mobileDescription: 'AI handelt 24/7 boekingen af terwijl jij slaapt of klanten bedient. Nul gemiste kansen, geen extra personeelskosten.'
+      },
+      payment: {
+        title: '80% Minder No-Shows met Directe Betaling',
+        description: 'Vooruitbetaling via WhatsApp creëert commitment. Word 50 tot 75% sneller betaald (1 tot 2 dagen vs 7 tot 14 dagen) terwijl je dramatisch annuleringen vermindert en cashflow verbetert.',
+        mobileDescription: 'Veilige WhatsApp betalingen creëren echte commitment. Word direct betaald in plaats van weken wachten op traditionele facturering.'
+      }
+    }
+  },
+  socialProof: {
+    title: 'Vertrouwd door',
+    titleAccent: '10.000+',
+    titleSuffix: 'Bedrijven',
+    mobileSubtitle: 'Duizenden vertrouwen onze boekingsautomatisering',
+    desktopSubtitle: 'Sluit je aan bij duizenden ondernemers die hun boekingsproces hebben gerevolutioneerd',
+    stats: {
+      businesses: 'Tevreden Bedrijven',
+      bookings: 'Boekingen Verwerkt',
+      response: 'Gemiddelde Respons'
+    },
+    testimonials: [
+      {
+        name: 'Maria Janssen',
+        business: 'Salon Schoonheid',
+        location: 'Amsterdam',
+        service: 'Kapsalon',
+        stats: '40% meer boekingen',
+        testimonial: 'Sinds ik het AI boekingssysteem gebruik, bespaar ik 3 uur per dag! Geen heen-en-weer berichten meer. Mijn klanten vinden het geweldig hoe snel ze reacties krijgen, en ik heb 40% meer boekingen!'
+      },
+      {
+        name: 'Dr. Pieter de Vries',
+        business: 'Wellness Kliniek',
+        location: 'Rotterdam',
+        service: 'Medische Praktijk',
+        stats: '24/7 beschikbaarheid',
+        testimonial: 'De AI handelt alle afspraakverzoeken perfect af, zelfs complexe planning. Mijn patiënten zijn verbaasd over de directe reacties. Het is alsof ik een perfecte receptionist heb, 24/7.'
+      },
+      {
+        name: 'Sophie van der Berg',
+        business: 'Fitness Studio',
+        location: 'Utrecht',
+        service: 'Fitness Studio',
+        stats: '35% omzetgroei',
+        testimonial: 'Mijn leden kunnen nu direct lessen boeken via WhatsApp. De AI kent alle lesroosters en handelt annuleringen perfect af. Omzet is met 35% gestegen in slechts 2 maanden!'
+      }
+    ]
+  },
+  calendar: {
+    title: 'Juli 2025',
+    subtitle: 'Kalender Overzicht',
+    appointments: 'Afspraken',
+    appointmentsCount: 'afspraken',
+    weekDays: ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'],
+    sampleBookings: {
+      customers: ['Emma Jansen', 'Michael Bakker', 'Sofia Visser', 'David Smit', 'Lisa de Jong', 'James van Dijk', 'Anna Mulder', 'Roberto Koning'],
+      services: ['Knippen', 'Massage', 'Consult', 'Gezichtsbehandeling', 'Manicure', 'Training', 'Therapie', 'Controle']
+    }
+  }
 } as const;

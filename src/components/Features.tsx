@@ -1,11 +1,12 @@
 
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
-import { bookingFeatures } from "./features/FeatureData";
+import { useBookingFeatures } from "./features/FeatureData";
 import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const Features = () => {
   const { t } = useTranslation();
+  const bookingFeatures = useBookingFeatures();
   return (
     <section className="hidden md:block py-16 md:py-16 px-3 md:px-4 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
