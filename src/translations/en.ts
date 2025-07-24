@@ -90,19 +90,117 @@ export const en = {
       starter: {
         name: 'Starter',
         description: 'Perfect for beginners with basic WhatsApp automation and calendar management',
-        cta: 'Start Your Free Trial Now'
+        cta: 'Start Your Free Trial Now',
+        features: [
+          {
+            text: 'Strategic WhatsApp contact management (up to 500)',
+            tooltip: 'Organize and manage up to 500 WhatsApp contacts with smart categorization and automated responses'
+          },
+          {
+            text: 'Dual-calendar orchestration system',
+            tooltip: 'Seamlessly sync and manage two separate calendars with automated booking coordination'
+          },
+          {
+            text: 'Individual user access management',
+            tooltip: 'Single user account with full access to your calendar and booking system'
+          },
+          {
+            text: 'AI-powered intelligent reminder sequences',
+            tooltip: 'Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates'
+          },
+          {
+            text: 'Essential dashboard overview & live operations monitoring',
+            tooltip: 'Real-time view of bookings, appointments, and live operations monitoring with basic analytics'
+          },
+          {
+            text: 'Global multi-language localization',
+            tooltip: 'Automatically communicate with customers in their preferred language across multiple regions'
+          },
+          {
+            text: 'Streamlined payment processing & collection',
+            tooltip: 'Integrated payment system for booking deposits and service payments with automated invoicing'
+          }
+        ]
       },
       professional: {
         name: 'Professional', 
         description: 'Advanced features for teams with extended contact management and collaboration tools',
         cta: 'Start Your Free Trial Now',
-        badge: 'Most Popular'
+        badge: 'Most Popular',
+        features: [
+          {
+            text: 'All Starter premium features included',
+            tooltip: 'Everything from the Starter plan plus additional professional features'
+          },
+          {
+            text: 'Professional WhatsApp contact management (up to 2,500)',
+            tooltip: 'Manage up to 2,500 contacts with advanced segmentation, bulk messaging, and automated workflows'
+          },
+          {
+            text: 'Unlimited calendar orchestration platform',
+            tooltip: 'Connect and manage unlimited calendars across different platforms with advanced synchronization'
+          },
+          {
+            text: 'Advanced team collaboration suite (2-10 users)',
+            tooltip: 'Multi-user workspace with role-based permissions, shared calendars, and team communication tools'
+          },
+          {
+            text: 'Multi-location business coordination',
+            tooltip: 'Manage bookings and operations across multiple business locations with centralized control'
+          },
+          {
+            text: 'Complete analytics suite: Business Intelligence, Performance tracking & Future Insights',
+            tooltip: 'Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization'
+          },
+          {
+            text: 'Dedicated priority customer success',
+            tooltip: 'Priority support with faster response times and dedicated success manager for onboarding and optimization'
+          }
+        ]
       },
       enterprise: {
         name: 'Enterprise',
         description: 'Complete business solution with dedicated WhatsApp number and premium support',
         cta: 'Contact Sales',
-        priceFrom: 'From €499'
+        priceFrom: 'From €499',
+        features: [
+          {
+            text: 'Complete professional suite included',
+            tooltip: 'All Professional plan features plus enterprise-grade capabilities'
+          },
+          {
+            text: 'Unlimited enterprise WhatsApp contact management',
+            tooltip: 'No limits on contacts with enterprise-grade security, compliance features, and bulk operations'
+          },
+          {
+            text: 'Unlimited enterprise user access management',
+            tooltip: 'Unlimited team members with advanced role management, department hierarchies, and granular permissions'
+          },
+          {
+            text: 'Dedicated WhatsApp Business API with custom branding',
+            tooltip: 'Your own WhatsApp Business API connection with custom branding, verified business account, and green checkmark'
+          },
+          {
+            text: 'Intelligent voice call routing & distribution',
+            tooltip: 'Automated phone call management with smart routing to available team members and call recording capabilities'
+          },
+          {
+            text: 'Omnichannel social media DM orchestration',
+            tooltip: 'Unified management of direct messages across Facebook, Instagram, Twitter, LinkedIn, and other social platforms from one dashboard'
+          },
+          {
+            text: 'Advanced reputation management & review analytics',
+            tooltip: 'Monitor and manage online reviews across Google, Facebook, and other platforms with automated response suggestions and reputation scoring'
+          },
+          {
+            text: 'Enterprise SLA with dedicated success management',
+            tooltip: '99.9% uptime guarantee, dedicated account manager, and enterprise-level support with guaranteed response times'
+          },
+          {
+            text: 'White-glove onboarding & strategic integration consulting',
+            tooltip: 'Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation'
+          }
+        ]
       }
     }
   },

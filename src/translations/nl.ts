@@ -90,19 +90,117 @@ export const nl = {
       starter: {
         name: 'Starter',
         description: 'Perfect voor beginners met basis WhatsApp automatisering en kalender beheer',
-        cta: 'Start Je Gratis Proefperiode Nu'
+        cta: 'Start Je Gratis Proefperiode Nu',
+        features: [
+          {
+            text: 'Strategisch WhatsApp contactbeheer (tot 500)',
+            tooltip: 'Organiseer en beheer tot 500 WhatsApp contacten met slimme categorisatie en geautomatiseerde reacties'
+          },
+          {
+            text: 'Dubbel-kalender orchestratie systeem',
+            tooltip: 'Naadloos synchroniseren en beheren van twee aparte kalenders met geautomatiseerde boekingscoördinatie'
+          },
+          {
+            text: 'Individueel gebruikerstoegang beheer',
+            tooltip: 'Enkel gebruikersaccount met volledige toegang tot je kalender en boekingssysteem'
+          },
+          {
+            text: 'AI-aangedreven intelligente herinneringsreeksen',
+            tooltip: 'Geautomatiseerde herinneringsberichten verzonden via WhatsApp om no-shows te verminderen en aanwezigheid te verbeteren'
+          },
+          {
+            text: 'Essentieel dashboard overzicht & live operaties monitoring',
+            tooltip: 'Real-time weergave van boekingen, afspraken en live operaties monitoring met basis analytics'
+          },
+          {
+            text: 'Wereldwijde meertalige lokalisatie',
+            tooltip: 'Automatisch communiceren met klanten in hun voorkeurstaal over meerdere regio\'s'
+          },
+          {
+            text: 'Gestroomlijnde betalingsverwerking & incasso',
+            tooltip: 'Geïntegreerd betalingssysteem voor boekingsaanbetalingen en servicevergoedingen met geautomatiseerde facturering'
+          }
+        ]
       },
       professional: {
         name: 'Professioneel',
         description: 'Geavanceerde functies voor teams met uitgebreid contact beheer en samenwerkingstools',
         cta: 'Start Je Gratis Proefperiode Nu',
-        badge: 'Meest Populair'
+        badge: 'Meest Populair',
+        features: [
+          {
+            text: 'Alle Starter premium functies inbegrepen',
+            tooltip: 'Alles van het Starter plan plus aanvullende professionele functies'
+          },
+          {
+            text: 'Professioneel WhatsApp contactbeheer (tot 2.500)',
+            tooltip: 'Beheer tot 2.500 contacten met geavanceerde segmentatie, bulk berichten en geautomatiseerde workflows'
+          },
+          {
+            text: 'Onbeperkt kalender orchestratie platform',
+            tooltip: 'Verbind en beheer onbeperkte kalenders over verschillende platforms met geavanceerde synchronisatie'
+          },
+          {
+            text: 'Geavanceerde team samenwerking suite (2-10 gebruikers)',
+            tooltip: 'Multi-gebruiker workspace met rol-gebaseerde rechten, gedeelde kalenders en team communicatietools'
+          },
+          {
+            text: 'Multi-locatie bedrijfscoördinatie',
+            tooltip: 'Beheer boekingen en operaties over meerdere bedrijfslocaties met gecentraliseerde controle'
+          },
+          {
+            text: 'Complete analytics suite: Business Intelligence, Prestatie tracking & Toekomst Inzichten',
+            tooltip: 'Uitgebreide analytics inclusief afspraaktrends, klantgedrag inzichten, omzet tracking, conversie percentages en voorspellende analytics voor bedrijfsgroei en optimalisatie'
+          },
+          {
+            text: 'Toegewijde prioriteit klantensucces',
+            tooltip: 'Prioriteitsondersteuning met snellere reactietijden en toegewijde succesmanager voor onboarding en optimalisatie'
+          }
+        ]
       },
       enterprise: {
         name: 'Enterprise',
         description: 'Complete bedrijfsoplossing met toegewijd WhatsApp nummer en premium ondersteuning',
         cta: 'Neem Contact Op',
-        priceFrom: 'Vanaf €499'
+        priceFrom: 'Vanaf €499',
+        features: [
+          {
+            text: 'Complete professionele suite inbegrepen',
+            tooltip: 'Alle Professional plan functies plus enterprise-grade mogelijkheden'
+          },
+          {
+            text: 'Onbeperkt enterprise WhatsApp contactbeheer',
+            tooltip: 'Geen limieten op contacten met enterprise-grade beveiliging, compliance functies en bulk operaties'
+          },
+          {
+            text: 'Onbeperkt enterprise gebruikerstoegang beheer',
+            tooltip: 'Onbeperkte teamleden met geavanceerd rolbeheer, afdelingshiërarchieën en granulaire rechten'
+          },
+          {
+            text: 'Toegewijde WhatsApp Business API met aangepaste branding',
+            tooltip: 'Je eigen WhatsApp Business API verbinding met aangepaste branding, geverifieerd bedrijfsaccount en groen vinkje'
+          },
+          {
+            text: 'Intelligente spraakoproep routing & distributie',
+            tooltip: 'Geautomatiseerd telefoongesprek beheer met slimme routing naar beschikbare teamleden en oproepopname mogelijkheden'
+          },
+          {
+            text: 'Omnichannel social media DM orchestratie',
+            tooltip: 'Geïntegreerd beheer van directe berichten over Facebook, Instagram, Twitter, LinkedIn en andere sociale platforms vanuit één dashboard'
+          },
+          {
+            text: 'Geavanceerd reputatiebeheer & review analytics',
+            tooltip: 'Monitor en beheer online reviews over Google, Facebook en andere platforms met geautomatiseerde antwoordsuggesties en reputatie scoring'
+          },
+          {
+            text: 'Enterprise SLA met toegewijde succesbeheer',
+            tooltip: '99,9% uptime garantie, toegewijde accountmanager en enterprise-level ondersteuning met gegarandeerde reactietijden'
+          },
+          {
+            text: 'White-glove onboarding & strategische integratie consultancy',
+            tooltip: 'Complete setup assistentie, aangepaste integratie met bestaande systemen, personeelstraining en doorlopende strategische consultatie'
+          }
+        ]
       }
     }
   },

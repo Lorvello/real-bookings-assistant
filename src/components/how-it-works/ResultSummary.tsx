@@ -48,28 +48,28 @@ const ResultSummary = () => {
 
   const stats = [
     { 
-      value: '30sec', 
-      label: 'Average booking time', 
+      value: t('howItWorks.results.stats.0.value'), 
+      label: t('howItWorks.results.stats.0.label'), 
       icon: Clock,
-      detailText: "Complete bookings from first message to confirmation in under 30 seconds. No phone calls, forms, or back-and-forth emails needed. Customers book instantly through familiar WhatsApp interface while you sleep."
+      detailText: t('howItWorks.results.stats.0.detail')
     },
     { 
-      value: '40%', 
-      label: 'Reduction in service costs', 
+      value: t('howItWorks.results.stats.1.value'), 
+      label: t('howItWorks.results.stats.1.label'), 
       icon: Users,
-      detailText: "Businesses report 30-40% reductions in customer service costs while improving quality. Staff productivity increases 75% with 3x booking efficiency. 70% of inquiries handled without human intervention."
+      detailText: t('howItWorks.results.stats.1.detail')
     },
     { 
-      value: '10x', 
-      label: 'Return on investment potential', 
+      value: t('howItWorks.results.stats.2.value'), 
+      label: t('howItWorks.results.stats.2.label'), 
       icon: TrendingUp,
-      detailText: "Companies like Tata CLiQ achieved 10x ROI generating $500k in WhatsApp sales monthly. 89% uplift in purchases per user, 72% higher sessions. 60-80% reduction in customer acquisition costs."
+      detailText: t('howItWorks.results.stats.2.detail')
     },
     { 
-      value: '24/7', 
-      label: 'Automated availability', 
+      value: t('howItWorks.results.stats.3.value'), 
+      label: t('howItWorks.results.stats.3.label'), 
       icon: Zap,
-      detailText: "Automated systems provide round-the-clock availability without staffing costs. 90% of users respond within 30 minutes vs 12-hour email response times. 42% higher 6-month retention rates."
+      detailText: t('howItWorks.results.stats.3.detail')
     }
   ];
 
@@ -128,7 +128,7 @@ const ResultSummary = () => {
                     
                     {/* Learn more text */}
                     <div className="absolute top-1.5 right-1.5 text-[8px] lg:text-[9px] text-slate-500 group-hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
-                      Learn more
+                      {t('howItWorks.results.learnMore')}
                       <ArrowRight className="w-2 h-2 lg:w-2.5 lg:h-2.5" />
                     </div>
                     
@@ -223,7 +223,7 @@ const ResultSummary = () => {
                    >
                     {/* Learn more text */}
                     <div className="absolute top-1.5 right-1.5 text-[8px] text-slate-500 group-hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
-                      Learn more
+                      {t('howItWorks.results.learnMore')}
                       <ArrowRight className="w-2 h-2" />
                     </div>
                     

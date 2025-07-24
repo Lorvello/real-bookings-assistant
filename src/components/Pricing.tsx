@@ -12,128 +12,128 @@ export const Pricing = () => {
 
   const plans = [
     {
-      name: "Starter",
+      name: t('pricing.plans.starter.name'),
       monthlyPrice: 19,
       annualPrice: 15,
-      description: "Perfect for beginners with basic WhatsApp automation and calendar management",
+      description: t('pricing.plans.starter.description'),
       features: [
         {
-          text: "Strategic WhatsApp contact management (up to 500)",
-          tooltip: "Organize and manage up to 500 WhatsApp contacts with smart categorization and automated responses"
+          text: t('pricing.plans.starter.features.0.text'),
+          tooltip: t('pricing.plans.starter.features.0.tooltip')
         },
         {
-          text: "Dual-calendar orchestration system",
-          tooltip: "Seamlessly sync and manage two separate calendars with automated booking coordination"
+          text: t('pricing.plans.starter.features.1.text'),
+          tooltip: t('pricing.plans.starter.features.1.tooltip')
         },
         {
-          text: "Individual user access management",
-          tooltip: "Single user account with full access to your calendar and booking system"
+          text: t('pricing.plans.starter.features.2.text'),
+          tooltip: t('pricing.plans.starter.features.2.tooltip')
         },
         {
-          text: "AI-powered intelligent reminder sequences",
-          tooltip: "Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates"
+          text: t('pricing.plans.starter.features.3.text'),
+          tooltip: t('pricing.plans.starter.features.3.tooltip')
         },
         {
-          text: "Essential dashboard overview & live operations monitoring",
-          tooltip: "Real-time view of bookings, appointments, and live operations monitoring with basic analytics"
+          text: t('pricing.plans.starter.features.4.text'),
+          tooltip: t('pricing.plans.starter.features.4.tooltip')
         },
         {
-          text: "Global multi-language localization",
-          tooltip: "Automatically communicate with customers in their preferred language across multiple regions"
+          text: t('pricing.plans.starter.features.5.text'),
+          tooltip: t('pricing.plans.starter.features.5.tooltip')
         },
         {
-          text: "Streamlined payment processing & collection",
-          tooltip: "Integrated payment system for booking deposits and service payments with automated invoicing"
+          text: t('pricing.plans.starter.features.6.text'),
+          tooltip: t('pricing.plans.starter.features.6.tooltip')
         }
       ],
       popular: false,
-      cta: "Start Your Free Trial Now",
+      cta: t('pricing.plans.starter.cta'),
       color: "from-slate-600 to-slate-700"
     },
     {
-      name: "Professional",
+      name: t('pricing.plans.professional.name'),
       monthlyPrice: 49,
       annualPrice: 39,
-      description: "Advanced features for teams with extended contact management and collaboration tools",
+      description: t('pricing.plans.professional.description'),
       features: [
         {
-          text: "All Starter premium features included",
-          tooltip: "Everything from the Starter plan plus additional professional features"
+          text: t('pricing.plans.professional.features.0.text'),
+          tooltip: t('pricing.plans.professional.features.0.tooltip')
         },
         {
-          text: "Professional WhatsApp contact management (up to 2,500)",
-          tooltip: "Manage up to 2,500 contacts with advanced segmentation, bulk messaging, and automated workflows"
+          text: t('pricing.plans.professional.features.1.text'),
+          tooltip: t('pricing.plans.professional.features.1.tooltip')
         },
         {
-          text: "Unlimited calendar orchestration platform",
-          tooltip: "Connect and manage unlimited calendars across different platforms with advanced synchronization"
+          text: t('pricing.plans.professional.features.2.text'),
+          tooltip: t('pricing.plans.professional.features.2.tooltip')
         },
         {
-          text: "Advanced team collaboration suite (2-10 users)",
-          tooltip: "Multi-user workspace with role-based permissions, shared calendars, and team communication tools"
+          text: t('pricing.plans.professional.features.3.text'),
+          tooltip: t('pricing.plans.professional.features.3.tooltip')
         },
         {
-          text: "Multi-location business coordination",
-          tooltip: "Manage bookings and operations across multiple business locations with centralized control"
+          text: t('pricing.plans.professional.features.4.text'),
+          tooltip: t('pricing.plans.professional.features.4.tooltip')
         },
         {
-          text: "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
-          tooltip: "Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization"
+          text: t('pricing.plans.professional.features.5.text'),
+          tooltip: t('pricing.plans.professional.features.5.tooltip')
         },
         {
-          text: "Dedicated priority customer success",
-          tooltip: "Priority support with faster response times and dedicated success manager for onboarding and optimization"
+          text: t('pricing.plans.professional.features.6.text'),
+          tooltip: t('pricing.plans.professional.features.6.tooltip')
         }
       ],
       popular: true,
-      cta: "Start Your Free Trial Now",
+      cta: t('pricing.plans.professional.cta'),
       color: "from-emerald-500 to-green-500"
     },
     {
-      name: "Enterprise",
+      name: t('pricing.plans.enterprise.name'),
       monthlyPrice: null,
       annualPrice: null,
-      description: "Complete business solution with dedicated WhatsApp number and premium support",
+      description: t('pricing.plans.enterprise.description'),
       features: [
         {
-          text: "Complete professional suite included",
-          tooltip: "All Professional plan features plus enterprise-grade capabilities"
+          text: t('pricing.plans.enterprise.features.0.text'),
+          tooltip: t('pricing.plans.enterprise.features.0.tooltip')
         },
         {
-          text: "Unlimited enterprise WhatsApp contact management",
-          tooltip: "No limits on contacts with enterprise-grade security, compliance features, and bulk operations"
+          text: t('pricing.plans.enterprise.features.1.text'),
+          tooltip: t('pricing.plans.enterprise.features.1.tooltip')
         },
         {
-          text: "Unlimited enterprise user access management",
-          tooltip: "Unlimited team members with advanced role management, department hierarchies, and granular permissions"
+          text: t('pricing.plans.enterprise.features.2.text'),
+          tooltip: t('pricing.plans.enterprise.features.2.tooltip')
         },
         {
-          text: "Dedicated WhatsApp Business API with custom branding",
-          tooltip: "Your own WhatsApp Business API connection with custom branding, verified business account, and green checkmark"
+          text: t('pricing.plans.enterprise.features.3.text'),
+          tooltip: t('pricing.plans.enterprise.features.3.tooltip')
         },
         {
-          text: "Intelligent voice call routing & distribution",
-          tooltip: "Automated phone call management with smart routing to available team members and call recording capabilities"
+          text: t('pricing.plans.enterprise.features.4.text'),
+          tooltip: t('pricing.plans.enterprise.features.4.tooltip')
         },
         {
-          text: "Omnichannel social media DM orchestration",
-          tooltip: "Unified management of direct messages across Facebook, Instagram, Twitter, LinkedIn, and other social platforms from one dashboard"
+          text: t('pricing.plans.enterprise.features.5.text'),
+          tooltip: t('pricing.plans.enterprise.features.5.tooltip')
         },
         {
-          text: "Advanced reputation management & review analytics",
-          tooltip: "Monitor and manage online reviews across Google, Facebook, and other platforms with automated response suggestions and reputation scoring"
+          text: t('pricing.plans.enterprise.features.6.text'),
+          tooltip: t('pricing.plans.enterprise.features.6.tooltip')
         },
         {
-          text: "Enterprise SLA with dedicated success management",
-          tooltip: "99.9% uptime guarantee, dedicated account manager, and enterprise-level support with guaranteed response times"
+          text: t('pricing.plans.enterprise.features.7.text'),
+          tooltip: t('pricing.plans.enterprise.features.7.tooltip')
         },
         {
-          text: "White-glove onboarding & strategic integration consulting",
-          tooltip: "Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation"
+          text: t('pricing.plans.enterprise.features.8.text'),
+          tooltip: t('pricing.plans.enterprise.features.8.tooltip')
         }
       ],
       popular: false,
-      cta: "Contact Sales",
+      cta: t('pricing.plans.enterprise.cta'),
       color: "from-slate-900 to-black",
       isEnterprise: true
     }
@@ -259,7 +259,7 @@ export const Pricing = () => {
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                       <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap shadow-lg shadow-emerald-500/30">
-                        Most Popular
+                        {t('pricing.plans.professional.badge')}
                       </div>
                     </div>
                   )}
@@ -378,10 +378,10 @@ export const Pricing = () => {
                         }`} />
                         
                         {plan.popular && (
-                          <div className="absolute top-2.5 left-1/2 transform -translate-x-1/2 z-10">
-                            <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shadow-lg shadow-emerald-500/40">
-                              Most Popular
-                            </div>
+                           <div className="absolute top-2.5 left-1/2 transform -translate-x-1/2 z-10">
+                             <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shadow-lg shadow-emerald-500/40">
+                               {t('pricing.plans.professional.badge')}
+                             </div>
                           </div>
                         )}
 
