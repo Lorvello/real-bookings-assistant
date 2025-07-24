@@ -47,96 +47,6 @@ function GlobalWebhookProcessor() {
 }
 
 function App() {
-  useEffect(() => {
-    const initGoogleTranslate = async () => {
-      console.log('🌍 Starting Google Translate detection...');
-      
-      // Check if already translated
-      const savedLang = localStorage.getItem('preferred-language');
-      if (savedLang === 'nl' && document.body.classList.contains('translated-ltr')) {
-        console.log('✅ Already translated to Dutch');
-        return;
-      }
-
-      let shouldTranslate = false;
-
-      try {
-        // Try IP-based detection first
-        console.log('🔍 Checking IP location...');
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        console.log('📍 Location data:', data);
-        
-        if (data.country_code === 'NL' || data.country_code === 'BE') {
-          console.log('🇳🇱 Dutch/Belgian IP detected');
-          shouldTranslate = true;
-          localStorage.setItem('preferred-language', 'nl');
-        }
-      } catch (error) {
-        console.log('❌ IP detection failed, checking browser language');
-        
-        // Fallback to browser language detection
-        const languages = navigator.languages || [navigator.language];
-        const hasDutch = languages.some(lang => lang.toLowerCase().startsWith('nl'));
-        
-        if (hasDutch) {
-          console.log('🇳🇱 Dutch browser language detected');
-          shouldTranslate = true;
-          localStorage.setItem('preferred-language', 'nl');
-        }
-      }
-
-      if (shouldTranslate) {
-        console.log('🔄 Will translate to Dutch...');
-        waitForGoogleTranslateAndTranslate();
-      } else {
-        console.log('🇬🇧 Staying in English');
-        localStorage.setItem('preferred-language', 'en');
-      }
-    };
-
-    const waitForGoogleTranslateAndTranslate = () => {
-      let attempts = 0;
-      const maxAttempts = 20;
-      
-      const tryTranslate = () => {
-        attempts++;
-        console.log(`🔄 Translation attempt ${attempts}/${maxAttempts}`);
-        
-        const selectBox = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-        
-        if (selectBox) {
-          console.log('✅ Google Translate ready, translating...');
-          selectBox.value = 'nl';
-          selectBox.dispatchEvent(new Event('change'));
-          
-          // Verify translation started
-          setTimeout(() => {
-            if (document.body.classList.contains('translated-ltr')) {
-              console.log('🎉 Translation successful!');
-            } else {
-              console.log('⚠️ Translation may not have worked');
-            }
-          }, 2000);
-          
-          return;
-        }
-        
-        if (attempts < maxAttempts) {
-          console.log('⏳ Google Translate not ready yet, retrying...');
-          setTimeout(tryTranslate, 500);
-        } else {
-          console.log('❌ Google Translate failed to load after max attempts');
-        }
-      };
-
-      // Start trying after a short delay
-      setTimeout(tryTranslate, 1000);
-    };
-
-    // Start the initialization
-    initGoogleTranslate();
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -144,7 +54,6 @@ function App() {
         <CalendarProvider>
           <ConversationCalendarProvider>
             <Router>
-              <div id="google_translate_element" style={{ display: 'none' }}></div>
               <GlobalWebhookProcessor />
               <Routes>
                 <Route path="/" element={<Index />} />
