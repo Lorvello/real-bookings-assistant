@@ -121,6 +121,12 @@ export function CalendarDayCell({
                   }}
                   onClick={(e) => handleSingleBookingClick(dayBookings[0], e)}
                 >
+                  {/* Info indicator */}
+                  <div className="absolute top-0.5 right-0.5">
+                    <div className="w-4 h-4 flex items-center justify-center">
+                      <Info className="w-2.5 h-2.5 text-gray-600" />
+                    </div>
+                  </div>
 
                   <div className="flex items-center justify-between">
                     <div className="text-white text-xs font-semibold">
