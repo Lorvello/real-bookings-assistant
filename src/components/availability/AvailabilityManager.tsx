@@ -44,19 +44,12 @@ export const AvailabilityManager = () => {
   // Show message when "All Calendars" is selected
   if (viewingAllCalendars) {
     return (
-      <div className="bg-gray-900 min-h-full">
-        <div className="p-4 pt-3">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
-            <div className="text-center space-y-4">
-              <h2 className="text-xl font-semibold text-foreground">Select a specific calendar</h2>
-              <p className="text-muted-foreground">
-                Availability settings are configured per calendar. Please select a specific calendar from the header to manage its availability.
-              </p>
-              <div className="pt-4">
-                <CalendarSwitcher hideAllCalendarsOption={true} />
-              </div>
-            </div>
-          </div>
+      <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
+        <div className="text-center space-y-4">
+          <h2 className="text-xl font-semibold text-foreground">Select a specific calendar</h2>
+          <p className="text-muted-foreground">
+            Availability settings are configured per calendar. Please select a specific calendar from the header to manage its availability.
+          </p>
         </div>
       </div>
     );
@@ -65,24 +58,20 @@ export const AvailabilityManager = () => {
   // Show message when no calendar is selected
   if (!selectedCalendar) {
     return (
-      <div className="bg-gray-900 min-h-full">
-        <div className="p-4 pt-3">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
-            <div className="text-center space-y-4">
-              <div className="text-2xl">📅</div>
-              <h2 className="text-xl font-semibold text-foreground">No calendar selected</h2>
-              <p className="text-muted-foreground">
-                Please select a calendar to manage its availability settings.
-              </p>
-            </div>
-          </div>
+      <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
+        <div className="text-center space-y-4">
+          <div className="text-2xl">📅</div>
+          <h2 className="text-xl font-semibold text-foreground">No calendar selected</h2>
+          <p className="text-muted-foreground">
+            Please select a calendar to manage its availability settings.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-900 min-h-full">
+    <div>
       <AvailabilityTabs
         activeTab={activeTab}
         onTabChange={setActiveTab}

@@ -6,6 +6,7 @@ import { WhatsAppNotAvailable } from '@/components/whatsapp/WhatsAppNotAvailable
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
+import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 
 export default function WhatsAppBookingAssistantPage() {
   const { selectedCalendar } = useCalendarContext();
@@ -39,6 +40,7 @@ export default function WhatsAppBookingAssistantPage() {
       <div className="bg-gray-900 min-h-full p-2 md:p-8">
         <div className="space-y-3 md:space-y-6">
           <SimplePageHeader title="WhatsApp Booking Assistant" />
+          <CalendarSwitcher />
           <WhatsAppBookingAssistant calendarId={selectedCalendar.id} />
         </div>
       </div>

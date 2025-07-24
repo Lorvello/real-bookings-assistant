@@ -6,7 +6,7 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { DashboardTabs } from '@/components/DashboardTabs';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
-import { CalendarSelector } from '@/components/dashboard/CalendarSelector';
+import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { UserStatusSwitcher } from '@/components/developer/UserStatusSwitcher';
@@ -115,10 +115,10 @@ const Dashboard = () => {
           <>
             <SimplePageHeader title="Dashboard" />
             
-            {/* Calendar Selector and Date Filter */}
+            {/* Calendar Switcher and Date Filter */}
             <div className="mb-6">
-              <div className="flex items-center gap-3 flex-wrap">
-                <CalendarSelector />
+              <div className="space-y-3">
+                <CalendarSwitcher />
                 {showDateFilter && (
                   <DateRangeFilter 
                     selectedRange={selectedDateRange}
