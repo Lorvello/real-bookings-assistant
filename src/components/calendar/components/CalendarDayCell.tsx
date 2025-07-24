@@ -1,6 +1,7 @@
 
 import { format, isSameMonth, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
 
 interface Booking {
   id: string;
@@ -120,18 +121,10 @@ export function CalendarDayCell({
                   }}
                   onClick={(e) => handleSingleBookingClick(dayBookings[0], e)}
                 >
-                  {/* Calendar and person indicators */}
-                  <div className="absolute top-0.5 right-0.5 flex gap-0.5">
-                    {/* Calendar indicator */}
-                    <div 
-                      className="w-4 h-4 rounded-full border border-white/50"
-                      style={{ backgroundColor: dayBookings[0].calendar?.color || '#6B7280' }}
-                    />
-                    {/* Person indicator */}
-                    <div className="w-4 h-4 rounded-full bg-white/80 flex items-center justify-center">
-                      <span className="text-xs font-bold text-gray-700">
-                        {dayBookings[0].calendar?.users?.full_name?.charAt(0) || '?'}
-                      </span>
+                  {/* Info indicator */}
+                  <div className="absolute top-0.5 right-0.5">
+                    <div className="w-4 h-4 rounded-full bg-white/90 flex items-center justify-center border border-white/50 shadow-sm">
+                      <Info className="w-2.5 h-2.5 text-gray-600" />
                     </div>
                   </div>
 
