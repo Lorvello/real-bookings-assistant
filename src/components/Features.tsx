@@ -2,8 +2,10 @@
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { bookingFeatures } from "./features/FeatureData";
 import StaggeredAnimationContainer from './StaggeredAnimationContainer';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Features = () => {
+  const { t } = useTranslation();
   return (
     <section className="hidden md:block py-16 md:py-16 px-3 md:px-4 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
@@ -27,14 +29,14 @@ const Features = () => {
           {/* Header - HEADERS (Largest) */}
           <div className="text-center pt-16 md:pt-20">
             <h2 className="text-2xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              Everything You Need To{" "}
+              {t('features.title')}{" "}
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Automate Bookings
+                {t('features.titleAccent')}
               </span>
             </h2>
             <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-              <span className="md:hidden">Features that maximize bookings and revenue</span>
-              <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
+              <span className="md:hidden">{t('features.mobileSubtitle')}</span>
+              <span className="hidden md:inline">{t('features.desktopSubtitle')}</span>
             </p>
           </div>
           

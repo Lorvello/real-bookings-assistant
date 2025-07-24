@@ -4,8 +4,10 @@ import { WhatsAppBenefits } from "@/components/ui/feature-whatsapp-benefits";
 import { MessageCircle, Brain, Target, Clock, Users, TrendingUp } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import StaggeredAnimationContainer from './StaggeredAnimationContainer';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Solution = () => {
+  const { t } = useTranslation();
   const [activeSolutionIndex, setActiveSolutionIndex] = useState(0);
   const solutionCarouselRef = useRef<HTMLDivElement>(null);
   const features = [{
@@ -82,19 +84,18 @@ const Solution = () => {
           {/* Header - HEADERS (Largest) */}
           <div className="text-center pt-1 md:pt-8">
             <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
-              Meet Your <span className="text-emerald-400">24/7</span>{" "}
+              {t('solution.title')} <span className="text-emerald-400">{t('solution.titleAccent')}</span>{" "}
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Booking Assistant
+                {t('solution.titleSuffix')}
               </span>
             </h2>
             <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-6 md:mb-8">
-              <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
-              <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
-              faster than any human could.</span>
+              <span className="md:hidden">{t('solution.mobileSubtitle')}</span>
+              <span className="hidden md:inline">{t('solution.desktopSubtitle')}</span>
             </p>
             
             <p className="text-base md:text-lg text-emerald-400 font-semibold tracking-tight mb-8 md:mb-0">
-              Here's what makes it revolutionary:
+              {t('solution.revolutionary')}
             </p>
           </div>
           

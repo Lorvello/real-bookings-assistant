@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
+import { useTranslation } from '@/hooks/useTranslation';
 
 export const Pricing = () => {
+  const { t } = useTranslation();
   const [isAnnual, setIsAnnual] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -190,13 +192,13 @@ export const Pricing = () => {
           <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-8 md:mb-16">
             <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
               <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
-              <span className="text-emerald-400 font-semibold text-sm md:text-base">Simple Pricing</span>
+              <span className="text-emerald-400 font-semibold text-sm md:text-base">{t('pricing.badge')}</span>
             </div>
             <h2 className="text-2xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              Choose Your <span className="text-emerald-400">Perfect Plan</span>
+              {t('pricing.title')} <span className="text-emerald-400">{t('pricing.titleAccent')}</span>
             </h2>
             <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-              Start with our free trial and scale as you grow. No setup fees, no contracts.
+              {t('pricing.subtitle')}
             </p>
           </ScrollAnimatedSection>
 
@@ -211,7 +213,7 @@ export const Pricing = () => {
                       : 'text-slate-300 hover:text-white'
                   }`}
                 >
-                  Monthly
+                  {t('pricing.billing.monthly')}
                 </button>
                 <button
                   onClick={() => setIsAnnual(true)}
@@ -221,10 +223,10 @@ export const Pricing = () => {
                       : 'text-slate-300 hover:text-white'
                   }`}
                 >
-                  Annual
+                  {t('pricing.billing.annual')}
                   {isAnnual && (
                     <span className="absolute -top-2 -right-2 bg-gradient-to-br from-black via-slate-800 to-black text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg border border-slate-600/30 ring-1 ring-white/10 backdrop-blur-sm">
-                      Save 20%
+                      {t('pricing.billing.save')}
                     </span>
                   )}
                 </button>
