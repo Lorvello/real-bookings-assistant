@@ -39,7 +39,8 @@ const CalendarMockup = () => {
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  const weekDays = (t('calendar.weekDays') as any) || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const translatedWeekDays = t('calendar.weekDays');
+  const weekDays = Array.isArray(translatedWeekDays) ? translatedWeekDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   // Get sample bookings for this month
   const sampleBookings = generateEnglishSampleBookings(currentDate);
