@@ -1,8 +1,11 @@
 
 import React from 'react';
 import { CheckCircle, Shield, Star, MessageSquare, MessageCircle, Users } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const StepTwoDetails = () => {
+  const { t } = useTranslation();
+  
   return (
     <div className="relative group">
       {/* Premium card with multiple shadow layers - Mobile: much smaller, Desktop: unchanged */}
@@ -31,7 +34,7 @@ const StepTwoDetails = () => {
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-emerald-300 font-semibold text-xs md:text-sm uppercase tracking-wider">Step Two</span>
+            <span className="text-emerald-300 font-semibold text-xs md:text-sm uppercase tracking-wider">{t('howItWorks.stepTwo.stepLabel')}</span>
             <div className="w-6 md:w-12 h-0.5 bg-gradient-to-r from-emerald-400 to-transparent mt-0.5"></div>
           </div>
         </div>
@@ -39,12 +42,11 @@ const StepTwoDetails = () => {
         {/* Premium Typography - Mobile: much smaller */}
         <h3 className="text-base md:text-2xl xl:text-3xl font-bold mb-1 md:mb-4 leading-tight tracking-tight
                      bg-gradient-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
-          Get your WhatsApp number instantly
+          {t('howItWorks.stepTwo.title')}
         </h3>
         
         <p className="text-slate-300 text-[10px] md:text-base mb-2 md:mb-4 leading-relaxed font-light">
-          Your account comes with an instant WhatsApp number assignment. You can also choose to 
-          connect your existing business number if you prefer.
+          {t('howItWorks.stepTwo.description')}
         </p>
         
         {/* Enhanced Options - Mobile: smaller */}
@@ -60,17 +62,17 @@ const StepTwoDetails = () => {
               <div className="flex items-center justify-between mb-1 md:mb-3">
                 <div className="flex items-center gap-1 md:gap-3">
                   <Shield className="w-3 h-3 md:w-6 md:h-6 text-emerald-400" />
-                  <h4 className="text-sm md:text-lg font-bold text-white">Instant number assignment</h4>
+                  <h4 className="text-sm md:text-lg font-bold text-white">{t('howItWorks.stepTwo.options.instant.title')}</h4>
                 </div>
                 <span className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-1 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-bold tracking-wide shadow-lg">
-                  Automatic
+                  {t('howItWorks.stepTwo.options.instant.badge')}
                 </span>
               </div>
               <p className="text-emerald-100 text-[10px] md:text-sm mb-1 md:mb-3 leading-relaxed">
-                Your unique WhatsApp number is assigned immediately upon account creation.
+                {t('howItWorks.stepTwo.options.instant.description')}
               </p>
               <div className="text-emerald-200 text-[10px]">
-                <strong>Perfect for:</strong> Immediate start, zero configuration
+                <strong>Perfect for:</strong> {t('howItWorks.stepTwo.options.instant.perfect')}
               </div>
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-transparent"></div>
@@ -83,16 +85,16 @@ const StepTwoDetails = () => {
             <div className="relative z-10">
               <div className="flex items-center gap-1 md:gap-3 mb-1 md:mb-3">
                 <MessageSquare className="w-3 h-3 md:w-6 md:h-6 text-emerald-400" />
-                <h4 className="text-sm md:text-lg font-bold text-white">Connect existing number</h4>
+                <h4 className="text-sm md:text-lg font-bold text-white">{t('howItWorks.stepTwo.options.connect.title')}</h4>
               </div>
               <p className="text-slate-200 text-[10px] md:text-sm mb-1 md:mb-3 leading-relaxed">
-                You can also connect your existing business WhatsApp number to our system.
+                {t('howItWorks.stepTwo.options.connect.description')}
               </p>
               <div className="text-slate-300 text-[10px]">
-                <strong>Perfect for:</strong> Existing business number, brand consistency
+                <strong>Perfect for:</strong> {t('howItWorks.stepTwo.options.connect.perfect')}
               </div>
               <div className="text-slate-400 text-[8px] md:text-[10px] mt-1 opacity-70">
-                *Enterprise subscribers only
+                {t('howItWorks.stepTwo.options.connect.note')}
               </div>
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent"></div>
@@ -116,7 +118,7 @@ const StepTwoDetails = () => {
               </div>
             </div>
             
-            <h4 className="text-sm md:text-xl font-bold text-white mb-2 md:mb-6 tracking-wide">WhatsApp Ready</h4>
+            <h4 className="text-sm md:text-xl font-bold text-white mb-2 md:mb-6 tracking-wide">{t('howItWorks.stepTwo.visual.title')}</h4>
             
             {/* Enhanced Status Cards - Mobile: smaller */}
             <div className="space-y-1 md:space-y-3">
@@ -126,7 +128,7 @@ const StepTwoDetails = () => {
                             relative overflow-hidden">
                 <div className="flex items-center justify-center gap-1 md:gap-3 mb-1 md:mb-2 relative z-10">
                   <div className="w-2 h-2 md:w-3 md:h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
-                  <span className="text-emerald-200 text-xs md:text-sm font-semibold tracking-wide">Number Assigned</span>
+                  <span className="text-emerald-200 text-xs md:text-sm font-semibold tracking-wide">{t('howItWorks.stepTwo.visual.status')}</span>
                 </div>
                 <p className="text-emerald-100 text-xs font-mono bg-emerald-500/10 px-1 py-0.5 md:px-3 md:py-1 rounded-lg inline-block">
                   +31 6 12345678
@@ -140,7 +142,7 @@ const StepTwoDetails = () => {
                             transition-all duration-300 hover:shadow-emerald-500/10">
                 <div className="flex items-center justify-center gap-1 md:gap-3">
                   <Users className="w-3 h-3 md:w-5 md:h-5 text-emerald-400" />
-                  <span className="text-slate-100 text-xs md:text-sm font-medium">Ready for Customers</span>
+                  <span className="text-slate-100 text-xs md:text-sm font-medium">{t('howItWorks.stepTwo.visual.ready')}</span>
                 </div>
               </div>
             </div>

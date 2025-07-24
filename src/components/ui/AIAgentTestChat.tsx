@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Message {
   id: string;

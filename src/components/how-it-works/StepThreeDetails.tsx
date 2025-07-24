@@ -1,8 +1,11 @@
 
 import React from 'react';
 import { MessageCircle, Calendar, Users, CheckCircle, Bot, Sparkles } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const StepThreeDetails = () => {
+  const { t } = useTranslation();
+  
   return (
     <div className="relative group">
       {/* Premium card with multiple shadow layers - Mobile: much smaller, Desktop: unchanged */}
@@ -31,7 +34,7 @@ const StepThreeDetails = () => {
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-emerald-300 font-semibold text-xs md:text-sm uppercase tracking-wider">Step Three</span>
+            <span className="text-emerald-300 font-semibold text-xs md:text-sm uppercase tracking-wider">{t('howItWorks.stepThree.stepLabel')}</span>
             <div className="w-6 md:w-12 h-0.5 bg-gradient-to-r from-emerald-400 to-transparent mt-0.5"></div>
           </div>
         </div>
@@ -39,12 +42,11 @@ const StepThreeDetails = () => {
         {/* Premium Typography - Mobile: much smaller */}
         <h3 className="text-base md:text-2xl xl:text-3xl font-bold mb-1 md:mb-4 leading-tight tracking-tight
                      bg-gradient-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
-          Your system goes live immediately
+          {t('howItWorks.stepThree.title')}
         </h3>
         
         <p className="text-slate-300 text-[10px] md:text-base mb-2 md:mb-4 leading-relaxed font-light">
-          That's it! Your entire booking system is instantly active and ready to serve customers 24/7. 
-          You can adjust settings anytime, but everything works perfectly from day one.
+          {t('howItWorks.stepThree.description')}
         </p>
         
         {/* Enhanced Feature List - Mobile: smaller */}

@@ -235,5 +235,152 @@ export const nl = {
       customers: ['Emma Jansen', 'Michael Bakker', 'Sofia Visser', 'David Smit', 'Lisa de Jong', 'James van Dijk', 'Anna Mulder', 'Roberto Koning'],
       services: ['Knippen', 'Massage', 'Consult', 'Gezichtsbehandeling', 'Manicure', 'Training', 'Therapie', 'Controle']
     }
+  },
+  howItWorks: {
+    hero: {
+      badge: '3 Stappen naar Succes',
+      title: 'Hoe werkt',
+      titleAccent: 'het?',
+      subtitle: 'Stap voor stap uitleg van hoe eenvoudig het is om te beginnen met ons systeem.',
+      subtitleAccent: 'Geen ingewikkelde installatie, geen technische problemen',
+      description: 'gewoon direct live gaan.'
+    },
+    stepIndicator: {
+      title: '3 Stappen. 5 Minuten. Klaar.',
+      subtitle: 'Ons intelligente systeem regelt alles automatisch, zodat je je kunt richten op wat het belangrijkste is,',
+      subtitleAccent: 'je klanten bedienen',
+      steps: {
+        connect: 'Verbinden',
+        setup: 'Instellen',
+        launch: 'Lanceren'
+      }
+    },
+    stepOne: {
+      stepLabel: 'Stap Een',
+      title: 'Maak account aan & krijg je professionele kalender',
+      description: 'Maak eenvoudig je account aan en krijg direct toegang tot je professionele kalendersysteem. Je kunt ook je bestaande kalender verbinden als je dat liever doet.',
+      features: [
+        'Directe professionele kalender setup',
+        'Optie om bestaande kalender te verbinden',
+        'Directe setup - geen wachten'
+      ],
+      visual: {
+        title: 'Kalender Klaar',
+        status: 'Professionele Kalender',
+        active: 'Direct Actief'
+      }
+    },
+    stepTwo: {
+      stepLabel: 'Stap Twee',
+      title: 'Krijg je WhatsApp nummer direct',
+      description: 'Je account wordt geleverd met een direct WhatsApp nummer. Je kunt er ook voor kiezen om je bestaande bedrijfsnummer te verbinden als je dat liever doet.',
+      options: {
+        instant: {
+          title: 'Direct nummer toewijzing',
+          badge: 'Automatisch',
+          description: 'Je unieke WhatsApp nummer wordt direct toegewezen bij het aanmaken van je account.',
+          perfect: 'Perfect voor: Directe start, geen configuratie'
+        },
+        connect: {
+          title: 'Bestaand nummer verbinden',
+          description: 'Je kunt ook je bestaande bedrijfs WhatsApp nummer verbinden aan ons systeem.',
+          perfect: 'Perfect voor: Bestaand bedrijfsnummer, merkherkenning',
+          note: '*Alleen voor Enterprise abonnees'
+        }
+      },
+      visual: {
+        title: 'WhatsApp Klaar',
+        status: 'Nummer Toegewezen',
+        ready: 'Klaar voor Klanten'
+      }
+    },
+    stepThree: {
+      stepLabel: 'Stap Drie',
+      title: 'Je systeem gaat direct live',
+      description: 'Dat is het! Je hele boekingssysteem is direct actief en klaar om klanten 24/7 te bedienen. Je kunt instellingen altijd aanpassen, maar alles werkt perfect vanaf dag één.',
+      features: [
+        {
+          title: 'Direct activering',
+          description: 'Alles werkt direct na het aanmaken van je account'
+        },
+        {
+          title: 'Optionele aanpassingen',
+          description: 'Pas instellingen aan wanneer je wilt om je voorkeuren te matchen'
+        },
+        {
+          title: '24/7 klaar om te bedienen',
+          description: 'Je klanten kunnen direct boeken via WhatsApp'
+        }
+      ],
+      liveStatus: {
+        title: 'Live Status',
+        description: 'Je complete boekingssysteem is actief en bedient klanten'
+      },
+      visual: {
+        title: 'Systeem Actief',
+        statuses: {
+          calendar: 'Kalender Live',
+          calendarDesc: 'Accepteert direct boekingen',
+          assistant: 'AI Assistent',
+          assistantDesc: 'Klaar om klanten te helpen',
+          serving: 'Live en Bedienend'
+        }
+      }
+    },
+    results: {
+      title: 'Bewezen resultaten die bedrijven transformeren',
+      stats: [
+        {
+          value: '30sec',
+          label: 'Gemiddelde boekingstijd',
+          detail: 'Volledige boekingen van eerste bericht tot bevestiging in minder dan 30 seconden. Geen telefoontjes, formulieren of heen-en-weer e-mails nodig. Klanten boeken direct via de vertrouwde WhatsApp interface terwijl jij slaapt.'
+        },
+        {
+          value: '40%',
+          label: 'Reductie in servicekosten',
+          detail: 'Bedrijven rapporteren 30-40% reductie in klantenservice kosten terwijl de kwaliteit verbetert. Personeel productiviteit stijgt 75% met 3x boekings efficiëntie. 70% van vragen afgehandeld zonder menselijke tussenkomst.'
+        },
+        {
+          value: '10x',
+          label: 'Return on investment potentieel',
+          detail: 'Bedrijven zoals Tata CLiQ behaalden 10x ROI met €500k in WhatsApp verkopen maandelijks. 89% stijging in aankopen per gebruiker, 72% meer sessies. 60-80% reductie in klantacquisitie kosten.'
+        },
+        {
+          value: '24/7',
+          label: 'Geautomatiseerde beschikbaarheid',
+          detail: 'Geautomatiseerde systemen bieden 24/7 beschikbaarheid zonder personeelskosten. 90% van gebruikers reageert binnen 30 minuten vs 12-uur e-mail reactietijden. 42% hogere 6-maands retentie percentages.'
+        }
+      ],
+      learnMore: 'Meer info'
+    },
+    aiTest: {
+      title: 'Test Onze',
+      titleAccent: 'AI Assistent',
+      mobileSubtitle: 'Ervaar hoe snel onze AI boekingsgesprekken afhandelt. Geen registratie vereist!',
+      desktopSubtitle: 'Ervaar hoe snel en natuurlijk onze AI boekingsgesprekken afhandelt.',
+      noRegistration: 'Geen registratie vereist',
+      tryNow: 'probeer het nu direct!'
+    },
+    aiChat: {
+      title: 'AI Agent Demo',
+      subtitle: 'Online en klaar om te helpen',
+      status: 'Live',
+      greeting: 'Hallo! Ik ben je AI agent. Stel me een vraag om mijn mogelijkheden te testen!',
+      placeholders: [
+        'Stel me iets over je bedrijf...',
+        'Test mijn kennis over marketing...',
+        'Vraag me over WhatsApp automatisering...',
+        'Vraag me om een lead generatie strategie...',
+        'Test mijn creativiteit met content ideeën...'
+      ],
+      responses: [
+        'Dat is een interessante vraag! Als AI agent kan ik je helpen bij het automatiseren van je WhatsApp communicatie en het verbeteren van je klantenservice.',
+        'Geweldig! Ik kan je ondersteunen bij het opzetten van geautomatiseerde workflows die je tijd besparen en je conversie verhogen.',
+        'Uitstekende vraag! Met mijn hulp kun je gepersonaliseerde berichten versturen, leads kwalificeren en je verkoopproces optimaliseren.',
+        'Perfect! Ik kan je helpen bij het maken van chatbots, het segmenteren van je doelgroep en het verhogen van je klanttevredenheid.',
+        'Fantastisch! Laat me je laten zien hoe ik complexe taken kan automatiseren en je bedrijfsprocessen kan stroomlijnen.'
+      ],
+      footer: 'Druk op Enter om je bericht te versturen • Aangedreven door AI'
+    }
   }
 } as const;

@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CheckCircle, Sparkles, TrendingUp, Clock, Users, Zap, ArrowRight } from 'lucide-react';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const ResultSummary = () => {
+  const { t } = useTranslation();
   const [activeStatIndex, setActiveStatIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
   const statsCarouselRef = useRef<HTMLDivElement>(null);
@@ -77,7 +79,7 @@ const ResultSummary = () => {
         {/* Powerful direct header - reduced size on mobile and less spacing */}
         <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-12 md:mb-24">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-black bg-gradient-to-r from-white via-slate-100 to-emerald-200 bg-clip-text text-transparent tracking-wide leading-tight drop-shadow-2xl">
-            Proven results that transform businesses
+            {t('howItWorks.results.title')}
           </h2>
         </ScrollAnimatedSection>
         
