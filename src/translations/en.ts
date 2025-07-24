@@ -285,6 +285,127 @@ export const en = {
       }
     }
   },
+  featureCards: {
+    personalization: {
+      title: 'Complete Personalization',
+      description: 'Customize your AI assistant\'s tone, behavior, and responses to match your brand and service style.',
+      automatedTone: 'Automated',
+      personalizedTone: 'Personalized',
+      toggles: {
+        multiLanguage: 'Multi-language Support',
+        smartFAQ: 'Smart FAQ',
+        smartBooking: 'Smart Booking',
+        contextAI: 'Context AI',
+        proactiveMode: 'Proactive Mode'
+      }
+    },
+    smartResponses: {
+      title: 'Smart AI Responses',
+      description: 'See how our AI provides intelligent, contextual responses that feel natural and professional.',
+      normal: 'Normal',
+      smartAI: 'Smart AI',
+      comparisons: [
+        {
+          normal: 'Yes we are open',
+          smart: 'We\'re open! I can help you book an appointment right now. What service interests you?'
+        },
+        {
+          normal: 'Call us',
+          smart: 'I can book you directly here via WhatsApp. Would you prefer morning or afternoon?'
+        },
+        {
+          normal: 'Check website',
+          smart: 'Our current availability shows next Tuesday at 2:30 PM or Thursday at 10:00 AM. Which works better?'
+        }
+      ]
+    },
+    reminders: {
+      title: 'Automatic Reminders',
+      description: 'Sends confirmation and reminder messages to reduce no-shows and improve attendance.',
+      whatsapp: 'WhatsApp',
+      timeAgo: '13m ago',
+      clinicName: 'Wellness Clinic',
+      reminderMessage: '🔔 Reminder: Your appointment is tomorrow at 2:00 PM.'
+    }
+  },
+  whatsappChat: {
+    businessName: 'Wellness Clinic',
+    status: 'Usually replies instantly',
+    placeholder: 'Type a message...',
+    conversation: {
+      userMessages: [
+        'Hi, I need to book a massage appointment',
+        'Perfect! Thursday afternoon would be great'
+      ],
+      aiMessages: [
+        'Hi! I\'d be happy to help you book a massage. I have availability this week on Tuesday at 2:30 PM, Thursday at 3:00 PM, or Friday at 10:00 AM. Which works best for you?',
+        '✅ Perfect! I\'ve booked your massage for Thursday, March 21st at 3:00 PM. You\'ll receive a confirmation message shortly. Looking forward to seeing you!'
+      ],
+      timestamps: ['9:42', '9:42', '9:43', '9:43']
+    }
+  },
+  testimonials: {
+    badge: 'Real Results',
+    title: 'What Our Customers',
+    titleAccent: 'Say',
+    subtitle: 'Discover how businesses are transforming their booking process with our AI assistant',
+    testimonials: [
+      {
+        text: 'Since using the WhatsApp booking system, I save 3 hours per day! No more back-and-forth messages. My clients love how fast they get responses, and I have 40% more bookings!',
+        name: 'Maria Johnson',
+        role: 'Salon Owner',
+        image: 'https://randomuser.me/api/portraits/women/1.jpg'
+      },
+      {
+        text: 'The AI handles all appointment requests perfectly, even complex scheduling. My patients are amazed by the instant responses. It\'s like having a perfect receptionist, 24/7.',
+        name: 'Dr. Thomas Miller',
+        role: 'Medical Practice',
+        image: 'https://randomuser.me/api/portraits/men/2.jpg'
+      },
+      {
+        text: 'My members can now book classes directly via WhatsApp. The AI knows all schedules and handles cancellations perfectly. Revenue increased 35% in just 2 months!',
+        name: 'Sophie van den Berg',
+        role: 'Fitness Studio Owner',
+        image: 'https://randomuser.me/api/portraits/women/3.jpg'
+      },
+      {
+        text: 'No more missed calls or booking confusion. The WhatsApp assistant works 24/7, catches every opportunity and my no-show rate dropped by 80%.',
+        name: 'James Davies',
+        role: 'Dental Practice',
+        image: 'https://randomuser.me/api/portraits/men/4.jpg'
+      },
+      {
+        text: 'Clients love booking consultations directly via WhatsApp. The AI handles complex scheduling across time zones. My booking efficiency increased 60%.',
+        name: 'Emily Johnson',
+        role: 'Business Consultant',
+        image: 'https://randomuser.me/api/portraits/women/5.jpg'
+      },
+      {
+        text: 'Restaurant reservations are now fully automated. Customers book directly, get confirmations, and we reduced staff work by 50% while improving customer experience.',
+        name: 'Carlos Rodriguez',
+        role: 'Restaurant Manager',
+        image: 'https://randomuser.me/api/portraits/men/6.jpg'
+      },
+      {
+        text: 'Pet owners book grooming sessions directly via WhatsApp. The AI remembers pet preferences and vaccination schedules. Bookings increased 45% since implementation.',
+        name: 'Lisa Thompson',
+        role: 'Pet Grooming Salon',
+        image: 'https://randomuser.me/api/portraits/women/7.jpg'
+      },
+      {
+        text: 'Massage therapy bookings are now effortless. Clients appreciate instant confirmation and automatic reminders. My business grew 30% in 6 months.',
+        name: 'Rachel Green',
+        role: 'Massage Therapist',
+        image: 'https://randomuser.me/api/portraits/women/8.jpg'
+      },
+      {
+        text: 'Legal consultations book seamlessly via WhatsApp. The AI handles complex scheduling and client intake forms. My practice efficiency improved dramatically.',
+        name: 'Michael Brown',
+        role: 'Law Firm Partner',
+        image: 'https://randomuser.me/api/portraits/men/9.jpg'
+      }
+    ]
+  },
   socialProof: {
     title: 'Trusted by',
     titleAccent: '10,000+',

@@ -4,64 +4,9 @@ import React from "react";
 import { motion } from "motion/react";
 import { useTranslation } from '@/hooks/useTranslation';
 
-// Get testimonials from translations
-const getDutchTestimonials = () => {
-  return [
-    {
-      text: 'Sinds ik het WhatsApp boekingssysteem gebruik, bespaar ik 3 uur per dag! Geen heen-en-weer berichten meer. Mijn klanten vinden het geweldig hoe snel ze reacties krijgen, en ik heb 40% meer boekingen!',
-      name: 'Maria Janssen',
-      role: 'Saloneigenaar',
-      image: 'https://randomuser.me/api/portraits/women/1.jpg'
-    },
-    {
-      text: 'De AI handelt alle afspraakverzoeken perfect af, zelfs complexe planning. Mijn patiënten zijn verbaasd over de directe reacties. Het is alsof ik een perfecte receptionist heb, 24/7.',
-      name: 'Dr. Thomas Müller',
-      role: 'Medische Praktijk',
-      image: 'https://randomuser.me/api/portraits/men/2.jpg'
-    },
-    {
-      text: 'Mijn leden kunnen nu direct lessen boeken via WhatsApp. De AI kent alle lesroosters en handelt annuleringen perfect af. Omzet is met 35% gestegen in slechts 2 maanden!',
-      name: 'Sophie van der Berg',
-      role: 'Eigenaar Fitness Studio',
-      image: 'https://randomuser.me/api/portraits/women/3.jpg'
-    },
-    {
-      text: 'Geen gemiste oproepen of boekingsverwarring meer. De WhatsApp assistent werkt 24/7, pakt elke kans en mijn no-show percentage daalde met 80%.',
-      name: 'James van Dijk',
-      role: 'Tandartspraktijk',
-      image: 'https://randomuser.me/api/portraits/men/4.jpg'
-    },
-    {
-      text: 'Klanten vinden het geweldig om consultaties direct via WhatsApp te boeken. De AI handelt complexe planning over tijdzones af. Mijn boekingsefficiëntie steeg met 60%.',
-      name: 'Emily de Jong',
-      role: 'Bedrijfsadviseur',
-      image: 'https://randomuser.me/api/portraits/women/5.jpg'
-    },
-    {
-      text: 'Restaurantreserveringen zijn nu volledig geautomatiseerd. Klanten boeken direct, krijgen bevestigingen, en we verminderden personeelswerk met 50% terwijl klantervaring verbeterde.',
-      name: 'Carlos Rodriguez',
-      role: 'Restaurant Manager',
-      image: 'https://randomuser.me/api/portraits/men/6.jpg'
-    },
-    {
-      text: 'Huisdiereigenaren boeken trimsessies direct via WhatsApp. De AI onthoudt diervoorkeuren en vaccinatieschema\'s. Boekingen stegen 45% sinds implementatie.',
-      name: 'Lisa Thomsen',
-      role: 'Dierentrimzalon',
-      image: 'https://randomuser.me/api/portraits/women/7.jpg'
-    },
-    {
-      text: 'Massagetherapie boekingen zijn nu moeiteloos. Klanten waarderen de directe bevestiging en automatische herinneringen. Mijn bedrijf groeide 30% in 6 maanden.',
-      name: 'Rachel Groen',
-      role: 'Massagetherapeut',
-      image: 'https://randomuser.me/api/portraits/women/8.jpg'
-    },
-    {
-      text: 'Juridische consultaties boeken naadloos via WhatsApp. De AI handelt complexe planning en cliënt intake formulieren af. Mijn praktijk efficiëntie verbeterde dramatisch.',
-      name: 'Michael Bruin',
-      role: 'Advocatenkantoor Partner',
-      image: 'https://randomuser.me/api/portraits/men/9.jpg'
-    }
-  ];
+// Get testimonials from translations based on language
+const getTestimonials = (t: (key: string) => any) => {
+  return t('testimonials.testimonials');
 };
 
 export const TestimonialsColumn = (props: {
@@ -86,20 +31,20 @@ export const TestimonialsColumn = (props: {
         {[
           ...new Array(2).fill(0).map((_, index) => (
             <React.Fragment key={`testimonial-group-${index}`}>
-              {props.testimonials.map(({ text, image, name, role }, i) => (
+              {props.testimonials.map((testimonial, i) => (
                 <div className="p-3 md:p-10 rounded-2xl md:rounded-3xl border shadow-lg shadow-primary/10 max-w-[280px] md:max-w-xs w-full" key={`${index}-${i}`}>
-                  <div className="text-[10px] md:text-base leading-tight md:leading-normal">{text}</div>
+                  <div className="text-[10px] md:text-base leading-tight md:leading-normal">{testimonial.text}</div>
                   <div className="flex items-center gap-2 mt-3 md:mt-5">
                     <img
                       width={32}
                       height={32}
-                      src={image}
-                      alt={name}
+                      src={testimonial.image}
+                      alt={testimonial.name}
                       className="h-8 w-8 md:h-10 md:w-10 rounded-full"
                     />
                     <div className="flex flex-col">
-                      <div className="font-medium tracking-tight leading-tight text-[10px] md:text-base md:leading-5">{name}</div>
-                      <div className="leading-tight md:leading-5 opacity-60 tracking-tight text-[9px] md:text-base">{role}</div>
+                      <div className="font-medium tracking-tight leading-tight text-[10px] md:text-base md:leading-5">{testimonial.name}</div>
+                      <div className="leading-tight md:leading-5 opacity-60 tracking-tight text-[9px] md:text-base">{testimonial.role}</div>
                     </div>
                   </div>
                 </div>
@@ -114,7 +59,7 @@ export const TestimonialsColumn = (props: {
 
 const Testimonials = () => {
   const { t } = useTranslation();
-  const testimonials = getDutchTestimonials();
+  const testimonials = getTestimonials(t);
   
   const firstColumn = testimonials.slice(0, 3);
   const secondColumn = testimonials.slice(3, 6);

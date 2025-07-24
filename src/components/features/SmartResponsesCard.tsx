@@ -4,16 +4,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 export const SmartResponsesCard = () => {
   const { t } = useTranslation();
   
-  // Hardcoded comparisons for now since translation system has limitations
-  const comparisons = [
-    { normal: t('featureCards.smartResponses.comparisons.0.normal') || '"We zijn gesloten"', smart: t('featureCards.smartResponses.comparisons.0.smart') || '"We zijn nu gesloten, maar morgen open om 9:00. Zal ik een afspraak inplannen?"' },
-    { normal: t('featureCards.smartResponses.comparisons.1.normal') || '"Kies een service"', smart: t('featureCards.smartResponses.comparisons.1.smart') || '"Op basis van je laatste bezoek (knippen), stel ik voor: knippen + wassen voor €40?"' },
-    { normal: t('featureCards.smartResponses.comparisons.2.normal') || '"Kies een tijd"', smart: t('featureCards.smartResponses.comparisons.2.smart') || '"Je kwam vorige keer op donderdag 15:00. Zelfde tijd deze week?"' },
-    { normal: t('featureCards.smartResponses.comparisons.3.normal') || '"Betalen na afspraak"', smart: t('featureCards.smartResponses.comparisons.3.smart') || '"Knippen €25, betaling contant of pin. Wil je direct bevestigen?"' },
-    { normal: t('featureCards.smartResponses.comparisons.4.normal') || '"Annuleren niet mogelijk"', smart: t('featureCards.smartResponses.comparisons.4.smart') || '"Natuurlijk, welke afspraak wil je annuleren? Zal ik direct een nieuwe tijd voorstellen?"' },
-    { normal: t('featureCards.smartResponses.comparisons.5.normal') || '"Maandag tot vrijdag 9-17u"', smart: t('featureCards.smartResponses.comparisons.5.smart') || '"We zijn vandaag open tot 17:00. Kan ik je nog inplannen of liever morgen?"' },
-    { normal: t('featureCards.smartResponses.comparisons.6.normal') || '"Vul je gegevens in"', smart: t('featureCards.smartResponses.comparisons.6.smart') || '"Hallo Sarah! Zelfde contactgegevens als vorige keer gebruiken?"' }
-  ];
+  const comparisons = t('featureCards.smartResponses.comparisons') || [];
   
   return (
     <div className="absolute inset-0">
@@ -28,7 +19,7 @@ export const SmartResponsesCard = () => {
             <div className="w-4 h-4 bg-emerald-500/30 rounded-full flex items-center justify-center">
               <span className="text-[8px] text-emerald-400">vs</span>
             </div>
-            <span className="text-emerald-400 text-[10px] font-semibold">{t('featureCards.smartResponses.smartAi')}</span>
+            <span className="text-emerald-400 text-[10px] font-semibold">{t('featureCards.smartResponses.smartAI')}</span>
           </div>
         </div>
         
@@ -50,7 +41,7 @@ export const SmartResponsesCard = () => {
               <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
                 <div className="flex items-center gap-1 mb-1">
                   <Check className="w-2 h-2 text-emerald-400" />
-                  <span className="text-emerald-400 text-[7px] font-medium">{t('featureCards.smartResponses.smartAi')}</span>
+                  <span className="text-emerald-400 text-[7px] font-medium">{t('featureCards.smartResponses.smartAI')}</span>
                 </div>
                 <div className="bg-emerald-500/10 rounded px-2 py-1">
                   <p className="text-emerald-300 text-[7px] leading-tight">{comparison.smart}</p>

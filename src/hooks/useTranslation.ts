@@ -4,7 +4,7 @@ import { translations, TranslationKeys } from '@/translations';
 export function useTranslation() {
   const { language } = useLanguageContext();
   
-  const t = (key: string): string => {
+  const t = (key: string): any => {
     const keys = key.split('.');
     let value: any = translations[language];
     
@@ -25,7 +25,7 @@ export function useTranslation() {
       }
     }
     
-    return typeof value === 'string' ? value : key;
+    return value !== undefined ? value : key;
   };
 
   return { t, language };

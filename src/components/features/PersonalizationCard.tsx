@@ -103,14 +103,14 @@ export const PersonalizationCard = () => {
       <div className="absolute inset-3 flex flex-col">
         {/* AI Personality Section */}
         <div className="mb-3">
-          <p className="text-slate-300 text-[8px] font-medium mb-2">{t('featureCards.personalization.aiPersonality')}</p>
+          <p className="text-slate-300 text-[8px] font-medium mb-2">AI Personality</p>
           
           {/* Tone Slider */}
           <div className="mb-2">
             <div className="flex justify-between text-[6px] text-slate-400 mb-1">
-              <span>{t('featureCards.personalization.professional')}</span>
-              <span>{t('featureCards.personalization.friendly')}</span>
-              <span>{t('featureCards.personalization.casual')}</span>
+              <span>{t('featureCards.personalization.automatedTone')}</span>
+              <span>Friendly</span>
+              <span>{t('featureCards.personalization.personalizedTone')}</span>
             </div>
             <div 
               ref={sliderRef}
