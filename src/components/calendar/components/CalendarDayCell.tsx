@@ -122,15 +122,15 @@ export function CalendarDayCell({
                   onClick={(e) => handleSingleBookingClick(dayBookings[0], e)}
                 >
 
+                  {/* Info icon in top-right corner */}
+                  <div className="absolute top-0.5 right-0.5">
+                    <Info className="w-2.5 h-2.5 text-gray-700" />
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <div className="text-white text-xs font-semibold">
                       {format(new Date(dayBookings[0].start_time), 'HH:mm')}
                     </div>
-                    <div className={`w-1 h-1 rounded-full ${
-                      dayBookings[0].status === 'confirmed' ? 'bg-white/90' :
-                      dayBookings[0].status === 'pending' ? 'bg-yellow-300/90' :
-                      'bg-red-300/90'
-                    }`} />
                   </div>
                   <div className="text-white/95 text-xs font-medium truncate mt-0.5">
                     {dayBookings[0].customer_name}
