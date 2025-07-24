@@ -108,7 +108,7 @@ export const useWhatsAppLimits = (calendarId?: string) => {
 
 export const useTeamMemberLimits = (calendarId?: string) => {
   const { user } = useAuth();
-  const { accessControl } = useUserStatus();
+  const { userStatus } = useUserStatus();
 
   const { data: currentCount = 0, isLoading } = useQuery({
     queryKey: ['team-members-count', user?.id, calendarId],
@@ -149,7 +149,34 @@ export const useTeamMemberLimits = (calendarId?: string) => {
     enabled: !!user,
   });
 
-  const maxTeamMembers = accessControl?.maxTeamMembers || 1;
+  // Get max team members from subscription tier based on userType
+  const { data: subscriptionData } = useQuery({
+    queryKey: ['subscription-tier-limits', userStatus.userType],
+    queryFn: async () => {
+      let tierName: 'starter' | 'professional' | 'enterprise' = 'starter'; // default fallback
+      
+      if (userStatus.userType === 'subscriber') {
+        tierName = 'professional';
+      }
+      // Note: For now we only support starter and professional tiers
+      // Enterprise support can be added later when the UserType includes enterprise_subscriber
+
+      const { data, error } = await supabase
+        .from('subscription_tiers')
+        .select('max_team_members')
+        .eq('tier_name', tierName)
+        .single();
+
+      if (error) {
+        console.error('Error fetching subscription tier limits:', error);
+        return { max_team_members: 1 };
+      }
+      return data;
+    },
+    enabled: !!userStatus.userType,
+  });
+
+  const maxTeamMembers = subscriptionData?.max_team_members || 1;
   const canAddMore = currentCount < maxTeamMembers;
 
   return {
