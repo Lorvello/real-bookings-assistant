@@ -12,7 +12,6 @@ import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { UserStatusSwitcher } from '@/components/developer/UserStatusSwitcher';
 import { SubscriptionTierSwitcher } from '@/components/developer/SubscriptionTierSwitcher';
 import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcherSection';
-import { SubscriptionOverview } from '@/components/ui/SubscriptionOverview';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -166,11 +165,6 @@ const Dashboard = () => {
                 onTabChange={setActiveTab}
               />
             )}
-
-            {/* Subscription Overview - Less prominent position */}
-            <div className="mt-8">
-              <SubscriptionOverview />
-            </div>
           </>
         )}
       </div>

@@ -10,6 +10,7 @@ import { Clock, Star, TrendingUp, TrendingDown, Calendar, User, Award, Activity,
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+import { SubscriptionOverview } from '@/components/ui/SubscriptionOverview';
 
 interface OverviewTabProps {
   calendarIds: string[];
@@ -188,6 +189,15 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
         transition={{ duration: 0.3, delay: 0.4 }}
       >
         <CalendarManagement calendars={calendars} />
+      </motion.div>
+
+      {/* Subscription Overview - Only on Overview tab */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.5 }}
+      >
+        <SubscriptionOverview />
       </motion.div>
     </div>
   );
