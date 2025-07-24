@@ -120,7 +120,7 @@ export const useSecurity = () => {
     }
   }, [toast]);
 
-  // Analyze request for threats
+  // Analyze request for threats with enhanced validation
   const analyzeRequest = useCallback(async (requestData: any) => {
     try {
       const context = {
@@ -135,30 +135,46 @@ export const useSecurity = () => {
 
       const threats = await threatDetector.analyzeRequest(context);
       
-      if (threats.length > 0) {
+      // Enhanced threat validation
+      const validatedThreats = threats.filter(threat => {
+        // Additional validation for threat confidence
+        return threat.confidence > 0.3;
+      });
+      
+      if (validatedThreats.length > 0) {
         setSecurityState(prev => ({
           ...prev,
-          threats: [...prev.threats, ...threats],
-          isSecure: threats.every(t => t.confidence < 0.7)
+          threats: [...prev.threats, ...validatedThreats],
+          isSecure: validatedThreats.every(t => t.confidence < 0.7)
         }));
 
         // Show warning for high-confidence threats
-        const highConfidenceThreats = threats.filter(t => t.confidence >= 0.7);
+        const highConfidenceThreats = validatedThreats.filter(t => t.confidence >= 0.7);
         if (highConfidenceThreats.length > 0) {
           toast({
             title: "Security Warning",
             description: "Suspicious activity detected. Please verify your actions.",
             variant: "destructive"
           });
+          
+          // Log security event to audit log
+          await logger.logSecurityEvent('threat_detected', {
+            threats: highConfidenceThreats,
+            context: context
+          });
         }
       }
 
-      return threats;
+      return validatedThreats;
     } catch (error) {
       console.error('Threat analysis failed:', error);
+      await logger.logSecurityEvent('threat_analysis_error', {
+        error: error.message,
+        context: requestData
+      });
       return [];
     }
-  }, [toast]);
+  }, [toast, logger]);
 
   // Validate and sanitize input
   const validateInput = useCallback((input: string, type: 'email' | 'text' | 'url' | 'phone' = 'text') => {

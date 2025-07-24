@@ -106,18 +106,42 @@ export const useErrorHandler = () => {
 
   const logError = useCallback(async (error: AppError, context?: string) => {
     try {
-      await supabase.rpc('log_error', {
-        p_calendar_id: null, // Could be populated based on context
-        p_error_type: error.type,
-        p_error_message: error.message,
-        p_error_context: {
-          context,
-          details: error.details,
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          url: window.location.href
-        }
-      });
+      const user = (await supabase.auth.getUser()).data.user;
+      
+      // Enhanced error logging with security context
+      const errorContext = {
+        context,
+        details: error.details,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        sessionId: sessionStorage.getItem('session_id'),
+        userId: user?.id
+      };
+
+      // Log to error_logs table
+      const { error: insertError } = await supabase
+        .from('error_logs')
+        .insert({
+          error_type: error.type,
+          error_message: error.message,
+          error_context: errorContext,
+          user_id: user?.id
+        });
+
+      if (insertError) {
+        console.error('Failed to log error to database:', insertError);
+      }
+
+      // Also log security-relevant errors to audit log
+      if ((error.type === 'auth' || error.type === 'validation') && user?.id) {
+        await supabase.rpc('log_security_event', {
+          p_user_id: user.id,
+          p_event_type: `error_${error.type}`,
+          p_event_details: errorContext,
+          p_user_agent: navigator.userAgent
+        });
+      }
     } catch (loggingError) {
       console.error('Failed to log error:', loggingError);
     }
