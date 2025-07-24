@@ -4,7 +4,15 @@ import { useTranslation } from '@/hooks/useTranslation';
 export const SmartResponsesCard = () => {
   const { t } = useTranslation();
   
-  const comparisons = t('featureCards.smartResponses.comparisons') || [];
+  const comparisons = Array.isArray(t('featureCards.smartResponses.comparisons')) 
+    ? t('featureCards.smartResponses.comparisons') 
+    : t('featureCards.smartResponses.comparisons.0') 
+      ? [
+          { normal: t('featureCards.smartResponses.comparisons.0.normal'), smart: t('featureCards.smartResponses.comparisons.0.smart') },
+          { normal: t('featureCards.smartResponses.comparisons.1.normal'), smart: t('featureCards.smartResponses.comparisons.1.smart') },
+          { normal: t('featureCards.smartResponses.comparisons.2.normal'), smart: t('featureCards.smartResponses.comparisons.2.smart') }
+        ]
+      : [];
   
   return (
     <div className="absolute inset-0">

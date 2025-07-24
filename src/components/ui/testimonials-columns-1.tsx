@@ -6,7 +6,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 // Get testimonials from translations based on language
 const getTestimonials = (t: (key: string) => any) => {
-  return t('testimonials.testimonials');
+  const testimonials = t('testimonials.testimonials');
+  return Array.isArray(testimonials) ? testimonials : [];
 };
 
 export const TestimonialsColumn = (props: {
