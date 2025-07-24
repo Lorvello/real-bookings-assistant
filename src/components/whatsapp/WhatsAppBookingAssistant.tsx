@@ -44,16 +44,6 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
-        <div className="flex items-center gap-3">
-          <Phone className="h-8 w-8 text-green-500" />
-          <div>
-            <h1 className="text-3xl font-bold text-white">Bookings Assistant</h1>
-            <p className="text-gray-400 mt-1">WhatsApp booking assistant setup</p>
-          </div>
-        </div>
-      </div>
 
       {/* WhatsApp Number Card */}
       <Card className="bg-slate-800/90 border-slate-700/50">
