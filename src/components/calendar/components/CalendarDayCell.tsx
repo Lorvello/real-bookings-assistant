@@ -2,6 +2,7 @@
 import { format, isSameMonth, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 interface Booking {
   id: string;
@@ -140,10 +141,12 @@ export function CalendarDayCell({
                   </div>
                 </div>
               </TooltipTrigger>
-              <TooltipContent 
-                side="top" 
-                className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3 z-[9999]"
-              >
+              <TooltipPrimitive.Portal>
+                <TooltipContent 
+                  side="top" 
+                  avoidCollisions={true}
+                  className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3 z-[9999]"
+                >
                 <div className="space-y-1.5">
                   <div className="text-xs font-semibold text-foreground">
                     {format(new Date(dayBookings[0].start_time), 'HH:mm')} - {dayBookings[0].customer_name}
@@ -164,6 +167,7 @@ export function CalendarDayCell({
                   </div>
                 </div>
               </TooltipContent>
+              </TooltipPrimitive.Portal>
             </Tooltip>
           </TooltipProvider>
         )}
