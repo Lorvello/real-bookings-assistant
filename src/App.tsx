@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { GoogleTranslateProvider } from '@/components/GoogleTranslateProvider';
 import { CalendarProvider } from '@/contexts/CalendarContext';
 import { ConversationCalendarProvider } from '@/contexts/ConversationCalendarContext';
 import { UserStatusProvider } from '@/contexts/UserStatusContext';
@@ -48,10 +49,11 @@ function GlobalWebhookProcessor() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <UserStatusProvider>
-        <CalendarProvider>
-          <ConversationCalendarProvider>
-            <Router>
+      <GoogleTranslateProvider>
+        <UserStatusProvider>
+          <CalendarProvider>
+            <ConversationCalendarProvider>
+              <Router>
               <GlobalWebhookProcessor />
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -80,7 +82,8 @@ function App() {
           </ConversationCalendarProvider>
         </CalendarProvider>
       </UserStatusProvider>
-    </QueryClientProvider>
+    </GoogleTranslateProvider>
+  </QueryClientProvider>
   );
 }
 
