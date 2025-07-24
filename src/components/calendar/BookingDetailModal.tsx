@@ -119,8 +119,8 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
             </div>
           </div>
 
-          {/* Calendar Information - only show when viewing all calendars */}
-          {viewingAllCalendars && booking.calendar && (
+          {/* Calendar Information */}
+          {booking.calendar && (
             <div className="bg-card/50 rounded-lg p-4 border">
               <div className="flex items-center gap-2 text-muted-foreground mb-2">
                 <Calendar className="w-4 h-4" />
