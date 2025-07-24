@@ -83,7 +83,7 @@ const getBookingsStartingInTimeSlot = (bookings: Booking[], day: Date, timeSlot:
   });
 };
 
-// Fixed positioning calculation - made more compact
+// Fixed positioning calculation
 const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
   const startTime = new Date(booking.start_time);
   const endTime = new Date(booking.end_time);
@@ -98,10 +98,10 @@ const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
   const bookingTotalMinutes = bookingHours * 60 + bookingMinutes;
   
   const offsetMinutes = bookingTotalMinutes - baseSlotMinutes;
-  const topOffset = Math.max(0, (offsetMinutes / 30) * 40); // 30 min = 40px (more compact)
+  const topOffset = Math.max(0, (offsetMinutes / 30) * 40); // 30 min = 40px
   
-  // Calculate height based on duration - more compact
-  const height = Math.max(24, (duration / 30) * 40); // minimum 24px, 30 min = 40px (more compact)
+  // Calculate height based on duration - 30 minutes = 40px height
+  const height = Math.max(32, (duration / 30) * 40); // minimum 32px, ensures 1 hour = 80px
   
   return { topOffset, height };
 };
@@ -127,23 +127,8 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
             onClick={() => onBookingClick(booking)}
           >
             {/* Info icon in top-right corner */}
-            <div className="absolute top-0.5 right-0.5">
-              <Info className="w-2.5 h-2.5 text-gray-700" />
-            </div>
-
-            {/* Calendar and person indicators */}
-            <div className="absolute top-1 right-1 flex gap-0.5">
-              {/* Calendar indicator */}
-              <div 
-                className="w-2 h-2 rounded-full border border-white/50"
-                style={{ backgroundColor: booking.calendar?.color || '#6B7280' }}
-              />
-              {/* Person indicator */}
-              <div className="w-2 h-2 rounded-full bg-white/80 flex items-center justify-center">
-                <span className="text-[6px] font-bold text-gray-700">
-                  {booking.calendar?.users?.full_name?.charAt(0) || '?'}
-                </span>
-              </div>
+            <div className="absolute top-1 right-1">
+              <Info className="w-3 h-3 text-gray-700" />
             </div>
 
             <div className="text-white">
