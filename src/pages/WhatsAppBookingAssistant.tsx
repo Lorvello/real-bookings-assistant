@@ -40,7 +40,6 @@ export default function WhatsAppBookingAssistantPage() {
       <div className="bg-gray-900 min-h-full p-2 md:p-8">
         <div className="space-y-3 md:space-y-6">
           <SimplePageHeader title="WhatsApp Booking Assistant" />
-          <CalendarSwitcher />
           <WhatsAppBookingAssistant calendarId={selectedCalendar.id} />
         </div>
       </div>
