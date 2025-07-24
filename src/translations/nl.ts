@@ -558,5 +558,41 @@ export const nl = {
         image: 'https://randomuser.me/api/portraits/men/9.jpg'
       }
     ]
+  },
+  featureCards: {
+    personalization: {
+      aiPersonality: 'AI Persoonlijkheid & Toon',
+      professional: 'Professioneel',
+      friendly: 'Vriendelijk', 
+      casual: 'Casual',
+      multiLanguage: '🌐 Meertalig',
+      smartFaq: '📚 Slimme FAQ',
+      autoAnswers: 'Beantwoordt automatisch veelgestelde vragen',
+      smartBooking: '🧠 Slimme Boeking',
+      upselling: 'Upselling & herboeking',
+      contextAi: '🎯 Context AI',
+      remembersPreferences: 'Onthoudt voorkeuren',
+      proactive: '⚡ Proactief',
+      sendsFollowUps: 'Stuurt opvolgingen'
+    },
+    smartResponses: {
+      normal: 'Normaal',
+      smartAi: 'Slimme AI',
+      comparisons: [
+        { normal: '"We zijn gesloten"', smart: '"We zijn nu gesloten, maar morgen open om 9:00. Zal ik een afspraak inplannen?"' },
+        { normal: '"Kies een service"', smart: '"Op basis van je laatste bezoek (knippen), stel ik voor: knippen + wassen voor €40?"' },
+        { normal: '"Kies een tijd"', smart: '"Je kwam vorige keer op donderdag 15:00. Zelfde tijd deze week?"' },
+        { normal: '"Betalen na afspraak"', smart: '"Knippen €25, betaling contant of pin. Wil je direct bevestigen?"' },
+        { normal: '"Annuleren niet mogelijk"', smart: '"Natuurlijk, welke afspraak wil je annuleren? Zal ik direct een nieuwe tijd voorstellen?"' },
+        { normal: '"Maandag tot vrijdag 9-17u"', smart: '"We zijn vandaag open tot 17:00. Kan ik je nog inplannen of liever morgen?"' },
+        { normal: '"Vul je gegevens in"', smart: '"Hallo Sarah! Zelfde contactgegevens als vorige keer gebruiken?"' }
+      ]
+    },
+    reminders: {
+      whatsapp: 'WhatsApp',
+      timeAgo: '13m geleden',
+      clinicName: 'Wellness Kliniek',
+      reminderMessage: '🔔 Herinnering: Je afspraak is morgen om 14:00.'
+    }
   }
 } as const;

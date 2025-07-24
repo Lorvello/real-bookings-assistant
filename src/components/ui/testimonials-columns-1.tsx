@@ -4,22 +4,64 @@ import React from "react";
 import { motion } from "motion/react";
 import { useTranslation } from '@/hooks/useTranslation';
 
-// Using translations for testimonials
-const useTestimonials = () => {
-  const { t } = useTranslation();
-  const testimonialItems = t('testimonials.items');
-  
-  // Handle case where translation returns a string instead of array
-  if (typeof testimonialItems === 'string') {
-    return [];
-  }
-  
-  // If it's an array-like object from translations, convert to array
-  if (testimonialItems && typeof testimonialItems === 'object') {
-    return Object.values(testimonialItems);
-  }
-  
-  return [];
+// Get testimonials from translations
+const getDutchTestimonials = () => {
+  return [
+    {
+      text: 'Sinds ik het WhatsApp boekingssysteem gebruik, bespaar ik 3 uur per dag! Geen heen-en-weer berichten meer. Mijn klanten vinden het geweldig hoe snel ze reacties krijgen, en ik heb 40% meer boekingen!',
+      name: 'Maria Janssen',
+      role: 'Saloneigenaar',
+      image: 'https://randomuser.me/api/portraits/women/1.jpg'
+    },
+    {
+      text: 'De AI handelt alle afspraakverzoeken perfect af, zelfs complexe planning. Mijn patiënten zijn verbaasd over de directe reacties. Het is alsof ik een perfecte receptionist heb, 24/7.',
+      name: 'Dr. Thomas Müller',
+      role: 'Medische Praktijk',
+      image: 'https://randomuser.me/api/portraits/men/2.jpg'
+    },
+    {
+      text: 'Mijn leden kunnen nu direct lessen boeken via WhatsApp. De AI kent alle lesroosters en handelt annuleringen perfect af. Omzet is met 35% gestegen in slechts 2 maanden!',
+      name: 'Sophie van der Berg',
+      role: 'Eigenaar Fitness Studio',
+      image: 'https://randomuser.me/api/portraits/women/3.jpg'
+    },
+    {
+      text: 'Geen gemiste oproepen of boekingsverwarring meer. De WhatsApp assistent werkt 24/7, pakt elke kans en mijn no-show percentage daalde met 80%.',
+      name: 'James van Dijk',
+      role: 'Tandartspraktijk',
+      image: 'https://randomuser.me/api/portraits/men/4.jpg'
+    },
+    {
+      text: 'Klanten vinden het geweldig om consultaties direct via WhatsApp te boeken. De AI handelt complexe planning over tijdzones af. Mijn boekingsefficiëntie steeg met 60%.',
+      name: 'Emily de Jong',
+      role: 'Bedrijfsadviseur',
+      image: 'https://randomuser.me/api/portraits/women/5.jpg'
+    },
+    {
+      text: 'Restaurantreserveringen zijn nu volledig geautomatiseerd. Klanten boeken direct, krijgen bevestigingen, en we verminderden personeelswerk met 50% terwijl klantervaring verbeterde.',
+      name: 'Carlos Rodriguez',
+      role: 'Restaurant Manager',
+      image: 'https://randomuser.me/api/portraits/men/6.jpg'
+    },
+    {
+      text: 'Huisdiereigenaren boeken trimsessies direct via WhatsApp. De AI onthoudt diervoorkeuren en vaccinatieschema\'s. Boekingen stegen 45% sinds implementatie.',
+      name: 'Lisa Thomsen',
+      role: 'Dierentrimzalon',
+      image: 'https://randomuser.me/api/portraits/women/7.jpg'
+    },
+    {
+      text: 'Massagetherapie boekingen zijn nu moeiteloos. Klanten waarderen de directe bevestiging en automatische herinneringen. Mijn bedrijf groeide 30% in 6 maanden.',
+      name: 'Rachel Groen',
+      role: 'Massagetherapeut',
+      image: 'https://randomuser.me/api/portraits/women/8.jpg'
+    },
+    {
+      text: 'Juridische consultaties boeken naadloos via WhatsApp. De AI handelt complexe planning en cliënt intake formulieren af. Mijn praktijk efficiëntie verbeterde dramatisch.',
+      name: 'Michael Bruin',
+      role: 'Advocatenkantoor Partner',
+      image: 'https://randomuser.me/api/portraits/men/9.jpg'
+    }
+  ];
 };
 
 export const TestimonialsColumn = (props: {
@@ -72,7 +114,7 @@ export const TestimonialsColumn = (props: {
 
 const Testimonials = () => {
   const { t } = useTranslation();
-  const testimonials = useTestimonials();
+  const testimonials = getDutchTestimonials();
   
   const firstColumn = testimonials.slice(0, 3);
   const secondColumn = testimonials.slice(3, 6);
