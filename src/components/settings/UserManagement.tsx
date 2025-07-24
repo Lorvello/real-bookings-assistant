@@ -446,7 +446,12 @@ export const UserManagement = () => {
                 }}
               >
                 Team Members
-                {!accessControl.canAccessTeamMembers && <Lock className="h-3 w-3" />}
+                {!accessControl.canAccessTeamMembers && (
+                  <>
+                    <Lock className="h-3 w-3" />
+                    <span className="text-xs bg-orange-500 text-white px-1 rounded ml-1">Pro</span>
+                  </>
+                )}
               </TabsTrigger>
             </TabsList>
             
