@@ -2589,6 +2589,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_whatsapp_contact_limit: {
+        Args: { p_user_id: string; p_calendar_id: string }
+        Returns: boolean
+      }
       cleanup_duplicate_availability_rules: {
         Args: { p_schedule_id: string; p_day_of_week: number }
         Returns: undefined
