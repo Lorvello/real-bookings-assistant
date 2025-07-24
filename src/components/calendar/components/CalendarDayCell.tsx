@@ -1,5 +1,6 @@
 
 import { format, isSameMonth, isSameDay } from 'date-fns';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Booking {
   id: string;
@@ -108,48 +109,76 @@ export function CalendarDayCell({
         )}
         
         {hasSingleBooking && (
-          <div
-            className="group/booking p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md relative"
-            style={{
-              backgroundColor: dayBookings[0].service_types?.color || '#3B82F6',
-              backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`
-            }}
-            title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name}\nKalender: ${dayBookings[0].calendar?.name || 'Onbekend'}\nPersoon: ${dayBookings[0].calendar?.users?.full_name || 'Onbekend'}\nService: ${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}`}
-            onClick={(e) => handleSingleBookingClick(dayBookings[0], e)}
-          >
-            {/* Calendar and person indicators */}
-            <div className="absolute top-0.5 right-0.5 flex gap-0.5">
-              {/* Calendar indicator */}
-              <div 
-                className="w-2 h-2 rounded-full border border-white/50"
-                style={{ backgroundColor: dayBookings[0].calendar?.color || '#6B7280' }}
-                title={`Kalender: ${dayBookings[0].calendar?.name || 'Onbekend'}`}
-              />
-              {/* Person indicator */}
-              <div className="w-2 h-2 rounded-full bg-white/80 flex items-center justify-center">
-                <span className="text-[6px] font-bold text-gray-700">
-                  {dayBookings[0].calendar?.users?.full_name?.charAt(0) || '?'}
-                </span>
-              </div>
-            </div>
+          <TooltipProvider>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <div
+                  className="group/booking p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md relative"
+                  style={{
+                    backgroundColor: dayBookings[0].service_types?.color || '#3B82F6',
+                    backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`
+                  }}
+                  onClick={(e) => handleSingleBookingClick(dayBookings[0], e)}
+                >
+                  {/* Calendar and person indicators */}
+                  <div className="absolute top-0.5 right-0.5 flex gap-0.5">
+                    {/* Calendar indicator */}
+                    <div 
+                      className="w-4 h-4 rounded-full border border-white/50"
+                      style={{ backgroundColor: dayBookings[0].calendar?.color || '#6B7280' }}
+                    />
+                    {/* Person indicator */}
+                    <div className="w-4 h-4 rounded-full bg-white/80 flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-700">
+                        {dayBookings[0].calendar?.users?.full_name?.charAt(0) || '?'}
+                      </span>
+                    </div>
+                  </div>
 
-            <div className="flex items-center justify-between">
-              <div className="text-white text-xs font-semibold">
-                {format(new Date(dayBookings[0].start_time), 'HH:mm')}
-              </div>
-              <div className={`w-1 h-1 rounded-full ${
-                dayBookings[0].status === 'confirmed' ? 'bg-white/90' :
-                dayBookings[0].status === 'pending' ? 'bg-yellow-300/90' :
-                'bg-red-300/90'
-              }`} />
-            </div>
-            <div className="text-white/95 text-xs font-medium truncate mt-0.5">
-              {dayBookings[0].customer_name}
-            </div>
-            <div className="text-white/80 text-xs truncate">
-              {dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}
-            </div>
-          </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-white text-xs font-semibold">
+                      {format(new Date(dayBookings[0].start_time), 'HH:mm')}
+                    </div>
+                    <div className={`w-1 h-1 rounded-full ${
+                      dayBookings[0].status === 'confirmed' ? 'bg-white/90' :
+                      dayBookings[0].status === 'pending' ? 'bg-yellow-300/90' :
+                      'bg-red-300/90'
+                    }`} />
+                  </div>
+                  <div className="text-white/95 text-xs font-medium truncate mt-0.5">
+                    {dayBookings[0].customer_name}
+                  </div>
+                  <div className="text-white/80 text-xs truncate">
+                    {dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="top" 
+                className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3"
+              >
+                <div className="space-y-2">
+                  <div className="text-sm font-semibold text-foreground">
+                    {format(new Date(dayBookings[0].start_time), 'HH:mm')} - {dayBookings[0].customer_name}
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Kalender:</span>
+                      <span className="text-foreground font-medium">{dayBookings[0].calendar?.name || 'Onbekend'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Persoon:</span>
+                      <span className="text-foreground font-medium">{dayBookings[0].calendar?.users?.full_name || 'Onbekend'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Service:</span>
+                      <span className="text-foreground font-medium">{dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}</span>
+                    </div>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
         
         {hasMultipleBookings && (
