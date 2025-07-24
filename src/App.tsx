@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CalendarProvider } from '@/contexts/CalendarContext';
 import { ConversationCalendarProvider } from '@/contexts/ConversationCalendarContext';
 import { UserStatusProvider } from '@/contexts/UserStatusContext';
+import { GoogleTranslateProvider } from '@/components/GoogleTranslateProvider';
 import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
 import { useAuth } from '@/hooks/useAuth';
 import Login from '@/pages/Login';
@@ -52,6 +53,7 @@ function App() {
         <CalendarProvider>
           <ConversationCalendarProvider>
             <Router>
+              <GoogleTranslateProvider />
               <GlobalWebhookProcessor />
               <Routes>
                 <Route path="/" element={<Index />} />

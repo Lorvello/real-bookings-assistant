@@ -15,6 +15,45 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <!-- Google Translate Styles -->
+    <style>
+      /* Hide Google Translate UI elements */
+      .goog-te-banner-frame,
+      .goog-te-gadget,
+      .goog-te-combo,
+      #google_translate_element,
+      .skiptranslate,
+      .goog-logo-link,
+      .goog-te-balloon-frame {
+        display: none !important;
+      }
+      
+      /* Remove Google Translate top frame */
+      body {
+        top: 0 !important;
+      }
+      
+      /* Smooth transition for translated elements */
+      * {
+        transition: all 0.2s ease-in-out;
+      }
+      
+      /* Style translated elements */
+      .goog-te-menu-value span {
+        color: inherit !important;
+      }
+      
+      /* Animation for status indicators */
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      .animate-fade-in {
+        animation: fade-in 0.3s ease-out;
+      }
+    </style>
   </head>
 
   <body>
