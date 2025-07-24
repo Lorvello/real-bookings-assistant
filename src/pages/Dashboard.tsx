@@ -12,7 +12,7 @@ import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { UserStatusSwitcher } from '@/components/developer/UserStatusSwitcher';
 import { SubscriptionTierSwitcher } from '@/components/developer/SubscriptionTierSwitcher';
 import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcherSection';
-import { UsageSummary } from '@/components/ui/UsageSummary';
+import { SubscriptionOverview } from '@/components/ui/SubscriptionOverview';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -104,10 +104,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Usage Summary */}
-        <div className="mb-6">
-          <UsageSummary />
-        </div>
 
         {/* Show Onboarding Wizard for Setup Incomplete Users */}
         {userStatus.isSetupIncomplete ? (
@@ -170,6 +166,11 @@ const Dashboard = () => {
                 onTabChange={setActiveTab}
               />
             )}
+
+            {/* Subscription Overview - Less prominent position */}
+            <div className="mt-8">
+              <SubscriptionOverview />
+            </div>
           </>
         )}
       </div>

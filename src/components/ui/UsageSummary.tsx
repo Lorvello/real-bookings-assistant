@@ -18,7 +18,7 @@ export function UsageSummary({ className = "" }: UsageSummaryProps) {
 
   const getUsagePercentage = (current: number, max: number | null) => {
     if (max === null) return 0;
-    return Math.min((current / max) * 100, 100);
+    return Math.max(0, Math.min((current / max) * 100, 100));
   };
 
   const getProgressVariant = (percentage: number): "default" | "warning" | "destructive" => {
