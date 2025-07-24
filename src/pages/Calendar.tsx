@@ -7,6 +7,7 @@ import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
+import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 import { Button } from '@/components/ui/button';
 import { Plus, Calendar as CalendarIcon } from 'lucide-react';
 
@@ -44,13 +45,7 @@ const Calendar = () => {
       <DashboardLayout>
         <div className="bg-gray-900 min-h-full p-3 md:p-8">
           <div className="space-y-4 md:space-y-6">
-            {/* Calendar Header */}
-            <div className="bg-card border border-border rounded-lg shadow-sm p-3 md:p-6">
-              <h1 className="text-lg md:text-3xl font-semibold text-foreground">Calendar</h1>
-              <p className="text-muted-foreground mt-1 text-xs md:text-base">
-                Create your first calendar to start managing appointments
-              </p>
-            </div>
+            <SimplePageHeader title="Calendar" />
 
             {/* Create Calendar Section */}
             <div className="bg-card border border-border shadow-sm rounded-lg p-8">
@@ -94,23 +89,11 @@ const Calendar = () => {
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-3 md:p-8">
         <div className="space-y-4 md:space-y-6">
-          {/* Calendar Header with Switcher */}
-          <div className="bg-card border border-border rounded-lg shadow-sm p-3 md:p-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div>
-                <h1 className="text-lg md:text-3xl font-semibold text-foreground">{displayTitle}</h1>
-                <p className="text-muted-foreground mt-1 text-xs md:text-base">
-                  {viewingAllCalendars 
-                    ? `Manage appointments from ${calendars.length} calendars`
-                    : 'Manage your appointments and availability'
-                  }
-                </p>
-              </div>
-              
-              <div className="flex-shrink-0">
-                <CalendarSwitcher />
-              </div>
-            </div>
+          <SimplePageHeader title={displayTitle} />
+          
+          {/* Calendar Switcher */}
+          <div className="mb-6">
+            <CalendarSwitcher />
           </div>
 
           {/* Calendar Content */}

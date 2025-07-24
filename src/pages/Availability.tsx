@@ -2,21 +2,16 @@
 import React from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { AvailabilityManager } from '@/components/availability/AvailabilityManager';
-import { AvailabilityHeader } from '@/components/availability/AvailabilityHeader';
+import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
 const Availability = () => {
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full">
-        <AvailabilityHeader
-          setToDefault={false}
-          onSetToDefaultChange={() => {}}
-          hasUnsavedChanges={false}
-          loading={false}
-          onSave={() => {}}
-        />
-        
-        <AvailabilityManager />
+      <div className="bg-gray-900 min-h-full p-2 md:p-8">
+        <div className="space-y-3 md:space-y-6">
+          <SimplePageHeader title="Availability" />
+          <AvailabilityManager />
+        </div>
       </div>
     </DashboardLayout>
   );

@@ -8,6 +8,7 @@ import { AIKnowledgeTab } from './AIKnowledgeTab';
 import { CalendarTab } from './CalendarTab';
 import { ServicesTab } from './ServicesTab';
 import { BillingTab } from './BillingTab';
+import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
 
 import { useSettingsData } from '@/hooks/useSettingsData';
@@ -42,11 +43,7 @@ export const SettingsLayout = () => {
   return (
     <div className="min-h-screen bg-gray-900 p-2 md:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-3 md:mb-8">
-          <h1 className="text-base md:text-3xl font-bold text-white mb-1 md:mb-2">Settings</h1>
-          <p className="text-gray-400 text-xs md:text-base">Manage your settings</p>
-        </div>
+        <SimplePageHeader title="Settings" />
 
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-3 md:space-y-6">

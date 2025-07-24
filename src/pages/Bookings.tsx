@@ -8,6 +8,8 @@ import { useBookingsWithCalendarFilter } from '@/hooks/useBookingsWithCalendarFi
 import { useBookingsFilters } from '@/hooks/useBookingsFilters';
 import { BookingDetailModal } from '@/components/calendar/BookingDetailModal';
 import { BookingsHeader } from '@/components/bookings/BookingsHeader';
+import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
+import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { BookingsFilters } from '@/components/bookings/BookingsFilters';
 import { BookingsList } from '@/components/bookings/BookingsList';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
@@ -79,7 +81,7 @@ const Bookings = () => {
       <DashboardLayout>
         <div className="bg-gray-900 min-h-full p-3 md:p-8">
           <div className="space-y-4 md:space-y-6">
-            <BookingsHeader />
+            <SimplePageHeader title="Bookings" />
 
             {/* Create Calendar Section */}
             <div className="bg-card border border-border shadow-sm rounded-lg p-8">
@@ -118,7 +120,12 @@ const Bookings = () => {
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-3 md:p-8">
         <div className="space-y-4 md:space-y-6">
-          <BookingsHeader />
+          <SimplePageHeader title="Bookings" />
+          
+          {/* Calendar Switcher */}
+          <div className="mb-6">
+            <CalendarSwitcher />
+          </div>
 
           <BookingsFilters
             searchTerm={searchTerm}

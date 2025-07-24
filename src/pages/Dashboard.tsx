@@ -12,6 +12,7 @@ import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { UserStatusSwitcher } from '@/components/developer/UserStatusSwitcher';
 import { SubscriptionTierSwitcher } from '@/components/developer/SubscriptionTierSwitcher';
 import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcherSection';
+import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -107,53 +108,23 @@ const Dashboard = () => {
         {/* Show Onboarding Wizard for Setup Incomplete Users */}
         {userStatus.isSetupIncomplete ? (
           <div className="space-y-6">
-            <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-3 md:p-6">
-              <h1 className="text-base md:text-3xl font-bold text-white mb-2">
-                Welcome to your Dashboard
-              </h1>
-              <p className="text-gray-400 text-xs md:text-base">
-                Let's get you set up so you can start receiving bookings
-              </p>
-            </div>
+            <SimplePageHeader title="Welcome to your Dashboard" />
             <OnboardingWizard />
           </div>
         ) : (
           <>
-            {/* Dashboard Header with Conditional Date Filter */}
-            <div className="mb-4 md:mb-8">
-              <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-3 md:p-6">
-                <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
-                  <div>
-                    <h1 className="text-base md:text-3xl font-bold text-white">
-                      Dashboard
-                      <span className="hidden md:inline">
-                        {viewingAllCalendars 
-                          ? ' - All calendars'
-                          : selectedCalendar 
-                            ? ` - ${selectedCalendar.name}`
-                            : ''
-                        }
-                      </span>
-                    </h1>
-                    <p className="text-gray-400 mt-1 text-xs md:text-base">
-                      {viewingAllCalendars
-                        ? `Overview of ${activeCalendarIds.length} calendars`
-                        : 'Overview of your bookings and performance'
-                      }
-                    </p>
-                  </div>
-                  
-                  {/* Calendar Selector and Date Filter */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <CalendarSelector />
-                    {showDateFilter && (
-                      <DateRangeFilter 
-                        selectedRange={selectedDateRange}
-                        onRangeChange={setSelectedDateRange}
-                      />
-                    )}
-                  </div>
-                </div>
+            <SimplePageHeader title="Dashboard" />
+            
+            {/* Calendar Selector and Date Filter */}
+            <div className="mb-6">
+              <div className="flex items-center gap-3 flex-wrap">
+                <CalendarSelector />
+                {showDateFilter && (
+                  <DateRangeFilter 
+                    selectedRange={selectedDateRange}
+                    onRangeChange={setSelectedDateRange}
+                  />
+                )}
               </div>
             </div>
 
