@@ -2,7 +2,7 @@
 project_id = "grdgjhkygzciwwrxgvgy"
 
 [functions.translate-text]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-team-invitation]
 verify_jwt = true

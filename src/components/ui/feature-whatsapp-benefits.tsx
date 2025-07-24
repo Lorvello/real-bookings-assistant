@@ -1,7 +1,6 @@
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useState, useRef, useEffect } from "react";
-import { useTranslation } from '@/hooks/useTranslation';
 const globalNetworkImage = "/lovable-uploads/a19bc752-d6ec-4498-944d-aa62ff083b1f.png";
 const automationImage = "/lovable-uploads/c4bcff68-784e-45d1-9ab5-01bf16fcdf6a.png";
 const paymentSuccessImage = "/lovable-uploads/ca02afe5-2602-415b-8d13-928d829aa206.png";
@@ -23,53 +22,46 @@ interface WhatsAppBenefitsProps {
   benefits?: Benefit[];
 }
 
-const useDefaultBenefits = () => {
-  const { t } = useTranslation();
-  
-  return [
-    {
-      id: "benefit-1",
-      title: t('whatsappBenefits.benefits.globalReach.title'),
-      description: t('whatsappBenefits.benefits.globalReach.description'),
-      mobileDescription: t('whatsappBenefits.benefits.globalReach.mobileDescription'),
-      image: globalNetworkImage,
-      imageType: "global-network",
-    },
-    {
-      id: "benefit-2", 
-      title: t('whatsappBenefits.benefits.automation.title'),
-      description: t('whatsappBenefits.benefits.automation.description'),
-      mobileDescription: t('whatsappBenefits.benefits.automation.mobileDescription'),
-      image: automationImage,
-      imageType: "automation-24-7",
-    },
-    {
-      id: "benefit-3",
-      title: t('whatsappBenefits.benefits.payment.title'),
-      description: t('whatsappBenefits.benefits.payment.description'),
-      mobileDescription: t('whatsappBenefits.benefits.payment.mobileDescription'),
-      image: paymentSuccessImage,
-      imageType: "payment-success",
-    },
-  ];
-};
+const defaultBenefits = [
+  {
+    id: "benefit-1",
+    title: "2.95 Billion Customers Ready to Book",
+    description:
+      "Reach customers where they already are. WhatsApp's universal adoption means no app downloads, no new accounts. Just instant booking in the world's most popular messaging platform.",
+    mobileDescription: "Connect instantly to billions of users without app downloads. Book directly through their favorite messaging platform.",
+    image: globalNetworkImage,
+    imageType: "global-network",
+  },
+  {
+    id: "benefit-2", 
+    title: "24/7 Booking Without Staff",
+    description:
+      "Your AI assistant never sleeps. Customers book appointments instantly at 3 AM or during busy hours without adding staff costs. Capture every booking opportunity while you focus on your business.",
+    mobileDescription: "AI handles bookings 24/7 while you sleep or serve clients. Zero missed opportunities, no extra staff costs.",
+    image: automationImage,
+    imageType: "automation-24-7",
+  },
+  {
+    id: "benefit-3",
+    title: "80% Fewer No-Shows with Instant Payment", 
+    description:
+      "Prepayment through WhatsApp creates commitment. Get paid 50 to 75% faster (1 to 2 days vs 7 to 14 days) while dramatically reducing cancellations and improving cash flow.",
+    mobileDescription: "Secure WhatsApp payments create real commitment. Get paid instantly instead of waiting weeks for traditional invoicing.",
+    image: paymentSuccessImage,
+    imageType: "payment-success",
+  },
+];
 
 export const WhatsAppBenefits = ({
-  heading,
-  description,
+  heading = "Why Choose WhatsApp Booking?",
+  description = "Proven results that transform your business. Reach 2.95 billion customers instantly with 24/7 automation and secure payments.",
   linkUrl = "#",
-  linkText,
-  benefits,
+  linkText = "Start Free 7-Day Trial",
+  benefits = defaultBenefits,
   className = "",
 }: WhatsAppBenefitsProps & { className?: string }) => {
-  const { t } = useTranslation();
-  const defaultBenefits = useDefaultBenefits();
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
-  
-  const finalHeading = heading || t('whatsappBenefits.heading');
-  const finalDescription = description || t('whatsappBenefits.description');
-  const finalLinkText = linkText || t('whatsappBenefits.linkText');
-  const enhancedBenefits = benefits || defaultBenefits;
+  const enhancedBenefits = benefits;
   
   // Mobile slideshow state
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -202,7 +194,7 @@ export const WhatsAppBenefits = ({
           {/* Swipe hint */}
           <div className="text-center mt-3">
             <p className="text-xs text-slate-500">
-              {t('whatsappBenefits.swipeHint')}
+              Swipe or tap arrows to explore
             </p>
           </div>
         </div>

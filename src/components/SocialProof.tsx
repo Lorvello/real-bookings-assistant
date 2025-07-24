@@ -1,24 +1,14 @@
 
 import { Star, Quote, MapPin, Calendar, Clock, User } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useTranslation } from '@/hooks/useTranslation';
 
 const SocialProof = () => {
-  const { t } = useTranslation();
   const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(0);
   const [activeStatsIndex, setActiveStatsIndex] = useState(0);
   const testimonialsCarouselRef = useRef<HTMLDivElement>(null);
   const statsCarouselRef = useRef<HTMLDivElement>(null);
 
-  // Get testimonials from translations
-  const testimonialsData = (t('socialProof.testimonials') as any) || [];
-  const testimonials = Array.isArray(testimonialsData) ? testimonialsData.map((testimonial: any, index: number) => ({
-    ...testimonial,
-    rating: 5,
-    image: "/placeholder.svg"
-  })) : [];
-
-  const oldTestimonials = [
+  const testimonials = [
     {
       name: "Maria Santos",
       business: "Salon Belleza",
@@ -52,9 +42,9 @@ const SocialProof = () => {
   ];
 
   const stats = [
-    { value: "10,000+", label: t('socialProof.stats.businesses'), icon: User },
-    { value: "500k+", label: t('socialProof.stats.bookings'), icon: Calendar },
-    { value: "3 sec", label: t('socialProof.stats.response'), icon: Clock }
+    { value: "10,000+", label: "Happy Businesses", icon: User },
+    { value: "500k+", label: "Bookings Processed", icon: Calendar },
+    { value: "3 sec", label: "Average Response", icon: Clock }
   ];
 
   // Handle testimonials carousel scroll
@@ -129,11 +119,11 @@ const SocialProof = () => {
         {/* Header */}
         <div className="text-center mb-6 md:mb-20">
           <h2 className="text-lg md:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
-            {t('socialProof.title')} <span className="text-emerald-400">{t('socialProof.titleAccent')}</span> {t('socialProof.titleSuffix')}
+            Trusted by <span className="text-emerald-400">10,000+</span> Businesses
           </h2>
           <p className="text-xs md:text-xl text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-            <span className="md:hidden">{t('socialProof.mobileSubtitle')}</span>
-            <span className="hidden md:inline">{t('socialProof.desktopSubtitle')}</span>
+            <span className="md:hidden">Thousands trust our booking automation</span>
+            <span className="hidden md:inline">Join thousands of business owners who've revolutionized their booking process</span>
           </p>
         </div>
 

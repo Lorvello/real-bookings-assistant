@@ -1,10 +1,7 @@
 
 import React from 'react';
-import { useTranslation } from '@/hooks/useTranslation';
 
 const WhatsAppChat = () => {
-  const { t } = useTranslation();
-  
   return (
     <div className="w-full max-w-[280px] md:max-w-xs mx-auto">
       {/* Professional tablet-style interface for mobile, iPhone for desktop */}
@@ -22,10 +19,10 @@ const WhatsAppChat = () => {
               </div>
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-sm md:text-sm tracking-tight">{t('whatsappChat.businessName')}</h3>
+              <h3 className="font-semibold text-sm md:text-sm tracking-tight">Beauty Salon AI</h3>
               <div className="flex items-center gap-1 md:gap-1">
                 <div className="w-1.5 h-1.5 md:w-1.5 md:h-1.5 bg-emerald-300 rounded-full animate-pulse shadow-sm"></div>
-                <p className="text-xs md:text-xs text-white/90 font-medium">{t('whatsappChat.status')}</p>
+                <p className="text-xs md:text-xs text-white/90 font-medium">online</p>
               </div>
             </div>
             <div className="flex gap-2 md:gap-3">
@@ -50,9 +47,9 @@ const WhatsAppChat = () => {
             {/* User message - smaller text for mobile */}
             <div className="flex justify-end relative z-10">
               <div className="whatsapp-bubble-user-modern max-w-[75%] group">
-                <p className="text-white text-[7px] md:text-xs leading-tight md:leading-relaxed font-medium">{t('whatsappChat.conversation.userMessages.0')}</p>
+                <p className="text-white text-[7px] md:text-xs leading-tight md:leading-relaxed font-medium">Hi! I'd like to book a haircut for tomorrow.</p>
                 <div className="flex items-center justify-end gap-1 mt-1 md:mt-1">
-                  <span className="text-white/70 text-[6px] md:text-xs font-medium">{t('whatsappChat.conversation.timestamps.0')}</span>
+                  <span className="text-white/70 text-[6px] md:text-xs font-medium">10:30</span>
                   <div className="flex items-center">
                     <svg viewBox="0 0 16 15" width="8" height="8" className="md:w-2.5 md:h-2.5 text-white/80">
                       <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L3.724 9.587a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51z"/>
@@ -65,9 +62,9 @@ const WhatsAppChat = () => {
             {/* AI response - smaller text for mobile */}
             <div className="flex justify-start relative z-10">
               <div className="whatsapp-bubble-ai-modern max-w-[75%] group">
-                <p className="text-gray-800 text-[7px] md:text-xs leading-tight md:leading-relaxed">{t('whatsappChat.conversation.aiMessages.0')}</p>
+                <p className="text-gray-800 text-[7px] md:text-xs leading-tight md:leading-relaxed">Hi! I'd be happy to help. What time works best for you tomorrow?</p>
                 <div className="flex items-center justify-end mt-1 md:mt-1">
-                  <span className="text-gray-500 text-[6px] md:text-xs font-medium">{t('whatsappChat.conversation.timestamps.1')}</span>
+                  <span className="text-gray-500 text-[6px] md:text-xs font-medium">10:30</span>
                 </div>
               </div>
             </div>
@@ -75,9 +72,9 @@ const WhatsAppChat = () => {
             {/* User provides details - smaller text for mobile */}
             <div className="flex justify-end relative z-10">
               <div className="whatsapp-bubble-user-modern max-w-[75%] group">
-                <p className="text-white text-[7px] md:text-xs leading-tight md:leading-relaxed font-medium">{t('whatsappChat.conversation.userMessages.1')}</p>
+                <p className="text-white text-[7px] md:text-xs leading-tight md:leading-relaxed font-medium">Around 2 PM would be perfect!</p>
                 <div className="flex items-center justify-end gap-1 mt-1 md:mt-1">
-                  <span className="text-white/70 text-[6px] md:text-xs font-medium">{t('whatsappChat.conversation.timestamps.2')}</span>
+                  <span className="text-white/70 text-[6px] md:text-xs font-medium">10:31</span>
                   <div className="flex items-center">
                     <svg viewBox="0 0 16 15" width="8" height="8" className="md:w-2.5 md:h-2.5 text-emerald-300">
                       <path fill="currentColor" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L3.724 9.587a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.063-.51z"/>
@@ -90,9 +87,9 @@ const WhatsAppChat = () => {
             {/* Final AI confirmation - smaller text for mobile */}
             <div className="flex justify-start relative z-10">
               <div className="whatsapp-bubble-ai-modern max-w-[75%] group">
-                <p className="text-gray-800 text-[7px] md:text-xs leading-tight md:leading-relaxed">{t('whatsappChat.conversation.aiMessages.1')}</p>
+                <p className="text-gray-800 text-[7px] md:text-xs leading-tight md:leading-relaxed">Perfect! I have 2:00 PM available. You'll receive confirmation shortly! 💇‍♀️</p>
                 <div className="flex items-center justify-end mt-1 md:mt-1">
-                  <span className="text-gray-500 text-[6px] md:text-xs font-medium">{t('whatsappChat.conversation.timestamps.3')}</span>
+                  <span className="text-gray-500 text-[6px] md:text-xs font-medium">10:31</span>
                 </div>
               </div>
             </div>
@@ -117,7 +114,7 @@ const WhatsAppChat = () => {
               </svg>
             </div>
             <div className="flex-1 bg-white rounded-full px-3 md:px-3 py-1.5 md:py-1.5 shadow-sm border border-gray-200/70 hover:border-gray-300 transition-colors">
-              <span className="text-gray-500 text-xs md:text-xs">{t('whatsappChat.placeholder')}</span>
+              <span className="text-gray-500 text-xs md:text-xs">Type a message</span>
             </div>
             <div className="w-4 h-4 md:w-5 md:h-5 text-gray-400 hover:text-emerald-600 transition-colors cursor-pointer">
               <svg viewBox="0 0 24 24" width="14" height="14" className="md:w-4 md:h-4" fill="currentColor">

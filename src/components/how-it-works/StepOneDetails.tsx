@@ -1,11 +1,8 @@
 
 import React from 'react';
 import { CheckCircle, Calendar, Settings, Clock, Sparkles } from 'lucide-react';
-import { useTranslation } from '@/hooks/useTranslation';
 
 const StepOneDetails = () => {
-  const { t } = useTranslation();
-  
   return (
     <div className="relative group">
       {/* Premium card with multiple shadow layers - Mobile: much smaller, Desktop: unchanged */}
@@ -34,7 +31,7 @@ const StepOneDetails = () => {
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-emerald-300 font-semibold text-xs md:text-sm uppercase tracking-wider">{t('howItWorks.stepOne.stepLabel')}</span>
+            <span className="text-emerald-300 font-semibold text-xs md:text-sm uppercase tracking-wider">Step One</span>
             <div className="w-6 md:w-12 h-0.5 bg-gradient-to-r from-emerald-400 to-transparent mt-0.5"></div>
           </div>
         </div>
@@ -42,11 +39,12 @@ const StepOneDetails = () => {
         {/* Premium Typography - Mobile: much smaller */}
         <h3 className="text-base md:text-2xl xl:text-3xl font-bold mb-1 md:mb-4 leading-tight tracking-tight
                      bg-gradient-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
-          {t('howItWorks.stepOne.title')}
+          Create account & get your professional calendar
         </h3>
         
         <p className="text-slate-300 text-[10px] md:text-base mb-2 md:mb-4 leading-relaxed font-light">
-          {t('howItWorks.stepOne.description')}
+          Simply create your account and get instant access to your professional calendar system. 
+          You can also connect your existing calendar if you prefer.
         </p>
         
         {/* Enhanced Feature List - Mobile: smaller padding and text */}
@@ -57,7 +55,7 @@ const StepOneDetails = () => {
               <CheckCircle className="w-3 h-3 md:w-5 md:h-5 text-emerald-400 drop-shadow-sm" />
               <div className="absolute inset-0 bg-emerald-400/20 rounded-full blur-sm -z-10"></div>
             </div>
-            <span className="text-slate-100 font-medium text-xs md:text-base">{t('howItWorks.stepOne.features.0')}</span>
+            <span className="text-slate-100 font-medium text-xs md:text-base">Instant professional calendar setup</span>
           </div>
            <div className="flex items-center gap-1 md:gap-4 p-1 md:p-3 rounded-lg md:rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
                         transition-all duration-300 hover:bg-white/10 hover:border-emerald-400/30">
@@ -65,7 +63,7 @@ const StepOneDetails = () => {
               <CheckCircle className="w-3 h-3 md:w-5 md:h-5 text-emerald-400 drop-shadow-sm" />
               <div className="absolute inset-0 bg-emerald-400/20 rounded-full blur-sm -z-10"></div>
             </div>
-            <span className="text-slate-100 font-medium text-xs md:text-base">{t('howItWorks.stepOne.features.1')}</span>
+            <span className="text-slate-100 font-medium text-xs md:text-base">Option to connect existing calendar</span>
           </div>
            <div className="flex items-center gap-1 md:gap-4 p-1 md:p-3 rounded-lg md:rounded-xl bg-white/5 backdrop-blur-sm border border-white/10
                         transition-all duration-300 hover:bg-white/10 hover:border-emerald-400/30">
@@ -73,7 +71,7 @@ const StepOneDetails = () => {
               <CheckCircle className="w-3 h-3 md:w-5 md:h-5 text-emerald-400 drop-shadow-sm" />
               <div className="absolute inset-0 bg-emerald-400/20 rounded-full blur-sm -z-10"></div>
             </div>
-            <span className="text-slate-100 font-medium text-xs md:text-base">{t('howItWorks.stepOne.features.2')}</span>
+            <span className="text-slate-100 font-medium text-xs md:text-base">Immediate setup - no waiting</span>
           </div>
         </div>
       </div>
@@ -94,7 +92,7 @@ const StepOneDetails = () => {
               </div>
             </div>
             
-            <h4 className="text-sm md:text-xl font-bold text-white mb-2 md:mb-6 tracking-wide">{t('howItWorks.stepOne.visual.title')}</h4>
+            <h4 className="text-sm md:text-xl font-bold text-white mb-2 md:mb-6 tracking-wide">Calendar Ready</h4>
             
             {/* Enhanced Status Cards - Mobile: smaller */}
             <div className="space-y-1 md:space-y-3">
@@ -103,7 +101,7 @@ const StepOneDetails = () => {
                             border border-slate-500/30 rounded-lg md:rounded-xl
                             shadow-sm md:shadow-lg shadow-black/20
                             transition-all duration-300 hover:shadow-emerald-500/10">
-                <span className="text-slate-100 text-xs md:text-sm font-medium">{t('howItWorks.stepOne.visual.status')}</span>
+                <span className="text-slate-100 text-xs md:text-sm font-medium">Professional Calendar</span>
                 <div className="relative">
                   <CheckCircle className="w-3 h-3 md:w-5 md:h-5 text-emerald-400" />
                   <div className="absolute inset-0 bg-emerald-400/20 rounded-full blur-sm -z-10"></div>
@@ -116,7 +114,7 @@ const StepOneDetails = () => {
                             relative overflow-hidden">
                 <div className="flex items-center justify-center gap-1 md:gap-3 relative z-10">
                   <div className="w-2 h-2 md:w-3 md:h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
-                  <span className="text-emerald-200 text-xs md:text-sm font-semibold tracking-wide">{t('howItWorks.stepOne.visual.active')}</span>
+                  <span className="text-emerald-200 text-xs md:text-sm font-semibold tracking-wide">Instantly Active</span>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-transparent"></div>
               </div>

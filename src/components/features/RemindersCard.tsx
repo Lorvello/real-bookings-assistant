@@ -1,8 +1,5 @@
-import { useTranslation } from '@/hooks/useTranslation';
 
 export const RemindersCard = () => {
-  const { t } = useTranslation();
-  
   return (
     <div className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
@@ -21,17 +18,17 @@ export const RemindersCard = () => {
               </div>
               <span className="text-gray-400 text-xs uppercase font-medium tracking-wide">WhatsApp</span>
             </div>
-            <span className="text-gray-500 text-xs">{t('featureCards.reminders.timeAgo')}</span>
+            <span className="text-gray-500 text-xs">13m ago</span>
           </div>
           
           {/* Sender Name */}
           <div className="mb-1">
-            <span className="text-white text-sm font-medium">{t('featureCards.reminders.senderName')}</span>
+            <span className="text-white text-sm font-medium">Wellness Clinic</span>
           </div>
           
           {/* Message Preview */}
           <div className="text-gray-200 text-xs leading-relaxed">
-            {t('featureCards.reminders.message')}
+            🔔 Reminder: Your appointment is tomorrow at 2:00 PM.
           </div>
         </div>
       </div>

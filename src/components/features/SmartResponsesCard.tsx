@@ -1,24 +1,7 @@
+
 import { Check, X } from "lucide-react";
-import { useTranslation } from '@/hooks/useTranslation';
 
 export const SmartResponsesCard = () => {
-  const { t } = useTranslation();
-  
-  const comparisons = [
-    { 
-      normal: t('featureCards.smartResponses.comparisons.0.normal') || "Yes, we have availability", 
-      smart: t('featureCards.smartResponses.comparisons.0.smart') || "Perfect! I can book you for Tuesday at 2 PM with Dr. Smith. Would you like me to send a confirmation?" 
-    },
-    { 
-      normal: t('featureCards.smartResponses.comparisons.1.normal') || "Please call during business hours", 
-      smart: t('featureCards.smartResponses.comparisons.1.smart') || "I'm available 24/7! Let me check our calendar and find the perfect time slot for you." 
-    },
-    { 
-      normal: t('featureCards.smartResponses.comparisons.2.normal') || "We'll get back to you soon", 
-      smart: t('featureCards.smartResponses.comparisons.2.smart') || "Done! Your appointment is confirmed. I've sent you a calendar invite and a reminder for tomorrow." 
-    }
-  ];
-  
   return (
     <div className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
@@ -28,23 +11,31 @@ export const SmartResponsesCard = () => {
         {/* Header */}
         <div className="flex items-center justify-center mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-white text-[10px] font-semibold">{t('featureCards.smartResponses.normal')}</span>
+            <span className="text-white text-[10px] font-semibold">Normal</span>
             <div className="w-4 h-4 bg-emerald-500/30 rounded-full flex items-center justify-center">
               <span className="text-[8px] text-emerald-400">vs</span>
             </div>
-            <span className="text-emerald-400 text-[10px] font-semibold">{t('featureCards.smartResponses.smartAI')}</span>
+            <span className="text-emerald-400 text-[10px] font-semibold">Smart AI</span>
           </div>
         </div>
         
         {/* Comparison Grid */}
         <div className="flex-1 space-y-2">
           {/* Comparison rows */}
-          {comparisons.map((comparison, index) => (
+          {[
+            { normal: '"We are closed"', smart: '"We are closed now, but open tomorrow at 9:00. Shall I schedule an appointment?"' },
+            { normal: '"Choose a service"', smart: '"Based on your last visit (haircut), I suggest: haircut + wash for €40?"' },
+            { normal: '"Choose a time"', smart: '"You came last time on Thursday 3:00 PM. Same time this week?"' },
+            { normal: '"Pay after appointment"', smart: '"Haircut €25, payment by cash or card. Want to confirm directly?"' },
+            { normal: '"Cancellation not possible"', smart: '"Of course, which appointment would you like to cancel? Shall I suggest a new time right away?"' },
+            { normal: '"Monday to Friday 9-17h"', smart: '"We are open today until 17:00. Can I still schedule you now or would you prefer tomorrow?"' },
+            { normal: '"Fill in your details"', smart: '"Hello Sarah! Use the same contact details as last time?"' }
+          ].map((comparison, index) => (
             <div key={index} className="grid grid-cols-2 gap-2">
               <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
                 <div className="flex items-center gap-1 mb-1">
                   <X className="w-2 h-2 text-red-400" />
-                  <span className="text-red-400 text-[7px] font-medium">{t('featureCards.smartResponses.normal')}</span>
+                  <span className="text-red-400 text-[7px] font-medium">Normal</span>
                 </div>
                 <div className="bg-red-500/10 rounded px-2 py-1">
                   <p className="text-red-300 text-[7px] leading-tight">{comparison.normal}</p>
@@ -54,7 +45,7 @@ export const SmartResponsesCard = () => {
               <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
                 <div className="flex items-center gap-1 mb-1">
                   <Check className="w-2 h-2 text-emerald-400" />
-                  <span className="text-emerald-400 text-[7px] font-medium">{t('featureCards.smartResponses.smartAI')}</span>
+                  <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
                 </div>
                 <div className="bg-emerald-500/10 rounded px-2 py-1">
                   <p className="text-emerald-300 text-[7px] leading-tight">{comparison.smart}</p>

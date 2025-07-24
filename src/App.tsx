@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CalendarProvider } from '@/contexts/CalendarContext';
 import { ConversationCalendarProvider } from '@/contexts/ConversationCalendarContext';
 import { UserStatusProvider } from '@/contexts/UserStatusContext';
-import { LanguageProvider } from '@/contexts/LanguageContext';
 import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
 import { useAuth } from '@/hooks/useAuth';
 import Login from '@/pages/Login';
@@ -49,11 +48,10 @@ function GlobalWebhookProcessor() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <UserStatusProvider>
-          <CalendarProvider>
-            <ConversationCalendarProvider>
-              <Router>
+      <UserStatusProvider>
+        <CalendarProvider>
+          <ConversationCalendarProvider>
+            <Router>
               <GlobalWebhookProcessor />
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -77,12 +75,11 @@ function App() {
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-                <Toaster />
-              </Router>
-            </ConversationCalendarProvider>
-          </CalendarProvider>
-        </UserStatusProvider>
-      </LanguageProvider>
+              <Toaster />
+            </Router>
+          </ConversationCalendarProvider>
+        </CalendarProvider>
+      </UserStatusProvider>
     </QueryClientProvider>
   );
 }

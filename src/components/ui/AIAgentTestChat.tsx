@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTranslation } from '@/hooks/useTranslation';
 
 interface Message {
   id: string;
@@ -249,12 +248,11 @@ function PlaceholdersAndVanishInput({
 }
 
 export default function AIAgentTestPage() {
-  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       type: "bot",
-      content: t('howItWorks.aiChat.greeting'),
+      content: "Hello! I'm your AI agent. Ask me a question to test my capabilities!",
       timestamp: new Date(),
     },
   ]);
@@ -262,11 +260,11 @@ export default function AIAgentTestPage() {
   const [inputValue, setInputValue] = useState("");
 
   const placeholders = [
-    t('howItWorks.aiChat.placeholders.0'),
-    t('howItWorks.aiChat.placeholders.1'),
-    t('howItWorks.aiChat.placeholders.2'),
-    t('howItWorks.aiChat.placeholders.3'),
-    t('howItWorks.aiChat.placeholders.4'),
+    "Ask me something about your business...",
+    "Test my knowledge about marketing...",
+    "Ask me about WhatsApp automation...",
+    "Ask me for a lead generation strategy...",
+    "Test my creativity with content ideas...",
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,11 +273,11 @@ export default function AIAgentTestPage() {
 
   const simulateAIResponse = (userMessage: string): string => {
     const responses = [
-      t('howItWorks.aiChat.responses.0'),
-      t('howItWorks.aiChat.responses.1'),
-      t('howItWorks.aiChat.responses.2'),
-      t('howItWorks.aiChat.responses.3'),
-      t('howItWorks.aiChat.responses.4'),
+      "That's an interesting question! As an AI agent, I can help you automate your WhatsApp communication and improve your customer service.",
+      "Great! I can support you in setting up automated workflows that save you time and increase your conversion rate.",
+      "Excellent question! With my help, you can send personalized messages, qualify leads, and optimize your sales process.",
+      "Perfect! I can help you create chatbots, segment your target audience, and increase your customer satisfaction.",
+      "Fantastic! Let me show you how I can automate complex tasks and streamline your business processes.",
     ];
     return responses[Math.floor(Math.random() * responses.length)];
   };
@@ -330,12 +328,12 @@ export default function AIAgentTestPage() {
                   <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white text-sm sm:text-base">{t('howItWorks.aiChat.title')}</h3>
-                  <p className="text-xs sm:text-sm text-gray-400 truncate">{t('howItWorks.aiChat.subtitle')}</p>
+                  <h3 className="font-semibold text-white text-sm sm:text-base">AI Agent Demo</h3>
+                  <p className="text-xs sm:text-sm text-gray-400 truncate">Online and ready to help</p>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#25D366] rounded-full animate-pulse"></div>
-                  <span className="text-xs text-gray-400">{t('howItWorks.aiChat.status')}</span>
+                  <span className="text-xs text-gray-400">Live</span>
                 </div>
               </div>
             </div>
@@ -413,7 +411,7 @@ export default function AIAgentTestPage() {
                 onSubmit={handleSubmit}
               />
               <p className="text-xs text-gray-400 mt-1 sm:mt-2 text-center">
-                {t('howItWorks.aiChat.footer')}
+                Press Enter to send your message • Powered by AI
               </p>
             </div>
           </div>

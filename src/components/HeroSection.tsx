@@ -2,11 +2,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "lucide-react";
-import { useTranslation } from '@/hooks/useTranslation';
 
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
   
   const handleStartTrial = () => {
     navigate('/signup');
@@ -27,27 +25,27 @@ const HeroSection: React.FC = () => {
         {/* Floating badge - SUBTEXT */}
         <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-2 md:mb-8 animate-appear opacity-0">
           <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
-          <span className="text-emerald-300 text-xs md:text-sm font-medium">{t('hero.badge')}</span>
+          <span className="text-emerald-300 text-xs md:text-sm font-medium">AI-Powered Booking Revolution</span>
         </div>
 
         {/* Main headline - HEADER (Largest) */}
         <div className="space-y-2 md:space-y-8">
           <h1 className="text-3xl md:text-5xl xl:text-6xl font-bold text-white leading-tight md:leading-[0.95] tracking-tight animate-appear opacity-100">
             <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
-              {t('hero.title')}
+              Bookings
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
             </span>
-            {" "}{t('hero.titleAccent')}
+            {" "}on Auto Pilot
             <br />
-            {t('hero.titleSuffix')}
+            via WhatsApp
           </h1>
 
           <p className="text-xs md:text-lg text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0 mb-6 md:mb-0">
-            <span className="md:hidden">{t('hero.mobileSubtitle')}</span>
-            <span className="hidden md:inline">{t('hero.desktopSubtitle')}{" "}
-            <span className="text-emerald-400 font-semibold">{t('hero.highlights.automation')}</span>,{" "}
-            <span className="text-emerald-400 font-semibold">{t('hero.highlights.responses')}</span>,{" "}
-            <span className="text-emerald-400 font-semibold">{t('hero.highlights.opportunities')}</span>.</span>
+            <span className="md:hidden">AI Books Appointments, Zero Missed Opportunities</span>
+            <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
+            <span className="text-emerald-400 font-semibold">24/7 automation</span>,{" "}
+            <span className="text-emerald-400 font-semibold">instant responses</span>,{" "}
+            <span className="text-emerald-400 font-semibold">zero missed opportunities</span>.</span>
           </p>
 
           {/* CTA Section - BUTTONS (Medium-Large) */}
@@ -57,7 +55,7 @@ const HeroSection: React.FC = () => {
               className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-2 md:px-8 md:py-6 text-sm md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[40px] md:min-h-[48px]"
             >
               <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
-              {t('hero.ctaPrimary')}
+              Start Free 7-Day Trial
             </Button>
             
             <button 
@@ -65,7 +63,7 @@ const HeroSection: React.FC = () => {
               className="w-full sm:w-auto text-slate-300 hover:text-white text-sm md:text-lg font-medium flex items-center justify-center gap-2 group transition-colors min-h-[40px] md:min-h-[48px] px-4"
             >
               <Zap className="w-4 h-4 md:w-5 md:h-5 group-hover:text-emerald-400 transition-colors" />
-              {t('hero.ctaSecondary')}
+              See how it works
             </button>
           </div>
 
@@ -88,14 +86,14 @@ const HeroSection: React.FC = () => {
                   <Stethoscope className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
                 </div>
               </div>
-              <span className="text-slate-400 text-xs md:text-sm">{t('hero.socialProof.businesses')}</span>
+              <span className="text-slate-400 text-xs md:text-sm">1000+ businesses automated</span>
             </div>
             
             <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => (
                 <span key={i} className="text-yellow-400 text-xs md:text-lg">★</span>
               ))}
-              <span className="text-slate-400 text-xs md:text-sm ml-1">{t('hero.socialProof.rating')}</span>
+              <span className="text-slate-400 text-xs md:text-sm ml-1">4.9/5 rating</span>
             </div>
           </div>
         </div>
