@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { useOptimizedBookings } from '@/hooks/useOptimizedBookings';
+import { useBookingsWithCalendarFilter } from '@/hooks/useBookingsWithCalendarFilter';
 import { useBookingsFilters } from '@/hooks/useBookingsFilters';
 import { BookingDetailModal } from '@/components/calendar/BookingDetailModal';
 import { BookingsHeader } from '@/components/bookings/BookingsHeader';
@@ -19,11 +19,10 @@ const Bookings = () => {
   const { user, loading: authLoading } = useAuth();
   const { selectedCalendar, calendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
   
-  // Get primary calendar for bookings
+  // Get active calendar IDs for filtering bookings
   const activeCalendarIds = getActiveCalendarIds();
-  const primaryCalendarId = activeCalendarIds.length > 0 ? activeCalendarIds[0] : undefined;
   
-  const { bookings, loading: bookingsLoading } = useOptimizedBookings(primaryCalendarId);
+  const { bookings, loading: bookingsLoading } = useBookingsWithCalendarFilter(activeCalendarIds);
   
   const {
     searchTerm,
@@ -61,10 +60,10 @@ const Bookings = () => {
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full bg-gray-900">
+        <div className="flex items-center justify-center h-full bg-background">
           <div className="text-center">
-            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-300">Loading...</div>
+            <div className="w-6 h-6 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
+            <div className="text-base text-muted-foreground">Loading...</div>
           </div>
         </div>
       </DashboardLayout>
@@ -78,25 +77,25 @@ const Bookings = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-full p-3 md:p-8">
+        <div className="bg-background min-h-full p-3 md:p-8">
           <div className="space-y-4 md:space-y-6">
             <BookingsHeader />
 
             {/* Create Calendar Section */}
-            <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
+            <div className="bg-card border border-border shadow-sm rounded-lg p-8">
               <div className="text-center space-y-6">
-                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                  <CalendarIcon className="w-8 h-8 text-primary" />
+                <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                  <CalendarIcon className="w-8 h-8 text-muted-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-100 mb-2">Create Calendar to Manage Bookings</h2>
-                  <p className="text-gray-400 max-w-md mx-auto">
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Create Calendar to Manage Bookings</h2>
+                  <p className="text-muted-foreground max-w-md mx-auto">
                     You need a calendar to start managing your bookings. Create one now to get started.
                   </p>
                 </div>
                 <Button 
                   onClick={() => setCreateDialogOpen(true)}
-                  className="bg-primary hover:bg-primary/90 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   size="lg"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -117,7 +116,7 @@ const Bookings = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-3 md:p-8">
+      <div className="bg-background min-h-full p-3 md:p-8">
         <div className="space-y-4 md:space-y-6">
           <BookingsHeader />
 
