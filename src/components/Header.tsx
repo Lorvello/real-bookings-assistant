@@ -60,7 +60,7 @@ const Header = () => {
           <Link 
             to="/" 
             onClick={handleNavClick}
-            className="text-white font-bold text-lg sm:text-xl hover:opacity-90 transition-opacity"
+            className="text-white font-bold text-lg sm:text-xl hover:opacity-90 transition-opacity notranslate"
           >
             Bookings Assistant
           </Link>

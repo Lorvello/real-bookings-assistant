@@ -12,7 +12,7 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar }: SidebarHeaderP
     <div className="flex h-16 items-center justify-between px-4 border-b border-gray-700">
       {/* Logo - only show when expanded */}
       {isSidebarOpen && (
-        <h1 className="text-xl font-bold text-white transition-all duration-300">
+        <h1 className="text-xl font-bold text-white transition-all duration-300 notranslate">
           Bookings Assistant
         </h1>
       )}
