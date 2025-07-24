@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
-import { generateEnglishSampleBookings } from './calendar/utils/englishSampleBookings';
+import { generateDutchSampleBookings } from './calendar/utils/dutchSampleBookings';
 import { DayBookingsModal } from './calendar/DayBookingsModal';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -43,7 +43,7 @@ const CalendarMockup = () => {
   const weekDays = Array.isArray(translatedWeekDays) ? translatedWeekDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   // Get sample bookings for this month
-  const sampleBookings = generateEnglishSampleBookings(currentDate);
+  const sampleBookings = generateDutchSampleBookings(currentDate);
 
   const getBookingsForDay = (day: Date) => {
     return sampleBookings.filter(booking => 

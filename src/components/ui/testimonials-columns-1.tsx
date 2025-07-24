@@ -2,67 +2,29 @@
 "use client";
 import React from "react";
 import { motion } from "motion/react";
+import { useTranslation } from '@/hooks/useTranslation';
 
-const testimonials = [
-  {
-    text: "Since implementing the WhatsApp booking assistant, I save 3 hours daily! No more back-and-forth messages. My customers love the instant responses, and I've increased bookings by 40%.",
-    image: "https://randomuser.me/api/portraits/women/1.jpg",
-    name: "Maria Santos",
-    role: "Salon Owner",
-  },
-  {
-    text: "The AI perfectly handles all appointment requests, even complex scheduling. My patients are amazed by the instant responses. It's like having a perfect receptionist 24/7.",
-    image: "https://randomuser.me/api/portraits/men/2.jpg",
-    name: "Dr. Thomas Mueller",
-    role: "Medical Practice",
-  },
-  {
-    text: "My members can now book classes instantly via WhatsApp. The AI knows all our schedules and handles cancellations perfectly. Revenue increased 35% in just 2 months!",
-    image: "https://randomuser.me/api/portraits/women/3.jpg",
-    name: "Sophie Laurent",
-    role: "Fitness Studio Owner",
-  },
-  {
-    text: "No more missed calls or booking confusion. The WhatsApp assistant works 24/7, captures every opportunity, and my no-show rate dropped by 80%.",
-    image: "https://randomuser.me/api/portraits/men/4.jpg",
-    name: "James Wilson",
-    role: "Dental Practice",
-  },
-  {
-    text: "Clients love booking consultations instantly through WhatsApp. The AI handles complex scheduling across time zones. My booking efficiency increased by 60%.",
-    image: "https://randomuser.me/api/portraits/women/5.jpg",
-    name: "Emily Chen",
-    role: "Business Consultant",
-  },
-  {
-    text: "Restaurant reservations are now completely automated. Customers book instantly, get confirmations, and we reduced staff workload by 50% while improving customer experience.",
-    image: "https://randomuser.me/api/portraits/men/6.jpg",
-    name: "Carlos Rodriguez",
-    role: "Restaurant Manager",
-  },
-  {
-    text: "Pet owners book grooming appointments instantly via WhatsApp. The AI remembers pet preferences and vaccination schedules. Bookings increased 45% since implementation.",
-    image: "https://randomuser.me/api/portraits/women/7.jpg",
-    name: "Lisa Thompson",
-    role: "Pet Grooming Salon",
-  },
-  {
-    text: "Massage therapy bookings are now effortless. Clients appreciate the instant booking confirmation and automated reminders. My business grew 30% in 6 months.",
-    image: "https://randomuser.me/api/portraits/women/8.jpg",
-    name: "Rachel Green",
-    role: "Massage Therapist",
-  },
-  {
-    text: "Legal consultations book seamlessly through WhatsApp. The AI handles complex scheduling and client intake forms. My practice efficiency improved dramatically.",
-    image: "https://randomuser.me/api/portraits/men/9.jpg",
-    name: "Michael Brown",
-    role: "Law Firm Partner",
-  },
-];
+// Using translations for testimonials
+const useTestimonials = () => {
+  const { t } = useTranslation();
+  const testimonialItems = t('testimonials.items');
+  
+  // Handle case where translation returns a string instead of array
+  if (typeof testimonialItems === 'string') {
+    return [];
+  }
+  
+  // If it's an array-like object from translations, convert to array
+  if (testimonialItems && typeof testimonialItems === 'object') {
+    return Object.values(testimonialItems);
+  }
+  
+  return [];
+};
 
 export const TestimonialsColumn = (props: {
   className?: string;
-  testimonials: typeof testimonials;
+  testimonials: any[];
   duration?: number;
 }) => {
   return (
@@ -108,11 +70,14 @@ export const TestimonialsColumn = (props: {
   );
 };
 
-const firstColumn = testimonials.slice(0, 3);
-const secondColumn = testimonials.slice(3, 6);
-const thirdColumn = testimonials.slice(6, 9);
-
 const Testimonials = () => {
+  const { t } = useTranslation();
+  const testimonials = useTestimonials();
+  
+  const firstColumn = testimonials.slice(0, 3);
+  const secondColumn = testimonials.slice(3, 6);
+  const thirdColumn = testimonials.slice(6, 9);
+  
   return (
     <section className="py-8 md:py-20 relative overflow-hidden">
       {/* Background decoration */}
@@ -133,14 +98,14 @@ const Testimonials = () => {
           className="text-center mb-6 md:mb-16"
         >
           <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1.5 md:px-6 md:py-3 mb-4 md:mb-8">
-            <span className="text-emerald-400 font-semibold text-xs md:text-base">Testimonials</span>
+            <span className="text-emerald-400 font-semibold text-xs md:text-base">{t('testimonials.badge')}</span>
           </div>
 
           <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 px-3 sm:px-0">
-            What our <span className="text-emerald-400">users say</span>
+            {t('testimonials.title')} <span className="text-emerald-400">{t('testimonials.titleAccent')}</span>
           </h2>
           <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-            See what our customers have to say about us.
+            {t('testimonials.subtitle')}
           </p>
         </motion.div>
 
