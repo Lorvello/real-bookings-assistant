@@ -70,16 +70,20 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     ([_, config]) => config.theme || config.color
   )
 
-  if (!colorConfig.length) {
-    return null
-  }
+  React.useEffect(() => {
+    if (!colorConfig.length) return;
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
+    // Use safer CSS-in-JS approach instead of dangerouslySetInnerHTML
+    const styleId = `chart-colors-${id}`;
+    let existingStyle = document.getElementById(styleId);
+    
+    if (!existingStyle) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      
+      const cssContent = Object.entries(THEMES)
+        .map(
+          ([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
@@ -88,14 +92,26 @@ ${colorConfig
       itemConfig.color
     return color ? `  --color-${key}: ${color};` : null
   })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
-      }}
-    />
-  )
+  .filter(Boolean)
+  .join('\n')}
+}`
+        )
+        .join('\n');
+        
+      style.textContent = cssContent;
+      document.head.appendChild(style);
+    }
+
+    // Cleanup function
+    return () => {
+      const style = document.getElementById(styleId);
+      if (style) {
+        document.head.removeChild(style);
+      }
+    };
+  }, [id, colorConfig]);
+
+  return null;
 }
 
 const ChartTooltip = RechartsPrimitive.Tooltip
