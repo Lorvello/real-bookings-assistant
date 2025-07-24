@@ -4,15 +4,20 @@ import { useTranslation } from '@/hooks/useTranslation';
 export const SmartResponsesCard = () => {
   const { t } = useTranslation();
   
-  const comparisons = Array.isArray(t('featureCards.smartResponses.comparisons')) 
-    ? t('featureCards.smartResponses.comparisons') 
-    : t('featureCards.smartResponses.comparisons.0') 
-      ? [
-          { normal: t('featureCards.smartResponses.comparisons.0.normal'), smart: t('featureCards.smartResponses.comparisons.0.smart') },
-          { normal: t('featureCards.smartResponses.comparisons.1.normal'), smart: t('featureCards.smartResponses.comparisons.1.smart') },
-          { normal: t('featureCards.smartResponses.comparisons.2.normal'), smart: t('featureCards.smartResponses.comparisons.2.smart') }
-        ]
-      : [];
+  const comparisons = [
+    { 
+      normal: t('featureCards.smartResponses.comparisons.0.normal') || "Yes, we have availability", 
+      smart: t('featureCards.smartResponses.comparisons.0.smart') || "Perfect! I can book you for Tuesday at 2 PM with Dr. Smith. Would you like me to send a confirmation?" 
+    },
+    { 
+      normal: t('featureCards.smartResponses.comparisons.1.normal') || "Please call during business hours", 
+      smart: t('featureCards.smartResponses.comparisons.1.smart') || "I'm available 24/7! Let me check our calendar and find the perfect time slot for you." 
+    },
+    { 
+      normal: t('featureCards.smartResponses.comparisons.2.normal') || "We'll get back to you soon", 
+      smart: t('featureCards.smartResponses.comparisons.2.smart') || "Done! Your appointment is confirmed. I've sent you a calendar invite and a reminder for tomorrow." 
+    }
+  ];
   
   return (
     <div className="absolute inset-0">

@@ -4,10 +4,50 @@ import React from "react";
 import { motion } from "motion/react";
 import { useTranslation } from '@/hooks/useTranslation';
 
-// Get testimonials from translations based on language
+// Default testimonials data
+const defaultTestimonials = [
+  {
+    text: "This AI booking system has completely transformed how we handle appointments. Our customers love the instant responses!",
+    image: "https://images.unsplash.com/photo-1494790108755-2616b612b142?w=150&h=150&fit=crop&crop=face",
+    name: "Sarah Johnson",
+    role: "Practice Manager, MedCare Clinic"
+  },
+  {
+    text: "We've seen a 40% increase in bookings since implementing this WhatsApp assistant. It's like having a 24/7 receptionist.",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+    name: "Michael Chen",
+    role: "Owner, Wellness Spa"
+  },
+  {
+    text: "The multilingual support is incredible. We serve clients in 5 different languages and the AI handles everything perfectly.",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+    name: "Elena Rodriguez",
+    role: "Director, Beauty Center"
+  },
+  {
+    text: "No more missed calls or double bookings. This system has made our scheduling process seamless and professional.",
+    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    name: "David Thompson",
+    role: "Clinic Administrator"
+  },
+  {
+    text: "Our clients are amazed by how smart and helpful the AI assistant is. It really understands their needs.",
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&crop=face",
+    name: "Lisa Park",
+    role: "Healthcare Manager"
+  },
+  {
+    text: "The automated reminders and confirmations have reduced our no-show rate by 60%. It's been a game-changer.",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+    name: "James Wilson",
+    role: "Practice Owner"
+  }
+];
+
+// Get testimonials from translations or use defaults
 const getTestimonials = (t: (key: string) => any) => {
   const testimonials = t('testimonials.testimonials');
-  return Array.isArray(testimonials) ? testimonials : [];
+  return Array.isArray(testimonials) ? testimonials : defaultTestimonials;
 };
 
 export const TestimonialsColumn = (props: {

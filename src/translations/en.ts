@@ -600,6 +600,40 @@ export const en = {
         'Fantastic! Let me show you how I can automate complex tasks and streamline your business processes.'
       ],
       footer: 'Press Enter to send your message • Powered by AI'
+    },
+    featureCards: {
+      personalization: {
+        personality: "AI Personality",
+        professional: "Professional", 
+        friendly: "Friendly",
+        multiLanguage: "Multi-language",
+        smartFeatures: "Smart Features",
+        smartFAQ: "Smart FAQ",
+        smartBooking: "Smart Booking", 
+        contextAI: "Context Awareness",
+        proactiveMode: "Proactive Engagement"
+      },
+      smartResponses: {
+        comparisons: {
+          0: {
+            normal: "Yes, we have availability",
+            smart: "Perfect! I can book you for Tuesday at 2 PM with Dr. Smith. Would you like me to send a confirmation?"
+          },
+          1: {
+            normal: "Please call during business hours", 
+            smart: "I'm available 24/7! Let me check our calendar and find the perfect time slot for you."
+          },
+          2: {
+            normal: "We'll get back to you soon",
+            smart: "Done! Your appointment is confirmed. I've sent you a calendar invite and a reminder for tomorrow."
+          }
+        }
+      },
+      reminders: {
+        timeAgo: "13m ago",
+        senderName: "Wellness Clinic", 
+        message: "🔔 Reminder: Your appointment is tomorrow at 2:00 PM."
+      }
     }
   }
 } as const;
