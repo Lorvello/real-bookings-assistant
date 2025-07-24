@@ -49,10 +49,10 @@ export class InputSanitizer {
         purifyConfig.ALLOWED_ATTR = finalConfig.allowedAttributes;
       }
       
-      sanitized = DOMPurify.sanitize(sanitized, purifyConfig);
+      sanitized = DOMPurify.sanitize(sanitized, purifyConfig) as unknown as string;
     } else {
       // Strip all HTML
-      sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+      sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) as unknown as string;
     }
 
     // Remove special characters if needed
@@ -69,7 +69,7 @@ export class InputSanitizer {
     let sanitized = email.trim().toLowerCase();
     
     // Remove any HTML
-    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) as unknown as string;
     
     // Basic email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -86,7 +86,7 @@ export class InputSanitizer {
     let sanitized = phone.trim();
     
     // Remove HTML
-    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) as unknown as string;
     
     // Remove all non-digit characters except + at the beginning
     sanitized = sanitized.replace(/[^\d+]/g, '');
@@ -110,7 +110,7 @@ export class InputSanitizer {
     let sanitized = url.trim();
     
     // Remove HTML
-    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) as unknown as string;
     
     // Validate URL format
     try {
@@ -133,7 +133,7 @@ export class InputSanitizer {
     let sanitized = slug.trim().toLowerCase();
     
     // Remove HTML
-    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) as unknown as string;
     
     // Replace spaces and invalid characters with hyphens
     sanitized = sanitized.replace(/[^a-z0-9-]/g, '-');
@@ -153,7 +153,7 @@ export class InputSanitizer {
     let sanitized = input.trim();
     
     // Remove HTML
-    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) as unknown as string;
     
     // Keep only digits, decimal point, and minus sign
     sanitized = sanitized.replace(/[^0-9.-]/g, '');
@@ -167,7 +167,7 @@ export class InputSanitizer {
     let sanitized = fileName.trim();
     
     // Remove HTML
-    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    sanitized = DOMPurify.sanitize(sanitized, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) as unknown as string;
     
     // Remove path separators and dangerous characters
     sanitized = sanitized.replace(/[\/\\:*?"<>|]/g, '');

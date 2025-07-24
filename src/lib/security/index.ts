@@ -7,18 +7,13 @@ export { CSRFProtection } from './csrf';
 export { threatDetector, ThreatDetector } from './threat-detection';
 export { SecurityHeaders } from './headers';
 
-export type {
-  AuthSecurityConfig,
-  RateLimitConfig,
-  SessionSecurityConfig,
-  SecurityEvent,
-  ThreatDetection,
-  ThreatRule,
-  ThreatContext,
-  ThreatResult,
-  SecurityHeadersConfig,
-  CSRFConfig
-} from './auth';
+export type { AuthSecurityConfig } from './auth';
+export type { RateLimitConfig } from './rate-limiter';
+export type { SessionSecurityConfig } from './session-manager';
+export type { SecurityEvent, ThreatDetection } from './logger';
+export type { ThreatRule, ThreatContext, ThreatResult } from './threat-detection';
+export type { SecurityHeadersConfig } from './headers';
+export type { CSRFConfig } from './csrf';
 
 // Initialize security features
 export const initializeSecurity = () => {
