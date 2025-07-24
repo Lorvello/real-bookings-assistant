@@ -1054,6 +1054,36 @@ export type Database = {
           },
         ]
       }
+      security_audit_log: {
+        Row: {
+          created_at: string | null
+          event_details: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       service_types: {
         Row: {
           calendar_id: string | null
@@ -2823,6 +2853,16 @@ export type Database = {
         }
         Returns: string
       }
+      log_security_event: {
+        Args: {
+          p_user_id: string
+          p_event_type: string
+          p_event_details?: Json
+          p_ip_address?: unknown
+          p_user_agent?: string
+        }
+        Returns: undefined
+      }
       manual_process_webhooks: {
         Args: { p_calendar_id?: string }
         Returns: Json
@@ -2912,6 +2952,10 @@ export type Database = {
       update_expired_trials: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      validate_user_input: {
+        Args: { p_input: string; p_type?: string; p_max_length?: number }
+        Returns: boolean
       }
     }
     Enums: {
