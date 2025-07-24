@@ -25,7 +25,7 @@ const Calendar = () => {
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full bg-background">
+        <div className="flex items-center justify-center h-full bg-gray-900">
           <div className="text-center">
             <div className="w-6 h-6 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
             <div className="text-base text-muted-foreground">Loading Calendar...</div>
@@ -42,7 +42,7 @@ const Calendar = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-background min-h-full p-3 md:p-8">
+        <div className="bg-gray-900 min-h-full p-3 md:p-8">
           <div className="space-y-4 md:space-y-6">
             {/* Calendar Header */}
             <div className="bg-card border border-border rounded-lg shadow-sm p-3 md:p-6">
@@ -92,7 +92,7 @@ const Calendar = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-background min-h-full p-3 md:p-8">
+      <div className="bg-gray-900 min-h-full p-3 md:p-8">
         <div className="space-y-4 md:space-y-6">
           {/* Calendar Header with Switcher */}
           <div className="bg-card border border-border rounded-lg shadow-sm p-3 md:p-6">
