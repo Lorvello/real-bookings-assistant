@@ -12,6 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
 import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
+import { useWhatsAppLimits } from '@/hooks/useSubscriptionLimits';
+import { UpgradePrompt } from '@/components/ui/UpgradePrompt';
+import { MessageCircle } from 'lucide-react';
 
 interface WhatsAppDashboardProps {
   calendarId: string;
@@ -20,6 +23,7 @@ interface WhatsAppDashboardProps {
 export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const { isDeveloper } = useDeveloperAccess();
+  const { currentCount, maxContacts, canAddMore } = useWhatsAppLimits(calendarId);
   
   // Initialize enhanced webhook processor
   useWebhookProcessor(calendarId);
@@ -28,6 +32,28 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
     <div className="h-full">
       {/* Service Status Indicator */}
       <WhatsAppServiceStatus calendarId={calendarId} />
+      
+      {/* WhatsApp Contact Limit Warning */}
+      {!canAddMore && (
+        <div className="mb-4">
+          <UpgradePrompt 
+            feature="WhatsApp Contacts"
+            currentUsage={`${currentCount}/${maxContacts}`}
+            limit={`${maxContacts} contact${maxContacts === 1 ? '' : 's'}`}
+            description="You've reached your WhatsApp contact limit. Upgrade to Professional to manage unlimited contacts."
+          />
+        </div>
+      )}
+      
+      {/* Usage indicator for contacts */}
+      {canAddMore && maxContacts !== null && (
+        <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MessageCircle className="h-4 w-4" />
+            <span>WhatsApp contacts: {currentCount}/{maxContacts}</span>
+          </div>
+        </div>
+      )}
       
       <Tabs defaultValue="overview" className="h-full">
         <TabsList className={`grid w-full ${isDeveloper ? 'grid-cols-5' : 'grid-cols-3'}`}>

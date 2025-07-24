@@ -11,6 +11,8 @@ import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { UserStatusSwitcher } from '@/components/developer/UserStatusSwitcher';
 import { SubscriptionTierSwitcher } from '@/components/developer/SubscriptionTierSwitcher';
+import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcherSection';
+import { UsageSummary } from '@/components/ui/UsageSummary';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -100,6 +102,11 @@ const Dashboard = () => {
             <UserStatusSwitcher />
             <SubscriptionTierSwitcher />
           </div>
+        </div>
+
+        {/* Usage Summary */}
+        <div className="mb-6">
+          <UsageSummary />
         </div>
 
         {/* Show Onboarding Wizard for Setup Incomplete Users */}

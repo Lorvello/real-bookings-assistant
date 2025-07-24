@@ -2589,6 +2589,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_team_member_limit: {
+        Args: { p_user_id: string; p_calendar_id: string }
+        Returns: boolean
+      }
       check_whatsapp_contact_limit: {
         Args: { p_user_id: string; p_calendar_id: string }
         Returns: boolean
