@@ -59,9 +59,9 @@ export const useBookingsFilters = (bookings: Booking[]) => {
       switch (sortBy) {
         case 'newest':
           return new Date(b.created_at || b.start_time).getTime() - new Date(a.created_at || a.start_time).getTime();
-        case 'date':
-          return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
-        case 'customer':
+        case 'oldest':
+          return new Date(a.created_at || a.start_time).getTime() - new Date(b.created_at || b.start_time).getTime();
+        case 'alphabetical':
           return a.customer_name.localeCompare(b.customer_name);
         default:
           return 0;

@@ -50,9 +50,9 @@ export function BookingsFilters({
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-card border-border z-50">
-            <SelectItem value="newest">Newest first</SelectItem>
-            <SelectItem value="date">Date</SelectItem>
-            <SelectItem value="customer">Customer name</SelectItem>
+            <SelectItem value="newest">Latest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
+            <SelectItem value="alphabetical">Alphabetically A-Z</SelectItem>
           </SelectContent>
         </Select>
       </div>
