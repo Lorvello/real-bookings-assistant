@@ -235,5 +235,152 @@ export const en = {
       customers: ['Emma Johnson', 'Michael Chen', 'Sofia Rodriguez', 'David Park', 'Lisa Anderson', 'James Wilson', 'Anna Taylor', 'Roberto Silva'],
       services: ['Hair Cut', 'Massage', 'Consultation', 'Facial', 'Manicure', 'Training', 'Therapy', 'Checkup']
     }
+  },
+  howItWorks: {
+    hero: {
+      badge: '3 Steps to Success',
+      title: 'How does',
+      titleAccent: 'it work?',
+      subtitle: 'Step by step explanation of how easy it is to get started with our system.',
+      subtitleAccent: 'No complicated installation, no tech hassle',
+      description: 'just go live immediately.'
+    },
+    stepIndicator: {
+      title: '3 Steps. 5 Minutes. Done.',
+      subtitle: 'Our intelligent system handles everything automatically, so you can focus on what matters most,',
+      subtitleAccent: 'serving your customers',
+      steps: {
+        connect: 'Connect',
+        setup: 'Setup',
+        launch: 'Launch'
+      }
+    },
+    stepOne: {
+      stepLabel: 'Step One',
+      title: 'Create account & get your professional calendar',
+      description: 'Simply create your account and get instant access to your professional calendar system. You can also connect your existing calendar if you prefer.',
+      features: [
+        'Instant professional calendar setup',
+        'Option to connect existing calendar',
+        'Immediate setup - no waiting'
+      ],
+      visual: {
+        title: 'Calendar Ready',
+        status: 'Professional Calendar',
+        active: 'Instantly Active'
+      }
+    },
+    stepTwo: {
+      stepLabel: 'Step Two',
+      title: 'Get your WhatsApp number instantly',
+      description: 'Your account comes with an instant WhatsApp number assignment. You can also choose to connect your existing business number if you prefer.',
+      options: {
+        instant: {
+          title: 'Instant number assignment',
+          badge: 'Automatic',
+          description: 'Your unique WhatsApp number is assigned immediately upon account creation.',
+          perfect: 'Immediate start, zero configuration'
+        },
+        connect: {
+          title: 'Connect existing number',
+          description: 'You can also connect your existing business WhatsApp number to our system.',
+          perfect: 'Existing business number, brand consistency',
+          note: '*Enterprise subscribers only'
+        }
+      },
+      visual: {
+        title: 'WhatsApp Ready',
+        status: 'Number Assigned',
+        ready: 'Ready for Customers'
+      }
+    },
+    stepThree: {
+      stepLabel: 'Step Three',
+      title: 'Your system goes live immediately',
+      description: 'That\'s it! Your entire booking system is instantly active and ready to serve customers 24/7. You can adjust settings anytime, but everything works perfectly from day one.',
+      features: [
+        {
+          title: 'Instant activation',
+          description: 'Everything works immediately after account creation'
+        },
+        {
+          title: 'Optional customization',
+          description: 'Adjust settings anytime to match your preferences'
+        },
+        {
+          title: '24/7 ready to serve',
+          description: 'Your customers can book immediately via WhatsApp'
+        }
+      ],
+      liveStatus: {
+        title: 'Live Status',
+        description: 'Your complete booking system is active and serving customers'
+      },
+      visual: {
+        title: 'System Active',
+        statuses: {
+          calendar: 'Calendar Live',
+          calendarDesc: 'Accepting bookings instantly',
+          assistant: 'AI Assistant',
+          assistantDesc: 'Ready to help customers',
+          serving: 'Live and Serving'
+        }
+      }
+    },
+    results: {
+      title: 'Proven results that transform businesses',
+      stats: [
+        {
+          value: '30sec',
+          label: 'Average booking time',
+          detail: 'Complete bookings from first message to confirmation in under 30 seconds. No phone calls, forms, or back-and-forth emails needed. Customers book instantly through familiar WhatsApp interface while you sleep.'
+        },
+        {
+          value: '40%',
+          label: 'Reduction in service costs',
+          detail: 'Businesses report 30-40% reductions in customer service costs while improving quality. Staff productivity increases 75% with 3x booking efficiency. 70% of inquiries handled without human intervention.'
+        },
+        {
+          value: '10x',
+          label: 'Return on investment potential',
+          detail: 'Companies like Tata CLiQ achieved 10x ROI generating $500k in WhatsApp sales monthly. 89% uplift in purchases per user, 72% higher sessions. 60-80% reduction in customer acquisition costs.'
+        },
+        {
+          value: '24/7',
+          label: 'Automated availability',
+          detail: 'Automated systems provide round-the-clock availability without staffing costs. 90% of users respond within 30 minutes vs 12-hour email response times. 42% higher 6-month retention rates.'
+        }
+      ],
+      learnMore: 'Learn more'
+    },
+    aiTest: {
+      title: 'Test Our',
+      titleAccent: 'AI Assistant',
+      mobileSubtitle: 'Experience how quickly our AI handles booking conversations. No registration required!',
+      desktopSubtitle: 'Experience how quickly and naturally our AI handles booking conversations.',
+      noRegistration: 'No registration required',
+      tryNow: 'try it right now!'
+    },
+    aiChat: {
+      title: 'AI Agent Demo',
+      subtitle: 'Online and ready to help',
+      status: 'Live',
+      greeting: 'Hello! I\'m your AI agent. Ask me a question to test my capabilities!',
+      placeholders: [
+        'Ask me something about your business...',
+        'Test my knowledge about marketing...',
+        'Ask me about WhatsApp automation...',
+        'Ask me for a lead generation strategy...',
+        'Test my creativity with content ideas...'
+      ],
+      responses: [
+        'That\'s an interesting question! As an AI agent, I can help you automate your WhatsApp communication and improve your customer service.',
+        'Great! I can support you in setting up automated workflows that save you time and increase your conversion rate.',
+        'Excellent question! With my help, you can send personalized messages, qualify leads, and optimize your sales process.',
+        'Perfect! I can help you create chatbots, segment your target audience, and increase your customer satisfaction.',
+        'Fantastic! Let me show you how I can automate complex tasks and streamline your business processes.'
+      ],
+      footer: 'Press Enter to send your message • Powered by AI'
+    }
   }
 } as const;
