@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CalendarProvider } from '@/contexts/CalendarContext';
 import { ConversationCalendarProvider } from '@/contexts/ConversationCalendarContext';
 import { UserStatusProvider } from '@/contexts/UserStatusContext';
-import { GoogleTranslateProvider } from '@/components/GoogleTranslateProvider';
+import { useEffect } from 'react';
 import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
 import { useAuth } from '@/hooks/useAuth';
 import Login from '@/pages/Login';
@@ -47,13 +47,30 @@ function GlobalWebhookProcessor() {
 }
 
 function App() {
+  useEffect(() => {
+    const detectAndTranslate = () => {
+      if (navigator.language.startsWith('nl')) {
+        setTimeout(() => {
+          const selectBox = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+          if (selectBox) {
+            selectBox.value = 'nl';
+            selectBox.dispatchEvent(new Event('change'));
+          }
+        }, 2000);
+      }
+    };
+    
+    // Wait for Google Translate to load
+    setTimeout(detectAndTranslate, 3000);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <UserStatusProvider>
         <CalendarProvider>
           <ConversationCalendarProvider>
             <Router>
-              <GoogleTranslateProvider />
+              <div id="google_translate_element" style={{ display: 'none' }}></div>
               <GlobalWebhookProcessor />
               <Routes>
                 <Route path="/" element={<Index />} />
