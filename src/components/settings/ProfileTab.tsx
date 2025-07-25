@@ -12,11 +12,27 @@ interface ProfileTabProps {
   handleUpdateBusiness: () => void;
 }
 
-export const ProfileTab: React.FC<ProfileTabProps> = () => {
+export const ProfileTab: React.FC<ProfileTabProps> = ({
+  profileData,
+  setProfileData,
+  businessData,
+  setBusinessData,
+  loading,
+  handleUpdateProfile,
+  handleUpdateBusiness
+}) => {
   return (
     <div className="space-y-8">
       {/* The enhanced UserManagement component now handles both user management and profile information */}
-      <UserManagement />
+      <UserManagement 
+        externalBusinessData={businessData}
+        externalProfileData={profileData}
+        onBusinessDataChange={setBusinessData}
+        onProfileDataChange={setProfileData}
+        onUpdateBusiness={handleUpdateBusiness}
+        onUpdateProfile={handleUpdateProfile}
+        externalLoading={loading}
+      />
     </div>
   );
 };

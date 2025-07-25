@@ -26,6 +26,8 @@ import { COMPREHENSIVE_TIMEZONES } from '@/components/availability/TimezoneData'
 import { SearchableSelect } from './SearchableSelect';
 import { CountryPhoneInput } from './CountryPhoneInput';
 import { EnhancedDatePicker } from './EnhancedDatePicker';
+import { businessTypes } from '@/constants/settingsOptions';
+import ReactSelect from 'react-select';
 
 
 // Enhanced language options - alphabetically sorted with more languages
@@ -76,7 +78,25 @@ const TIMEZONE_OPTIONS = COMPREHENSIVE_TIMEZONES.map(tz => ({
   searchText: `${tz.label} UTC${tz.offset >= 0 ? '+' : ''}${tz.offset}`
 }));
 
-export const UserManagement = () => {
+interface UserManagementProps {
+  externalBusinessData?: any;
+  externalProfileData?: any;
+  onBusinessDataChange?: (data: any) => void;
+  onProfileDataChange?: (data: any) => void;
+  onUpdateBusiness?: () => void;
+  onUpdateProfile?: () => void;
+  externalLoading?: boolean;
+}
+
+export const UserManagement = ({
+  externalBusinessData,
+  externalProfileData,
+  onBusinessDataChange,
+  onProfileDataChange,
+  onUpdateBusiness,
+  onUpdateProfile,
+  externalLoading
+}: UserManagementProps = {}) => {
   const { calendars } = useCalendarContext();
   const { members, loading, inviteMember, removeMember, updateMemberRole, refetch } = useCalendarMembers();
   const { invitations, loading: invitationsLoading, cancelInvitation, resendInvitation, refetch: refetchInvitations } = useTeamInvitations();
@@ -345,6 +365,34 @@ export const UserManagement = () => {
     };
   }, [debounceTimer]);
 
+  // Use external data if provided, otherwise use profile data
+  const currentProfile = externalProfileData || profile;
+  const currentBusinessData = externalBusinessData || {
+    business_name: profile?.business_name || '',
+    business_type: profile?.business_type || ''
+  };
+
+  const isUsingExternalData = !!externalBusinessData;
+  const currentLoading = externalLoading !== undefined ? externalLoading : (loading || profileLoading || invitationsLoading);
+
+  // Handle business data updates
+  const handleBusinessDataUpdate = useCallback((field: string, value: any) => {
+    if (isUsingExternalData && onBusinessDataChange) {
+      const updatedData = { ...currentBusinessData, [field]: value };
+      onBusinessDataChange(updatedData);
+      
+      // Auto-save if we have the update function
+      if (onUpdateBusiness) {
+        setTimeout(() => {
+          onUpdateBusiness();
+        }, 1000);
+      }
+    } else {
+      // Fallback to original profile update
+      handleAutoSave(field, value);
+    }
+  }, [isUsingExternalData, currentBusinessData, onBusinessDataChange, onUpdateBusiness, handleAutoSave]);
+
   // Memoize computed users to prevent unnecessary recalculations
   const allUsers = useMemo(() => {
     // Ensure owner is only included once at the top
@@ -426,7 +474,7 @@ export const UserManagement = () => {
       </CardHeader>
 
       <CardContent>
-        {(loading || profileLoading || invitationsLoading) ? (
+        {currentLoading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
           </div>
@@ -456,7 +504,7 @@ export const UserManagement = () => {
             </TabsList>
             
             <TabsContent value="profile">
-              {profile && (
+              {currentProfile && (
                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Full Name */}
@@ -490,9 +538,9 @@ export const UserManagement = () => {
                       ) : (
                         <div 
                           className="text-white bg-gray-800 border border-gray-700 rounded-md p-3 cursor-pointer hover:bg-gray-700 transition-colors"
-                          onClick={() => startEditing('full_name', profile.full_name || '')}
+                          onClick={() => startEditing('full_name', currentProfile.full_name || '')}
                         >
-                          {profile.full_name || 'Click to edit'}
+                          {currentProfile.full_name || 'Click to edit'}
                         </div>
                       )}
                     </div>
@@ -529,9 +577,62 @@ export const UserManagement = () => {
                       ) : (
                         <div 
                           className="text-white bg-gray-800 border border-gray-700 rounded-md p-3 cursor-pointer hover:bg-gray-700 transition-colors"
-                          onClick={() => startEditing('email', profile.email || '')}
+                          onClick={() => startEditing('email', currentProfile.email || '')}
                         >
-                          {profile.email}
+                          {currentProfile.email}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Business Type */}
+                    <div>
+                      <Label className="block text-sm font-medium text-gray-300 mb-2">Business Type</Label>
+                      <ReactSelect
+                        value={businessTypes.find(type => type.value === currentBusinessData.business_type)}
+                        onChange={(option) => {
+                          handleBusinessDataUpdate('business_type', option?.value || '');
+                        }}
+                        options={businessTypes}
+                        placeholder="Select business type"
+                        className="react-select-container"
+                        classNamePrefix="react-select"
+                        styles={{
+                          control: (base) => ({
+                            ...base,
+                            backgroundColor: '#1f2937',
+                            borderColor: '#374151',
+                            '&:hover': { borderColor: '#4b5563' },
+                            minHeight: '44px'
+                          }),
+                          menu: (base) => ({
+                            ...base,
+                            backgroundColor: '#1f2937',
+                            border: '1px solid #374151'
+                          }),
+                          option: (base, state) => ({
+                            ...base,
+                            backgroundColor: state.isFocused ? '#374151' : '#1f2937',
+                            color: '#f9fafb',
+                            '&:hover': { backgroundColor: '#4b5563' }
+                          }),
+                          singleValue: (base) => ({
+                            ...base,
+                            color: '#f9fafb'
+                          }),
+                          placeholder: (base) => ({
+                            ...base,
+                            color: '#9ca3af'
+                          }),
+                          input: (base) => ({
+                            ...base,
+                            color: '#f9fafb'
+                          })
+                        }}
+                      />
+                      {saving === 'business_type' && (
+                        <div className="flex items-center mt-2 text-sm text-green-400">
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-400 mr-2"></div>
+                          Saving...
                         </div>
                       )}
                     </div>
@@ -540,7 +641,7 @@ export const UserManagement = () => {
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</Label>
                       <CountryPhoneInput
-                        value={profile.phone || ''}
+                        value={currentProfile.phone || ''}
                         onChange={(value) => handleAutoSave('phone', value)}
                       />
                     </div>
@@ -549,7 +650,7 @@ export const UserManagement = () => {
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</Label>
                       <EnhancedDatePicker
-                        value={profile.date_of_birth ? new Date(profile.date_of_birth) : undefined}
+                        value={currentProfile.date_of_birth ? new Date(currentProfile.date_of_birth) : undefined}
                         onChange={(date) => {
                           if (date) {
                             handleAutoSave('date_of_birth', format(date, 'yyyy-MM-dd'));
@@ -563,7 +664,7 @@ export const UserManagement = () => {
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Language</Label>
                       <SearchableSelect
-                        value={profile.language || 'nl'}
+                        value={currentProfile.language || 'nl'}
                         onValueChange={(value) => handleAutoSave('language', value)}
                         options={LANGUAGE_OPTIONS}
                         placeholder="Select language"
@@ -575,7 +676,7 @@ export const UserManagement = () => {
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Timezone</Label>
                       <SearchableSelect
-                        value={profile.timezone || 'Europe/Amsterdam'}
+                        value={currentProfile.timezone || 'Europe/Amsterdam'}
                         onValueChange={(value) => handleAutoSave('timezone', value)}
                         options={TIMEZONE_OPTIONS}
                         placeholder="Select timezone"
