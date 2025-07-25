@@ -64,8 +64,8 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           <div className="absolute -inset-0.5 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-sm md:blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-lg md:rounded-2xl"></div>
           <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-16 md:h-44 p-1.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
-              <h3 className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider truncate text-xxs leading-tight">
-                Next Appointment
+              <h3 className="text-xxs md:text-sm font-bold text-slate-300 uppercase tracking-tighter truncate leading-tight max-w-[60px] md:max-w-none">
+                NEXT APPOINTMENT
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded md:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                 <Clock className="h-2.5 w-2.5 md:h-6 md:w-6 text-cyan-400" />
@@ -106,8 +106,8 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           <div className="absolute -inset-0.5 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-sm md:blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-lg md:rounded-2xl"></div>
           <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-16 md:h-44 p-1.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
-              <h3 className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider truncate text-xxs leading-tight">
-                Popular Service
+              <h3 className="text-xxs md:text-sm font-bold text-slate-300 uppercase tracking-tighter truncate leading-tight max-w-[60px] md:max-w-none">
+                POPULAR SERVICE
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded md:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                 <TrendingUp className="h-2.5 w-2.5 md:h-6 md:w-6 text-cyan-400" />
@@ -148,8 +148,8 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           <div className="absolute -inset-0.5 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-sm md:blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-lg md:rounded-2xl"></div>
           <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-16 md:h-44 p-1.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
-              <h3 className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider truncate text-xxs leading-tight">
-                Weekly Growth
+              <h3 className="text-xxs md:text-sm font-bold text-slate-300 uppercase tracking-tighter truncate leading-tight max-w-[60px] md:max-w-none">
+                WEEKLY GROWTH
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded md:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                 <BarChart3 className="h-2.5 w-2.5 md:h-6 md:w-6 text-cyan-400" />
