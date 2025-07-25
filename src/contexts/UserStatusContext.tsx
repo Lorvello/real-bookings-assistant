@@ -451,8 +451,37 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       }
     }
 
-    // Setup incomplete users
+    // Setup incomplete users - but respect their subscription tier for trial benefits
     if (userType === 'setup_incomplete') {
+      // If user has a professional tier assigned (7-day trial), give them professional access during setup
+      if (profile?.subscription_tier === 'professional') {
+        const professionalTierLimits = getSubscriptionTierLimits('professional');
+        return {
+          canViewDashboard: true,
+          canCreateBookings: true,
+          canEditBookings: true,
+          canManageSettings: true,
+          canAccessWhatsApp: true,
+          canAccessBookingAssistant: true,
+          canUseAI: true,
+          canExportData: true,
+          canInviteUsers: true,
+          canAccessAPI: true,
+          canUseWhiteLabel: false,
+          hasPrioritySupport: true,
+          canAccessFutureInsights: true,
+          canAccessBusinessIntelligence: true,
+          canAccessPerformance: true,
+          canAccessCustomerSatisfaction: false,
+          canAccessTeamMembers: true,
+          maxCalendars: professionalTierLimits?.max_calendars,
+          maxBookingsPerMonth: professionalTierLimits?.max_bookings_per_month,
+          maxTeamMembers: professionalTierLimits?.max_team_members || 10,
+          maxWhatsAppContacts: professionalTierLimits?.max_whatsapp_contacts || 2500
+        };
+      }
+      
+      // Default setup incomplete access (no tier assigned)
       return {
         canViewDashboard: true,
         canCreateBookings: false,
