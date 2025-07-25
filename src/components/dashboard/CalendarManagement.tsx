@@ -42,16 +42,16 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
         {calendars.length > 0 ? (
           <div className="space-y-4">
             {calendars.map((calendar) => (
-              <div key={calendar.id} className="flex items-center justify-between p-4 border border-border rounded-lg bg-background-secondary">
+              <div key={calendar.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-border rounded-lg bg-background-secondary space-y-3 sm:space-y-0">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
                       <Calendar className="h-5 w-5 text-primary" />
                     </div>
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h3 className="font-medium text-foreground">{calendar.name}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground truncate">
                       Booking URL: /{calendar.slug}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -59,14 +59,15 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Badge variant={calendar.is_active ? "default" : "secondary"}>
+                <div className="flex items-center justify-between sm:justify-end space-x-3 w-full sm:w-auto">
+                  <Badge variant={calendar.is_active ? "default" : "secondary"} className="flex-shrink-0">
                     {calendar.is_active ? "Active" : "Inactive"}
                   </Badge>
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => handleSettingsClick(calendar.id)}
+                    className="flex-shrink-0"
                   >
                     <Settings className="h-4 w-4 mr-2" />
                     Settings

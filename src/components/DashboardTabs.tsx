@@ -64,22 +64,20 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
       {/* Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <div className="overflow-x-auto">
-          <TabsList className="grid grid-cols-5 bg-gray-800 h-auto p-1 md:p-2 flex-shrink-0 min-w-max">
+          <TabsList className="flex bg-gray-800 h-auto p-1 md:p-2 flex-shrink-0 min-w-max w-max">
             <TabsTrigger 
               value="overview" 
               className="flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg px-2 md:px-4"
             >
               <LayoutDashboard className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden sm:inline text-xs md:text-sm">Overview</span>
-              <span className="sm:hidden text-xs">Home</span>
+              <span className="text-xs md:text-sm whitespace-nowrap">Overview</span>
             </TabsTrigger>
             <TabsTrigger 
               value="live-operations" 
               className="flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg px-2 md:px-4"
             >
               <Radio className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden sm:inline text-xs md:text-sm">Live Operations</span>
-              <span className="sm:hidden text-xs">Live</span>
+              <span className="text-xs md:text-sm whitespace-nowrap">Live Operations</span>
             </TabsTrigger>
             <TabsTrigger 
               value="business-intelligence" 
@@ -92,8 +90,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               ) : (
                 <Lock className="h-3 w-3 md:h-4 md:w-4" />
               )}
-              <span className="hidden sm:inline text-xs md:text-sm">Business Intelligence</span>
-              <span className="sm:hidden text-xs">BI</span>
+              <span className="text-xs md:text-sm whitespace-nowrap">Business Intelligence</span>
               {!hasBusinessIntelligenceAccess && (
                 <span className="text-xs bg-orange-500 text-white px-1 rounded ml-1">Pro</span>
               )}
@@ -109,8 +106,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               ) : (
                 <Lock className="h-3 w-3 md:h-4 md:w-4" />
               )}
-              <span className="hidden sm:inline text-xs md:text-sm">Performance</span>
-              <span className="sm:hidden text-xs">Perf</span>
+              <span className="text-xs md:text-sm whitespace-nowrap">Performance</span>
               {!hasPerformanceAccess && (
                 <span className="text-xs bg-orange-500 text-white px-1 rounded ml-1">Pro</span>
               )}
@@ -126,8 +122,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               ) : (
                 <Lock className="h-3 w-3 md:h-4 md:w-4" />
               )}
-              <span className="hidden sm:inline text-xs md:text-sm">Future Insights</span>
-              <span className="sm:hidden text-xs">Future</span>
+              <span className="text-xs md:text-sm whitespace-nowrap">Future Insights</span>
               {!hasFutureInsightsAccess && (
                 <span className="text-xs bg-orange-500 text-white px-1 rounded ml-1">Pro</span>
               )}
