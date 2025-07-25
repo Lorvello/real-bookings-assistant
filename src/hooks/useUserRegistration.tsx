@@ -37,12 +37,6 @@ interface UserRegistrationData {
   email: string;
   password: string;
   fullName: string;
-  businessName: string;
-  businessType: string;
-  businessAddress: BusinessAddress;
-  businessEmail: string;
-  serviceTypes: ServiceType[];
-  availability: WeeklyAvailability;
   phone?: string;
 }
 
@@ -72,7 +66,6 @@ export const useUserRegistration = () => {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: data.fullName,
-            business_name: data.businessName,
           }
         }
       });
@@ -112,95 +105,22 @@ export const useUserRegistration = () => {
 
       console.log('[UserRegistration] Auth successful, user created:', authData.user.id);
 
-      // Stap 2: Update user profile with trial information and phone
-      const trialStartDate = new Date().toISOString();
-      const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days from now
+      console.log('[UserRegistration] Auth completed, user will be in setup_incomplete state');
 
-      // Skip profile update - the trigger function will handle initial setup
-      // We want users to start in "setup_incomplete" state with business_name/business_type as NULL
-
-      // Stap 3: Roep database functie aan voor complete setup
-      const { data: setupResult, error: setupError } = await supabase.rpc(
-        'create_user_with_calendar',
-        {
-          p_email: data.email,
-          p_full_name: data.fullName,
-          p_business_name: data.businessName,
-          p_business_type: data.businessType
-        }
-      );
-
-      if (setupError) {
-        console.error('[UserRegistration] Setup error:', setupError);
-        toast({
-          title: "Setup failed",
-          description: setupError.message || "Unknown error during setup",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return { 
-          success: false, 
-          error: setupError.message || "Setup gefaald" 
-        };
-      }
-
-      const result = setupResult as unknown as UserRegistrationResult & {
-        user_id?: string;
-        calendar_id?: string;
-        calendar_slug?: string;
-      };
-
-      if (!result?.success) {
-        console.error('[UserRegistration] Setup function returned failure:', result);
-        toast({
-          title: "Setup failed",
-          description: result?.error || "Setup function failed",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return { 
-          success: false, 
-          error: result?.error || "Setup gefaald" 
-        };
-      }
-
-      // Stap 3: Voeg service types toe
-      if (data.serviceTypes.length > 0 && result.calendar_id) {
-        for (const serviceType of data.serviceTypes) {
-          const { error: serviceError } = await supabase
-            .from('service_types')
-            .insert({
-              calendar_id: result.calendar_id,
-              name: serviceType.name,
-              duration: serviceType.duration,
-              price: serviceType.price,
-              description: serviceType.description,
-              color: '#3B82F6',
-              is_active: true,
-              max_attendees: 1,
-              preparation_time: 0,
-              cleanup_time: 0
-            });
-          
-          if (serviceError) {
-            console.error('[UserRegistration] Service type creation error:', serviceError);
-          }
-        }
-      }
-
-      console.log('[UserRegistration] Registration completely successful');
+      // Success! The handle_new_user trigger will create the user record with NULL business info
+      // This puts them in "setup_incomplete" state automatically
       
       toast({
         title: "Account created successfully! 🎉",
-        description: "Your account and business profile are fully set up. You're automatically logged in.",
+        description: "Please complete your business setup to start your 7-day trial.",
       });
 
       setLoading(false);
       return {
         success: true,
-        userId: result.user_id || authData.user.id,
-        calendarId: result.calendar_id,
-        calendarSlug: result.calendar_slug
+        userId: authData.user.id,
+        calendarId: undefined, // Will be created during setup completion
+        calendarSlug: undefined
       };
     } catch (error) {
       console.error('[UserRegistration] Unexpected error:', error);

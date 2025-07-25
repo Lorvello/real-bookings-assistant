@@ -20,7 +20,6 @@ interface SignupFormData {
   countryCode: string;
   password: string;
   confirmPassword: string;
-  businessName: string;
   agreeToTerms: boolean;
 }
 
@@ -31,7 +30,6 @@ const initialFormData: SignupFormData = {
   countryCode: '+31',
   password: '',
   confirmPassword: '',
-  businessName: '',
   agreeToTerms: false
 };
 
@@ -64,7 +62,7 @@ export const StreamlinedSignup: React.FC = () => {
         sanitizedValue = sanitizeUserInput(value, 'email');
       } else if (field === 'phone') {
         sanitizedValue = sanitizeUserInput(value, 'phone');
-      } else if (field === 'fullName' || field === 'businessName') {
+      } else if (field === 'fullName') {
         sanitizedValue = sanitizeUserInput(value, 'business');
       } else {
         sanitizedValue = sanitizeUserInput(value, 'text');
@@ -128,9 +126,6 @@ export const StreamlinedSignup: React.FC = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    if (!formData.businessName.trim()) {
-      newErrors.businessName = 'Business name is required';
-    }
 
     if (!formData.agreeToTerms) {
       newErrors.agreeToTerms = 'You must agree to the terms and privacy policy';
@@ -152,26 +147,6 @@ export const StreamlinedSignup: React.FC = () => {
         email: formData.email,
         password: formData.password,
         fullName: formData.fullName,
-        businessName: formData.businessName,
-        businessType: 'consultant', // Default type
-        businessAddress: {
-          street: '',
-          number: '',
-          postal: '',
-          city: '',
-          country: 'Nederland'
-        },
-        businessEmail: formData.email,
-        serviceTypes: [],
-        availability: {
-          monday: { start: '09:00', end: '17:00' },
-          tuesday: { start: '09:00', end: '17:00' },
-          wednesday: { start: '09:00', end: '17:00' },
-          thursday: { start: '09:00', end: '17:00' },
-          friday: { start: '09:00', end: '17:00' },
-          saturday: null,
-          sunday: null
-        },
         phone: formData.countryCode + formData.phone
       };
 
@@ -196,10 +171,10 @@ export const StreamlinedSignup: React.FC = () => {
       <Card className="w-full max-w-md bg-card border-border shadow-xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-foreground">
-            Start Your Free Trial
+            Create Your Account
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Create your WhatsApp booking assistant account
+            Set up your WhatsApp booking assistant account - complete business setup after registration
           </CardDescription>
         </CardHeader>
 
@@ -323,20 +298,6 @@ export const StreamlinedSignup: React.FC = () => {
               )}
             </div>
 
-            {/* Business Name */}
-            <div className="space-y-2">
-              <Label htmlFor="businessName">Business Name *</Label>
-              <Input
-                id="businessName"
-                value={formData.businessName}
-                onChange={(e) => updateFormData('businessName', e.target.value)}
-                placeholder="Enter your business name"
-                className={errors.businessName ? 'border-red-500' : ''}
-              />
-              {errors.businessName && (
-                <p className="text-sm text-red-500">{errors.businessName}</p>
-              )}
-            </div>
 
             {/* Terms and Privacy */}
             <div className="space-y-2">

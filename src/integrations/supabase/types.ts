@@ -2651,6 +2651,10 @@ export type Database = {
         Args: { p_calendar_id: string }
         Returns: undefined
       }
+      complete_user_setup: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       create_booking: {
         Args: {
           p_calendar_slug: string
@@ -2871,6 +2875,10 @@ export type Database = {
         Args:
           | { p_calendar_id: string; p_message_text: string }
           | { p_message: string; p_calendar_id: string }
+        Returns: Json
+      }
+      process_automatic_status_transitions: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       process_booking_webhook_events: {
