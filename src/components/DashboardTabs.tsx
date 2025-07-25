@@ -64,24 +64,24 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
       {/* Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <div className="overflow-x-auto">
-          <TabsList className="flex bg-gray-800 h-auto p-1 md:p-2 flex-shrink-0 min-w-max w-max md:w-full">
+          <TabsList className="flex bg-gray-800 h-auto p-1 md:p-2 flex-shrink-0 min-w-max w-max md:w-full md:grid md:grid-cols-5">
             <TabsTrigger 
               value="overview" 
-              className="flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg px-2 md:px-4"
+              className="flex items-center justify-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg px-2 md:px-4 md:flex-1"
             >
               <LayoutDashboard className="h-3 w-3 md:h-4 md:w-4" />
               <span className="text-xs md:text-sm whitespace-nowrap">Overview</span>
             </TabsTrigger>
             <TabsTrigger 
               value="live-operations" 
-              className="flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg px-2 md:px-4"
+              className="flex items-center justify-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg px-2 md:px-4 md:flex-1"
             >
               <Radio className="h-3 w-3 md:h-4 md:w-4" />
               <span className="text-xs md:text-sm whitespace-nowrap">Live Operations</span>
             </TabsTrigger>
             <TabsTrigger 
               value="business-intelligence" 
-              className={`flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-orange-600 rounded-lg px-2 md:px-4 ${
+              className={`flex items-center justify-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-orange-600 rounded-lg px-2 md:px-4 md:flex-1 ${
                 !hasBusinessIntelligenceAccess ? 'opacity-60' : ''
               }`}
             >
@@ -97,7 +97,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
             </TabsTrigger>
             <TabsTrigger 
               value="performance-efficiency" 
-              className={`flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-blue-600 rounded-lg px-2 md:px-4 ${
+              className={`flex items-center justify-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-blue-600 rounded-lg px-2 md:px-4 md:flex-1 ${
                 !hasPerformanceAccess ? 'opacity-60' : ''
               }`}
             >
@@ -113,7 +113,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
             </TabsTrigger>
             <TabsTrigger 
               value="future-insights" 
-              className={`flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-purple-600 rounded-lg px-2 md:px-4 ${
+              className={`flex items-center justify-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-purple-600 rounded-lg px-2 md:px-4 md:flex-1 ${
                 !hasFutureInsightsAccess ? 'opacity-60' : ''
               }`}
             >
