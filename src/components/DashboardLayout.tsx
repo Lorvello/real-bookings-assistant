@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SidebarHeader } from '@/components/dashboard/SidebarHeader';
@@ -21,6 +21,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signOut } = useAuth();
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
@@ -33,6 +34,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       setIsSidebarOpen(false);
     }
   }, [isMobile]);
+
+  // Auto-close sidebar on route change (mobile only)
+  useEffect(() => {
+    if (isMobile && isSidebarOpen) {
+      setIsSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -71,56 +79,62 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Mobile: Complete hide/show, Desktop: Collapsible */}
       <div 
         className={`
           ${isMobile 
-            ? `fixed left-0 top-0 h-full z-50 transform transition-transform duration-300 ease-in-out
-               ${isSidebarOpen ? 'translate-x-0 w-[85%] max-w-sm' : '-translate-x-full w-0'}` 
-            : `${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative`
+            ? `fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-in-out
+               ${isSidebarOpen 
+                 ? 'translate-x-0 opacity-100 pointer-events-auto w-[85%] max-w-sm' 
+                 : '-translate-x-full opacity-0 pointer-events-none w-0'
+               }` 
+            : `${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative opacity-100 pointer-events-auto`
           }
         `}
         style={{ backgroundColor: '#0F172A' }}
       >
-        <div className="flex h-full flex-col">
-          <SidebarHeader 
-            isSidebarOpen={isSidebarOpen} 
-            onToggleSidebar={toggleSidebar}
-            isMobile={isMobile}
-          />
+        {/* Only render sidebar content when visible on mobile or always on desktop */}
+        {(!isMobile || isSidebarOpen) && (
+          <div className="flex h-full flex-col">
+            <SidebarHeader 
+              isSidebarOpen={isSidebarOpen} 
+              onToggleSidebar={toggleSidebar}
+              isMobile={isMobile}
+            />
 
-          <BackToWebsiteButton 
-            isSidebarOpen={isSidebarOpen} 
-            onBackToWebsite={handleBackToWebsite} 
-          />
+            <BackToWebsiteButton 
+              isSidebarOpen={isSidebarOpen} 
+              onBackToWebsite={handleBackToWebsite} 
+            />
 
-          {/* User Status Indicator - Shows for all users */}
-          <StatusIndicator 
-            userStatus={userStatus} 
-            isExpanded={isSidebarOpen} 
-          />
+            {/* User Status Indicator - Shows for all users */}
+            <StatusIndicator 
+              userStatus={userStatus} 
+              isExpanded={isSidebarOpen} 
+            />
 
-          {/* Upgrade Prompt - Shows for expired/canceled users */}
-          <UpgradePrompt 
-            userStatus={userStatus} 
-            isExpanded={isSidebarOpen} 
-            onUpgrade={handleUpgrade} 
-          />
+            {/* Upgrade Prompt - Shows for expired/canceled users */}
+            <UpgradePrompt 
+              userStatus={userStatus} 
+              isExpanded={isSidebarOpen} 
+              onUpgrade={handleUpgrade} 
+            />
 
-          {/* Access Controlled Navigation - Adapts to user status */}
-          <AccessControlledNavigation 
-            isSidebarOpen={isSidebarOpen} 
-            onNavigate={handleNavigation}
-            onMobileNavigate={() => isMobile && setIsSidebarOpen(false)}
-          />
+            {/* Access Controlled Navigation - Adapts to user status */}
+            <AccessControlledNavigation 
+              isSidebarOpen={isSidebarOpen} 
+              onNavigate={handleNavigation}
+              onMobileNavigate={() => isMobile && setIsSidebarOpen(false)}
+            />
 
-          <CalendarSwitcherSection isSidebarOpen={isSidebarOpen} />
+            <CalendarSwitcherSection isSidebarOpen={isSidebarOpen} />
 
-          <UserProfileSection 
-            isSidebarOpen={isSidebarOpen} 
-            onSignOut={handleSignOut} 
-          />
-        </div>
+            <UserProfileSection 
+              isSidebarOpen={isSidebarOpen} 
+              onSignOut={handleSignOut} 
+            />
+          </div>
+        )}
       </div>
 
       {/* Mobile Header - Only visible when sidebar is closed on mobile */}
