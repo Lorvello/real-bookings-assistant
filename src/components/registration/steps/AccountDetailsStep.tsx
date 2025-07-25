@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
+import { PasswordInput } from '@/components/ui/password-input';
+import { sanitizeUserInput } from '@/utils/inputSanitization';
+import { validatePassword } from '@/utils/passwordValidation';
 
 interface AccountDetailsStepProps {
   data: any;
@@ -10,7 +13,42 @@ interface AccountDetailsStepProps {
 }
 
 export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({ data, updateData }) => {
-  const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+  const handleInputChange = (field: string, value: string) => {
+    let sanitizedValue = value;
+    
+    // Apply appropriate sanitization based on field type
+    if (field === 'email') {
+      sanitizedValue = sanitizeUserInput(value, 'email');
+    } else if (field === 'fullName') {
+      sanitizedValue = sanitizeUserInput(value, 'text');
+    }
+    
+    updateData({ [field]: sanitizedValue });
+
+    // Real-time password validation
+    if (field === 'password') {
+      const validation = validatePassword(value);
+      setPasswordError(validation.isValid ? '' : validation.errors[0] || '');
+      
+      // Check confirm password match
+      if (data.confirmPassword && value !== data.confirmPassword) {
+        setConfirmPasswordError('Passwords do not match');
+      } else {
+        setConfirmPasswordError('');
+      }
+    }
+    
+    if (field === 'confirmPassword') {
+      if (value !== data.password) {
+        setConfirmPasswordError('Passwords do not match');
+      } else {
+        setConfirmPasswordError('');
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -30,7 +68,7 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({ data, up
             id="fullName"
             type="text"
             value={data.fullName}
-            onChange={(e) => updateData({ fullName: e.target.value })}
+            onChange={(e) => handleInputChange('fullName', e.target.value)}
             placeholder="Voer je volledige naam in"
             className="h-12"
           />
@@ -42,35 +80,23 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({ data, up
             id="email"
             type="email"
             value={data.email}
-            onChange={(e) => updateData({ email: e.target.value })}
+            onChange={(e) => handleInputChange('email', e.target.value)}
             placeholder="naam@voorbeeld.com"
             className="h-12"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Wachtwoord *</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              value={data.password}
-              onChange={(e) => updateData({ password: e.target.value })}
-              placeholder="Minimaal 6 karakters"
-              className="h-12 pr-10"
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4 text-gray-400" />
-              ) : (
-                <Eye className="h-4 w-4 text-gray-400" />
-              )}
-            </button>
-          </div>
+          <PasswordInput
+            label="Wachtwoord *"
+            placeholder="Minimaal 8 karakters met cijfers en speciale tekens"
+            value={data.password}
+            onChange={(value) => handleInputChange('password', value)}
+            showStrengthIndicator={true}
+            required={true}
+            error={passwordError}
+            className="space-y-2"
+          />
         </div>
 
         <div className="space-y-2">
@@ -79,10 +105,13 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({ data, up
             id="confirmPassword"
             type="password"
             value={data.confirmPassword}
-            onChange={(e) => updateData({ confirmPassword: e.target.value })}
+            onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
             placeholder="Herhaal je wachtwoord"
             className="h-12"
           />
+          {confirmPasswordError && (
+            <p className="text-sm text-destructive">{confirmPasswordError}</p>
+          )}
         </div>
       </div>
     </div>

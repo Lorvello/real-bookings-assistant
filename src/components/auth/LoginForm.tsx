@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordInput } from './PasswordInput';
+import { validatePassword } from '@/utils/passwordValidation';
+import { sanitizeUserInput } from '@/utils/inputSanitization';
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
@@ -27,13 +29,27 @@ export const LoginForm: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Sanitize inputs for security
+    const sanitizedEmail = sanitizeUserInput(formData.email, 'email');
+    
+    // Basic validation
+    if (!sanitizedEmail || !formData.password) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter both email and password",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      console.log('[Login] Starting email login for:', formData.email);
+      console.log('[Login] Starting email login for:', sanitizedEmail);
       
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
+        email: sanitizedEmail,
         password: formData.password
       });
 
