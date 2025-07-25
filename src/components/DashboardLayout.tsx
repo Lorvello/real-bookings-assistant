@@ -70,7 +70,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 w-full relative">
+    <div className="flex min-h-screen max-h-screen bg-gray-900 w-full relative">
       {/* Mobile Overlay */}
       {isMobile && isSidebarOpen && (
         <div 
@@ -153,8 +153,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Main Content */}
-      <div className={`flex-1 overflow-auto ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`}>
-        <main className="h-full">
+      <div className={`flex-1 overflow-y-auto ${isMobile && !isSidebarOpen ? 'pt-16' : ''} ${isMobile ? 'pb-safe' : ''}`}>
+        <main className="min-h-0 flex-grow">
           {children}
         </main>
       </div>

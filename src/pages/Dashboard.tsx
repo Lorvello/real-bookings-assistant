@@ -4,6 +4,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { DashboardTabs } from '@/components/DashboardTabs';
 import { DateRangeFilter } from '@/components/dashboard/DateRangeFilter';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
@@ -19,6 +20,9 @@ const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { calendars, selectedCalendar, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
   const { userStatus } = useUserStatus();
+  
+  // Auto scroll to top on route changes
+  useScrollToTop();
 
   // Date range state for the dashboard
   const [selectedDateRange, setSelectedDateRange] = React.useState<DateRange>(() => {
@@ -76,7 +80,7 @@ const Dashboard = () => {
   if (!userStatus.isSetupIncomplete && calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
+        <div className="bg-gray-900 min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
           {/* Developer Status Switcher */}
           <div className="mb-4">
             <UserStatusSwitcher />
@@ -95,7 +99,7 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
+      <div className="bg-gray-900 min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
         {/* Developer Tools Section */}
         <div className="mb-4 space-y-3 sm:space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">

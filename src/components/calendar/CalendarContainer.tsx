@@ -111,7 +111,7 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
   }, [timeRange]);
 
   return (
-    <div className="bg-gradient-to-br from-card via-card/98 to-card/95 rounded-3xl border border-border/40 h-full flex flex-col overflow-hidden shadow-2xl shadow-black/10 backdrop-blur-xl">
+    <div className="bg-gradient-to-br from-card via-card/98 to-card/95 rounded-3xl border border-border/40 h-full max-h-full flex flex-col overflow-hidden shadow-2xl shadow-black/10 backdrop-blur-xl">
       <CalendarHeader
         currentView={currentView}
         currentDate={currentDate}
@@ -123,11 +123,11 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
         onTimeRangeChange={handleTimeRangeChange}
       />
 
-      <div className="flex-1 overflow-hidden min-h-0 relative">
+      <div className="flex-1 overflow-auto min-h-0 relative">
         {/* Background decoration */}
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/[0.02] to-transparent pointer-events-none"></div>
         
-        <div className="relative z-10 h-full">
+        <div className="relative z-10 h-full min-h-0">
           <CalendarContent
             currentView={currentView}
             bookings={bookings}

@@ -6,6 +6,7 @@ import { CalendarView } from '@/components/CalendarView';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,9 @@ const Calendar = () => {
   const { user, loading: authLoading } = useAuth();
   const { selectedCalendar, calendars, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
+  
+  // Auto scroll to top on route changes
+  useScrollToTop();
 
   React.useEffect(() => {
     if (!authLoading && !user) {
@@ -43,7 +47,7 @@ const Calendar = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
+        <div className="bg-gray-900 min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
           <div className="space-y-3 sm:space-y-4 md:space-y-6">
             <SimplePageHeader title="Calendar" />
 
@@ -87,7 +91,7 @@ const Calendar = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
+      <div className="bg-gray-900 min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
         <div className="space-y-3 sm:space-y-4 md:space-y-6">
           <SimplePageHeader title={displayTitle} />
           
