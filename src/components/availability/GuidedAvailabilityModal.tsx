@@ -183,13 +183,23 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     try {
       console.log('Saving availability configuration...');
       
-      // PHASE 3: Improved saving with better error handling
+      // STEP 1: Ensure default schedule exists before saving availability
+      console.log('Checking for default schedule...');
+      try {
+        await createDefaultSchedule();
+        console.log('Default schedule verified/created successfully');
+      } catch (scheduleError) {
+        console.error('Failed to create/verify default schedule:', scheduleError);
+        throw new Error('Failed to prepare schedule for availability data');
+      }
+      
+      // STEP 2: Save availability data with retry mechanism
       const savePromises = DAYS.map(async (day) => {
         const dayData = localAvailability[day.key];
         
         // Retry mechanism for each day
         let retryCount = 0;
-        const maxRetries = 2;
+        const maxRetries = 3;
         
         while (retryCount < maxRetries) {
           try {
@@ -201,7 +211,8 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
             console.warn(`Save attempt ${retryCount} failed for ${day.key}:`, error);
             
             if (retryCount < maxRetries) {
-              await new Promise(resolve => setTimeout(resolve, 100));
+              // Exponential backoff
+              await new Promise(resolve => setTimeout(resolve, 200 * retryCount));
             } else {
               throw error;
             }
@@ -211,10 +222,9 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       
       // Wait for all days to be saved
       await Promise.all(savePromises);
-      
       console.log('All availability data saved successfully');
       
-      // Save timezone to database
+      // STEP 3: Save timezone to database
       await saveTimezone();
       console.log('Timezone saved successfully');
       
@@ -226,18 +236,25 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       // Add small delay for database consistency, then refresh page
       setTimeout(() => {
         navigate(0);
-      }, 100);
+      }, 150);
     } catch (error) {
       console.error('Error saving availability configuration:', error);
+      
+      let errorMessage = "There was an error saving your configuration. Please try again.";
+      if (error.message?.includes('schedule')) {
+        errorMessage = "Failed to set up your availability schedule. Please try again or contact support.";
+      }
+      
       toast({
         title: "Save Error",
-        description: "There was an error saving your configuration. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+      
       // Still refresh to avoid blocking user, but log the error
       setTimeout(() => {
         navigate(0);
-      }, 100);
+      }, 150);
     }
   };
 
