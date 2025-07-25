@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, ReactNod
 import { useProfile } from '@/hooks/useProfile';
 import { UserStatus, UserType, AccessControl } from '@/types/userStatus';
 import { supabase } from '@/integrations/supabase/client';
+import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
 
 interface UserStatusContextType {
   userStatus: UserStatus;
@@ -17,6 +18,7 @@ const CACHE_VERSION = '3.0';
 
 export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { profile } = useProfile();
+  const { tiers } = useSubscriptionTiers();
   
   // Global persistent state - loaded once and maintained across navigation
   const [userStatusType, setUserStatusType] = useState<string>(() => {
@@ -354,6 +356,12 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     };
   }, [profile, userStatusType, isLoading]);
 
+  // Get subscription tier limits from database
+  const getSubscriptionTierLimits = (tierName: string | null) => {
+    if (!tiers || !tierName) return null;
+    return tiers.find(tier => tier.tier_name === tierName);
+  };
+
   // Compute access control - optimized for performance
   const accessControl: AccessControl = React.useMemo(() => {
     const { userType, hasFullAccess } = userStatus;
@@ -361,6 +369,8 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
 
     // Immediate return for paid subscribers
     if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
+      const tierLimits = getSubscriptionTierLimits(tier);
+      
       const baseAccess = {
         canViewDashboard: true,
         canCreateBookings: true,
@@ -385,10 +395,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             canAccessPerformance: false,
             canAccessCustomerSatisfaction: false,
             canAccessTeamMembers: false,
-            maxCalendars: 2,
-            maxBookingsPerMonth: null,
-            maxTeamMembers: 2,
-            maxWhatsAppContacts: 500
+            maxCalendars: tierLimits?.max_calendars || 2,
+            maxBookingsPerMonth: tierLimits?.max_bookings_per_month || null,
+            maxTeamMembers: tierLimits?.max_team_members || 1,
+            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts || 500
           };
         case 'professional':
           return {
@@ -401,10 +411,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             canAccessPerformance: true,
             canAccessCustomerSatisfaction: false,
             canAccessTeamMembers: true,
-            maxCalendars: null,
-            maxBookingsPerMonth: null,
-            maxTeamMembers: 5,
-            maxWhatsAppContacts: 2500
+            maxCalendars: tierLimits?.max_calendars,
+            maxBookingsPerMonth: tierLimits?.max_bookings_per_month,
+            maxTeamMembers: tierLimits?.max_team_members || 10,
+            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts || 2500
           };
         case 'enterprise':
           return {
@@ -417,10 +427,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             canAccessPerformance: true,
             canAccessCustomerSatisfaction: true,
             canAccessTeamMembers: true,
-            maxCalendars: null,
-            maxBookingsPerMonth: null,
-            maxTeamMembers: 50,
-            maxWhatsAppContacts: null
+            maxCalendars: tierLimits?.max_calendars,
+            maxBookingsPerMonth: tierLimits?.max_bookings_per_month,
+            maxTeamMembers: tierLimits?.max_team_members,
+            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts
           };
         default:
           return {
@@ -435,7 +445,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             canAccessTeamMembers: false,
             maxCalendars: 2,
             maxBookingsPerMonth: null,
-            maxTeamMembers: 2,
+            maxTeamMembers: 1,
             maxWhatsAppContacts: 500
           };
       }
@@ -468,6 +478,9 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       };
     }
 
+    // Get starter tier limits for trial users
+    const starterTierLimits = getSubscriptionTierLimits('starter');
+
     // Expired trial users
     if (userType === 'expired_trial') {
       return {
@@ -488,10 +501,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canAccessPerformance: false,
         canAccessCustomerSatisfaction: false,
         canAccessTeamMembers: false,
-        maxCalendars: 2,
-        maxBookingsPerMonth: null,
-        maxTeamMembers: 2,
-        maxWhatsAppContacts: 500
+        maxCalendars: starterTierLimits?.max_calendars || 2,
+        maxBookingsPerMonth: starterTierLimits?.max_bookings_per_month || null,
+        maxTeamMembers: starterTierLimits?.max_team_members || 1,
+        maxWhatsAppContacts: starterTierLimits?.max_whatsapp_contacts || 500
       };
     }
 
@@ -541,12 +554,12 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       canAccessPerformance: false,
       canAccessCustomerSatisfaction: false,
       canAccessTeamMembers: false,
-      maxCalendars: hasFullAccess ? 2 : 0,
-      maxBookingsPerMonth: hasFullAccess ? null : 0,
-      maxTeamMembers: hasFullAccess ? 2 : 0,
-      maxWhatsAppContacts: hasFullAccess ? 500 : 0
+      maxCalendars: hasFullAccess ? (starterTierLimits?.max_calendars || 2) : 0,
+      maxBookingsPerMonth: hasFullAccess ? (starterTierLimits?.max_bookings_per_month || null) : 0,
+      maxTeamMembers: hasFullAccess ? (starterTierLimits?.max_team_members || 1) : 0,
+      maxWhatsAppContacts: hasFullAccess ? (starterTierLimits?.max_whatsapp_contacts || 500) : 0
     };
-  }, [userStatus, profile?.subscription_tier]);
+  }, [userStatus, profile?.subscription_tier, tiers]);
 
   return (
     <UserStatusContext.Provider value={{
