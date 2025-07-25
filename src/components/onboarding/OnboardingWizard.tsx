@@ -35,7 +35,7 @@ export const OnboardingWizard = () => {
   const getStepAction = (step: any) => {
     switch (step.key) {
       case 'business_info':
-        return () => navigate('/settings?tab=business');
+        return () => navigate('/settings?tab=knowledge');
       case 'service_types':
         return () => navigate('/settings?tab=services');
       case 'calendar_creation':
