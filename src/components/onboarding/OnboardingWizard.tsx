@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, Circle, ArrowRight, Settings, Calendar, Clock, MessageCircle, Bot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 
 export const OnboardingWizard = () => {
   const { completionPercentage, completedSteps, totalSteps, nextSteps, allSteps } = useOnboardingProgress();
   const { userStatus } = useUserStatus();
   const navigate = useNavigate();
+  const [showCreateCalendarDialog, setShowCreateCalendarDialog] = useState(false);
 
   // Hide setup section when all steps are completed
   if (!userStatus.isSetupIncomplete || completionPercentage === 100) {
@@ -39,7 +41,7 @@ export const OnboardingWizard = () => {
       case 'service_types':
         return () => navigate('/settings?tab=services');
       case 'calendar_creation':
-        return () => navigate('/calendar');
+        return () => setShowCreateCalendarDialog(true);
       case 'availability':
         return () => navigate('/availability');
       default:
@@ -123,6 +125,15 @@ export const OnboardingWizard = () => {
           </div>
         </div>
       </div>
+      
+      {/* Create Calendar Dialog */}
+      <CreateCalendarDialog 
+        open={showCreateCalendarDialog}
+        onOpenChange={setShowCreateCalendarDialog}
+        onCalendarCreated={() => {
+          // Dialog will close automatically and calendar creation will trigger progress update
+        }}
+      />
     </div>
   );
 };
