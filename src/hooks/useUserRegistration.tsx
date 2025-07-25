@@ -66,6 +66,7 @@ export const useUserRegistration = () => {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: data.fullName,
+            phone: data.phone || null
           }
         }
       });
