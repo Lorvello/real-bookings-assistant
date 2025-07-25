@@ -162,7 +162,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Mobile Header - Only visible when sidebar is closed on mobile */}
       {isMobile && !isSidebarOpen && (
-        <div className="fixed top-0 left-0 right-0 h-16 bg-slate-900/95 backdrop-blur-md border-b border-gray-700 z-30 flex items-center px-4">
+        <div className="fixed top-0 left-0 right-0 h-16 bg-slate-900/95 backdrop-blur-md border-b border-gray-700 z-30 flex items-center px-4" style={{ touchAction: 'pan-y' }}>
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-700 transition-colors"
@@ -176,8 +176,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Main Content */}
-      <div className={`flex-1 overflow-y-auto ${isMobile && !isSidebarOpen ? 'pt-16' : ''} ${isMobile ? 'pb-safe' : ''}`}>
-        <main className="min-h-0 flex-grow">
+      <div className={`flex-1 ${isMobile ? 'overflow-y-scroll min-h-screen' : 'overflow-y-auto'} ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`} style={isMobile ? { overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } : {}}>
+        <main className={isMobile ? 'min-h-screen' : 'min-h-0 flex-grow'}>
           {children}
         </main>
       </div>
