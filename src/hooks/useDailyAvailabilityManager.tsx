@@ -312,6 +312,20 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     }
   };
 
+  // Force refresh function that completely reloads all data
+  const forceRefresh = async () => {
+    console.log('Force refreshing all availability data...');
+    try {
+      await refreshRules();
+      // Add small delay then refresh again to ensure data consistency
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await refreshRules();
+      onChange();
+    } catch (error) {
+      console.error('Error during force refresh:', error);
+    }
+  };
+
   return {
     DAYS,
     availability,
@@ -322,6 +336,7 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     defaultSchedule,
     syncToDatabase,
     createDefaultSchedule,
-    refreshAvailability: refreshRules
+    refreshAvailability: refreshRules,
+    forceRefresh
   };
 };

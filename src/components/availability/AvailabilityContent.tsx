@@ -29,7 +29,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const [isTimezoneUpdating, setIsTimezoneUpdating] = React.useState(false);
   
   const { calendars, selectedCalendar, loading: calendarsLoading, refreshCalendars } = useCalendarContext();
-  const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability } = useDailyAvailabilityManager(() => {});
+  const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability, forceRefresh } = useDailyAvailabilityManager(() => {});
   const { toast } = useToast();
   
   // Update timezone value when selected calendar changes
@@ -118,13 +118,28 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     }
   };
 
-  const handleGuidedComplete = () => {
+  const handleGuidedComplete = async () => {
     setIsGuidedModalOpen(false);
-    // Add small delay to ensure database changes are committed
-    setTimeout(() => {
-      refreshAvailability();
-      refreshCalendars(); // Refresh calendars to get updated timezone
-    }, 200);
+    setIsRefreshing(true);
+    
+    try {
+      console.log('Forcing complete data refresh after guided completion...');
+      
+      // Force refresh with longer delay to ensure database consistency
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Refresh calendars first
+      await refreshCalendars();
+      
+      // Use forceRefresh for more reliable data reloading
+      await forceRefresh();
+      
+      console.log('Data refresh completed successfully');
+    } catch (error) {
+      console.error('Error during data refresh:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleTimezoneChange = async (newTimezone: string) => {
