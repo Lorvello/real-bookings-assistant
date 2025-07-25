@@ -113,8 +113,8 @@ export function ModernMonthView({ bookings, currentDate, viewingAllCalendars = f
 
       {/* Optimized Calendar Grid with subtle gradient background */}
       <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
-        <div className="p-2">
-          <div className="grid grid-cols-7 gap-1">
+        <div className="p-1 sm:p-2">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
             {days.map(day => {
               const dayBookings = getBookingsForDay(day);
 

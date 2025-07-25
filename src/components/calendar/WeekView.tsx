@@ -98,10 +98,13 @@ const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
   const bookingTotalMinutes = bookingHours * 60 + bookingMinutes;
   
   const offsetMinutes = bookingTotalMinutes - baseSlotMinutes;
-  const topOffset = Math.max(0, (offsetMinutes / 30) * 40); // 30 min = 40px
+  const baseOffset = window.innerWidth < 640 ? 24 : 40;
+  const topOffset = Math.max(0, (offsetMinutes / 30) * baseOffset); // 30 min = 40px on desktop, 24px on mobile
   
-  // Calculate height based on duration - 30 minutes = 40px height
-  const height = Math.max(44, (duration / 30) * 40); // minimum 44px for better text fitting
+  // Calculate height based on duration - 30 minutes = 40px height on desktop, 24px on mobile
+  const baseHeight = window.innerWidth < 640 ? 24 : 40;
+  const minHeight = window.innerWidth < 640 ? 24 : 44;
+  const height = Math.max(minHeight, (duration / 30) * baseHeight);
   
   return { topOffset, height };
 };
@@ -117,7 +120,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <div
-            className="absolute inset-x-0 mx-1 p-2 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 group hover:scale-105 border border-white/20 relative overflow-hidden"
+            className="absolute inset-x-0 mx-0.5 sm:mx-1 p-1 sm:p-2 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 group hover:scale-105 border border-white/20 relative overflow-hidden"
             style={{
               background: `linear-gradient(135deg, ${booking.service_types?.color || '#3B82F6'}, ${booking.service_types?.color || '#3B82F6'}dd)`,
               height: `${height}px`,
@@ -127,16 +130,16 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
             onClick={() => onBookingClick(booking)}
           >
             {/* Info icon in top-right corner */}
-            <div className="absolute top-1 right-1">
-              <Info className="w-3 h-3 text-gray-700" />
+            <div className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1">
+              <Info className="w-2 h-2 sm:w-3 sm:h-3 text-gray-700" />
             </div>
 
             <div className="text-white overflow-hidden">
-              <div className="font-bold text-xs truncate mb-1">{booking.customer_name}</div>
-              <div className="text-white/90 text-xs font-medium truncate mb-1">
+              <div className="font-bold text-[9px] sm:text-xs truncate mb-0.5 sm:mb-1">{booking.customer_name}</div>
+              <div className="text-white/90 text-[8px] sm:text-xs font-medium truncate mb-0.5 sm:mb-1">
                 {booking.service_types?.name || 'Appointment'}
               </div>
-              <div className="text-white/80 text-xs truncate">
+              <div className="text-white/80 text-[8px] sm:text-xs truncate">
                 {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
               </div>
             </div>
@@ -197,24 +200,24 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
       {/* Fixed header with days - more compact */}
       <div className="sticky top-0 z-20 bg-card/95 backdrop-blur-sm border-b border-border/60 shadow-sm">
         <div className="grid grid-cols-8 gap-px">
-          <div className="w-16 p-2">
-            <div className="text-xs font-semibold text-muted-foreground">Time</div>
+          <div className="w-8 sm:w-16 p-1 sm:p-2">
+            <div className="text-[10px] sm:text-xs font-semibold text-muted-foreground">Time</div>
           </div>
           {weekDays.map((day) => (
-            <div key={day.toISOString()} className={`text-center py-2 px-1 rounded-lg mx-1 transition-all duration-200 ${
+            <div key={day.toISOString()} className={`text-center py-1 sm:py-2 px-0.5 sm:px-1 rounded-lg mx-0.5 sm:mx-1 transition-all duration-200 ${
               isToday(day) 
                 ? 'bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30' 
                 : 'hover:bg-accent/50'
             }`}>
-              <div className="text-xs text-muted-foreground font-medium">
+              <div className="text-[9px] sm:text-xs text-muted-foreground font-medium">
                 {format(day, 'EEE')}
               </div>
-              <div className={`text-lg font-bold mt-0.5 ${
+              <div className={`text-sm sm:text-lg font-bold mt-0.5 ${
                 isToday(day) ? 'text-primary' : 'text-foreground'
               }`}>
                 {format(day, 'd')}
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-[9px] sm:text-xs text-muted-foreground">
                 {format(day, 'MMM')}
               </div>
             </div>
@@ -230,7 +233,7 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
             index % 2 === 0 ? 'bg-muted/10' : 'bg-transparent'
           }`}>
             {/* Time label */}
-            <div className="w-16 py-2 px-2 text-xs font-medium text-muted-foreground text-right border-r border-border/20">
+            <div className="w-8 sm:w-16 py-1 sm:py-2 px-1 sm:px-2 text-[9px] sm:text-xs font-medium text-muted-foreground text-right border-r border-border/20">
               {timeSlot}
             </div>
             
@@ -242,7 +245,7 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
               return (
                 <div
                   key={`${day.toISOString()}-${timeSlot}`}
-                   className={`relative transition-colors min-h-[40px] border-r border-border/20 ${
+                   className={`relative transition-colors min-h-[24px] sm:min-h-[40px] border-r border-border/20 ${
                      isToday(day) 
                        ? 'bg-primary/5 hover:bg-primary/10' 
                        : 'bg-card/50 hover:bg-accent/30'
