@@ -348,7 +348,7 @@ export const StreamlinedSignup: React.FC = () => {
                 />
                 <Label htmlFor="agreeToTerms" className="text-sm text-muted-foreground leading-relaxed">
                   I agree to the{' '}
-                  <Link to="/terms" className="text-primary hover:text-primary/80 underline">
+                  <Link to="/terms-of-service" className="text-primary hover:text-primary/80 underline">
                     Terms of Service
                   </Link>{' '}
                   and{' '}
