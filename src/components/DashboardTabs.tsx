@@ -64,7 +64,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
       {/* Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <div className="overflow-x-auto">
-          <TabsList className="flex bg-gray-800 h-auto p-1 md:p-2 flex-shrink-0 min-w-max w-max">
+          <TabsList className="flex bg-gray-800 h-auto p-1 md:p-2 flex-shrink-0 min-w-max w-max md:w-full">
             <TabsTrigger 
               value="overview" 
               className="flex items-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg px-2 md:px-4"
