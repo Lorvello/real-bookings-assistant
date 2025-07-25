@@ -92,31 +92,31 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-primary/20 rounded-2xl">
+      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-4 sm:p-6 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-4 min-w-0 flex-1">
+            <div className="p-3 bg-primary/20 rounded-2xl flex-shrink-0">
               <Calendar className="h-6 w-6 text-primary" />
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-foreground">Your Availability</h2>
-              <p className="text-muted-foreground">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">Your Availability</h2>
+              <p className="text-sm text-muted-foreground">
                 {status.isComplete ? 'Schedule configured' : `${status.configured} of ${status.total} days configured`}
               </p>
             </div>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-end sm:justify-start flex-shrink-0">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsGuidedModalOpen(true)}
-              className="flex items-center space-x-2 text-primary border-primary/20 hover:bg-primary/10"
+              className="flex items-center space-x-2 text-primary border-primary/20 hover:bg-primary/10 w-full sm:w-auto"
             >
               <Edit2 className="h-4 w-4" />
-              <span>Reconfigure All</span>
+              <span className="hidden xs:inline">Reconfigure All</span>
+              <span className="xs:hidden">Reconfigure</span>
             </Button>
-            
           </div>
         </div>
       </div>
