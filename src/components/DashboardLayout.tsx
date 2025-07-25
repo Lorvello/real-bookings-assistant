@@ -15,6 +15,27 @@ import { UpgradePrompt } from '@/components/user-status/UpgradePrompt';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 
+// Helper function to get page title from pathname
+const getPageTitle = (pathname: string) => {
+  const segments = pathname.split('/').filter(Boolean);
+  
+  if (segments.length === 0 || segments[0] === 'dashboard') {
+    return 'Dashboard';
+  }
+  
+  const pageMap: Record<string, string> = {
+    'calendar': 'Calendar',
+    'bookings': 'Bookings',
+    'availability': 'Availability',
+    'whatsapp': 'WhatsApp',
+    'bookings-assistant': 'Bookings Assistant',
+    'test-ai-agent': 'Test AI Agent',
+    'settings': 'Settings'
+  };
+  
+  return pageMap[segments[0]] || segments[0].charAt(0).toUpperCase() + segments[0].slice(1);
+};
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -68,6 +89,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     });
     navigate('/settings');
   };
+
+  const currentPageTitle = getPageTitle(location.pathname);
 
   return (
     <div className="flex min-h-screen max-h-screen bg-gray-900 w-full relative">
@@ -148,7 +171,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <h1 className="ml-3 text-lg font-semibold text-white">Dashboard</h1>
+          <h1 className="ml-3 text-lg font-semibold text-white">{currentPageTitle}</h1>
         </div>
       )}
 
