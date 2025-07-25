@@ -63,7 +63,7 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
         <div className="flex justify-between items-center">
           <div className="flex items-center text-muted-foreground">
             <Clock className="h-4 w-4 mr-1" />
-            <span>Duur:</span>
+            <span>Duration:</span>
           </div>
           <span className="text-foreground font-medium">
             {formatDuration(service.duration)}
@@ -73,44 +73,11 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
         <div className="flex justify-between items-center">
           <div className="flex items-center text-muted-foreground">
             <Euro className="h-4 w-4 mr-1" />
-            <span>Prijs:</span>
+            <span>Price:</span>
           </div>
           <span className="text-foreground font-medium">
             {formatPrice(service.price)}
           </span>
-        </div>
-
-        <div className="flex justify-between items-center">
-          <div className="flex items-center text-muted-foreground">
-            <Users className="h-4 w-4 mr-1" />
-            <span>Max personen:</span>
-          </div>
-          <span className="text-foreground font-medium">
-            {service.max_attendees}
-          </span>
-        </div>
-      </div>
-
-      {/* Service Status & WhatsApp */}
-      <div className="mt-4 pt-3 border-t border-border space-y-2">
-        <div className="flex items-center justify-between">
-          <Badge variant={service.is_active ? "default" : "secondary"}>
-            {service.is_active ? "Actief" : "Inactief"}
-          </Badge>
-          
-          {(service.preparation_time > 0 || service.cleanup_time > 0) && (
-            <div className="text-xs text-muted-foreground">
-              {service.preparation_time > 0 && `${service.preparation_time}min voorbereiding`}
-              {service.preparation_time > 0 && service.cleanup_time > 0 && " • "}
-              {service.cleanup_time > 0 && `${service.cleanup_time}min opruimen`}
-            </div>
-          )}
-        </div>
-
-        {/* WhatsApp Availability Indicator */}
-        <div className="flex items-center text-xs text-whatsapp">
-          <MessageCircle className="h-4 w-4 mr-1" />
-          <span>Beschikbaar via WhatsApp</span>
         </div>
       </div>
     </div>
