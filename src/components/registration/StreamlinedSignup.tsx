@@ -352,7 +352,7 @@ export const StreamlinedSignup: React.FC = () => {
                     Terms of Service
                   </Link>{' '}
                   and{' '}
-                  <Link to="/privacy" className="text-primary hover:text-primary/80 underline">
+                  <Link to="/privacy-policy" className="text-primary hover:text-primary/80 underline">
                     Privacy Policy
                   </Link>
                 </Label>
