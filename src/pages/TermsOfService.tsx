@@ -14,7 +14,7 @@ const TermsOfService = () => {
           className="inline-flex items-center text-sm text-gray-300 hover:text-white mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Terug naar registratie
+          Back to registration
         </Link>
 
         {/* Main Card */}
@@ -24,7 +24,7 @@ const TermsOfService = () => {
               Terms of Service
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Laatst bijgewerkt: {new Date().toLocaleDateString('nl-NL')}
+              Last updated: {new Date().toLocaleDateString('en-US')}
             </CardDescription>
           </CardHeader>
 
@@ -34,150 +34,150 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  1. Acceptatie van voorwaarden
+                  1. Acceptance of terms
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Door onze kalenderboeking service te gebruiken, stemt u in met deze servicevoorwaarden. 
-                  Als u niet akkoord gaat met deze voorwaarden, mag u onze service niet gebruiken.
+                  By using our calendar booking service, you agree to these terms of service. 
+                  If you do not agree to these terms, you may not use our service.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  2. Beschrijving van de service
+                  2. Service description
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-3">
-                  Onze service biedt een multi-tenant kalenderboeking platform waarbij bedrijven:
+                  Our service provides a multi-tenant calendar booking platform where businesses can:
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-6">
-                  <li>Hun eigen kalenderinstellingen kunnen beheren</li>
-                  <li>Afspraaktypes kunnen configureren</li>
-                  <li>Beschikbaarheid kunnen instellen</li>
-                  <li>Automatische boekingsprocessen kunnen opzetten</li>
+                  <li>Manage their own calendar settings</li>
+                  <li>Configure appointment types</li>
+                  <li>Set availability schedules</li>
+                  <li>Set up automated booking processes</li>
                 </ul>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  3. Account en registratie
+                  3. Account and registration
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-3">
-                  Voor het gebruik van onze service moet u:
+                  To use our service, you must:
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-6">
-                  <li>Accurate en volledige informatie verstrekken tijdens registratie</li>
-                  <li>Uw accountinformatie up-to-date houden</li>
-                  <li>Verantwoordelijk zijn voor alle activiteiten onder uw account</li>
-                  <li>Uw wachtwoord veilig houden en niet delen</li>
+                  <li>Provide accurate and complete information during registration</li>
+                  <li>Keep your account information up to date</li>
+                  <li>Be responsible for all activities under your account</li>
+                  <li>Keep your password secure and not share it</li>
                 </ul>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  4. Toegestaan gebruik
+                  4. Permitted use
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-3">
-                  U mag onze service gebruiken voor:
+                  You may use our service for:
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-6">
-                  <li>Legitieme bedrijfsactiviteiten</li>
-                  <li>Het beheren van afspraken en boekingen</li>
-                  <li>Communicatie met klanten over boekingen</li>
+                  <li>Legitimate business activities</li>
+                  <li>Managing appointments and bookings</li>
+                  <li>Communication with customers about bookings</li>
                 </ul>
                 <p className="text-muted-foreground leading-relaxed mt-4 mb-3">
-                  Het is niet toegestaan om:
+                  It is not permitted to:
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-6">
-                  <li>De service te gebruiken voor illegale activiteiten</li>
-                  <li>Spam of ongewenste berichten te verzenden</li>
-                  <li>De service te proberen te hacken of misbruiken</li>
-                  <li>Accounts van andere gebruikers te benaderen zonder toestemming</li>
+                  <li>Use the service for illegal activities</li>
+                  <li>Send spam or unwanted messages</li>
+                  <li>Attempt to hack or abuse the service</li>
+                  <li>Access other users' accounts without permission</li>
                 </ul>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  5. Gegevensbescherming
+                  5. Data protection
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Wij nemen gegevensbescherming serieus. Uw persoonlijke gegevens worden verwerkt 
-                  in overeenstemming met onze Privacy Policy en de geldende privacywetgeving, 
-                  waaronder de AVG (GDPR).
+                  We take data protection seriously. Your personal data is processed 
+                  in accordance with our Privacy Policy and applicable privacy legislation, 
+                  including GDPR.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  6. Service beschikbaarheid
+                  6. Service availability
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Wij streven ernaar om onze service 24/7 beschikbaar te houden, maar kunnen 
-                  geen 100% uptime garanderen. Onderhoud en updates kunnen tijdelijke 
-                  onderbreking van de service veroorzaken.
+                  We strive to keep our service available 24/7, but cannot guarantee 
+                  100% uptime. Maintenance and updates may cause temporary 
+                  service interruptions.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  7. Betalingen en facturering
+                  7. Payments and billing
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Betalingsvoorwaarden worden gespecificeerd in uw abonnement. Alle prijzen 
-                  zijn exclusief BTW tenzij anders vermeld. Betalingen zijn verschuldigd 
-                  volgens de overeengekomen betalingstermijnen.
+                  Payment terms are specified in your subscription. All prices 
+                  are exclusive of VAT unless otherwise stated. Payments are due 
+                  according to the agreed payment terms.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  8. Beëindiging
+                  8. Termination
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  U kunt uw account op elk moment opzeggen. Wij behouden ons het recht voor 
-                  om accounts op te schorten of te beëindigen bij schending van deze voorwaarden 
-                  of misbruik van de service.
+                  You may cancel your account at any time. We reserve the right 
+                  to suspend or terminate accounts for violation of these terms 
+                  or abuse of the service.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  9. Aansprakelijkheid
+                  9. Liability
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Onze aansprakelijkheid is beperkt tot het bedrag dat u heeft betaald voor 
-                  de service in de 12 maanden voorafgaand aan de claim. Wij zijn niet 
-                  aansprakelijk voor indirecte schade of gevolgschade.
+                  Our liability is limited to the amount you have paid for 
+                  the service in the 12 months preceding the claim. We are not 
+                  liable for indirect or consequential damages.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  10. Wijzigingen
+                  10. Changes
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Wij behouden ons het recht voor om deze voorwaarden te wijzigen. 
-                  Wijzigingen worden van kracht 30 dagen na kennisgeving via e-mail 
-                  of via onze website.
+                  We reserve the right to modify these terms. 
+                  Changes will take effect 30 days after notification via email 
+                  or through our website.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  11. Toepasselijk recht
+                  11. Applicable law
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Deze voorwaarden worden beheerst door Nederlands recht. Geschillen 
-                  worden voorgelegd aan de bevoegde rechter in Nederland.
+                  These terms are governed by Dutch law. Disputes 
+                  will be submitted to the competent court in the Netherlands.
                 </p>
               </section>
 
@@ -187,11 +187,11 @@ const TermsOfService = () => {
                   12. Contact
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-3">
-                  Voor vragen over deze voorwaarden kunt u contact met ons opnemen via:
+                  For questions about these terms, you can contact us:
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg">
-                  <p className="text-muted-foreground">E-mail: info@example.com</p>
-                  <p className="text-muted-foreground">Telefoon: +31 20 123 4567</p>
+                  <p className="text-muted-foreground">Email: info@example.com</p>
+                  <p className="text-muted-foreground">Phone: +31 20 123 4567</p>
                 </div>
               </section>
 
@@ -202,7 +202,7 @@ const TermsOfService = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
                 <Button asChild className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white" style={{ backgroundColor: '#10B981' }}>
                   <Link to="/signup">
-                    Terug naar registratie
+                    Back to registration
                   </Link>
                 </Button>
                 <div className="flex flex-col sm:flex-row gap-4 text-sm">
