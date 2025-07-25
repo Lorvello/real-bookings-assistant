@@ -116,21 +116,8 @@ export const useUserRegistration = () => {
       const trialStartDate = new Date().toISOString();
       const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days from now
 
-      const { error: profileError } = await supabase
-        .from('users')
-        .update({
-          full_name: data.fullName,
-          business_name: data.businessName,
-          business_type: data.businessType,
-          business_email: data.businessEmail,
-          phone: data.phone,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', authData.user.id);
-
-      if (profileError) {
-        console.error('[UserRegistration] Profile update error:', profileError);
-      }
+      // Skip profile update - the trigger function will handle initial setup
+      // We want users to start in "setup_incomplete" state with business_name/business_type as NULL
 
       // Stap 3: Roep database functie aan voor complete setup
       const { data: setupResult, error: setupError } = await supabase.rpc(
