@@ -89,73 +89,6 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
           </div>
         )}
 
-        {/* Social Media */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-          <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-semibold text-white">Social Media & Website</h2>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="h-4 w-4 text-gray-400 hover:text-white transition-colors">
-                  <Info className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>The AI agent can use this information in its messages</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Website
-              </label>
-              <input
-                type="url"
-                value={profileData.website}
-                onChange={(e) => autoSaveProfile({
-                  ...profileData,
-                  website: e.target.value
-                })}
-                placeholder="https://www.example.com"
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Instagram
-              </label>
-              <input
-                type="text"
-                value={profileData.instagram}
-                onChange={(e) => autoSaveProfile({
-                  ...profileData,
-                  instagram: e.target.value
-                })}
-                placeholder="@username"
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Facebook
-              </label>
-              <input
-                type="text"
-                value={profileData.facebook}
-                onChange={(e) => autoSaveProfile({
-                  ...profileData,
-                  facebook: e.target.value
-                })}
-                placeholder="facebook.com/pagename"
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-              />
-            </div>
-          </div>
-        </div>
-
         {/* Business Information with Address */}
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
           <div className="flex items-center gap-2 mb-6">
@@ -346,10 +279,79 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
           </div>
         </div>
 
+        {/* Social Media */}
+        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <div className="flex items-center gap-2 mb-6">
+            <h2 className="text-xl font-semibold text-white">Social Media & Website</h2>
+            <span className="text-xs text-gray-500">optional</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="h-4 w-4 text-gray-400 hover:text-white transition-colors">
+                  <Info className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>The AI agent can use this information in its messages</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Website
+              </label>
+              <input
+                type="url"
+                value={profileData.website}
+                onChange={(e) => autoSaveProfile({
+                  ...profileData,
+                  website: e.target.value
+                })}
+                placeholder="https://www.example.com"
+                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Instagram
+              </label>
+              <input
+                type="text"
+                value={profileData.instagram}
+                onChange={(e) => autoSaveProfile({
+                  ...profileData,
+                  instagram: e.target.value
+                })}
+                placeholder="@username"
+                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Facebook
+              </label>
+              <input
+                type="text"
+                value={profileData.facebook}
+                onChange={(e) => autoSaveProfile({
+                  ...profileData,
+                  facebook: e.target.value
+                })}
+                placeholder="facebook.com/pagename"
+                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Business Knowledge Base */}
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
           <div className="flex items-center gap-2 mb-6">
             <h2 className="text-xl font-semibold text-white">Booking Agent Knowledge Base</h2>
+            <span className="text-xs text-gray-500">optional</span>
             <Tooltip>
               <TooltipTrigger>
                 <Info className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
