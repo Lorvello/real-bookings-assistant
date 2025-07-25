@@ -84,8 +84,8 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
   return (
     <TooltipProvider>
       <div className="space-y-4 md:space-y-12">
-        {/* Financial & Business Metrics - Orange Theme - Extreme mobile compression */}
-        <div className="grid grid-cols-4 md:grid-cols-4 gap-1 md:gap-6">
+        {/* Financial & Business Metrics - Orange Theme - Mobile optimized */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div
@@ -97,7 +97,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                 <MetricCard
                   title="Revenue"
                   value={`€${businessIntel?.current_period_revenue?.toFixed(2) || '0.00'}`}
-                  subtitle="total"
+                  subtitle={getMetricSubtitle('revenue')}
                   icon={Euro}
                   variant="orange"
                   delay={0.1}
@@ -107,8 +107,8 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                     icon: TrendingUp
                   }}
                 />
-                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
-                  <Info className="h-2 w-2 md:h-3 md:w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -131,15 +131,15 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                 className="relative"
               >
                 <MetricCard
-                  title="Growth"
+                  title="Monthly Growth"
                   value={`${businessIntel?.monthly_growth >= 0 ? '+' : ''}${businessIntel?.monthly_growth?.toFixed(1) || '0.0'}%`}
-                  subtitle="monthly"
+                  subtitle={getMetricSubtitle('growth')}
                   icon={TrendingUp}
                   variant="orange"
                   delay={0.2}
                 />
-                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
-                  <Info className="h-2 w-2 md:h-3 md:w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -162,15 +162,15 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                 className="relative"
               >
                 <MetricCard
-                  title="Per Day"
+                  title="Revenue per Day"
                   value={`€${businessIntel?.revenue_per_day?.toFixed(2) || '0.00'}`}
-                  subtitle="average"
+                  subtitle={getMetricSubtitle('daily average')}
                   icon={Calendar}
                   variant="orange"
                   delay={0.3}
                 />
-                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
-                  <Info className="h-2 w-2 md:h-3 md:w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -193,15 +193,15 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                 className="relative"
               >
                 <MetricCard
-                  title="Per Booking"
+                  title="Average Value"
                   value={`€${businessIntel?.avg_booking_value?.toFixed(2) || '0.00'}`}
-                  subtitle="average"
+                  subtitle={getMetricSubtitle('per appointment')}
                   icon={PiggyBank}
                   variant="orange"
                   delay={0.4}
                 />
-                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
-                  <Info className="h-2 w-2 md:h-3 md:w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>

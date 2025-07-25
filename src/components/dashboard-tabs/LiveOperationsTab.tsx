@@ -182,8 +182,8 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
           )}
         </div>
 
-        {/* Real-time Metrics Cards - Green Theme - Extreme mobile compression */}
-        <div className="grid grid-cols-4 md:grid-cols-4 gap-1 md:gap-6">
+        {/* Real-time Metrics Cards - Green Theme - Mobile optimized */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div 
@@ -195,13 +195,13 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 <MetricCard
                   title="Today"
                   value={String(liveOps?.today_bookings || 0)}
-                  subtitle="appointments"
+                  subtitle="confirmed appointments"
                   icon={Calendar}
                   variant="green"
                   delay={0.1}
                 />
-                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
-                  <Info className="h-2 w-2 md:h-3 md:w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -225,15 +225,15 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 className="relative"
               >
                 <MetricCard
-                  title="WhatsApp"
+                  title="WhatsApp Active"
                   value={String(liveOps?.active_conversations_today || 0)}
-                  subtitle="conversations"
+                  subtitle="conversations today"
                   icon={MessageCircle}
                   variant="green"
                   delay={0.2}
                 />
-                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
-                  <Info className="h-2 w-2 md:h-3 md:w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -257,15 +257,15 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 className="relative"
               >
                 <MetricCard
-                  title="Active"
+                  title="Active Appointments"
                   value={String(liveOps?.active_appointments || 0)}
-                  subtitle="ongoing"
+                  subtitle="currently ongoing"
                   icon={Users}
                   variant="green"
                   delay={0.3}
                 />
-                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
-                  <Info className="h-2 w-2 md:h-3 md:w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -292,13 +292,13 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 <MetricCard
                   title="Next"
                   value={liveOps?.next_appointment_formatted || "None"}
-                  subtitle={liveOps?.next_appointment_formatted ? "upcoming" : "today"}
+                  subtitle={liveOps?.next_appointment_formatted ? "until next appointment" : "scheduled today"}
                   icon={Clock}
                   variant="green"
                   delay={0.4}
                 />
-                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
-                  <ArrowRight className="h-2 w-2 md:h-3 md:w-3 text-green-400/70 group-hover:text-green-300 transition-colors group-hover:translate-x-0.5 transform duration-200" />
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <ArrowRight className="h-3 w-3 text-green-400/70 group-hover:text-green-300 transition-colors group-hover:translate-x-0.5 transform duration-200" />
                 </div>
                 <div className="absolute inset-0 rounded-2xl border border-green-500/20 group-hover:border-green-500/40 transition-colors"></div>
               </motion.div>

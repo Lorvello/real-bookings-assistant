@@ -74,38 +74,37 @@ export function SubscriptionOverview({ className = "" }: SubscriptionOverviewPro
 
   return (
     <Card className={className}>
-      <CardContent className="pt-2 md:pt-6 pb-2 md:pb-6">
+      <CardContent className="pt-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 md:gap-3 flex-1 min-w-0">
-            <Crown className="h-3 w-3 md:h-5 md:w-5 text-primary flex-shrink-0" />
-            <div className="min-w-0 flex-1">
-              <div className="text-xxs md:text-sm font-medium">Subscription Usage</div>
-              <div className="text-xxxs md:text-xs text-muted-foreground truncate">
+          <div className="flex items-center gap-3">
+            <Crown className="h-5 w-5 text-primary" />
+            <div>
+              <div className="text-sm font-medium">Subscription Usage</div>
+              <div className="text-xs text-muted-foreground">
                 {getSummaryText()}
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2">
             {hasLimitReached() && (
-              <Badge variant="destructive" className="text-xxxs md:text-xs px-1 md:px-2 py-0 md:py-1">
-                Limit
+              <Badge variant="destructive" className="text-xs">
+                Limit reached
               </Badge>
             )}
             {getLimitWarningCount() > 0 && !hasLimitReached() && (
-              <Badge variant="secondary" className="text-xxxs md:text-xs px-1 md:px-2 py-0 md:py-1">
-                {getLimitWarningCount()}
+              <Badge variant="secondary" className="text-xs">
+                {getLimitWarningCount()} warning{getLimitWarningCount() > 1 ? 's' : ''}
               </Badge>
             )}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowFullDetails(true)}
-              className="flex items-center gap-0.5 md:gap-1 text-xxxs md:text-xs h-6 md:h-8 px-1.5 md:px-3 min-w-[44px]"
+              className="flex items-center gap-1 text-xs"
             >
-              <span className="hidden md:inline">Details</span>
-              <span className="md:hidden">Det</span>
-              <ChevronDown className="h-2.5 w-2.5 md:h-3 md:w-3" />
+              Details
+              <ChevronDown className="h-3 w-3" />
             </Button>
           </div>
         </div>

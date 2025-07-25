@@ -93,17 +93,6 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-  
-  /* Custom utilities for extremely small text on mobile */
-  .text-xxs {
-    font-size: 0.65rem;
-    line-height: 0.75rem;
-  }
-  
-  .text-xxxs {
-    font-size: 0.55rem;
-    line-height: 0.65rem;
-  }
 }
 
 /* WhatsApp Chat Specific Styles */
