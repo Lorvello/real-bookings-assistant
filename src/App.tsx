@@ -24,6 +24,7 @@ import TestAIAgent from '@/pages/TestAIAgent';
 import WhatsAppBookingAssistantPage from '@/pages/WhatsAppBookingAssistant';
 import Profile from '@/pages/Profile';
 import TeamInvite from '@/pages/TeamInvite';
+import TermsOfService from '@/pages/TermsOfService';
 
 // Pages
 import Index from '@/pages/Index';
@@ -75,6 +76,7 @@ function App() {
                 <Route path="/how-it-works" element={<SeeHowItWorks />} />
                 <Route path="/why-us" element={<WhyUs />} />
                 <Route path="/faq" element={<FAQ />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <Toaster />
