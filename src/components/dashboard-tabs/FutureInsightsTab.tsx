@@ -46,9 +46,9 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
 
   return (
     <TooltipProvider>
-      <div className="space-y-12">
-        {/* Future Insights Metrics - Purple Theme */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="space-y-4 md:space-y-12">
+        {/* Future Insights Metrics - Purple Theme - Mobile optimized */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div 
@@ -143,8 +143,8 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
           </Tooltip>
         </div>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        {/* Charts Section - Mobile optimized */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-8">
           {/* Demand Forecast Chart */}
           <Tooltip>
             <TooltipTrigger asChild>

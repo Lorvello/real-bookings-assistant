@@ -74,44 +74,44 @@ export function MetricCard({
       transition={{ duration: 0.6, delay }}
       className="relative group"
     >
-      {/* Background glow effect */}
-      <div className={`absolute -inset-2 bg-gradient-to-br ${colors.gradientFrom} ${colors.gradientTo} blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300`}></div>
+      {/* Background glow effect - Mobile optimized */}
+      <div className={`absolute -inset-1 md:-inset-2 bg-gradient-to-br ${colors.gradientFrom} ${colors.gradientTo} blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300`}></div>
       
-      {/* Card container with standardized height */}
-      <div className={`relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border ${colors.borderColor} rounded-2xl shadow-xl ${colors.glowColor} hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-44 flex flex-col justify-between p-6`}>
+      {/* Card container with mobile-first responsive height */}
+      <div className={`relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border ${colors.borderColor} rounded-xl md:rounded-2xl shadow-xl ${colors.glowColor} hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-28 md:h-44 flex flex-col justify-between p-3 md:p-6`}>
         
-        {/* Header with title and icon */}
-        <div className="flex items-center justify-between mb-4">
+        {/* Header with title and icon - Mobile optimized */}
+        <div className="flex items-center justify-between mb-2 md:mb-4">
           <div className="flex-1">
-            <div className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-1">{title}</div>
+            <div className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider mb-1">{title}</div>
           </div>
-          <div className={`w-12 h-12 bg-gradient-to-br ${colors.iconBgFrom} ${colors.iconBgTo} rounded-xl flex items-center justify-center shadow-lg`}>
-            <Icon className={`h-6 w-6 ${colors.iconColor}`} />
+          <div className={`w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br ${colors.iconBgFrom} ${colors.iconBgTo} rounded-lg md:rounded-xl flex items-center justify-center shadow-lg min-w-[32px] min-h-[32px] md:min-w-[48px] md:min-h-[48px]`}>
+            <Icon className={`h-4 w-4 md:h-6 md:w-6 ${colors.iconColor}`} />
           </div>
         </div>
 
-        {/* Main value - large and prominent */}
+        {/* Main value - Mobile optimized text scaling */}
         <div className="flex-1 flex items-center">
-          <p className={`text-4xl font-black text-slate-100 leading-none tabular-nums`}>
+          <p className={`text-2xl md:text-4xl font-black text-slate-100 leading-none tabular-nums`}>
             {value}
           </p>
         </div>
 
-        {/* Footer with subtitle or change indicator */}
+        {/* Footer with subtitle or change indicator - Mobile optimized */}
         <div className="flex items-center justify-between mt-auto">
           {change ? (
             <div className="flex items-center gap-2">
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-lg min-h-[44px] md:min-h-auto ${
                 change.isPositive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
               }`}>
                 <change.icon className="h-3 w-3" />
-                <span className="text-xs font-bold">
+                <span className="text-xs md:text-xs font-bold">
                   {change.isPositive ? '+' : ''}{Math.abs(change.value).toFixed(1)}%
                 </span>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-400 font-medium">{subtitle}</p>
+            <p className="text-xs md:text-sm text-slate-400 font-medium truncate">{subtitle}</p>
           )}
         </div>
       </div>

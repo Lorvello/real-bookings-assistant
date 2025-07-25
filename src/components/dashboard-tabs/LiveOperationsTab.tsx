@@ -158,9 +158,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
 
   return (
     <TooltipProvider>
-      <div className="space-y-12">
-        {/* Real-time Status Indicator */}
-        <div className="flex items-center justify-between mb-8">
+      <div className="space-y-4 md:space-y-12">
+        {/* Real-time Status Indicator - Mobile optimized */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-8 gap-2 sm:gap-4">
           <div className="flex items-center gap-4">
             <div className="relative">
               <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
@@ -182,8 +182,8 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
           )}
         </div>
 
-        {/* Real-time Metrics Cards - Green Theme */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Real-time Metrics Cards - Green Theme - Mobile optimized */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div 
@@ -315,8 +315,8 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
           </Tooltip>
         </div>
 
-        {/* Real-time System Status & Today's Planning */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        {/* Real-time System Status & Today's Planning - Mobile optimized */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-8">
           {/* Enhanced System Status */}
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-emerald-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>

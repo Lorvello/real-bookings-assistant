@@ -83,9 +83,9 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
 
   return (
     <TooltipProvider>
-      <div className="space-y-12">
-        {/* Financial & Business Metrics - Orange Theme */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="space-y-4 md:space-y-12">
+        {/* Financial & Business Metrics - Orange Theme - Mobile optimized */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div

@@ -92,10 +92,10 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
           <WhatsAppContactOverview calendarId={calendarId} />
         </TabsContent>
         
-        <TabsContent value="conversations" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
-            {/* Conversations list */}
-            <div className="lg:col-span-1">
+        <TabsContent value="conversations" className="mt-4 md:mt-6">
+          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-3 md:gap-6 h-[calc(100vh-200px)]">
+            {/* Conversations list - Stack on mobile */}
+            <div className="lg:col-span-1 h-60 lg:h-auto">
               <ConversationsList 
                 calendarId={calendarId} 
                 selectedConversationId={selectedConversationId}
@@ -103,13 +103,13 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
               />
             </div>
             
-            {/* Active conversation view */}
-            <div className="lg:col-span-1">
+            {/* Active conversation view - Stack on mobile */}
+            <div className="lg:col-span-1 h-60 lg:h-auto">
               <ConversationView conversationId={selectedConversationId} />
             </div>
             
-            {/* Contact info & booking history */}
-            <div className="lg:col-span-1">
+            {/* Contact info & booking history - Stack on mobile */}
+            <div className="lg:col-span-1 h-60 lg:h-auto">
               <ContactSidebar conversationId={selectedConversationId} />
             </div>
           </div>
