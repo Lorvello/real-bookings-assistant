@@ -56,37 +56,39 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
       )}
       
       <Tabs defaultValue="overview" className="h-full">
-        <TabsList className={`grid w-full ${isDeveloper ? 'grid-cols-5' : 'grid-cols-3'}`}>
-          <TabsTrigger value="overview">
-            Contact Overview
-          </TabsTrigger>
-          <TabsTrigger value="conversations">
-            Live Conversations
-          </TabsTrigger>
-          {isDeveloper && (
-            <TabsTrigger value="webhook-flow">
-              <div className="flex items-center gap-2">
-                Webhook Flow
-                <Badge variant="default" className="bg-green-500">
-                  GLOBAL
-                </Badge>
-              </div>
+        <div className="overflow-x-auto">
+          <TabsList className={`flex md:grid w-max md:w-full ${isDeveloper ? 'md:grid-cols-5' : 'md:grid-cols-3'} bg-muted p-1`}>
+            <TabsTrigger value="overview" className="whitespace-nowrap">
+              Contact Overview
             </TabsTrigger>
-          )}
-          {isDeveloper && (
-            <TabsTrigger value="health">
-              <div className="flex items-center gap-2">
-                System Health
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  Monitoring
-                </Badge>
-              </div>
+            <TabsTrigger value="conversations" className="whitespace-nowrap">
+              Live Conversations
             </TabsTrigger>
-          )}
-          <TabsTrigger value="management">
-            Conversation Management
-          </TabsTrigger>
-        </TabsList>
+            {isDeveloper && (
+              <TabsTrigger value="webhook-flow" className="whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  Webhook Flow
+                  <Badge variant="default" className="bg-green-500">
+                    GLOBAL
+                  </Badge>
+                </div>
+              </TabsTrigger>
+            )}
+            {isDeveloper && (
+              <TabsTrigger value="health" className="whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  System Health
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    Monitoring
+                  </Badge>
+                </div>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="management" className="whitespace-nowrap">
+              Conversation Management
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="overview" className="mt-6">
           <WhatsAppContactOverview calendarId={calendarId} />
