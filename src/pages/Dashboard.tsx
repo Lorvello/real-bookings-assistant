@@ -76,7 +76,7 @@ const Dashboard = () => {
   if (!userStatus.isSetupIncomplete && calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-full p-2 md:p-8">
+        <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
           {/* Developer Status Switcher */}
           <div className="mb-4">
             <UserStatusSwitcher />
@@ -95,10 +95,10 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-2 md:p-8">
+      <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
         {/* Developer Tools Section */}
-        <div className="mb-4 space-y-4">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className="mb-4 space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
             <UserStatusSwitcher />
             <SubscriptionTierSwitcher />
           </div>
@@ -107,7 +107,7 @@ const Dashboard = () => {
 
         {/* Show Onboarding Wizard for Setup Incomplete Users */}
         {userStatus.isSetupIncomplete ? (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <SimplePageHeader title="Welcome to your Dashboard" />
             <OnboardingWizard />
           </div>
@@ -116,8 +116,8 @@ const Dashboard = () => {
             <SimplePageHeader title="Dashboard" />
             
             {/* Calendar Switcher and Date Filter */}
-            <div className="mb-6">
-              <div className="space-y-3">
+            <div className="mb-4 sm:mb-6">
+              <div className="space-y-2 sm:space-y-3">
                 <CalendarSwitcher />
                 {showDateFilter && (
                   <DateRangeFilter 

@@ -38,9 +38,10 @@ const navigation: NavItem[] = [
 interface AccessControlledNavigationProps {
   isSidebarOpen: boolean;
   onNavigate: (href: string) => void;
+  onMobileNavigate?: () => void;
 }
 
-export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: AccessControlledNavigationProps) {
+export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobileNavigate }: AccessControlledNavigationProps) {
   const location = useLocation();
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
@@ -129,18 +130,21 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
     // WhatsApp tab is always accessible - no restrictions
     if (item.href === '/conversations') {
       onNavigate(item.href);
+      onMobileNavigate?.();
       return;
     }
     
     // Booking Assistant tab is always clickable - let the page handle upgrade display
     if (item.href === '/whatsapp-booking-assistant') {
       onNavigate(item.href);
+      onMobileNavigate?.();
       return;
     }
     
     // Test AI Agent tab is always clickable - no restrictions
     if (item.href === '/test-ai-agent') {
       onNavigate(item.href);
+      onMobileNavigate?.();
       return;
     }
     
@@ -148,6 +152,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
     if (userStatus.userType === 'setup_incomplete') {
       // Allow access to all navigation items
       onNavigate(item.href);
+      onMobileNavigate?.();
       return;
     }
     
@@ -166,10 +171,12 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
         variant: "destructive",
       });
       onNavigate('/settings');
+      onMobileNavigate?.();
       return;
     }
 
     onNavigate(item.href);
+    onMobileNavigate?.();
   };
 
   return (
@@ -180,6 +187,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate }: Access
           onClick={() => handleItemClick(item)}
           className={`
             group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
+            min-h-[44px] touch-manipulation
             ${item.isActive 
               ? 'bg-green-600 text-white shadow-lg' 
               : item.isRestricted

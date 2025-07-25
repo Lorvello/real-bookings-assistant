@@ -43,25 +43,25 @@ const Calendar = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-full p-2 md:p-8">
-          <div className="space-y-4 md:space-y-6">
+        <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
+          <div className="space-y-3 sm:space-y-4 md:space-y-6">
             <SimplePageHeader title="Calendar" />
 
             {/* Create Calendar Section */}
-            <div className="bg-card border border-border shadow-sm rounded-lg p-8">
-              <div className="text-center space-y-6">
-                <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                  <CalendarIcon className="w-8 h-8 text-muted-foreground" />
+            <div className="bg-card border border-border shadow-sm rounded-lg p-4 sm:p-6 md:p-8">
+              <div className="text-center space-y-4 sm:space-y-6">
+                <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center">
+                  <CalendarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2">Create Your First Calendar</h2>
-                  <p className="text-muted-foreground max-w-md mx-auto">
+                  <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Create Your First Calendar</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
                     Get started by creating a calendar to organize your appointments and availability.
                   </p>
                 </div>
                 <Button 
                   onClick={() => setCreateDialogOpen(true)}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
                   size="lg"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -87,17 +87,17 @@ const Calendar = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-2 md:p-8">
-        <div className="space-y-4 md:space-y-6">
+      <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
+        <div className="space-y-3 sm:space-y-4 md:space-y-6">
           <SimplePageHeader title={displayTitle} />
           
           {/* Calendar Switcher */}
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <CalendarSwitcher />
           </div>
 
           {/* Calendar Content */}
-          <div className="bg-card border border-border shadow-sm rounded-lg p-2 md:p-4">
+          <div className="bg-card border border-border shadow-sm rounded-lg p-2 sm:p-3 md:p-4">
             <CalendarView calendarIds={activeCalendarIds} viewingAllCalendars={viewingAllCalendars} />
           </div>
         </div>

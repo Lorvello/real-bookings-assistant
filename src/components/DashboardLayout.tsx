@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { SidebarHeader } from '@/components/dashboard/SidebarHeader';
 import { BackToWebsiteButton } from '@/components/dashboard/BackToWebsiteButton';
 import { NavigationMenu } from '@/components/dashboard/NavigationMenu';
@@ -21,9 +22,17 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
+  const isMobile = useIsMobile();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
+
+  // Close sidebar on mobile when screen size changes
+  useEffect(() => {
+    if (isMobile && isSidebarOpen) {
+      setIsSidebarOpen(false);
+    }
+  }, [isMobile]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -53,16 +62,31 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 w-full">
+    <div className="flex h-screen bg-gray-900 w-full relative">
+      {/* Mobile Overlay */}
+      {isMobile && isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div 
-        className={`${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative`}
+        className={`
+          ${isMobile 
+            ? `fixed left-0 top-0 h-full z-50 transform transition-transform duration-300 ease-in-out
+               ${isSidebarOpen ? 'translate-x-0 w-[85%] max-w-sm' : '-translate-x-full w-0'}` 
+            : `${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative`
+          }
+        `}
         style={{ backgroundColor: '#0F172A' }}
       >
         <div className="flex h-full flex-col">
           <SidebarHeader 
             isSidebarOpen={isSidebarOpen} 
-            onToggleSidebar={toggleSidebar} 
+            onToggleSidebar={toggleSidebar}
+            isMobile={isMobile}
           />
 
           <BackToWebsiteButton 
@@ -86,7 +110,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Access Controlled Navigation - Adapts to user status */}
           <AccessControlledNavigation 
             isSidebarOpen={isSidebarOpen} 
-            onNavigate={handleNavigation} 
+            onNavigate={handleNavigation}
+            onMobileNavigate={() => isMobile && setIsSidebarOpen(false)}
           />
 
           <CalendarSwitcherSection isSidebarOpen={isSidebarOpen} />
@@ -98,8 +123,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </div>
 
+      {/* Mobile Header - Only visible when sidebar is closed on mobile */}
+      {isMobile && !isSidebarOpen && (
+        <div className="fixed top-0 left-0 right-0 h-16 bg-slate-900/95 backdrop-blur-md border-b border-gray-700 z-30 flex items-center px-4">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-700 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="ml-3 text-lg font-semibold text-white">Dashboard</h1>
+        </div>
+      )}
+
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className={`flex-1 overflow-auto ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`}>
         <main className="h-full">
           {children}
         </main>

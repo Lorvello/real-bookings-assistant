@@ -15,9 +15,11 @@ export default function WhatsAppBookingAssistantPage() {
   if (!selectedCalendar) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <p className="text-muted-foreground">Geen kalender geselecteerd</p>
+        <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-muted-foreground">Geen kalender geselecteerd</p>
+            </div>
           </div>
         </div>
       </DashboardLayout>
@@ -28,7 +30,7 @@ export default function WhatsAppBookingAssistantPage() {
   if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-full p-2 md:p-8">
+        <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
           <WhatsAppNotAvailable />
         </div>
       </DashboardLayout>
@@ -37,8 +39,8 @@ export default function WhatsAppBookingAssistantPage() {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-2 md:p-8">
-        <div className="space-y-3 md:space-y-6">
+      <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
+        <div className="space-y-3 sm:space-y-4 md:space-y-6">
           <SimplePageHeader title="WhatsApp Booking Assistant" />
           <WhatsAppBookingAssistant calendarId={selectedCalendar.id} />
         </div>
