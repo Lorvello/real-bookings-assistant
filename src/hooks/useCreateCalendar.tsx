@@ -102,28 +102,55 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
         console.error('Error adding owner as calendar member:', error);
       }
 
-      // Link selected service types to the calendar via junction table
+      // Link selected service types to the calendar
       if (data.serviceTypes && data.serviceTypes.length > 0) {
         try {
-          const serviceTypeLinks = data.serviceTypes.map(serviceTypeId => ({
-            calendar_id: calendar.id,
-            service_type_id: serviceTypeId
-          }));
+          // For each service type, either update global ones to be calendar-specific
+          // or create junction table links for existing calendar-specific ones
+          for (const serviceTypeId of data.serviceTypes) {
+            // Check if this is a global service type (calendar_id is null)
+            const { data: serviceTypeData, error: fetchError } = await supabase
+              .from('service_types')
+              .select('calendar_id')
+              .eq('id', serviceTypeId)
+              .single();
 
-          const { error: serviceTypeError } = await supabase
-            .from('calendar_service_types')
-            .insert(serviceTypeLinks);
+            if (fetchError) {
+              console.error('Error fetching service type:', fetchError);
+              continue;
+            }
 
-          if (serviceTypeError) {
-            console.error('Error linking service types to calendar:', serviceTypeError);
-            toast({
-              title: "Partial Success",
-              description: "Calendar created but some service types couldn't be linked",
-              variant: "destructive",
-            });
+            if (serviceTypeData.calendar_id === null) {
+              // This is a global service type, update it to be calendar-specific
+              const { error: updateError } = await supabase
+                .from('service_types')
+                .update({ calendar_id: calendar.id })
+                .eq('id', serviceTypeId);
+
+              if (updateError) {
+                console.error('Error updating global service type:', updateError);
+              }
+            } else {
+              // This is an existing calendar-specific service type, link via junction table
+              const { error: linkError } = await supabase
+                .from('calendar_service_types')
+                .insert({
+                  calendar_id: calendar.id,
+                  service_type_id: serviceTypeId
+                });
+
+              if (linkError) {
+                console.error('Error linking service type:', linkError);
+              }
+            }
           }
         } catch (error) {
-          console.error('Error linking service types:', error);
+          console.error('Error processing service types:', error);
+          toast({
+            title: "Partial Success",
+            description: "Calendar created but some service types couldn't be linked",
+            variant: "destructive",
+          });
         }
       }
 

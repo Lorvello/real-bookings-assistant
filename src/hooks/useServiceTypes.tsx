@@ -52,7 +52,7 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ));
       } else {
-        // Fetch all service types for the current user
+        // Fetch all service types for the current user (including global ones)
         const { data, error } = await supabase
           .from('service_types')
           .select('*')

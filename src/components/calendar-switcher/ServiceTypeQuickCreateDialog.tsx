@@ -47,12 +47,8 @@ export function ServiceTypeQuickCreateDialog({
     
     if (!formData.name.trim()) return;
     
-    const targetCalendarId = calendarId || selectedCalendar?.id;
-    
-    if (!targetCalendarId) {
-      console.error("No calendar selected");
-      return;
-    }
+    // Allow creation without a calendar (global service type)
+    const targetCalendarId = calendarId || selectedCalendar?.id || null;
     
     if (!user) {
       console.error("User not authenticated");
@@ -68,7 +64,7 @@ export function ServiceTypeQuickCreateDialog({
         price: formData.price ? parseFloat(formData.price) : undefined,
         color: formData.color,
         description: formData.description,
-        calendar_id: null, // Global service type, not tied to specific calendar
+        calendar_id: targetCalendarId, // Use provided calendarId or create global service type
         is_active: true,
         max_attendees: 1,
         preparation_time: 0,
