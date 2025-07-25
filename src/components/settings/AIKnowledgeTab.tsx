@@ -198,7 +198,10 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
             
             {/* Address Section within Business Information */}
             <div className="pt-6 border-t border-gray-700">
-              <h3 className="text-lg font-medium text-white mb-4">Address Details</h3>
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-lg font-medium text-white">Address Details</h3>
+                <span className="text-xs text-gray-500">optional</span>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
