@@ -106,8 +106,8 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
   return (
     <TooltipProvider>
       <div className="space-y-4 md:space-y-12">
-        {/* Operational Performance Metrics - Blue Theme - Mobile optimized */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 ${accessControl.canAccessCustomerSatisfaction ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-3 md:gap-6`}>
+        {/* Operational Performance Metrics - Blue Theme - Extreme mobile compression */}
+        <div className={`grid grid-cols-${accessControl.canAccessCustomerSatisfaction ? '4' : '3'} md:grid-cols-${accessControl.canAccessCustomerSatisfaction ? '4' : '3'} gap-1 md:gap-6`}>
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div
@@ -117,15 +117,15 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="No-Show Rate"
+                  title="No-Show"
                   value={`${performance?.no_show_rate?.toFixed(1) || '0.0'}%`}
-                  subtitle={getMetricSubtitle('operational efficiency')}
+                  subtitle="rate"
                   icon={AlertTriangle}
                   variant="blue"
                   delay={0.1}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
+                  <Info className="h-2 w-2 md:h-3 md:w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -148,15 +148,15 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Cancellation Rate"
+                  title="Cancel"
                   value={`${performance?.cancellation_rate?.toFixed(1) || '0.0'}%`}
-                  subtitle={getMetricSubtitle('booking reliability')}
+                  subtitle="rate"
                   icon={XCircle}
                   variant="blue"
                   delay={0.2}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
+                  <Info className="h-2 w-2 md:h-3 md:w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -181,15 +181,15 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   className="relative"
                 >
                   <MetricCard
-                    title="Customer Satisfaction"
+                    title="Satisfaction"
                     value={`${performance?.customer_satisfaction_score?.toFixed(1) || '0.0'}/5`}
-                    subtitle={getMetricSubtitle('service quality')}
+                    subtitle="rating"
                     icon={Star}
                     variant="blue"
                     delay={0.3}
                   />
-                  <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                    <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                  <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
+                    <Info className="h-2 w-2 md:h-3 md:w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                   </div>
                 </motion.div>
               </TooltipTrigger>
@@ -213,15 +213,15 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Booking Completion"
+                  title="Complete"
                   value={`${performance?.booking_completion_rate?.toFixed(1) || '0.0'}%`}
-                  subtitle={getMetricSubtitle('success rate')}
+                  subtitle="rate"
                   icon={CheckCircle}
                   variant="blue"
                   delay={accessControl.canAccessCustomerSatisfaction ? 0.4 : 0.3}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
+                  <Info className="h-2 w-2 md:h-3 md:w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -236,8 +236,8 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
           </Tooltip>
         </div>
 
-        {/* Customer Metrics - Second Row - Mobile optimized */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
+        {/* Customer Metrics - Second Row - Extreme mobile compression */}
+        <div className="grid grid-cols-3 md:grid-cols-3 gap-1 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div
@@ -247,15 +247,15 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Unique Customers"
+                  title="Unique"
                   value={String(performance?.unique_customers || 0)}
-                  subtitle={getMetricSubtitle('customers')}
+                  subtitle="customers"
                   icon={Users}
                   variant="blue"
                   delay={0.5}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
+                  <Info className="h-2 w-2 md:h-3 md:w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -278,15 +278,15 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Returning Customers"
+                  title="Returning"
                   value={String(performance?.returning_customers || 0)}
-                  subtitle={getMetricSubtitle('returning')}
+                  subtitle="customers"
                   icon={UserCheck}
                   variant="blue"
                   delay={0.6}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
+                  <Info className="h-2 w-2 md:h-3 md:w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
@@ -309,15 +309,15 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Total Customers"
+                  title="Total"
                   value={String(performance?.total_customers || 0)}
-                  subtitle={getMetricSubtitle('customers')}
+                  subtitle="customers"
                   icon={User}
                   variant="blue"
                   delay={0.7}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                <div className="absolute top-1 right-1 p-0.5 rounded-full bg-slate-800/50 backdrop-blur-sm md:top-3 md:right-3 md:p-1">
+                  <Info className="h-2 w-2 md:h-3 md:w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
