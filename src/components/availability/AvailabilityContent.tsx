@@ -28,6 +28,10 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const [timezoneValue, setTimezoneValue] = React.useState<string>('Europe/Amsterdam');
   const [isTimezoneUpdating, setIsTimezoneUpdating] = React.useState(false);
   
+  // OPTIMIZATION: Cache configuration existence for instant navigation
+  const [configurationExists, setConfigurationExists] = React.useState<boolean | null>(null);
+  const configurationCheckRef = React.useRef<boolean>(false);
+  
   const { calendars, selectedCalendar, loading: calendarsLoading, refreshCalendars } = useCalendarContext();
   const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability, forceRefresh } = useDailyAvailabilityManager(() => {});
   const { toast } = useToast();
@@ -39,6 +43,34 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     }
   }, [selectedCalendar?.timezone]);
 
+  // OPTIMIZATION: Pre-load configuration detection on mount
+  React.useEffect(() => {
+    const checkConfigurationExists = async () => {
+      if (!selectedCalendar?.id || configurationCheckRef.current) return;
+      
+      configurationCheckRef.current = true;
+      try {
+        const { data: rules } = await supabase
+          .from('availability_rules')
+          .select('id')
+          .eq('schedule_id', defaultSchedule?.id)
+          .eq('is_available', true)
+          .limit(1);
+        
+        const hasConfig = rules && rules.length > 0;
+        setConfigurationExists(hasConfig);
+        console.log('📊 Configuration check complete:', hasConfig ? 'CONFIGURED' : 'NEEDS_CONFIG');
+      } catch (error) {
+        console.error('Error checking configuration:', error);
+        setConfigurationExists(false);
+      }
+    };
+
+    if (selectedCalendar?.id && defaultSchedule?.id) {
+      checkConfigurationExists();
+    }
+  }, [selectedCalendar?.id, defaultSchedule?.id]);
+
   // FIXED: Prevent circular dependencies
   React.useEffect(() => {
     if (!calendarsLoading && calendars.length > 0) {
@@ -46,7 +78,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     }
   }, [calendarsLoading, calendars?.length]); // FIXED: Remove refreshAvailability dependency
 
-  // FIXED: Prevent infinite loops by using stable dependencies only
+  // OPTIMIZED: Smart setup state logic with cached configuration
   React.useEffect(() => {
     if (calendarsLoading) {
       setSetupState('checking');
@@ -68,12 +100,18 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
       return;
     }
 
-    // Check if actually configured with real availability rules
+    // PRIORITY 1: Use cached configuration status for instant navigation
+    if (configurationExists !== null) {
+      setSetupState(configurationExists ? 'configured' : 'needs_config');
+      return;
+    }
+
+    // FALLBACK: Check availability data if cache not available
     const hasValidAvailability = availability && Object.keys(availability).length > 0;
     const hasEnabledDays = Object.values(availability || {}).some(day => day.enabled && day.timeBlocks.length > 0);
     
     setSetupState(hasEnabledDays ? 'configured' : 'needs_config');
-  }, [calendarsLoading, calendars?.length, defaultSchedule?.id, isRefreshing]); // FIXED: Stable dependencies only
+  }, [calendarsLoading, calendars?.length, defaultSchedule?.id, isRefreshing, configurationExists]); // OPTIMIZED: Include cached status
 
   const handleConfigureAvailability = async () => {
     try {
@@ -119,32 +157,31 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   };
 
   const handleGuidedComplete = React.useCallback(async () => {
-    console.log('🎯 Guided availability setup completed - triggering comprehensive refresh');
+    console.log('🎯 Guided availability setup completed - immediate transition to configured state');
     setIsGuidedModalOpen(false);
-    setIsRefreshing(true);
     
-    // Ensure database operations are complete before refreshing UI
-    setTimeout(async () => {
-      try {
-        console.log('🔄 Starting post-setup data refresh...');
-        await forceRefresh();
-        console.log('✅ Force refresh completed after guided setup');
-        
-        toast({
-          title: "Availability Configured",
-          description: "Your weekly schedule has been successfully saved.",
-        });
-      } catch (error) {
-        console.error('❌ Error during force refresh:', error);
-        toast({
-          title: "Refresh Error",
-          description: "Your settings were saved but there was an issue refreshing the display. Please refresh the page.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsRefreshing(false);
-      }
-    }, 750); // Extended delay to ensure database consistency
+    // IMMEDIATE: Update cached configuration status and UI state
+    setConfigurationExists(true);
+    setSetupState('configured');
+    
+    try {
+      console.log('🔄 Starting optimized post-setup refresh...');
+      // OPTIMIZED: Fast refresh without artificial delays
+      await forceRefresh();
+      console.log('✅ Fast refresh completed after guided setup');
+      
+      toast({
+        title: "Availability Configured",
+        description: "Your weekly schedule has been successfully saved.",
+      });
+    } catch (error) {
+      console.error('❌ Error during refresh:', error);
+      toast({
+        title: "Refresh Error", 
+        description: "Your settings were saved but there was an issue refreshing. Please refresh the page.",
+        variant: "destructive",
+      });
+    }
   }, [forceRefresh, toast]);
 
   const handleTimezoneChange = async (newTimezone: string) => {

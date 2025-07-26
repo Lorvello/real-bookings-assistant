@@ -336,40 +336,28 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     }
   };
 
-  // Force complete refresh of all data without resetting to defaults
+  // OPTIMIZED: Fast refresh for immediate UI updates after guided setup
   const forceRefresh = async () => {
     console.log('🔄 Force refreshing availability data...');
-    let retryCount = 0;
-    const maxRetries = 3;
     
-    while (retryCount < maxRetries) {
-      try {
-        // Wait for any pending database operations to complete
-        await new Promise(resolve => setTimeout(resolve, 200 * (retryCount + 1)));
-        
-        // Directly fetch fresh data from database without clearing state
-        await refreshRules();
-        
-        // Wait for data to settle and re-render
-        await new Promise(resolve => setTimeout(resolve, 150));
-        
-        // Call onChange to trigger any dependent updates
-        onChange();
-        
-        console.log('✅ Force refresh completed successfully');
-        return;
-      } catch (error) {
-        retryCount++;
-        console.error(`❌ Force refresh attempt ${retryCount} failed:`, error);
-        
-        if (retryCount < maxRetries) {
-          // Exponential backoff
-          await new Promise(resolve => setTimeout(resolve, 300 * retryCount));
-        } else {
-          console.error('❌ Force refresh failed after all retries');
-          throw error;
-        }
-      }
+    try {
+      // OPTIMIZED: Minimal delay for database operations to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Directly fetch fresh data from database
+      await refreshRules();
+      
+      // OPTIMIZED: Reduced settle time for faster UI response
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      // Trigger dependent updates
+      onChange();
+      
+      console.log('✅ Fast refresh completed successfully');
+      return Promise.resolve();
+    } catch (error) {
+      console.error('❌ Force refresh failed:', error);
+      throw error;
     }
   };
 
