@@ -79,7 +79,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     }
   }, [calendarsLoading, calendars?.length]); // FIXED: Remove refreshAvailability dependency
 
-  // OPTIMIZED: Smart setup state logic with completion lock
+  // FIXED: Prioritize configuration cache over availability checks
   React.useEffect(() => {
     // CRITICAL: Prevent state changes during completion transition
     if (isCompletingSetup) {
@@ -106,17 +106,14 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
       return;
     }
 
-    // PRIORITY 1: Use cached configuration status for instant navigation
+    // PRIORITY 1: Use cached configuration status - NO FALLBACK TO AVAILABILITY
     if (configurationExists !== null) {
       setSetupState(configurationExists ? 'configured' : 'needs_config');
       return;
     }
 
-    // FALLBACK: Check availability data if cache not available
-    const hasValidAvailability = availability && Object.keys(availability).length > 0;
-    const hasEnabledDays = Object.values(availability || {}).some(day => day.enabled && day.timeBlocks.length > 0);
-    
-    setSetupState(hasEnabledDays ? 'configured' : 'needs_config');
+    // ONLY check availability if no cache available
+    setSetupState('needs_config');
   }, [calendarsLoading, calendars?.length, defaultSchedule?.id, isRefreshing, configurationExists, isCompletingSetup]);
 
   const handleConfigureAvailability = async () => {
@@ -163,27 +160,27 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   };
 
   const handleGuidedComplete = React.useCallback(async () => {
-    console.log('🎯 IMMEDIATE guided setup completion');
+    console.log('🎯 DIRECT NAVIGATION - Complete Your Setup clicked');
     
-    // LOCK: Prevent any state changes during completion
-    setIsCompletingSetup(true);
+    // IMMEDIATE: Close modal and set states
     setIsGuidedModalOpen(false);
+    setIsCompletingSetup(true);
     
-    // IMMEDIATE: Set configured state with no delays
+    // FORCE: Direct navigation to configured state
     setConfigurationExists(true);
     setSetupState('configured');
     
-    console.log('✅ State immediately set to configured - UI should show "Your Availability"');
+    console.log('✅ DIRECT NAVIGATION: Forced to "Your Availability" - no delays, no checks');
     
     toast({
-      title: "Availability Configured",
+      title: "Availability Configured", 
       description: "Your weekly schedule has been successfully saved.",
     });
     
-    // UNLOCK: Allow normal state management after brief delay
+    // UNLOCK after immediate transition
     setTimeout(() => {
       setIsCompletingSetup(false);
-    }, 100);
+    }, 50);
   }, [toast]);
 
   const handleTimezoneChange = async (newTimezone: string) => {
