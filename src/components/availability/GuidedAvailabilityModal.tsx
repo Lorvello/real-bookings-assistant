@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Clock, ArrowLeft, ArrowRight, Calendar, Globe } from 'lucide-react';
+import { CheckCircle, Clock, ArrowLeft, ArrowRight, Calendar, Globe, Loader2 } from 'lucide-react';
 import { ProfessionalTimePicker } from './ProfessionalTimePicker';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
@@ -47,6 +47,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   const [currentStep, setCurrentStep] = useState(startDay ?? 0);
   const [timezone, setTimezone] = useState(selectedCalendar?.timezone || 'Europe/Amsterdam');
   const [selectedTimeBlock, setSelectedTimeBlock] = useState<{dayKey: string; blockId: string; field: 'startTime' | 'endTime'} | null>(null);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [localAvailability, setLocalAvailability] = useState<Record<string, DayAvailability>>(() => {
     const initial: Record<string, DayAvailability> = {};
     DAYS.forEach(day => {
@@ -172,6 +173,8 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   };
 
   const handleComplete = async () => {
+    setIsCompleting(true);
+    
     try {
       console.log('🚀 Starting availability configuration save...');
       
@@ -186,8 +189,8 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         schedule = await createDefaultSchedule();
         console.log('✅ Default schedule verified/created:', schedule?.id);
         
-        // Wait a moment to ensure the schedule is fully created
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Reduced delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 100));
       } catch (scheduleError) {
         console.error('❌ Failed to create/verify default schedule:', scheduleError);
         throw new Error(`Failed to prepare schedule: ${scheduleError.message}`);
@@ -215,41 +218,32 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       
       console.log(`📝 Saving availability for ${validDays.length} days...`);
       
-      // STEP 4: Save availability data with enhanced error handling
-      let saveErrors = [];
-      
-      for (const day of validDays) {
-        const dayData = localAvailability[day.key];
-        
-        try {
+      // STEP 4: Batch save availability data for better performance
+      try {
+        const savePromises = validDays.map(async (day) => {
+          const dayData = localAvailability[day.key];
           console.log(`💾 Saving ${day.key}:`, dayData);
           await syncToDatabase(day.key, dayData, schedule);
           console.log(`✅ Successfully saved ${day.key}`);
-        } catch (error) {
-          console.error(`❌ Failed to save ${day.key}:`, error);
-          saveErrors.push(`${day.label}: ${error.message}`);
-        }
+          return day.key;
+        });
+        
+        await Promise.all(savePromises);
+        console.log('✅ All availability data saved successfully');
+      } catch (error) {
+        console.error('❌ Failed to save availability data:', error);
+        throw new Error(`Failed to save availability: ${error.message}`);
       }
       
-      if (saveErrors.length > 0) {
-        throw new Error(`Failed to save: ${saveErrors.join(', ')}`);
-      }
-      
-      console.log('✅ All availability data saved successfully');
-      
-      // STEP 5: Save timezone to database
-      try {
-        console.log('🌍 Saving timezone...');
-        await saveTimezone();
-        console.log('✅ Timezone saved successfully');
-      } catch (timezoneError) {
+      // STEP 5: Save timezone to database (parallel with verification)
+      const timezonePromise = saveTimezone().catch(timezoneError => {
         console.error('❌ Timezone save failed:', timezoneError);
         // Don't fail the entire process for timezone errors
-      }
+      });
       
-      // STEP 6: Verify data was actually saved by querying database
-      console.log('🔍 Verifying data was saved to database...');
-      try {
+      // STEP 6: Verify data was actually saved by querying database (parallel)
+      const verificationPromise = (async () => {
+        console.log('🔍 Verifying data was saved to database...');
         const { data: verifyRules, error: verifyError } = await supabase
           .from('availability_rules')
           .select('*')
@@ -262,10 +256,10 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         if (!verifyRules || verifyRules.length === 0) {
           throw new Error('Data verification failed: no rules found in database after save');
         }
-      } catch (verifyError) {
-        console.error('❌ Data verification failed:', verifyError);
-        throw new Error(`Save verification failed: ${verifyError.message}`);
-      }
+      })();
+      
+      // Wait for both timezone and verification to complete
+      await Promise.all([timezonePromise, verificationPromise]);
       
       toast({
         title: "Configuration Saved",
@@ -287,6 +281,8 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       });
       
       // Don't call onComplete on error - let user retry
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -508,10 +504,20 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
             {currentStep === DAYS.length && (
               <Button
                 onClick={handleComplete}
-                className="flex items-center space-x-2 bg-primary hover:bg-primary/90"
+                disabled={isCompleting}
+                className="flex items-center space-x-2 bg-primary hover:bg-primary/90 disabled:opacity-50"
               >
-                <CheckCircle className="h-4 w-4" />
-                <span>Complete Setup</span>
+                {isCompleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Saving configuration...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Complete Setup</span>
+                  </>
+                )}
               </Button>
             )}
           </div>
