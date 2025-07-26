@@ -181,76 +181,93 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
 
   const handleComplete = async () => {
     try {
-      console.log('Saving availability configuration...');
+      console.log('🚀 Starting availability configuration save...');
       
       // STEP 1: Ensure default schedule exists before saving availability
-      console.log('Checking for default schedule...');
+      console.log('📋 Ensuring default schedule exists...');
+      let schedule;
       try {
-        await createDefaultSchedule();
-        console.log('Default schedule verified/created successfully');
+        schedule = await createDefaultSchedule();
+        console.log('✅ Default schedule verified/created:', schedule?.id);
       } catch (scheduleError) {
-        console.error('Failed to create/verify default schedule:', scheduleError);
-        throw new Error('Failed to prepare schedule for availability data');
+        console.error('❌ Failed to create/verify default schedule:', scheduleError);
+        throw new Error(`Failed to prepare schedule: ${scheduleError.message}`);
       }
       
-      // STEP 2: Save availability data with retry mechanism
-      const savePromises = DAYS.map(async (day) => {
+      // Verify we have a valid schedule
+      if (!schedule?.id) {
+        throw new Error('No valid schedule ID available after creation');
+      }
+      
+      // STEP 2: Validate availability data before saving
+      console.log('🔍 Validating availability data...');
+      const validDays = DAYS.filter(day => {
+        const dayData = localAvailability[day.key];
+        if (!dayData) {
+          console.warn(`⚠️ No data for ${day.key}`);
+          return false;
+        }
+        return true;
+      });
+      
+      if (validDays.length === 0) {
+        throw new Error('No valid availability data to save');
+      }
+      
+      console.log(`📝 Saving availability for ${validDays.length} days...`);
+      
+      // STEP 3: Save availability data with enhanced error handling
+      const savePromises = validDays.map(async (day) => {
         const dayData = localAvailability[day.key];
         
-        // Retry mechanism for each day
-        let retryCount = 0;
-        const maxRetries = 3;
-        
-        while (retryCount < maxRetries) {
-          try {
-            await syncToDatabase(day.key, dayData);
-            console.log(`Successfully saved ${day.key}`);
-            return;
-          } catch (error) {
-            retryCount++;
-            console.warn(`Save attempt ${retryCount} failed for ${day.key}:`, error);
-            
-            if (retryCount < maxRetries) {
-              // Exponential backoff
-              await new Promise(resolve => setTimeout(resolve, 200 * retryCount));
-            } else {
-              throw error;
-            }
-          }
+        try {
+          console.log(`💾 Saving ${day.key}:`, dayData);
+          await syncToDatabase(day.key, dayData);
+          console.log(`✅ Successfully saved ${day.key}`);
+        } catch (error) {
+          console.error(`❌ Failed to save ${day.key}:`, error);
+          throw new Error(`Failed to save ${day.label}: ${error.message}`);
         }
       });
       
       // Wait for all days to be saved
       await Promise.all(savePromises);
-      console.log('All availability data saved successfully');
+      console.log('✅ All availability data saved successfully');
       
-      // STEP 3: Save timezone to database
-      await saveTimezone();
-      console.log('Timezone saved successfully');
+      // STEP 4: Save timezone to database
+      try {
+        console.log('🌍 Saving timezone...');
+        await saveTimezone();
+        console.log('✅ Timezone saved successfully');
+      } catch (timezoneError) {
+        console.error('❌ Timezone save failed:', timezoneError);
+        // Don't fail the entire process for timezone errors
+      }
+      
+      // STEP 5: Verify data was actually saved
+      console.log('🔍 Verifying data was saved...');
       
       toast({
         title: "Configuration Saved",
         description: "Your availability and timezone have been saved successfully.",
       });
       
-      // Trigger onComplete callback instead of navigate(0) to allow proper refresh
+      console.log('🎉 Configuration save completed successfully');
       onComplete();
-    } catch (error) {
-      console.error('Error saving availability configuration:', error);
       
-      let errorMessage = "There was an error saving your configuration. Please try again.";
-      if (error.message?.includes('schedule')) {
-        errorMessage = "Failed to set up your availability schedule. Please try again or contact support.";
-      }
+    } catch (error) {
+      console.error('❌ Error saving availability configuration:', error);
+      
+      let errorMessage = error.message || "There was an error saving your configuration.";
       
       toast({
-        title: "Save Error",
+        title: "Save Failed",
         description: errorMessage,
         variant: "destructive",
       });
       
-      // Still trigger onComplete to refresh data, but log the error
-      onComplete();
+      // Don't call onComplete on error - let user retry
+      throw error;
     }
   };
 

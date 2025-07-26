@@ -157,23 +157,25 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     }
   };
 
-  // SIMPLIFIED: Straightforward database sync without complex mutex logic
+  // IMPROVED: Direct database sync with proper error handling and validation
   const syncToDatabase = async (dayKey: string, dayData: DayAvailability) => {
     if (!defaultSchedule?.id) {
-      console.error('Cannot sync to database: no default schedule');
-      return;
+      console.error('❌ Cannot sync to database: no default schedule');
+      throw new Error('No default schedule available for saving availability');
     }
     
     const day = DAYS.find(d => d.key === dayKey);
     if (!day) {
-      console.error(`Cannot sync to database: day not found for key ${dayKey}`);
-      return;
+      console.error(`❌ Cannot sync to database: day not found for key ${dayKey}`);
+      throw new Error(`Invalid day key: ${dayKey}`);
     }
 
-    console.log(`Syncing ${dayKey} to database:`, dayData);
+    console.log(`🔄 Syncing ${dayKey} to database:`, dayData);
+    console.log(`📝 Using schedule_id: ${defaultSchedule.id}, day_of_week: ${day.dayOfWeek}`);
 
     try {
-      // Delete existing rules for this day
+      // STEP 1: Delete existing rules for this day
+      console.log(`🗑️ Deleting existing rules for ${dayKey} (day ${day.dayOfWeek})`);
       const { error: deleteError } = await supabase
         .from('availability_rules')
         .delete()
@@ -181,47 +183,67 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
         .eq('day_of_week', day.dayOfWeek);
 
       if (deleteError) {
-        console.error('Error deleting old rules:', deleteError);
-        throw deleteError;
+        console.error('❌ Error deleting old rules:', deleteError);
+        throw new Error(`Failed to delete existing rules for ${dayKey}: ${deleteError.message}`);
       }
 
-      // Create new rules based on availability
+      // STEP 2: Create new rules based on availability
+      const rulesToCreate = [];
+      
       if (dayData.enabled && dayData.timeBlocks.length > 0) {
-        console.log(`Creating ${dayData.timeBlocks.length} time blocks for ${dayKey}`);
+        console.log(`✅ Creating ${dayData.timeBlocks.length} available time blocks for ${dayKey}`);
         for (const timeBlock of dayData.timeBlocks) {
+          // Validate time format and logic
+          if (!timeBlock.startTime || !timeBlock.endTime) {
+            console.warn(`⚠️ Skipping invalid time block for ${dayKey}: missing times`);
+            continue;
+          }
+          
           if (timeBlock.startTime >= timeBlock.endTime) {
-            console.warn(`Invalid time block for ${dayKey}: ${timeBlock.startTime} - ${timeBlock.endTime}, skipping`);
+            console.warn(`⚠️ Skipping invalid time block for ${dayKey}: ${timeBlock.startTime} >= ${timeBlock.endTime}`);
             continue;
           }
 
-          const result = await createRule({
+          rulesToCreate.push({
+            schedule_id: defaultSchedule.id,
             day_of_week: day.dayOfWeek,
             start_time: timeBlock.startTime,
             end_time: timeBlock.endTime,
             is_available: true
           });
-          
-          if (!result) {
-            console.error(`Failed to create rule for ${dayKey}`);
-          }
         }
       } else {
-        console.log(`Creating unavailable rule for ${dayKey}`);
-        await createRule({
+        console.log(`❌ Creating unavailable rule for ${dayKey} (disabled day)`);
+        rulesToCreate.push({
+          schedule_id: defaultSchedule.id,
           day_of_week: day.dayOfWeek,
           start_time: '09:00',
           end_time: '17:00',
           is_available: false
         });
       }
+
+      // STEP 3: Insert all rules at once
+      if (rulesToCreate.length > 0) {
+        console.log(`📝 Inserting ${rulesToCreate.length} rules for ${dayKey}:`, rulesToCreate);
+        
+        const { data, error: insertError } = await supabase
+          .from('availability_rules')
+          .insert(rulesToCreate)
+          .select();
+
+        if (insertError) {
+          console.error('❌ Error creating rules:', insertError);
+          throw new Error(`Failed to create rules for ${dayKey}: ${insertError.message}`);
+        }
+
+        console.log(`✅ Successfully created ${data?.length || 0} rules for ${dayKey}`);
+      }
       
-      console.log(`Sync completed successfully for ${dayKey}`);
+      console.log(`✅ Sync completed successfully for ${dayKey}`);
       
-      // Immediate refresh for real-time UI updates
-      await refreshRules();
-      onChange();
     } catch (error) {
-      console.error(`Error syncing ${dayKey} to database:`, error);
+      console.error(`❌ Error syncing ${dayKey} to database:`, error);
       throw error;
     }
   };
