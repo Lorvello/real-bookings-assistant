@@ -158,10 +158,12 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
   };
 
   // IMPROVED: Direct database sync with proper error handling and validation
-  const syncToDatabase = async (dayKey: string, dayData: DayAvailability) => {
-    if (!defaultSchedule?.id) {
-      console.error('❌ Cannot sync to database: no default schedule');
-      throw new Error('No default schedule available for saving availability');
+  const syncToDatabase = async (dayKey: string, dayData: DayAvailability, scheduleOverride?: { id: string }) => {
+    const targetSchedule = scheduleOverride || defaultSchedule;
+    
+    if (!targetSchedule?.id) {
+      console.error('❌ Cannot sync to database: no schedule available');
+      throw new Error('No schedule available for saving availability');
     }
     
     const day = DAYS.find(d => d.key === dayKey);
@@ -171,7 +173,7 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     }
 
     console.log(`🔄 Syncing ${dayKey} to database:`, dayData);
-    console.log(`📝 Using schedule_id: ${defaultSchedule.id}, day_of_week: ${day.dayOfWeek}`);
+    console.log(`📝 Using schedule_id: ${targetSchedule.id}, day_of_week: ${day.dayOfWeek}`);
 
     try {
       // STEP 1: Delete existing rules for this day
@@ -179,7 +181,7 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
       const { error: deleteError } = await supabase
         .from('availability_rules')
         .delete()
-        .eq('schedule_id', defaultSchedule.id)
+        .eq('schedule_id', targetSchedule.id)
         .eq('day_of_week', day.dayOfWeek);
 
       if (deleteError) {
@@ -205,7 +207,7 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
           }
 
           rulesToCreate.push({
-            schedule_id: defaultSchedule.id,
+            schedule_id: targetSchedule.id,
             day_of_week: day.dayOfWeek,
             start_time: timeBlock.startTime,
             end_time: timeBlock.endTime,
@@ -215,7 +217,7 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
       } else {
         console.log(`❌ Creating unavailable rule for ${dayKey} (disabled day)`);
         rulesToCreate.push({
-          schedule_id: defaultSchedule.id,
+          schedule_id: targetSchedule.id,
           day_of_week: day.dayOfWeek,
           start_time: '09:00',
           end_time: '17:00',

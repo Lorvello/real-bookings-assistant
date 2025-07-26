@@ -187,7 +187,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         console.log('✅ Default schedule verified/created:', schedule?.id);
         
         // Wait a moment to ensure the schedule is fully created
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (scheduleError) {
         console.error('❌ Failed to create/verify default schedule:', scheduleError);
         throw new Error(`Failed to prepare schedule: ${scheduleError.message}`);
@@ -223,7 +223,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         
         try {
           console.log(`💾 Saving ${day.key}:`, dayData);
-          await syncToDatabase(day.key, dayData);
+          await syncToDatabase(day.key, dayData, schedule);
           console.log(`✅ Successfully saved ${day.key}`);
         } catch (error) {
           console.error(`❌ Failed to save ${day.key}:`, error);
