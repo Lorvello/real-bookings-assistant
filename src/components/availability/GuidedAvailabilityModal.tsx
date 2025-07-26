@@ -233,10 +233,8 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         description: "Your availability and timezone have been saved successfully.",
       });
       
-      // Add small delay for database consistency, then refresh page
-      setTimeout(() => {
-        navigate(0);
-      }, 150);
+      // Trigger onComplete callback instead of navigate(0) to allow proper refresh
+      onComplete();
     } catch (error) {
       console.error('Error saving availability configuration:', error);
       
@@ -251,10 +249,8 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         variant: "destructive",
       });
       
-      // Still refresh to avoid blocking user, but log the error
-      setTimeout(() => {
-        navigate(0);
-      }, 150);
+      // Still trigger onComplete to refresh data, but log the error
+      onComplete();
     }
   };
 

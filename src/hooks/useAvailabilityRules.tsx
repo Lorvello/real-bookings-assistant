@@ -12,8 +12,8 @@ export const useAvailabilityRules = (scheduleId?: string) => {
   const [error, setError] = useState<string | null>(null);
   const [syncingRules, setSyncingRules] = useState<Set<string>>(new Set());
 
-  // Memoize fetchRules to prevent unnecessary re-renders
-  const fetchRules = useCallback(async () => {
+  // Memoize fetchRules with retry mechanism
+  const fetchRules = useCallback(async (retryCount = 0) => {
     if (!scheduleId) {
       setRules([]);
       setLoading(false);
@@ -24,7 +24,7 @@ export const useAvailabilityRules = (scheduleId?: string) => {
       setLoading(true);
       setError(null);
       
-      console.log('Fetching availability rules for schedule:', scheduleId);
+      console.log(`Fetching availability rules for schedule: ${scheduleId} (attempt ${retryCount + 1})`);
       
       const { data, error } = await supabase
         .from('availability_rules')
@@ -34,6 +34,14 @@ export const useAvailabilityRules = (scheduleId?: string) => {
 
       if (error) {
         console.error('Error fetching availability rules:', error);
+        
+        // Retry on transient errors
+        if (retryCount < 2 && (error.message.includes('timeout') || error.message.includes('network'))) {
+          console.log(`Retrying fetch in ${(retryCount + 1) * 100}ms...`);
+          setTimeout(() => fetchRules(retryCount + 1), (retryCount + 1) * 100);
+          return;
+        }
+        
         setError(error.message);
         setRules([]);
         return;
@@ -43,6 +51,14 @@ export const useAvailabilityRules = (scheduleId?: string) => {
       setRules(data || []);
     } catch (error) {
       console.error('Error fetching availability rules:', error);
+      
+      // Retry on network errors
+      if (retryCount < 2) {
+        console.log(`Retrying fetch in ${(retryCount + 1) * 100}ms...`);
+        setTimeout(() => fetchRules(retryCount + 1), (retryCount + 1) * 100);
+        return;
+      }
+      
       setError('An unexpected error occurred');
       setRules([]);
     } finally {

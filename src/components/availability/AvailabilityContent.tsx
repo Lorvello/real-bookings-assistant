@@ -118,29 +118,23 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     }
   };
 
-  const handleGuidedComplete = async () => {
+  const handleGuidedComplete = React.useCallback(async () => {
+    console.log('🎯 Guided availability setup completed - triggering comprehensive refresh');
     setIsGuidedModalOpen(false);
     setIsRefreshing(true);
     
-    try {
-      console.log('Forcing complete data refresh after guided completion...');
-      
-      // Force refresh with longer delay to ensure database consistency
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Refresh calendars first
-      await refreshCalendars();
-      
-      // Use forceRefresh for more reliable data reloading
-      await forceRefresh();
-      
-      console.log('Data refresh completed successfully');
-    } catch (error) {
-      console.error('Error during data refresh:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+    // Force complete reload of all availability data with longer delay
+    setTimeout(async () => {
+      try {
+        await forceRefresh();
+        console.log('✅ Force refresh completed after guided setup');
+      } catch (error) {
+        console.error('❌ Error during force refresh:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    }, 500); // Increased delay for better database consistency
+  }, [forceRefresh]);
 
   const handleTimezoneChange = async (newTimezone: string) => {
     if (!selectedCalendar?.id) {

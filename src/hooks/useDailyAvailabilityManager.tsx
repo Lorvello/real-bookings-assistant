@@ -312,17 +312,55 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     }
   };
 
-  // Force refresh function that completely reloads all data
+  // Force complete refresh of all data with retry mechanism
   const forceRefresh = async () => {
-    console.log('Force refreshing all availability data...');
-    try {
-      await refreshRules();
-      // Add small delay then refresh again to ensure data consistency
-      await new Promise(resolve => setTimeout(resolve, 100));
-      await refreshRules();
-      onChange();
-    } catch (error) {
-      console.error('Error during force refresh:', error);
+    console.log('🔄 Force refreshing availability data...');
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      try {
+        // Clear existing data first
+        setAvailability(DAYS.reduce((acc, day) => {
+          acc[day.key] = {
+            enabled: !day.isWeekend,
+            timeBlocks: [{
+              id: `${day.key}-1`,
+              startTime: '08:00',
+              endTime: '19:00'
+            }]
+          };
+          return acc;
+        }, {} as Record<string, DayAvailability>));
+        
+        // Wait a moment for any pending database operations
+        await new Promise(resolve => setTimeout(resolve, 100 * (retryCount + 1)));
+        
+        // Trigger refetch with retry
+        await refreshRules();
+        
+        // Wait again for data to settle
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Refresh one more time to ensure consistency
+        await refreshRules();
+        
+        onChange();
+        
+        console.log('✅ Force refresh completed successfully');
+        return;
+      } catch (error) {
+        retryCount++;
+        console.error(`❌ Force refresh attempt ${retryCount} failed:`, error);
+        
+        if (retryCount < maxRetries) {
+          // Exponential backoff
+          await new Promise(resolve => setTimeout(resolve, 200 * retryCount));
+        } else {
+          console.error('❌ Force refresh failed after all retries');
+          throw error;
+        }
+      }
     }
   };
 
