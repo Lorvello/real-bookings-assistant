@@ -584,58 +584,6 @@ export const UserManagement = ({
                       )}
                     </div>
 
-                    {/* Business Type */}
-                    <div>
-                      <Label className="block text-sm font-medium text-gray-300 mb-2">Business Type</Label>
-                      <ReactSelect
-                        value={businessTypes.find(type => type.value === currentBusinessData.business_type)}
-                        onChange={(option) => {
-                          handleBusinessDataUpdate('business_type', option?.value || '');
-                        }}
-                        options={businessTypes}
-                        placeholder="Select business type"
-                        className="react-select-container"
-                        classNamePrefix="react-select"
-                        styles={{
-                          control: (base) => ({
-                            ...base,
-                            backgroundColor: '#1f2937',
-                            borderColor: '#374151',
-                            '&:hover': { borderColor: '#4b5563' },
-                            minHeight: '44px'
-                          }),
-                          menu: (base) => ({
-                            ...base,
-                            backgroundColor: '#1f2937',
-                            border: '1px solid #374151'
-                          }),
-                          option: (base, state) => ({
-                            ...base,
-                            backgroundColor: state.isFocused ? '#374151' : '#1f2937',
-                            color: '#f9fafb',
-                            '&:hover': { backgroundColor: '#4b5563' }
-                          }),
-                          singleValue: (base) => ({
-                            ...base,
-                            color: '#f9fafb'
-                          }),
-                          placeholder: (base) => ({
-                            ...base,
-                            color: '#9ca3af'
-                          }),
-                          input: (base) => ({
-                            ...base,
-                            color: '#f9fafb'
-                          })
-                        }}
-                      />
-                      {saving === 'business_type' && (
-                        <div className="flex items-center mt-2 text-sm text-green-400">
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-400 mr-2"></div>
-                          Saving...
-                        </div>
-                      )}
-                    </div>
 
                     {/* Phone Number with Country Code */}
                     <div>
