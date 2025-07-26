@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { ModernMonthView } from './ModernMonthView';
 import { WeekView } from './WeekView';
 import { YearView } from './YearView';
@@ -29,7 +30,7 @@ interface CalendarContentProps {
   viewingAllCalendars?: boolean;
 }
 
-export function CalendarContent({
+export const CalendarContent = React.memo(function CalendarContent({
   currentView,
   bookings,
   currentDate,
@@ -77,4 +78,4 @@ export function CalendarContent({
     default:
       return <ModernMonthView bookings={bookings} currentDate={currentDate} viewingAllCalendars={viewingAllCalendars} />;
   }
-}
+});

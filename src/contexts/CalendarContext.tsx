@@ -118,22 +118,37 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     return selectedCalendar ? [selectedCalendar.id] : [];
   };
 
-  // Restore selected calendar from localStorage
+  // OPTIMIZED: Single state restoration with batched updates
   useEffect(() => {
+    if (calendars.length === 0) return;
+
     const savedViewingAll = localStorage.getItem('viewingAllCalendars');
     const savedCalendarId = localStorage.getItem('selectedCalendarId');
     
+    // Single batched state update to prevent cascading renders
     if (savedViewingAll === 'true') {
       setViewingAllCalendars(true);
       setSelectedCalendar(null);
-    } else if (savedCalendarId && calendars.length > 0) {
+    } else if (savedCalendarId) {
       const savedCalendar = calendars.find(cal => cal.id === savedCalendarId);
       if (savedCalendar) {
         setSelectedCalendar(savedCalendar);
         setViewingAllCalendars(false);
+      } else {
+        // Auto-select first calendar if saved one doesn't exist
+        const defaultCalendar = calendars.find(cal => cal.is_default) || calendars[0];
+        setSelectedCalendar(defaultCalendar);
+        setViewingAllCalendars(false);
+        localStorage.setItem('selectedCalendarId', defaultCalendar.id);
       }
+    } else if (!selectedCalendar && !viewingAllCalendars) {
+      // Auto-select first calendar for new users
+      const defaultCalendar = calendars.find(cal => cal.is_default) || calendars[0];
+      setSelectedCalendar(defaultCalendar);
+      setViewingAllCalendars(false);
+      localStorage.setItem('selectedCalendarId', defaultCalendar.id);
     }
-  }, [calendars]);
+  }, [calendars.length]); // Only depend on calendar count to prevent unnecessary runs
 
   return (
     <CalendarContext.Provider value={{

@@ -19,12 +19,12 @@ export const AvailabilityManager = () => {
   const { calendars } = useCalendars();
   const [activeTab, setActiveTab] = useState('schedule');
 
-  // Redirect if not authenticated
+  // OPTIMIZED: Single auth check with fast redirect
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/login');
+      navigate('/login', { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [authLoading, user]); // Minimal dependencies
 
   if (authLoading || profileLoading) {
     return (

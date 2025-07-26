@@ -96,12 +96,16 @@ export const useMultipleCalendarBookings = (calendarIds: string[]) => {
     }
   };
 
-  // Initial fetch
+  // OPTIMIZED: Single effect with debounced fetching to prevent double loading
   useEffect(() => {
-    fetchBookings();
-  }, [user, calendarIds.join(',')]);
+    const timeoutId = setTimeout(() => {
+      fetchBookings();
+    }, 50); // Small delay to batch rapid changes
 
-  // Real-time subscription met verbeterde handling
+    return () => clearTimeout(timeoutId);
+  }, [user?.id, calendarIds.join(',')]);
+
+  // OPTIMIZED: Simplified real-time subscription with immediate updates
   useEffect(() => {
     if (!user || !calendarIds.length) return;
 
@@ -118,40 +122,24 @@ export const useMultipleCalendarBookings = (calendarIds: string[]) => {
           table: 'bookings',
         },
         (payload) => {
-          console.log('📱 Real-time booking update received:', payload);
-          
-          // Check if this change affects our calendars
           const newCalendarId = payload.new && typeof payload.new === 'object' && 'calendar_id' in payload.new 
-            ? (payload.new as any).calendar_id 
-            : null;
+            ? (payload.new as any).calendar_id : null;
           const oldCalendarId = payload.old && typeof payload.old === 'object' && 'calendar_id' in payload.old 
-            ? (payload.old as any).calendar_id 
-            : null;
+            ? (payload.old as any).calendar_id : null;
           
           if ((newCalendarId && calendarIds.includes(newCalendarId)) || 
               (oldCalendarId && calendarIds.includes(oldCalendarId))) {
-            console.log('🔄 Real-time update affects our calendars, refreshing...');
-            
-            // Invalidate queries first
-            queryClient.invalidateQueries({ queryKey: ['bookings'] });
-            queryClient.invalidateQueries({ queryKey: ['multiple-calendar-bookings'] });
-            
-            // Then fetch fresh data
-            setTimeout(() => {
-              fetchBookings();
-            }, 100);
+            // Immediate fetch without delays for real-time updates
+            fetchBookings();
           }
         }
       )
-      .subscribe((status) => {
-        console.log('📡 Subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('🔌 Cleaning up subscription for:', channelName);
       supabase.removeChannel(channel);
     };
-  }, [user, calendarIds.join(','), queryClient]);
+  }, [calendarIds.join(',')]);  // Removed user dependency to reduce subscription churn
 
   return {
     bookings,

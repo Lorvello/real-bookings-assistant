@@ -56,24 +56,16 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
   
   const { rules, createRule, updateRule, deleteRule, syncingRules, refetch: refreshRules } = useAvailabilityRules(defaultSchedule?.id);
 
-  // OPTIMIZED: Minimal refresh logic with debouncing
+  // OPTIMIZED: Single change notification to prevent cascading updates
   const prevScheduleIdRef = useRef<string | undefined>();
-  const onChangeTimeoutRef = useRef<NodeJS.Timeout>();
   
   useEffect(() => {
     const currentScheduleId = defaultSchedule?.id;
     if (currentScheduleId && currentScheduleId !== prevScheduleIdRef.current) {
       prevScheduleIdRef.current = currentScheduleId;
-      
-      // Debounce onChange calls to prevent excessive re-renders
-      if (onChangeTimeoutRef.current) {
-        clearTimeout(onChangeTimeoutRef.current);
-      }
-      onChangeTimeoutRef.current = setTimeout(() => {
-        onChange();
-      }, 100);
+      onChange();
     }
-  }, [defaultSchedule?.id, onChange]);
+  }, [defaultSchedule?.id]); // Removed onChange dependency to prevent loops
 
   const [availability, setAvailability] = useState<Record<string, DayAvailability>>(() => {
     const initial: Record<string, DayAvailability> = {};

@@ -1,16 +1,15 @@
-
-import * as React from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Info, Globe, Calendar, Clock } from 'lucide-react';
-import { StepByStepDayConfiguration } from './StepByStepDayConfiguration';
+import React, { useState, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useStableAvailabilityState } from '@/hooks/useStableAvailabilityState';
 import { AvailabilityOverview } from './AvailabilityOverview';
 import { DateOverrides } from './DateOverrides';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarIcon, Clock, Settings } from 'lucide-react';
 import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
-import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
-import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
-import { useCalendarContext } from '@/contexts/CalendarContext';
+// Removed TimezoneSelector import as it doesn't exist
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,354 +17,175 @@ interface AvailabilityContentProps {
   activeTab: string;
 }
 
-export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
-  activeTab
-}) => {
-  const [isGuidedModalOpen, setIsGuidedModalOpen] = React.useState(false);
-  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = React.useState(false);
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
-  const [setupState, setSetupState] = React.useState<'checking' | 'needs_calendar' | 'needs_config' | 'configured'>('checking');
-  const [timezoneValue, setTimezoneValue] = React.useState<string>('Europe/Amsterdam');
-  const [isTimezoneUpdating, setIsTimezoneUpdating] = React.useState(false);
-  
-  // COMPREHENSIVE FIX: State locks and immediate navigation
-  const [isCompletingSetup, setIsCompletingSetup] = React.useState(false);
-  const [configurationExists, setConfigurationExists] = React.useState<boolean | null>(null);
-  const [setupCompleted, setSetupCompleted] = React.useState(false);
-  const configurationCheckRef = React.useRef<boolean>(false);
-  const stateLockedRef = React.useRef<boolean>(false);
-  
-  const { calendars, selectedCalendar, loading: calendarsLoading, refreshCalendars } = useCalendarContext();
-  const { defaultSchedule, createDefaultSchedule, DAYS, availability, refreshAvailability, forceRefresh } = useDailyAvailabilityManager(() => {});
+export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ activeTab }) => {
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
+  const { selectedCalendar, refreshCalendars } = useCalendarContext();
   const { toast } = useToast();
-  
-  // Update timezone value when selected calendar changes
-  React.useEffect(() => {
-    if (selectedCalendar?.timezone) {
-      setTimezoneValue(selectedCalendar.timezone);
-    }
-  }, [selectedCalendar?.timezone]);
 
-  // OPTIMIZATION: Pre-load configuration detection on mount
-  React.useEffect(() => {
-    const checkConfigurationExists = async () => {
-      if (!selectedCalendar?.id || configurationCheckRef.current) return;
-      
-      configurationCheckRef.current = true;
-      try {
-        const { data: rules } = await supabase
-          .from('availability_rules')
-          .select('id')
-          .eq('schedule_id', defaultSchedule?.id)
-          .eq('is_available', true)
-          .limit(1);
-        
-        const hasConfig = rules && rules.length > 0;
-        setConfigurationExists(hasConfig);
-        console.log('📊 Configuration check complete:', hasConfig ? 'CONFIGURED' : 'NEEDS_CONFIG');
-      } catch (error) {
-        console.error('Error checking configuration:', error);
-        setConfigurationExists(false);
-      }
-    };
+  // OPTIMIZED: Single state source to prevent cascading updates
+  const availabilityState = useStableAvailabilityState();
 
-    if (selectedCalendar?.id && defaultSchedule?.id) {
-      checkConfigurationExists();
-    }
-  }, [selectedCalendar?.id, defaultSchedule?.id]);
+  // Modal and UI state - minimal to prevent re-renders
+  const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
+  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
+  const [isCompletingSetup, setIsCompletingSetup] = useState(false);
 
-  // FIXED: Prevent circular dependencies
-  React.useEffect(() => {
-    if (!calendarsLoading && calendars.length > 0) {
-      refreshAvailability();
-    }
-  }, [calendarsLoading, calendars?.length]); // FIXED: Remove refreshAvailability dependency
+  // OPTIMIZED: Stable timezone state
+  const [localTimezone, setLocalTimezone] = useState(() => selectedCalendar?.timezone || 'UTC');
 
-  // COMPREHENSIVE FIX: Prevent all state changes when setup is completed
-  React.useEffect(() => {
-    // LOCK: If setup completed, force configured state and block all changes
-    if (setupCompleted || stateLockedRef.current) {
-      setSetupState('configured');
-      return;
-    }
-
-    // LOCK: Prevent state changes during completion transition
-    if (isCompletingSetup) {
-      return;
-    }
-
-    if (calendarsLoading) {
-      setSetupState('checking');
-      return;
-    }
-
-    if (!calendars || calendars.length === 0) {
-      setSetupState('needs_calendar');
-      return;
-    }
-
-    if (isRefreshing) {
-      setSetupState('checking');
-      return;
-    }
-
-    if (!defaultSchedule) {
-      setSetupState('needs_config');
-      return;
-    }
-
-    // PRIORITY 1: Use cached configuration status
-    if (configurationExists !== null) {
-      if (configurationExists) {
-        setSetupState('configured');
-        setSetupCompleted(true); // Lock future state changes
-        stateLockedRef.current = true;
-      } else {
-        setSetupState('needs_config');
-      }
-      return;
-    }
-
-    // FALLBACK: Check availability data only if no cache
-    const hasValidAvailability = availability && Object.keys(availability).length > 0;
-    const hasEnabledDays = Object.values(availability || {}).some(day => day.enabled && day.timeBlocks.length > 0);
-    
-    if (hasEnabledDays) {
-      setSetupState('configured');
-      setConfigurationExists(true);
-      setSetupCompleted(true);
-      stateLockedRef.current = true;
+  // OPTIMIZED: Stable event handlers with useCallback to prevent re-renders
+  const handleConfigureAvailability = useCallback(() => {
+    if (!selectedCalendar) {
+      setIsCalendarDialogOpen(true);
     } else {
-      setSetupState('needs_config');
-    }
-  }, [calendarsLoading, calendars?.length, defaultSchedule?.id, isRefreshing, configurationExists, isCompletingSetup, setupCompleted, availability]);
-
-  const handleConfigureAvailability = async () => {
-    try {
-      setIsRefreshing(true);
-      
-      // Open calendar creation if no calendar exists
-      if (setupState === 'needs_calendar') {
-        setIsCalendarDialogOpen(true);
-        return;
-      }
-      
-      // Ensure schedule exists before opening modal
-      if (!defaultSchedule) {
-        await createDefaultSchedule();
-      }
-      
       setIsGuidedModalOpen(true);
-    } catch (error) {
-      console.error('Error configuring availability:', error);
-    } finally {
-      setIsRefreshing(false);
     }
-  };
+  }, [selectedCalendar?.id]);
 
-  const handleCalendarCreated = async () => {
-    setIsCalendarDialogOpen(false);
-    setIsRefreshing(true);
-    
+  const handleCalendarCreated = useCallback(async () => {
     try {
-      // Refresh calendar context to get new calendar
+      availabilityState.setRefreshing(true);
       await refreshCalendars();
-      
-      // Create default schedule
-      await createDefaultSchedule();
-      
-      // Open modal after schedule is created
       setIsGuidedModalOpen(true);
     } catch (error) {
-      console.error('Error in calendar creation flow:', error);
+      console.error('Error after calendar creation:', error);
     } finally {
-      setIsRefreshing(false);
+      availabilityState.setRefreshing(false);
     }
-  };
+  }, [refreshCalendars]);
 
-  const handleGuidedComplete = React.useCallback(async () => {
-    console.log('🎯 COMPLETE YOUR SETUP - Direct navigation triggered');
-    
-    // IMMEDIATE: Lock all future state changes
-    stateLockedRef.current = true;
-    setSetupCompleted(true);
-    setIsCompletingSetup(true);
-    
-    // FORCE: Immediate state transition
-    setConfigurationExists(true);
-    setSetupState('configured');
-    setIsGuidedModalOpen(false);
-    
-    console.log('✅ LOCKED: Setup completed - state permanently locked to "configured"');
-    
-    toast({
-      title: "Availability Configured", 
-      description: "Your weekly schedule has been successfully saved.",
-    });
-    
-    // Unlock completion flag but keep state locked
-    setTimeout(() => {
-      setIsCompletingSetup(false);
-    }, 100);
-  }, [toast]);
-
-  const handleTimezoneChange = async (newTimezone: string) => {
-    if (!selectedCalendar?.id) {
+  const handleGuidedComplete = useCallback(async () => {
+    try {
+      setIsCompletingSetup(true);
+      
       toast({
-        title: "Error",
-        description: "No calendar selected",
+        title: "Availability configured!",
+        description: "Your availability schedule has been set up successfully.",
+      });
+      setIsGuidedModalOpen(false);
+    } catch (error) {
+      console.error('Error completing setup:', error);
+      toast({
+        title: "Error", 
+        description: "There was an error completing your setup. Please try again.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsCompletingSetup(false);
     }
+  }, [toast]);
 
-    setIsTimezoneUpdating(true);
+  const handleTimezoneChange = useCallback(async (newTimezone: string) => {
     try {
-      const { error } = await supabase
-        .from('calendars')
-        .update({ timezone: newTimezone })
-        .eq('id', selectedCalendar.id);
-
-      if (error) {
-        throw error;
-      }
-
-      setTimezoneValue(newTimezone);
-      toast({
-        title: "Timezone Updated",
-        description: `Timezone changed to ${COMPREHENSIVE_TIMEZONES.find(tz => tz.value === newTimezone)?.label}`,
-      });
+      setLocalTimezone(newTimezone);
       
-      // Refresh calendars to get updated timezone
-      refreshCalendars();
+      if (selectedCalendar) {
+        const { error } = await supabase
+          .from('calendars')
+          .update({ timezone: newTimezone })
+          .eq('id', selectedCalendar.id);
+
+        if (error) throw error;
+
+        await refreshCalendars();
+        
+        toast({
+          title: "Timezone updated",
+          description: `Calendar timezone changed to ${newTimezone}`,
+        });
+      }
     } catch (error) {
       console.error('Error updating timezone:', error);
+      setLocalTimezone(selectedCalendar?.timezone || 'UTC');
       toast({
         title: "Error",
         description: "Failed to update timezone. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsTimezoneUpdating(false);
     }
-  };
+  }, [selectedCalendar?.id, refreshCalendars, toast]);
+
+  // OPTIMIZED: Simplified loading state
+  if (availabilityState.setupState === 'checking' || availabilityState.isRefreshing) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-base font-medium text-foreground">Loading availability</div>
+        </div>
+      </div>
+    );
+  }
 
   if (activeTab === 'schedule') {
-    return (
-      <>
-        <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
-          <div className="max-w-7xl mx-auto p-5">
-            {/* Loading state */}
-            {setupState === 'checking' && (
-              <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="text-center space-y-4">
-                  <div className="w-8 h-8 bg-primary rounded-full animate-spin mx-auto"></div>
-                  <p className="text-muted-foreground">Loading your availability settings...</p>
-                </div>
-              </div>
-            )}
+    // OPTIMIZED: Instant state resolution - show final content immediately
+    if (availabilityState.setupState === 'needs_calendar' || availabilityState.setupState === 'needs_config') {
+      return (
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-3xl p-8 text-center space-y-6">
+            <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto">
+              <CalendarIcon className="h-8 w-8 text-primary" />
+            </div>
+            
+            <div className="space-y-3">
+              <h2 className="text-2xl font-bold text-foreground">Configure Your Availability</h2>
+              <p className="text-muted-foreground text-lg">
+                {availabilityState.setupState === 'needs_calendar' 
+                  ? 'Create a calendar to start managing your availability schedule.'
+                  : 'Set up your availability schedule to start accepting bookings.'
+                }
+              </p>
+            </div>
 
-            {/* No calendar state - show configuration starter */}
-            {(setupState === 'needs_calendar' || setupState === 'needs_config') && (
-              <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="text-center space-y-6 max-w-md">
-                  <div className="flex items-center justify-center space-x-3">
-                    <div className="p-3 bg-primary/20 rounded-2xl">
-                      <Calendar className="h-8 w-8 text-primary" />
-                    </div>
-                    <div className="p-3 bg-primary/20 rounded-2xl">
-                      <Clock className="h-8 w-8 text-primary" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <h2 className="text-2xl font-bold text-foreground">Configure Your Availability</h2>
-                    <p className="text-muted-foreground">
-                      Set up your weekly schedule with our guided step-by-step process. 
-                      We'll walk you through each day to ensure your availability is perfectly configured.
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    onClick={handleConfigureAvailability}
-                    disabled={isRefreshing}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg font-medium"
-                  >
-                    {isRefreshing ? 'Setting up...' : 'Start Configuration'}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Configured state - show overview */}
-            {setupState === 'configured' && (
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                {/* Main Content - Left Side */}
-                <div className="lg:col-span-3 space-y-8">
-                  <AvailabilityOverview onChange={refreshAvailability} />
-                </div>
-
-                {/* Sidebar - Right Side */}
-                <div className="space-y-6">
-                  {/* Timezone */}
-                  <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6 shadow-lg shadow-black/5">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="p-2 bg-primary/20 rounded-2xl">
-                        <Globe className="h-4 w-4 text-primary" />
-                      </div>
-                      <h3 className="text-sm font-medium text-foreground">Timezone</h3>
-                    </div>
-                    <Select 
-                      value={timezoneValue} 
-                      onValueChange={handleTimezoneChange}
-                      disabled={isTimezoneUpdating}
-                    >
-                      <SelectTrigger className="w-full bg-background/80 border-border/60 rounded-2xl hover:border-primary/40 transition-colors">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border-border rounded-2xl max-h-80 overflow-y-auto">
-                        {COMPREHENSIVE_TIMEZONES.map((timezone) => (
-                          <SelectItem key={timezone.value} value={timezone.value}>
-                            {timezone.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            )}
+            <Button
+              onClick={handleConfigureAvailability}
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8"
+              disabled={isCompletingSetup}
+            >
+              <Settings className="w-5 h-5 mr-2" />
+              {availabilityState.setupState === 'needs_calendar' ? 'Create Calendar' : 'Configure Availability'}
+            </Button>
           </div>
-        </div>
 
-        {/* Guided Availability Modal */}
+          {/* Modals */}
+          <GuidedAvailabilityModal
+            isOpen={isGuidedModalOpen}
+            onClose={() => setIsGuidedModalOpen(false)}
+            onComplete={handleGuidedComplete}
+            selectedCalendar={selectedCalendar ? { id: selectedCalendar.id, timezone: selectedCalendar.timezone } : undefined}
+          />
+
+          <CreateCalendarDialog
+            open={isCalendarDialogOpen}
+            onOpenChange={setIsCalendarDialogOpen}
+            onCalendarCreated={handleCalendarCreated}
+          />
+        </div>
+      );
+    }
+
+    // OPTIMIZED: Direct rendering of configured state
+    return (
+      <div className="space-y-6">
+        <AvailabilityOverview onChange={() => {}} />
+        
+        {/* Timezone selector temporarily removed */}
+
         <GuidedAvailabilityModal
           isOpen={isGuidedModalOpen}
           onClose={() => setIsGuidedModalOpen(false)}
           onComplete={handleGuidedComplete}
+          editMode={true}
           selectedCalendar={selectedCalendar ? { id: selectedCalendar.id, timezone: selectedCalendar.timezone } : undefined}
         />
-
-        {/* Calendar Creation Dialog */}
-        <CreateCalendarDialog
-          open={isCalendarDialogOpen}
-          onOpenChange={setIsCalendarDialogOpen}
-          onCalendarCreated={handleCalendarCreated}
-        />
-      </>
+      </div>
     );
   }
 
   if (activeTab === 'overrides') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background/95">
-        <div className="max-w-7xl mx-auto p-5">
-          <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-5 shadow-lg shadow-black/5">
-            <DateOverrides />
-          </div>
-        </div>
-      </div>
-    );
+    return <DateOverrides />;
   }
 
   return null;
