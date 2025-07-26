@@ -28,7 +28,8 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   const [timezoneValue, setTimezoneValue] = React.useState<string>('Europe/Amsterdam');
   const [isTimezoneUpdating, setIsTimezoneUpdating] = React.useState(false);
   
-  // OPTIMIZATION: Cache configuration existence for instant navigation
+  // CRITICAL: Add completion state lock to prevent state flickers
+  const [isCompletingSetup, setIsCompletingSetup] = React.useState(false);
   const [configurationExists, setConfigurationExists] = React.useState<boolean | null>(null);
   const configurationCheckRef = React.useRef<boolean>(false);
   
@@ -78,8 +79,13 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     }
   }, [calendarsLoading, calendars?.length]); // FIXED: Remove refreshAvailability dependency
 
-  // OPTIMIZED: Smart setup state logic with cached configuration
+  // OPTIMIZED: Smart setup state logic with completion lock
   React.useEffect(() => {
+    // CRITICAL: Prevent state changes during completion transition
+    if (isCompletingSetup) {
+      return;
+    }
+
     if (calendarsLoading) {
       setSetupState('checking');
       return;
@@ -111,7 +117,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     const hasEnabledDays = Object.values(availability || {}).some(day => day.enabled && day.timeBlocks.length > 0);
     
     setSetupState(hasEnabledDays ? 'configured' : 'needs_config');
-  }, [calendarsLoading, calendars?.length, defaultSchedule?.id, isRefreshing, configurationExists]); // OPTIMIZED: Include cached status
+  }, [calendarsLoading, calendars?.length, defaultSchedule?.id, isRefreshing, configurationExists, isCompletingSetup]);
 
   const handleConfigureAvailability = async () => {
     try {
@@ -157,32 +163,28 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
   };
 
   const handleGuidedComplete = React.useCallback(async () => {
-    console.log('🎯 Guided availability setup completed - immediate transition to configured state');
+    console.log('🎯 IMMEDIATE guided setup completion');
+    
+    // LOCK: Prevent any state changes during completion
+    setIsCompletingSetup(true);
     setIsGuidedModalOpen(false);
     
-    // IMMEDIATE: Update cached configuration status and UI state
+    // IMMEDIATE: Set configured state with no delays
     setConfigurationExists(true);
     setSetupState('configured');
     
-    try {
-      console.log('🔄 Starting optimized post-setup refresh...');
-      // OPTIMIZED: Fast refresh without artificial delays
-      await forceRefresh();
-      console.log('✅ Fast refresh completed after guided setup');
-      
-      toast({
-        title: "Availability Configured",
-        description: "Your weekly schedule has been successfully saved.",
-      });
-    } catch (error) {
-      console.error('❌ Error during refresh:', error);
-      toast({
-        title: "Refresh Error", 
-        description: "Your settings were saved but there was an issue refreshing. Please refresh the page.",
-        variant: "destructive",
-      });
-    }
-  }, [forceRefresh, toast]);
+    console.log('✅ State immediately set to configured - UI should show "Your Availability"');
+    
+    toast({
+      title: "Availability Configured",
+      description: "Your weekly schedule has been successfully saved.",
+    });
+    
+    // UNLOCK: Allow normal state management after brief delay
+    setTimeout(() => {
+      setIsCompletingSetup(false);
+    }, 100);
+  }, [toast]);
 
   const handleTimezoneChange = async (newTimezone: string) => {
     if (!selectedCalendar?.id) {
