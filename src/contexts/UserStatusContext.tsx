@@ -564,7 +564,36 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       };
     }
 
-    // Default access for trial and active users (Starter equivalent)
+    // CRITICAL FIX: Check subscription tier for active trial users
+    if (userType === 'trial' && profile?.subscription_tier === 'professional') {
+      // Give Professional-tier access to trial users with Professional subscription
+      const professionalTierLimits = getSubscriptionTierLimits('professional');
+      return {
+        canViewDashboard: true,
+        canCreateBookings: true,
+        canEditBookings: true,
+        canManageSettings: true,
+        canAccessWhatsApp: true,
+        canAccessBookingAssistant: true,
+        canUseAI: true,
+        canExportData: true,
+        canInviteUsers: true,
+        canAccessAPI: true,
+        canUseWhiteLabel: false,
+        hasPrioritySupport: true,
+        canAccessFutureInsights: true,
+        canAccessBusinessIntelligence: true,
+        canAccessPerformance: true,
+        canAccessCustomerSatisfaction: false,
+        canAccessTeamMembers: true,
+        maxCalendars: professionalTierLimits?.max_calendars,
+        maxBookingsPerMonth: professionalTierLimits?.max_bookings_per_month,
+        maxTeamMembers: professionalTierLimits?.max_team_members || 10,
+        maxWhatsAppContacts: professionalTierLimits?.max_whatsapp_contacts || 2500
+      };
+    }
+
+    // Default access for other trial users and fallback (Starter equivalent)
     return {
       canViewDashboard: true,
       canCreateBookings: hasFullAccess,
