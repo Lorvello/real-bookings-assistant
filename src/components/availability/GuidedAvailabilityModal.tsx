@@ -32,15 +32,6 @@ interface DayAvailability {
   timeBlocks: TimeBlock[];
 }
 
-const DAYS = [
-  { key: 'monday', label: 'Monday', isWeekend: false, dayOfWeek: 1 },
-  { key: 'tuesday', label: 'Tuesday', isWeekend: false, dayOfWeek: 2 },
-  { key: 'wednesday', label: 'Wednesday', isWeekend: false, dayOfWeek: 3 },
-  { key: 'thursday', label: 'Thursday', isWeekend: false, dayOfWeek: 4 },
-  { key: 'friday', label: 'Friday', isWeekend: false, dayOfWeek: 5 },
-  { key: 'saturday', label: 'Saturday', isWeekend: true, dayOfWeek: 6 },
-  { key: 'sunday', label: 'Sunday', isWeekend: true, dayOfWeek: 7 }
-];
 
 export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = ({
   isOpen,
@@ -50,6 +41,9 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   editMode = false,
   selectedCalendar
 }) => {
+  // Get DAYS first from the hook
+  const { DAYS, syncToDatabase, createDefaultSchedule, defaultSchedule, availability: existingAvailability, setAvailability } = useDailyAvailabilityManager(() => {});
+  
   const [currentStep, setCurrentStep] = useState(startDay ?? 0);
   const [timezone, setTimezone] = useState(selectedCalendar?.timezone || 'Europe/Amsterdam');
   const [selectedTimeBlock, setSelectedTimeBlock] = useState<{dayKey: string; blockId: string; field: 'startTime' | 'endTime'} | null>(null);
@@ -67,8 +61,6 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     });
     return initial;
   });
-
-  const { syncToDatabase, createDefaultSchedule, availability: existingAvailability } = useDailyAvailabilityManager(() => {});
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -183,23 +175,30 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     try {
       console.log('🚀 Starting availability configuration save...');
       
-      // STEP 1: Ensure default schedule exists before saving availability
+      // STEP 1: Update the main availability manager with our local changes
+      console.log('📋 Syncing local availability to manager...');
+      setAvailability(localAvailability);
+      
+      // STEP 2: Ensure default schedule exists before saving availability
       console.log('📋 Ensuring default schedule exists...');
       let schedule;
       try {
         schedule = await createDefaultSchedule();
         console.log('✅ Default schedule verified/created:', schedule?.id);
+        
+        // Wait a moment to ensure the schedule is fully created
+        await new Promise(resolve => setTimeout(resolve, 200));
       } catch (scheduleError) {
         console.error('❌ Failed to create/verify default schedule:', scheduleError);
         throw new Error(`Failed to prepare schedule: ${scheduleError.message}`);
       }
       
       // Verify we have a valid schedule
-      if (!schedule?.id) {
+      if (!schedule?.id && !defaultSchedule?.id) {
         throw new Error('No valid schedule ID available after creation');
       }
       
-      // STEP 2: Validate availability data before saving
+      // STEP 3: Validate availability data before saving
       console.log('🔍 Validating availability data...');
       const validDays = DAYS.filter(day => {
         const dayData = localAvailability[day.key];
@@ -216,8 +215,10 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       
       console.log(`📝 Saving availability for ${validDays.length} days...`);
       
-      // STEP 3: Save availability data with enhanced error handling
-      const savePromises = validDays.map(async (day) => {
+      // STEP 4: Save availability data with enhanced error handling
+      let saveErrors = [];
+      
+      for (const day of validDays) {
         const dayData = localAvailability[day.key];
         
         try {
@@ -226,15 +227,17 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
           console.log(`✅ Successfully saved ${day.key}`);
         } catch (error) {
           console.error(`❌ Failed to save ${day.key}:`, error);
-          throw new Error(`Failed to save ${day.label}: ${error.message}`);
+          saveErrors.push(`${day.label}: ${error.message}`);
         }
-      });
+      }
       
-      // Wait for all days to be saved
-      await Promise.all(savePromises);
+      if (saveErrors.length > 0) {
+        throw new Error(`Failed to save: ${saveErrors.join(', ')}`);
+      }
+      
       console.log('✅ All availability data saved successfully');
       
-      // STEP 4: Save timezone to database
+      // STEP 5: Save timezone to database
       try {
         console.log('🌍 Saving timezone...');
         await saveTimezone();
@@ -244,15 +247,32 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         // Don't fail the entire process for timezone errors
       }
       
-      // STEP 5: Verify data was actually saved
-      console.log('🔍 Verifying data was saved...');
+      // STEP 6: Verify data was actually saved by querying database
+      console.log('🔍 Verifying data was saved to database...');
+      try {
+        const { data: verifyRules, error: verifyError } = await supabase
+          .from('availability_rules')
+          .select('*')
+          .eq('schedule_id', schedule?.id || defaultSchedule?.id);
+          
+        if (verifyError) throw verifyError;
+        
+        console.log('📊 Saved rules verification:', verifyRules);
+        
+        if (!verifyRules || verifyRules.length === 0) {
+          throw new Error('Data verification failed: no rules found in database after save');
+        }
+      } catch (verifyError) {
+        console.error('❌ Data verification failed:', verifyError);
+        throw new Error(`Save verification failed: ${verifyError.message}`);
+      }
       
       toast({
         title: "Configuration Saved",
         description: "Your availability and timezone have been saved successfully.",
       });
       
-      console.log('🎉 Configuration save completed successfully');
+      console.log('🎉 Configuration save completed and verified successfully');
       onComplete();
       
     } catch (error) {
@@ -267,7 +287,6 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       });
       
       // Don't call onComplete on error - let user retry
-      throw error;
     }
   };
 
