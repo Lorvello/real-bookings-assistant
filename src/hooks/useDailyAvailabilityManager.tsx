@@ -312,7 +312,7 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     }
   };
 
-  // Force complete refresh of all data with retry mechanism
+  // Force complete refresh of all data without resetting to defaults
   const forceRefresh = async () => {
     console.log('🔄 Force refreshing availability data...');
     let retryCount = 0;
@@ -320,31 +320,16 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     
     while (retryCount < maxRetries) {
       try {
-        // Clear existing data first
-        setAvailability(DAYS.reduce((acc, day) => {
-          acc[day.key] = {
-            enabled: !day.isWeekend,
-            timeBlocks: [{
-              id: `${day.key}-1`,
-              startTime: '08:00',
-              endTime: '19:00'
-            }]
-          };
-          return acc;
-        }, {} as Record<string, DayAvailability>));
+        // Wait for any pending database operations to complete
+        await new Promise(resolve => setTimeout(resolve, 200 * (retryCount + 1)));
         
-        // Wait a moment for any pending database operations
-        await new Promise(resolve => setTimeout(resolve, 100 * (retryCount + 1)));
-        
-        // Trigger refetch with retry
+        // Directly fetch fresh data from database without clearing state
         await refreshRules();
         
-        // Wait again for data to settle
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Wait for data to settle and re-render
+        await new Promise(resolve => setTimeout(resolve, 150));
         
-        // Refresh one more time to ensure consistency
-        await refreshRules();
-        
+        // Call onChange to trigger any dependent updates
         onChange();
         
         console.log('✅ Force refresh completed successfully');
@@ -355,7 +340,7 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
         
         if (retryCount < maxRetries) {
           // Exponential backoff
-          await new Promise(resolve => setTimeout(resolve, 200 * retryCount));
+          await new Promise(resolve => setTimeout(resolve, 300 * retryCount));
         } else {
           console.error('❌ Force refresh failed after all retries');
           throw error;

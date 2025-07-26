@@ -123,18 +123,29 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({
     setIsGuidedModalOpen(false);
     setIsRefreshing(true);
     
-    // Force complete reload of all availability data with longer delay
+    // Ensure database operations are complete before refreshing UI
     setTimeout(async () => {
       try {
+        console.log('🔄 Starting post-setup data refresh...');
         await forceRefresh();
         console.log('✅ Force refresh completed after guided setup');
+        
+        toast({
+          title: "Availability Configured",
+          description: "Your weekly schedule has been successfully saved.",
+        });
       } catch (error) {
         console.error('❌ Error during force refresh:', error);
+        toast({
+          title: "Refresh Error",
+          description: "Your settings were saved but there was an issue refreshing the display. Please refresh the page.",
+          variant: "destructive",
+        });
       } finally {
         setIsRefreshing(false);
       }
-    }, 500); // Increased delay for better database consistency
-  }, [forceRefresh]);
+    }, 750); // Extended delay to ensure database consistency
+  }, [forceRefresh, toast]);
 
   const handleTimezoneChange = async (newTimezone: string) => {
     if (!selectedCalendar?.id) {
