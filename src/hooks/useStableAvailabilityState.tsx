@@ -60,8 +60,14 @@ export const useStableAvailabilityState = () => {
       defaultSchedule
     };
 
-    // Only update if state actually changed
-    if (JSON.stringify(newState) !== JSON.stringify(stateRef.current)) {
+    // Only update if state actually changed (simpler comparison)
+    const stateChanged = 
+      newState.setupState !== stateRef.current.setupState ||
+      newState.configurationExists !== stateRef.current.configurationExists ||
+      newState.hasDefaultSchedule !== stateRef.current.hasDefaultSchedule ||
+      newState.selectedCalendar?.id !== stateRef.current.selectedCalendar?.id;
+
+    if (stateChanged) {
       setState(newState);
     }
   }, [
@@ -77,9 +83,35 @@ export const useStableAvailabilityState = () => {
   const refreshState = useMemo(() => ({
     setRefreshing: (refreshing: boolean) => 
       setState(prev => ({ ...prev, isRefreshing: refreshing })),
-    forceCheck: () => 
-      setState(prev => ({ ...prev, setupState: 'checking' }))
-  }), []);
+    forceCheck: () => {
+      // Force immediate re-evaluation by clearing state first
+      setState(prev => ({ ...prev, setupState: 'checking' }));
+      // Trigger a new computation on next tick
+      setTimeout(() => {
+        const hasCalendar = !!selectedCalendar && !viewingAllCalendars;
+        const hasSchedule = !!defaultSchedule;
+        const hasRules = rules.length > 0;
+        const isConfigured = hasCalendar && hasSchedule && hasRules;
+
+        let newSetupState: AvailabilityState['setupState'];
+        if (!hasCalendar) {
+          newSetupState = 'needs_calendar';
+        } else if (!hasSchedule || !hasRules) {
+          newSetupState = 'needs_config';
+        } else {
+          newSetupState = 'configured';
+        }
+
+        setState(prev => ({
+          ...prev,
+          setupState: newSetupState,
+          configurationExists: isConfigured,
+          hasDefaultSchedule: hasSchedule,
+          isRefreshing: false
+        }));
+      }, 50);
+    }
+  }), [selectedCalendar, viewingAllCalendars, defaultSchedule, rules.length]);
 
   return {
     ...state,

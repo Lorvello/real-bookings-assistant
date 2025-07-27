@@ -59,8 +59,13 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     try {
       setIsCompletingSetup(true);
       
-      // Force refresh availability state
-      availabilityState.forceCheck();
+      // Force refresh calendars and availability data
+      await refreshCalendars();
+      
+      // Small delay to ensure data is fresh, then force state refresh
+      setTimeout(() => {
+        availabilityState.forceCheck();
+      }, 100);
       
       toast({
         title: "Availability configured!",
@@ -77,7 +82,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     } finally {
       setIsCompletingSetup(false);
     }
-  }, [toast, availabilityState]);
+  }, [toast, availabilityState, refreshCalendars]);
 
   const handleTimezoneChange = useCallback(async (newTimezone: string) => {
     try {

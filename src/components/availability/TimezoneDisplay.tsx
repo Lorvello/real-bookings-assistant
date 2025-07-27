@@ -3,20 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Clock, Edit2, Check, X } from 'lucide-react';
+import { COMPREHENSIVE_TIMEZONES } from './TimezoneData';
 
 interface TimezoneDisplayProps {
   currentTimezone: string;
   onTimezoneChange: (timezone: string) => Promise<void>;
 }
-
-const TIMEZONE_OPTIONS = [
-  { value: 'Europe/Amsterdam', label: 'Amsterdam (CET/CEST)' },
-  { value: 'Europe/Berlin', label: 'Berlin (CET/CEST)' },
-  { value: 'Europe/London', label: 'London (GMT/BST)' },
-  { value: 'America/New_York', label: 'New York (EST/EDT)' },
-  { value: 'America/Los_Angeles', label: 'Los Angeles (PST/PDT)' },
-  { value: 'UTC', label: 'UTC' },
-];
 
 export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
   currentTimezone,
@@ -26,7 +18,7 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
   const [selectedTimezone, setSelectedTimezone] = useState(currentTimezone);
   const [isSaving, setIsSaving] = useState(false);
 
-  const currentTimezoneLabel = TIMEZONE_OPTIONS.find(tz => tz.value === currentTimezone)?.label || currentTimezone;
+  const currentTimezoneLabel = COMPREHENSIVE_TIMEZONES.find(tz => tz.value === currentTimezone)?.label || currentTimezone;
   
   const getCurrentTime = () => {
     try {
@@ -118,7 +110,7 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {TIMEZONE_OPTIONS.map((option) => (
+                  {COMPREHENSIVE_TIMEZONES.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
