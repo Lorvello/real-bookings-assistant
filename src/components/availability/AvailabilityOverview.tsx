@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Edit2, Plus } from 'lucide-react';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 import { SingleDayEditModal } from './SingleDayEditModal';
-import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
+import { SetupWizard } from './setup/SetupWizard';
 
 interface AvailabilityOverviewProps {
   onChange?: () => void;

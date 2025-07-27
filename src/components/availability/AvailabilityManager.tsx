@@ -6,7 +6,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendars } from '@/hooks/useCalendars';
 import { AvailabilityTabs } from './AvailabilityTabs';
-import { AvailabilityContent } from './AvailabilityContent';
+import { AvailabilityLayout } from './AvailabilityLayout';
 import { NoCalendarSelected } from './NoCalendarSelected';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import type { Calendar } from '@/types/database';
