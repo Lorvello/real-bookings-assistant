@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -33,6 +33,13 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
 
   // OPTIMIZED: Stable timezone state
   const [localTimezone, setLocalTimezone] = useState(() => selectedCalendar?.timezone || 'UTC');
+
+  // Synchronize localTimezone with selectedCalendar timezone changes
+  useEffect(() => {
+    if (selectedCalendar?.timezone && selectedCalendar.timezone !== localTimezone) {
+      setLocalTimezone(selectedCalendar.timezone);
+    }
+  }, [selectedCalendar?.timezone]);
 
   // OPTIMIZED: Stable event handlers with useCallback to prevent re-renders
   const handleConfigureAvailability = useCallback(() => {
@@ -83,34 +90,39 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
   }, [toast, availabilityState, refreshCalendars]);
 
   const handleTimezoneChange = useCallback(async (newTimezone: string) => {
+    if (!selectedCalendar) return;
+    
+    const previousTimezone = localTimezone;
+    
     try {
+      // Optimistic UI update
       setLocalTimezone(newTimezone);
       
-      if (selectedCalendar) {
-        const { error } = await supabase
-          .from('calendars')
-          .update({ timezone: newTimezone })
-          .eq('id', selectedCalendar.id);
+      const { error } = await supabase
+        .from('calendars')
+        .update({ timezone: newTimezone })
+        .eq('id', selectedCalendar.id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        await refreshCalendars();
-        
-        toast({
-          title: "Timezone updated",
-          description: `Calendar timezone changed to ${newTimezone}`,
-        });
-      }
+      // Refresh calendars to sync state
+      await refreshCalendars();
+      
+      toast({
+        title: "Timezone updated",
+        description: `Calendar timezone changed to ${newTimezone}`,
+      });
     } catch (error) {
       console.error('Error updating timezone:', error);
-      setLocalTimezone(selectedCalendar?.timezone || 'UTC');
+      // Revert to previous timezone on error
+      setLocalTimezone(previousTimezone);
       toast({
         title: "Error",
         description: "Failed to update timezone. Please try again.",
         variant: "destructive",
       });
     }
-  }, [selectedCalendar?.id, refreshCalendars, toast]);
+  }, [selectedCalendar?.id, localTimezone, refreshCalendars, toast]);
 
   // OPTIMIZED: Simplified loading state
   if (availabilityState.setupState === 'checking' || availabilityState.isRefreshing) {
@@ -183,7 +195,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
         {/* Timezone display sidebar */}
         <div className="lg:col-span-1">
           <TimezoneDisplay 
-            currentTimezone={selectedCalendar?.timezone || 'UTC'}
+            currentTimezone={localTimezone}
             onTimezoneChange={handleTimezoneChange}
           />
         </div>
