@@ -53,7 +53,6 @@ export function CreateCalendarDialog({
   const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
   const [newCalendar, setNewCalendar] = useState({
     name: '',
-    description: '',
     color: '#3B82F6',
     location: ''
   });
@@ -125,7 +124,7 @@ export function CreateCalendarDialog({
 
       await createCalendar({
         name: newCalendar.name,
-        description: newCalendar.description,
+        description: '',
         color: newCalendar.color,
         location: newCalendar.location,
         serviceTypes: selectedServiceTypes,
@@ -135,7 +134,6 @@ export function CreateCalendarDialog({
       // Reset form
       setNewCalendar({ 
         name: '', 
-        description: '', 
         color: '#3B82F6',
         location: ''
       });
@@ -264,15 +262,6 @@ export function CreateCalendarDialog({
                 </p>
               </div>
               
-              <div>
-                <Label htmlFor="calendar-description">Description</Label>
-                <Textarea
-                  id="calendar-description"
-                  placeholder="For which team member, location, or service is this calendar?"
-                  value={newCalendar.description}
-                  onChange={(e) => setNewCalendar(prev => ({ ...prev, description: e.target.value }))}
-                />
-              </div>
             </div>
 
             {/* Additional Information */}
