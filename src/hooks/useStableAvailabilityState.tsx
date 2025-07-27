@@ -18,20 +18,26 @@ export const useStableAvailabilityState = () => {
   const defaultSchedule = schedules.find(s => s.is_default) || schedules[0];
   const { rules, loading: rulesLoading } = useAvailabilityRules(defaultSchedule?.id);
 
-  // SINGLE state object to prevent cascading updates
-  const [state, setState] = useState<AvailabilityState>({
-    setupState: 'checking',
-    configurationExists: false,
-    isRefreshing: false,
-    hasDefaultSchedule: false,
-    selectedCalendar: null,
-    defaultSchedule: null
+  // Cache to prevent unnecessary recalculations
+  const lastConfigStateRef = useRef<string>('');
+
+  // Initialize with proper state instead of always 'checking'
+  const [state, setState] = useState<AvailabilityState>(() => {
+    const hasCalendar = !!selectedCalendar && !viewingAllCalendars;
+    return {
+      setupState: hasCalendar ? 'needs_config' : 'needs_calendar',
+      configurationExists: false,
+      isRefreshing: false,
+      hasDefaultSchedule: false,
+      selectedCalendar,
+      defaultSchedule: null
+    };
   });
 
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  // OPTIMIZED: Single effect that computes final state once
+  // Combined effect to compute state with caching
   useEffect(() => {
     // Skip state computation during loading to prevent intermediate states
     if (schedulesLoading || rulesLoading) return;
@@ -40,6 +46,16 @@ export const useStableAvailabilityState = () => {
     const hasSchedule = !!defaultSchedule;
     const hasRules = rules.length > 0;
     const isConfigured = hasCalendar && hasSchedule && hasRules;
+
+    // Create cache key to prevent unnecessary updates
+    const configKey = `${hasCalendar}-${hasSchedule}-${hasRules}-${selectedCalendar?.id}`;
+    
+    // Skip if state hasn't actually changed
+    if (configKey === lastConfigStateRef.current && !state.isRefreshing) {
+      return;
+    }
+    
+    lastConfigStateRef.current = configKey;
 
     let newSetupState: AvailabilityState['setupState'];
     if (!hasCalendar) {
@@ -54,29 +70,21 @@ export const useStableAvailabilityState = () => {
     const newState: AvailabilityState = {
       setupState: newSetupState,
       configurationExists: isConfigured,
-      isRefreshing: false,
+      isRefreshing: false, // Always reset refreshing state
       hasDefaultSchedule: hasSchedule,
       selectedCalendar,
       defaultSchedule
     };
 
-    // Only update if state actually changed (simpler comparison)
-    const stateChanged = 
-      newState.setupState !== stateRef.current.setupState ||
-      newState.configurationExists !== stateRef.current.configurationExists ||
-      newState.hasDefaultSchedule !== stateRef.current.hasDefaultSchedule ||
-      newState.selectedCalendar?.id !== stateRef.current.selectedCalendar?.id;
-
-    if (stateChanged) {
-      setState(newState);
-    }
+    setState(newState);
   }, [
     selectedCalendar?.id,
     viewingAllCalendars,
     schedules.length,
     rules.length,
     schedulesLoading,
-    rulesLoading
+    rulesLoading,
+    state.isRefreshing
   ]);
 
   // Memoized refresh function to prevent re-renders
@@ -84,34 +92,12 @@ export const useStableAvailabilityState = () => {
     setRefreshing: (refreshing: boolean) => 
       setState(prev => ({ ...prev, isRefreshing: refreshing })),
     forceCheck: () => {
-      // Force immediate re-evaluation by clearing state first
-      setState(prev => ({ ...prev, setupState: 'checking' }));
-      // Trigger a new computation on next tick
-      setTimeout(() => {
-        const hasCalendar = !!selectedCalendar && !viewingAllCalendars;
-        const hasSchedule = !!defaultSchedule;
-        const hasRules = rules.length > 0;
-        const isConfigured = hasCalendar && hasSchedule && hasRules;
-
-        let newSetupState: AvailabilityState['setupState'];
-        if (!hasCalendar) {
-          newSetupState = 'needs_calendar';
-        } else if (!hasSchedule || !hasRules) {
-          newSetupState = 'needs_config';
-        } else {
-          newSetupState = 'configured';
-        }
-
-        setState(prev => ({
-          ...prev,
-          setupState: newSetupState,
-          configurationExists: isConfigured,
-          hasDefaultSchedule: hasSchedule,
-          isRefreshing: false
-        }));
-      }, 50);
+      // Clear cache to force re-evaluation
+      lastConfigStateRef.current = '';
+      // Trigger immediate refresh without race conditions
+      setState(prev => ({ ...prev, isRefreshing: true }));
     }
-  }), [selectedCalendar, viewingAllCalendars, defaultSchedule, rules.length]);
+  }), []);
 
   return {
     ...state,

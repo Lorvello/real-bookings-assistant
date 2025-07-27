@@ -62,16 +62,14 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
       // Force refresh calendars and availability data
       await refreshCalendars();
       
-      // Small delay to ensure data is fresh, then force state refresh
-      setTimeout(() => {
-        availabilityState.forceCheck();
-      }, 100);
+      // Immediately close modal and force state refresh without race conditions
+      setIsGuidedModalOpen(false);
+      availabilityState.forceCheck();
       
       toast({
         title: "Availability configured!",
         description: "Your availability schedule has been set up successfully.",
       });
-      setIsGuidedModalOpen(false);
     } catch (error) {
       console.error('Error completing setup:', error);
       toast({
