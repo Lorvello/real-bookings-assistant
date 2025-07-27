@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTimezoneManager } from '@/hooks/availability/useTimezoneManager';
-import { COMPREHENSIVE_TIMEZONES } from '../TimezoneData';
+import { COMPREHENSIVE_TIMEZONES } from '@/data/timezones';
 
 interface TimezoneSelectorProps {
   onTimezoneChange?: (timezone: string) => void;

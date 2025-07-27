@@ -107,15 +107,28 @@ export const useAvailabilityManager = () => {
     return schedule;
   }, []);
 
-  // Helper to get day key from index
+  // Helper to get day key from index - PostgreSQL uses 1=Monday, 7=Sunday
   const getDayKeyFromIndex = (index: number): string | null => {
     const day = DAYS_OF_WEEK.find(d => d.index === index);
     return day?.key || null;
   };
 
-  // Save weekly schedule
-  const saveWeeklySchedule = useCallback(async (weeklySchedule: WeeklySchedule) => {
-    if (!selectedCalendar?.id) return false;
+  // Helper to get database index from day key
+  const getDayIndexFromKey = (dayKey: string): number => {
+    const day = DAYS_OF_WEEK.find(d => d.key === dayKey);
+    return day?.index || 1;
+  };
+
+  // Save weekly schedule - use current state
+  const saveWeeklySchedule = useCallback(async (): Promise<boolean> => {
+    if (!selectedCalendar?.id) {
+      toast({
+        title: "Error",
+        description: "No calendar selected",
+        variant: "destructive",
+      });
+      return false;
+    }
 
     setState(prev => ({ ...prev, saving: true, error: null }));
 
@@ -146,8 +159,8 @@ export const useAvailabilityManager = () => {
 
       if (deleteError) throw deleteError;
 
-      // Create new rules
-      const rules = Object.entries(weeklySchedule).flatMap(([dayKey, dayData]) => {
+      // Create new rules based on current state
+      const rules = Object.entries(state.weeklySchedule).flatMap(([dayKey, dayData]) => {
         const dayIndex = DAYS_OF_WEEK.find(d => d.key === dayKey)?.index;
         if (!dayIndex) return [];
 
@@ -178,7 +191,6 @@ export const useAvailabilityManager = () => {
 
       setState(prev => ({
         ...prev,
-        weeklySchedule,
         saving: false,
       }));
 

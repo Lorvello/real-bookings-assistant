@@ -21,7 +21,7 @@ export const WeeklySchedule: React.FC<WeeklyScheduleComponentProps> = ({
   const { saving, saveWeeklySchedule, updateDayAvailability } = useAvailabilityManager();
 
   const handleSave = async () => {
-    const success = await saveWeeklySchedule(weeklySchedule);
+    const success = await saveWeeklySchedule();
     if (success && onSave) {
       onSave();
     }

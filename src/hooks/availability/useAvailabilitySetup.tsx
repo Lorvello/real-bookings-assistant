@@ -64,7 +64,7 @@ export const useAvailabilitySetup = () => {
 
     try {
       // Save the weekly schedule
-      const success = await availabilityManager.saveWeeklySchedule(availabilityManager.weeklySchedule);
+      const success = await availabilityManager.saveWeeklySchedule();
       
       if (success) {
         // Refresh availability data
