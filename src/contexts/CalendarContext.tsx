@@ -101,9 +101,6 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
       const result = await refetch();
       console.log('Calendars refreshed successfully, result:', result);
       
-      // Wait a bit for state to propagate
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       return result;
     } catch (error) {
       console.error('Error refreshing calendars:', error);

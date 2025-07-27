@@ -69,6 +69,11 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
       // Force refresh calendars and availability data
       await refreshCalendars();
       
+      // Force localTimezone sync after refresh
+      if (selectedCalendar?.timezone) {
+        setLocalTimezone(selectedCalendar.timezone);
+      }
+      
       // Immediately close modal and force state refresh without race conditions
       setIsGuidedModalOpen(false);
       availabilityState.forceCheck();
@@ -87,7 +92,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     } finally {
       setIsCompletingSetup(false);
     }
-  }, [toast, availabilityState, refreshCalendars]);
+  }, [toast, availabilityState, refreshCalendars, selectedCalendar?.timezone]);
 
   const handleTimezoneChange = useCallback(async (newTimezone: string) => {
     if (!selectedCalendar) return;
@@ -173,6 +178,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
             onClose={() => setIsGuidedModalOpen(false)}
             onComplete={handleGuidedComplete}
             selectedCalendar={selectedCalendar ? { id: selectedCalendar.id, timezone: selectedCalendar.timezone } : undefined}
+            refreshCalendars={refreshCalendars}
           />
 
           <CreateCalendarDialog
@@ -206,6 +212,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
           onComplete={handleGuidedComplete}
           editMode={true}
           selectedCalendar={selectedCalendar ? { id: selectedCalendar.id, timezone: selectedCalendar.timezone } : undefined}
+          refreshCalendars={refreshCalendars}
         />
       </div>
     );

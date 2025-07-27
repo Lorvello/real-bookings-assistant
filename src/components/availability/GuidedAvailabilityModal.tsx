@@ -19,6 +19,7 @@ interface GuidedAvailabilityModalProps {
   startDay?: number | null;
   editMode?: boolean;
   selectedCalendar?: { id: string; timezone: string };
+  refreshCalendars?: () => Promise<any> | void;
 }
 
 interface TimeBlock {
@@ -39,7 +40,8 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   onComplete,
   startDay = null,
   editMode = false,
-  selectedCalendar
+  selectedCalendar,
+  refreshCalendars
 }) => {
   // Get DAYS first from the hook
   const { DAYS, syncToDatabase, createDefaultSchedule, defaultSchedule, availability: existingAvailability, setAvailability } = useDailyAvailabilityManager(() => {});
@@ -215,6 +217,11 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       // Execute all saves in parallel
       await Promise.all(savePromises);
       console.log('✅ All data saved successfully');
+      
+      // Refresh calendars to ensure state is synchronized
+      if (refreshCalendars) {
+        await refreshCalendars();
+      }
       
       toast({
         title: "Configuration Saved",
