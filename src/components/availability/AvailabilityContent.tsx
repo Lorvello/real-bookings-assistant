@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Clock, Settings } from 'lucide-react';
 import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
-// Removed TimezoneSelector import as it doesn't exist
+import { TimezoneDisplay } from './TimezoneDisplay';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -59,6 +59,9 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     try {
       setIsCompletingSetup(true);
       
+      // Force refresh availability state
+      availabilityState.forceCheck();
+      
       toast({
         title: "Availability configured!",
         description: "Your availability schedule has been set up successfully.",
@@ -74,7 +77,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     } finally {
       setIsCompletingSetup(false);
     }
-  }, [toast]);
+  }, [toast, availabilityState]);
 
   const handleTimezoneChange = useCallback(async (newTimezone: string) => {
     try {
@@ -168,10 +171,19 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
 
     // OPTIMIZED: Direct rendering of configured state
     return (
-      <div className="space-y-6">
-        <AvailabilityOverview onChange={() => {}} />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Main availability overview */}
+        <div className="lg:col-span-3">
+          <AvailabilityOverview onChange={() => {}} />
+        </div>
         
-        {/* Timezone selector temporarily removed */}
+        {/* Timezone display sidebar */}
+        <div className="lg:col-span-1">
+          <TimezoneDisplay 
+            currentTimezone={selectedCalendar?.timezone || 'UTC'}
+            onTimezoneChange={handleTimezoneChange}
+          />
+        </div>
 
         <GuidedAvailabilityModal
           isOpen={isGuidedModalOpen}

@@ -328,19 +328,13 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     }
   };
 
-  // OPTIMIZED: Fast refresh for immediate UI updates after guided setup
+  // SIMPLIFIED: Instant refresh for immediate UI updates after guided setup
   const forceRefresh = async () => {
     console.log('🔄 Force refreshing availability data...');
     
     try {
-      // OPTIMIZED: Minimal delay for database operations to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       // Directly fetch fresh data from database
       await refreshRules();
-      
-      // OPTIMIZED: Reduced settle time for faster UI response
-      await new Promise(resolve => setTimeout(resolve, 50));
       
       // Trigger dependent updates
       onChange();

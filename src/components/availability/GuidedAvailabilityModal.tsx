@@ -173,100 +173,53 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   };
 
   const handleComplete = async () => {
+    if (!selectedCalendar) {
+      toast({
+        title: "Setup Error",
+        description: "No calendar selected. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsCompleting(true);
     
     try {
       console.log('🚀 Starting availability configuration save...');
       
-      // STEP 1: Update the main availability manager with our local changes
-      console.log('📋 Syncing local availability to manager...');
-      setAvailability(localAvailability);
+      // SIMPLIFIED: Single batch operation to save everything
+      const savePromises = [];
       
-      // STEP 2: Ensure default schedule exists before saving availability
+      // Ensure default schedule exists
       console.log('📋 Ensuring default schedule exists...');
-      let schedule;
-      try {
-        schedule = await createDefaultSchedule();
-        console.log('✅ Default schedule verified/created:', schedule?.id);
-        
-        // Reduced delay for better UX
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (scheduleError) {
-        console.error('❌ Failed to create/verify default schedule:', scheduleError);
-        throw new Error(`Failed to prepare schedule: ${scheduleError.message}`);
-      }
+      const schedule = await createDefaultSchedule();
       
-      // Verify we have a valid schedule
       if (!schedule?.id && !defaultSchedule?.id) {
-        throw new Error('No valid schedule ID available after creation');
+        throw new Error('Failed to create or find default schedule');
       }
       
-      // STEP 3: Validate availability data before saving
-      console.log('🔍 Validating availability data...');
-      const validDays = DAYS.filter(day => {
+      // Batch save all availability rules
+      console.log(`📝 Saving availability for all days...`);
+      const validDays = DAYS.filter(day => localAvailability[day.key]);
+      
+      for (const day of validDays) {
         const dayData = localAvailability[day.key];
-        if (!dayData) {
-          console.warn(`⚠️ No data for ${day.key}`);
-          return false;
-        }
-        return true;
-      });
-      
-      if (validDays.length === 0) {
-        throw new Error('No valid availability data to save');
+        savePromises.push(syncToDatabase(day.key, dayData, schedule));
       }
       
-      console.log(`📝 Saving availability for ${validDays.length} days...`);
-      
-      // STEP 4: Batch save availability data for better performance
-      try {
-        const savePromises = validDays.map(async (day) => {
-          const dayData = localAvailability[day.key];
-          console.log(`💾 Saving ${day.key}:`, dayData);
-          await syncToDatabase(day.key, dayData, schedule);
-          console.log(`✅ Successfully saved ${day.key}`);
-          return day.key;
-        });
-        
-        await Promise.all(savePromises);
-        console.log('✅ All availability data saved successfully');
-      } catch (error) {
-        console.error('❌ Failed to save availability data:', error);
-        throw new Error(`Failed to save availability: ${error.message}`);
+      // Save timezone if changed
+      if (timezone && timezone !== selectedCalendar.timezone) {
+        savePromises.push(saveTimezone());
       }
       
-      // STEP 5: Save timezone to database (parallel with verification)
-      const timezonePromise = saveTimezone().catch(timezoneError => {
-        console.error('❌ Timezone save failed:', timezoneError);
-        // Don't fail the entire process for timezone errors
-      });
-      
-      // STEP 6: Verify data was actually saved by querying database (parallel)
-      const verificationPromise = (async () => {
-        console.log('🔍 Verifying data was saved to database...');
-        const { data: verifyRules, error: verifyError } = await supabase
-          .from('availability_rules')
-          .select('*')
-          .eq('schedule_id', schedule?.id || defaultSchedule?.id);
-          
-        if (verifyError) throw verifyError;
-        
-        console.log('📊 Saved rules verification:', verifyRules);
-        
-        if (!verifyRules || verifyRules.length === 0) {
-          throw new Error('Data verification failed: no rules found in database after save');
-        }
-      })();
-      
-      // Wait for both timezone and verification to complete
-      await Promise.all([timezonePromise, verificationPromise]);
+      // Execute all saves in parallel
+      await Promise.all(savePromises);
+      console.log('✅ All data saved successfully');
       
       toast({
         title: "Configuration Saved",
         description: "Your availability and timezone have been saved successfully.",
       });
-      
-      console.log('🎉 Configuration save completed and verified successfully');
       onComplete();
       
     } catch (error) {
