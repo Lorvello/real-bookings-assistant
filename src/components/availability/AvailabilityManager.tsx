@@ -77,11 +77,7 @@ export const AvailabilityManager = () => {
         onTabChange={setActiveTab}
       />
 
-      <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-4">
-        <AvailabilityContent
-          activeTab={activeTab}
-        />
-      </div>
+      <AvailabilityLayout />
     </div>
   );
 };

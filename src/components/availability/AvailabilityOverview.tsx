@@ -222,12 +222,10 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
       )}
 
       {/* Guided Reconfiguration Modal */}
-      <GuidedAvailabilityModal
+      <SetupWizard
         isOpen={isGuidedModalOpen}
         onClose={() => setIsGuidedModalOpen(false)}
         onComplete={handleGuidedComplete}
-        editMode={true}
-        selectedCalendar={defaultCalendar ? { id: defaultCalendar.id, timezone: defaultCalendar.timezone } : undefined}
       />
     </div>
   );
