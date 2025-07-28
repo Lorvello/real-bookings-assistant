@@ -75,21 +75,21 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
         };
       }
       
-      // Booking Assistant tab is always clickable (no lock icon)
+      // Booking Assistant tab: Lock during setup incomplete
       if (item.href === '/whatsapp-booking-assistant') {
         return {
           ...item,
           isActive,
-          isRestricted: false
+          isRestricted: userStatus.isSetupIncomplete
         };
       }
 
-      // Test AI Agent tab is always clickable (no lock icon)
+      // Test AI Agent tab: Lock during setup incomplete
       if (item.href === '/test-ai-agent') {
         return {
           ...item,
           isActive,
-          isRestricted: false
+          isRestricted: userStatus.isSetupIncomplete
         };
       }
       
@@ -134,15 +134,35 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
       return;
     }
     
-    // Booking Assistant tab is always clickable - let the page handle upgrade display
+    // Booking Assistant tab: Show setup message if incomplete
     if (item.href === '/whatsapp-booking-assistant') {
+      if (userStatus.isSetupIncomplete) {
+        toast({
+          title: "Setup Required",
+          description: "Complete your account setup to access this feature.",
+          variant: "destructive",
+        });
+        onNavigate('/settings');
+        onMobileNavigate?.();
+        return;
+      }
       onNavigate(item.href);
       onMobileNavigate?.();
       return;
     }
     
-    // Test AI Agent tab is always clickable - no restrictions
+    // Test AI Agent tab: Show setup message if incomplete
     if (item.href === '/test-ai-agent') {
+      if (userStatus.isSetupIncomplete) {
+        toast({
+          title: "Setup Required",
+          description: "Complete your account setup to access this feature.",
+          variant: "destructive",
+        });
+        onNavigate('/settings');
+        onMobileNavigate?.();
+        return;
+      }
       onNavigate(item.href);
       onMobileNavigate?.();
       return;
@@ -197,9 +217,11 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
           `}
           title={
             item.isRestricted 
-              ? userStatus.isSetupIncomplete 
-                ? `${item.name} - Setup required` 
-                : `${item.name} - Upgrade required`
+              ? (item.href === '/whatsapp-booking-assistant' || item.href === '/test-ai-agent') && userStatus.isSetupIncomplete
+                ? `${item.name} - Complete setup to access this feature`
+                : userStatus.isSetupIncomplete 
+                  ? `${item.name} - Setup required` 
+                  : `${item.name} - Upgrade required`
               : item.name
           }
         >
