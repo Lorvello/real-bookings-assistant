@@ -15,6 +15,9 @@ import Testing from '@/pages/Testing';
 import NotFound from '@/pages/NotFound';
 import Settings from '@/pages/Settings';
 import Availability from '@/pages/Availability';
+import { ConfigureAvailability } from '@/components/availability/ConfigureAvailability';
+import { ManageAvailability } from '@/components/availability/ManageAvailability';
+import { DateOverridesPage } from '@/components/availability/DateOverridesPage';
 import Conversations from '@/pages/Conversations';
 import ConversationDetail from '@/pages/ConversationDetail';
 import SeeHowItWorks from '@/pages/SeeHowItWorks';
@@ -67,6 +70,9 @@ function App() {
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/bookings" element={<Bookings />} />
                 <Route path="/availability" element={<Availability />} />
+                <Route path="/availability/configure" element={<ConfigureAvailability />} />
+                <Route path="/availability/schedule" element={<ManageAvailability />} />
+                <Route path="/availability/overrides" element={<DateOverridesPage />} />
                 <Route path="/conversations" element={<Conversations />} />
                 <Route path="/conversations/:id" element={<ConversationDetail />} />
                 <Route path="/whatsapp-booking-assistant" element={<WhatsAppBookingAssistantPage />} />
