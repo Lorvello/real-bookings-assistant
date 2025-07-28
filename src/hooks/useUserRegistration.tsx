@@ -62,6 +62,7 @@ export const useUserRegistration = () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
+        phone: data.phone || undefined,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
