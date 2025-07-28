@@ -7,7 +7,7 @@ import { TodaysScheduleCard } from '@/components/dashboard/TodaysScheduleCard';
 import { AiBotStatusCard } from '@/components/dashboard/AiBotStatusCard';
 import { useConversationCalendar } from '@/contexts/ConversationCalendarContext';
 import { useCalendars } from '@/hooks/useCalendars';
-import { Calendar, Plus } from 'lucide-react';
+import { CalendarRequiredEmptyState } from '@/components/ui/CalendarRequiredEmptyState';
 
 export default function WhatsAppBookingDashboard() {
   const { selectedCalendarId } = useConversationCalendar();
@@ -18,21 +18,10 @@ export default function WhatsAppBookingDashboard() {
 
   if (!currentCalendarId) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Card className="max-w-md">
-          <CardContent className="p-6 text-center">
-            <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-medium mb-2">Geen kalender gevonden</h3>
-            <p className="text-muted-foreground mb-4">
-              Maak eerst een kalender aan om te beginnen.
-            </p>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Kalender aanmaken
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <CalendarRequiredEmptyState
+        title="Connect WhatsApp to Your Calendar"
+        description="Create a calendar first to enable WhatsApp booking functionality for your business."
+      />
     );
   }
 

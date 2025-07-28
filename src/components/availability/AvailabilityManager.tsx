@@ -7,7 +7,7 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendars } from '@/hooks/useCalendars';
 import { AvailabilityTabs } from './AvailabilityTabs';
 import { AvailabilityContent } from './AvailabilityContent';
-import { NoCalendarSelected } from './NoCalendarSelected';
+import { CalendarRequiredEmptyState } from '@/components/ui/CalendarRequiredEmptyState';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import type { Calendar } from '@/types/database';
 
@@ -55,18 +55,24 @@ export const AvailabilityManager = () => {
     );
   }
 
+  // Show message when no calendars exist
+  if (calendars.length === 0) {
+    return (
+      <CalendarRequiredEmptyState
+        title="Set Up Your Availability"
+        description="Create a calendar first to configure your booking availability and schedule."
+      />
+    );
+  }
+
   // Show message when no calendar is selected
   if (!selectedCalendar) {
     return (
-      <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
-        <div className="text-center space-y-4">
-          <div className="text-2xl">📅</div>
-          <h2 className="text-xl font-semibold text-foreground">No calendar selected</h2>
-          <p className="text-muted-foreground">
-            Please select a calendar to manage its availability settings.
-          </p>
-        </div>
-      </div>
+      <CalendarRequiredEmptyState
+        title="Select a Calendar"
+        description="Choose a calendar to manage its availability settings."
+        showCreateButton={false}
+      />
     );
   }
 
