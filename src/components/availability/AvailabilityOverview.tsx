@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Edit2, Plus } from 'lucide-react';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 import { SingleDayEditModal } from './SingleDayEditModal';
 import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
 
@@ -21,6 +22,12 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
     defaultCalendar,
     defaultSchedule
   } = useDailyAvailabilityManager(onChange || (() => {}));
+
+  // Get refreshCalendars from CalendarContext
+  const { refreshCalendars } = useCalendarContext();
+  
+  console.log('🔍 AvailabilityOverview: refreshCalendars function available:', !!refreshCalendars);
+  console.log('🔍 AvailabilityOverview: refreshCalendars type:', typeof refreshCalendars);
 
   const handleEditDay = (dayIndex: number) => {
     setEditDay(dayIndex);
@@ -228,6 +235,7 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
         onComplete={handleGuidedComplete}
         editMode={true}
         selectedCalendar={defaultCalendar ? { id: defaultCalendar.id, timezone: defaultCalendar.timezone } : undefined}
+        refreshCalendars={refreshCalendars}
       />
     </div>
   );
