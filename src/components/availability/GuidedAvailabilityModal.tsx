@@ -86,15 +86,24 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   const progress = (currentStep / totalSteps) * 100;
 
   const isCurrentDayComplete = () => {
-    if (currentStep >= DAYS.length) return true;
-    const currentDay = DAYS[currentStep];
-    const dayData = localAvailability[currentDay.key];
+    // If we're on a day configuration step
+    if (currentStep < DAYS.length) {
+      const currentDay = DAYS[currentStep];
+      const dayData = localAvailability[currentDay.key];
+      
+      if (!dayData.enabled) return true;
+      
+      return dayData.timeBlocks.every(block => 
+        block.startTime && block.endTime && block.startTime < block.endTime
+      );
+    }
     
-    if (!dayData.enabled) return true;
+    // If we're on the timezone step, validate timezone is selected
+    if (currentStep === DAYS.length) {
+      return timezone && timezone.length > 0;
+    }
     
-    return dayData.timeBlocks.every(block => 
-      block.startTime && block.endTime && block.startTime < block.endTime
-    );
+    return true;
   };
 
   const handleDayToggle = (dayKey: string, enabled: boolean) => {
