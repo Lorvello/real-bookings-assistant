@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { AvailabilityRouter } from '@/components/availability/AvailabilityRouter';
+import { AvailabilityManager } from '@/components/availability/AvailabilityManager';
 
 const Availability = () => {
-  return <AvailabilityRouter />;
+  return <AvailabilityManager />;
 };
 
 export default Availability;
