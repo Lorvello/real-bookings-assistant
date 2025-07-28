@@ -315,6 +315,10 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       // Call onComplete ONLY after refresh is done
       onComplete();
       
+      // CRITICAL: Force page refresh to show updated data immediately
+      // This mirrors the successful pattern from single day edits
+      setTimeout(() => navigate(0), 100);
+      
     } catch (error) {
       console.error('❌ Error saving availability configuration:', error);
       
