@@ -115,6 +115,9 @@ export const UserManagement = ({
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValues, setTempValues] = useState<any>({});
   const [saving, setSaving] = useState<string | null>(null);
+  
+  // Optimistic updates - local state that updates immediately
+  const [optimisticProfile, setOptimisticProfile] = useState<any>(null);
 
   // Stabilize refetch function
   const stableRefetch = useCallback(() => {
@@ -306,12 +309,26 @@ export const UserManagement = ({
 
   const saveField = async (field: string) => {
     setSaving(field);
+    
+    // Optimistic update - immediately show the change
+    setOptimisticProfile(prev => ({ 
+      ...prev, 
+      [field]: tempValues[field] 
+    }));
+    
     try {
       await updateProfile({ [field]: tempValues[field] });
       // Only clear editing state after successful update
       setEditingField(null);
       setTempValues({});
     } catch (error) {
+      // Revert optimistic update on error
+      setOptimisticProfile(prev => {
+        const reverted = { ...prev };
+        delete reverted[field];
+        return Object.keys(reverted).length > 0 ? reverted : null;
+      });
+      
       toast({
         title: "Error updating profile",
         description: "Could not update your profile",
@@ -324,6 +341,12 @@ export const UserManagement = ({
 
   // Auto-save with debouncing for certain fields
   const handleAutoSave = useCallback(async (field: string, value: any) => {
+    // Immediate optimistic update
+    setOptimisticProfile(prev => ({ 
+      ...prev, 
+      [field]: value 
+    }));
+    
     // Clear existing timer
     if (debounceTimer) {
       clearTimeout(debounceTimer);
@@ -337,6 +360,14 @@ export const UserManagement = ({
         // Success toast is now handled in updateProfile after UI refresh
       } catch (error) {
         console.error('Profile update error:', error);
+        
+        // Revert optimistic update on error
+        setOptimisticProfile(prev => {
+          const reverted = { ...prev };
+          delete reverted[field];
+          return Object.keys(reverted).length > 0 ? reverted : null;
+        });
+        
         toast({
           title: "Error updating profile",
           description: "Could not update your profile",
@@ -360,7 +391,9 @@ export const UserManagement = ({
   }, [debounceTimer]);
 
   // Use external data if provided, otherwise use profile data
-  const currentProfile = externalProfileData || profile;
+  // Apply optimistic updates on top of the base profile
+  const baseProfile = externalProfileData || profile;
+  const currentProfile = optimisticProfile ? { ...baseProfile, ...optimisticProfile } : baseProfile;
   const currentBusinessData = externalBusinessData || {
     business_name: profile?.business_name || '',
     business_type: profile?.business_type || ''
@@ -506,9 +539,14 @@ export const UserManagement = ({
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Full Name</Label>
                       {editingField === 'full_name' ? (
                         <div className="flex items-center gap-2">
-                          <Input
+                           <Input
                             value={tempValues.full_name || ''}
-                            onChange={(e) => setTempValues({ ...tempValues, full_name: e.target.value })}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              setTempValues({ ...tempValues, full_name: newValue });
+                              // Immediate optimistic update while typing
+                              setOptimisticProfile(prev => ({ ...prev, full_name: newValue }));
+                            }}
                             className="bg-gray-800 border-gray-700 text-white"
                             autoFocus
                           />
@@ -544,10 +582,15 @@ export const UserManagement = ({
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Email</Label>
                       {editingField === 'email' ? (
                         <div className="flex items-center gap-2">
-                          <Input
+                           <Input
                             type="email"
                             value={tempValues.email || ''}
-                            onChange={(e) => setTempValues({ ...tempValues, email: e.target.value })}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              setTempValues({ ...tempValues, email: newValue });
+                              // Immediate optimistic update while typing
+                              setOptimisticProfile(prev => ({ ...prev, email: newValue }));
+                            }}
                             className="bg-gray-800 border-gray-700 text-white"
                             autoFocus
                           />

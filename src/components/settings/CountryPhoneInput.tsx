@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { SearchableSelect } from './SearchableSelect';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -93,18 +93,28 @@ interface CountryPhoneInputProps {
 }
 
 export function CountryPhoneInput({ value = '', onChange, className, disabled }: CountryPhoneInputProps) {
-  // Parse the current value to extract country and number
-  const [selectedCountry, localNumber] = useMemo(() => {
-    if (!value) return ['NL', ''];
+  // Local state for immediate UI updates
+  const [localSelectedCountry, setLocalSelectedCountry] = useState<string>('NL');
+  const [localNumber, setLocalNumber] = useState<string>('');
+
+  // Initialize and sync with external value
+  useEffect(() => {
+    if (!value) {
+      setLocalSelectedCountry('NL');
+      setLocalNumber('');
+      return;
+    }
     
     // Find matching country by calling code
     const country = COUNTRIES.find(c => value.startsWith(c.callingCode));
     if (country) {
-      return [country.code, value.substring(country.callingCode.length)];
+      setLocalSelectedCountry(country.code);
+      setLocalNumber(value.substring(country.callingCode.length));
+    } else {
+      // Default to Netherlands if no match
+      setLocalSelectedCountry('NL');
+      setLocalNumber(value.startsWith('+') ? value.substring(3) : value);
     }
-    
-    // Default to Netherlands if no match
-    return ['NL', value.startsWith('+') ? value.substring(3) : value];
   }, [value]);
 
   const countryOptions = COUNTRIES.map(country => ({
@@ -116,6 +126,8 @@ export function CountryPhoneInput({ value = '', onChange, className, disabled }:
   const handleCountryChange = (countryCode: string) => {
     const country = COUNTRIES.find(c => c.code === countryCode);
     if (country) {
+      // Update local state immediately
+      setLocalSelectedCountry(countryCode);
       const newValue = country.callingCode + localNumber;
       onChange(newValue);
     }
@@ -123,20 +135,22 @@ export function CountryPhoneInput({ value = '', onChange, className, disabled }:
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newNumber = e.target.value.replace(/[^\d]/g, ''); // Only allow digits
-    const country = COUNTRIES.find(c => c.code === selectedCountry);
+    const country = COUNTRIES.find(c => c.code === localSelectedCountry);
     if (country) {
+      // Update local state immediately for instant feedback
+      setLocalNumber(newNumber);
       const newValue = country.callingCode + newNumber;
       onChange(newValue);
     }
   };
 
-  const selectedCountryData = COUNTRIES.find(c => c.code === selectedCountry);
+  const selectedCountryData = COUNTRIES.find(c => c.code === localSelectedCountry);
 
   return (
     <div className={cn("flex gap-2", className)}>
       <div className="w-48">
         <SearchableSelect
-          value={selectedCountry}
+          value={localSelectedCountry}
           onValueChange={handleCountryChange}
           options={countryOptions}
           placeholder="Select country"
