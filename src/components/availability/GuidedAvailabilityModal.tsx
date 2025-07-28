@@ -175,14 +175,18 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     }
 
     console.log(`🔥 RECONFIGURE: Starting timezone save: ${timezone} for calendar ${selectedCalendar.id}`);
+    console.log('saveTimezoneWithVerification called with timezone state:', timezone);
     
     try {
       // STEP 1: Write to database
+      console.log('Attempting database update with timezone:', timezone);
       const { data: updateData, error: updateError } = await supabase
         .from('calendars')
         .update({ timezone })
         .eq('id', selectedCalendar.id)
         .select('id, timezone');
+
+      console.log('Database update response:', { updateData, updateError });
 
       if (updateError) {
         console.error('❌ RECONFIGURE: Database write failed:', updateError);
@@ -195,6 +199,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       }
 
       console.log('✅ RECONFIGURE: Database write successful', updateData);
+      console.log('Database confirmed timezone saved as:', updateData[0]?.timezone);
 
       // STEP 2: VERIFY the save worked
       const { data: verifyData, error: verifyError } = await supabase
@@ -216,6 +221,12 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   };
 
   const handleComplete = async () => {
+    console.log('=== HANDLECOMPLETE DEBUG START ===');
+    console.log('Selected timezone from state:', timezone);
+    console.log('Original calendar timezone:', selectedCalendar?.timezone);
+    console.log('Are they different?', timezone !== selectedCalendar?.timezone);
+    console.log('Timezone truthy?', !!timezone);
+    
     if (!selectedCalendar) {
       toast({
         title: "Setup Error",
@@ -253,12 +264,15 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       // ALWAYS save timezone during reconfigure (same as manual edit approach)
       if (timezone) {
         console.log(`🔥 RECONFIGURE: Saving timezone: ${selectedCalendar.timezone} → ${timezone}`);
+        console.log('About to call saveTimezoneWithVerification() with timezone:', timezone);
         savePromises.push(saveTimezoneWithVerification());
       } else {
         console.log(`⚠️ RECONFIGURE: No timezone selected, keeping current: ${selectedCalendar.timezone}`);
+        console.log('Timezone is falsy:', timezone);
       }
       
       // Execute all saves in parallel
+      console.log('About to execute Promise.all with', savePromises.length, 'promises');
       await Promise.all(savePromises);
       console.log('✅ All data saved successfully');
       
@@ -267,6 +281,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         console.log('🔄 RECONFIGURE: Refreshing calendar context...');
         await refreshCalendars();
         console.log('✅ RECONFIGURE: Calendar context refreshed - selectedCalendar should now have fresh timezone');
+        console.log('Updated selectedCalendar timezone should be:', selectedCalendar?.timezone);
       } else {
         console.warn('⚠️ RECONFIGURE: No refreshCalendars function provided');
       }
