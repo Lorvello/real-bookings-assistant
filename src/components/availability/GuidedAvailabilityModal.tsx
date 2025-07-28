@@ -227,6 +227,20 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     }
   };
 
+  const handleStepCompletion = async () => {
+    console.log('🎯 Starting handleStepCompletion to complete step 8...');
+    
+    // First complete step 8 by advancing currentStep to totalSteps
+    console.log('📈 Advancing to final step (8/8) - marking step 8 as complete...');
+    setCurrentStep(totalSteps);
+    
+    // Small delay to allow progress to update visually
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    console.log('🎯 Now calling handleComplete after step completion...');
+    await handleComplete();
+  };
+
   const handleComplete = async () => {
     console.log('=== HANDLECOMPLETE DEBUG START ===');
     console.log('Selected timezone from state:', timezone);
@@ -535,7 +549,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
 
             {currentStep === DAYS.length && (
               <Button
-                onClick={handleComplete}
+                onClick={handleStepCompletion}
                 disabled={isCompleting}
                 className="flex items-center space-x-2 bg-primary hover:bg-primary/90 disabled:opacity-50"
               >
