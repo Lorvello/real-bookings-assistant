@@ -116,7 +116,7 @@ export const useTeamMemberLimits = (calendarId?: string) => {
       if (!user) return 0;
       
       if (calendarId) {
-        // Count team members for specific calendar
+        // Count team members for specific calendar (only actual team members, not owner)
         const { count, error } = await supabase
           .from('calendar_members')
           .select('*', { count: 'exact', head: true })
@@ -125,7 +125,7 @@ export const useTeamMemberLimits = (calendarId?: string) => {
         if (error) throw error;
         return (count || 0) + 1; // +1 for calendar owner
       } else {
-        // Count unique team members across all user's calendars
+        // Count unique team members across all user's calendars + owner
         const { data: userCalendars } = await supabase
           .from('calendars')
           .select('id')
@@ -139,11 +139,13 @@ export const useTeamMemberLimits = (calendarId?: string) => {
           .select('user_id')
           .in('calendar_id', calendarIds);
         
-        if (!members) return 1;
+        // Only count unique team members (excluding owner) + 1 for owner
+        if (!members || members.length === 0) return 1;
         
-        // Count unique team members + owner
         const uniqueMembers = new Set(members.map(m => m.user_id));
-        return uniqueMembers.size + 1;
+        // Don't double count if owner is in calendar_members table
+        const memberCount = uniqueMembers.has(user.id) ? uniqueMembers.size : uniqueMembers.size + 1;
+        return memberCount;
       }
     },
     enabled: !!user,
