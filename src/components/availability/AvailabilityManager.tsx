@@ -6,7 +6,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendars } from '@/hooks/useCalendars';
 import { AvailabilityTabs } from './AvailabilityTabs';
-import { AvailabilityLayout } from './AvailabilityLayout';
+import { AvailabilityContent } from './AvailabilityContent';
 import { NoCalendarSelected } from './NoCalendarSelected';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import type { Calendar } from '@/types/database';
@@ -77,7 +77,11 @@ export const AvailabilityManager = () => {
         onTabChange={setActiveTab}
       />
 
-      <AvailabilityLayout />
+      <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-4">
+        <AvailabilityContent
+          activeTab={activeTab}
+        />
+      </div>
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Edit2, Plus } from 'lucide-react';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 import { SingleDayEditModal } from './SingleDayEditModal';
-import { SetupWizard } from './setup/SetupWizard';
+import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
 
 interface AvailabilityOverviewProps {
   onChange?: () => void;
@@ -222,10 +222,12 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
       )}
 
       {/* Guided Reconfiguration Modal */}
-      <SetupWizard
+      <GuidedAvailabilityModal
         isOpen={isGuidedModalOpen}
         onClose={() => setIsGuidedModalOpen(false)}
         onComplete={handleGuidedComplete}
+        editMode={true}
+        selectedCalendar={defaultCalendar ? { id: defaultCalendar.id, timezone: defaultCalendar.timezone } : undefined}
       />
     </div>
   );

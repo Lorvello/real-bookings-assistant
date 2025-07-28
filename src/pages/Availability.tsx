@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { AvailabilityLayout } from '@/components/availability/AvailabilityLayout';
+import { AvailabilityManager } from '@/components/availability/AvailabilityManager';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 
@@ -12,7 +12,7 @@ const Availability = () => {
         <div className="space-y-3 sm:space-y-4 md:space-y-6">
           <SimplePageHeader title="Availability" />
           <CalendarSwitcher />
-          <AvailabilityLayout />
+          <AvailabilityManager />
         </div>
       </div>
     </DashboardLayout>
