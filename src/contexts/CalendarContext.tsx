@@ -97,6 +97,8 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
 
   const refreshCalendars = async () => {
     console.log('🔄 CalendarContext: Starting refresh...');
+    console.log('🔍 DEBUG: refreshCalendars function called');
+    console.log('🔍 DEBUG: refreshCalendars function type:', typeof refreshCalendars);
     try {
       const result = await refetch();
       console.log('✅ CalendarContext: Calendars refreshed successfully, result:', result);

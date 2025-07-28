@@ -21,6 +21,12 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const { selectedCalendar, refreshCalendars } = useCalendarContext();
+  
+  // DEBUG: Log CalendarContext values
+  console.log('=== AVAILABILITYCONTENT CONTEXT DEBUG ===');
+  console.log('refreshCalendars from context:', refreshCalendars);
+  console.log('refreshCalendars type:', typeof refreshCalendars);
+  console.log('refreshCalendars is function?', typeof refreshCalendars === 'function');
   const { toast } = useToast();
 
   // OPTIMIZED: Single state source to prevent cascading updates
@@ -287,6 +293,15 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
           selectedCalendar={selectedCalendar ? { id: selectedCalendar.id, timezone: selectedCalendar.timezone } : undefined}
           refreshCalendars={refreshCalendars}
         />
+        {/* DEBUG: Log what we're passing to GuidedAvailabilityModal */}
+        <div style={{ display: 'none' }}>
+          {(() => {
+            console.log('=== PASSING TO GUIDEDAVAILABILITYMODAL ===');
+            console.log('refreshCalendars being passed:', refreshCalendars);
+            console.log('refreshCalendars type being passed:', typeof refreshCalendars);
+            return null;
+          })()}
+        </div>
       </div>
     );
   }
