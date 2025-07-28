@@ -111,12 +111,13 @@ export const useProfile = () => {
         return;
       }
 
+      // Fetch fresh profile data first, then show success
+      await fetchProfile();
+      
       toast({
         title: "Success",
         description: "Profile updated successfully",
       });
-
-      await fetchProfile();
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({

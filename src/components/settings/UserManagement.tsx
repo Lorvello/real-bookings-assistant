@@ -308,12 +308,9 @@ export const UserManagement = ({
     setSaving(field);
     try {
       await updateProfile({ [field]: tempValues[field] });
+      // Only clear editing state after successful update
       setEditingField(null);
       setTempValues({});
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully",
-      });
     } catch (error) {
       toast({
         title: "Error updating profile",
@@ -337,10 +334,7 @@ export const UserManagement = ({
       setSaving(field);
       try {
         await updateProfile({ [field]: value });
-        toast({
-          title: "Profile updated",
-          description: "Your profile has been updated successfully",
-        });
+        // Success toast is now handled in updateProfile after UI refresh
       } catch (error) {
         console.error('Profile update error:', error);
         toast({
@@ -351,7 +345,7 @@ export const UserManagement = ({
       } finally {
         setSaving(null);
       }
-    }, 1000); // Debounce for 1 second
+    }, 300); // Reduced debounce for faster feedback
 
     setDebounceTimer(timer);
   }, [debounceTimer, updateProfile, toast]);
@@ -585,51 +579,79 @@ export const UserManagement = ({
                     </div>
 
 
-                    {/* Phone Number with Country Code */}
+                     {/* Phone Number with Country Code */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</Label>
-                      <CountryPhoneInput
-                        value={currentProfile.phone || ''}
-                        onChange={(value) => handleAutoSave('phone', value)}
-                      />
+                      <div className="relative">
+                        <CountryPhoneInput
+                          value={currentProfile.phone || ''}
+                          onChange={(value) => handleAutoSave('phone', value)}
+                        />
+                        {saving === 'phone' && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Date of Birth with Year Selector */}
+                     {/* Date of Birth with Year Selector */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</Label>
-                      <EnhancedDatePicker
-                        value={currentProfile.date_of_birth ? new Date(currentProfile.date_of_birth) : undefined}
-                        onChange={(date) => {
-                          if (date) {
-                            handleAutoSave('date_of_birth', format(date, 'yyyy-MM-dd'));
-                          }
-                        }}
-                        placeholder="Select your date of birth"
-                      />
+                      <div className="relative">
+                        <EnhancedDatePicker
+                          value={currentProfile.date_of_birth ? new Date(currentProfile.date_of_birth) : undefined}
+                          onChange={(date) => {
+                            if (date) {
+                              handleAutoSave('date_of_birth', format(date, 'yyyy-MM-dd'));
+                            }
+                          }}
+                          placeholder="Select your date of birth"
+                        />
+                        {saving === 'date_of_birth' && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Language */}
+                     {/* Language */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Language</Label>
-                      <SearchableSelect
-                        value={currentProfile.language || 'nl'}
-                        onValueChange={(value) => handleAutoSave('language', value)}
-                        options={LANGUAGE_OPTIONS}
-                        placeholder="Select language"
-                        searchPlaceholder="Search languages..."
-                      />
+                      <div className="relative">
+                        <SearchableSelect
+                          value={currentProfile.language || 'nl'}
+                          onValueChange={(value) => handleAutoSave('language', value)}
+                          options={LANGUAGE_OPTIONS}
+                          placeholder="Select language"
+                          searchPlaceholder="Search languages..."
+                        />
+                        {saving === 'language' && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Timezone */}
+                     {/* Timezone */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Timezone</Label>
-                      <SearchableSelect
-                        value={currentProfile.timezone || 'Europe/Amsterdam'}
-                        onValueChange={(value) => handleAutoSave('timezone', value)}
-                        options={TIMEZONE_OPTIONS}
-                        placeholder="Select timezone"
-                        searchPlaceholder="Search timezones..."
-                      />
+                      <div className="relative">
+                        <SearchableSelect
+                          value={currentProfile.timezone || 'Europe/Amsterdam'}
+                          onValueChange={(value) => handleAutoSave('timezone', value)}
+                          options={TIMEZONE_OPTIONS}
+                          placeholder="Select timezone"
+                          searchPlaceholder="Search timezones..."
+                        />
+                        {saving === 'timezone' && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
