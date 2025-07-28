@@ -241,12 +241,12 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         savePromises.push(syncToDatabase(day.key, dayData, schedule));
       }
       
-      // Save timezone if changed - WITH BULLETPROOF VERIFICATION
-      if (timezone && timezone !== selectedCalendar.timezone) {
-        console.log(`🔥 RECONFIGURE: Timezone change detected: ${selectedCalendar.timezone} → ${timezone}`);
+      // ALWAYS save timezone during reconfigure (same as manual edit approach)
+      if (timezone) {
+        console.log(`🔥 RECONFIGURE: Saving timezone: ${selectedCalendar.timezone} → ${timezone}`);
         savePromises.push(saveTimezoneWithVerification());
       } else {
-        console.log(`🌍 No timezone change needed (current: ${timezone})`);
+        console.log(`⚠️ RECONFIGURE: No timezone selected, keeping current: ${selectedCalendar.timezone}`);
       }
       
       // Execute all saves in parallel
