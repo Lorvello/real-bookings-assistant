@@ -36,20 +36,32 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
 
   const handleSave = async () => {
     if (selectedTimezone === currentTimezone) {
+      console.log('🌍 TimezoneDisplay: No change needed, closing edit mode');
       setIsEditing(false);
       return;
     }
 
-    console.log(`🌍 TimezoneDisplay: Saving timezone change from ${currentTimezone} to ${selectedTimezone}`);
+    console.log(`🔥 TimezoneDisplay: MANUAL EDIT - Saving timezone change from ${currentTimezone} to ${selectedTimezone}`);
 
     try {
       setIsSaving(true);
+      
+      // Call parent function - it handles all verification
       await onTimezoneChange(selectedTimezone);
+      
+      // ONLY close edit mode if save was successful
       setIsEditing(false);
-      console.log('✅ TimezoneDisplay: Timezone saved successfully');
+      console.log('✅ TimezoneDisplay: Manual timezone change successful');
+      
     } catch (error) {
-      console.error('❌ TimezoneDisplay: Error saving timezone:', error);
+      console.error('💥 TimezoneDisplay: Manual timezone change FAILED:', error);
+      
+      // Revert selection on failure
       setSelectedTimezone(currentTimezone);
+      
+      // Keep edit mode open so user can try again
+      console.log('🔄 TimezoneDisplay: Keeping edit mode open for retry');
+      
     } finally {
       setIsSaving(false);
     }

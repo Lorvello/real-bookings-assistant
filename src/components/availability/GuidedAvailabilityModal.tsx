@@ -159,36 +159,51 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     }
   };
 
-  const saveTimezone = async () => {
-    if (!selectedCalendar?.id) {
-      throw new Error('No calendar selected');
+  const saveTimezoneWithVerification = async () => {
+    if (!selectedCalendar || !timezone) {
+      console.error('❌ RECONFIGURE: Missing selectedCalendar or timezone');
+      throw new Error('Missing calendar or timezone for save operation');
     }
 
-    console.log(`🌍 Guided setup: Saving timezone ${timezone} for calendar ${selectedCalendar.id}`);
+    console.log(`🔥 RECONFIGURE: Starting timezone save: ${timezone} for calendar ${selectedCalendar.id}`);
+    
+    try {
+      // STEP 1: Write to database
+      const { data: updateData, error: updateError } = await supabase
+        .from('calendars')
+        .update({ timezone })
+        .eq('id', selectedCalendar.id)
+        .select('id, timezone');
 
-    const { error } = await supabase
-      .from('calendars')
-      .update({ timezone })
-      .eq('id', selectedCalendar.id);
+      if (updateError) {
+        console.error('❌ RECONFIGURE: Database write failed:', updateError);
+        throw new Error(`Timezone save failed: ${updateError.message}`);
+      }
 
-    if (error) {
-      console.error('❌ Guided setup: Timezone save failed:', error);
+      if (!updateData || updateData.length === 0) {
+        console.error('❌ RECONFIGURE: No calendar updated');
+        throw new Error('No calendar record was updated');
+      }
+
+      console.log('✅ RECONFIGURE: Database write successful', updateData);
+
+      // STEP 2: VERIFY the save worked
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('calendars')
+        .select('timezone')
+        .eq('id', selectedCalendar.id)
+        .single();
+
+      if (verifyError || !verifyData || verifyData.timezone !== timezone) {
+        console.error('❌ RECONFIGURE: Verification failed:', { verifyError, verifyData, expected: timezone });
+        throw new Error('Timezone save verification failed');
+      }
+
+      console.log('✅ RECONFIGURE: Timezone verified in database');
+    } catch (error) {
+      console.error('💥 RECONFIGURE: saveTimezone failed:', error);
       throw error;
     }
-
-    // Verify the save by reading back from database
-    const { data: verifyData, error: verifyError } = await supabase
-      .from('calendars')
-      .select('timezone')
-      .eq('id', selectedCalendar.id)
-      .single();
-
-    if (verifyError || !verifyData || verifyData.timezone !== timezone) {
-      console.error('❌ Guided setup: Timezone verification failed:', { verifyError, verifyData, expected: timezone });
-      throw new Error('Timezone save verification failed');
-    }
-
-    console.log('✅ Guided setup: Timezone saved and verified successfully');
   };
 
   const handleComplete = async () => {
@@ -226,10 +241,10 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         savePromises.push(syncToDatabase(day.key, dayData, schedule));
       }
       
-      // Save timezone if changed
+      // Save timezone if changed - WITH BULLETPROOF VERIFICATION
       if (timezone && timezone !== selectedCalendar.timezone) {
-        console.log(`🌍 Timezone change detected: ${selectedCalendar.timezone} → ${timezone}`);
-        savePromises.push(saveTimezone());
+        console.log(`🔥 RECONFIGURE: Timezone change detected: ${selectedCalendar.timezone} → ${timezone}`);
+        savePromises.push(saveTimezoneWithVerification());
       } else {
         console.log(`🌍 No timezone change needed (current: ${timezone})`);
       }

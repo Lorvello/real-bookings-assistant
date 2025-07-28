@@ -96,6 +96,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
 
   const handleTimezoneChange = useCallback(async (newTimezone: string) => {
     if (!selectedCalendar) {
+      console.error('❌ CRITICAL: No calendar selected for timezone change');
       toast({
         title: "Error",
         description: "No calendar selected. Please refresh the page.",
@@ -105,56 +106,97 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     }
     
     const previousTimezone = localTimezone;
-    console.log(`🌍 Updating timezone from ${previousTimezone} to ${newTimezone} for calendar ${selectedCalendar.id}`);
+    console.log(`🔥 TIMEZONE CHANGE INITIATED: ${previousTimezone} → ${newTimezone}`);
+    console.log(`📋 Target Calendar:`, { id: selectedCalendar.id, name: selectedCalendar.name });
     
+    // STOP LYING TO USERS - Do NOT update UI until database confirms save
     try {
-      // Update database first
-      const { error } = await supabase
+      console.log('💾 STEP 1: Writing to database...');
+      
+      // Database write operation with detailed error tracking
+      const { data: updateData, error: updateError } = await supabase
         .from('calendars')
         .update({ timezone: newTimezone })
-        .eq('id', selectedCalendar.id);
+        .eq('id', selectedCalendar.id)
+        .select('id, timezone');
 
-      if (error) {
-        console.error('❌ Database update failed:', error);
-        throw error;
+      if (updateError) {
+        console.error('❌ STEP 1 FAILED: Database write error:', updateError);
+        throw new Error(`Database write failed: ${updateError.message}`);
       }
 
-      console.log('✅ Database updated successfully');
+      if (!updateData || updateData.length === 0) {
+        console.error('❌ STEP 1 FAILED: No rows updated');
+        throw new Error('No calendar record was updated');
+      }
 
-      // Verify the save by reading back from database
+      console.log('✅ STEP 1 SUCCESS: Database write completed', updateData);
+
+      console.log('🔍 STEP 2: Verifying database contains correct value...');
+      
+      // BRUTAL VERIFICATION - Read back immediately to confirm save
       const { data: verifyData, error: verifyError } = await supabase
         .from('calendars')
-        .select('timezone')
+        .select('id, name, timezone')
         .eq('id', selectedCalendar.id)
         .single();
 
-      if (verifyError || !verifyData || verifyData.timezone !== newTimezone) {
-        console.error('❌ Verification failed:', { verifyError, verifyData, expected: newTimezone });
-        throw new Error('Timezone save verification failed');
+      if (verifyError) {
+        console.error('❌ STEP 2 FAILED: Verification read error:', verifyError);
+        throw new Error(`Verification failed: ${verifyError.message}`);
       }
 
-      console.log('✅ Save verified in database');
+      if (!verifyData) {
+        console.error('❌ STEP 2 FAILED: Calendar not found during verification');
+        throw new Error('Calendar not found during verification');
+      }
 
-      // Update local state only after database confirmation
-      setLocalTimezone(newTimezone);
+      if (verifyData.timezone !== newTimezone) {
+        console.error('❌ STEP 2 FAILED: Database contains wrong timezone:', {
+          expected: newTimezone,
+          actual: verifyData.timezone,
+          calendar: verifyData
+        });
+        throw new Error(`Timezone mismatch: expected ${newTimezone}, got ${verifyData.timezone}`);
+      }
 
-      // Refresh calendars to sync state across all components
-      await refreshCalendars();
+      console.log('✅ STEP 2 SUCCESS: Database verification passed', verifyData);
+
+      console.log('🔄 STEP 3: Syncing application state...');
       
+      // ONLY update local state AFTER database verification
+      setLocalTimezone(newTimezone);
+      console.log('✅ Local timezone state updated');
+
+      // Force refresh calendar context
+      await refreshCalendars();
       console.log('✅ Calendar context refreshed');
       
+      console.log('🎉 TIMEZONE CHANGE COMPLETE: All steps successful');
+      
       toast({
-        title: "Timezone updated",
+        title: "Timezone updated successfully",
         description: `Calendar timezone changed to ${newTimezone}`,
       });
+      
     } catch (error) {
-      console.error('❌ Error updating timezone:', error);
-      // Revert to previous timezone on error
+      console.error('💥 TIMEZONE CHANGE FAILED:', error);
+      
+      // HONEST ERROR HANDLING - Tell user exactly what went wrong
       setLocalTimezone(previousTimezone);
+      
       toast({
-        title: "Error",
-        description: "Failed to update timezone. Please try again.",
+        title: "Failed to save timezone",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
+      });
+      
+      // ADDITIONAL DEBUG INFO
+      console.log('🔍 DEBUG INFO:', {
+        selectedCalendar: selectedCalendar.id,
+        previousTimezone,
+        attemptedTimezone: newTimezone,
+        error: error instanceof Error ? error.message : error
       });
     }
   }, [selectedCalendar?.id, localTimezone, refreshCalendars, toast]);
