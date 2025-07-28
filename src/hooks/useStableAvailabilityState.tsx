@@ -21,11 +21,13 @@ export const useStableAvailabilityState = () => {
   // Cache to prevent unnecessary recalculations
   const lastConfigStateRef = useRef<string>('');
 
-  // Initialize with proper state instead of always 'checking'
+  // Initialize with intelligent state - never show wrong configuration screen
   const [state, setState] = useState<AvailabilityState>(() => {
     const hasCalendar = !!selectedCalendar && !viewingAllCalendars;
     return {
-      setupState: hasCalendar ? 'needs_config' : 'needs_calendar',
+      // Smart initialization: show 'checking' if we have calendar but need to load data
+      // This prevents showing "Configure" screen when user already has configuration
+      setupState: hasCalendar ? 'checking' : 'needs_calendar',
       configurationExists: false,
       isRefreshing: false,
       hasDefaultSchedule: false,
