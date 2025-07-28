@@ -40,12 +40,15 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
       return;
     }
 
+    console.log(`🌍 TimezoneDisplay: Saving timezone change from ${currentTimezone} to ${selectedTimezone}`);
+
     try {
       setIsSaving(true);
       await onTimezoneChange(selectedTimezone);
       setIsEditing(false);
+      console.log('✅ TimezoneDisplay: Timezone saved successfully');
     } catch (error) {
-      console.error('Error saving timezone:', error);
+      console.error('❌ TimezoneDisplay: Error saving timezone:', error);
       setSelectedTimezone(currentTimezone);
     } finally {
       setIsSaving(false);

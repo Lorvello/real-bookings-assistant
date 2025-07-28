@@ -164,14 +164,31 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       throw new Error('No calendar selected');
     }
 
+    console.log(`🌍 Guided setup: Saving timezone ${timezone} for calendar ${selectedCalendar.id}`);
+
     const { error } = await supabase
       .from('calendars')
       .update({ timezone })
       .eq('id', selectedCalendar.id);
 
     if (error) {
+      console.error('❌ Guided setup: Timezone save failed:', error);
       throw error;
     }
+
+    // Verify the save by reading back from database
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('calendars')
+      .select('timezone')
+      .eq('id', selectedCalendar.id)
+      .single();
+
+    if (verifyError || !verifyData || verifyData.timezone !== timezone) {
+      console.error('❌ Guided setup: Timezone verification failed:', { verifyError, verifyData, expected: timezone });
+      throw new Error('Timezone save verification failed');
+    }
+
+    console.log('✅ Guided setup: Timezone saved and verified successfully');
   };
 
   const handleComplete = async () => {
@@ -211,16 +228,23 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       
       // Save timezone if changed
       if (timezone && timezone !== selectedCalendar.timezone) {
+        console.log(`🌍 Timezone change detected: ${selectedCalendar.timezone} → ${timezone}`);
         savePromises.push(saveTimezone());
+      } else {
+        console.log(`🌍 No timezone change needed (current: ${timezone})`);
       }
       
       // Execute all saves in parallel
       await Promise.all(savePromises);
       console.log('✅ All data saved successfully');
       
-      // Refresh calendars to ensure state is synchronized
+      // Force refresh calendars to ensure state is synchronized
       if (refreshCalendars) {
+        console.log('🔄 Refreshing calendar context...');
         await refreshCalendars();
+        console.log('✅ Calendar context refreshed');
+      } else {
+        console.warn('⚠️ No refreshCalendars function provided');
       }
       
       toast({

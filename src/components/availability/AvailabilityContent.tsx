@@ -95,30 +95,60 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
   }, [toast, availabilityState, refreshCalendars, selectedCalendar?.timezone]);
 
   const handleTimezoneChange = useCallback(async (newTimezone: string) => {
-    if (!selectedCalendar) return;
+    if (!selectedCalendar) {
+      toast({
+        title: "Error",
+        description: "No calendar selected. Please refresh the page.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const previousTimezone = localTimezone;
+    console.log(`🌍 Updating timezone from ${previousTimezone} to ${newTimezone} for calendar ${selectedCalendar.id}`);
     
     try {
-      // Optimistic UI update
-      setLocalTimezone(newTimezone);
-      
+      // Update database first
       const { error } = await supabase
         .from('calendars')
         .update({ timezone: newTimezone })
         .eq('id', selectedCalendar.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database update failed:', error);
+        throw error;
+      }
 
-      // Refresh calendars to sync state
+      console.log('✅ Database updated successfully');
+
+      // Verify the save by reading back from database
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('calendars')
+        .select('timezone')
+        .eq('id', selectedCalendar.id)
+        .single();
+
+      if (verifyError || !verifyData || verifyData.timezone !== newTimezone) {
+        console.error('❌ Verification failed:', { verifyError, verifyData, expected: newTimezone });
+        throw new Error('Timezone save verification failed');
+      }
+
+      console.log('✅ Save verified in database');
+
+      // Update local state only after database confirmation
+      setLocalTimezone(newTimezone);
+
+      // Refresh calendars to sync state across all components
       await refreshCalendars();
+      
+      console.log('✅ Calendar context refreshed');
       
       toast({
         title: "Timezone updated",
         description: `Calendar timezone changed to ${newTimezone}`,
       });
     } catch (error) {
-      console.error('Error updating timezone:', error);
+      console.error('❌ Error updating timezone:', error);
       // Revert to previous timezone on error
       setLocalTimezone(previousTimezone);
       toast({
