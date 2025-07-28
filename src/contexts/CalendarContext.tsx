@@ -96,14 +96,23 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
   };
 
   const refreshCalendars = async () => {
-    console.log('Refreshing calendars...');
+    console.log('🔄 CalendarContext: Starting refresh...');
     try {
       const result = await refetch();
-      console.log('Calendars refreshed successfully, result:', result);
+      console.log('✅ CalendarContext: Calendars refreshed successfully, result:', result);
+      
+      // Ensure selectedCalendar gets updated with new data
+      if (selectedCalendar && result && result.length > 0) {
+        const updatedCalendar = result.find(cal => cal.id === selectedCalendar.id);
+        if (updatedCalendar) {
+          console.log('🔄 CalendarContext: Updating selectedCalendar with fresh data:', updatedCalendar);
+          setSelectedCalendar(updatedCalendar);
+        }
+      }
       
       return result;
     } catch (error) {
-      console.error('Error refreshing calendars:', error);
+      console.error('❌ CalendarContext: Error refreshing calendars:', error);
       return [];
     }
   };

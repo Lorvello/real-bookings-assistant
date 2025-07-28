@@ -253,19 +253,21 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       await Promise.all(savePromises);
       console.log('✅ All data saved successfully');
       
-      // Force refresh calendars to ensure state is synchronized
+      // CRITICAL: Force refresh calendars BEFORE calling onComplete
       if (refreshCalendars) {
-        console.log('🔄 Refreshing calendar context...');
+        console.log('🔄 RECONFIGURE: Refreshing calendar context...');
         await refreshCalendars();
-        console.log('✅ Calendar context refreshed');
+        console.log('✅ RECONFIGURE: Calendar context refreshed - selectedCalendar should now have fresh timezone');
       } else {
-        console.warn('⚠️ No refreshCalendars function provided');
+        console.warn('⚠️ RECONFIGURE: No refreshCalendars function provided');
       }
       
       toast({
         title: "Configuration Saved",
         description: "Your availability and timezone have been saved successfully.",
       });
+      
+      // Call onComplete ONLY after refresh is done
       onComplete();
       
     } catch (error) {

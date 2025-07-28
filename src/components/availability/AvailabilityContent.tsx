@@ -164,13 +164,14 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
 
       console.log('🔄 STEP 3: Syncing application state...');
       
-      // ONLY update local state AFTER database verification
-      setLocalTimezone(newTimezone);
-      console.log('✅ Local timezone state updated');
-
-      // Force refresh calendar context
+      // Force refresh calendar context FIRST - do NOT update UI until this completes
+      console.log('🔄 Refreshing calendar context...');
       await refreshCalendars();
       console.log('✅ Calendar context refreshed');
+
+      // ONLY update local state AFTER calendar context is refreshed
+      setLocalTimezone(newTimezone);
+      console.log('✅ Local timezone state updated');
       
       console.log('🎉 TIMEZONE CHANGE COMPLETE: All steps successful');
       
