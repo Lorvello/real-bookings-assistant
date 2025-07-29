@@ -53,7 +53,10 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
     setSaving(field);
     
     try {
-      if (field.startsWith('business_')) {
+      const isBusinessField = field.startsWith('business_') || 
+        ['parking_info', 'public_transport_info', 'accessibility_info', 'other_info'].includes(field);
+      
+      if (isBusinessField) {
         // Update business data with the new value
         const newBusinessData = { ...businessData, [field]: tempValues[field] };
         setBusinessData(newBusinessData);
