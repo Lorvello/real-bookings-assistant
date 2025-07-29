@@ -116,22 +116,22 @@ export const useTeamMemberLimits = (calendarId?: string) => {
       if (!user) return 0;
       
       if (calendarId) {
-        // Count team members for specific calendar (only actual team members, not owner)
+        // Count all calendar members (owner is already included in calendar_members)
         const { count, error } = await supabase
           .from('calendar_members')
           .select('*', { count: 'exact', head: true })
           .eq('calendar_id', calendarId);
 
         if (error) throw error;
-        return (count || 0) + 1; // +1 for calendar owner
+        return count || 0; // No need to add +1, owner is already counted
       } else {
-        // Count unique team members across all user's calendars + owner
+        // Count unique team members across all user's calendars
         const { data: userCalendars } = await supabase
           .from('calendars')
           .select('id')
           .eq('user_id', user.id);
         
-        if (!userCalendars || userCalendars.length === 0) return 1; // Just the owner
+        if (!userCalendars || userCalendars.length === 0) return 0;
         
         const calendarIds = userCalendars.map(c => c.id);
         const { data: members } = await supabase
@@ -139,13 +139,11 @@ export const useTeamMemberLimits = (calendarId?: string) => {
           .select('user_id')
           .in('calendar_id', calendarIds);
         
-        // Only count unique team members (excluding owner) + 1 for owner
-        if (!members || members.length === 0) return 1;
+        if (!members || members.length === 0) return 0;
         
+        // Count unique members (owner is already included in calendar_members)
         const uniqueMembers = new Set(members.map(m => m.user_id));
-        // Don't double count if owner is in calendar_members table
-        const memberCount = uniqueMembers.has(user.id) ? uniqueMembers.size : uniqueMembers.size + 1;
-        return memberCount;
+        return uniqueMembers.size;
       }
     },
     enabled: !!user,
