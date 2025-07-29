@@ -52,15 +52,39 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
     
     try {
       if (field.startsWith('business_')) {
-        // Update business data
+        // Update business data state first
         const newBusinessData = { ...businessData, [field]: tempValues[field] };
         setBusinessData(newBusinessData);
-        await handleUpdateBusiness();
+        
+        // Then update in database with the new data
+        const originalHandler = handleUpdateBusiness;
+        await new Promise<void>((resolve, reject) => {
+          setTimeout(async () => {
+            try {
+              await originalHandler();
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          }, 0);
+        });
       } else {
-        // Update profile data
+        // Update profile data state first
         const newProfileData = { ...profileData, [field]: tempValues[field] };
         setProfileData(newProfileData);
-        await handleUpdateProfile();
+        
+        // Then update in database with the new data
+        const originalHandler = handleUpdateProfile;
+        await new Promise<void>((resolve, reject) => {
+          setTimeout(async () => {
+            try {
+              await originalHandler();
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          }, 0);
+        });
       }
       
       setEditingField(null);
@@ -129,10 +153,12 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
 
     return (
       <div 
-        className="text-white bg-gray-900 border border-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-800 transition-colors min-h-[44px] flex items-center"
+        className="bg-gray-900 border border-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-800 transition-colors min-h-[44px] flex items-center"
         onClick={() => startEditing(field, currentValue || '')}
       >
-        {currentValue || placeholder || 'Click to edit'}
+        <span className={currentValue ? 'text-white' : 'text-gray-500'}>
+          {currentValue || placeholder || 'Click to edit'}
+        </span>
       </div>
     );
   };
