@@ -1,8 +1,9 @@
 
 import React, { useCallback, useState, useEffect } from 'react';
 import Select from 'react-select';
-import { Info } from 'lucide-react';
+import { Info, Check, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
 import { businessTypes } from '@/constants/settingsOptions';
 
 interface AIKnowledgeTabProps {
@@ -24,63 +25,123 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
   handleUpdateProfile,
   handleUpdateBusiness
 }) => {
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveTimeouts, setSaveTimeouts] = useState<{ profile?: NodeJS.Timeout; business?: NodeJS.Timeout }>({});
+  // Manual save state management
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [tempValues, setTempValues] = useState<any>({});
+  const [saving, setSaving] = useState<string | null>(null);
 
-  // Auto-save profile data with debounce
-  const autoSaveProfile = useCallback((newData: any) => {
-    setProfileData(newData);
-    
-    if (saveTimeouts.profile) {
-      clearTimeout(saveTimeouts.profile);
-    }
-    
-    const timeout = setTimeout(async () => {
-      setIsSaving(true);
-      try {
-        await handleUpdateProfile();
-      } finally {
-        setIsSaving(false);
-      }
-    }, 1000);
-    
-    setSaveTimeouts(prev => ({ ...prev, profile: timeout }));
-  }, [setProfileData, handleUpdateProfile, saveTimeouts.profile]);
-
-  // Auto-save business data with debounce
-  const autoSaveBusiness = useCallback((newData: any) => {
+  // Auto-save for business type dropdown only
+  const autoSaveBusinessType = useCallback((newData: any) => {
     setBusinessData(newData);
-    
-    if (saveTimeouts.business) {
-      clearTimeout(saveTimeouts.business);
-    }
-    
-    const timeout = setTimeout(async () => {
-      setIsSaving(true);
-      try {
-        await handleUpdateBusiness();
-      } finally {
-        setIsSaving(false);
-      }
-    }, 1000);
-    
-    setSaveTimeouts(prev => ({ ...prev, business: timeout }));
-  }, [setBusinessData, handleUpdateBusiness, saveTimeouts.business]);
+    handleUpdateBusiness();
+  }, [setBusinessData, handleUpdateBusiness]);
 
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(saveTimeouts).forEach(timeout => {
-        if (timeout) clearTimeout(timeout);
-      });
-    };
-  }, [saveTimeouts]);
+  // Manual save functions
+  const startEditing = (field: string, currentValue: any) => {
+    setEditingField(field);
+    setTempValues({ [field]: currentValue });
+  };
+
+  const cancelEditing = () => {
+    setEditingField(null);
+    setTempValues({});
+  };
+
+  const saveField = async (field: string) => {
+    setSaving(field);
+    
+    try {
+      if (field.startsWith('business_')) {
+        // Update business data
+        const newBusinessData = { ...businessData, [field]: tempValues[field] };
+        setBusinessData(newBusinessData);
+        await handleUpdateBusiness();
+      } else {
+        // Update profile data
+        const newProfileData = { ...profileData, [field]: tempValues[field] };
+        setProfileData(newProfileData);
+        await handleUpdateProfile();
+      }
+      
+      setEditingField(null);
+      setTempValues({});
+    } catch (error) {
+      console.error('Failed to save field:', error);
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const renderEditableField = (
+    field: string,
+    label: string,
+    currentValue: string,
+    placeholder?: string,
+    isTextarea?: boolean,
+    rows?: number
+  ) => {
+    const isEditing = editingField === field;
+    const isSaving = saving === field;
+    
+    if (isEditing) {
+      return (
+        <div className="flex items-start gap-2">
+          {isTextarea ? (
+            <textarea
+              value={tempValues[field] || ''}
+              onChange={(e) => setTempValues({ ...tempValues, [field]: e.target.value })}
+              rows={rows || 3}
+              className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+              placeholder={placeholder}
+              autoFocus
+            />
+          ) : (
+            <input
+              type="text"
+              value={tempValues[field] || ''}
+              onChange={(e) => setTempValues({ ...tempValues, [field]: e.target.value })}
+              className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
+              placeholder={placeholder}
+              autoFocus
+            />
+          )}
+          <div className="flex items-center gap-1 mt-1">
+            <Button
+              size="sm"
+              onClick={() => saveField(field)}
+              disabled={isSaving}
+              className="bg-green-600 hover:bg-green-700 h-8 w-8 p-0"
+            >
+              <Check className="h-3 w-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={cancelEditing}
+              className="border-gray-700 text-gray-300 hover:bg-gray-700 h-8 w-8 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        className="text-white bg-gray-900 border border-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-800 transition-colors min-h-[44px] flex items-center"
+        onClick={() => startEditing(field, currentValue || '')}
+      >
+        {currentValue || placeholder || 'Click to edit'}
+      </div>
+    );
+  };
 
   return (
     <TooltipProvider delayDuration={100}>
       <div className="space-y-8">
-        {/* Auto-save indicator */}
-        {(isSaving || loading) && (
+        {/* Save indicator */}
+        {(saving || loading) && (
           <div className="flex items-center justify-center bg-blue-800/90 border border-blue-700/50 rounded-2xl shadow-lg p-3">
             <div className="flex items-center space-x-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
@@ -110,16 +171,12 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Business Name *
               </label>
-              <input 
-                type="text" 
-                value={businessData.business_name} 
-                onChange={e => autoSaveBusiness({
-                  ...businessData,
-                  business_name: e.target.value
-                })}
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-                required 
-              />
+              {renderEditableField(
+                'business_name',
+                'Business Name',
+                businessData.business_name,
+                'Enter your business name'
+              )}
             </div>
 
             <div>
@@ -128,7 +185,7 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
               </label>
               <Select 
                 value={businessTypes.find(type => type.value === businessData.business_type)} 
-                onChange={option => autoSaveBusiness({
+                onChange={option => autoSaveBusinessType({
                   ...businessData,
                   business_type: option?.value || ''
                 })}
@@ -170,7 +227,7 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
                 <input 
                   type="text" 
                   value={businessData.business_type_other} 
-                  onChange={e => autoSaveBusiness({
+                  onChange={e => autoSaveBusinessType({
                     ...businessData,
                     business_type_other: e.target.value
                   })}
@@ -184,16 +241,14 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Business Description
               </label>
-              <textarea 
-                value={businessData.business_description} 
-                onChange={e => autoSaveBusiness({
-                  ...businessData,
-                  business_description: e.target.value
-                })}
-                rows={4} 
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-                placeholder="Tell customers about your business..." 
-              />
+              {renderEditableField(
+                'business_description',
+                'Business Description',
+                businessData.business_description,
+                'Tell customers about your business...',
+                true,
+                4
+              )}
             </div>
             
             {/* Address Section within Business Information */}
@@ -207,75 +262,60 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Street Name
                   </label>
-                  <input
-                    type="text"
-                    value={businessData.business_street}
-                    onChange={(e) => autoSaveBusiness({
-                      ...businessData,
-                      business_street: e.target.value
-                    })}
-                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-                  />
+                  {renderEditableField(
+                    'business_street',
+                    'Street Name',
+                    businessData.business_street,
+                    'Enter street name'
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     House Number
                   </label>
-                  <input
-                    type="text"
-                    value={businessData.business_number}
-                    onChange={(e) => autoSaveBusiness({
-                      ...businessData,
-                      business_number: e.target.value
-                    })}
-                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-                  />
+                  {renderEditableField(
+                    'business_number',
+                    'House Number',
+                    businessData.business_number,
+                    'Enter house number'
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Postal Code
                   </label>
-                  <input
-                    type="text"
-                    value={businessData.business_postal}
-                    onChange={(e) => autoSaveBusiness({
-                      ...businessData,
-                      business_postal: e.target.value
-                    })}
-                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-                  />
+                  {renderEditableField(
+                    'business_postal',
+                    'Postal Code',
+                    businessData.business_postal,
+                    'Enter postal code'
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     City
                   </label>
-                  <input
-                    type="text"
-                    value={businessData.business_city}
-                    onChange={(e) => autoSaveBusiness({
-                      ...businessData,
-                      business_city: e.target.value
-                    })}
-                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-                  />
+                  {renderEditableField(
+                    'business_city',
+                    'City',
+                    businessData.business_city,
+                    'Enter city'
+                  )}
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Country
                   </label>
-                  <input
-                    type="text"
-                    value={businessData.business_country}
-                    onChange={(e) => autoSaveBusiness({
-                      ...businessData,
-                      business_country: e.target.value
-                    })}
-                    className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-                  />
+                  {renderEditableField(
+                    'business_country',
+                    'Country',
+                    businessData.business_country,
+                    'Enter country'
+                  )}
                 </div>
               </div>
             </div>
@@ -304,48 +344,36 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Website
               </label>
-              <input
-                type="url"
-                value={profileData.website}
-                onChange={(e) => autoSaveProfile({
-                  ...profileData,
-                  website: e.target.value
-                })}
-                placeholder="https://www.example.com"
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-              />
+              {renderEditableField(
+                'website',
+                'Website',
+                profileData.website,
+                'https://www.example.com'
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Instagram
               </label>
-              <input
-                type="text"
-                value={profileData.instagram}
-                onChange={(e) => autoSaveProfile({
-                  ...profileData,
-                  instagram: e.target.value
-                })}
-                placeholder="@username"
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-              />
+              {renderEditableField(
+                'instagram',
+                'Instagram',
+                profileData.instagram,
+                '@username'
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Facebook
               </label>
-              <input
-                type="text"
-                value={profileData.facebook}
-                onChange={(e) => autoSaveProfile({
-                  ...profileData,
-                  facebook: e.target.value
-                })}
-                placeholder="facebook.com/pagename"
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-              />
+              {renderEditableField(
+                'facebook',
+                'Facebook',
+                profileData.facebook,
+                'facebook.com/pagename'
+              )}
             </div>
           </div>
         </div>
@@ -371,64 +399,56 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Parking Information
               </label>
-              <textarea 
-                value={businessData.parking_info} 
-                onChange={e => autoSaveBusiness({
-                  ...businessData,
-                  parking_info: e.target.value
-                })}
-                rows={3} 
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-                placeholder="e.g. Free parking at the door, Paid parking in garage around the corner..." 
-              />
+              {renderEditableField(
+                'parking_info',
+                'Parking Information',
+                businessData.parking_info,
+                'e.g. Free parking at the door, Paid parking in garage around the corner...',
+                true,
+                3
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Public Transport
               </label>
-              <textarea 
-                value={businessData.public_transport_info} 
-                onChange={e => autoSaveBusiness({
-                  ...businessData,
-                  public_transport_info: e.target.value
-                })}
-                rows={3} 
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-                placeholder="e.g. 5 minutes walk from station, Bus 12 stops at the door..." 
-              />
+              {renderEditableField(
+                'public_transport_info',
+                'Public Transport',
+                businessData.public_transport_info,
+                'e.g. 5 minutes walk from station, Bus 12 stops at the door...',
+                true,
+                3
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Accessibility
               </label>
-              <textarea 
-                value={businessData.accessibility_info} 
-                onChange={e => autoSaveBusiness({
-                  ...businessData,
-                  accessibility_info: e.target.value
-                })}
-                rows={3} 
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-                placeholder="e.g. Wheelchair accessible, Elevator available, No thresholds..." 
-              />
+              {renderEditableField(
+                'accessibility_info',
+                'Accessibility',
+                businessData.accessibility_info,
+                'e.g. Wheelchair accessible, Elevator available, No thresholds...',
+                true,
+                3
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Other Information
               </label>
-              <textarea 
-                value={businessData.other_info} 
-                onChange={e => autoSaveBusiness({
-                  ...businessData,
-                  other_info: e.target.value
-                })}
-                rows={3} 
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
-                placeholder="Other information that may be useful for customers..." 
-              />
+              {renderEditableField(
+                'other_info',
+                'Other Information',
+                businessData.other_info,
+                'Other information that may be useful for customers...',
+                true,
+                3
+              )}
             </div>
           </div>
         </div>
