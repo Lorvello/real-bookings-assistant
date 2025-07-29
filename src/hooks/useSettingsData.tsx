@@ -124,34 +124,35 @@ export const useSettingsData = () => {
     }
   };
 
-  const handleUpdateProfile = async () => {
+  const handleUpdateProfile = async (customProfileData?: any) => {
     if (!user) return;
     
     setLoading(true);
-    console.log('Updating profile with data:', profileData);
+    const dataToUse = customProfileData || profileData;
+    console.log('Updating profile with data:', dataToUse);
 
     try {
       const { error } = await supabase
         .from('users')
         .update({
-          full_name: profileData.full_name,
-          email: profileData.email,
-          phone: profileData.phone,
-          date_of_birth: profileData.date_of_birth || null,
-          gender: profileData.gender || null,
-          language: profileData.language,
-          timezone: profileData.timezone,
-          avatar_url: profileData.avatar_url || null,
-          address_street: profileData.address_street || null,
-          address_number: profileData.address_number || null,
-          address_postal: profileData.address_postal || null,
-          address_city: profileData.address_city || null,
-          address_country: profileData.address_country,
-          website: profileData.website || null,
-          facebook: profileData.facebook || null,
-          instagram: profileData.instagram || null,
-          linkedin: profileData.linkedin || null,
-          tiktok: profileData.tiktok || null,
+          full_name: dataToUse.full_name,
+          email: dataToUse.email,
+          phone: dataToUse.phone,
+          date_of_birth: dataToUse.date_of_birth || null,
+          gender: dataToUse.gender || null,
+          language: dataToUse.language,
+          timezone: dataToUse.timezone,
+          avatar_url: dataToUse.avatar_url || null,
+          address_street: dataToUse.address_street || null,
+          address_number: dataToUse.address_number || null,
+          address_postal: dataToUse.address_postal || null,
+          address_city: dataToUse.address_city || null,
+          address_country: dataToUse.address_country,
+          website: dataToUse.website || null,
+          facebook: dataToUse.facebook || null,
+          instagram: dataToUse.instagram || null,
+          linkedin: dataToUse.linkedin || null,
+          tiktok: dataToUse.tiktok || null,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -183,35 +184,36 @@ export const useSettingsData = () => {
     }
   };
 
-  const handleUpdateBusiness = async () => {
+  const handleUpdateBusiness = async (customBusinessData?: any) => {
     if (!user) return;
     
     setLoading(true);
-    console.log('Updating business with data:', businessData);
+    const dataToUse = customBusinessData || businessData;
+    console.log('Updating business with data:', dataToUse);
 
     try {
       const { error } = await supabase
         .from('users')
         .update({
-          business_name: businessData.business_name || null,
-          business_type: businessData.business_type || null,
-          business_type_other: businessData.business_type_other || null,
-          business_phone: businessData.business_phone || null,
-          business_email: businessData.business_email || null,
-          business_whatsapp: businessData.business_whatsapp || null,
-          business_street: businessData.business_street || null,
-          business_number: businessData.business_number || null,
-          business_postal: businessData.business_postal || null,
-          business_city: businessData.business_city || null,
-          business_country: businessData.business_country,
-          business_description: businessData.business_description || null,
-          parking_info: businessData.parking_info || null,
-          public_transport_info: businessData.public_transport_info || null,
-          accessibility_info: businessData.accessibility_info || null,
-          other_info: businessData.other_info || null,
-          show_opening_hours: businessData.show_opening_hours,
-          opening_hours_note: businessData.opening_hours_note || null,
-          team_size: businessData.team_size,
+          business_name: dataToUse.business_name || null,
+          business_type: dataToUse.business_type || null,
+          business_type_other: dataToUse.business_type_other || null,
+          business_phone: dataToUse.business_phone || null,
+          business_email: dataToUse.business_email || null,
+          business_whatsapp: dataToUse.business_whatsapp || null,
+          business_street: dataToUse.business_street || null,
+          business_number: dataToUse.business_number || null,
+          business_postal: dataToUse.business_postal || null,
+          business_city: dataToUse.business_city || null,
+          business_country: dataToUse.business_country,
+          business_description: dataToUse.business_description || null,
+          parking_info: dataToUse.parking_info || null,
+          public_transport_info: dataToUse.public_transport_info || null,
+          accessibility_info: dataToUse.accessibility_info || null,
+          other_info: dataToUse.other_info || null,
+          show_opening_hours: dataToUse.show_opening_hours,
+          opening_hours_note: dataToUse.opening_hours_note || null,
+          team_size: dataToUse.team_size,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);

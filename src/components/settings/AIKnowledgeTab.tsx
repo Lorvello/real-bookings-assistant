@@ -12,8 +12,8 @@ interface AIKnowledgeTabProps {
   businessData: any;
   setBusinessData: (data: any) => void;
   loading: boolean;
-  handleUpdateProfile: () => void;
-  handleUpdateBusiness: () => void;
+  handleUpdateProfile: (customData?: any) => void;
+  handleUpdateBusiness: (customData?: any) => void;
   refetch: () => Promise<void>;
 }
 
@@ -58,8 +58,8 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
         const newBusinessData = { ...businessData, [field]: tempValues[field] };
         setBusinessData(newBusinessData);
         
-        // Save to database using the updated data
-        await handleUpdateBusiness();
+        // Save to database with the new data directly
+        await handleUpdateBusiness(newBusinessData);
         
         // Refresh data from database to ensure UI shows exactly what was saved
         await refetch();
@@ -68,8 +68,8 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
         const newProfileData = { ...profileData, [field]: tempValues[field] };
         setProfileData(newProfileData);
         
-        // Save to database using the updated data
-        await handleUpdateProfile();
+        // Save to database with the new data directly
+        await handleUpdateProfile(newProfileData);
         
         // Refresh data from database to ensure UI shows exactly what was saved
         await refetch();
