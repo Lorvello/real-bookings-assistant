@@ -23,7 +23,8 @@ export const SettingsLayout = () => {
     setBusinessData,
     loading,
     handleUpdateProfile,
-    handleUpdateBusiness
+    handleUpdateBusiness,
+    refetch
   } = useSettingsData();
 
   // Handle tab from URL parameters
@@ -92,6 +93,7 @@ export const SettingsLayout = () => {
             loading={loading}
             handleUpdateProfile={handleUpdateProfile}
             handleUpdateBusiness={handleUpdateBusiness}
+            refetch={refetch}
           />
         </TabsContent>
 

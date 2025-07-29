@@ -14,6 +14,7 @@ interface AIKnowledgeTabProps {
   loading: boolean;
   handleUpdateProfile: () => void;
   handleUpdateBusiness: () => void;
+  refetch: () => Promise<void>;
 }
 
 export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
@@ -23,7 +24,8 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
   setBusinessData,
   loading,
   handleUpdateProfile,
-  handleUpdateBusiness
+  handleUpdateBusiness,
+  refetch
 }) => {
   // Manual save state management
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -52,45 +54,33 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
     
     try {
       if (field.startsWith('business_')) {
-        // Update business data state first
+        // Update business data with the new value
         const newBusinessData = { ...businessData, [field]: tempValues[field] };
         setBusinessData(newBusinessData);
         
-        // Then update in database with the new data
-        const originalHandler = handleUpdateBusiness;
-        await new Promise<void>((resolve, reject) => {
-          setTimeout(async () => {
-            try {
-              await originalHandler();
-              resolve();
-            } catch (error) {
-              reject(error);
-            }
-          }, 0);
-        });
+        // Save to database using the updated data
+        await handleUpdateBusiness();
+        
+        // Refresh data from database to ensure UI shows exactly what was saved
+        await refetch();
       } else {
-        // Update profile data state first
+        // Update profile data with the new value
         const newProfileData = { ...profileData, [field]: tempValues[field] };
         setProfileData(newProfileData);
         
-        // Then update in database with the new data
-        const originalHandler = handleUpdateProfile;
-        await new Promise<void>((resolve, reject) => {
-          setTimeout(async () => {
-            try {
-              await originalHandler();
-              resolve();
-            } catch (error) {
-              reject(error);
-            }
-          }, 0);
-        });
+        // Save to database using the updated data
+        await handleUpdateProfile();
+        
+        // Refresh data from database to ensure UI shows exactly what was saved
+        await refetch();
       }
       
       setEditingField(null);
       setTempValues({});
     } catch (error) {
       console.error('Failed to save field:', error);
+      // Reset temp values on error
+      setTempValues({});
     } finally {
       setSaving(null);
     }
