@@ -110,41 +110,34 @@ export const useTeamMemberLimits = (calendarId?: string) => {
   const { user } = useAuth();
   const { userStatus, accessControl } = useUserStatus();
 
-  const { data: currentCount = 0, isLoading } = useQuery({
+  const { data: currentCount = 1, isLoading } = useQuery({
     queryKey: ['team-members-count', user?.id, calendarId],
     queryFn: async () => {
-      if (!user) return 0;
+      if (!user) return 1;
       
-      if (calendarId) {
-        // Count all calendar members (owner is already included in calendar_members)
-        const { count, error } = await supabase
-          .from('calendar_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('calendar_id', calendarId);
-
-        if (error) throw error;
-        return count || 0; // No need to add +1, owner is already counted
-      } else {
-        // Count unique team members across all user's calendars
-        const { data: userCalendars } = await supabase
-          .from('calendars')
-          .select('id')
-          .eq('user_id', user.id);
-        
-        if (!userCalendars || userCalendars.length === 0) return 0;
-        
-        const calendarIds = userCalendars.map(c => c.id);
-        const { data: members } = await supabase
-          .from('calendar_members')
-          .select('user_id')
-          .in('calendar_id', calendarIds);
-        
-        if (!members || members.length === 0) return 0;
-        
-        // Count unique members (owner is already included in calendar_members)
-        const uniqueMembers = new Set(members.map(m => m.user_id));
-        return uniqueMembers.size;
-      }
+      // Simple logic: Always 1 (owner) + actual team members added
+      // Count team invitations/additions only, not calendar_members
+      const { data: userCalendars } = await supabase
+        .from('calendars')
+        .select('id')
+        .eq('user_id', user.id);
+      
+      if (!userCalendars || userCalendars.length === 0) return 1;
+      
+      const calendarIds = userCalendars.map(c => c.id);
+      
+      // Count actual team invitations/members (excluding owner)
+      const { data: teamMembers } = await supabase
+        .from('calendar_members')
+        .select('user_id')
+        .in('calendar_id', calendarIds)
+        .neq('user_id', user.id); // Exclude the owner
+      
+      if (!teamMembers || teamMembers.length === 0) return 1; // Just the owner
+      
+      // 1 (owner) + unique team members
+      const uniqueTeamMembers = new Set(teamMembers.map(m => m.user_id));
+      return 1 + uniqueTeamMembers.size;
     },
     enabled: !!user,
   });
