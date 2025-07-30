@@ -18,7 +18,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('annual');
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { data: tiers, isLoading } = useSubscriptionTiers();
+  const { tiers, isLoading } = useSubscriptionTiers();
   const { toast } = useToast();
 
   // Plan data matching Pricing component
