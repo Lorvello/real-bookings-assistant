@@ -84,14 +84,13 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
         };
       }
 
-      // Test AI Agent tab: Lock during setup incomplete, expired trial, or canceled subscription
+      // Test AI Agent tab: Lock during setup incomplete, expired trial, or canceled and inactive
       if (item.href === '/test-ai-agent') {
         return {
           ...item,
           isActive,
           isRestricted: userStatus.isSetupIncomplete || 
                        userStatus.userType === 'expired_trial' ||
-                       userStatus.userType === 'canceled_subscriber' ||
                        userStatus.userType === 'canceled_and_inactive'
         };
       }
@@ -176,7 +175,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
         onMobileNavigate?.();
         return;
       }
-      if (userStatus.userType === 'canceled_subscriber' || userStatus.userType === 'canceled_and_inactive') {
+      if (userStatus.userType === 'canceled_and_inactive') {
         toast({
           title: "Subscription Required",
           description: "Reactivate your subscription to access the AI agent.",
@@ -244,7 +243,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
                 ? `${item.name} - Complete setup to access this feature`
                 : item.href === '/test-ai-agent' && userStatus.userType === 'expired_trial'
                   ? `${item.name} - Trial expired, upgrade required`
-                  : item.href === '/test-ai-agent' && (userStatus.userType === 'canceled_subscriber' || userStatus.userType === 'canceled_and_inactive')
+                  : item.href === '/test-ai-agent' && userStatus.userType === 'canceled_and_inactive'
                     ? `${item.name} - Subscription required`
                     : userStatus.isSetupIncomplete 
                       ? `${item.name} - Setup required` 
