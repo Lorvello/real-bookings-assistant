@@ -16,6 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { UserContextDisplay } from './calendar-switcher/UserContextDisplay';
 import { CreateCalendarDialog } from './calendar-switcher/CreateCalendarDialog';
 import { EditCalendarDialog } from './calendar-switcher/EditCalendarDialog';
+import { useAccessControl } from '@/hooks/useAccessControl';
+import { CalendarUpgradeModal } from './calendar-switcher/CalendarUpgradeModal';
 
 interface CalendarSwitcherProps {
   hideAllCalendarsOption?: boolean;
@@ -26,6 +28,9 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingCalendar, setEditingCalendar] = useState(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const { checkAccess, userStatus } = useAccessControl();
 
   const handleEditCalendar = (calendar: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -154,12 +159,26 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
               
               <DropdownMenuSeparator />
               
-              <DropdownMenuItem onSelect={(e) => {
-                e.preventDefault();
-                setShowCreateDialog(true);
-              }} className="hover:bg-muted focus:bg-muted">
+              <DropdownMenuItem 
+                onSelect={(e) => {
+                  e.preventDefault();
+                  if (checkAccess('canCreateBookings')) {
+                    setShowCreateDialog(true);
+                  } else {
+                    setShowUpgradeModal(true);
+                  }
+                }} 
+                className={`hover:bg-muted focus:bg-muted ${
+                  !checkAccess('canCreateBookings') ? 'opacity-60' : ''
+                }`}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 New calendar
+                {!checkAccess('canCreateBookings') && (
+                  <Badge variant="outline" className="ml-auto text-xs">
+                    {userStatus.userType === 'expired_trial' ? 'Upgrade' : 'Reactivate'}
+                  </Badge>
+                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -181,6 +200,12 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
         onOpenChange={setShowEditDialog}
         calendar={editingCalendar}
         onCalendarUpdated={handleCalendarUpdated}
+      />
+
+      {/* Calendar Upgrade Modal */}
+      <CalendarUpgradeModal 
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
       />
     </>
   );

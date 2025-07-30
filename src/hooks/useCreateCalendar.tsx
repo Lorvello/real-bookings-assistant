@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarLimits } from '@/hooks/useSubscriptionLimits';
+import { useAccessControl } from '@/hooks/useAccessControl';
 
 interface TeamMember {
   email: string;
@@ -26,12 +27,23 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
   const { refreshCalendars, selectCalendar } = useCalendarContext();
   const { user } = useAuth();
   const { canCreateMore, currentCount, maxCalendars } = useCalendarLimits();
+  const { checkAccess } = useAccessControl();
 
   const createCalendar = async (data: CreateCalendarData) => {
     if (!user) {
       toast({
         title: "Not logged in",
         description: "You must be logged in to create a calendar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check subscription access for creating bookings/calendars
+    if (!checkAccess('canCreateBookings')) {
+      toast({
+        title: "Calendar Creation Restricted",
+        description: "Reactivate your account to create new calendars",
         variant: "destructive",
       });
       return;
@@ -239,10 +251,14 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
     }
   };
 
+  // Override canCreateMore based on subscription access
+  const hasSubscriptionAccess = checkAccess('canCreateBookings');
+  const effectiveCanCreateMore = hasSubscriptionAccess && canCreateMore;
+
   return {
     createCalendar,
     loading,
-    canCreateMore,
+    canCreateMore: effectiveCanCreateMore,
     currentCount,
     maxCalendars
   };

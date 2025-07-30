@@ -22,6 +22,8 @@ import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { ServiceTypeQuickCreateDialog } from './ServiceTypeQuickCreateDialog';
 import { UpgradePrompt } from '@/components/ui/UpgradePrompt';
+import { useAccessControl } from '@/hooks/useAccessControl';
+import { CalendarUpgradeModal } from './CalendarUpgradeModal';
 
 const colorOptions = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -60,6 +62,9 @@ export function CreateCalendarDialog({
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   const [showServiceTypeDialog, setShowServiceTypeDialog] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const { checkAccess, userStatus } = useAccessControl();
 
   const { createCalendar, loading: creating, canCreateMore, currentCount, maxCalendars } = useCreateCalendar(onCalendarCreated);
 
@@ -229,24 +234,42 @@ export function CreateCalendarDialog({
             </DialogDescription>
           </DialogHeader>
           
-          {/* Calendar Limit Check */}
-          {!canCreateMore && (
-            <UpgradePrompt 
-              feature="Calendars"
-              currentUsage={`${currentCount}/${maxCalendars}`}
-              limit={`${maxCalendars} calendar${maxCalendars === 1 ? '' : 's'}`}
-              description="Upgrade to Professional to create unlimited calendars and access more features."
-              className="mb-6"
-            />
-          )}
-          
-          {canCreateMore && (
-            <div className="text-sm text-muted-foreground mb-4">
-              Calendar usage: {currentCount}/{maxCalendars === null ? '∞' : maxCalendars}
+          {/* Subscription Access Check */}
+          {!checkAccess('canCreateBookings') ? (
+            <div className="space-y-4">
+              <div className="p-4 border border-destructive/20 bg-destructive/10 rounded-lg">
+                <h4 className="font-medium text-destructive mb-2">Calendar Creation Restricted</h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {userStatus.userType === 'expired_trial' 
+                    ? 'Your trial has expired. Upgrade now to create new calendars and continue booking appointments.'
+                    : 'Reactivate your account to create new calendars and access all booking features.'
+                  }
+                </p>
+                <Button onClick={() => setShowUpgradeModal(true)} className="w-full">
+                  {userStatus.userType === 'expired_trial' ? 'Upgrade Now' : 'Reactivate Subscription'}
+                </Button>
+              </div>
             </div>
-          )}
+          ) : (
+            <>
+              {/* Calendar Limit Check */}
+              {!canCreateMore && (
+                <UpgradePrompt 
+                  feature="Calendars"
+                  currentUsage={`${currentCount}/${maxCalendars}`}
+                  limit={`${maxCalendars} calendar${maxCalendars === 1 ? '' : 's'}`}
+                  description="Upgrade to Professional to create unlimited calendars and access more features."
+                  className="mb-6"
+                />
+              )}
           
-          <div className="space-y-6">
+              {canCreateMore && (
+                <div className="text-sm text-muted-foreground mb-4">
+                  Calendar usage: {currentCount}/{maxCalendars === null ? '∞' : maxCalendars}
+                </div>
+              )}
+              
+              <div className="space-y-6">
             {/* Basic Information */}
             <div className="space-y-4">
               <div>
@@ -355,23 +378,27 @@ export function CreateCalendarDialog({
               <p className="text-xs text-muted-foreground mt-1">Choose a color to distinguish the calendar</p>
             </div>
           </div>
+            </>
+          )}
           
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleCreateCalendar}
-              disabled={
-                !canCreateMore ||
-                !newCalendar.name.trim() || 
-                selectedServiceTypes.length === 0 || 
-                selectedTeamMembers.length === 0 || 
-                creating
-              }
-            >
-              {creating ? 'Creating...' : 'Create calendar'}
-            </Button>
+            {checkAccess('canCreateBookings') && (
+              <Button 
+                onClick={handleCreateCalendar}
+                disabled={
+                  !canCreateMore ||
+                  !newCalendar.name.trim() || 
+                  selectedServiceTypes.length === 0 || 
+                  selectedTeamMembers.length === 0 || 
+                  creating
+                }
+              >
+                {creating ? 'Creating...' : 'Create calendar'}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -387,6 +414,11 @@ export function CreateCalendarDialog({
           trigger={null}
         />
       )}
+
+      <CalendarUpgradeModal 
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+      />
     </>
   );
 }
