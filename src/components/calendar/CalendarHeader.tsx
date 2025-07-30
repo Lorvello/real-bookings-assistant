@@ -30,13 +30,14 @@ export function CalendarHeader({
   timeRange,
   onTimeRangeChange
 }: CalendarHeaderProps) {
-  const { checkAccess } = useAccessControl();
+  const { checkAccess, userStatus } = useAccessControl();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
   const canCreateBookings = checkAccess('canCreateBookings');
+  const canCreateAppointments = userStatus.userType !== 'expired_trial' && userStatus.userType !== 'canceled_and_inactive';
 
   const handleNewBookingClick = () => {
-    if (canCreateBookings) {
+    if (canCreateAppointments) {
       onNewBooking();
     } else {
       setShowUpgradeModal(true);
@@ -131,9 +132,9 @@ export function CalendarHeader({
           <div className="flex items-center order-3">
             <Button
               onClick={handleNewBookingClick}
-              disabled={loading || !canCreateBookings}
+              disabled={loading || !canCreateAppointments}
               className={`h-9 px-4 rounded-lg font-medium text-sm ${
-                canCreateBookings 
+                canCreateAppointments 
                   ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
                   : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
