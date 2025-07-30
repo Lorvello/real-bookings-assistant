@@ -84,12 +84,15 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
         };
       }
 
-      // Test AI Agent tab: Lock during setup incomplete or expired trial
+      // Test AI Agent tab: Lock during setup incomplete, expired trial, or canceled subscription
       if (item.href === '/test-ai-agent') {
         return {
           ...item,
           isActive,
-          isRestricted: userStatus.isSetupIncomplete || userStatus.userType === 'expired_trial'
+          isRestricted: userStatus.isSetupIncomplete || 
+                       userStatus.userType === 'expired_trial' ||
+                       userStatus.userType === 'canceled_subscriber' ||
+                       userStatus.userType === 'canceled_and_inactive'
         };
       }
       
@@ -151,7 +154,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
       return;
     }
     
-    // Test AI Agent tab: Show setup message if incomplete or expired trial message
+    // Test AI Agent tab: Show appropriate message based on user status
     if (item.href === '/test-ai-agent') {
       if (userStatus.isSetupIncomplete) {
         toast({
@@ -167,6 +170,16 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
         toast({
           title: "Trial Expired",
           description: "Upgrade to a premium plan to access the AI agent.",
+          variant: "destructive",
+        });
+        onNavigate('/settings');
+        onMobileNavigate?.();
+        return;
+      }
+      if (userStatus.userType === 'canceled_subscriber' || userStatus.userType === 'canceled_and_inactive') {
+        toast({
+          title: "Subscription Required",
+          description: "Reactivate your subscription to access the AI agent.",
           variant: "destructive",
         });
         onNavigate('/settings');
@@ -231,9 +244,11 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
                 ? `${item.name} - Complete setup to access this feature`
                 : item.href === '/test-ai-agent' && userStatus.userType === 'expired_trial'
                   ? `${item.name} - Trial expired, upgrade required`
-                  : userStatus.isSetupIncomplete 
-                    ? `${item.name} - Setup required` 
-                    : `${item.name} - Upgrade required`
+                  : item.href === '/test-ai-agent' && (userStatus.userType === 'canceled_subscriber' || userStatus.userType === 'canceled_and_inactive')
+                    ? `${item.name} - Subscription required`
+                    : userStatus.isSetupIncomplete 
+                      ? `${item.name} - Setup required` 
+                      : `${item.name} - Upgrade required`
               : item.name
           }
         >

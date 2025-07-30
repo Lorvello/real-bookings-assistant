@@ -23,7 +23,9 @@ export default function TestAIAgent() {
 
   return (
     <DashboardLayout>
-      {userStatus.userType === 'expired_trial' ? (
+      {(userStatus.userType === 'expired_trial' || 
+        userStatus.userType === 'canceled_subscriber' || 
+        userStatus.userType === 'canceled_and_inactive') ? (
         <ExpiredTrialOverlay>
           {pageContent}
         </ExpiredTrialOverlay>
