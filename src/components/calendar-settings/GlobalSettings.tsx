@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import { useGlobalBotStatus } from '@/hooks/useGlobalBotStatus';
+import { useAccessControl } from '@/hooks/useAccessControl';
+import { WhatsAppUpgradeModal } from './WhatsAppUpgradeModal';
 
 interface GlobalSettingsProps {
   // Legacy props for compatibility - not used anymore
@@ -14,8 +16,17 @@ interface GlobalSettingsProps {
 
 export function GlobalSettings({}: GlobalSettingsProps) {
   const { data: botStatus, isLoading, toggleBot, isToggling } = useGlobalBotStatus();
+  const { accessControl, userStatus } = useAccessControl();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const hasWhatsAppAccess = accessControl.canAccessWhatsApp;
+  const isRestrictedUser = userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive';
 
   const handleWhatsAppBotToggle = (checked: boolean) => {
+    if (!hasWhatsAppAccess && isRestrictedUser) {
+      setShowUpgradeModal(true);
+      return;
+    }
     toggleBot(checked);
   };
 
@@ -43,11 +54,18 @@ export function GlobalSettings({}: GlobalSettingsProps) {
             </p>
           </div>
           <Switch
-            checked={botStatus?.whatsapp_bot_active ?? false}
+            checked={hasWhatsAppAccess ? (botStatus?.whatsapp_bot_active ?? false) : false}
             onCheckedChange={handleWhatsAppBotToggle}
-            disabled={isLoading || isToggling}
+            disabled={isLoading || isToggling || !hasWhatsAppAccess}
+            className={!hasWhatsAppAccess ? "opacity-50" : ""}
           />
         </div>
+        
+        <WhatsAppUpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          userType={userStatus.userType}
+        />
       </div>
     </TooltipProvider>
   );
