@@ -1,18 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AlertCircle, Lock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
 import { useUserStatus } from '@/contexts/UserStatusContext';
+import { SubscriptionModal } from '@/components/SubscriptionModal';
 
 interface WhatsAppServiceStatusProps {
   calendarId: string;
 }
 
 export function WhatsAppServiceStatus({ calendarId }: WhatsAppServiceStatusProps) {
-  const navigate = useNavigate();
   const { userStatus, accessControl } = useUserStatus();
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   // Show status indicator if WhatsApp service is not available
   if (userStatus.isExpired || !accessControl.canAccessWhatsApp) {
@@ -54,7 +54,7 @@ export function WhatsAppServiceStatus({ calendarId }: WhatsAppServiceStatusProps
             </p>
           </div>
           <Button 
-            onClick={() => navigate('/settings')}
+            onClick={() => setShowSubscriptionModal(true)}
             variant="default"
             className="w-full sm:w-auto"
           >
@@ -65,5 +65,13 @@ export function WhatsAppServiceStatus({ calendarId }: WhatsAppServiceStatusProps
     );
   }
 
-  return null;
+  return (
+    <>
+      {/* Original component content here if needed */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        userType={userStatus.userType}
+      />
+    </>);
 }

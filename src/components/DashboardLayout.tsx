@@ -14,6 +14,7 @@ import { StatusIndicator } from '@/components/user-status/StatusIndicator';
 import { UpgradePrompt } from '@/components/user-status/UpgradePrompt';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
+import { SubscriptionModal } from '@/components/SubscriptionModal';
 
 // Helper function to get page title from pathname
 const getPageTitle = (pathname: string) => {
@@ -48,6 +49,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   // Close sidebar on mobile when screen size changes
   useEffect(() => {
@@ -83,11 +85,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const handleUpgrade = () => {
-    toast({
-      title: "Upgrade Account",
-      description: "Redirecting to upgrade options...",
-    });
-    navigate('/settings');
+    setShowSubscriptionModal(true);
   };
 
   const currentPageTitle = getPageTitle(location.pathname);
@@ -181,6 +179,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
       </div>
+      
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        userType={userStatus.userType}
+      />
     </div>
   );
 }
