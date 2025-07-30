@@ -514,7 +514,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     if (userType === 'expired_trial') {
       return {
         canViewDashboard: true,
-        canCreateBookings: false,
+        canCreateBookings: true,
         canEditBookings: true,
         canManageSettings: true,
         canAccessWhatsApp: false,
@@ -541,7 +541,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     if (userType === 'canceled_and_inactive') {
       return {
         canViewDashboard: true,
-        canCreateBookings: false,
+        canCreateBookings: true,
         canEditBookings: true,
         canManageSettings: true,
         canAccessWhatsApp: false,
