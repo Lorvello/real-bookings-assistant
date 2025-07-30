@@ -2,9 +2,11 @@ import { Check, Star, ArrowRight, Zap, ChevronLeft, ChevronRight, Info } from "l
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 
 export const Pricing = () => {
+  const navigate = useNavigate();
   const [isAnnual, setIsAnnual] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -176,6 +178,16 @@ export const Pricing = () => {
     }
   };
 
+  const handlePlanSelect = (plan: typeof plans[0]) => {
+    if (plan.isEnterprise) {
+      // Contact sales functionality (future enhancement)
+      return;
+    } else {
+      // Navigate to signup for Starter and Professional
+      navigate('/signup');
+    }
+  };
+
   return (
     <TooltipProvider>
       <section className="py-16 md:py-20 relative overflow-hidden">
@@ -300,6 +312,7 @@ export const Pricing = () => {
 
                   <div className="px-6 mb-6 relative z-10">
                     <Button 
+                      onClick={() => handlePlanSelect(plan)}
                       className={`w-full font-semibold py-3.5 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
                         plan.isEnterprise
                           ? 'bg-gradient-to-r from-white to-slate-100 text-slate-900 hover:from-slate-100 hover:to-white shadow-white/20 hover:shadow-white/30'
@@ -421,6 +434,7 @@ export const Pricing = () => {
 
                         <div className="px-3.5 mb-2.5 relative z-10">
                           <Button 
+                            onClick={() => handlePlanSelect(plan)}
                             className="w-full font-semibold py-2.5 px-3.5 rounded-xl text-xs shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/50"
                           >
                             {plan.cta}
