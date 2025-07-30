@@ -510,7 +510,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     // Get starter tier limits for trial users
     const starterTierLimits = getSubscriptionTierLimits('starter');
 
-    // Expired trial users
+    // Get free tier limits for expired/inactive users
+    const freeTierLimits = getSubscriptionTierLimits('free');
+
+    // Expired trial users - use free tier
     if (userType === 'expired_trial') {
       return {
         canViewDashboard: true,
@@ -530,14 +533,14 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canAccessPerformance: false,
         canAccessCustomerSatisfaction: false,
         canAccessTeamMembers: false,
-        maxCalendars: starterTierLimits?.max_calendars || 2,
-        maxBookingsPerMonth: starterTierLimits?.max_bookings_per_month || null,
-        maxTeamMembers: starterTierLimits?.max_team_members || 1,
-        maxWhatsAppContacts: starterTierLimits?.max_whatsapp_contacts || 500
+        maxCalendars: freeTierLimits?.max_calendars || 0,
+        maxBookingsPerMonth: freeTierLimits?.max_bookings_per_month || null,
+        maxTeamMembers: freeTierLimits?.max_team_members || 1,
+        maxWhatsAppContacts: freeTierLimits?.max_whatsapp_contacts || 500
       };
     }
 
-    // Canceled and inactive users
+    // Canceled and inactive users - use free tier
     if (userType === 'canceled_and_inactive') {
       return {
         canViewDashboard: true,
@@ -557,10 +560,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canAccessPerformance: false,
         canAccessCustomerSatisfaction: false,
         canAccessTeamMembers: false,
-        maxCalendars: 1,
-        maxBookingsPerMonth: 25,
-        maxTeamMembers: 1,
-        maxWhatsAppContacts: 0
+        maxCalendars: freeTierLimits?.max_calendars || 0,
+        maxBookingsPerMonth: freeTierLimits?.max_bookings_per_month || null,
+        maxTeamMembers: freeTierLimits?.max_team_members || 1,
+        maxWhatsAppContacts: freeTierLimits?.max_whatsapp_contacts || 500
       };
     }
 
