@@ -5,8 +5,10 @@ import { addMonths, subMonths, addWeeks, subWeeks, addYears, subYears } from 'da
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarContent } from './CalendarContent';
 import { NewBookingModal } from '../NewBookingModal';
+import { AppointmentUpgradeModal } from './AppointmentUpgradeModal';
 import { useMultipleCalendarBookings } from '@/hooks/useMultipleCalendarBookings';
 import { useRealtimeBookings } from '@/hooks/useRealtimeBookings';
+import { useAccessControl } from '@/hooks/useAccessControl';
 
 type CalendarView = 'month' | 'week' | 'year';
 
@@ -26,6 +28,9 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
   );
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  
+  const { checkAccess } = useAccessControl();
   
   // Time range state for week view with business hours default
   const [timeRange, setTimeRange] = useState(() => {
@@ -91,8 +96,15 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
   };
 
   const handleNewBooking = () => {
-    console.log('Opening new booking modal');
-    setIsNewBookingModalOpen(true);
+    const canCreateBookings = checkAccess('canCreateBookings');
+    
+    if (canCreateBookings) {
+      console.log('Opening new booking modal');
+      setIsNewBookingModalOpen(true);
+    } else {
+      console.log('Access denied - showing upgrade modal');
+      setShowUpgradeModal(true);
+    }
   };
 
   const handleModalClose = () => {
@@ -145,6 +157,11 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
         onClose={handleModalClose}
         calendarId={calendarIds[0] || ''} // Use first calendar for new bookings
         onBookingCreated={handleBookingCreated}
+      />
+
+      <AppointmentUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
       />
     </div>
   );

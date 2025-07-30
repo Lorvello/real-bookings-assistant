@@ -3,6 +3,9 @@ import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TimeRangeSelector } from './TimeRangeSelector';
+import { useAccessControl } from '@/hooks/useAccessControl';
+import { AppointmentUpgradeModal } from './AppointmentUpgradeModal';
+import { useState } from 'react';
 
 type CalendarView = 'month' | 'week' | 'year';
 
@@ -27,6 +30,18 @@ export function CalendarHeader({
   timeRange,
   onTimeRangeChange
 }: CalendarHeaderProps) {
+  const { checkAccess } = useAccessControl();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  
+  const canCreateBookings = checkAccess('canCreateBookings');
+
+  const handleNewBookingClick = () => {
+    if (canCreateBookings) {
+      onNewBooking();
+    } else {
+      setShowUpgradeModal(true);
+    }
+  };
   const formatTitle = () => {
     switch (currentView) {
       case 'week':
@@ -115,9 +130,13 @@ export function CalendarHeader({
           {/* Action Buttons */}
           <div className="flex items-center order-3">
             <Button
-              onClick={onNewBooking}
-              disabled={loading}
-              className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"
+              onClick={handleNewBookingClick}
+              disabled={loading || !canCreateBookings}
+              className={`h-9 px-4 rounded-lg font-medium text-sm ${
+                canCreateBookings 
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
+              }`}
             >
               <Plus className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">New Appointment</span>
@@ -136,6 +155,12 @@ export function CalendarHeader({
           </div>
         </div>
       )}
+
+      {/* Upgrade Modal */}
+      <AppointmentUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+      />
     </div>
   );
 }
