@@ -7,9 +7,10 @@ import { PerformanceEfficiencyTab } from './dashboard-tabs/PerformanceEfficiency
 import { LiveOperationsTab } from './dashboard-tabs/LiveOperationsTab';
 import { FutureInsightsTab } from './dashboard-tabs/FutureInsightsTab';
 import { AccessBlockedOverlay } from './user-status/AccessBlockedOverlay';
+import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { DateRange } from '@/utils/dateRangePresets';
 import { useAccessControl } from '@/hooks/useAccessControl';
-import { useNavigate } from 'react-router-dom';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { 
   LayoutDashboard,
   TrendingUp, 
@@ -27,8 +28,9 @@ interface DashboardTabsProps {
 
 export function DashboardTabs({ calendarIds, dateRange, onTabChange }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const { checkAccess, requireAccess } = useAccessControl();
-  const navigate = useNavigate();
+  const { userStatus } = useUserStatus();
 
   const handleTabChange = (value: string) => {
     // Check access for restricted tabs
@@ -52,7 +54,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
   };
 
   const handleUpgrade = () => {
-    navigate('/pricing');
+    setShowSubscriptionModal(true);
   };
 
   const hasBusinessIntelligenceAccess = checkAccess('canAccessBusinessIntelligence');
@@ -203,6 +205,12 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
           </div>
         </TabsContent>
       </Tabs>
+      
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        userType={userStatus.userType}
+      />
     </div>
   );
 }

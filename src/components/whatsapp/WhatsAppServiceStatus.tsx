@@ -61,17 +61,20 @@ export function WhatsAppServiceStatus({ calendarId }: WhatsAppServiceStatusProps
             Upgrade to Reactivate Service
           </Button>
         </CardContent>
+        <SubscriptionModal
+          isOpen={showSubscriptionModal}
+          onClose={() => setShowSubscriptionModal(false)}
+          userType={userStatus.userType}
+        />
       </Card>
     );
   }
 
   return (
-    <>
-      {/* Original component content here if needed */}
-      <SubscriptionModal
-        isOpen={showSubscriptionModal}
-        onClose={() => setShowSubscriptionModal(false)}
-        userType={userStatus.userType}
-      />
-    </>);
+    <SubscriptionModal
+      isOpen={showSubscriptionModal}
+      onClose={() => setShowSubscriptionModal(false)}
+      userType={userStatus.userType}
+    />
+  );
 }
