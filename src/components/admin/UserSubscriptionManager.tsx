@@ -19,7 +19,7 @@ export const UserSubscriptionManager = ({ userId }: UserSubscriptionManagerProps
   const [userDetails, setUserDetails] = useState<any>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('');
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier | ''>('');
-  const [trialDays, setTrialDays] = useState(7);
+  const [trialDays, setTrialDays] = useState(30);
   
   const { updateUserSubscription, extendTrial, getUserSubscriptionDetails, isLoading } = useAdminControls();
   const { tiers } = useSubscriptionTiers();

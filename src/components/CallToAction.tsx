@@ -37,7 +37,7 @@ const CallToAction = () => {
           </Button>
           
           <p className="text-sm mt-4 opacity-80">
-            ✅ 7-day free trial • ✅ Cancel anytime • ✅ Setup support included
+            ✅ 30-day free trial • ✅ Cancel anytime • ✅ Setup support included
           </p>
         </div>
         

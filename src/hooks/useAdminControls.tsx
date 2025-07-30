@@ -51,7 +51,7 @@ export const useAdminControls = () => {
     }
   };
 
-  const extendTrial = async (userId: string, days: number = 7) => {
+  const extendTrial = async (userId: string, days: number = 30) => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_extend_trial', {

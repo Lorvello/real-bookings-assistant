@@ -88,7 +88,7 @@ const FAQ = () => {
       items: [
         {
           question: "What does it cost?",
-          answer: "Starter starts at €20/month, Professional €48/month and Enterprise custom pricing. Starter and Professional plans have a free 7-day trial. Enterprise has no free trial."
+          answer: "Starter starts at €20/month, Professional €48/month and Enterprise custom pricing. Starter and Professional plans have a free 30-day trial. Enterprise has no free trial."
         },
         {
           question: "Are there setup costs?",
@@ -234,7 +234,7 @@ const FAQ = () => {
         },
         {
           question: "Do you offer refunds?",
-          answer: "We offer a 7-day free trial, so you can test everything risk-free. After that no refunds but you can always cancel."
+          answer: "We offer a 30-day free trial, so you can test everything risk-free. After that no refunds but you can always cancel."
         },
         {
           question: "Can I pause my subscription?",

@@ -336,7 +336,7 @@ export const StreamlinedSignup: React.FC = () => {
                   Creating Account...
                 </>
               ) : (
-                'Start 7-Day Free Trial'
+                'Start 30-Day Free Trial'
               )}
             </Button>
           </form>

@@ -55,7 +55,7 @@ const HeroSection: React.FC = () => {
               className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-2 md:px-8 md:py-6 text-sm md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[40px] md:min-h-[48px]"
             >
               <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
-              Start Free 7-Day Trial
+              Start Free 30-Day Trial
             </Button>
             
             <button 

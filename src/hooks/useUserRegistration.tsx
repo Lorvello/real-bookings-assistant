@@ -114,7 +114,7 @@ export const useUserRegistration = () => {
       
       toast({
         title: "Account created successfully! 🎉",
-        description: "Please complete your business setup to start your 7-day trial.",
+        description: "Please complete your business setup to start your 30-day trial.",
       });
 
       setLoading(false);

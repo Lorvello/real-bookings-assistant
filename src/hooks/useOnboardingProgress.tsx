@@ -90,7 +90,7 @@ export const useOnboardingProgress = () => {
             .update({
               subscription_status: 'trial',
               trial_start_date: new Date().toISOString(),
-              trial_end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
+              trial_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
             })
             .eq('id', profile.id);
           
