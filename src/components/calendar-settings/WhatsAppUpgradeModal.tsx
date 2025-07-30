@@ -1,5 +1,4 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MessageCircle, ArrowRight } from 'lucide-react';
 import { UserType } from '@/types/userStatus';
+import { SubscriptionModal } from '@/components/SubscriptionModal';
 
 interface WhatsAppUpgradeModalProps {
   isOpen: boolean;
@@ -18,11 +18,11 @@ interface WhatsAppUpgradeModalProps {
 }
 
 export function WhatsAppUpgradeModal({ isOpen, onClose, userType }: WhatsAppUpgradeModalProps) {
-  const navigate = useNavigate();
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   const handleUpgrade = () => {
     onClose();
-    navigate('/pricing');
+    setShowSubscriptionModal(true);
   };
 
   const getModalContent = () => {
@@ -42,40 +42,48 @@ export function WhatsAppUpgradeModal({ isOpen, onClose, userType }: WhatsAppUpgr
   const content = getModalContent();
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-              <MessageCircle className="h-5 w-5 text-muted-foreground" />
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <MessageCircle className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <DialogTitle className="text-lg font-semibold">
+                {content.title}
+              </DialogTitle>
             </div>
-            <DialogTitle className="text-lg font-semibold">
-              {content.title}
-            </DialogTitle>
-          </div>
-          <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-            {content.description}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="flex flex-col gap-3 mt-4">
-          <Button
-            onClick={handleUpgrade}
-            className={`w-full flex items-center justify-center gap-2 text-white font-medium ${content.buttonColor}`}
-          >
-            {content.buttonText}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+            <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
+              {content.description}
+            </DialogDescription>
+          </DialogHeader>
           
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="w-full"
-          >
-            Cancel
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button
+              onClick={handleUpgrade}
+              className={`w-full flex items-center justify-center gap-2 text-white font-medium ${content.buttonColor}`}
+            >
+              {content.buttonText}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="w-full"
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        userType={userType}
+      />
+    </>
   );
 }

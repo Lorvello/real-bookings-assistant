@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowUp, RefreshCw } from 'lucide-react';
 import {
   Dialog,
@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useUserStatus } from '@/contexts/UserStatusContext';
-import { useNavigate } from 'react-router-dom';
+import { SubscriptionModal } from '@/components/SubscriptionModal';
 
 interface CalendarUpgradeModalProps {
   open: boolean;
@@ -19,11 +19,11 @@ interface CalendarUpgradeModalProps {
 
 export function CalendarUpgradeModal({ open, onOpenChange }: CalendarUpgradeModalProps) {
   const { userStatus } = useUserStatus();
-  const navigate = useNavigate();
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   const handleUpgrade = () => {
     onOpenChange(false);
-    navigate('/pricing');
+    setShowSubscriptionModal(true);
   };
 
   const getTitle = () => {
@@ -64,28 +64,36 @@ export function CalendarUpgradeModal({ open, onOpenChange }: CalendarUpgradeModa
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {getButtonIcon()}
-            {getTitle()}
-          </DialogTitle>
-          <DialogDescription>
-            {getDescription()}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <DialogFooter className="flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleUpgrade} className="flex items-center gap-2">
-            {getButtonIcon()}
-            {getButtonText()}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {getButtonIcon()}
+              {getTitle()}
+            </DialogTitle>
+            <DialogDescription>
+              {getDescription()}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpgrade} className="flex items-center gap-2">
+              {getButtonIcon()}
+              {getButtonText()}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        userType={userStatus.userType}
+      />
+    </>
   );
 }

@@ -1,12 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, AlertCircle, Zap } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
+import { SubscriptionModal } from '@/components/SubscriptionModal';
 
 export const WhatsAppNotAvailable: React.FC = () => {
   const { userStatus } = useUserStatus();
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   const getTitle = () => {
     switch (userStatus.userType) {
@@ -39,6 +41,10 @@ export const WhatsAppNotAvailable: React.FC = () => {
       default:
         return 'Learn More';
     }
+  };
+
+  const handleActionClick = () => {
+    setShowSubscriptionModal(true);
   };
 
   return (
@@ -109,7 +115,7 @@ export const WhatsAppNotAvailable: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-6">
-            <Button className="flex-1" size="lg">
+            <Button className="flex-1" size="lg" onClick={handleActionClick}>
               {getActionText()}
             </Button>
             <Button variant="outline" size="lg" className="flex-1">
@@ -124,6 +130,12 @@ export const WhatsAppNotAvailable: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        userType={userStatus.userType}
+      />
     </div>
   );
 };

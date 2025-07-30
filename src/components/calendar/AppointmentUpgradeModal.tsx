@@ -1,5 +1,5 @@
+import { useState } from 'react';
 import { Calendar, CreditCard, RefreshCw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useAccessControl } from '@/hooks/useAccessControl';
+import { SubscriptionModal } from '@/components/SubscriptionModal';
 
 interface AppointmentUpgradeModalProps {
   isOpen: boolean;
@@ -16,12 +17,12 @@ interface AppointmentUpgradeModalProps {
 }
 
 export function AppointmentUpgradeModal({ isOpen, onClose }: AppointmentUpgradeModalProps) {
-  const navigate = useNavigate();
   const { userStatus } = useAccessControl();
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   const handleUpgrade = () => {
     onClose();
-    navigate('/pricing');
+    setShowSubscriptionModal(true);
   };
 
   const isExpiredTrial = userStatus.userType === 'expired_trial';
@@ -57,39 +58,47 @@ export function AppointmentUpgradeModal({ isOpen, onClose }: AppointmentUpgradeM
   const content = getModalContent();
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader className="text-center space-y-4">
-          <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-            {content.icon}
-          </div>
-          
-          <DialogTitle className="text-xl font-semibold">
-            {content.title}
-          </DialogTitle>
-          
-          <DialogDescription className="text-base text-muted-foreground">
-            {content.description}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="text-center space-y-4">
+            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+              {content.icon}
+            </div>
+            
+            <DialogTitle className="text-xl font-semibold">
+              {content.title}
+            </DialogTitle>
+            
+            <DialogDescription className="text-base text-muted-foreground">
+              {content.description}
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="flex flex-col gap-3 mt-6">
-          <Button 
-            onClick={handleUpgrade} 
-            className="w-full h-11 font-medium"
-          >
-            {content.buttonText}
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            onClick={onClose}
-            className="w-full h-11"
-          >
-            Close
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+          <div className="flex flex-col gap-3 mt-6">
+            <Button 
+              onClick={handleUpgrade} 
+              className="w-full h-11 font-medium"
+            >
+              {content.buttonText}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              className="w-full h-11"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        userType={userStatus.userType}
+      />
+    </>
   );
 }
