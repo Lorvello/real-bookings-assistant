@@ -69,14 +69,14 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
 
   // Only update cache when we get valid new subscription data
   useEffect(() => {
-    // Only update if we have valid subscription data
-    if (profile?.subscription_tier && profile?.subscription_status === 'active') {
+    // Update if we have any subscription tier data (not just active subscriptions)
+    if (profile?.subscription_tier) {
       setCachedTierInfo(prev => {
         // Only update if the data actually changed
-        if (prev.tier !== profile.subscription_tier || !prev.isActive) {
+        if (prev.tier !== profile.subscription_tier || prev.isActive !== (profile?.subscription_status === 'active')) {
           return {
             tier: profile.subscription_tier,
-            isActive: true
+            isActive: profile?.subscription_status === 'active'
           };
         }
         return prev;
@@ -86,9 +86,10 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
     // Only clear if user actually logs out (which would be handled by parent components)
   }, [profile?.subscription_tier, profile?.subscription_status]);
 
-  // Always prefer cached data for stability
-  const tierDisplay = formatSubscriptionTier(cachedTierInfo.tier);
-  const hasActiveSubscription = cachedTierInfo.isActive;
+  // Always prefer current profile data if available, fallback to cached data
+  const currentTier = profile?.subscription_tier || cachedTierInfo.tier;
+  const tierDisplay = formatSubscriptionTier(currentTier);
+  const hasActiveSubscription = profile?.subscription_status === 'active' || cachedTierInfo.isActive;
 
   const getIcon = () => {
     switch (userType) {
@@ -146,6 +147,14 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
                 <p className="text-xs font-medium text-yellow-400">
                   {daysRemaining} Days Free Trial Remaining
                 </p>
+                {currentTier && tierDisplay && (
+                  <div className="flex items-center gap-1">
+                    <Crown className={`h-3 w-3 ${getTierColor(currentTier)}`} />
+                    <p className={`text-xs ${getTierColor(currentTier)}`}>
+                      {tierDisplay}
+                    </p>
+                  </div>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -160,17 +169,24 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
                 <p className={`text-xs font-medium ${getColorClass()}`}>
                   {statusMessage}
                 </p>
-                {userType === 'subscriber' && hasActiveSubscription && tierDisplay && (
+                {/* Always show subscription tier if available */}
+                {currentTier && tierDisplay && (
                   <div className="flex items-center gap-1 mt-1">
-                    <Crown className={`h-3 w-3 ${getTierColor(cachedTierInfo.tier)}`} />
-                    <p className={`text-xs ${getTierColor(cachedTierInfo.tier)}`}>
+                    <Crown className={`h-3 w-3 ${getTierColor(currentTier)}`} />
+                    <p className={`text-xs ${getTierColor(currentTier)}`}>
                       {tierDisplay}
                     </p>
                   </div>
                 )}
+                {/* Show additional info based on user type */}
                 {userType === 'trial' && daysRemaining <= 3 && (
                   <p className="text-xs text-gray-400 mt-1">
                     Upgrade to keep access
+                  </p>
+                )}
+                {userType === 'canceled_subscriber' && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Access will end soon
                   </p>
                 )}
               </div>
