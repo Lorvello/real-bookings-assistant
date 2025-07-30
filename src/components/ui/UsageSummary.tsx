@@ -1,9 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Crown, Users, MessageCircle, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Crown, Users, MessageCircle, Calendar, Lock } from 'lucide-react';
 import { useCalendarLimits, useWhatsAppLimits, useTeamMemberLimits } from '@/hooks/useSubscriptionLimits';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { UpgradePrompt } from '@/components/ui/UpgradePrompt';
 
 interface UsageSummaryProps {
@@ -12,9 +14,44 @@ interface UsageSummaryProps {
 
 export function UsageSummary({ className = "" }: UsageSummaryProps) {
   const { selectedCalendar } = useCalendarContext();
+  const { userStatus } = useUserStatus();
   const calendarLimits = useCalendarLimits();
   const whatsappLimits = useWhatsAppLimits();
   const teamLimits = useTeamMemberLimits(selectedCalendar?.id);
+
+  const hasNoSubscription = userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive';
+
+  if (hasNoSubscription) {
+    return (
+      <Card className={className}>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Lock className="h-4 w-4 text-muted-foreground" />
+            No Active Subscription
+          </CardTitle>
+          <CardDescription>
+            Subscribe to access usage tracking and premium features
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-center py-6">
+            <p className="text-sm text-muted-foreground mb-4">
+              {userStatus.userType === 'expired_trial' 
+                ? 'Your trial has expired. Upgrade to continue using premium features.'
+                : 'Your subscription is inactive. Reactivate to access premium features.'
+              }
+            </p>
+            <Button 
+              onClick={() => window.location.href = '/dashboard/settings'}
+              className="w-full"
+            >
+              {userStatus.userType === 'expired_trial' ? 'Upgrade Now' : 'Reactivate Subscription'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const getUsagePercentage = (current: number, max: number | null) => {
     if (max === null) return 0;
