@@ -1,26 +1,19 @@
 
 import React from 'react';
 import { UserManagement } from './UserManagement';
+import { useSettingsContext } from '@/contexts/SettingsContext';
 
-interface ProfileTabProps {
-  profileData: any;
-  setProfileData: (data: any) => void;
-  businessData: any;
-  setBusinessData: (data: any) => void;
-  loading: boolean;
-  handleUpdateProfile: () => void;
-  handleUpdateBusiness: () => void;
-}
+export const ProfileTab: React.FC = () => {
+  const {
+    profileData,
+    setProfileData,
+    businessData,
+    setBusinessData,
+    loading,
+    handleUpdateProfile,
+    handleUpdateBusiness
+  } = useSettingsContext();
 
-export const ProfileTab: React.FC<ProfileTabProps> = ({
-  profileData,
-  setProfileData,
-  businessData,
-  setBusinessData,
-  loading,
-  handleUpdateProfile,
-  handleUpdateBusiness
-}) => {
   return (
     <div className="space-y-8">
       {/* The enhanced UserManagement component now handles both user management and profile information */}

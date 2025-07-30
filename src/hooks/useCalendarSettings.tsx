@@ -1,7 +1,6 @@
 
 import { useCalendarSettingsState } from './calendar-settings/useCalendarSettingsState';
-import { useCalendarNameActions } from './calendar-settings/useCalendarNameActions';
-import { useCalendarSaveActions } from './calendar-settings/useCalendarSaveActions';
+import { useCalendarManagement } from './useCalendarManagement';
 
 export const useCalendarSettings = (calendarId?: string) => {
   const {
@@ -16,17 +15,33 @@ export const useCalendarSettings = (calendarId?: string) => {
     setPendingChanges
   } = useCalendarSettingsState(calendarId);
 
-  const { updateCalendarName } = useCalendarNameActions(calendarId);
+  const { updateName, updateSettings } = useCalendarManagement();
 
-  const { saveAllChanges } = useCalendarSaveActions(
-    calendarId,
-    settings,
-    pendingChanges,
-    hasPendingChanges,
-    setSaving,
-    setPendingChanges,
-    fetchSettings
-  );
+  const updateCalendarName = async (newName: string) => {
+    if (!calendarId) return false;
+    return await updateName(calendarId, newName);
+  };
+
+  const saveAllChanges = async (): Promise<boolean> => {
+    if (!calendarId || !settings || !hasPendingChanges || !pendingChanges) {
+      return false;
+    }
+
+    setSaving(true);
+    try {
+      const success = await updateSettings(calendarId, pendingChanges);
+      if (success) {
+        setPendingChanges({});
+        fetchSettings();
+      }
+      return success;
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return {
     settings,

@@ -5,28 +5,20 @@ import { Info, Check, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { businessTypes } from '@/constants/settingsOptions';
+import { useSettingsContext } from '@/contexts/SettingsContext';
+import { isBusinessField } from '@/utils/fieldMapping';
 
-interface AIKnowledgeTabProps {
-  profileData: any;
-  setProfileData: (data: any) => void;
-  businessData: any;
-  setBusinessData: (data: any) => void;
-  loading: boolean;
-  handleUpdateProfile: (customData?: any) => void;
-  handleUpdateBusiness: (customData?: any) => void;
-  refetch: () => Promise<void>;
-}
-
-export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
-  profileData,
-  setProfileData,
-  businessData,
-  setBusinessData,
-  loading,
-  handleUpdateProfile,
-  handleUpdateBusiness,
-  refetch
-}) => {
+export const AIKnowledgeTab: React.FC = () => {
+  const {
+    profileData,
+    setProfileData,
+    businessData,
+    setBusinessData,
+    loading,
+    handleUpdateProfile,
+    handleUpdateBusiness,
+    refetch
+  } = useSettingsContext();
   // Manual save state management
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValues, setTempValues] = useState<any>({});
@@ -53,10 +45,7 @@ export const AIKnowledgeTab: React.FC<AIKnowledgeTabProps> = ({
     setSaving(field);
     
     try {
-      const isBusinessField = field.startsWith('business_') || 
-        ['parking_info', 'public_transport_info', 'accessibility_info', 'other_info'].includes(field);
-      
-      if (isBusinessField) {
+      if (isBusinessField(field)) {
         // Update business data with the new value
         const newBusinessData = { ...businessData, [field]: tempValues[field] };
         setBusinessData(newBusinessData);
