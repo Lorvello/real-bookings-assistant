@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
 import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 import { useWhatsAppLimits } from '@/hooks/useSubscriptionLimits';
+import { useAccessControl } from '@/hooks/useAccessControl';
 import { UpgradePrompt } from '@/components/ui/UpgradePrompt';
 import { MessageCircle } from 'lucide-react';
 
@@ -24,6 +25,7 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const { isDeveloper } = useDeveloperAccess();
   const { currentCount, maxContacts, canAddMore } = useWhatsAppLimits(calendarId);
+  const { accessControl } = useAccessControl();
   
   // Initialize enhanced webhook processor
   useWebhookProcessor(calendarId);
@@ -34,7 +36,7 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
       <WhatsAppServiceStatus calendarId={calendarId} />
       
       {/* WhatsApp Contact Limit Warning */}
-      {!canAddMore && (
+      {!canAddMore && accessControl.canAccessWhatsApp && (
         <div className="mb-4">
           <UpgradePrompt 
             feature="WhatsApp Contacts"
