@@ -7,6 +7,7 @@ import { useCalendarLimits, useWhatsAppLimits, useTeamMemberLimits } from '@/hoo
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { UsageSummary } from '@/components/ui/UsageSummary';
+import { SubscriptionModal } from '@/components/SubscriptionModal';
 
 interface SubscriptionOverviewProps {
   className?: string;
@@ -16,6 +17,7 @@ export function SubscriptionOverview({ className = "" }: SubscriptionOverviewPro
   const { selectedCalendar } = useCalendarContext();
   const { userStatus } = useUserStatus();
   const [showFullDetails, setShowFullDetails] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const calendarLimits = useCalendarLimits();
   const whatsappLimits = useWhatsAppLimits();
   const teamLimits = useTeamMemberLimits(selectedCalendar?.id);
@@ -59,30 +61,38 @@ export function SubscriptionOverview({ className = "" }: SubscriptionOverviewPro
 
   if (hasNoSubscription) {
     return (
-      <Card className={className}>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Lock className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <div className="text-sm font-medium">No Active Subscription</div>
-                <div className="text-xs text-muted-foreground">
-                  Subscribe to access premium features
+      <>
+        <Card className={className}>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Lock className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium">No Active Subscription</div>
+                  <div className="text-xs text-muted-foreground">
+                    Subscribe to access premium features
+                  </div>
                 </div>
               </div>
+              
+              <Button
+                variant="default"
+                size="sm"
+                className="text-xs"
+                onClick={() => setShowSubscriptionModal(true)}
+              >
+                Upgrade
+              </Button>
             </div>
-            
-            <Button
-              variant="default"
-              size="sm"
-              className="text-xs"
-              onClick={() => window.location.href = '/dashboard/settings'}
-            >
-              Upgrade
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        
+        <SubscriptionModal
+          isOpen={showSubscriptionModal}
+          onClose={() => setShowSubscriptionModal(false)}
+          userType={userStatus.userType}
+        />
+      </>
     );
   }
 
