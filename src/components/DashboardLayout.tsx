@@ -106,7 +106,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <AuthenticatedPageWrapper>
-      <div className="flex h-screen bg-gray-900 w-full relative overflow-hidden">
+      <div className="flex h-full bg-gray-900 w-full relative overflow-hidden">
       {/* Mobile Overlay */}
       {isMobile && isSidebarOpen && (
         <div 
@@ -201,7 +201,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Main Content */}
-      <div className={`flex-1 h-screen ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`} style={isMobile ? { overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } : {}}>
+      <div className={`flex-1 h-full ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`} style={isMobile ? { overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } : {}}>
         <main className="w-full h-full overflow-y-auto">
           {children}
         </main>
