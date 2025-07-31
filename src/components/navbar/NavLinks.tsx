@@ -33,6 +33,11 @@ export function NavLinks({ navItems, onNavClick, isMobile = false }: NavLinksPro
           pricingElement.scrollIntoView({ behavior: 'smooth' });
         }
       }, 100);
+    } else {
+      const appScrollContainer = document.querySelector('[data-scroll-container]');
+      if (appScrollContainer) {
+        appScrollContainer.scrollTo({ top: 0, behavior: 'instant' });
+      }
     }
     onNavClick();
   };

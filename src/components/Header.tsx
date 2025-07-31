@@ -21,7 +21,10 @@ const Header = () => {
   ];
 
   const handleNavClick = () => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    const appScrollContainer = document.querySelector('[data-scroll-container]');
+    if (appScrollContainer) {
+      appScrollContainer.scrollTo({ top: 0, behavior: 'instant' });
+    }
     setIsMobileMenuOpen(false);
   };
 

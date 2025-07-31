@@ -198,9 +198,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       )}
 
-      {/* Main Content with independent scrolling */}
-      <div className={`flex-1 h-screen overflow-y-auto ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`} style={isMobile ? { overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } : {}}>
-        <main className="min-h-full">
+      {/* Main Content */}
+      <div className={`flex-1 h-screen ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`} style={isMobile ? { overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } : {}}>
+        <main className="w-full h-full overflow-y-auto">
           {children}
         </main>
       </div>

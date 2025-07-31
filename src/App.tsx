@@ -56,10 +56,11 @@ function App() {
       <UserStatusProvider>
         <CalendarProvider>
           <ConversationCalendarProvider>
-            <div className="min-h-screen w-full overflow-x-hidden">
+            <div className="w-full h-screen overflow-hidden">
               <Router>
-                <GlobalWebhookProcessor />
-                <Routes>
+                <div className="w-full h-full overflow-y-auto overflow-x-hidden" data-scroll-container>
+                  <GlobalWebhookProcessor />
+                  <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
@@ -83,8 +84,9 @@ function App() {
                   <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Toaster />
+                  </Routes>
+                  <Toaster />
+                </div>
               </Router>
             </div>
           </ConversationCalendarProvider>
