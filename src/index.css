@@ -3,6 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
+body, html {
+  height: 100vh;
+  max-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
