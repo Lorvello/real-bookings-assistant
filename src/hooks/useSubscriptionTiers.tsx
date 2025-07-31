@@ -8,12 +8,23 @@ export const useSubscriptionTiers = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('subscription_tiers')
-        .select('*')
+        .select(`
+          *,
+          stripe_live_monthly_price_id,
+          stripe_live_yearly_price_id,
+          stripe_test_monthly_price_id,
+          stripe_test_yearly_price_id
+        `)
         .eq('is_active', true)
         .order('price_monthly', { ascending: true });
 
       if (error) throw error;
-      return data as SubscriptionTierConfig[];
+      return data as (SubscriptionTierConfig & {
+        stripe_live_monthly_price_id?: string;
+        stripe_live_yearly_price_id?: string;
+        stripe_test_monthly_price_id?: string;
+        stripe_test_yearly_price_id?: string;
+      })[];
     },
   });
 

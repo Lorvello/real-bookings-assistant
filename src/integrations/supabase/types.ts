@@ -1227,6 +1227,10 @@ export type Database = {
           price_monthly: number | null
           price_yearly: number | null
           priority_support: boolean | null
+          stripe_live_monthly_price_id: string | null
+          stripe_live_yearly_price_id: string | null
+          stripe_test_monthly_price_id: string | null
+          stripe_test_yearly_price_id: string | null
           tier_name: Database["public"]["Enums"]["subscription_tier"]
           updated_at: string | null
           white_label: boolean | null
@@ -1246,6 +1250,10 @@ export type Database = {
           price_monthly?: number | null
           price_yearly?: number | null
           priority_support?: boolean | null
+          stripe_live_monthly_price_id?: string | null
+          stripe_live_yearly_price_id?: string | null
+          stripe_test_monthly_price_id?: string | null
+          stripe_test_yearly_price_id?: string | null
           tier_name: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string | null
           white_label?: boolean | null
@@ -1265,6 +1273,10 @@ export type Database = {
           price_monthly?: number | null
           price_yearly?: number | null
           priority_support?: boolean | null
+          stripe_live_monthly_price_id?: string | null
+          stripe_live_yearly_price_id?: string | null
+          stripe_test_monthly_price_id?: string | null
+          stripe_test_yearly_price_id?: string | null
           tier_name?: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string | null
           white_label?: boolean | null

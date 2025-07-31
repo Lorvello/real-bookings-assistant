@@ -21,10 +21,19 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Get environment variables
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
+    // Get environment variables and determine mode
+    const stripeMode = Deno.env.get("STRIPE_MODE") || 'test'; // Default to test for safety
+    const isTestMode = stripeMode === 'test';
+    
+    const stripeKey = isTestMode 
+      ? Deno.env.get("STRIPE_TEST_SECRET_KEY") 
+      : Deno.env.get("STRIPE_SECRET_KEY");
+    
+    if (!stripeKey) {
+      throw new Error(`${isTestMode ? 'STRIPE_TEST_SECRET_KEY' : 'STRIPE_SECRET_KEY'} is not set`);
+    }
+    
+    logStep("Stripe configuration", { mode: stripeMode, isTestMode, hasKey: !!stripeKey });
 
     // Create Supabase client
     const supabaseClient = createClient(

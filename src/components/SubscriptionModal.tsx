@@ -6,6 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 import { UserType } from '@/types/userStatus';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
+import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
+import { isTestMode, getPriceId } from '@/utils/stripeConfig';
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -20,126 +22,144 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const { toast } = useToast();
+  const { tiers, isLoading } = useSubscriptionTiers();
+  const testMode = isTestMode();
 
-  const plans = [
-    {
-      name: "Starter",
-      monthlyPrice: 19,
-      annualPrice: 15,
-      description: "Perfect for beginners with basic WhatsApp automation and calendar management",
-      features: [
-        {
-          text: "Strategic WhatsApp contact management (up to 500)",
-          tooltip: "Organize and manage up to 500 WhatsApp contacts with smart categorization and automated responses"
-        },
-        {
-          text: "Dual-calendar orchestration system",
-          tooltip: "Seamlessly sync and manage two separate calendars with automated booking coordination"
-        },
-        {
-          text: "AI-powered intelligent reminder sequences",
-          tooltip: "Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates"
-        },
-        {
-          text: "Essential dashboard overview & live operations monitoring",
-          tooltip: "Real-time view of bookings, appointments, and live operations monitoring with basic analytics"
-        },
-        {
-          text: "Global multi-language localization",
-          tooltip: "Automatically communicate with customers in their preferred language across multiple regions"
-        },
-        {
-          text: "Streamlined payment processing & collection",
-          tooltip: "Integrated payment system for booking deposits and service payments with automated invoicing"
-        }
-      ],
-      popular: false,
-      tier_name: 'starter',
-      stripePriceId: isAnnual ? "price_1RqKgWLcBboIITXgJ3uN8MV7" : "price_1RqKWeLcBboIITXgFo7fVtzc"
-    },
-    {
-      name: "Professional",
-      monthlyPrice: 49,
-      annualPrice: 39,
-      description: "Advanced features for teams with extended contact management and collaboration tools",
-      features: [
-        {
-          text: "All Starter premium features included",
-          tooltip: "Everything from the Starter plan plus additional professional features"
-        },
-        {
-          text: "Professional WhatsApp contact management (up to 2,500)",
-          tooltip: "Manage up to 2,500 contacts with advanced segmentation, bulk messaging, and automated workflows"
-        },
-        {
-          text: "Unlimited calendar orchestration platform",
-          tooltip: "Connect and manage unlimited calendars across different platforms with advanced synchronization"
-        },
-        {
-          text: "Advanced team collaboration suite (3+ users)",
-          tooltip: "Multi-user workspace with role-based permissions, shared calendars, and team communication tools"
-        },
-        {
-          text: "Multi-location business coordination",
-          tooltip: "Manage bookings and operations across multiple business locations with centralized control"
-        },
-        {
-          text: "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
-          tooltip: "Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization"
-        },
-        {
-          text: "Dedicated priority customer success",
-          tooltip: "Priority support with faster response times and dedicated success manager for onboarding and optimization"
-        }
-      ],
-      popular: true,
-      tier_name: 'professional',
-      stripePriceId: isAnnual ? "price_1RqL0HLcBboIITXgCSumvOZZ" : "price_1RqKnNLcBboIITXgRReX9NU8"
-    },
-    {
-      name: "Enterprise",
-      monthlyPrice: null,
-      annualPrice: null,
-      description: "Complete business solution with dedicated WhatsApp number and premium support",
-      features: [
-        {
-          text: "Complete professional suite included",
-          tooltip: "All Professional plan features plus enterprise-grade capabilities"
-        },
-        {
-          text: "Unlimited enterprise WhatsApp contact management",
-          tooltip: "No limits on contacts with enterprise-grade security, compliance features, and bulk operations"
-        },
-        {
-          text: "Dedicated WhatsApp Business API with custom branding",
-          tooltip: "Your own WhatsApp Business API connection with custom branding, verified business account, and green checkmark"
-        },
-        {
-          text: "Intelligent voice call routing & distribution",
-          tooltip: "Automated phone call management with smart routing to available team members and call recording capabilities"
-        },
-        {
-          text: "Omnichannel social media DM orchestration",
-          tooltip: "Unified management of direct messages across Facebook, Instagram, Twitter, LinkedIn, and other social platforms from one dashboard"
-        },
-        {
-          text: "Advanced reputation management & review analytics",
-          tooltip: "Monitor and manage online reviews across Google, Facebook, and other platforms with automated response suggestions and reputation scoring"
-        },
-        {
-          text: "Enterprise SLA with dedicated success management",
-          tooltip: "99.9% uptime guarantee, dedicated account manager, and enterprise-level support with guaranteed response times"
-        },
-        {
-          text: "White-glove onboarding & strategic integration consulting",
-          tooltip: "Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation"
-        }
-      ],
-      popular: false,
-      isEnterprise: true,
-      tier_name: 'enterprise'
+  // Create plans from database tiers with dynamic price IDs
+  const plans = React.useMemo(() => {
+    if (!tiers || isLoading) {
+      return [];
     }
-  ];
+
+    const starterTier = tiers.find(t => t.tier_name === 'starter');
+    const professionalTier = tiers.find(t => t.tier_name === 'professional');
+    const enterpriseTier = tiers.find(t => t.tier_name === 'enterprise');
+
+    const planData = [
+      {
+        name: "Starter",
+        monthlyPrice: 19,
+        annualPrice: 15,
+        description: "Perfect for beginners with basic WhatsApp automation and calendar management",
+        features: [
+          {
+            text: "Strategic WhatsApp contact management (up to 500)",
+            tooltip: "Organize and manage up to 500 WhatsApp contacts with smart categorization and automated responses"
+          },
+          {
+            text: "Dual-calendar orchestration system",
+            tooltip: "Seamlessly sync and manage two separate calendars with automated booking coordination"
+          },
+          {
+            text: "AI-powered intelligent reminder sequences",
+            tooltip: "Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates"
+          },
+          {
+            text: "Essential dashboard overview & live operations monitoring",
+            tooltip: "Real-time view of bookings, appointments, and live operations monitoring with basic analytics"
+          },
+          {
+            text: "Global multi-language localization",
+            tooltip: "Automatically communicate with customers in their preferred language across multiple regions"
+          },
+          {
+            text: "Streamlined payment processing & collection",
+            tooltip: "Integrated payment system for booking deposits and service payments with automated invoicing"
+          }
+        ],
+        popular: false,
+        tier_name: 'starter',
+        tierData: starterTier,
+        stripePriceId: starterTier ? getPriceId(starterTier, isAnnual, testMode) : null
+      },
+      {
+        name: "Professional",
+        monthlyPrice: 49,
+        annualPrice: 39,
+        description: "Advanced features for teams with extended contact management and collaboration tools",
+        features: [
+          {
+            text: "All Starter premium features included",
+            tooltip: "Everything from the Starter plan plus additional professional features"
+          },
+          {
+            text: "Professional WhatsApp contact management (up to 2,500)",
+            tooltip: "Manage up to 2,500 contacts with advanced segmentation, bulk messaging, and automated workflows"
+          },
+          {
+            text: "Unlimited calendar orchestration platform",
+            tooltip: "Connect and manage unlimited calendars across different platforms with advanced synchronization"
+          },
+          {
+            text: "Advanced team collaboration suite (3+ users)",
+            tooltip: "Multi-user workspace with role-based permissions, shared calendars, and team communication tools"
+          },
+          {
+            text: "Multi-location business coordination",
+            tooltip: "Manage bookings and operations across multiple business locations with centralized control"
+          },
+          {
+            text: "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
+            tooltip: "Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization"
+          },
+          {
+            text: "Dedicated priority customer success",
+            tooltip: "Priority support with faster response times and dedicated success manager for onboarding and optimization"
+          }
+        ],
+        popular: true,
+        tier_name: 'professional',
+        tierData: professionalTier,
+        stripePriceId: professionalTier ? getPriceId(professionalTier, isAnnual, testMode) : null
+      },
+      {
+        name: "Enterprise",
+        monthlyPrice: null,
+        annualPrice: null,
+        description: "Complete business solution with dedicated WhatsApp number and premium support",
+        features: [
+          {
+            text: "Complete professional suite included",
+            tooltip: "All Professional plan features plus enterprise-grade capabilities"
+          },
+          {
+            text: "Unlimited enterprise WhatsApp contact management",
+            tooltip: "No limits on contacts with enterprise-grade security, compliance features, and bulk operations"
+          },
+          {
+            text: "Dedicated WhatsApp Business API with custom branding",
+            tooltip: "Your own WhatsApp Business API connection with custom branding, verified business account, and green checkmark"
+          },
+          {
+            text: "Intelligent voice call routing & distribution",
+            tooltip: "Automated phone call management with smart routing to available team members and call recording capabilities"
+          },
+          {
+            text: "Omnichannel social media DM orchestration",
+            tooltip: "Unified management of direct messages across Facebook, Instagram, Twitter, LinkedIn, and other social platforms from one dashboard"
+          },
+          {
+            text: "Advanced reputation management & review analytics",
+            tooltip: "Monitor and manage online reviews across Google, Facebook, and other platforms with automated response suggestions and reputation scoring"
+          },
+          {
+            text: "Enterprise SLA with dedicated success management",
+            tooltip: "99.9% uptime guarantee, dedicated account manager, and enterprise-level support with guaranteed response times"
+          },
+          {
+            text: "White-glove onboarding & strategic integration consulting",
+            tooltip: "Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation"
+          }
+        ],
+        popular: false,
+        isEnterprise: true,
+        tier_name: 'enterprise',
+        tierData: enterpriseTier
+      }
+    ];
+
+    return planData;
+  }, [tiers, isLoading, isAnnual, testMode]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => Math.min(prev + 1, plans.length - 1));
@@ -195,6 +215,15 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
       return;
     }
 
+    if (!plan.stripePriceId) {
+      toast({
+        title: "Error",
+        description: "Price configuration not available. Please try again later.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsCheckingOut(true);
       
@@ -238,6 +267,15 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             {/* Header */}
             <div className="relative z-10 bg-black/20 backdrop-blur-sm border-b border-white/10 sticky top-0">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {/* Test Mode Indicator */}
+                {testMode && (
+                  <div className="mb-4 text-center">
+                    <div className="inline-flex items-center px-4 py-2 bg-orange-500/90 text-white rounded-full text-sm font-bold shadow-lg backdrop-blur-sm">
+                      🧪 TEST MODE - No real charges will be made
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex items-center justify-between">
                   <div className="text-center flex-1">
                     <h1 className="text-3xl md:text-4xl font-bold text-white">
