@@ -242,12 +242,12 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                   key={plan.name}
                   className={`relative cursor-pointer transition-all duration-300 ${
                     plan.name === 'Enterprise' ? 'bg-black border-gray-600 text-white' : 'bg-gray-800 border-gray-700'
-                  } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} hover:scale-105 hover:shadow-xl rounded-2xl p-8`}
+                  } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} hover:scale-105 shadow-xl rounded-xl border p-8`}
                 >
                   {plan.isPopular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white">
                       Most Popular
-                    </div>
+                    </Badge>
                   )}
                   
                   <div className="text-center mb-8">
