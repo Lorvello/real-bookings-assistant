@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarSettingsDialog } from '@/components/calendar-settings/CalendarSettingsDialog';
+import { CalendarUpgradeModal } from '@/components/calendar-switcher/CalendarUpgradeModal';
+import { useAccessControl } from '@/hooks/useAccessControl';
 import type { Calendar as CalendarType } from '@/types/calendar';
 
 interface CalendarManagementProps {
@@ -14,10 +16,23 @@ interface CalendarManagementProps {
 export function CalendarManagement({ calendars }: CalendarManagementProps) {
   const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  
+  const { checkAccess } = useAccessControl();
+  const canCreateCalendars = checkAccess('canCreateBookings'); // Using existing access control
 
   const handleSettingsClick = (calendarId: string) => {
     setSelectedCalendarId(calendarId);
     setSettingsDialogOpen(true);
+  };
+
+  const handleNewCalendarClick = () => {
+    if (!canCreateCalendars) {
+      setUpgradeModalOpen(true);
+      return;
+    }
+    // TODO: Add calendar creation logic here
+    console.log('Create new calendar');
   };
 
   const selectedCalendar = calendars.find(cal => cal.id === selectedCalendarId);
@@ -32,7 +47,14 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
               Manage your booking calendars and settings
             </CardDescription>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button 
+            onClick={handleNewCalendarClick}
+            disabled={!canCreateCalendars}
+            className={canCreateCalendars 
+              ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
+              : "bg-muted text-muted-foreground cursor-not-allowed"
+            }
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Calendar
           </Button>
@@ -83,7 +105,14 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
             <p className="text-muted-foreground mb-4">
               Create your first calendar to start accepting bookings
             </p>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button 
+              onClick={handleNewCalendarClick}
+              disabled={!canCreateCalendars}
+              className={canCreateCalendars 
+                ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
+                : "bg-muted text-muted-foreground cursor-not-allowed"
+              }
+            >
               <Plus className="h-4 w-4 mr-2" />
               Create Calendar
             </Button>
@@ -100,6 +129,12 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
           calendarName={selectedCalendar?.name}
         />
       )}
+
+      {/* Calendar Upgrade Modal */}
+      <CalendarUpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+      />
     </Card>
   );
 }
