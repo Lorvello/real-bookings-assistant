@@ -36,7 +36,7 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-[280px] sm:max-w-3xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl border border-slate-600/40 shadow-[0_32px_64px_rgba(0,0,0,0.5)] animate-scale-in">
+      <div className="relative w-full max-w-[calc(100vw-32px)] sm:max-w-3xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl border border-slate-600/40 shadow-[0_32px_64px_rgba(0,0,0,0.5)] animate-scale-in">
         {/* Modal Header */}
         <div className="sticky top-0 z-10 bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 sm:from-slate-900/95 sm:via-gray-900/95 sm:to-slate-800/95 backdrop-blur-md border-b border-slate-600/40 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
