@@ -59,9 +59,13 @@ function App() {
             <div className="w-full h-screen overflow-hidden">
               <Router>
                 <div 
-                  className="w-full h-full overflow-y-auto overflow-x-hidden" 
+                  className="w-full overflow-y-auto overflow-x-hidden" 
                   data-scroll-container
-                  style={{ overscrollBehavior: 'none' }}
+                  style={{ 
+                    height: 'fit-content',
+                    maxHeight: '100vh',
+                    overscrollBehavior: 'none' 
+                  }}
                 >
                   <GlobalWebhookProcessor />
                   <Routes>

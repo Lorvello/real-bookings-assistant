@@ -12,10 +12,7 @@ const PublicPageWrapper: React.FC<PublicPageWrapperProps> = ({ children, classNa
       style={{
         transform: 'scale(0.8)',
         transformOrigin: 'top left',
-        width: '125%',
-        height: 'fit-content',
-        maxWidth: '125%',
-        overflowX: 'hidden'
+        width: '125%'
       }}
     >
       {children}
