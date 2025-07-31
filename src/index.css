@@ -3,21 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body, html {
-  margin: 0;
-  padding: 0;
-}
-
-/* Hide all scrollbars globally */
-* {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-}
-
-*::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;

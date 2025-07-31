@@ -57,40 +57,33 @@ function App() {
         <CalendarProvider>
           <ConversationCalendarProvider>
             <Router>
-              <div 
-                className="min-h-screen w-full transform scale-[0.8] origin-top"
-                style={{ 
-                  transformOrigin: 'top center'
-                }}
-              >
-                <GlobalWebhookProcessor />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/success" element={<Success />} />
-                  <Route path="/calendar" element={<Calendar />} />
-                  <Route path="/bookings" element={<Bookings />} />
-                  <Route path="/availability" element={<Availability />} />
-                  <Route path="/conversations" element={<Conversations />} />
-                  <Route path="/conversations/:id" element={<ConversationDetail />} />
-                  <Route path="/whatsapp-booking-assistant" element={<WhatsAppBookingAssistantPage />} />
-                  <Route path="/test-ai-agent" element={<TestAIAgent />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/testing" element={<Testing />} />
-                  <Route path="/team-invite" element={<TeamInvite />} />
-                  <Route path="/how-it-works" element={<SeeHowItWorks />} />
-                  <Route path="/why-us" element={<WhyUs />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="/terms-of-service" element={<TermsOfService />} />
-                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Toaster />
-              </div>
+              <GlobalWebhookProcessor />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/success" element={<Success />} />
+                <Route path="/calendar" element={<Calendar />} />
+                <Route path="/bookings" element={<Bookings />} />
+                <Route path="/availability" element={<Availability />} />
+                <Route path="/conversations" element={<Conversations />} />
+                <Route path="/conversations/:id" element={<ConversationDetail />} />
+                <Route path="/whatsapp-booking-assistant" element={<WhatsAppBookingAssistantPage />} />
+                <Route path="/test-ai-agent" element={<TestAIAgent />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/testing" element={<Testing />} />
+                <Route path="/team-invite" element={<TeamInvite />} />
+                <Route path="/how-it-works" element={<SeeHowItWorks />} />
+                <Route path="/why-us" element={<WhyUs />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Toaster />
             </Router>
           </ConversationCalendarProvider>
         </CalendarProvider>
