@@ -100,7 +100,7 @@ const ProcessSection = () => {
               </p>
             </div>
             
-            <div className="flex justify-center mb-16 md:mb-0">
+            <div className="flex justify-center mb-24 md:mb-0">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button 
