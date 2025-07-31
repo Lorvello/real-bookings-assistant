@@ -6,7 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { CalendarSettingsDialog } from '@/components/calendar-settings/CalendarSettingsDialog';
 import { CalendarUpgradeModal } from '@/components/calendar-switcher/CalendarUpgradeModal';
+import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 import { useAccessControl } from '@/hooks/useAccessControl';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 import type { Calendar as CalendarType } from '@/types/calendar';
 
 interface CalendarManagementProps {
@@ -17,8 +19,10 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
   const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [createCalendarDialogOpen, setCreateCalendarDialogOpen] = useState(false);
   
   const { checkAccess } = useAccessControl();
+  const { refreshCalendars } = useCalendarContext();
   const canCreateCalendars = checkAccess('canCreateBookings'); // Using existing access control
 
   const handleSettingsClick = (calendarId: string) => {
@@ -31,8 +35,12 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
       setUpgradeModalOpen(true);
       return;
     }
-    // TODO: Add calendar creation logic here
-    console.log('Create new calendar');
+    setCreateCalendarDialogOpen(true);
+  };
+
+  const handleCalendarCreated = () => {
+    setCreateCalendarDialogOpen(false);
+    refreshCalendars();
   };
 
   const selectedCalendar = calendars.find(cal => cal.id === selectedCalendarId);
@@ -129,6 +137,13 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
           calendarName={selectedCalendar?.name}
         />
       )}
+
+      {/* Create Calendar Dialog */}
+      <CreateCalendarDialog
+        open={createCalendarDialogOpen}
+        onOpenChange={setCreateCalendarDialogOpen}
+        onCalendarCreated={handleCalendarCreated}
+      />
 
       {/* Calendar Upgrade Modal */}
       <CalendarUpgradeModal
