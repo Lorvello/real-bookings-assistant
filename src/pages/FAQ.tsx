@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
+import PublicPageWrapper from '@/components/PublicPageWrapper';
 import {
   Accordion,
   AccordionContent,
@@ -274,8 +275,9 @@ const FAQ = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      <Header />
+    <PublicPageWrapper>
+      <div className="min-h-screen bg-slate-900">
+        <Header />
       
       {/* Hero Section - Premium Design */}
       <section className="pt-32 md:pt-40 pb-12 md:pb-16 px-3 md:px-4 relative overflow-hidden">
@@ -445,6 +447,7 @@ const FAQ = () => {
       </section>
 
     </div>
+    </PublicPageWrapper>
   );
 };
 

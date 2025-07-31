@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import Testimonials from '@/components/ui/testimonials-columns-1';
+import PublicPageWrapper from '@/components/PublicPageWrapper';
 
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Heart, Brain, Smartphone, Gauge, UserCheck, TabletSmartphone, Rocket } from 'lucide-react';
 import { Pricing } from '@/components/Pricing';
@@ -312,8 +313,9 @@ const WhyUs = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
-      <Header />
+    <PublicPageWrapper>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+        <Header />
       
       {/* Hero Section - Premium Design */}
       <section className="pt-32 md:pt-40 pb-12 md:pb-16 px-3 md:px-4 relative overflow-hidden">
@@ -1125,6 +1127,7 @@ const WhyUs = () => {
         onClose={closeMobileFirstMethodologyModal} 
       />
     </div>
+    </PublicPageWrapper>
   );
 };
 
