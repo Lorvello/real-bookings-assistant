@@ -58,11 +58,9 @@ function App() {
           <ConversationCalendarProvider>
             <Router>
               <div 
-                className="fixed inset-0 w-full h-full overflow-hidden transform scale-[0.8] origin-top-left"
+                className="min-h-screen w-full transform scale-[0.8] origin-top"
                 style={{ 
-                  width: '125vw', 
-                  height: '125vh',
-                  transformOrigin: 'top left'
+                  transformOrigin: 'top center'
                 }}
               >
                 <GlobalWebhookProcessor />

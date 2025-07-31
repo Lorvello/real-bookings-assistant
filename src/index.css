@@ -4,9 +4,6 @@
 @tailwind utilities;
 
 body, html {
-  height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
   margin: 0;
   padding: 0;
 }
