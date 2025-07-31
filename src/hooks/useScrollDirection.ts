@@ -5,11 +5,14 @@ export const useScrollDirection = (threshold: number = 10) => {
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
 
   useEffect(() => {
-    let lastScrollY = window.scrollY;
+    const scrollContainer = document.querySelector('[data-scroll-container]');
+    if (!scrollContainer) return;
+
+    let lastScrollY = scrollContainer.scrollTop;
     let ticking = false;
 
     const updateScrollDirection = () => {
-      const scrollY = window.scrollY;
+      const scrollY = scrollContainer.scrollTop;
       const difference = Math.abs(scrollY - lastScrollY);
       
       // Only update if scroll difference exceeds threshold
@@ -41,17 +44,17 @@ export const useScrollDirection = (threshold: number = 10) => {
 
     // Show header when at top of page
     const handleScrollTop = () => {
-      if (window.scrollY === 0) {
+      if (scrollContainer.scrollTop === 0) {
         setIsHeaderVisible(true);
       }
     };
 
-    window.addEventListener('scroll', onScroll);
-    window.addEventListener('scroll', handleScrollTop);
+    scrollContainer.addEventListener('scroll', onScroll);
+    scrollContainer.addEventListener('scroll', handleScrollTop);
 
     return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('scroll', handleScrollTop);
+      scrollContainer.removeEventListener('scroll', onScroll);
+      scrollContainer.removeEventListener('scroll', handleScrollTop);
     };
   }, [threshold]);
 

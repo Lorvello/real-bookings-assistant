@@ -32,9 +32,16 @@ const Header = () => {
     e.preventDefault();
     navigate('/');
     setTimeout(() => {
+      const appScrollContainer = document.querySelector('[data-scroll-container]');
       const pricingElement = document.getElementById('pricing');
-      if (pricingElement) {
-        pricingElement.scrollIntoView({ behavior: 'smooth' });
+      
+      if (appScrollContainer && pricingElement) {
+        // Get the position of pricing element relative to scroll container
+        const elementOffsetTop = pricingElement.offsetTop;
+        appScrollContainer.scrollTo({ 
+          top: elementOffsetTop - 100, // Small offset from top
+          behavior: 'smooth' 
+        });
       }
     }, 100);
     setIsMobileMenuOpen(false);
