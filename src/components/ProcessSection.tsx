@@ -105,10 +105,11 @@ const ProcessSection = () => {
                 <DialogTrigger asChild>
                   <Button 
                     size="default"
-                    className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-lg md:text-base px-6 md:px-8 py-3 md:py-4 h-auto rounded-lg border border-slate-700 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+                    className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-base md:text-lg px-8 md:px-6 py-3 md:py-4 h-auto rounded-lg border border-slate-700 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
                   >
                   <Bot className="mr-2 h-4 w-4 md:h-5 md:w-5 text-white" />
-                  Try AI Agent Demo
+                  <span className="hidden md:inline">Try AI Agent Demo</span>
+                  <span className="md:hidden">Try Demo</span>
                 </Button>
               </DialogTrigger>
                 {/* Significantly reduced modal size for mobile */}
