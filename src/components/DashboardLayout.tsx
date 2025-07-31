@@ -119,19 +119,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div 
         className={`
           ${isMobile 
-            ? `fixed left-0 top-0 h-screen z-50 transition-all duration-300 ease-in-out
+            ? `fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-in-out
                ${isSidebarOpen 
                  ? 'translate-x-0 opacity-100 pointer-events-auto w-[85%] max-w-sm' 
                  : '-translate-x-full opacity-0 pointer-events-none w-0'
                }` 
-            : `${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative opacity-100 pointer-events-auto h-screen max-h-screen`
+            : `${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative opacity-100 pointer-events-auto h-full max-h-full`
           }
         `}
         style={{ backgroundColor: '#0F172A' }}
       >
         {/* Only render sidebar content when visible on mobile or always on desktop */}
         {(!isMobile || isSidebarOpen) && (
-          <div className="flex h-screen flex-col overflow-hidden">
+          <div className="flex h-full flex-col overflow-hidden">
             <SidebarHeader 
               isSidebarOpen={isSidebarOpen} 
               onToggleSidebar={toggleSidebar}
