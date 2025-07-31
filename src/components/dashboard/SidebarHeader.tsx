@@ -15,7 +15,7 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
       {isSidebarOpen && (
         <div className="transition-all duration-300">
           <img 
-            src="/lovable-uploads/5d77b9f5-4f42-48e1-b293-ac3521cdeaba.png" 
+            src="/lovable-uploads/0686ab4d-5774-407a-883a-2200f5de8ae5.png" 
             alt="Bookings Assistant logo" 
             className={`w-auto ${isMobile ? 'h-6' : 'h-8'}`}
           />
