@@ -25,6 +25,23 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
   const { tiers, isLoading } = useSubscriptionTiers();
   const testMode = isTestMode();
 
+  // Body scroll lock when modal is open
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isOpen]);
+
   // Create plans from database tiers with dynamic price IDs
   const plans = React.useMemo(() => {
     if (!tiers || isLoading) {
@@ -255,8 +272,24 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
   return (
     <TooltipProvider>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !translate-x-0 !translate-y-0 !transform-none !rounded-none !border-none overflow-y-auto z-[9999]">
-          <div className="min-h-screen relative overflow-hidden">
+        <DialogContent 
+          className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !translate-x-0 !translate-y-0 !transform-none !rounded-none !border-none z-[9999]"
+          style={{
+            overflow: 'hidden',
+            touchAction: 'none'
+          }}
+        >
+          <div 
+            className="min-h-screen relative"
+            style={{
+              height: '100vh',
+              overflow: 'auto',
+              overflowY: 'scroll',
+              WebkitOverflowScrolling: 'touch',
+              touchAction: 'pan-y',
+              scrollBehavior: 'smooth'
+            }}
+          >
             {/* Premium Background */}
             <div className="absolute inset-0">
               <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
