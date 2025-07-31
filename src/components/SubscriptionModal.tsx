@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, X, ChevronLeft, ChevronRight, Info } from 'lucide-react';
@@ -238,11 +239,11 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             {/* Desktop Grid */}
             <div className="hidden md:grid md:grid-cols-3 gap-8">
               {plans.map((plan, index) => (
-                <div
+                <Card 
                   key={plan.name}
                   className={`relative cursor-pointer transition-all duration-300 ${
                     plan.name === 'Enterprise' ? 'bg-black border-gray-600 text-white' : 'bg-gray-800 border-gray-700'
-                  } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} hover:scale-105 shadow-xl rounded-xl border p-8`}
+                  } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} hover:scale-102 hover:shadow-xl`}
                 >
                   {plan.isPopular && (
                     <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white">
@@ -250,80 +251,70 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                     </Badge>
                   )}
                   
-                  <div className="text-center mb-8">
-                    <h3 className={`text-2xl font-bold mb-2 ${
-                      plan.name === 'Enterprise' ? 'text-white' : 'text-white'
-                    }`}>
+                  <CardHeader className="text-center">
+                    <CardTitle className={`font-bold text-4xl ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
                       {plan.name}
-                    </h3>
-                    <p className={`mb-6 text-sm ${
-                      plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-300'
-                    }`}>
+                    </CardTitle>
+                    <CardDescription className={`mt-2 ${plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-400'}`}>
                       {plan.description}
-                    </p>
-                    <div className="mt-6">
+                    </CardDescription>
+                    <div className="mt-4">
                       {plan.isCustom ? (
-                        <span className={`text-5xl font-bold ${
-                          plan.name === 'Enterprise' ? 'text-white' : 'text-white'
-                        }`}>
+                        <span className={`text-3xl font-bold ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
                           Custom
                         </span>
                       ) : (
                         <>
-                          <span className={`text-5xl font-bold ${
-                            plan.name === 'Enterprise' ? 'text-white' : 'text-white'
-                          }`}>
+                          <span className={`text-5xl font-bold ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
                             €{isAnnual ? plan.yearlyPrice : plan.price}
                           </span>
-                          <span className={`ml-2 text-lg ${
-                            plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-300'
-                          }`}>
+                          <span className={`ml-2 ${plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-400'}`}>
                             /month
                           </span>
                         </>
                       )}
-                      {!plan.isCustom && isAnnual && (
-                        <div className="text-sm text-green-600 font-medium mt-1">
-                          Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
-                        </div>
-                      )}
                     </div>
-                  </div>
-                  
-                  <ul className="space-y-4 mb-8">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start">
-                        <span className="text-green-500 mr-3 mt-0.5">✓</span>
-                        <span className={
-                          plan.name === 'Enterprise' ? 'text-gray-200 text-sm' : 'text-gray-300 text-sm'
-                        }>
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <Button
-                    onClick={() => handlePlanSelect(plan)}
-                    disabled={isCheckingOut}
-                    className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
-                      plan.isPopular
-                        ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg hover:shadow-xl'
-                        : plan.name === 'Enterprise'
-                          ? 'bg-white text-black hover:bg-gray-100'
-                          : 'bg-white text-black hover:bg-gray-100'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    {isCheckingOut ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
-                        Processing...
+                    {!plan.isCustom && isAnnual && (
+                      <div className="text-sm text-green-400 font-medium">
+                        Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
                       </div>
-                    ) : (
-                      plan.buttonText
                     )}
-                  </Button>
-                </div>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <ul className="space-y-3">
+                      {plan.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="flex items-center">
+                          <span className="text-green-400 mr-3">✓</span>
+                          <span className={plan.name === 'Enterprise' ? 'text-gray-200' : 'text-gray-300'}>
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  
+                  <CardFooter>
+                    <Button 
+                      onClick={() => handlePlanSelect(plan)}
+                      disabled={isCheckingOut}
+                      className={`w-full transition-all duration-300 ${
+                        plan.name === 'Enterprise' 
+                          ? 'bg-white hover:bg-gray-100 text-black hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]' 
+                          : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      {isCheckingOut ? (
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
+                          Processing...
+                        </div>
+                      ) : (
+                        plan.buttonText
+                      )}
+                    </Button>
+                  </CardFooter>
+                </Card>
               ))}
             </div>
 
@@ -338,99 +329,86 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
               >
                 {plans.map((plan, index) => (
                   <div key={plan.name} className="w-full flex-shrink-0 px-4">
-                    <div
+                    <Card
                       className={`relative transition-all duration-300 ${
                         plan.name === 'Enterprise' ? 'bg-black border-gray-600 text-white' : 'bg-gray-800 border-gray-700'
-                      } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} rounded-2xl border p-6`}
+                      } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''}`}
                     >
                       {plan.isPopular && (
-                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs">
                           Most Popular
-                        </div>
+                        </Badge>
                       )}
 
-                      <div className="text-center mb-6">
-                        <h3 className={`text-xl font-bold mb-2 ${
-                          plan.name === 'Enterprise' ? 'text-white' : 'text-white'
-                        }`}>
+                      <CardHeader className="text-center pb-4">
+                        <CardTitle className={`font-bold text-2xl ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
                           {plan.name}
-                        </h3>
-                        <p className={`text-sm mb-4 ${
-                          plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-300'
-                        }`}>
+                        </CardTitle>
+                        <CardDescription className={`mt-2 text-xs ${plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-400'}`}>
                           {plan.description}
-                        </p>
-                        
-                        <div className="mt-4">
+                        </CardDescription>
+                        <div className="mt-3">
                           {plan.isCustom ? (
-                            <span className={`text-4xl font-bold ${
-                              plan.name === 'Enterprise' ? 'text-white' : 'text-white'
-                            }`}>
+                            <span className={`text-2xl font-bold ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
                               Custom
                             </span>
                           ) : (
                             <>
-                              <span className={`text-4xl font-bold ${
-                                plan.name === 'Enterprise' ? 'text-white' : 'text-white'
-                              }`}>
+                              <span className={`text-3xl font-bold ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
                                 €{isAnnual ? plan.yearlyPrice : plan.price}
                               </span>
-                              <span className={`ml-1 text-sm ${
-                                plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-300'
-                              }`}>
+                              <span className={`ml-2 text-sm ${plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-400'}`}>
                                 /month
                               </span>
                             </>
                           )}
-                          {!plan.isCustom && isAnnual && (
-                            <div className="text-xs text-green-600 font-medium mt-1">
-                              Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
-                            </div>
-                          )}
                         </div>
-                      </div>
-
-                      <ul className="space-y-3 mb-6">
-                        {plan.features.slice(0, 4).map((feature, featureIndex) => (
-                          <li key={featureIndex} className="flex items-start">
-                            <span className="text-green-500 mr-2 mt-0.5 text-sm">✓</span>
-                            <span className={`text-sm ${
-                              plan.name === 'Enterprise' ? 'text-gray-200' : 'text-gray-300'
-                            }`}>
-                              {feature}
-                            </span>
-                          </li>
-                        ))}
-                        {plan.features.length > 4 && (
-                          <li className={`text-xs italic ${
-                            plan.name === 'Enterprise' ? 'text-gray-400' : 'text-gray-500'
-                          }`}>
-                            +{plan.features.length - 4} more features
-                          </li>
-                        )}
-                      </ul>
-
-                      <Button
-                        onClick={() => handlePlanSelect(plan)}
-                        disabled={isCheckingOut}
-                        className={`w-full py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 ${
-                          plan.isPopular
-                            ? 'bg-green-500 text-white hover:bg-green-600'
-                            : plan.name === 'Enterprise'
-                              ? 'bg-white text-black hover:bg-gray-100'
-                              : 'bg-white text-black hover:bg-gray-100'
-                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                      >
-                        {isCheckingOut ? (
-                          <div className="flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                            Processing...
+                        {!plan.isCustom && isAnnual && (
+                          <div className="text-xs text-green-400 font-medium">
+                            Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
                           </div>
-                        ) : (
-                          plan.buttonText
                         )}
-                      </Button>
-                    </div>
+                      </CardHeader>
+                      
+                      <CardContent className="pb-4">
+                        <ul className="space-y-2">
+                          {plan.features.slice(0, 6).map((feature, featureIndex) => (
+                            <li key={featureIndex} className="flex items-center">
+                              <span className="text-green-400 mr-2 text-sm">✓</span>
+                              <span className={`text-xs ${plan.name === 'Enterprise' ? 'text-gray-200' : 'text-gray-300'}`}>
+                                {feature}
+                              </span>
+                            </li>
+                          ))}
+                          {plan.features.length > 6 && (
+                            <li className={`text-xs italic ${plan.name === 'Enterprise' ? 'text-gray-400' : 'text-gray-400'}`}>
+                              +{plan.features.length - 6} more features
+                            </li>
+                          )}
+                        </ul>
+                      </CardContent>
+                      
+                      <CardFooter className="pt-4">
+                        <Button 
+                          onClick={() => handlePlanSelect(plan)}
+                          disabled={isCheckingOut}
+                          className={`w-full transition-all duration-300 text-sm py-2 ${
+                            plan.name === 'Enterprise' 
+                              ? 'bg-white hover:bg-gray-100 text-black hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]' 
+                              : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          {isCheckingOut ? (
+                            <div className="flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                              Processing...
+                            </div>
+                          ) : (
+                            plan.buttonText
+                          )}
+                        </Button>
+                      </CardFooter>
+                    </Card>
                   </div>
                 ))}
               </div>
