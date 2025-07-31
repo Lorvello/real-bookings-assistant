@@ -18,18 +18,49 @@ export default function Success() {
   useEffect(() => {
     const verifySubscription = async () => {
       try {
-        // Call check-subscription to verify and update the user's subscription status
+        // First, ensure we have a valid session after Stripe redirect
+        console.log('Checking auth session after Stripe redirect...');
+        
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !sessionData.session) {
+          console.error('No valid session found:', sessionError);
+          
+          // Try to refresh session
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError || !refreshData.session) {
+            console.error('Failed to refresh session:', refreshError);
+            toast({
+              title: "Sessie verlopen",
+              description: "Je sessie is verlopen. Probeer opnieuw in te loggen en je betaling te herhalen.",
+              variant: "destructive",
+            });
+            setIsVerifying(false);
+            // Navigate to dashboard instead of forcing login
+            setTimeout(() => navigate('/dashboard'), 2000);
+            return;
+          }
+          
+          console.log('Session refreshed successfully');
+        }
+        
+        console.log('Valid session found, verifying subscription...');
+        
+        // Now call check-subscription with valid session
         const { data, error } = await supabase.functions.invoke('check-subscription');
         
         if (error) {
           console.error('Error verifying subscription:', error);
           toast({
-            title: "Verificatie probleem",
-            description: "We konden je abonnement niet verifiëren. Probeer later opnieuw.",
+            title: "Verificatie probleem", 
+            description: "We konden je abonnement niet verifiëren. Ga naar je dashboard om de status te controleren.",
             variant: "destructive",
           });
+          // Still navigate to dashboard after short delay
+          setTimeout(() => navigate('/dashboard'), 3000);
         } else {
-          console.log('Subscription verified:', data);
+          console.log('Subscription verified successfully:', data);
           setSubscriptionTier(data?.subscription_tier || 'Professional');
           
           // Invalidate cache to refresh user status immediately
@@ -41,19 +72,21 @@ export default function Success() {
           });
         }
       } catch (error) {
-        console.error('Error calling check-subscription:', error);
+        console.error('Error in subscription verification:', error);
         toast({
           title: "Verificatie fout",
-          description: "Er ging iets mis bij het verifiëren van je abonnement.",
+          description: "Er ging iets mis. Je betaling is mogelijk gelukt - controleer je dashboard.",
           variant: "destructive",
         });
+        // Navigate to dashboard instead of staying stuck
+        setTimeout(() => navigate('/dashboard'), 3000);
       } finally {
         setIsVerifying(false);
       }
     };
 
     verifySubscription();
-  }, [toast, invalidateCache]);
+  }, [toast, invalidateCache, navigate]);
 
   useEffect(() => {
     if (!isVerifying && countdown > 0) {
