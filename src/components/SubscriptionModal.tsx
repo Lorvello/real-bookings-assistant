@@ -230,6 +230,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           priceId: plan.stripePriceId,
+          mode: testMode ? 'test' : 'live',
           success_url: `${window.location.origin}/success`,
           cancel_url: `${window.location.origin}/dashboard`,
         }

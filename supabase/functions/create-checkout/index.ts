@@ -21,8 +21,11 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Get environment variables and determine mode
-    const stripeMode = Deno.env.get("STRIPE_MODE") || 'test'; // Default to test for safety
+    // Parse request body first to get mode
+    const { priceId, tier_name, price, is_annual, success_url, cancel_url, mode } = await req.json();
+    
+    // Determine Stripe mode - use frontend mode if provided, otherwise fall back to environment
+    const stripeMode = mode || Deno.env.get("STRIPE_MODE") || 'test'; // Default to test for safety
     const isTestMode = stripeMode === 'test';
     
     const stripeKey = isTestMode 
@@ -53,9 +56,8 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Parse request body - support both Price ID and legacy dynamic pricing
-    const { priceId, tier_name, price, is_annual, success_url, cancel_url } = await req.json();
-    logStep("Request data parsed", { priceId, tier_name, price, is_annual, success_url, cancel_url });
+    // Request data already parsed above for mode detection
+    logStep("Request data parsed", { priceId, tier_name, price, is_annual, success_url, cancel_url, mode: stripeMode });
 
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
