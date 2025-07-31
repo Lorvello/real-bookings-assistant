@@ -57,7 +57,7 @@ function App() {
         <CalendarProvider>
           <ConversationCalendarProvider>
             <Router>
-              <div style={{ zoom: '0.8' }} className="w-full h-screen overflow-hidden">
+              <div style={{ zoom: '0.8' }} className="w-full h-[125vh] overflow-hidden">
                 <GlobalWebhookProcessor />
                 <Routes>
                   <Route path="/" element={<Index />} />
