@@ -151,27 +151,25 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     fetchUserStatus();
   }, [profile?.id]);
 
-  // Invalidate cache and refetch (only used by UserStatusSwitcher)
+  // Invalidate cache and force immediate refresh
   const invalidateCache = (newStatus?: string) => {
     if (!profile?.id) return;
     
     try {
-      // Clear user status cache
+      // Clear all relevant caches
       sessionStorage.removeItem(USER_STATUS_CACHE_KEY);
-      
-      // Clear profile cache to ensure fresh data
       localStorage.removeItem('userProfile');
     } catch (error) {
       console.error('Error clearing cache:', error);
     }
     
-    // If we know the new status, update directly without loading state
+    // If we know the new status, update immediately
     if (newStatus) {
       setUserStatusType(newStatus);
       setIsLoading(false);
       initialLoadComplete.current = true;
       
-      // Cache the new status
+      // Cache the new status immediately
       try {
         sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
           version: CACHE_VERSION,
@@ -182,24 +180,25 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       } catch (error) {
         console.error('Error caching new status:', error);
       }
+      
+      // Force a page refresh for UserStatusContext to immediately reflect changes
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+      
       return;
     }
     
-    // Fallback to current behavior for unknown status
+    // For unknown status, force reload to get fresh data
     initialLoadComplete.current = false;
     fetchInProgress.current = false;
     setIsLoading(true);
+    setUserStatusType('unknown');
     
-    // Trigger refetch
-    const timer = setTimeout(() => {
-      if (profile?.id) {
-        initialLoadComplete.current = false;
-        // This will trigger the useEffect to run again
-        setUserStatusType('unknown');
-      }
+    // Force immediate refresh
+    setTimeout(() => {
+      window.location.reload();
     }, 100);
-    
-    return () => clearTimeout(timer);
   };
 
   // Compute user status - optimized for performance

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,14 @@ export default function Success() {
   const [isVerifying, setIsVerifying] = useState(true);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(5);
+  const toastShownRef = useRef(false);
+  const verificationAttemptedRef = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple verification attempts
+    if (verificationAttemptedRef.current) return;
+    verificationAttemptedRef.current = true;
+
     const verifySubscription = async () => {
       try {
         // First, ensure we have a valid session after Stripe redirect
@@ -31,11 +37,14 @@ export default function Success() {
           
           if (refreshError || !refreshData.session) {
             console.error('Failed to refresh session:', refreshError);
-            toast({
-              title: "Sessie verlopen",
-              description: "Je sessie is verlopen. Probeer opnieuw in te loggen en je betaling te herhalen.",
-              variant: "destructive",
-            });
+            if (!toastShownRef.current) {
+              toastShownRef.current = true;
+              toast({
+                title: "Sessie verlopen",
+                description: "Je sessie is verlopen. Probeer opnieuw in te loggen en je betaling te herhalen.",
+                variant: "destructive",
+              });
+            }
             setIsVerifying(false);
             // Navigate to dashboard instead of forcing login
             setTimeout(() => navigate('/dashboard'), 2000);
@@ -52,32 +61,54 @@ export default function Success() {
         
         if (error) {
           console.error('Error verifying subscription:', error);
-          toast({
-            title: "Verificatie probleem", 
-            description: "We konden je abonnement niet verifiëren. Ga naar je dashboard om de status te controleren.",
-            variant: "destructive",
-          });
+          if (!toastShownRef.current) {
+            toastShownRef.current = true;
+            toast({
+              title: "Verificatie probleem", 
+              description: "We konden je abonnement niet verifiëren. Ga naar je dashboard om de status te controleren.",
+              variant: "destructive",
+            });
+          }
           // Still navigate to dashboard after short delay
           setTimeout(() => navigate('/dashboard'), 3000);
         } else {
           console.log('Subscription verified successfully:', data);
-          setSubscriptionTier(data?.subscription_tier || 'Professional');
+          const tierName = data?.subscription_tier;
           
-          // Invalidate cache to refresh user status immediately
-          invalidateCache();
+          // Properly capitalize tier names for display
+          let displayTier = 'Professional';
+          if (tierName === 'starter') {
+            displayTier = 'Starter';
+          } else if (tierName === 'professional') {
+            displayTier = 'Professional';
+          } else if (tierName === 'enterprise') {
+            displayTier = 'Enterprise';
+          }
           
-          toast({
-            title: "Betaling succesvol!",
-            description: `Je ${data?.subscription_tier || 'Professional'} abonnement is geactiveerd.`,
-          });
+          setSubscriptionTier(displayTier);
+          
+          // Force immediate cache invalidation and status refresh
+          invalidateCache('paid_subscriber');
+          
+          // Show success toast only once
+          if (!toastShownRef.current) {
+            toastShownRef.current = true;
+            toast({
+              title: "Betaling succesvol!",
+              description: `Je ${displayTier} abonnement is geactiveerd.`,
+            });
+          }
         }
       } catch (error) {
         console.error('Error in subscription verification:', error);
-        toast({
-          title: "Verificatie fout",
-          description: "Er ging iets mis. Je betaling is mogelijk gelukt - controleer je dashboard.",
-          variant: "destructive",
-        });
+        if (!toastShownRef.current) {
+          toastShownRef.current = true;
+          toast({
+            title: "Verificatie fout",
+            description: "Er ging iets mis. Je betaling is mogelijk gelukt - controleer je dashboard.",
+            variant: "destructive",
+          });
+        }
         // Navigate to dashboard instead of staying stuck
         setTimeout(() => navigate('/dashboard'), 3000);
       } finally {

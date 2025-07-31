@@ -101,23 +101,31 @@ serve(async (req) => {
       logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
       
       // Determine subscription tier from metadata or price
-      subscriptionTier = subscription.metadata?.tier_name;
+      subscriptionTier = subscription.metadata?.tier_name || subscription.metadata?.tier;
       
       if (!subscriptionTier) {
         // Fallback: determine from price if metadata not available
         const priceId = subscription.items.data[0].price.id;
+        logStep("Determining tier from price", { priceId });
+        
         const price = await stripe.prices.retrieve(priceId);
         const amount = price.unit_amount || 0;
         
-        // Convert from cents to euros and determine tier
-        const euroAmount = amount / 100;
-        if (euroAmount <= 20) {
+        logStep("Price details", { amount, currency: price.currency });
+        
+        // Convert from cents and determine tier based on price ranges
+        const centAmount = amount;
+        if (centAmount <= 2000) { // €20 or less
           subscriptionTier = "starter";
-        } else if (euroAmount <= 50) {
+        } else if (centAmount <= 5000) { // €50 or less  
           subscriptionTier = "professional";
         } else {
           subscriptionTier = "enterprise";
         }
+        
+        logStep("Tier determined from price", { centAmount, tier: subscriptionTier });
+      } else {
+        logStep("Tier found in metadata", { tier: subscriptionTier });
       }
       
       logStep("Determined subscription tier", { subscriptionTier, paymentStatus });
