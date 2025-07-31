@@ -23,66 +23,90 @@ export default function Success() {
     verificationAttemptedRef.current = true;
 
     const verifySubscription = async () => {
-      try {
-        console.log('Starting subscription verification after Stripe redirect...');
-        
-        // Progressive session recovery strategy
-        let session = null;
-        let user = null;
-        
-        // Step 1: Try to get current session
-        console.log('Step 1: Checking current session...');
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        
-        if (!sessionError && sessionData.session) {
-          session = sessionData.session;
-          user = sessionData.session.user;
-          console.log('Current session valid:', { userId: user.id, email: user.email });
-        } else {
-          console.log('Current session invalid, attempting refresh...');
+      const maxRetries = 5;
+      let retryCount = 0;
+      
+      const attemptVerification = async (): Promise<void> => {
+        try {
+          console.log(`Starting subscription verification attempt ${retryCount + 1}...`);
           
-          // Step 2: Try to refresh session
-          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          // Add progressive delay for retries
+          if (retryCount > 0) {
+            await new Promise(resolve => setTimeout(resolve, 2000 + (retryCount * 1000)));
+          }
           
-          if (!refreshError && refreshData.session) {
-            session = refreshData.session;
-            user = refreshData.session.user;
-            console.log('Session refreshed successfully:', { userId: user.id, email: user.email });
+          // Progressive session recovery strategy
+          let session = null;
+          let user = null;
+          
+          // Step 1: Try to get current session
+          console.log('Step 1: Checking current session...');
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+          
+          if (!sessionError && sessionData.session) {
+            session = sessionData.session;
+            user = sessionData.session.user;
+            console.log('Current session valid:', { userId: user.id, email: user.email });
           } else {
-            console.error('Session refresh failed:', refreshError);
+            console.log('Current session invalid, attempting refresh...');
             
-            // Step 3: Try to get user directly (in case of token issues)
-            const { data: userData, error: userError } = await supabase.auth.getUser();
+            // Step 2: Try to refresh session
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
             
-            if (!userError && userData.user) {
-              user = userData.user;
-              console.log('User found directly:', { userId: user.id, email: user.email });
+            if (!refreshError && refreshData.session) {
+              session = refreshData.session;
+              user = refreshData.session.user;
+              console.log('Session refreshed successfully:', { userId: user.id, email: user.email });
             } else {
-              console.error('All session recovery attempts failed');
+              console.error('Session refresh failed:', refreshError);
               
-              // Last resort: Show verification status and navigate to dashboard
-              if (!toastShownRef.current) {
-                toastShownRef.current = true;
-                toast({
-                  title: "Verification Successful",
-                  description: "Your payment has been processed. Please log in again to see your new subscription.",
-                  variant: "default",
-                });
+              // Step 3: Try to get user directly (in case of token issues)
+              const { data: userData, error: userError } = await supabase.auth.getUser();
+              
+              if (!userError && userData.user) {
+                user = userData.user;
+                console.log('User found directly:', { userId: user.id, email: user.email });
+              } else {
+                console.error('All session recovery attempts failed');
+                
+                if (retryCount < maxRetries - 1) {
+                  retryCount++;
+                  console.log(`Session recovery failed, retrying in ${retryCount} seconds...`);
+                  await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
+                  return attemptVerification();
+                }
+                
+                // Last resort: Show verification status and navigate to dashboard
+                if (!toastShownRef.current) {
+                  toastShownRef.current = true;
+                  toast({
+                    title: "Verification Successful",
+                    description: "Your payment has been processed. Please log in again to see your new subscription.",
+                    variant: "default",
+                  });
+                }
+                setIsVerifying(false);
+                setTimeout(() => navigate('/dashboard'), 2000);
+                return;
               }
-              setIsVerifying(false);
-              setTimeout(() => navigate('/dashboard'), 2000);
-              return;
             }
           }
-        }
-        
-        console.log('Valid session/user found, verifying subscription...');
-        
-        // Now call check-subscription with valid session
-        const { data, error } = await supabase.functions.invoke('check-subscription');
-        
-        if (error) {
-          console.error('Error verifying subscription:', error);
+          
+          console.log('Valid session/user found, verifying subscription...');
+          
+          // Now call check-subscription with valid session
+          const { data, error } = await supabase.functions.invoke('check-subscription');
+          
+          if (error) {
+            console.error('Error verifying subscription:', error);
+            
+            if (retryCount < maxRetries - 1) {
+              retryCount++;
+              console.log(`Subscription verification failed, retrying in ${retryCount} seconds...`);
+              await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
+              return attemptVerification();
+            }
+            
             if (!toastShownRef.current) {
               toastShownRef.current = true;
               toast({
@@ -91,28 +115,40 @@ export default function Success() {
                 variant: "default",
               });
             }
-          // Still navigate to dashboard 
-          setTimeout(() => navigate('/dashboard'), 2000);
-        } else {
-          console.log('Subscription verified successfully:', data);
-          const tierName = data?.subscription_tier;
-          
-          // Properly capitalize tier names for display
-          let displayTier = 'Professional';
-          if (tierName === 'starter') {
-            displayTier = 'Starter';
-          } else if (tierName === 'professional') {
-            displayTier = 'Professional';
-          } else if (tierName === 'enterprise') {
-            displayTier = 'Enterprise';
-          }
-          
-          setSubscriptionTier(displayTier);
-          
-          // Update cache without forcing reload
-          invalidateCache('paid_subscriber');
-          
-          // Show success toast only once
+            // Still navigate to dashboard 
+            setTimeout(() => navigate('/dashboard'), 2000);
+          } else {
+            console.log('Subscription verified successfully:', data);
+            
+            // Verify we have the required data
+            if (!data?.subscribed || !data?.subscription_tier) {
+              if (retryCount < maxRetries - 1) {
+                retryCount++;
+                console.log(`Incomplete subscription data, retrying in ${retryCount} seconds...`);
+                await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
+                return attemptVerification();
+              }
+            }
+            
+            const tierName = data?.subscription_tier;
+            
+            // Properly capitalize tier names for display
+            let displayTier = 'Professional';
+            if (tierName === 'starter') {
+              displayTier = 'Starter';
+            } else if (tierName === 'professional') {
+              displayTier = 'Professional';
+            } else if (tierName === 'enterprise') {
+              displayTier = 'Enterprise';
+            }
+            
+            setSubscriptionTier(displayTier);
+            
+            // Force cache invalidation with paid_subscriber status
+            console.log('Forcing user status cache update to paid_subscriber...');
+            await invalidateCache('paid_subscriber');
+            
+            // Show success toast only once
             if (!toastShownRef.current) {
               toastShownRef.current = true;
               toast({
@@ -120,9 +156,18 @@ export default function Success() {
                 description: `Your ${displayTier} subscription has been activated.`,
               });
             }
-        }
-      } catch (error) {
-        console.error('Error in subscription verification:', error);
+          }
+        } catch (error) {
+          console.error(`Verification attempt ${retryCount + 1} failed:`, error);
+          
+          if (retryCount < maxRetries - 1) {
+            retryCount++;
+            console.log(`Retrying verification in ${retryCount + 1} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
+            return attemptVerification();
+          }
+          
+          console.error('All verification attempts failed');
           if (!toastShownRef.current) {
             toastShownRef.current = true;
             toast({
@@ -131,8 +176,15 @@ export default function Success() {
               variant: "default",
             });
           }
-        // Navigate to dashboard 
-        setTimeout(() => navigate('/dashboard'), 2000);
+          // Navigate to dashboard 
+          setTimeout(() => navigate('/dashboard'), 2000);
+        }
+      };
+      
+      try {
+        await attemptVerification();
+      } catch (error) {
+        console.error('Final verification error:', error);
       } finally {
         setIsVerifying(false);
       }
