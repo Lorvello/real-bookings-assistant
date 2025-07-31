@@ -30,7 +30,7 @@ const Header = () => {
 
   const handlePricingClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    navigate('/');
+    navigate('/#pricing');
     setTimeout(() => {
       const appScrollContainer = document.querySelector('[data-scroll-container]');
       const pricingElement = document.getElementById('pricing');
@@ -39,11 +39,11 @@ const Header = () => {
         // Get the position of pricing element relative to scroll container
         const elementOffsetTop = pricingElement.offsetTop;
         appScrollContainer.scrollTo({ 
-          top: elementOffsetTop - 100, // Small offset from top
+          top: elementOffsetTop,
           behavior: 'instant' // Direct positioning, no animation
         });
       }
-    }, 100);
+    }, 300);
     setIsMobileMenuOpen(false);
   };
 

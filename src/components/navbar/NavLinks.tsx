@@ -26,7 +26,7 @@ export function NavLinks({ navItems, onNavClick, isMobile = false }: NavLinksPro
 
   const handleClick = (item: NavItem) => {
     if (item.path === '/#pricing') {
-      navigate('/');
+      navigate('/#pricing');
       setTimeout(() => {
         const appScrollContainer = document.querySelector('[data-scroll-container]');
         const pricingElement = document.getElementById('pricing');
@@ -35,11 +35,11 @@ export function NavLinks({ navItems, onNavClick, isMobile = false }: NavLinksPro
           // Get the position of pricing element relative to scroll container
           const elementOffsetTop = pricingElement.offsetTop;
           appScrollContainer.scrollTo({ 
-            top: elementOffsetTop - 100, // Small offset from top
+            top: elementOffsetTop,
             behavior: 'instant' // Direct positioning, no animation
           });
         }
-      }, 100);
+      }, 300);
     } else {
       const appScrollContainer = document.querySelector('[data-scroll-container]');
       if (appScrollContainer) {
