@@ -10,14 +10,14 @@ interface SidebarHeaderProps {
 
 export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false }: SidebarHeaderProps) {
   return (
-    <div className="flex h-16 items-center justify-between pr-4 pl-0 border-b border-gray-700">
+    <div className="flex h-16 items-center justify-between pr-4 pl-2 border-b border-gray-700">
       {/* Logo - only show when expanded */}
       {isSidebarOpen && (
         <div className="transition-all duration-300">
           <img 
             src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
             alt="Bookings Assistant logo" 
-            className={`w-auto ${isMobile ? 'h-10' : 'h-12'}`}
+            className={`w-auto pointer-events-none select-none ${isMobile ? 'h-10' : 'h-12'}`}
           />
         </div>
       )}
