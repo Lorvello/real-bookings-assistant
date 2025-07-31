@@ -13,9 +13,7 @@ const PublicPageWrapper: React.FC<PublicPageWrapperProps> = ({ children, classNa
         transform: 'scale(0.8)',
         transformOrigin: 'top left',
         width: '125%',
-        height: '125%',
-        minHeight: '100vh',
-        overflow: 'hidden'
+        minHeight: '100vh'
       }}
     >
       {children}
