@@ -10,7 +10,7 @@ interface SidebarHeaderProps {
 
 export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false }: SidebarHeaderProps) {
   return (
-    <div className="flex h-16 items-center justify-between px-4 border-b border-gray-700">
+    <div className="flex h-16 items-center justify-between pr-4 pl-0 border-b border-gray-700">
       {/* Logo - only show when expanded */}
       {isSidebarOpen && (
         <div className="transition-all duration-300">

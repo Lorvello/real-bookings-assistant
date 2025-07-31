@@ -52,7 +52,7 @@ const Header = () => {
       }`}
     >
       <nav 
-        className="max-w-7xl mx-auto mx-6 rounded-3xl px-8 py-4 shadow-lg"
+        className="max-w-7xl mx-auto mx-6 rounded-3xl px-8 py-2 shadow-lg"
         style={{ backgroundColor: '#0F172A' }}
       >
         <div className="flex justify-between items-center">
@@ -65,7 +65,7 @@ const Header = () => {
             <img 
               src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
               alt="Bookings Assistant logo" 
-              className="h-12 sm:h-16 w-auto"
+              className="h-12 sm:h-16 w-auto -my-2"
             />
           </Link>
           
