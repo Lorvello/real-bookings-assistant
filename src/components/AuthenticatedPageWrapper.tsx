@@ -11,8 +11,8 @@ export function AuthenticatedPageWrapper({ children }: AuthenticatedPageWrapperP
       style={{
         zoom: '0.8',
         width: '100%',
-        height: '100vh',
-        minHeight: '100vh',
+        height: '125vh',
+        minHeight: '125vh',
         // Firefox fallback
         transform: navigator.userAgent.includes('Firefox') ? 'scale(0.8)' : 'none',
         transformOrigin: 'top left',
