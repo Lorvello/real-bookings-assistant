@@ -16,6 +16,13 @@ export const useDeveloperAccess = () => {
   const isDeveloper = () => {
     const { allowDeveloperTools, isProduction } = getEnvironmentConfig(user?.email);
     
+    console.log('[DEBUG] Developer Access Check:', {
+      userEmail: user?.email,
+      allowDeveloperTools,
+      isProduction,
+      isDeveloperEmailsIncluded: DEVELOPER_EMAILS.includes(user?.email || '')
+    });
+    
     // NEVER show developer tools in production, regardless of email
     if (isProduction) {
       return false;

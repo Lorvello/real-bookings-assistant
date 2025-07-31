@@ -33,7 +33,8 @@ export const getEnvironmentConfig = (userEmail?: string) => {
     userEmail.endsWith('@brandevolves.com') || 
     userEmail.endsWith('@dev.local') ||
     userEmail === 'developer@example.com' ||
-    userEmail === 'admin@example.com'
+    userEmail === 'admin@example.com' ||
+    userEmail === 'businessof00@gmail.com'
   );
   
   return {

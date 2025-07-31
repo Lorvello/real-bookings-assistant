@@ -267,16 +267,14 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             {/* Header */}
             <div className="relative z-10 bg-black/20 backdrop-blur-sm border-b border-white/10 sticky top-0">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Stripe Mode Indicator */}
-                <div className="mb-4 text-center">
-                  <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm ${
-                    testMode 
-                      ? 'bg-orange-500/90 text-white' 
-                      : 'bg-green-500/90 text-white'
-                  }`}>
-                    {testMode ? '🧪 TEST MODE - No real charges will be made' : '💳 LIVE MODE - Real payments will be processed'}
+                {/* Stripe Mode Indicator - Only show in test mode */}
+                {testMode && (
+                  <div className="mb-4 text-center">
+                    <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm bg-orange-500/90 text-white">
+                      🧪 TEST MODE - No real charges will be made
+                    </div>
                   </div>
-                </div>
+                )}
                 
                 <div className="flex items-center justify-between">
                   <div className="text-center flex-1">
