@@ -128,6 +128,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               onBackToWebsite={handleBackToWebsite} 
             />
 
+            {/* Visual Separator */}
+            <div className="w-8 h-px bg-gray-700 mx-auto my-4"></div>
+
             {/* User Status Indicator - Shows for all users */}
             <StatusIndicator 
               userStatus={userStatus} 
@@ -141,6 +144,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               onUpgrade={handleUpgrade} 
             />
 
+            {/* Visual Separator */}
+            <div className="w-8 h-px bg-gray-700 mx-auto my-4"></div>
+
             {/* Access Controlled Navigation - Adapts to user status */}
             <AccessControlledNavigation 
               isSidebarOpen={isSidebarOpen} 
@@ -148,7 +154,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               onMobileNavigate={() => isMobile && setIsSidebarOpen(false)}
             />
 
+            {/* Visual Separator */}
+            <div className="w-8 h-px bg-gray-700 mx-auto my-4"></div>
+
             <CalendarSwitcherSection isSidebarOpen={isSidebarOpen} />
+
+            {/* Visual Separator */}
+            <div className="w-8 h-px bg-gray-700 mx-auto my-4"></div>
 
             <UserProfileSection 
               isSidebarOpen={isSidebarOpen} 
