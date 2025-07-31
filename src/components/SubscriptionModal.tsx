@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Check, X, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserType } from '@/types/userStatus';
@@ -16,11 +17,12 @@ interface SubscriptionModalProps {
 }
 
 export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionModalProps) {
-  const [isAnnual, setIsAnnual] = useState(true);
+  const [billingPeriod, setBillingPeriod] = useState("yearly");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const { toast } = useToast();
 
   const plans = [
@@ -90,6 +92,14 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
     }
   ];
 
+  const handleCardHover = (planName: string) => {
+    setHoveredCard(planName);
+  };
+
+  const handleCardLeave = () => {
+    setHoveredCard(null);
+  };
+
   // Touch handlers for mobile carousel
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     setTouchEnd(0);
@@ -134,13 +144,13 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
 
     try {
       setIsCheckingOut(true);
-      const price = isAnnual ? parseInt(plan.yearlyPrice) : parseInt(plan.price);
+      const price = billingPeriod === "yearly" ? parseInt(plan.yearlyPrice) : parseInt(plan.price);
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           tier_name: plan.tier_name,
           price: price,
-          is_annual: isAnnual,
+          is_annual: billingPeriod === "yearly",
           success_url: `${window.location.origin}/success`,
           cancel_url: `${window.location.origin}/dashboard`,
         }
@@ -206,33 +216,42 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             {/* Billing Toggle */}
             <div className="flex justify-center mb-12">
               <div className="relative">
-                {isAnnual && (
+                {billingPeriod === "yearly" && (
                   <div className="absolute -top-4 right-4 bg-black text-green-500 px-2 py-1 rounded text-xs font-bold">
                     20% OFF
                   </div>
                 )}
-                <div className="rounded-lg p-1 border bg-gray-800 border-gray-700">
-                  <button
-                    onClick={() => setIsAnnual(false)}
-                    className={`px-6 py-2 rounded-md transition-all ${
-                      !isAnnual 
+                <ToggleGroup 
+                  type="single" 
+                  value={billingPeriod} 
+                  onValueChange={value => {
+                    if (value) {
+                      setBillingPeriod(value);
+                    }
+                  }} 
+                  className="rounded-lg p-1 border bg-gray-800 border-gray-700"
+                >
+                  <ToggleGroupItem 
+                    value="monthly" 
+                    className={`px-4 md:px-6 py-2 rounded-md transition-all ${
+                      billingPeriod === 'monthly' 
                         ? 'bg-white text-gray-900 shadow-md' 
                         : 'text-gray-300 hover:text-white hover:bg-gray-700'
                     }`}
                   >
                     Monthly
-                  </button>
-                  <button
-                    onClick={() => setIsAnnual(true)}
-                    className={`px-6 py-2 rounded-md transition-all ${
-                      isAnnual 
+                  </ToggleGroupItem>
+                  <ToggleGroupItem 
+                    value="yearly" 
+                    className={`px-4 md:px-6 py-2 rounded-md transition-all ${
+                      billingPeriod === 'yearly' 
                         ? 'bg-white text-gray-900 shadow-md' 
                         : 'text-gray-300 hover:text-white hover:bg-gray-700'
                     }`}
                   >
                     Yearly
-                  </button>
-                </div>
+                  </ToggleGroupItem>
+                </ToggleGroup>
               </div>
             </div>
 
@@ -241,9 +260,13 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
               {plans.map((plan, index) => (
                 <Card 
                   key={plan.name}
+                  onMouseEnter={() => handleCardHover(plan.name)} 
+                  onMouseLeave={handleCardLeave}
                   className={`relative cursor-pointer transition-all duration-300 ${
                     plan.name === 'Enterprise' ? 'bg-black border-gray-600 text-white' : 'bg-gray-800 border-gray-700'
-                  } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} hover:scale-102 hover:shadow-xl`}
+                  } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} ${
+                    hoveredCard === plan.name ? 'scale-105 shadow-xl' : 'hover:scale-102'
+                  }`}
                 >
                   {plan.isPopular && (
                     <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white">
@@ -266,7 +289,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                       ) : (
                         <>
                           <span className={`text-5xl font-bold ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
-                            €{isAnnual ? plan.yearlyPrice : plan.price}
+                            €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
                           </span>
                           <span className={`ml-2 ${plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-400'}`}>
                             /month
@@ -274,7 +297,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                         </>
                       )}
                     </div>
-                    {!plan.isCustom && isAnnual && (
+                    {!plan.isCustom && billingPeriod === "yearly" && (
                       <div className="text-sm text-green-400 font-medium">
                         Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
                       </div>
@@ -355,7 +378,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                           ) : (
                             <>
                               <span className={`text-3xl font-bold ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
-                                €{isAnnual ? plan.yearlyPrice : plan.price}
+                                €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
                               </span>
                               <span className={`ml-2 text-sm ${plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-400'}`}>
                                 /month
@@ -363,7 +386,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                             </>
                           )}
                         </div>
-                        {!plan.isCustom && isAnnual && (
+                        {!plan.isCustom && billingPeriod === "yearly" && (
                           <div className="text-xs text-green-400 font-medium">
                             Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
                           </div>
