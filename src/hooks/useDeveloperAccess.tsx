@@ -6,6 +6,7 @@ import { getEnvironmentConfig } from '@/utils/environment';
 const DEVELOPER_EMAILS = [
   'developer@example.com',
   'admin@example.com',
+  'businessof00@gmail.com',
   // Add more developer emails as needed
 ];
 

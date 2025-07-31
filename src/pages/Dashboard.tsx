@@ -12,6 +12,7 @@ import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { UserStatusSwitcher } from '@/components/developer/UserStatusSwitcher';
 import { SubscriptionTierSwitcher } from '@/components/developer/SubscriptionTierSwitcher';
+import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
 import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcherSection';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
@@ -81,9 +82,13 @@ const Dashboard = () => {
     return (
       <DashboardLayout>
         <div className="bg-gray-900 min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
-          {/* Developer Status Switcher */}
-          <div className="mb-4">
-            <UserStatusSwitcher />
+          {/* Developer Tools Section */}
+          <div className="mb-4 space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+              <UserStatusSwitcher />
+              <SubscriptionTierSwitcher />
+              <StripeModeSwitcher />
+            </div>
           </div>
 
           <div className="flex items-center justify-center h-full">
@@ -102,9 +107,10 @@ const Dashboard = () => {
       <div className="bg-gray-900 min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
         {/* Developer Tools Section */}
         <div className="mb-4 space-y-3 sm:space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
             <UserStatusSwitcher />
             <SubscriptionTierSwitcher />
+            <StripeModeSwitcher />
           </div>
         </div>
 
