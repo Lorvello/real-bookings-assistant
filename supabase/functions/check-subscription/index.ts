@@ -100,10 +100,11 @@ serve(async (req) => {
       
       logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
       
-      // Determine subscription tier from metadata or price
+      // Determine subscription tier from metadata first
       subscriptionTier = subscription.metadata?.tier_name || subscription.metadata?.tier;
+      logStep("Checking metadata for tier", { metadata: subscription.metadata, tier: subscriptionTier });
       
-      if (!subscriptionTier) {
+      if (!subscriptionTier || subscriptionTier === 'unknown') {
         // Fallback: determine from price if metadata not available
         const priceId = subscription.items.data[0].price.id;
         logStep("Determining tier from price", { priceId });
@@ -111,19 +112,24 @@ serve(async (req) => {
         const price = await stripe.prices.retrieve(priceId);
         const amount = price.unit_amount || 0;
         
-        logStep("Price details", { amount, currency: price.currency });
+        logStep("Price details", { amount, currency: price.currency, nickname: price.nickname });
         
-        // Convert from cents and determine tier based on price ranges
-        const centAmount = amount;
-        if (centAmount <= 2000) { // €20 or less
-          subscriptionTier = "starter";
-        } else if (centAmount <= 5000) { // €50 or less  
+        // Map specific price IDs to tiers (based on your Stripe prices)
+        if (priceId === 'price_1RqwecLcBboIITXgsuyzCCcU' || priceId === 'price_1RqwcuLcBboIITXgCew589Ao') {
           subscriptionTier = "professional";
         } else {
-          subscriptionTier = "enterprise";
+          // Fallback to price-based determination
+          const centAmount = amount;
+          if (centAmount <= 2000) { // €20 or less
+            subscriptionTier = "starter";
+          } else if (centAmount <= 5000) { // €50 or less  
+            subscriptionTier = "professional";
+          } else {
+            subscriptionTier = "enterprise";
+          }
         }
         
-        logStep("Tier determined from price", { centAmount, tier: subscriptionTier });
+        logStep("Tier determined from price", { centAmount: amount, priceId, tier: subscriptionTier });
       } else {
         logStep("Tier found in metadata", { tier: subscriptionTier });
       }
@@ -133,14 +139,40 @@ serve(async (req) => {
       logStep("No active subscription found");
     }
 
-    // Update user record in database
-    await supabaseClient.from("users").update({
+    // Update user record in database with detailed logging
+    const updateResult = await supabaseClient.from("users").update({
       subscription_status: hasActiveSub ? 'active' : 'expired',
       subscription_tier: subscriptionTier,
       subscription_end_date: subscriptionEnd,
       payment_status: paymentStatus,
       updated_at: new Date().toISOString(),
     }).eq('id', user.id);
+    
+    logStep("Database update result", { 
+      error: updateResult.error, 
+      data: updateResult.data,
+      subscription_status: hasActiveSub ? 'active' : 'expired',
+      subscription_tier: subscriptionTier 
+    });
+    
+    // Also update subscribers table for backup tracking
+    const subscriberUpdateResult = await supabaseClient.from("subscribers").upsert({
+      user_id: user.id,
+      email: user.email,
+      stripe_customer_id: customerId,
+      subscribed: hasActiveSub,
+      subscription_tier: subscriptionTier,
+      subscription_end: subscriptionEnd,
+      updated_at: new Date().toISOString(),
+    }, { 
+      onConflict: 'email',
+      ignoreDuplicates: false 
+    });
+    
+    logStep("Subscribers table update result", { 
+      error: subscriberUpdateResult.error, 
+      data: subscriberUpdateResult.data 
+    });
 
     logStep("Updated database with subscription info", { 
       subscribed: hasActiveSub, 

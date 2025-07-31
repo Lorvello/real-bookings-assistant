@@ -64,8 +64,8 @@ export default function Success() {
               if (!toastShownRef.current) {
                 toastShownRef.current = true;
                 toast({
-                  title: "Verificatie gelukt",
-                  description: "Je betaling is verwerkt. Log opnieuw in om je nieuwe abonnement te zien.",
+                  title: "Verification Successful",
+                  description: "Your payment has been processed. Please log in again to see your new subscription.",
                   variant: "default",
                 });
               }
@@ -83,14 +83,14 @@ export default function Success() {
         
         if (error) {
           console.error('Error verifying subscription:', error);
-          if (!toastShownRef.current) {
-            toastShownRef.current = true;
-            toast({
-              title: "Betaling gelukt", 
-              description: "Je betaling is verwerkt. Refresh de pagina om je nieuwe abonnement te zien.",
-              variant: "default",
-            });
-          }
+            if (!toastShownRef.current) {
+              toastShownRef.current = true;
+              toast({
+                title: "Payment Successful", 
+                description: "Your payment has been processed. Refresh the page to see your new subscription.",
+                variant: "default",
+              });
+            }
           // Still navigate to dashboard 
           setTimeout(() => navigate('/dashboard'), 2000);
         } else {
@@ -113,24 +113,24 @@ export default function Success() {
           invalidateCache('paid_subscriber');
           
           // Show success toast only once
-          if (!toastShownRef.current) {
-            toastShownRef.current = true;
-            toast({
-              title: "Betaling succesvol!",
-              description: `Je ${displayTier} abonnement is geactiveerd.`,
-            });
-          }
+            if (!toastShownRef.current) {
+              toastShownRef.current = true;
+              toast({
+                title: "Payment Successful!",
+                description: `Your ${displayTier} subscription has been activated.`,
+              });
+            }
         }
       } catch (error) {
         console.error('Error in subscription verification:', error);
-        if (!toastShownRef.current) {
-          toastShownRef.current = true;
-          toast({
-            title: "Betaling verwerkt",
-            description: "Je betaling is gelukt. Ga naar je dashboard om je nieuwe abonnement te zien.",
-            variant: "default",
-          });
-        }
+          if (!toastShownRef.current) {
+            toastShownRef.current = true;
+            toast({
+              title: "Payment Processed",
+              description: "Your payment was successful. Go to your dashboard to see your new subscription.",
+              variant: "default",
+            });
+          }
         // Navigate to dashboard 
         setTimeout(() => navigate('/dashboard'), 2000);
       } finally {
@@ -168,13 +168,13 @@ export default function Success() {
             )}
           </div>
           <CardTitle className="text-2xl">
-            {isVerifying ? 'Abonnement verifiëren...' : 'Betaling succesvol!'}
+            {isVerifying ? 'Verifying Subscription...' : 'Payment Successful!'}
           </CardTitle>
           <CardDescription>
             {isVerifying ? (
-              'We controleren je abonnementsstatus...'
+              'We are checking your subscription status...'
             ) : (
-              `Je ${subscriptionTier} abonnement is succesvol geactiveerd.`
+              `Your ${subscriptionTier} subscription has been successfully activated.`
             )}
           </CardDescription>
         </CardHeader>
@@ -183,31 +183,31 @@ export default function Success() {
           {!isVerifying && (
             <>
               <div className="bg-muted/50 p-4 rounded-lg">
-                <h3 className="font-semibold mb-2">Je hebt nu toegang tot:</h3>
+                <h3 className="font-semibold mb-2">You now have access to:</h3>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   {subscriptionTier === 'Starter' && (
                     <>
-                      <li>• Tot 2 kalenders</li>
-                      <li>• Basis kalenderbeheer</li>
-                      <li>• E-mail notificaties</li>
-                      <li>• Klant boekingsportaal</li>
+                      <li>• Up to 2 calendars</li>
+                      <li>• Basic calendar management</li>
+                      <li>• Email notifications</li>
+                      <li>• Customer booking portal</li>
                     </>
                   )}
                   {subscriptionTier === 'Professional' && (
                     <>
-                      <li>• Onbeperkte kalenders</li>
-                      <li>• Geavanceerde analytics</li>
-                      <li>• Team samenwerking</li>
-                      <li>• API toegang</li>
+                      <li>• Unlimited calendars</li>
+                      <li>• Advanced analytics</li>
+                      <li>• Team collaboration</li>
+                      <li>• API access</li>
                       <li>• Custom branding</li>
                     </>
                   )}
                   {subscriptionTier === 'Enterprise' && (
                     <>
-                      <li>• Alle Professional features</li>
-                      <li>• White-label oplossing</li>
-                      <li>• Geavanceerde integraties</li>
-                      <li>• Toegewijde support</li>
+                      <li>• All Professional features</li>
+                      <li>• White-label solution</li>
+                      <li>• Advanced integrations</li>
+                      <li>• Dedicated support</li>
                       <li>• Custom features</li>
                     </>
                   )}
@@ -219,11 +219,11 @@ export default function Success() {
                   onClick={handleGoToDashboard}
                   className="w-full"
                 >
-                  Naar Dashboard
+                  Go to Dashboard
                 </Button>
                 
                 <p className="text-sm text-muted-foreground">
-                  Automatische doorverwijzing in {countdown} seconden...
+                  Automatic redirect in {countdown} seconds...
                 </p>
               </div>
             </>

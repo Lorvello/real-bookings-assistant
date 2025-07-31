@@ -184,8 +184,22 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       
       // Force profile refresh via query invalidation instead of page reload
       try {
-        // This will trigger useProfile to refetch data
+        // Clear all relevant caches to force fresh data
         sessionStorage.removeItem('userProfile');
+        localStorage.removeItem('userProfile');
+        
+        // Force a fresh subscription check as well
+        setTimeout(async () => {
+          try {
+            console.log('Forcing fresh subscription verification...');
+            const { data, error } = await supabase.functions.invoke('check-subscription');
+            if (!error) {
+              console.log('Fresh subscription data:', data);
+            }
+          } catch (error) {
+            console.error('Error in fresh subscription check:', error);
+          }
+        }, 1000);
       } catch (error) {
         console.error('Error clearing profile cache:', error);
       }
