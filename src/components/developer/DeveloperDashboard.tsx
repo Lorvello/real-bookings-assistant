@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
-import { UserStatusSwitcher } from './UserStatusSwitcher';
-import { SubscriptionTierSwitcher } from './SubscriptionTierSwitcher';
+import { DeveloperStatusManager } from './DeveloperStatusManager';
 import { StripeModeSwitcher } from './StripeModeSwitcher';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, Code } from 'lucide-react';
@@ -25,8 +24,7 @@ export const DeveloperDashboard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <UserStatusSwitcher />
-          <SubscriptionTierSwitcher />
+          <DeveloperStatusManager />
           <StripeModeSwitcher />
           
           <div className="text-xs text-red-600 bg-red-100 p-2 rounded border border-red-200">
