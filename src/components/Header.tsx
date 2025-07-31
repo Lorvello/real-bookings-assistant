@@ -60,7 +60,7 @@ const Header = () => {
           <Link 
             to="/" 
             onClick={handleNavClick}
-            className="flex items-center hover:opacity-80 transition-opacity"
+            className="flex items-center hover:opacity-80 transition-opacity select-none cursor-pointer"
           >
             <img 
               src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 

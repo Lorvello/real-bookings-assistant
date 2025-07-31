@@ -13,7 +13,7 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
     <div className="flex h-16 items-center justify-between pr-4 pl-2 border-b border-gray-700">
       {/* Logo - only show when expanded */}
       {isSidebarOpen && (
-        <div className="transition-all duration-300">
+        <div className="transition-all duration-300 select-none">
           <img 
             src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
             alt="Bookings Assistant logo" 
