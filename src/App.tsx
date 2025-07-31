@@ -62,8 +62,7 @@ function App() {
                   className="w-full overflow-y-auto overflow-x-hidden" 
                   data-scroll-container
                   style={{ 
-                    height: 'fit-content',
-                    maxHeight: 'calc(100vh * 0.8)',
+                    height: '100vh',
                     overscrollBehavior: 'none' 
                   }}
                 >
