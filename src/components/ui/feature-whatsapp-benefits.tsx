@@ -111,7 +111,7 @@ export const WhatsAppBenefits = ({
     <section className={className}>
       {/* Mobile Slideshow Layout */}
       <div className="md:hidden relative py-4">
-        <div ref={ref} className="max-w-sm mx-auto px-6 relative">
+        <div ref={ref} className="max-w-sm mx-auto px-6 pb-4 relative">
           {/* Slide container with smoother transition */}
           <div 
             className="relative overflow-hidden rounded-lg"
