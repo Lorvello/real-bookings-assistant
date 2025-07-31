@@ -17,7 +17,7 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
           <img 
             src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
             alt="Bookings Assistant logo" 
-            className={`w-auto ${isMobile ? 'h-8' : 'h-10'}`}
+            className={`w-auto ${isMobile ? 'h-10' : 'h-12'}`}
           />
         </div>
       )}
