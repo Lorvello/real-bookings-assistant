@@ -15,6 +15,7 @@ import { UpgradePrompt } from '@/components/user-status/UpgradePrompt';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
+import { AuthenticatedPageWrapper } from '@/components/AuthenticatedPageWrapper';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -104,7 +105,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const currentPageTitle = getPageTitle(location.pathname);
 
   return (
-    <div className="flex h-screen bg-gray-900 w-full relative overflow-hidden">
+    <AuthenticatedPageWrapper>
+      <div className="flex h-screen bg-gray-900 w-full relative overflow-hidden">
       {/* Mobile Overlay */}
       {isMobile && isSidebarOpen && (
         <div 
@@ -210,6 +212,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         onClose={() => setShowSubscriptionModal(false)}
         userType={userStatus.userType}
       />
-    </div>
+      </div>
+    </AuthenticatedPageWrapper>
   );
 }
