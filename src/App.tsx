@@ -63,7 +63,7 @@ function App() {
                   data-scroll-container
                   style={{ 
                     height: 'fit-content',
-                    maxHeight: '100vh',
+                    maxHeight: 'calc(100vh * 0.8)',
                     overscrollBehavior: 'none' 
                   }}
                 >
