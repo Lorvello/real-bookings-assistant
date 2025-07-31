@@ -11,10 +11,18 @@ export interface StripeConfig {
 }
 
 /**
- * Get current Stripe mode from environment
+ * Get current Stripe mode from environment or localStorage override
  */
 export const getStripeMode = (): 'test' | 'live' => {
-  // Default to test mode for safety
+  // Check for developer override in localStorage first
+  if (typeof window !== 'undefined') {
+    const override = localStorage.getItem('stripe_mode_override') as 'test' | 'live' | null;
+    if (override) {
+      return override;
+    }
+  }
+  
+  // Default to test mode for safety in development
   return 'test';
 };
 

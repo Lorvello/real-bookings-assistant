@@ -3,6 +3,7 @@ import React from 'react';
 import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 import { UserStatusSwitcher } from './UserStatusSwitcher';
 import { SubscriptionTierSwitcher } from './SubscriptionTierSwitcher';
+import { StripeModeSwitcher } from './StripeModeSwitcher';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, Code } from 'lucide-react';
 
@@ -26,6 +27,7 @@ export const DeveloperDashboard = () => {
         <CardContent className="space-y-4">
           <UserStatusSwitcher />
           <SubscriptionTierSwitcher />
+          <StripeModeSwitcher />
           
           <div className="text-xs text-red-600 bg-red-100 p-2 rounded border border-red-200">
             <strong>🚨 Developer Mode:</strong> This dashboard is only visible in development environment for authorized developers.
