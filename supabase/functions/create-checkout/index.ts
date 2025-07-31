@@ -56,8 +56,20 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Request data already parsed above for mode detection
-    logStep("Request data parsed", { priceId, tier_name, price, is_annual, success_url, cancel_url, mode: stripeMode });
+    // Get origin from request headers for URL construction
+    const origin = req.headers.get("origin") || "https://3461320d-933f-4e55-89c4-11076909a36e.lovableproject.com";
+    const finalSuccessUrl = success_url || `${origin}/success`;
+    const finalCancelUrl = cancel_url || `${origin}/dashboard`;
+    
+    logStep("Request data parsed", { 
+      priceId, tier_name, price, is_annual, 
+      provided_success_url: success_url,
+      provided_cancel_url: cancel_url,
+      origin,
+      final_success_url: finalSuccessUrl,
+      final_cancel_url: finalCancelUrl,
+      mode: stripeMode 
+    });
 
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -96,8 +108,8 @@ serve(async (req) => {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       mode: "subscription",
-      success_url: success_url || `${req.headers.get("origin")}/dashboard?checkout=success`,
-      cancel_url: cancel_url || `${req.headers.get("origin")}/dashboard?checkout=cancel`,
+      success_url: finalSuccessUrl,
+      cancel_url: finalCancelUrl,
       metadata: {
         user_id: user.id,
         tier_name: tier_name || 'unknown',
