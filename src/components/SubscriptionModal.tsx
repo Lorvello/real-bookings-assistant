@@ -1,10 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Check, X, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { Check, X, ChevronLeft, ChevronRight, Info, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserType } from '@/types/userStatus';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -17,112 +14,169 @@ interface SubscriptionModalProps {
 }
 
 export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionModalProps) {
-  const [billingPeriod, setBillingPeriod] = useState("yearly");
+  const [isAnnual, setIsAnnual] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const { toast } = useToast();
 
   const plans = [
     {
       name: "Starter",
-      price: "19",
-      yearlyPrice: "15",
-      period: "/month",
+      monthlyPrice: 19,
+      annualPrice: 15,
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
-        "Strategic WhatsApp contact management (up to 500)",
-        "Dual-calendar orchestration system", 
-        "AI-powered intelligent reminder sequences",
-        "Essential dashboard overview & live operations monitoring",
-        "Global multi-language localization",
-        "Streamlined payment processing & collection"
+        {
+          text: "Strategic WhatsApp contact management (up to 500)",
+          tooltip: "Organize and manage up to 500 WhatsApp contacts with smart categorization and automated responses"
+        },
+        {
+          text: "Dual-calendar orchestration system",
+          tooltip: "Seamlessly sync and manage two separate calendars with automated booking coordination"
+        },
+        {
+          text: "AI-powered intelligent reminder sequences",
+          tooltip: "Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates"
+        },
+        {
+          text: "Essential dashboard overview & live operations monitoring",
+          tooltip: "Real-time view of bookings, appointments, and live operations monitoring with basic analytics"
+        },
+        {
+          text: "Global multi-language localization",
+          tooltip: "Automatically communicate with customers in their preferred language across multiple regions"
+        },
+        {
+          text: "Streamlined payment processing & collection",
+          tooltip: "Integrated payment system for booking deposits and service payments with automated invoicing"
+        }
       ],
-      buttonText: "Choose Plan",
-      href: "#",
-      isPopular: false,
+      popular: false,
       tier_name: 'starter',
       stripePriceId: 'price_starter'
     },
     {
       name: "Professional",
-      price: "49",
-      yearlyPrice: "39",
-      period: "/month",
+      monthlyPrice: 49,
+      annualPrice: 39,
       description: "Advanced features for teams with extended contact management and collaboration tools",
       features: [
-        "All Starter premium features included",
-        "Professional WhatsApp contact management (up to 2,500)",
-        "Unlimited calendar orchestration platform",
-        "Advanced team collaboration suite (3+ users)",
-        "Multi-location business coordination",
-        "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
-        "Dedicated priority customer success"
+        {
+          text: "All Starter premium features included",
+          tooltip: "Everything from the Starter plan plus additional professional features"
+        },
+        {
+          text: "Professional WhatsApp contact management (up to 2,500)",
+          tooltip: "Manage up to 2,500 contacts with advanced segmentation, bulk messaging, and automated workflows"
+        },
+        {
+          text: "Unlimited calendar orchestration platform",
+          tooltip: "Connect and manage unlimited calendars across different platforms with advanced synchronization"
+        },
+        {
+          text: "Advanced team collaboration suite (3+ users)",
+          tooltip: "Multi-user workspace with role-based permissions, shared calendars, and team communication tools"
+        },
+        {
+          text: "Multi-location business coordination",
+          tooltip: "Manage bookings and operations across multiple business locations with centralized control"
+        },
+        {
+          text: "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
+          tooltip: "Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization"
+        },
+        {
+          text: "Dedicated priority customer success",
+          tooltip: "Priority support with faster response times and dedicated success manager for onboarding and optimization"
+        }
       ],
-      buttonText: "Choose Plan",
-      href: "#",
-      isPopular: true,
+      popular: true,
       tier_name: 'professional',
       stripePriceId: 'price_professional'
     },
     {
       name: "Enterprise",
-      price: "Custom",
-      yearlyPrice: "Custom",
-      period: "/month",
+      monthlyPrice: null,
+      annualPrice: null,
       description: "Complete business solution with dedicated WhatsApp number and premium support",
       features: [
-        "Complete professional suite included",
-        "Unlimited enterprise WhatsApp contact management",
-        "Dedicated WhatsApp Business API with custom branding",
-        "Intelligent voice call routing & distribution",
-        "Omnichannel social media DM orchestration",
-        "Advanced reputation management & review analytics",
-        "Enterprise SLA with dedicated success management",
-        "White-glove onboarding & strategic integration consulting"
+        {
+          text: "Complete professional suite included",
+          tooltip: "All Professional plan features plus enterprise-grade capabilities"
+        },
+        {
+          text: "Unlimited enterprise WhatsApp contact management",
+          tooltip: "No limits on contacts with enterprise-grade security, compliance features, and bulk operations"
+        },
+        {
+          text: "Dedicated WhatsApp Business API with custom branding",
+          tooltip: "Your own WhatsApp Business API connection with custom branding, verified business account, and green checkmark"
+        },
+        {
+          text: "Intelligent voice call routing & distribution",
+          tooltip: "Automated phone call management with smart routing to available team members and call recording capabilities"
+        },
+        {
+          text: "Omnichannel social media DM orchestration",
+          tooltip: "Unified management of direct messages across Facebook, Instagram, Twitter, LinkedIn, and other social platforms from one dashboard"
+        },
+        {
+          text: "Advanced reputation management & review analytics",
+          tooltip: "Monitor and manage online reviews across Google, Facebook, and other platforms with automated response suggestions and reputation scoring"
+        },
+        {
+          text: "Enterprise SLA with dedicated success management",
+          tooltip: "99.9% uptime guarantee, dedicated account manager, and enterprise-level support with guaranteed response times"
+        },
+        {
+          text: "White-glove onboarding & strategic integration consulting",
+          tooltip: "Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation"
+        }
       ],
-      buttonText: "Contact Sales",
-      href: "#",
-      isPopular: false,
-      isCustom: true,
+      popular: false,
+      isEnterprise: true,
       tier_name: 'enterprise',
       stripePriceId: 'price_enterprise'
     }
   ];
 
-  const handleCardHover = (planName: string) => {
-    setHoveredCard(planName);
+  const nextSlide = () => {
+    setCurrentSlide((prev) => Math.min(prev + 1, plans.length - 1));
+  };
+  
+  const prevSlide = () => {
+    setCurrentSlide((prev) => Math.max(prev - 1, 0));
+  };
+  
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
   };
 
-  const handleCardLeave = () => {
-    setHoveredCard(null);
-  };
+  const minSwipeDistance = 50;
 
-  // Touch handlers for mobile carousel
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    setTouchEnd(0);
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
-  }, []);
+  };
 
-  const onTouchMove = useCallback((e: React.TouchEvent) => {
+  const onTouchMove = (e: React.TouchEvent) => {
     setTouchEnd(e.targetTouches[0].clientX);
-  }, []);
+  };
 
-  const onTouchEnd = useCallback(() => {
+  const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
 
     if (isLeftSwipe && currentSlide < plans.length - 1) {
-      setCurrentSlide(currentSlide + 1);
+      nextSlide();
+    } else if (isRightSwipe && currentSlide > 0) {
+      prevSlide();
     }
-    if (isRightSwipe && currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
-    }
-  }, [touchStart, touchEnd, currentSlide, plans.length]);
+  };
 
   const getModalTitle = () => {
     switch (userType) {
@@ -136,7 +190,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
   };
 
   const handlePlanSelect = async (plan: typeof plans[0]) => {
-    if (plan.name === 'Enterprise') {
+    if (plan.isEnterprise) {
       // Handle enterprise contact logic
       window.open('mailto:sales@company.com', '_blank');
       return;
@@ -144,13 +198,13 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
 
     try {
       setIsCheckingOut(true);
-      const price = billingPeriod === "yearly" ? parseInt(plan.yearlyPrice) : parseInt(plan.price);
+      const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           tier_name: plan.tier_name,
           price: price,
-          is_annual: billingPeriod === "yearly",
+          is_annual: isAnnual,
           success_url: `${window.location.origin}/success`,
           cancel_url: `${window.location.origin}/dashboard`,
         }
@@ -173,309 +227,358 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !translate-x-0 !translate-y-0 !transform-none !rounded-none !border-none overflow-y-auto z-[9999]">
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative">
-          {/* Background Effects */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {/* Grid pattern */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.1)_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
+    <TooltipProvider>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !translate-x-0 !translate-y-0 !transform-none !rounded-none !border-none overflow-y-auto z-[9999]">
+          <div className="min-h-screen relative overflow-hidden">
+            {/* Premium Background */}
+            <div className="absolute inset-0">
+              <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
+            </div>
             
-            {/* Animated circles */}
-            <div className="absolute top-0 -left-4 w-72 h-72 bg-emerald-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-            <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-          </div>
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
 
-          {/* Header */}
-          <div className="relative z-10 bg-black/20 backdrop-blur-sm border-b border-white/10 sticky top-0">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="flex items-center justify-between">
-                <div className="text-center flex-1">
-                  <h1 className="text-3xl md:text-4xl font-bold text-white">
-                    {getModalTitle()}
-                  </h1>
-                  <p className="mt-2 text-lg text-gray-300">
-                    Choose the perfect plan for your business
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClose}
-                  className="h-10 w-10 hover:bg-white/10 text-white"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            {/* Billing Toggle */}
-            <div className="flex justify-center mb-12">
-              <div className="relative">
-                {billingPeriod === "yearly" && (
-                  <div className="absolute -top-4 right-4 bg-black text-green-500 px-2 py-1 rounded text-xs font-bold">
-                    20% OFF
+            {/* Header */}
+            <div className="relative z-10 bg-black/20 backdrop-blur-sm border-b border-white/10 sticky top-0">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div className="flex items-center justify-between">
+                  <div className="text-center flex-1">
+                    <h1 className="text-3xl md:text-4xl font-bold text-white">
+                      {getModalTitle()}
+                    </h1>
+                    <p className="mt-2 text-lg text-slate-300">
+                      Choose the perfect plan for your business
+                    </p>
                   </div>
-                )}
-                <ToggleGroup 
-                  type="single" 
-                  value={billingPeriod} 
-                  onValueChange={value => {
-                    if (value) {
-                      setBillingPeriod(value);
-                    }
-                  }} 
-                  className="rounded-lg p-1 border bg-gray-800 border-gray-700"
-                >
-                  <ToggleGroupItem 
-                    value="monthly" 
-                    className={`px-4 md:px-6 py-2 rounded-md transition-all ${
-                      billingPeriod === 'monthly' 
-                        ? 'bg-white text-gray-900 shadow-md' 
-                        : 'text-gray-300 hover:text-white hover:bg-gray-700'
-                    }`}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClose}
+                    className="h-10 w-10 hover:bg-white/10 text-white"
                   >
-                    Monthly
-                  </ToggleGroupItem>
-                  <ToggleGroupItem 
-                    value="yearly" 
-                    className={`px-4 md:px-6 py-2 rounded-md transition-all ${
-                      billingPeriod === 'yearly' 
-                        ? 'bg-white text-gray-900 shadow-md' 
-                        : 'text-gray-300 hover:text-white hover:bg-gray-700'
-                    }`}
-                  >
-                    Yearly
-                  </ToggleGroupItem>
-                </ToggleGroup>
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
             </div>
 
-            {/* Desktop Grid */}
-            <div className="hidden md:grid md:grid-cols-3 gap-8">
-              {plans.map((plan, index) => (
-                <Card 
-                  key={plan.name}
-                  onMouseEnter={() => handleCardHover(plan.name)} 
-                  onMouseLeave={handleCardLeave}
-                  className={`relative cursor-pointer transition-all duration-300 ${
-                    plan.name === 'Enterprise' ? 'bg-black border-gray-600 text-white' : 'bg-gray-800 border-gray-700'
-                  } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''} ${
-                    hoveredCard === plan.name ? 'scale-105 shadow-xl' : 'hover:scale-102'
-                  }`}
-                >
-                  {plan.isPopular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white">
-                      Most Popular
-                    </Badge>
-                  )}
-                  
-                  <CardHeader className="text-center">
-                    <CardTitle className={`font-bold text-4xl ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
-                      {plan.name}
-                    </CardTitle>
-                    <CardDescription className={`mt-2 ${plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-400'}`}>
-                      {plan.description}
-                    </CardDescription>
-                    <div className="mt-4">
-                      {plan.isCustom ? (
-                        <span className={`text-3xl font-bold ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
-                          Custom
+            {/* Content */}
+            <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12">
+              {/* Premium Toggle */}
+              <div className="flex items-center justify-center mb-8 md:mb-12">
+                <div className="bg-slate-800/50 rounded-full p-1 border border-slate-700/50">
+                  <div className="flex">
+                    <button
+                      onClick={() => setIsAnnual(false)}
+                      className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 ${
+                        !isAnnual
+                          ? 'bg-emerald-500 text-white shadow-lg'
+                          : 'text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      onClick={() => setIsAnnual(true)}
+                      className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
+                        isAnnual
+                          ? 'bg-emerald-500 text-white shadow-lg'
+                          : 'text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      Annual
+                      {isAnnual && (
+                        <span className="absolute -top-2 -right-2 bg-gradient-to-br from-black via-slate-800 to-black text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg border border-slate-600/30 ring-1 ring-white/10 backdrop-blur-sm">
+                          Save 20%
                         </span>
-                      ) : (
-                        <>
-                          <span className={`text-5xl font-bold ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
-                            €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
-                          </span>
-                          <span className={`ml-2 ${plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-400'}`}>
-                            /month
-                          </span>
-                        </>
                       )}
-                    </div>
-                    {!plan.isCustom && billingPeriod === "yearly" && (
-                      <div className="text-sm text-green-400 font-medium">
-                        Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop Grid */}
+              <div className="hidden md:grid md:grid-cols-3 gap-8 items-stretch">
+                {plans.map((plan, index) => (
+                  <div key={plan.name} className={`relative rounded-3xl border h-full flex flex-col transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl ${
+                    plan.isEnterprise
+                      ? 'bg-gradient-to-br from-black/95 via-slate-900/95 to-black/95 border-slate-600/50 shadow-xl shadow-slate-900/40'
+                      : plan.popular
+                      ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-sm border-emerald-500/30 shadow-xl shadow-emerald-500/20 ring-2 ring-emerald-500/30'
+                      : 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-sm border-slate-700/40 shadow-xl shadow-slate-900/30'
+                  } group`}>
+                    
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent opacity-60 rounded-3xl pointer-events-none" />
+                    <div className={`absolute inset-0 rounded-3xl pointer-events-none ${
+                      plan.popular ? 'bg-gradient-to-t from-emerald-500/[0.08] via-transparent to-transparent' : 'bg-gradient-to-t from-slate-500/[0.05] via-transparent to-transparent'
+                    }`} />
+                    
+                    {plan.popular && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                        <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap shadow-lg shadow-emerald-500/30">
+                          Most Popular
+                        </div>
                       </div>
                     )}
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <ul className="space-y-3">
-                      {plan.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-center">
-                          <span className="text-green-400 mr-3">✓</span>
-                          <span className={plan.name === 'Enterprise' ? 'text-gray-200' : 'text-gray-300'}>
-                            {feature}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                  
-                  <CardFooter>
-                    <Button 
-                      onClick={() => handlePlanSelect(plan)}
-                      disabled={isCheckingOut}
-                      className={`w-full transition-all duration-300 ${
-                        plan.name === 'Enterprise' 
-                          ? 'bg-white hover:bg-gray-100 text-black hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]' 
-                          : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                      {isCheckingOut ? (
-                        <div className="flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
-                          Processing...
+
+                    <div className="p-6 text-center relative z-10">
+                      <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-sm">{plan.name}</h3>
+                      <p className="text-slate-400 text-sm leading-relaxed">{plan.description}</p>
+                    </div>
+
+                    <div className="px-6 text-center mb-6 relative z-10">
+                      {plan.monthlyPrice ? (
+                        <div>
+                          <div className="flex items-baseline justify-center mb-2">
+                            <span className="text-4xl font-bold text-emerald-400 drop-shadow-sm">
+                              €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                            </span>
+                            <span className="text-slate-400 text-lg ml-2">/month</span>
+                          </div>
+                          {isAnnual && (
+                            <div className="text-sm text-emerald-400/90 mb-1">
+                              Billed annually (€{plan.annualPrice * 12}/year)
+                            </div>
+                          )}
+                          <div className="text-xs text-slate-500">
+                            Save €{((plan.monthlyPrice - plan.annualPrice) * 12)} per year
+                          </div>
                         </div>
                       ) : (
-                        plan.buttonText
-                      )}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-
-            {/* Mobile Carousel */}
-            <div className="md:hidden">
-              <div 
-                className="flex transition-transform duration-300 ease-out"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-              >
-                {plans.map((plan, index) => (
-                  <div key={plan.name} className="w-full flex-shrink-0 px-4">
-                    <Card
-                      className={`relative transition-all duration-300 ${
-                        plan.name === 'Enterprise' ? 'bg-black border-gray-600 text-white' : 'bg-gray-800 border-gray-700'
-                      } ${plan.isPopular ? 'border-green-500 shadow-lg' : ''}`}
-                    >
-                      {plan.isPopular && (
-                        <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs">
-                          Most Popular
-                        </Badge>
-                      )}
-
-                      <CardHeader className="text-center pb-4">
-                        <CardTitle className={`font-bold text-2xl ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
-                          {plan.name}
-                        </CardTitle>
-                        <CardDescription className={`mt-2 text-xs ${plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-400'}`}>
-                          {plan.description}
-                        </CardDescription>
-                        <div className="mt-3">
-                          {plan.isCustom ? (
-                            <span className={`text-2xl font-bold ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
-                              Custom
-                            </span>
-                          ) : (
-                            <>
-                              <span className={`text-3xl font-bold ${plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
-                                €{billingPeriod === "yearly" ? plan.yearlyPrice : plan.price}
-                              </span>
-                              <span className={`ml-2 text-sm ${plan.name === 'Enterprise' ? 'text-gray-300' : 'text-gray-400'}`}>
-                                /month
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        {!plan.isCustom && billingPeriod === "yearly" && (
-                          <div className="text-xs text-green-400 font-medium">
-                            Save €{(parseInt(plan.price) - parseInt(plan.yearlyPrice)) * 12}/year
+                        <div>
+                          <div className="flex items-baseline justify-center mb-2">
+                            <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €499</span>
+                            <span className="text-slate-400 text-lg ml-2">/month</span>
                           </div>
+                          <div className="text-xs text-slate-500">
+                            Custom pricing based on your needs
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="px-6 mb-6 relative z-10">
+                      <Button 
+                        onClick={() => handlePlanSelect(plan)}
+                        disabled={isCheckingOut}
+                        className={`w-full font-semibold py-3.5 px-6 rounded-xl text-base shadow-lg hover:shadow-xl transition-all duration-300 group ${
+                          plan.isEnterprise
+                            ? 'bg-gradient-to-r from-white to-slate-100 text-slate-900 hover:from-slate-100 hover:to-white shadow-white/20 hover:shadow-white/30'
+                            : 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/40 hover:shadow-emerald-500/60'
+                        }`}
+                      >
+                        {isCheckingOut ? (
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
+                            Processing...
+                          </div>
+                        ) : (
+                          <>
+                            Choose Plan
+                            <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </>
                         )}
-                      </CardHeader>
-                      
-                      <CardContent className="pb-4">
-                        <ul className="space-y-2">
-                          {plan.features.slice(0, 6).map((feature, featureIndex) => (
-                            <li key={featureIndex} className="flex items-center">
-                              <span className="text-green-400 mr-2 text-sm">✓</span>
-                              <span className={`text-xs ${plan.name === 'Enterprise' ? 'text-gray-200' : 'text-gray-300'}`}>
-                                {feature}
-                              </span>
-                            </li>
-                          ))}
-                          {plan.features.length > 6 && (
-                            <li className={`text-xs italic ${plan.name === 'Enterprise' ? 'text-gray-400' : 'text-gray-400'}`}>
-                              +{plan.features.length - 6} more features
-                            </li>
-                          )}
-                        </ul>
-                      </CardContent>
-                      
-                      <CardFooter className="pt-4">
-                        <Button 
-                          onClick={() => handlePlanSelect(plan)}
-                          disabled={isCheckingOut}
-                          className={`w-full transition-all duration-300 text-sm py-2 ${
-                            plan.name === 'Enterprise' 
-                              ? 'bg-white hover:bg-gray-100 text-black hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]' 
-                              : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]'
-                          } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                          {isCheckingOut ? (
-                            <div className="flex items-center justify-center">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                              Processing...
+                      </Button>
+                    </div>
+
+                    <div className="px-6 pb-8 flex-1 relative z-10">
+                      <div className="space-y-4">
+                        {plan.features.map((feature, idx) => (
+                          <div key={idx} className="flex items-start space-x-3 group">
+                            <div className="w-5 h-5 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm group-hover:shadow-emerald-400/30 transition-all duration-200">
+                              <Check className="w-3 h-3 text-white" />
                             </div>
-                          ) : (
-                            plan.buttonText
-                          )}
-                        </Button>
-                      </CardFooter>
-                    </Card>
+                             <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex-1 cursor-help">
+                                  <span className="text-slate-300 text-sm leading-relaxed font-medium hover:text-slate-200 transition-colors">
+                                    {feature.text}
+                                    <Info className="w-2.5 h-2.5 text-slate-500 hover:text-slate-400 transition-colors ml-0.5 inline align-baseline" />
+                                  </span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent 
+                                side="top" 
+                                className="max-w-xs bg-slate-900 border-slate-700 text-slate-200 text-xs p-3 shadow-xl z-[9999]"
+                              >
+                                <p>{feature.tooltip}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              {/* Mobile Navigation */}
-              <div className="flex justify-center items-center mt-8 space-x-4">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
-                  disabled={currentSlide === 0}
-                  className="h-10 w-10 bg-white/50 backdrop-blur-sm border-white/20 hover:bg-white/70"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                
-                <div className="flex space-x-2">
-                  {plans.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentSlide(index)}
-                      className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                        index === currentSlide 
-                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 scale-125' 
-                          : 'bg-white/50 hover:bg-white/70'
-                      }`}
-                    />
-                  ))}
+              {/* Mobile Carousel */}
+              <div className="md:hidden relative py-4">
+                <div className="w-full max-w-sm mx-auto relative">
+                  <div 
+                    className="relative overflow-hidden rounded-lg"
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                  >
+                    <div 
+                      className="flex transition-transform duration-700 ease-in-out"
+                      style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                    >
+                      {plans.map((plan, index) => (
+                        <div
+                          key={plan.name}
+                          className="w-full flex-shrink-0 px-3"
+                        >
+                          <div className={`rounded-2xl border overflow-hidden relative flex flex-col backdrop-blur-xl ${
+                            plan.isEnterprise
+                              ? 'bg-gradient-to-br from-black/95 via-slate-900/95 to-black/95 border-slate-600/50 shadow-2xl shadow-slate-900/50'
+                              : plan.popular
+                              ? 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 border-emerald-500/40 shadow-2xl shadow-emerald-500/30 ring-1 ring-emerald-500/40'
+                              : 'bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 border-slate-700/50 shadow-2xl shadow-slate-900/50'
+                          }`} style={{ minHeight: '320px' }}>
+                            
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.10] via-white/[0.02] to-transparent opacity-70 pointer-events-none rounded-2xl" />
+                            <div className={`absolute inset-0 rounded-2xl pointer-events-none ${
+                              plan.popular 
+                                ? 'bg-gradient-to-t from-emerald-500/[0.08] via-emerald-400/[0.02] to-transparent' 
+                                : 'bg-gradient-to-t from-slate-500/[0.05] via-transparent to-transparent'
+                            }`} />
+                            
+                            {plan.popular && (
+                              <div className="absolute top-2.5 left-1/2 transform -translate-x-1/2 z-10">
+                                <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shadow-lg shadow-emerald-500/40">
+                                  Most Popular
+                                </div>
+                              </div>
+                            )}
+
+                            <div className={`p-3.5 text-center relative z-10 ${plan.popular ? 'pt-10' : 'pt-4'}`}>
+                              <h3 className="text-lg font-bold text-white drop-shadow-lg mb-1.5">{plan.name}</h3>
+                              <p className="text-slate-400 text-[10px] leading-tight px-1">{plan.description}</p>
+                            </div>
+
+                            <div className="px-3.5 text-center mb-2.5 relative z-10">
+                              {plan.monthlyPrice ? (
+                                <div>
+                                  <div className="flex items-baseline justify-center mb-1">
+                                    <span className="text-xl font-bold text-emerald-400 drop-shadow-lg">
+                                      €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                                    </span>
+                                    <span className="text-slate-300/90 text-sm ml-1">/month</span>
+                                  </div>
+                                  {isAnnual && (
+                                    <div className="text-[10px] text-emerald-400/90 mb-0.5">
+                                      Billed annually (€{(plan.annualPrice || 0) * 12}/year)
+                                    </div>
+                                  )}
+                                  <div className="text-[9px] text-slate-500">
+                                    Save €{((plan.monthlyPrice - (plan.annualPrice || 0)) * 12)} per year
+                                  </div>
+                                </div>
+                              ) : (
+                                <div>
+                                  <div className="flex items-baseline justify-center mb-1">
+                                    <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg">From €499</span>
+                                    <span className="text-slate-300/90 text-xs ml-1">/month</span>
+                                  </div>
+                                  <div className="text-[9px] text-slate-500">
+                                    Custom pricing
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="px-3.5 mb-2.5 relative z-10">
+                              <Button 
+                                onClick={() => handlePlanSelect(plan)}
+                                disabled={isCheckingOut}
+                                className={`w-full font-semibold py-2.5 px-3.5 rounded-xl text-xs shadow-lg hover:shadow-xl transition-all duration-300 group backdrop-blur-sm ${
+                                  plan.isEnterprise
+                                    ? 'bg-gradient-to-r from-white to-slate-100 text-slate-900 hover:from-slate-100 hover:to-white shadow-white/20 hover:shadow-white/30'
+                                    : 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-emerald-500/50'
+                                }`}
+                              >
+                                {isCheckingOut ? (
+                                  <div className="flex items-center justify-center">
+                                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-1"></div>
+                                    Processing...
+                                  </div>
+                                ) : (
+                                  <>
+                                    Choose Plan
+                                    <ArrowRight className="ml-1.5 w-2.5 h-2.5 group-hover:translate-x-1 transition-transform" />
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+
+                            <div className="px-3.5 pb-3.5 flex-1 relative z-10">
+                              <div className="space-y-1.5">
+                                {plan.features.map((feature, idx) => (
+                                  <div key={idx} className="flex items-start space-x-2">
+                                    <div className="w-3.5 h-3.5 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm shadow-emerald-400/30">
+                                      <Check className="w-2 h-2 text-white" />
+                                    </div>
+                                     <div className="flex-1">
+                                       <span className="text-slate-200/95 text-[10px] leading-tight font-medium tracking-wide">
+                                         {feature.text}
+                                       </span>
+                                     </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {currentSlide > 0 && (
+                    <div className="absolute top-1/2 -translate-y-1/2 -left-5 z-20">
+                      <button
+                        onClick={prevSlide}
+                        className="p-3 rounded-full bg-slate-800/95 text-white hover:bg-slate-700/95 transition-colors duration-200 shadow-lg backdrop-blur-sm border border-slate-700/50"
+                        aria-label="Previous slide"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  {currentSlide < plans.length - 1 && (
+                    <div className="absolute top-1/2 -translate-y-1/2 -right-5 z-20">
+                      <button
+                        onClick={nextSlide}
+                        className="p-3 rounded-full bg-slate-800/95 text-white hover:bg-slate-700/95 transition-colors duration-200 shadow-lg backdrop-blur-sm border border-slate-700/50"
+                        aria-label="Next slide"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-center mt-6 space-x-2">
+                    {plans.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => goToSlide(index)}
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          index === currentSlide 
+                            ? 'bg-emerald-400 w-8 shadow-md shadow-emerald-400/30' 
+                            : 'bg-slate-600 hover:bg-slate-500 w-2'
+                        }`}
+                        aria-label={`Go to slide ${index + 1}`}
+                      />
+                    ))}
+                  </div>
                 </div>
-                
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setCurrentSlide(Math.min(plans.length - 1, currentSlide + 1))}
-                  disabled={currentSlide === plans.length - 1}
-                  className="h-10 w-10 bg-white/50 backdrop-blur-sm border-white/20 hover:bg-white/70"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
               </div>
             </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </TooltipProvider>
   );
 }
