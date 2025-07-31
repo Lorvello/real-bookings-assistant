@@ -57,7 +57,7 @@ function App() {
         <CalendarProvider>
           <ConversationCalendarProvider>
             <Router>
-              <div className="transform scale-[0.8] origin-top-left w-[125%] h-screen max-h-screen overflow-hidden">
+              <div className="transform scale-[0.8] origin-top-left w-[125%] min-h-screen overflow-x-hidden">
                 <GlobalWebhookProcessor />
                 <Routes>
                   <Route path="/" element={<Index />} />
