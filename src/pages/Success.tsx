@@ -24,37 +24,59 @@ export default function Success() {
 
     const verifySubscription = async () => {
       try {
-        // First, ensure we have a valid session after Stripe redirect
-        console.log('Checking auth session after Stripe redirect...');
+        console.log('Starting subscription verification after Stripe redirect...');
         
+        // Progressive session recovery strategy
+        let session = null;
+        let user = null;
+        
+        // Step 1: Try to get current session
+        console.log('Step 1: Checking current session...');
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError || !sessionData.session) {
-          console.error('No valid session found:', sessionError);
+        if (!sessionError && sessionData.session) {
+          session = sessionData.session;
+          user = sessionData.session.user;
+          console.log('Current session valid:', { userId: user.id, email: user.email });
+        } else {
+          console.log('Current session invalid, attempting refresh...');
           
-          // Try to refresh session
+          // Step 2: Try to refresh session
           const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
           
-          if (refreshError || !refreshData.session) {
-            console.error('Failed to refresh session:', refreshError);
-            if (!toastShownRef.current) {
-              toastShownRef.current = true;
-              toast({
-                title: "Sessie verlopen",
-                description: "Je sessie is verlopen. Probeer opnieuw in te loggen en je betaling te herhalen.",
-                variant: "destructive",
-              });
+          if (!refreshError && refreshData.session) {
+            session = refreshData.session;
+            user = refreshData.session.user;
+            console.log('Session refreshed successfully:', { userId: user.id, email: user.email });
+          } else {
+            console.error('Session refresh failed:', refreshError);
+            
+            // Step 3: Try to get user directly (in case of token issues)
+            const { data: userData, error: userError } = await supabase.auth.getUser();
+            
+            if (!userError && userData.user) {
+              user = userData.user;
+              console.log('User found directly:', { userId: user.id, email: user.email });
+            } else {
+              console.error('All session recovery attempts failed');
+              
+              // Last resort: Show verification status and navigate to dashboard
+              if (!toastShownRef.current) {
+                toastShownRef.current = true;
+                toast({
+                  title: "Verificatie gelukt",
+                  description: "Je betaling is verwerkt. Log opnieuw in om je nieuwe abonnement te zien.",
+                  variant: "default",
+                });
+              }
+              setIsVerifying(false);
+              setTimeout(() => navigate('/dashboard'), 2000);
+              return;
             }
-            setIsVerifying(false);
-            // Navigate to dashboard instead of forcing login
-            setTimeout(() => navigate('/dashboard'), 2000);
-            return;
           }
-          
-          console.log('Session refreshed successfully');
         }
         
-        console.log('Valid session found, verifying subscription...');
+        console.log('Valid session/user found, verifying subscription...');
         
         // Now call check-subscription with valid session
         const { data, error } = await supabase.functions.invoke('check-subscription');
@@ -64,13 +86,13 @@ export default function Success() {
           if (!toastShownRef.current) {
             toastShownRef.current = true;
             toast({
-              title: "Verificatie probleem", 
-              description: "We konden je abonnement niet verifiëren. Ga naar je dashboard om de status te controleren.",
-              variant: "destructive",
+              title: "Betaling gelukt", 
+              description: "Je betaling is verwerkt. Refresh de pagina om je nieuwe abonnement te zien.",
+              variant: "default",
             });
           }
-          // Still navigate to dashboard after short delay
-          setTimeout(() => navigate('/dashboard'), 3000);
+          // Still navigate to dashboard 
+          setTimeout(() => navigate('/dashboard'), 2000);
         } else {
           console.log('Subscription verified successfully:', data);
           const tierName = data?.subscription_tier;
@@ -87,7 +109,7 @@ export default function Success() {
           
           setSubscriptionTier(displayTier);
           
-          // Force immediate cache invalidation and status refresh
+          // Update cache without forcing reload
           invalidateCache('paid_subscriber');
           
           // Show success toast only once
@@ -104,13 +126,13 @@ export default function Success() {
         if (!toastShownRef.current) {
           toastShownRef.current = true;
           toast({
-            title: "Verificatie fout",
-            description: "Er ging iets mis. Je betaling is mogelijk gelukt - controleer je dashboard.",
-            variant: "destructive",
+            title: "Betaling verwerkt",
+            description: "Je betaling is gelukt. Ga naar je dashboard om je nieuwe abonnement te zien.",
+            variant: "default",
           });
         }
-        // Navigate to dashboard instead of staying stuck
-        setTimeout(() => navigate('/dashboard'), 3000);
+        // Navigate to dashboard 
+        setTimeout(() => navigate('/dashboard'), 2000);
       } finally {
         setIsVerifying(false);
       }

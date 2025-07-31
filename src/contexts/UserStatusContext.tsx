@@ -151,7 +151,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     fetchUserStatus();
   }, [profile?.id]);
 
-  // Invalidate cache and force immediate refresh
+  // Invalidate cache and update status without page reload
   const invalidateCache = (newStatus?: string) => {
     if (!profile?.id) return;
     
@@ -163,8 +163,9 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       console.error('Error clearing cache:', error);
     }
     
-    // If we know the new status, update immediately
+    // If we know the new status, update immediately without reload
     if (newStatus) {
+      console.log('Updating user status to:', newStatus);
       setUserStatusType(newStatus);
       setIsLoading(false);
       initialLoadComplete.current = true;
@@ -181,24 +182,22 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         console.error('Error caching new status:', error);
       }
       
-      // Force a page refresh for UserStatusContext to immediately reflect changes
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // Force profile refresh via query invalidation instead of page reload
+      try {
+        // This will trigger useProfile to refetch data
+        sessionStorage.removeItem('userProfile');
+      } catch (error) {
+        console.error('Error clearing profile cache:', error);
+      }
       
       return;
     }
     
-    // For unknown status, force reload to get fresh data
+    // For unknown status, reset state and refetch
     initialLoadComplete.current = false;
     fetchInProgress.current = false;
     setIsLoading(true);
     setUserStatusType('unknown');
-    
-    // Force immediate refresh
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
   };
 
   // Compute user status - optimized for performance
