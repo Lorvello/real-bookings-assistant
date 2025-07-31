@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { useUserStatus } from '@/contexts/UserStatusContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useAdminControls } from '@/hooks/useAdminControls';
 import { Settings, User, RefreshCw, Database } from 'lucide-react';
+import { SubscriptionTier } from '@/types/database';
 
 const userStatusOptions = [
   { 
@@ -51,6 +52,7 @@ const userStatusOptions = [
 export const UserStatusSwitcher = () => {
   const { profile, refetch } = useProfile();
   const { userStatus, invalidateCache } = useUserStatus();
+  const { updateUserSubscription } = useAdminControls();
   const { toast } = useToast();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -70,77 +72,86 @@ export const UserStatusSwitcher = () => {
     try {
       console.log('Updating user status to:', selectedStatus);
       
-      // Determine if we need to clear data and generate mock data
-      const shouldClearData = selectedOption.dataAction === 'clear' || 
-                              selectedOption.dataAction === 'generate_basic' || 
-                              selectedOption.dataAction === 'generate_full';
-      
-      const shouldGenerateMockData = selectedOption.dataAction === 'generate_basic' || 
-                                     selectedOption.dataAction === 'generate_full';
+      // Map UI status to database values (like SubscriptionTierSwitcher approach)
+      let subscriptionStatus: string;
+      let subscriptionTier: SubscriptionTier | null;
+      let trialEndDate: string | undefined;
+      let subscriptionEndDate: string | undefined;
 
-      // Phase 1: Clear existing data if needed
-      if (shouldClearData) {
-        setLoadingPhase('Clearing existing data...');
-        console.log('Clearing existing data for fresh start');
+      switch (selectedStatus) {
+        case 'setup_incomplete':
+          subscriptionStatus = 'trial';
+          subscriptionTier = null;
+          trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+          subscriptionEndDate = undefined;
+          break;
+        case 'active_trial':
+          subscriptionStatus = 'trial';
+          subscriptionTier = null;
+          trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+          subscriptionEndDate = undefined;
+          break;
+        case 'expired_trial':
+          subscriptionStatus = 'expired';
+          subscriptionTier = null;
+          trialEndDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          subscriptionEndDate = undefined;
+          break;
+        case 'paid_subscriber':
+          subscriptionStatus = 'active';
+          subscriptionTier = 'professional';
+          trialEndDate = undefined;
+          subscriptionEndDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          break;
+        case 'canceled_but_active':
+          subscriptionStatus = 'canceled';
+          subscriptionTier = 'professional';
+          trialEndDate = undefined;
+          subscriptionEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+          break;
+        case 'canceled_and_inactive':
+          subscriptionStatus = 'expired';
+          subscriptionTier = null;
+          trialEndDate = undefined;
+          subscriptionEndDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          break;
+        default:
+          throw new Error(`Invalid status: ${selectedStatus}`);
       }
 
-      // Phase 2: Generate mock data if needed
-      if (shouldGenerateMockData) {
-        setLoadingPhase('Generating mock data...');
-        console.log('Generating mock data for status:', selectedStatus);
-      }
-
-      // Phase 3: Update status
+      // Phase 1: Update database directly (reliable approach like SubscriptionTierSwitcher)
       setLoadingPhase('Updating user status...');
       
-      const { data, error } = await supabase
-        .rpc('admin_set_user_status', {
-          p_user_id: profile.id,
-          p_status: selectedStatus,
-          p_clear_data: shouldClearData,
-          p_generate_mock_data: shouldGenerateMockData
-        });
-
-      if (error) {
-        console.error('Supabase RPC error:', error);
-        throw error;
-      }
-
-      console.log('RPC response:', data);
-
-      // Check if the function returned success
-      const response = data as { 
-        success?: boolean; 
-        error?: string; 
-        message?: string;
-        data_cleared?: boolean;
-        mock_data_generated?: boolean;
-        clear_result?: any;
-        mock_result?: any;
-      };
-      
-      if (response && !response.success) {
-        throw new Error(response.error || 'Failed to update user status');
-      }
-
-      // Phase 4: Refresh contexts and cache
-      setLoadingPhase('Refreshing data...');
-      
-      toast({
-        title: "Status Updated Successfully",
-        description: `User status changed to ${selectedOption.label}. ${
-          response.data_cleared ? 'Data cleared. ' : ''
-        }${
-          response.mock_data_generated ? 'Mock data generated. ' : ''
-        }`,
-        variant: "default",
+      await updateUserSubscription(profile.id, {
+        subscription_status: subscriptionStatus,
+        subscription_tier: subscriptionTier,
+        trial_end_date: trialEndDate,
+        subscription_end_date: subscriptionEndDate,
       });
 
-      // Force profile refresh first, then update status cache with new status
-      console.log('Refreshing profile and updating cache with new status...');
+      // Phase 2: Clear caches and force refresh
+      setLoadingPhase('Refreshing data...');
+      
+      // Clear all caches
+      sessionStorage.removeItem('globalUserStatusCache');
+      sessionStorage.removeItem('userProfile');
+      localStorage.removeItem('userProfile');
+      
+      // Force profile refresh and invalidate status cache
       await refetch();
       invalidateCache(selectedStatus);
       
+      // As final fallback, reload the page to ensure all contexts get fresh data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
+      toast({
+        title: "Status Updated Successfully",
+        description: `User status changed to ${selectedOption.label}. Page will refresh to show changes.`,
+        variant: "default",
+      });
+
       // Clear the selected status
       setSelectedStatus('');
       

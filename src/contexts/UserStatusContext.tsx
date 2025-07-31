@@ -22,12 +22,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
   
   // Global persistent state - loaded once and maintained across navigation
   const [userStatusType, setUserStatusType] = useState<string>(() => {
-    // For paid subscribers, return immediately without any loading
-    if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
-      return 'paid_subscriber';
-    }
-    
-    // Check cache
+    // Check cache first
     try {
       const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
       if (cached && profile?.id) {
@@ -43,12 +38,8 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     return 'unknown';
   });
   
-  // Never show loading for paid subscribers or cached data
+  // Show loading only when we have no cached data
   const [isLoading, setIsLoading] = useState(() => {
-    if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
-      return false;
-    }
-    
     try {
       const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
       if (cached && profile?.id) {
@@ -72,26 +63,6 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     if (!profile?.id || initialLoadComplete.current) return;
 
     const fetchUserStatus = async () => {
-      // Immediate return for paid subscribers
-      if (profile.subscription_status === 'active' && profile.subscription_tier) {
-        setUserStatusType('paid_subscriber');
-        setIsLoading(false);
-        initialLoadComplete.current = true;
-        
-        // Cache for consistency
-        try {
-          sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
-            version: CACHE_VERSION,
-            data: { userStatusType: 'paid_subscriber' },
-            userId: profile.id,
-            timestamp: Date.now()
-          }));
-        } catch (error) {
-          console.error('Error caching status:', error);
-        }
-        return;
-      }
-
       // Check cache first
       try {
         const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
@@ -216,26 +187,6 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
 
   // Compute user status - optimized for performance
   const userStatus: UserStatus = React.useMemo(() => {
-    // Immediate return for paid subscribers
-    if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
-      return {
-        userType: 'subscriber',
-        isTrialActive: false,
-        isExpired: false,
-        isSubscriber: true,
-        isCanceled: false,
-        hasFullAccess: true,
-        daysRemaining: 0,
-        gracePeriodActive: false,
-        needsUpgrade: false,
-        canEdit: true,
-        canCreate: true,
-        showUpgradePrompt: false,
-        statusMessage: 'Active Subscription',
-        statusColor: 'green',
-        isSetupIncomplete: false
-      };
-    }
 
     if (!profile) {
       return {
@@ -379,8 +330,8 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     const { userType, hasFullAccess } = userStatus;
     const tier = profile?.subscription_tier;
 
-    // Immediate return for paid subscribers
-    if (profile?.subscription_status === 'active' && profile?.subscription_tier) {
+    // For active subscribers, provide full access based on tier
+    if (userType === 'subscriber' && profile?.subscription_tier) {
       const tierLimits = getSubscriptionTierLimits(tier);
       
       const baseAccess = {
