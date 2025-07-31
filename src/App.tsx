@@ -58,7 +58,11 @@ function App() {
           <ConversationCalendarProvider>
             <div className="w-full h-screen overflow-hidden">
               <Router>
-                <div className="w-full h-full overflow-y-auto overflow-x-hidden" data-scroll-container>
+                <div 
+                  className="w-full h-full overflow-y-auto overflow-x-hidden" 
+                  data-scroll-container
+                  style={{ overscrollBehavior: 'none' }}
+                >
                   <GlobalWebhookProcessor />
                   <Routes>
                   <Route path="/" element={<Index />} />
