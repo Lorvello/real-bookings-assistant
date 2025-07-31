@@ -60,9 +60,13 @@ const Header = () => {
           <Link 
             to="/" 
             onClick={handleNavClick}
-            className="text-white font-bold text-lg sm:text-xl hover:opacity-90 transition-opacity notranslate"
+            className="flex items-center hover:opacity-80 transition-opacity"
           >
-            Bookings Assistant
+            <img 
+              src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
+              alt="Bookings Assistant logo" 
+              className="h-8 sm:h-10 w-auto"
+            />
           </Link>
           
           {/* Desktop Navigation Links */}
