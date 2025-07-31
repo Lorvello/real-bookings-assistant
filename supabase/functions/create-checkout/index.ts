@@ -44,9 +44,9 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Parse request body
-    const { tier_name, price, is_annual, success_url, cancel_url } = await req.json();
-    logStep("Request data parsed", { tier_name, price, is_annual, success_url, cancel_url });
+    // Parse request body - support both Price ID and legacy dynamic pricing
+    const { priceId, tier_name, price, is_annual, success_url, cancel_url } = await req.json();
+    logStep("Request data parsed", { priceId, tier_name, price, is_annual, success_url, cancel_url });
 
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -80,11 +80,39 @@ serve(async (req) => {
       customerId 
     });
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Create checkout session - use Price ID if provided, otherwise use dynamic pricing
+    const sessionConfig: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [
+      mode: "subscription",
+      success_url: success_url || `${req.headers.get("origin")}/dashboard?checkout=success`,
+      cancel_url: cancel_url || `${req.headers.get("origin")}/dashboard?checkout=cancel`,
+      metadata: {
+        user_id: user.id,
+        tier_name: tier_name || 'unknown',
+        is_annual: is_annual ? 'true' : 'false'
+      },
+      subscription_data: {
+        metadata: {
+          user_id: user.id,
+          tier_name: tier_name || 'unknown',
+          is_annual: is_annual ? 'true' : 'false'
+        }
+      }
+    };
+
+    if (priceId) {
+      // Use predefined Stripe Price ID
+      sessionConfig.line_items = [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ];
+      logStep("Using predefined Price ID", { priceId });
+    } else {
+      // Legacy dynamic pricing
+      sessionConfig.line_items = [
         {
           price_data: {
             currency: "eur",
@@ -97,23 +125,11 @@ serve(async (req) => {
           },
           quantity: 1,
         },
-      ],
-      mode: "subscription",
-      success_url: success_url || `${req.headers.get("origin")}/dashboard?checkout=success`,
-      cancel_url: cancel_url || `${req.headers.get("origin")}/dashboard?checkout=cancel`,
-      metadata: {
-        user_id: user.id,
-        tier_name: tier_name,
-        is_annual: is_annual ? 'true' : 'false'
-      },
-      subscription_data: {
-        metadata: {
-          user_id: user.id,
-          tier_name: tier_name,
-          is_annual: is_annual ? 'true' : 'false'
-        }
-      }
-    });
+      ];
+      logStep("Using dynamic pricing", { productName, unitAmount, interval: is_annual ? 'year' : 'month' });
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     logStep("Checkout session created successfully", { sessionId: session.id, url: session.url });
 

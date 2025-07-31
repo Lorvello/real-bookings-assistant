@@ -55,7 +55,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
       ],
       popular: false,
       tier_name: 'starter',
-      stripePriceId: 'price_starter'
+      stripePriceId: isAnnual ? "price_1RqKgWLcBboIITXgJ3uN8MV7" : "price_1RqKWeLcBboIITXgFo7fVtzc"
     },
     {
       name: "Professional",
@@ -94,7 +94,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
       ],
       popular: true,
       tier_name: 'professional',
-      stripePriceId: 'price_professional'
+      stripePriceId: isAnnual ? "price_1RqL0HLcBboIITXgCSumvOZZ" : "price_1RqKnNLcBboIITXgRReX9NU8"
     },
     {
       name: "Enterprise",
@@ -137,8 +137,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
       ],
       popular: false,
       isEnterprise: true,
-      tier_name: 'enterprise',
-      stripePriceId: 'price_enterprise'
+      tier_name: 'enterprise'
     }
   ];
 
@@ -192,19 +191,16 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
   const handlePlanSelect = async (plan: typeof plans[0]) => {
     if (plan.isEnterprise) {
       // Handle enterprise contact logic
-      window.open('mailto:sales@company.com', '_blank');
+      window.open('mailto:sales@bookingsassistant.com', '_blank');
       return;
     }
 
     try {
       setIsCheckingOut(true);
-      const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
-          tier_name: plan.tier_name,
-          price: price,
-          is_annual: isAnnual,
+          priceId: plan.stripePriceId,
           success_url: `${window.location.origin}/success`,
           cancel_url: `${window.location.origin}/dashboard`,
         }
