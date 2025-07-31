@@ -11,12 +11,14 @@ import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 
 const Index = () => {
   return (
-    <>
+    <div className="min-h-screen w-full">
       {/* Hero Section with green effects */}
-      <BackgroundProvider variant="hero">
-        <Header />
-        <HeroSection />
-      </BackgroundProvider>
+      <div className="min-h-screen">
+        <BackgroundProvider variant="hero">
+          <Header />
+          <HeroSection />
+        </BackgroundProvider>
+      </div>
       
       {/* All other sections with pure dark blue background */}
       <BackgroundProvider variant="dark">
@@ -49,7 +51,7 @@ const Index = () => {
           </div>
         </ScrollAnimatedSection>
       </BackgroundProvider>
-    </>
+    </div>
   );
 };
 

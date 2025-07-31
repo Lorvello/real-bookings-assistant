@@ -15,6 +15,8 @@ import { UpgradePrompt } from '@/components/user-status/UpgradePrompt';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
+import { Menu } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Helper function to get page title from pathname
 const getPageTitle = (pathname: string) => {
@@ -102,7 +104,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const currentPageTitle = getPageTitle(location.pathname);
 
   return (
-    <div className="flex min-h-screen bg-gray-900 w-full relative">
+    <div className="flex h-screen bg-gray-900 w-full relative overflow-hidden">
       {/* Mobile Overlay */}
       {isMobile && isSidebarOpen && (
         <div 
@@ -115,19 +117,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div 
         className={`
           ${isMobile 
-            ? `fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-in-out
+            ? `fixed left-0 top-0 h-screen z-50 transition-all duration-300 ease-in-out
                ${isSidebarOpen 
                  ? 'translate-x-0 opacity-100 pointer-events-auto w-[85%] max-w-sm' 
                  : '-translate-x-full opacity-0 pointer-events-none w-0'
                }` 
-            : `${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative opacity-100 pointer-events-auto`
+            : `${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative opacity-100 pointer-events-auto h-screen max-h-screen`
           }
         `}
         style={{ backgroundColor: '#0F172A' }}
       >
         {/* Only render sidebar content when visible on mobile or always on desktop */}
         {(!isMobile || isSidebarOpen) && (
-          <div className="flex h-full flex-col">
+          <div className="flex h-screen flex-col overflow-hidden">
             <SidebarHeader 
               isSidebarOpen={isSidebarOpen} 
               onToggleSidebar={toggleSidebar}
@@ -196,9 +198,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       )}
 
-      {/* Main Content */}
-      <div className={`flex-1 ${isMobile ? 'overflow-y-scroll min-h-screen' : 'overflow-y-auto'} ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`} style={isMobile ? { overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } : {}}>
-        <main className={isMobile ? 'min-h-screen' : 'min-h-0 flex-grow'}>
+      {/* Main Content with independent scrolling */}
+      <div className={`flex-1 h-screen overflow-y-auto ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`} style={isMobile ? { overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } : {}}>
+        <main className="min-h-full">
           {children}
         </main>
       </div>
