@@ -33,14 +33,12 @@ const Header = () => {
     navigate('/#pricing');
     setTimeout(() => {
       const appScrollContainer = document.querySelector('[data-scroll-container]');
-      const pricingElement = document.getElementById('pricing');
       
-      if (appScrollContainer && pricingElement) {
-        // Get the position of pricing element relative to scroll container
-        const elementOffsetTop = pricingElement.offsetTop;
+      if (appScrollContainer) {
+        // Scroll to absolute bottom of page
         appScrollContainer.scrollTo({ 
-          top: elementOffsetTop,
-          behavior: 'instant' // Direct positioning, no animation
+          top: appScrollContainer.scrollHeight,
+          behavior: 'instant'
         });
       }
     }, 300);
