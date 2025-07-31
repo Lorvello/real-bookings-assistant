@@ -26,6 +26,7 @@ import Profile from '@/pages/Profile';
 import TeamInvite from '@/pages/TeamInvite';
 import TermsOfService from '@/pages/TermsOfService';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import Success from '@/pages/Success';
 
 // Pages
 import Index from '@/pages/Index';
@@ -64,6 +65,7 @@ function App() {
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/success" element={<Success />} />
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/bookings" element={<Bookings />} />
                 <Route path="/availability" element={<Availability />} />
