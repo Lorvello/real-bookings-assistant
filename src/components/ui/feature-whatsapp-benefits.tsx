@@ -192,7 +192,7 @@ export const WhatsAppBenefits = ({
           </div>
           
           {/* Swipe hint */}
-          <div className="text-center mt-3">
+          <div className="text-center mt-3 px-4">
             <p className="text-xs text-slate-500">
               Swipe or tap arrows to explore
             </p>
