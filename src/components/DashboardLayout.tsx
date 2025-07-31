@@ -102,7 +102,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const currentPageTitle = getPageTitle(location.pathname);
 
   return (
-    <div className="flex min-h-screen bg-gray-900 w-full relative overflow-hidden">
+    <div className="flex min-h-screen bg-gray-900 w-full relative">
       {/* Mobile Overlay */}
       {isMobile && isSidebarOpen && (
         <div 

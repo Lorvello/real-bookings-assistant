@@ -83,10 +83,14 @@
   body {
     @apply bg-background text-foreground;
     overflow-x: hidden;
+    max-width: 100vw;
+    position: relative;
   }
   
   html {
     overflow-x: hidden;
+    max-width: 100vw;
+    position: relative;
   }
 }
 

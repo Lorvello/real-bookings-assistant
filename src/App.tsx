@@ -57,10 +57,11 @@ function App() {
         <CalendarProvider>
           <ConversationCalendarProvider>
             <div 
-              className="transform scale-[0.8] origin-top min-h-screen"
+              className="transform scale-[0.8] origin-top-left max-w-full overflow-hidden min-h-screen"
               style={{
-                transformOrigin: 'top center',
-                width: '125%'
+                transformOrigin: 'top left',
+                maxWidth: '100vw',
+                position: 'relative'
               }}
             >
               <Router>
