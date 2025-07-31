@@ -36,7 +36,7 @@ export function NavLinks({ navItems, onNavClick, isMobile = false }: NavLinksPro
           const elementOffsetTop = pricingElement.offsetTop;
           appScrollContainer.scrollTo({ 
             top: elementOffsetTop - 100, // Small offset from top
-            behavior: 'smooth' 
+            behavior: 'instant' // Direct positioning, no animation
           });
         }
       }, 100);
