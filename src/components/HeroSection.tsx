@@ -68,7 +68,7 @@ const HeroSection: React.FC = () => {
           </div>
 
           {/* Social proof - SUBTEXT (Smallest) */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-8 pt-1 md:pt-4 animate-appear opacity-100 delay-700 px-4 sm:px-0 mb-8 md:mb-0">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-8 pt-1 md:pt-4 animate-appear opacity-100 delay-700 px-4 sm:px-0 mb-2 md:mb-0">
             <div className="flex items-center gap-1.5 md:gap-3">
               <div className="flex -space-x-1 md:-space-x-2">
                 <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">

@@ -10,7 +10,7 @@ import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 
 const ProcessSection = () => {
   return (
-    <section className="py-6 md:py-16 pt-12 md:pt-16 relative overflow-hidden" style={{
+    <section className="py-2 md:py-16 pt-16 md:pt-16 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
     }}>
       {/* Background decoration */}
@@ -27,7 +27,7 @@ const ProcessSection = () => {
           staggerDelay={200} 
           threshold={0.3}
           variant="process"
-          className="space-y-8 md:space-y-12"
+          className="space-y-3 md:space-y-12"
         >
           {/* Section header - HEADERS (Largest) */}
           <div className="text-center">
@@ -41,7 +41,7 @@ const ProcessSection = () => {
           </div>
 
           {/* Step 1: WhatsApp Chat */}
-          <div className="flex flex-col lg:flex-row items-center gap-6 md:gap-12 pt-8 md:pt-0">
+          <div className="flex flex-col lg:flex-row items-center gap-3 md:gap-12 pt-2 md:pt-0">
             <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left">
               <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
@@ -57,14 +57,14 @@ const ProcessSection = () => {
             </div>
             
             <div className="flex-1 w-full max-w-[280px] md:max-w-sm lg:max-w-none flex justify-center lg:justify-start">
-              <div className="h-[520px] w-full md:h-auto md:w-auto flex items-center justify-center py-2 md:py-0">
+              <div className="h-[520px] w-full md:h-auto md:w-auto flex items-center justify-center py-1 md:py-0">
                 <WhatsAppChat />
               </div>
             </div>
           </div>
 
           {/* Step 2: Calendar Result - Centered on mobile, left on desktop */}
-          <div className="flex flex-col lg:flex-row-reverse items-start lg:items-center gap-6 md:gap-12 pt-12 md:pt-8">
+          <div className="flex flex-col lg:flex-row-reverse items-start lg:items-center gap-3 md:gap-12 pt-2 md:pt-8">
             <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left max-w-lg lg:max-w-none">
               <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500 aspect-square">
@@ -86,7 +86,7 @@ const ProcessSection = () => {
           </div>
 
           {/* AI Agent Test Section */}
-          <div className="space-y-4 md:space-y-8 pt-12 md:pt-8">
+          <div className="space-y-2 md:space-y-8 pt-2 md:pt-8">
             <div className="text-center">
               <div className="flex items-center gap-2 md:gap-4 justify-center mb-4 md:mb-6">
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
