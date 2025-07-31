@@ -56,8 +56,8 @@ const ProcessSection = () => {
               </p>
             </div>
             
-            <div className="flex-1 w-full max-w-[220px] md:max-w-sm lg:max-w-none flex justify-center lg:justify-start">
-              <div className="h-[500px] md:h-auto flex items-center">
+            <div className="flex-1 w-full max-w-[280px] md:max-w-sm lg:max-w-none flex justify-center lg:justify-start">
+              <div className="h-[600px] w-full md:h-auto md:w-auto flex items-center justify-center">
                 <WhatsAppChat />
               </div>
             </div>
