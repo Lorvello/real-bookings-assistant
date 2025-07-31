@@ -46,12 +46,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const { signOut } = useAuth();
   const isMobile = useIsMobile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    if (isMobile) return false; // Mobile altijd gesloten
-    
-    const saved = localStorage.getItem('sidebar-expanded');
-    return saved !== null ? JSON.parse(saved) : true; // Default open voor desktop
-  });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -86,13 +81,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const toggleSidebar = () => {
-    const newState = !isSidebarOpen;
-    setIsSidebarOpen(newState);
-    
-    // Alleen localStorage updaten voor desktop
-    if (!isMobile) {
-      localStorage.setItem('sidebar-expanded', JSON.stringify(newState));
-    }
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   const handleUpgrade = () => {
