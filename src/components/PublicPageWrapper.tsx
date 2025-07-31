@@ -10,11 +10,13 @@ const PublicPageWrapper: React.FC<PublicPageWrapperProps> = ({ children, classNa
     <div 
       className={`public-page-scaler ${className}`}
       style={{
-        transform: 'scale(0.8)',
+        zoom: '0.8',
+        width: '100%',
+        height: 'fit-content',
+        // Firefox fallback
+        transform: navigator.userAgent.includes('Firefox') ? 'scale(0.8)' : 'none',
         transformOrigin: 'top left',
-        width: '125%',
-        minHeight: '125vh',
-        height: 'auto'
+        overflow: 'hidden'
       }}
     >
       {children}
