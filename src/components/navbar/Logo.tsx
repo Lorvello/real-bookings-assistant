@@ -15,7 +15,7 @@ export function Logo({ onNavClick }: LogoProps) {
         className="flex items-center hover:opacity-80 transition-opacity"
       >
         <img 
-          src="/lovable-uploads/0686ab4d-5774-407a-883a-2200f5de8ae5.png" 
+          src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
           alt="Bookings Assistant logo" 
           className="h-8 sm:h-10 md:h-12 w-auto"
         />
