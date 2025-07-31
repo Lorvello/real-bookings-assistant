@@ -82,6 +82,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    max-height: 100vh;
+  }
+  
+  html {
+    overflow-x: hidden;
+    max-height: 100vh;
   }
 }
 
