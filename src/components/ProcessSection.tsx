@@ -10,7 +10,7 @@ import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 
 const ProcessSection = () => {
   return (
-    <section className="py-16 md:py-16 relative overflow-hidden" style={{
+    <section className="py-6 md:py-16 pt-12 md:pt-16 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
     }}>
       {/* Background decoration */}
@@ -57,7 +57,7 @@ const ProcessSection = () => {
             </div>
             
             <div className="flex-1 w-full max-w-[280px] md:max-w-sm lg:max-w-none flex justify-center lg:justify-start">
-              <div className="h-[600px] w-full md:h-auto md:w-auto flex items-center justify-center">
+              <div className="h-[520px] w-full md:h-auto md:w-auto flex items-center justify-center py-2 md:py-0">
                 <WhatsAppChat />
               </div>
             </div>
