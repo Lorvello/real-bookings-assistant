@@ -12,9 +12,13 @@ export function Logo({ onNavClick }: LogoProps) {
       <Link 
         to="/" 
         onClick={onNavClick} 
-        className="text-lg sm:text-xl md:text-2xl font-bold text-white hover:text-green-400 transition-colors notranslate"
+        className="flex items-center hover:opacity-80 transition-opacity"
       >
-        Bookings Assistant
+        <img 
+          src="/lovable-uploads/5d77b9f5-4f42-48e1-b293-ac3521cdeaba.png" 
+          alt="Bookings Assistant logo" 
+          className="h-8 sm:h-10 md:h-12 w-auto"
+        />
       </Link>
     </div>
   );

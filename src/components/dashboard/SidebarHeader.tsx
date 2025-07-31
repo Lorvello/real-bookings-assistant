@@ -13,11 +13,13 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
     <div className="flex h-16 items-center justify-between px-4 border-b border-gray-700">
       {/* Logo - only show when expanded */}
       {isSidebarOpen && (
-        <h1 className={`font-bold text-white transition-all duration-300 notranslate ${
-          isMobile ? 'text-lg' : 'text-xl'
-        }`}>
-          Bookings Assistant
-        </h1>
+        <div className="transition-all duration-300">
+          <img 
+            src="/lovable-uploads/5d77b9f5-4f42-48e1-b293-ac3521cdeaba.png" 
+            alt="Bookings Assistant logo" 
+            className={`w-auto ${isMobile ? 'h-6' : 'h-8'}`}
+          />
+        </div>
       )}
       
       {/* Toggle Button - positioned correctly */}
