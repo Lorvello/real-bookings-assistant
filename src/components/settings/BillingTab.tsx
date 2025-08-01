@@ -232,13 +232,34 @@ export const BillingTab: React.FC = () => {
               const isCurrentPlan = tier.tier_name === currentPlan?.tier_name;
               const isEnterprise = tier.tier_name === 'enterprise';
               
-              // Use correct pricing: €19 for starter, €49 for professional, €499+ for enterprise
-              let displayPrice = '';
+              // Use homepage pricing structure
+              let monthlyPrice, yearlyPrice, displayPrice, billingText, savingsText;
+              
               if (isEnterprise) {
                 displayPrice = 'Starting at €499';
+                billingText = '/month';
+                savingsText = 'Custom pricing for large organizations';
               } else {
-                const price = tier.tier_name === 'starter' ? 19 : tier.tier_name === 'professional' ? 49 : tier.price_monthly;
-                displayPrice = `€${price}`;
+                // Match homepage pricing exactly
+                if (tier.tier_name === 'starter') {
+                  monthlyPrice = 19;
+                  yearlyPrice = 15; // €15/mo when billed annually
+                } else if (tier.tier_name === 'professional') {
+                  monthlyPrice = 49;
+                  yearlyPrice = 39; // €39/mo when billed annually  
+                } else {
+                  monthlyPrice = tier.price_monthly;
+                  yearlyPrice = tier.price_yearly;
+                }
+                
+                displayPrice = `€${billingCycle === 'monthly' ? monthlyPrice : yearlyPrice}`;
+                billingText = '/month';
+                
+                if (billingCycle === 'yearly') {
+                  savingsText = `Billed annually (€${yearlyPrice * 12}/year)`;
+                } else {
+                  savingsText = tier.description;
+                }
               }
               
               return (
@@ -262,15 +283,18 @@ export const BillingTab: React.FC = () => {
                     </h3>
                     <div className="text-3xl font-bold text-white">
                       {displayPrice}
-                      {!isEnterprise && (
-                        <span className="text-sm text-gray-400 font-normal">
-                          /{billingCycle === 'monthly' ? 'mo' : 'yr'}
-                        </span>
-                      )}
+                      <span className="text-sm text-gray-400 font-normal">
+                        {billingText}
+                      </span>
                     </div>
                     <p className="text-gray-400 text-sm mt-2">
-                      {isEnterprise ? 'Custom pricing for large organizations' : tier.description}
+                      {savingsText}
                     </p>
+                    {billingCycle === 'yearly' && !isEnterprise && monthlyPrice && yearlyPrice && (
+                      <p className="text-green-400 text-xs mt-1">
+                        Save €{((monthlyPrice - yearlyPrice) * 12)} per year
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-3 mb-6">
