@@ -229,8 +229,17 @@ export const BillingTab: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tiers?.map((tier) => {
-              const price = billingCycle === 'monthly' ? tier.price_monthly : tier.price_yearly;
               const isCurrentPlan = tier.tier_name === currentPlan?.tier_name;
+              const isEnterprise = tier.tier_name === 'enterprise';
+              
+              // Use correct pricing: €19 for starter, €49 for professional, €499+ for enterprise
+              let displayPrice = '';
+              if (isEnterprise) {
+                displayPrice = 'Starting at €499';
+              } else {
+                const price = tier.tier_name === 'starter' ? 19 : tier.tier_name === 'professional' ? 49 : tier.price_monthly;
+                displayPrice = `€${price}`;
+              }
               
               return (
                 <div 
@@ -252,12 +261,16 @@ export const BillingTab: React.FC = () => {
                       {tier.display_name}
                     </h3>
                     <div className="text-3xl font-bold text-white">
-                      €{price}
-                      <span className="text-sm text-gray-400 font-normal">
-                        /{billingCycle === 'monthly' ? 'mo' : 'yr'}
-                      </span>
+                      {displayPrice}
+                      {!isEnterprise && (
+                        <span className="text-sm text-gray-400 font-normal">
+                          /{billingCycle === 'monthly' ? 'mo' : 'yr'}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-gray-400 text-sm mt-2">{tier.description}</p>
+                    <p className="text-gray-400 text-sm mt-2">
+                      {isEnterprise ? 'Custom pricing for large organizations' : tier.description}
+                    </p>
                   </div>
 
                   <div className="space-y-3 mb-6">
@@ -269,14 +282,24 @@ export const BillingTab: React.FC = () => {
                     ))}
                   </div>
 
-                  <Button 
-                    className="w-full"
-                    variant={isCurrentPlan ? "outline" : "default"}
-                    disabled={isCurrentPlan || loading}
-                    onClick={() => handleUpgrade(tier.id)}
-                  >
-                    {isCurrentPlan ? 'Current Plan' : `Switch to ${tier.display_name}`}
-                  </Button>
+                  {isEnterprise ? (
+                    <Button 
+                      className="w-full"
+                      variant="outline"
+                      onClick={() => window.open('mailto:sales@company.com?subject=Enterprise Plan Inquiry', '_blank')}
+                    >
+                      Contact Sales
+                    </Button>
+                  ) : (
+                    <Button 
+                      className="w-full"
+                      variant={isCurrentPlan ? "outline" : "default"}
+                      disabled={isCurrentPlan || loading}
+                      onClick={() => handleUpgrade(tier.id)}
+                    >
+                      {isCurrentPlan ? 'Current Plan' : `Switch to ${tier.display_name}`}
+                    </Button>
+                  )}
                 </div>
               );
             })}
