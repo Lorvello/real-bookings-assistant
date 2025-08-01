@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
+import { useSettingsContext } from '@/contexts/SettingsContext';
 import { UsageSummary } from '@/components/ui/UsageSummary';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 export const BillingTab: React.FC = () => {
   const { userStatus, accessControl } = useUserStatus();
   const { tiers, isLoading: tiersLoading } = useSubscriptionTiers();
+  const { profileData } = useSettingsContext();
   const { toast } = useToast();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
@@ -98,13 +100,23 @@ export const BillingTab: React.FC = () => {
 
   const getCurrentPlan = () => {
     if (!tiers) return null;
-    // Try to find current plan based on user type and tiers
-    if (userStatus.userType === 'subscriber' || userStatus.userType === 'canceled_subscriber') {
-      // For actual subscribers, try to match professional tier for now
-      return tiers.find(tier => tier.tier_name === 'professional') || tiers.find(tier => tier.tier_name === 'starter') || tiers[0];
+    
+    // Get user's actual subscription tier from profile
+    const userTier = userStatus.isSetupIncomplete ? null : 
+      (userStatus.userType === 'subscriber' || userStatus.userType === 'canceled_subscriber' || userStatus.userType === 'trial') 
+        ? (profileData?.subscription_tier || 'starter') 
+        : 'starter';
+    
+    // If user has no tier or is setup incomplete, show free tier
+    if (!userTier || userStatus.isSetupIncomplete) {
+      return tiers.find(tier => tier.tier_name === 'free') || tiers[0];
     }
-    // For trial users, default to starter tier
-    return tiers.find(tier => tier.tier_name === 'starter') || tiers[0];
+    
+    // Find the matching tier
+    const matchingTier = tiers.find(tier => tier.tier_name === userTier);
+    
+    // Fallback to starter if tier not found
+    return matchingTier || tiers.find(tier => tier.tier_name === 'starter') || tiers[0];
   };
 
   const currentPlan = getCurrentPlan();
@@ -174,14 +186,21 @@ export const BillingTab: React.FC = () => {
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-white">
-                  €{billingCycle === 'monthly' ? currentPlan?.price_monthly : currentPlan?.price_yearly}
-                  <span className="text-sm text-gray-400 font-normal">
-                    /{billingCycle === 'monthly' ? 'month' : 'year'}
-                  </span>
+                  {currentPlan?.price_monthly === 0 ? (
+                    'Free'
+                  ) : (
+                    <>
+                      €{currentPlan?.price_monthly || 0}
+                      <span className="text-sm text-gray-400 font-normal">/month</span>
+                    </>
+                  )}
                 </div>
-                {billingCycle === 'yearly' && currentPlan?.price_monthly && (
-                  <p className="text-sm text-green-400">
-                    Save €{((currentPlan.price_monthly * 12) - (currentPlan.price_yearly || 0)).toFixed(0)} per year
+                {currentPlan?.price_monthly > 0 && (
+                  <p className="text-sm text-gray-400">
+                    {userStatus.userType === 'trial' && userStatus.daysRemaining > 0 
+                      ? 'Free during trial period'
+                      : 'Billed monthly'
+                    }
                   </p>
                 )}
               </div>
