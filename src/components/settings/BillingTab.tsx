@@ -581,11 +581,10 @@ Thank you!`);
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tiers?.filter(tier => tier.tier_name !== 'free' && tier.price_monthly > 0).map((tier) => {
               const isCurrentPlan = tier.tier_name === currentPlan?.tier_name;
               const isEnterprise = tier.tier_name === 'enterprise';
-              const isProfessional = tier.tier_name === 'professional';
               
               // Use correct pricing from database
               let displayPrice, billingText, savingsText;
@@ -619,189 +618,88 @@ Thank you!`);
               return (
                 <div 
                   key={tier.id} 
-                  className={`group relative overflow-hidden rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 ${
+                  className={`border rounded-lg p-6 relative ${
                     isCurrentPlan 
-                      ? 'bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 border-2 border-primary/50 shadow-xl shadow-primary/20' 
-                      : isProfessional
-                      ? 'bg-gradient-to-br from-gray-800/90 via-gray-800/70 to-gray-900/90 border border-gray-600/50 hover:border-primary/30 shadow-lg hover:shadow-xl hover:shadow-primary/10'
-                      : 'bg-gradient-to-br from-gray-800/80 via-gray-800/60 to-gray-900/80 border border-gray-700/50 hover:border-gray-600/70 shadow-lg hover:shadow-xl hover:shadow-black/20'
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-gray-700 bg-gray-900'
                   }`}
                 >
-                  {/* Background pattern overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-black/[0.03] pointer-events-none" />
-                  
-                  {/* Current plan badge */}
                   {isCurrentPlan && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                      <Badge className="bg-gradient-to-r from-primary to-primary/80 text-white border-0 shadow-lg px-4 py-1 text-xs font-semibold tracking-wide">
-                        <Crown className="w-3 h-3 mr-1" />
-                        Current Plan
-                      </Badge>
-                    </div>
+                    <Badge className="absolute -top-3 left-6 bg-primary text-primary-foreground">
+                      Current Plan
+                    </Badge>
                   )}
                   
-                  {/* Popular badge for Professional */}
-                  {isProfessional && !isCurrentPlan && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                      <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg px-4 py-1 text-xs font-semibold tracking-wide">
-                        <Zap className="w-3 h-3 mr-1" />
-                        Most Popular
-                      </Badge>
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-semibold text-white capitalize mb-2">
+                      {tier.display_name}
+                    </h3>
+                    <div className="text-3xl font-bold text-white">
+                      {displayPrice}
+                      <span className="text-sm text-gray-400 font-normal">
+                        {billingText}
+                      </span>
                     </div>
-                  )}
-                  
-                  {/* Enterprise premium indicator */}
-                  {isEnterprise && (
-                    <div className="absolute top-6 right-6">
-                      <div className="flex items-center gap-1 text-purple-400">
-                        <Shield className="w-4 h-4" />
-                        <span className="text-xs font-medium">Enterprise</span>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="relative p-8">
-                    {/* Plan header */}
-                    <div className="text-center mb-8">
-                      <div className="flex items-center justify-center gap-2 mb-3">
-                        {tier.tier_name === 'starter' && <Users className="w-5 h-5 text-blue-400" />}
-                        {isProfessional && <BarChart3 className="w-5 h-5 text-green-400" />}
-                        {isEnterprise && <Shield className="w-5 h-5 text-purple-400" />}
-                        <h3 className="text-2xl font-bold text-white capitalize tracking-tight">
-                          {tier.display_name}
-                        </h3>
-                      </div>
-                      
-                      {/* Pricing */}
-                      <div className="mb-4">
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-4xl font-bold text-white tracking-tight">
-                            {isEnterprise ? 'Custom' : displayPrice.replace('€', '')}
-                          </span>
-                          {!isEnterprise && (
-                            <>
-                              <span className="text-lg text-gray-400 font-medium">€</span>
-                              <span className="text-lg text-gray-400 font-medium">{billingText}</span>
-                            </>
-                          )}
-                        </div>
-                        
-                        {/* Savings badge for yearly */}
-                        {billingCycle === 'yearly' && !isEnterprise && (
-                          <div className="inline-flex items-center gap-1 mt-2">
-                            <Badge className="bg-green-500/10 text-green-400 border-green-500/20 text-xs">
-                              Save 20%
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <p className="text-gray-400 text-sm leading-relaxed">
-                        {savingsText}
-                      </p>
-                    </div>
-
-                    {/* Features list */}
-                    <div className="space-y-4 mb-8">
-                      <h4 className="text-white font-semibold text-sm uppercase tracking-wider opacity-90 mb-4">
-                        Everything included
-                      </h4>
-                      <div className="space-y-3">
-                        {(tier.tier_name === 'starter' ? [
-                          "Strategic WhatsApp contact management (up to 500)",
-                          "Dual-calendar orchestration system", 
-                          "Individual user access management",
-                          "AI-powered intelligent reminder sequences",
-                          "Essential dashboard overview & live operations monitoring",
-                          "Global multi-language localization",
-                          "Streamlined payment processing & collection"
-                        ] : tier.tier_name === 'professional' ? [
-                          "All Starter premium features included",
-                          "Professional WhatsApp contact management (up to 2,500)",
-                          "Unlimited calendar orchestration platform",
-                          "Advanced team collaboration suite (2-10 users)",
-                          "Multi-location business coordination", 
-                          "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
-                          "Dedicated priority customer success"
-                        ] : [
-                          "Complete professional suite included",
-                          "Unlimited enterprise WhatsApp contact management",
-                          "Unlimited enterprise user access management",
-                          "Dedicated WhatsApp Business API with custom branding",
-                          "Intelligent voice call routing & distribution",
-                          "Omnichannel social media DM orchestration",
-                          "Advanced reputation management & review analytics",
-                          "Enterprise SLA with dedicated success management",
-                          "White-glove onboarding & strategic integration consulting"
-                        ]).map((feature, index) => (
-                          <div key={index} className="flex items-start gap-3 group/item">
-                            <div className="flex-shrink-0 mt-0.5">
-                              <Check className="w-4 h-4 text-green-400 transition-transform duration-200 group-hover/item:scale-110" />
-                            </div>
-                            <span className="text-gray-300 text-sm leading-relaxed group-hover/item:text-white transition-colors duration-200">
-                              {feature}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* CTA Button */}
-                    <div className="space-y-3">
-                      {isEnterprise ? (
-                        <Button 
-                          className="w-full h-12 text-base font-semibold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300"
-                          onClick={handleContactSales}
-                          disabled={loading}
-                        >
-                          <HeadphonesIcon className="w-4 h-4 mr-2" />
-                          {loading ? 'Loading...' : 'Contact Sales'}
-                        </Button>
-                      ) : (
-                        <Button 
-                          className={`w-full h-12 text-base font-semibold transition-all duration-300 ${
-                            isCurrentPlan 
-                              ? 'bg-gradient-to-r from-primary/20 to-primary/30 text-primary border-primary/50 hover:bg-gradient-to-r hover:from-primary/30 hover:to-primary/40' 
-                              : isProfessional
-                              ? 'bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary border-0 shadow-lg hover:shadow-xl hover:shadow-primary/25'
-                              : 'bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 border-0 shadow-lg hover:shadow-xl'
-                          }`}
-                          variant={isCurrentPlan ? "outline" : "default"}
-                          disabled={isCurrentPlan || loading}
-                          onClick={() => handleUpgrade(tier.tier_name)}
-                        >
-                          {loading ? (
-                            <div className="flex items-center gap-2">
-                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                              Loading...
-                            </div>
-                          ) : isCurrentPlan ? (
-                            <div className="flex items-center gap-2">
-                              <Check className="w-4 h-4" />
-                              Current Plan
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <Crown className="w-4 h-4" />
-                              Switch to {tier.display_name}
-                            </div>
-                          )}
-                        </Button>
-                      )}
-                      
-                      {/* Trust indicators */}
-                      <div className="flex items-center justify-center gap-4 text-xs text-gray-500 pt-2">
-                        <div className="flex items-center gap-1">
-                          <Shield className="w-3 h-3" />
-                          <span>Secure</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Check className="w-3 h-3" />
-                          <span>Cancel anytime</span>
-                        </div>
-                      </div>
-                    </div>
+                    <p className="text-gray-400 text-sm mt-2">
+                      {savingsText}
+                    </p>
                   </div>
+
+                  <div className="space-y-3 mb-6">
+                    {/* Updated features to match homepage exactly */}
+                    {(tier.tier_name === 'starter' ? [
+                      "Strategic WhatsApp contact management (up to 500)",
+                      "Dual-calendar orchestration system", 
+                      "Individual user access management",
+                      "AI-powered intelligent reminder sequences",
+                      "Essential dashboard overview & live operations monitoring",
+                      "Global multi-language localization",
+                      "Streamlined payment processing & collection"
+                    ] : tier.tier_name === 'professional' ? [
+                      "All Starter premium features included",
+                      "Professional WhatsApp contact management (up to 2,500)",
+                      "Unlimited calendar orchestration platform",
+                      "Advanced team collaboration suite (2-10 users)",
+                      "Multi-location business coordination", 
+                      "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
+                      "Dedicated priority customer success"
+                    ] : [
+                      "Complete professional suite included",
+                      "Unlimited enterprise WhatsApp contact management",
+                      "Unlimited enterprise user access management",
+                      "Dedicated WhatsApp Business API with custom branding",
+                      "Intelligent voice call routing & distribution",
+                      "Omnichannel social media DM orchestration",
+                      "Advanced reputation management & review analytics",
+                      "Enterprise SLA with dedicated success management",
+                      "White-glove onboarding & strategic integration consulting"
+                    ]).map((feature, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                        <span className="text-gray-300 text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {isEnterprise ? (
+                    <Button 
+                      className="w-full"
+                      variant="outline"
+                      onClick={handleContactSales}
+                      disabled={loading}
+                    >
+                      Contact Sales
+                    </Button>
+                  ) : (
+                    <Button 
+                      className="w-full"
+                      variant={isCurrentPlan ? "outline" : "default"}
+                      disabled={isCurrentPlan || loading}
+                      onClick={() => handleUpgrade(tier.tier_name)}
+                    >
+                      {loading ? 'Loading...' : isCurrentPlan ? 'Current Plan' : `Switch to ${tier.display_name}`}
+                    </Button>
+                  )}
                 </div>
               );
             })}
