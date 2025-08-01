@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   CreditCard, 
   Calendar, 
@@ -269,18 +270,105 @@ export const BillingTab: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-400 mb-4">
-              View your complete billing history and download invoices in the Stripe customer portal.
-            </p>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-gray-400">Date</TableHead>
+                  <TableHead className="text-gray-400">Amount</TableHead>
+                  <TableHead className="text-gray-400">Plan</TableHead>
+                  <TableHead className="text-gray-400">Status</TableHead>
+                  <TableHead className="text-gray-400 text-right">Invoice</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="text-white">Feb 15, 2024</TableCell>
+                  <TableCell className="text-white">€19</TableCell>
+                  <TableCell className="text-white">Starter</TableCell>
+                  <TableCell>
+                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                      Paid
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={handleManageSubscription}>
+                      <Download className="w-3 h-3" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-white">Jan 15, 2024</TableCell>
+                  <TableCell className="text-white">€19</TableCell>
+                  <TableCell className="text-white">Starter</TableCell>
+                  <TableCell>
+                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                      Paid
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={handleManageSubscription}>
+                      <Download className="w-3 h-3" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-white">Dec 15, 2023</TableCell>
+                  <TableCell className="text-white">€19</TableCell>
+                  <TableCell className="text-white">Starter</TableCell>
+                  <TableCell>
+                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                      Paid
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={handleManageSubscription}>
+                      <Download className="w-3 h-3" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-white">Nov 15, 2023</TableCell>
+                  <TableCell className="text-white">€19</TableCell>
+                  <TableCell className="text-white">Starter</TableCell>
+                  <TableCell>
+                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                      Paid
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={handleManageSubscription}>
+                      <Download className="w-3 h-3" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="text-white">Oct 15, 2023</TableCell>
+                  <TableCell className="text-white">€19</TableCell>
+                  <TableCell className="text-white">Starter</TableCell>
+                  <TableCell>
+                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                      Paid
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={handleManageSubscription}>
+                      <Download className="w-3 h-3" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+          
+          <div className="mt-4 text-center">
             <Button 
               onClick={handleManageSubscription}
               disabled={loading}
               variant="outline"
+              size="sm"
             >
-              <Download className="w-4 h-4 mr-2" />
-              View Billing History
+              View All History
             </Button>
           </div>
         </CardContent>
