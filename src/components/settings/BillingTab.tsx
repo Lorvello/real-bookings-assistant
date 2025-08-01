@@ -367,7 +367,34 @@ export const BillingTab: React.FC = () => {
                   </div>
 
                   <div className="space-y-3 mb-6">
-                    {(tier.features as string[])?.map((feature, index) => (
+                    {/* Updated features to match homepage exactly */}
+                    {tier.tier_name === 'starter' ? [
+                      "Strategic WhatsApp contact management (up to 500)",
+                      "Dual-calendar orchestration system", 
+                      "Individual user access management",
+                      "AI-powered intelligent reminder sequences",
+                      "Essential dashboard overview & live operations monitoring",
+                      "Global multi-language localization",
+                      "Streamlined payment processing & collection"
+                    ] : tier.tier_name === 'professional' ? [
+                      "All Starter premium features included",
+                      "Professional WhatsApp contact management (up to 2,500)",
+                      "Unlimited calendar orchestration platform",
+                      "Advanced team collaboration suite (2-10 users)",
+                      "Multi-location business coordination", 
+                      "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
+                      "Dedicated priority customer success"
+                    ] : [
+                      "Complete professional suite included",
+                      "Unlimited enterprise WhatsApp contact management",
+                      "Unlimited enterprise user access management",
+                      "Dedicated WhatsApp Business API with custom branding",
+                      "Intelligent voice call routing & distribution",
+                      "Omnichannel social media DM orchestration",
+                      "Advanced reputation management & review analytics",
+                      "Enterprise SLA with dedicated success management",
+                      "White-glove onboarding & strategic integration consulting"
+                    ].map((feature, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
                         <span className="text-gray-300 text-sm">{feature}</span>
