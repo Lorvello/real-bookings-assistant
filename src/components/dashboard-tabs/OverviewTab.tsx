@@ -62,7 +62,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           className="relative group"
         >
           <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-xl md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-28 md:h-44 p-3 md:p-6">
+          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-xl md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-24 md:h-44 p-2 md:p-6">
             <div className="flex items-center justify-between mb-2 md:mb-4">
               <h3 className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider">
                 Next Appointment
@@ -104,7 +104,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           className="relative group"
         >
           <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-xl md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-28 md:h-44 p-3 md:p-6">
+          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-xl md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-24 md:h-44 p-2 md:p-6">
             <div className="flex items-center justify-between mb-2 md:mb-4">
               <h3 className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider">
                 Popular Service
@@ -146,7 +146,7 @@ export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
           className="relative group"
         >
           <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-xl md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-28 md:h-44 p-3 md:p-6">
+          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-xl md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-24 md:h-44 p-2 md:p-6">
             <div className="flex items-center justify-between mb-2 md:mb-4">
               <h3 className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider">
                 Weekly Growth
