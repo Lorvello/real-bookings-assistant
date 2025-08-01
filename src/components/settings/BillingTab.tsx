@@ -320,33 +320,32 @@ export const BillingTab: React.FC = () => {
               const isCurrentPlan = tier.tier_name === currentPlan?.tier_name;
               const isEnterprise = tier.tier_name === 'enterprise';
               
-              // Use homepage pricing structure
-              let monthlyPrice, yearlyPrice, displayPrice, billingText, savingsText;
+              // Use correct pricing from database
+              let displayPrice, billingText, savingsText;
               
               if (isEnterprise) {
-                displayPrice = 'Starting at €499';
-                billingText = '/month';
-                savingsText = 'Custom pricing for large organizations';
-              } else {
-                // Match homepage pricing exactly
-                if (tier.tier_name === 'starter') {
-                  monthlyPrice = 19;
-                  yearlyPrice = 15; // €15/mo when billed annually
-                } else if (tier.tier_name === 'professional') {
-                  monthlyPrice = 49;
-                  yearlyPrice = 39; // €39/mo when billed annually  
+                if (billingCycle === 'monthly') {
+                  displayPrice = 'Starting at €499';
+                  billingText = '/month';
+                  savingsText = 'Custom pricing for large organizations';
                 } else {
-                  monthlyPrice = tier.price_monthly;
-                  yearlyPrice = tier.price_yearly;
+                  displayPrice = 'Starting at €399.20';
+                  billingText = '/month';
+                  savingsText = 'Billed annually (€4790.40/year)';
                 }
+              } else {
+                // Calculate yearly rate as monthly equivalent (20% discount)
+                const monthlyPrice = tier.price_monthly;
+                const yearlyMonthlyRate = tier.price_yearly / 12;
                 
-                displayPrice = `€${billingCycle === 'monthly' ? monthlyPrice : yearlyPrice}`;
-                billingText = '/month';
-                
-                if (billingCycle === 'yearly') {
-                  savingsText = `Billed annually (€${yearlyPrice * 12}/year)`;
-                } else {
+                if (billingCycle === 'monthly') {
+                  displayPrice = `€${monthlyPrice}`;
+                  billingText = '/month';
                   savingsText = tier.description;
+                } else {
+                  displayPrice = `€${yearlyMonthlyRate.toFixed(2)}`;
+                  billingText = '/month';
+                  savingsText = `Billed annually (€${tier.price_yearly}/year)`;
                 }
               }
               
@@ -378,11 +377,6 @@ export const BillingTab: React.FC = () => {
                     <p className="text-gray-400 text-sm mt-2">
                       {savingsText}
                     </p>
-                    {billingCycle === 'yearly' && !isEnterprise && monthlyPrice && yearlyPrice && (
-                      <p className="text-green-400 text-xs mt-1">
-                        Save €{((monthlyPrice - yearlyPrice) * 12)} per year
-                      </p>
-                    )}
                   </div>
 
                   <div className="space-y-3 mb-6">
