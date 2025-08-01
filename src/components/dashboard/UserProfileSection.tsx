@@ -62,7 +62,7 @@ export function UserProfileSection({ isSidebarOpen, onSignOut, tooltipsDisabled 
                 </Button>
               </TooltipTrigger>
               {!tooltipsDisabled && (
-                <TooltipContent className="bg-popover border text-popover-foreground">
+                <TooltipContent side="right" className="bg-popover border text-popover-foreground">
                   <p className="text-sm">Sign Out</p>
                 </TooltipContent>
               )}

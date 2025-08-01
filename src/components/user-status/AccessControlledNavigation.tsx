@@ -274,7 +274,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
               </button>
             </TooltipTrigger>
             {!isSidebarOpen && !tooltipsDisabled && (
-              <TooltipContent className="bg-popover border text-popover-foreground z-50">
+              <TooltipContent side="right" className="bg-popover border text-popover-foreground z-50">
                 <p className="text-sm">
                   {item.isRestricted 
                     ? (item.href === '/whatsapp-booking-assistant' || item.href === '/test-ai-agent') && userStatus.isSetupIncomplete

@@ -230,7 +230,7 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
           </div>
         </TooltipTrigger>
         {!isExpanded && !tooltipsDisabled && (
-          <TooltipContent className="bg-popover border text-popover-foreground">
+          <TooltipContent side="right" className="bg-popover border text-popover-foreground">
             <p className="text-sm">{getTooltipText()}</p>
           </TooltipContent>
         )}
