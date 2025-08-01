@@ -229,9 +229,11 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
             )}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="right" sideOffset={18} className="bg-popover border text-popover-foreground">
-          <p className="text-sm">{getTooltipText()}</p>
-        </TooltipContent>
+        {!isExpanded && (
+          <TooltipContent side="right" sideOffset={8} className="bg-popover border text-popover-foreground">
+            <p className="text-sm">{getTooltipText()}</p>
+          </TooltipContent>
+        )}
       </Tooltip>
     </TooltipProvider>
   );

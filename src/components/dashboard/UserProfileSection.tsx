@@ -61,7 +61,7 @@ export function UserProfileSection({ isSidebarOpen, onSignOut }: UserProfileSect
                   <LogOut className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right" sideOffset={18} className="bg-popover border text-popover-foreground">
+              <TooltipContent side="right" sideOffset={8} className="bg-popover border text-popover-foreground">
                 <p className="text-sm">Sign Out</p>
               </TooltipContent>
             </Tooltip>

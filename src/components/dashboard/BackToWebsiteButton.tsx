@@ -35,7 +35,7 @@ export function BackToWebsiteButton({ isSidebarOpen, onBackToWebsite }: BackToWe
             </button>
           </TooltipTrigger>
           {!isSidebarOpen && (
-            <TooltipContent side="right" sideOffset={18} className="bg-popover border text-popover-foreground">
+            <TooltipContent side="right" sideOffset={8} className="bg-popover border text-popover-foreground">
               <p className="text-sm">Back to Website</p>
             </TooltipContent>
           )}

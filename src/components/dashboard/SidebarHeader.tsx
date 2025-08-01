@@ -44,9 +44,11 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
             )}
           </button>
         </TooltipTrigger>
-        <TooltipContent side="right" sideOffset={18} className="bg-popover border text-popover-foreground">
-          <p className="text-sm">{isSidebarOpen ? 'Sidebar inklappen' : 'Sidebar uitklappen'}</p>
-        </TooltipContent>
+        {!isSidebarOpen && (
+          <TooltipContent side="right" sideOffset={8} className="bg-popover border text-popover-foreground">
+            <p className="text-sm">{isSidebarOpen ? 'Sidebar inklappen' : 'Sidebar uitklappen'}</p>
+          </TooltipContent>
+        )}
       </Tooltip>
     </div>
     </TooltipProvider>
