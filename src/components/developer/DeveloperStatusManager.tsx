@@ -75,7 +75,7 @@ const subscriptionTierOptions = [
 export const DeveloperStatusManager = () => {
   const { profile, refetch } = useProfile();
   const { userStatus, invalidateCache } = useUserStatus();
-  const { updateUserSubscription, isLoading } = useAdminControls();
+  const { updateUserSubscription, setupMockIncompleteUser, isLoading } = useAdminControls();
   const { toast } = useToast();
   const [selectedUserStatus, setSelectedUserStatus] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<string>('');
@@ -201,9 +201,14 @@ export const DeveloperStatusManager = () => {
     try {
       console.log('Updating user status to:', selectedUserStatus, 'with tier:', effectiveTier);
       
-      const updates = mapStatusToDatabase(selectedUserStatus, effectiveTier);
-      
-      await updateUserSubscription(profile.id, updates);
+      // For setup_incomplete, use the special function that clears all data
+      if (selectedUserStatus === 'setup_incomplete') {
+        await setupMockIncompleteUser(profile.id);
+      } else {
+        // For other statuses, use normal update
+        const updates = mapStatusToDatabase(selectedUserStatus, effectiveTier);
+        await updateUserSubscription(profile.id, updates);
+      }
 
       toast({
         title: "Status Updated Successfully",

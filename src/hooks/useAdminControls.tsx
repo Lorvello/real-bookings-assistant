@@ -116,10 +116,43 @@ export const useAdminControls = () => {
     }
   };
 
+  const setupMockIncompleteUser = async (userId: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_setup_mock_incomplete_user', {
+        p_user_id: userId
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; message?: string; error?: string };
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message || "User reset to setup incomplete state",
+        });
+        return result;
+      } else {
+        throw new Error(result.error || "Failed to setup mock incomplete user");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to setup mock incomplete user",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     updateUserSubscription,
     extendTrial,
     getUserSubscriptionDetails,
+    setupMockIncompleteUser,
     isLoading,
   };
 };

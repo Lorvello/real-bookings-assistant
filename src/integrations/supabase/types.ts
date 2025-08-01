@@ -2640,6 +2640,10 @@ export type Database = {
           | { p_user_id: string; p_status_type: string }
         Returns: Json
       }
+      admin_setup_mock_incomplete_user: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       admin_update_user_subscription: {
         Args:
           | {
