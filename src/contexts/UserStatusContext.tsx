@@ -457,6 +457,90 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       }
     }
 
+    // For canceled subscribers who still have active subscription, provide full access based on tier
+    if (userType === 'canceled_subscriber' && profile?.subscription_tier) {
+      const tierLimits = getSubscriptionTierLimits(tier);
+      
+      const baseAccess = {
+        canViewDashboard: true,
+        canCreateBookings: true,
+        canEditBookings: true,
+        canManageSettings: true,
+        canAccessWhatsApp: true,
+        canAccessBookingAssistant: true,
+        canUseAI: true,
+        canExportData: true,
+        canInviteUsers: true
+      };
+
+      switch (tier) {
+        case 'starter':
+          return {
+            ...baseAccess,
+            canAccessAPI: false,
+            canUseWhiteLabel: false,
+            hasPrioritySupport: false,
+            canAccessFutureInsights: false,
+            canAccessBusinessIntelligence: false,
+            canAccessPerformance: false,
+            canAccessCustomerSatisfaction: false,
+            canAccessTeamMembers: false,
+            maxCalendars: tierLimits?.max_calendars || 2,
+            maxBookingsPerMonth: tierLimits?.max_bookings_per_month || null,
+            maxTeamMembers: tierLimits?.max_team_members || 1,
+            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts || 500
+          };
+        case 'professional':
+          return {
+            ...baseAccess,
+            canAccessAPI: true,
+            canUseWhiteLabel: false,
+            hasPrioritySupport: true,
+            canAccessFutureInsights: true,
+            canAccessBusinessIntelligence: true,
+            canAccessPerformance: true,
+            canAccessCustomerSatisfaction: false,
+            canAccessTeamMembers: true,
+            maxCalendars: tierLimits?.max_calendars,
+            maxBookingsPerMonth: tierLimits?.max_bookings_per_month,
+            maxTeamMembers: tierLimits?.max_team_members || 10,
+            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts || 2500
+          };
+        case 'enterprise':
+          return {
+            ...baseAccess,
+            canAccessAPI: true,
+            canUseWhiteLabel: true,
+            hasPrioritySupport: true,
+            canAccessFutureInsights: true,
+            canAccessBusinessIntelligence: true,
+            canAccessPerformance: true,
+            canAccessCustomerSatisfaction: true,
+            canAccessTeamMembers: true,
+            maxCalendars: tierLimits?.max_calendars,
+            maxBookingsPerMonth: tierLimits?.max_bookings_per_month,
+            maxTeamMembers: tierLimits?.max_team_members,
+            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts
+          };
+        default:
+          return {
+            ...baseAccess,
+            canAccessAPI: false,
+            canUseWhiteLabel: false,
+            hasPrioritySupport: false,
+            canAccessFutureInsights: false,
+            canAccessBusinessIntelligence: false,
+            canAccessPerformance: false,
+            canAccessCustomerSatisfaction: false,
+            canAccessTeamMembers: false,
+            maxCalendars: 2,
+            maxBookingsPerMonth: null,
+            maxTeamMembers: 1,
+            maxWhatsAppContacts: 500
+          };
+      }
+    }
+
     // Setup incomplete users - but respect their subscription tier for trial benefits
     if (userType === 'setup_incomplete') {
       // If user has a professional tier assigned (7-day trial), give them professional access during setup
