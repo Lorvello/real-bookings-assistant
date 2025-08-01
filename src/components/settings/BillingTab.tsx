@@ -21,7 +21,8 @@ import {
   HeadphonesIcon,
   CalendarClock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
@@ -37,7 +38,7 @@ import { getStripeConfig } from '@/utils/stripeConfig';
 export const BillingTab: React.FC = () => {
   const { userStatus, accessControl } = useUserStatus();
   const { tiers, isLoading: tiersLoading } = useSubscriptionTiers();
-  const { billingData, isLoading: billingLoading } = useBillingData();
+  const { billingData, isLoading: billingLoading, refetch } = useBillingData();
   const { profileData } = useSettingsContext();
   const { toast } = useToast();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -61,6 +62,19 @@ export const BillingTab: React.FC = () => {
       
       if (data?.url) {
         window.open(data.url, '_blank');
+        
+        // Auto-refresh billing data after returning from portal
+        const checkForUpdates = () => {
+          document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+              setTimeout(() => {
+                refetch();
+              }, 2000);
+              document.removeEventListener('visibilitychange', checkForUpdates);
+            }
+          });
+        };
+        checkForUpdates();
       }
     } catch (error: any) {
       console.error('Error opening billing portal:', error);
@@ -83,16 +97,33 @@ export const BillingTab: React.FC = () => {
   const handleViewAllHistory = async () => {
     setLoading(true);
     try {
+      // Get current Stripe mode from utils
+      const { mode } = getStripeConfig();
+      
       const { data, error } = await supabase.functions.invoke('customer-portal', {
         headers: {
           Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
+        body: { mode },
       });
       
       if (error) throw error;
       
       if (data?.url) {
         window.open(data.url, '_blank');
+        
+        // Auto-refresh billing data after returning from portal
+        const checkForUpdates = () => {
+          document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+              setTimeout(() => {
+                refetch();
+              }, 2000);
+              document.removeEventListener('visibilitychange', checkForUpdates);
+            }
+          });
+        };
+        checkForUpdates();
       }
     } catch (error) {
       console.error('Error opening billing history:', error);
@@ -307,6 +338,15 @@ Thank you!`);
           <p className="text-gray-400 mt-1">Manage your subscription and billing preferences</p>
         </div>
         <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={billingLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${billingLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           {getStatusBadge()}
           {userStatus.subscriptionEndDate && (
             <div className="text-sm text-gray-400">
