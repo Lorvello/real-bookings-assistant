@@ -14,6 +14,8 @@ export const useAdminControls = () => {
       subscription_tier?: SubscriptionTier;
       trial_end_date?: string;
       subscription_end_date?: string;
+      business_name?: string | null;
+      business_type?: string | null;
     }
   ) => {
     setIsLoading(true);
@@ -24,6 +26,8 @@ export const useAdminControls = () => {
         p_subscription_tier: updates.subscription_tier,
         p_trial_end_date: updates.trial_end_date,
         p_subscription_end_date: updates.subscription_end_date,
+        p_business_name: updates.business_name,
+        p_business_type: updates.business_type,
       });
 
       if (error) throw error;

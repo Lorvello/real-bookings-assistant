@@ -133,40 +133,55 @@ export const DeveloperStatusManager = () => {
     
     switch (statusValue) {
       case 'setup_incomplete':
+        // For setup incomplete: clear business data but keep subscription settings  
         updates.subscription_status = 'trial';
         updates.subscription_tier = 'professional';
         updates.trial_end_date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
         updates.subscription_end_date = null;
+        updates.business_name = null; // Clear to trigger setup_incomplete detection
+        updates.business_type = null; // Clear to trigger setup_incomplete detection
         break;
       case 'active_trial':
+        // For active trial: complete business data with trial settings
         updates.subscription_status = 'trial';
         updates.subscription_tier = 'professional';
         updates.trial_end_date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
         updates.subscription_end_date = null;
+        updates.business_name = 'Demo Business';
+        updates.business_type = 'salon';
         break;
       case 'expired_trial':
+        // For expired trial: no active subscription
         updates.subscription_status = 'expired';
         updates.subscription_tier = null;
         updates.trial_end_date = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         updates.subscription_end_date = null;
+        updates.business_name = 'Demo Business';
+        updates.business_type = 'salon';
         break;
       case 'paid_subscriber':
         updates.subscription_status = 'active';
         updates.subscription_tier = tierValue || 'professional';
         updates.trial_end_date = null;
         updates.subscription_end_date = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        updates.business_name = 'Professional Business';
+        updates.business_type = 'clinic';
         break;
       case 'canceled_but_active':
         updates.subscription_status = 'canceled';
         updates.subscription_tier = tierValue || 'professional';
         updates.trial_end_date = null;
         updates.subscription_end_date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        updates.business_name = 'Professional Business';
+        updates.business_type = 'clinic';
         break;
       case 'canceled_and_inactive':
         updates.subscription_status = 'expired';
         updates.subscription_tier = null;
         updates.trial_end_date = null;
         updates.subscription_end_date = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        updates.business_name = 'Demo Business';
+        updates.business_type = 'salon';
         break;
     }
     
