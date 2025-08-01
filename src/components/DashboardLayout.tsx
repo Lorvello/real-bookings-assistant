@@ -138,7 +138,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         {/* Only render sidebar content when visible on mobile or always on desktop */}
         {(!isMobile || isSidebarOpen) && (
-          <div className={`flex flex-col ${isMobile ? 'h-screen overflow-y-auto' : 'h-full overflow-hidden'}`}>
+          <div className={`flex flex-col ${isMobile ? 'h-screen' : 'h-full'} overflow-y-auto`}>
             <SidebarHeader 
               isSidebarOpen={isSidebarOpen} 
               onToggleSidebar={toggleSidebar}
