@@ -208,19 +208,21 @@ Thank you!`);
   const getCurrentPrice = () => {
     if (!currentPlan) return { amount: 0, currency: '€', period: '/month', displayText: 'Free' };
     
-    // For trial users, show the plan price but indicate it's free during trial
-    const price = billingCycle === 'yearly' ? currentPlan.price_yearly : currentPlan.price_monthly;
+    // Use actual billing cycle from billingData, not the toggle state
+    const actualBillingCycle = billingData?.billing_cycle || 'monthly';
+    const price = actualBillingCycle === 'yearly' ? currentPlan.price_yearly : currentPlan.price_monthly;
     
     if (!price || price === 0) {
       return { amount: 0, currency: '€', period: '/month', displayText: 'Free' };
     }
     
-    const period = billingCycle === 'yearly' ? '/year' : '/month';
+    // Always show monthly equivalent for consistent display
+    const monthlyPrice = actualBillingCycle === 'yearly' ? price / 12 : price;
     return { 
-      amount: price, 
+      amount: Math.round(monthlyPrice), 
       currency: '€', 
-      period, 
-      displayText: `${price}${period}` 
+      period: '/month', 
+      displayText: `€${Math.round(monthlyPrice)}/month` 
     };
   };
 
@@ -661,12 +663,12 @@ Thank you!`);
                     <h3 className="text-xl font-semibold text-white capitalize mb-2">
                       {tier.display_name}
                     </h3>
-                    <div className="text-3xl font-bold text-white">
-                      {displayPrice}
-                      <span className="text-sm text-gray-400 font-normal">
-                        {billingText}
-                      </span>
-                    </div>
+                     <div className={`text-3xl font-bold ${billingCycle === 'yearly' ? 'text-green-400' : 'text-white'}`}>
+                       {displayPrice}
+                       <span className="text-sm text-gray-400 font-normal">
+                         {billingText}
+                       </span>
+                     </div>
                     <p className="text-gray-400 text-sm mt-2">
                       {savingsText}
                     </p>
