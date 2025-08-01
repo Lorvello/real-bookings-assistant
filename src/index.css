@@ -107,34 +107,49 @@
     display: none;
   }
 
-  /* Custom dashboard scrollbars */
-  .dashboard-scrollbar {
+  /* Custom scrollbars for the entire website */
+  body, html, .dashboard-scrollbar, .main-scrollbar {
     /* Firefox */
     scrollbar-width: thin;
     scrollbar-color: hsl(240 5.3% 26.1%) hsl(240 5.9% 10%);
   }
 
-  .dashboard-scrollbar::-webkit-scrollbar {
+  body::-webkit-scrollbar, 
+  html::-webkit-scrollbar,
+  .dashboard-scrollbar::-webkit-scrollbar, 
+  .main-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
-  .dashboard-scrollbar::-webkit-scrollbar-track {
+  body::-webkit-scrollbar-track, 
+  html::-webkit-scrollbar-track,
+  .dashboard-scrollbar::-webkit-scrollbar-track, 
+  .main-scrollbar::-webkit-scrollbar-track {
     background: hsl(240 5.9% 10%);
     border-radius: 3px;
   }
 
-  .dashboard-scrollbar::-webkit-scrollbar-thumb {
+  body::-webkit-scrollbar-thumb, 
+  html::-webkit-scrollbar-thumb,
+  .dashboard-scrollbar::-webkit-scrollbar-thumb, 
+  .main-scrollbar::-webkit-scrollbar-thumb {
     background: hsl(240 5.3% 26.1%);
     border-radius: 3px;
     transition: background-color 0.2s ease;
   }
 
-  .dashboard-scrollbar::-webkit-scrollbar-thumb:hover {
+  body::-webkit-scrollbar-thumb:hover, 
+  html::-webkit-scrollbar-thumb:hover,
+  .dashboard-scrollbar::-webkit-scrollbar-thumb:hover, 
+  .main-scrollbar::-webkit-scrollbar-thumb:hover {
     background: hsl(240 4.8% 35%);
   }
 
-  .dashboard-scrollbar::-webkit-scrollbar-corner {
+  body::-webkit-scrollbar-corner, 
+  html::-webkit-scrollbar-corner,
+  .dashboard-scrollbar::-webkit-scrollbar-corner, 
+  .main-scrollbar::-webkit-scrollbar-corner {
     background: hsl(240 5.9% 10%);
   }
   
