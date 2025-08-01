@@ -2617,6 +2617,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Json
       }
+      admin_ensure_user_has_calendar: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       admin_extend_trial: {
         Args: { p_user_id: string; p_days?: number }
         Returns: Json
