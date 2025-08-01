@@ -111,7 +111,7 @@
   .dashboard-scrollbar {
     /* Firefox */
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--background));
+    scrollbar-color: hsl(240 5.3% 26.1%) hsl(240 5.9% 10%);
   }
 
   .dashboard-scrollbar::-webkit-scrollbar {
@@ -120,22 +120,22 @@
   }
 
   .dashboard-scrollbar::-webkit-scrollbar-track {
-    background: hsl(var(--background));
+    background: hsl(240 5.9% 10%);
     border-radius: 3px;
   }
 
   .dashboard-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground));
+    background: hsl(240 5.3% 26.1%);
     border-radius: 3px;
     transition: background-color 0.2s ease;
   }
 
   .dashboard-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--foreground) / 0.8);
+    background: hsl(240 4.8% 35%);
   }
 
   .dashboard-scrollbar::-webkit-scrollbar-corner {
-    background: hsl(var(--background));
+    background: hsl(240 5.9% 10%);
   }
   
   /* Mobile safe area padding */
