@@ -31,6 +31,7 @@ import { UsageSummary } from '@/components/ui/UsageSummary';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getStripeConfig } from '@/utils/stripeConfig';
 
 
 export const BillingTab: React.FC = () => {
@@ -46,10 +47,14 @@ export const BillingTab: React.FC = () => {
   const handleManageSubscription = async () => {
     setLoading(true);
     try {
+      // Get current Stripe mode from utils
+      const { mode } = getStripeConfig();
+      
       const { data, error } = await supabase.functions.invoke('customer-portal', {
         headers: {
           Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
+        body: { mode },
       });
       
       if (error) throw error;

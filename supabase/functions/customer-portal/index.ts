@@ -20,9 +20,20 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
+    // Parse request body to get mode
+    const body = await req.json().catch(() => ({}));
+    const mode = body.mode || 'test'; // Default to test mode for safety
+    logStep("Request mode", { mode });
+
+    // Get appropriate Stripe key based on mode
+    const stripeKey = mode === 'live' 
+      ? Deno.env.get("STRIPE_LIVE_SECRET_KEY")
+      : Deno.env.get("STRIPE_TEST_SECRET_KEY");
+    
+    if (!stripeKey) {
+      throw new Error(`Stripe ${mode} secret key is not configured`);
+    }
+    logStep("Stripe key verified", { mode });
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
