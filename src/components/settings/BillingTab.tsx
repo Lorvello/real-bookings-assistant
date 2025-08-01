@@ -663,7 +663,7 @@ Thank you!`);
                     <h3 className="text-xl font-semibold text-white capitalize mb-2">
                       {tier.display_name}
                     </h3>
-                     <div className={`text-3xl font-bold ${billingCycle === 'yearly' ? 'text-green-400' : 'text-white'}`}>
+                     <div className={`text-3xl font-bold ${billingCycle === 'yearly' && !isEnterprise ? 'text-green-400' : 'text-white'}`}>
                        {displayPrice}
                        <span className="text-sm text-gray-400 font-normal">
                          {billingText}
