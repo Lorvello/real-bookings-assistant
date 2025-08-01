@@ -223,7 +223,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
   };
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
       <nav className="flex-1 space-y-1 px-2 py-4">
         {navigationItems.map((item) => (
           <Tooltip key={item.name}>
@@ -262,21 +262,19 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
                   )}
                 </div>
                 {isSidebarOpen && (
-                  <>
-                    <span className="transition-all duration-300 opacity-100 translate-x-0">
-                      {item.name}
-                    </span>
-                    {item.isRestricted && (
-                      <div className="ml-auto">
-                        <Lock className="h-4 w-4 text-red-400" />
-                      </div>
-                    )}
-                  </>
+                  <span className="overflow-hidden">
+                    {item.name}
+                  </span>
+                )}
+                {isSidebarOpen && item.isRestricted && (
+                  <div className="ml-auto">
+                    <Lock className="h-4 w-4 text-red-400" />
+                  </div>
                 )}
               </button>
             </TooltipTrigger>
             {!isSidebarOpen && (
-              <TooltipContent side="right" className="bg-popover border text-popover-foreground">
+              <TooltipContent side="right" sideOffset={10} className="bg-popover border text-popover-foreground">
                 <p className="text-sm">
                   {item.isRestricted 
                     ? (item.href === '/whatsapp-booking-assistant' || item.href === '/test-ai-agent') && userStatus.isSetupIncomplete
