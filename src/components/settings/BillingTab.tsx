@@ -168,41 +168,66 @@ export const BillingTab: React.FC = () => {
                 size="sm"
               >
                 <Settings className="w-4 h-4 mr-2" />
-                {loading ? 'Loading...' : 'Manage Plan'}
+                {loading ? 'Loading...' : 
+                  (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') 
+                    ? 'Choose Plan' 
+                    : 'Manage Plan'
+                }
               </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col gap-4">
               <div>
-                <h3 className="text-xl font-semibold text-white capitalize">
-                  {currentPlan?.tier_name || 'No Plan'} Plan
-                </h3>
-                <p className="text-gray-400">{currentPlan?.description}</p>
-                {userStatus.daysRemaining > 0 && userStatus.userType === 'trial' && (
-                  <p className="text-yellow-400 text-sm mt-1">
-                    {userStatus.daysRemaining} days remaining in trial
-                  </p>
+                {(userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') ? (
+                  <>
+                    <h3 className="text-xl font-semibold text-white">
+                      No Active Subscription
+                    </h3>
+                    <p className="text-gray-400">Start your subscription to access all features</p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-xl font-semibold text-white capitalize">
+                      {currentPlan?.display_name || currentPlan?.tier_name || 'Free'} Plan
+                    </h3>
+                    <p className="text-gray-400">{currentPlan?.description}</p>
+                    {userStatus.userType === 'trial' && userStatus.daysRemaining > 0 && (
+                      <p className="text-yellow-400 text-sm mt-1">
+                        {userStatus.daysRemaining} days remaining in trial
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-white">
-                  {currentPlan?.price_monthly === 0 ? (
-                    'Free'
-                  ) : (
-                    <>
-                      €{currentPlan?.price_monthly || 0}
-                      <span className="text-sm text-gray-400 font-normal">/month</span>
-                    </>
-                  )}
-                </div>
-                {currentPlan?.price_monthly > 0 && (
-                  <p className="text-sm text-gray-400">
-                    {userStatus.userType === 'trial' && userStatus.daysRemaining > 0 
-                      ? 'Free during trial period'
-                      : 'Billed monthly'
-                    }
-                  </p>
+                {(userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') ? (
+                  <div className="text-2xl font-bold text-gray-400">
+                    No Plan
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold text-white">
+                      {!currentPlan || currentPlan?.price_monthly === 0 ? (
+                        'Free'
+                      ) : (
+                        <>
+                          €{currentPlan?.price_monthly || 0}
+                          <span className="text-sm text-gray-400 font-normal">/month</span>
+                        </>
+                      )}
+                    </div>
+                    {currentPlan && currentPlan?.price_monthly > 0 && (
+                      <p className="text-sm text-gray-400">
+                        {userStatus.userType === 'trial' && userStatus.daysRemaining > 0 
+                          ? 'Free during trial period'
+                          : userStatus.userType === 'canceled_subscriber'
+                          ? 'Canceled - access until end date'
+                          : 'Billed monthly'
+                        }
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </div>
