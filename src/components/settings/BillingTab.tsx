@@ -160,7 +160,7 @@ export const BillingTab: React.FC = () => {
           tier_name: selectedTier.tier_name,
           price: billingCycle === 'yearly' ? selectedTier.price_yearly : selectedTier.price_monthly,
           is_annual: billingCycle === 'yearly',
-          success_url: window.location.origin + '/settings?tab=billing&success=true',
+          success_url: window.location.origin + '/success',
           cancel_url: window.location.origin + '/settings?tab=billing&canceled=true',
           mode: 'test' // Will be determined by edge function based on environment
         }
