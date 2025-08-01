@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { PanelLeft, PanelRight } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { SidebarTooltip } from '@/components/ui/sidebar-tooltip';
 
 interface SidebarHeaderProps {
   isSidebarOpen: boolean;
@@ -12,8 +12,7 @@ interface SidebarHeaderProps {
 
 export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false, tooltipsDisabled = false }: SidebarHeaderProps) {
   return (
-    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-      <div className="flex h-16 items-center justify-between pr-4 pl-2 border-b border-gray-700">
+    <div className="flex h-16 items-center justify-between pr-4 pl-2 border-b border-gray-700">
       {/* Logo - only show when expanded */}
       {isSidebarOpen && (
         <div className="transition-all duration-300 select-none">
@@ -26,38 +25,27 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
       )}
       
       {/* Toggle Button - positioned correctly */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            onClick={onToggleSidebar}
-            className={`text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-700 transition-all duration-200 hover:scale-105 group flex-shrink-0 ${
-              isMobile ? 'p-3' : 'p-2'
-            }`}
-          >
-            {isSidebarOpen ? (
-              <PanelLeft className={`transition-transform duration-200 group-hover:scale-110 ${
-                isMobile ? 'w-5 h-5' : 'w-4 h-4'
-              }`} />
-            ) : (
-              <PanelRight className={`transition-transform duration-200 group-hover:scale-110 ${
-                isMobile ? 'w-5 h-5' : 'w-4 h-4'
-              }`} />
-            )}
-          </button>
-        </TooltipTrigger>
-        {!isSidebarOpen && !tooltipsDisabled && (
-          <TooltipContent 
-            side="right" 
-            sideOffset={12} 
-            alignOffset={0}
-            align="center"
-            className="bg-popover border text-popover-foreground"
-          >
-            <p className="text-sm">Expand sidebar</p>
-          </TooltipContent>
-        )}
-      </Tooltip>
+      <SidebarTooltip 
+        content="Expand sidebar"
+        disabled={isSidebarOpen || tooltipsDisabled}
+      >
+        <button
+          onClick={onToggleSidebar}
+          className={`text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-700 transition-all duration-200 hover:scale-105 group flex-shrink-0 ${
+            isMobile ? 'p-3' : 'p-2'
+          }`}
+        >
+          {isSidebarOpen ? (
+            <PanelLeft className={`transition-transform duration-200 group-hover:scale-110 ${
+              isMobile ? 'w-5 h-5' : 'w-4 h-4'
+            }`} />
+          ) : (
+            <PanelRight className={`transition-transform duration-200 group-hover:scale-110 ${
+              isMobile ? 'w-5 h-5' : 'w-4 h-4'
+            }`} />
+          )}
+        </button>
+      </SidebarTooltip>
     </div>
-    </TooltipProvider>
   );
 }
