@@ -282,7 +282,6 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
           <div 
             className="relative"
             style={{
-              minHeight: '100vh',
               overflow: 'auto',
               overflowY: 'scroll',
               WebkitOverflowScrolling: 'touch',
@@ -291,13 +290,13 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             }}
           >
             {/* Premium Background - Now part of scrollable content */}
-            <div className="relative w-full min-h-full">
+            <div className="relative w-full">
               <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
               <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
               <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
             
             {/* Content container */}
-            <div className="relative w-full min-h-screen">
+            <div className="relative w-full">
 
             {/* Header */}
             <div className="relative z-10 bg-black/20 backdrop-blur-sm border-b border-white/10 sticky top-0">
