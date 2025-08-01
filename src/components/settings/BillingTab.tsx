@@ -57,12 +57,18 @@ export const BillingTab: React.FC = () => {
       if (data?.url) {
         window.open(data.url, '_blank');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error opening billing portal:', error);
+      
+      // Show specific message if portal is not configured
+      const errorMessage = error?.message?.includes('portal') || error?.message?.includes('Portal') 
+        ? 'Subscription management is currently being set up. Please contact support for assistance.'
+        : 'Failed to open billing portal. Please try again.';
+        
       toast({
-        title: 'Error',
-        description: 'Failed to open billing portal. Please try again.',
-        variant: 'destructive',
+        title: 'Notice',
+        description: errorMessage,
+        variant: error?.message?.includes('portal') ? 'default' : 'destructive',
       });
     } finally {
       setLoading(false);
