@@ -590,28 +590,33 @@ Thank you!`);
               let displayPrice, billingText, savingsText;
               
               if (isEnterprise) {
-                if (billingCycle === 'monthly') {
-                  displayPrice = 'Starting at €499';
-                  billingText = '/month';
-                  savingsText = 'Custom pricing for large organizations';
-                } else {
-                  displayPrice = 'Starting at €399.20';
-                  billingText = '/month';
-                  savingsText = 'Billed annually (€4790.40/year)';
-                }
+                // Enterprise always shows "Starting at €499" regardless of billing cycle
+                displayPrice = 'Starting at €499';
+                billingText = '/month';
+                savingsText = 'Custom pricing for large organizations';
               } else {
-                // Calculate yearly rate as monthly equivalent (20% discount)
+                // Non-enterprise tiers with clean rounded yearly pricing
                 const monthlyPrice = tier.price_monthly;
-                const yearlyMonthlyRate = tier.price_yearly / 12;
                 
                 if (billingCycle === 'monthly') {
                   displayPrice = `€${monthlyPrice}`;
                   billingText = '/month';
                   savingsText = tier.description;
                 } else {
-                  displayPrice = `€${yearlyMonthlyRate.toFixed(2)}`;
+                  // Show rounded monthly equivalent for yearly billing
+                  if (tier.tier_name === 'starter') {
+                    displayPrice = '€15';
+                    savingsText = 'Billed annually (€180/year)';
+                  } else if (tier.tier_name === 'professional') {
+                    displayPrice = '€39';
+                    savingsText = 'Billed annually (€468/year)';
+                  } else {
+                    // Fallback for any other tiers
+                    const yearlyMonthlyRate = tier.price_yearly / 12;
+                    displayPrice = `€${yearlyMonthlyRate.toFixed(2)}`;
+                    savingsText = `Billed annually (€${tier.price_yearly}/year)`;
+                  }
                   billingText = '/month';
-                  savingsText = `Billed annually (€${tier.price_yearly}/year)`;
                 }
               }
               
