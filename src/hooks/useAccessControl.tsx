@@ -38,25 +38,25 @@ export const useAccessControl = () => {
       } else if (feature === 'canAccessBusinessIntelligence') {
         toast({
           title: "Professional Feature",
-          description: "Business Intelligence is alleen beschikbaar voor Professional en Enterprise abonnementen.",
+          description: "Business Intelligence is only available for Professional and Enterprise subscriptions.",
           variant: "destructive",
         });
       } else if (feature === 'canAccessPerformance') {
         toast({
           title: "Professional Feature", 
-          description: "Performance & Efficiency is alleen beschikbaar voor Professional en Enterprise abonnementen.",
+          description: "Performance & Efficiency is only available for Professional and Enterprise subscriptions.",
           variant: "destructive",
         });
       } else if (feature === 'canAccessFutureInsights') {
         toast({
           title: "Professional Feature",
-          description: "Future Insights is alleen beschikbaar voor Professional en Enterprise abonnementen.",
+          description: "Future Insights is only available for Professional and Enterprise subscriptions.",
           variant: "destructive",
         });
       } else if (feature === 'canAccessTeamMembers') {
         toast({
           title: "Professional Feature",
-          description: "Team Members management is alleen beschikbaar voor Professional en Enterprise abonnementen.",
+          description: "Team Members management is only available for Professional and Enterprise subscriptions.",
           variant: "destructive",
         });
       } else {

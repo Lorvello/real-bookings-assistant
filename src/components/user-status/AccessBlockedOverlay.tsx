@@ -30,7 +30,7 @@ export function AccessBlockedOverlay({ userStatus, feature, description, onUpgra
 
   const getDescription = () => {
     if (feature === 'Future Insights') {
-      return description || 'Future Insights is alleen beschikbaar voor Professional en Enterprise abonnementen. Upgrade nu voor toegang tot geavanceerde voorspellingen en AI-aanbevelingen.';
+      return description || 'Future Insights is only available for Professional and Enterprise subscriptions. Upgrade now for access to advanced predictions and AI recommendations.';
     }
     if (userType === 'expired_trial') {
       return `Your free trial has expired. Upgrade to continue using ${feature}.`;

@@ -150,10 +150,10 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               <AccessBlockedOverlay
                 userStatus={{ 
                   userType: 'trial',
-                  statusMessage: 'Business Intelligence is alleen beschikbaar voor Professional en Enterprise abonnementen'
+                  statusMessage: 'Business Intelligence is only available for Professional and Enterprise subscriptions'
                 } as any}
                 feature="Business Intelligence"
-                description="Krijg toegang tot geavanceerde business metrics, revenue analytics en service performance om je bedrijf te laten groeien."
+                description="Get access to advanced business metrics, revenue analytics and service performance to grow your business."
                 onUpgrade={handleUpgrade}
               />
             )}
@@ -171,10 +171,10 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               <AccessBlockedOverlay
                 userStatus={{ 
                   userType: 'trial',
-                  statusMessage: 'Performance & Efficiency is alleen beschikbaar voor Professional en Enterprise abonnementen'
+                  statusMessage: 'Performance & Efficiency is only available for Professional and Enterprise subscriptions'
                 } as any}
                 feature="Performance & Efficiency"
-                description="Krijg toegang tot performance metrics, no-show rates, customer satisfaction scores en efficiency analytics."
+                description="Get access to performance metrics, no-show rates, customer satisfaction scores and efficiency analytics."
                 onUpgrade={handleUpgrade}
               />
             )}
@@ -195,10 +195,10 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               <AccessBlockedOverlay
                 userStatus={{ 
                   userType: 'trial',
-                  statusMessage: 'Future Insights is alleen beschikbaar voor Professional en Enterprise abonnementen'
+                  statusMessage: 'Future Insights is only available for Professional and Enterprise subscriptions'
                 } as any}
                 feature="Future Insights"
-                description="Krijg toegang tot geavanceerde voorspellingen, seizoenspatronen en AI-aanbevelingen om je bedrijf te laten groeien."
+                description="Get access to advanced predictions, seasonal patterns and AI recommendations to grow your business."
                 onUpgrade={handleUpgrade}
               />
             )}
