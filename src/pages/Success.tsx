@@ -99,6 +99,12 @@ export default function Success() {
           });
         }
         
+        // Force a page refresh after a short delay to ensure subscription benefits are fully loaded
+        setTimeout(() => {
+          console.log('Forcing page refresh to sync subscription status...');
+          window.location.reload();
+        }, 500);
+        
       } catch (error) {
         console.error('Error during verification:', error);
         setIsVerifying(false);
