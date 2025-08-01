@@ -91,7 +91,7 @@ export const BillingTab: React.FC = () => {
       case 'canceled_subscriber':
         return <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20">Canceled</Badge>;
       case 'trial':
-        return <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20">Trial</Badge>;
+        return null;
       case 'expired_trial':
         return <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Expired</Badge>;
       default:
