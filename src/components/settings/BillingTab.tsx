@@ -368,7 +368,7 @@ export const BillingTab: React.FC = () => {
 
                   <div className="space-y-3 mb-6">
                     {/* Updated features to match homepage exactly */}
-                    {tier.tier_name === 'starter' ? [
+                    {(tier.tier_name === 'starter' ? [
                       "Strategic WhatsApp contact management (up to 500)",
                       "Dual-calendar orchestration system", 
                       "Individual user access management",
@@ -394,7 +394,7 @@ export const BillingTab: React.FC = () => {
                       "Advanced reputation management & review analytics",
                       "Enterprise SLA with dedicated success management",
                       "White-glove onboarding & strategic integration consulting"
-                    ].map((feature, index) => (
+                    ]).map((feature, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
                         <span className="text-gray-300 text-sm">{feature}</span>
