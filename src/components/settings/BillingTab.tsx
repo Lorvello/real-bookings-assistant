@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
+import { UsageSummary } from '@/components/ui/UsageSummary';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -357,31 +358,8 @@ export const BillingTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Usage Overview */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <BarChart3 className="w-5 h-5" />
-            Usage Overview
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">{accessControl.maxCalendars || '∞'}</div>
-              <p className="text-gray-400 text-sm">Calendars Limit</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">{accessControl.maxTeamMembers}</div>
-              <p className="text-gray-400 text-sm">Team Members</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">{accessControl.maxWhatsAppContacts || '∞'}</div>
-              <p className="text-gray-400 text-sm">WhatsApp Contacts</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Subscription Usage */}
+      <UsageSummary className="bg-gray-800 border-gray-700" />
     </div>
   );
 };
