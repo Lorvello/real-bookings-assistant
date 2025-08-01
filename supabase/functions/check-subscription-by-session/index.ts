@@ -137,12 +137,50 @@ serve(async (req) => {
       ignoreDuplicates: false 
     });
 
+    // Generate a new auth session for the user
+    let authSession = null;
+    try {
+      logStep("Generating new auth session for user", { userId });
+      
+      // Get user data to create session
+      const { data: userData } = await supabaseClient.from("users").select("email").eq('id', userId).single();
+      
+      if (userData?.email) {
+        // Create a new auth session using the service role
+        const { data: sessionData, error: sessionError } = await supabaseClient.auth.admin.generateLink({
+          type: 'magiclink',
+          email: userData.email
+        });
+        
+        if (!sessionError && sessionData?.properties?.action_link) {
+          // Extract the access_token and refresh_token from the magic link
+          const url = new URL(sessionData.properties.action_link);
+          const accessToken = url.searchParams.get('access_token');
+          const refreshToken = url.searchParams.get('refresh_token');
+          
+          if (accessToken && refreshToken) {
+            authSession = {
+              access_token: accessToken,
+              refresh_token: refreshToken,
+              expires_in: 3600,
+              token_type: 'bearer'
+            };
+            logStep("Auth session generated successfully");
+          }
+        }
+      }
+    } catch (authError) {
+      logStep("Warning: Could not generate auth session", { error: authError });
+      // Continue without auth session - fallback will handle this
+    }
+
     return new Response(JSON.stringify({
       success: true,
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
       subscription_end: subscriptionEnd,
-      payment_status: hasActiveSub ? 'paid' : 'unpaid'
+      payment_status: hasActiveSub ? 'paid' : 'unpaid',
+      auth_session: authSession
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

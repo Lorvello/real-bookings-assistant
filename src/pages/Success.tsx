@@ -68,6 +68,25 @@ export default function Success() {
         setSubscriptionTier(displayTier);
         setIsVerifying(false);
         
+        // Restore auth session if provided
+        if (data.auth_session) {
+          try {
+            console.log('Restoring auth session...');
+            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+              access_token: data.auth_session.access_token,
+              refresh_token: data.auth_session.refresh_token
+            });
+            
+            if (!sessionError && sessionData.session) {
+              console.log('Auth session restored successfully');
+            } else {
+              console.warn('Could not restore auth session:', sessionError);
+            }
+          } catch (sessionError) {
+            console.warn('Error restoring session:', sessionError);
+          }
+        }
+        
         // Invalidate any cached user status
         await invalidateCache('paid_subscriber');
         
