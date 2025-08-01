@@ -543,7 +543,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
 
     // Setup incomplete users - but respect their subscription tier for trial benefits
     if (userType === 'setup_incomplete') {
-      // If user has a professional tier assigned (7-day trial), give them professional access during setup
+      // If user has a professional tier assigned (30-day trial), give them professional access during setup
       if (profile?.subscription_tier === 'professional') {
         const professionalTierLimits = getSubscriptionTierLimits('professional');
         return {

@@ -10,7 +10,7 @@ export function TrialCountdown({ daysRemaining, isExpanded }: TrialCountdownProp
   const getCountdownColor = () => {
     if (daysRemaining <= 0) return 'text-red-400';
     if (daysRemaining <= 3) return 'text-red-400';
-    if (daysRemaining <= 7) return 'text-yellow-400';
+    if (daysRemaining <= 10) return 'text-yellow-400';
     return 'text-green-400';
   };
 

@@ -73,7 +73,7 @@ export function UserStatusDisplay() {
 
   const getProgressValue = () => {
     if (userStatus.userType === 'trial') {
-      return (userStatus.daysRemaining / 7) * 100;
+      return (userStatus.daysRemaining / 30) * 100;
     }
     return userStatus.hasFullAccess ? 100 : 0;
   };
