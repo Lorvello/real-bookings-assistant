@@ -30,22 +30,24 @@ export function UsageSummary({ className = "" }: UsageSummaryProps) {
             No Active Subscription
           </CardTitle>
           <CardDescription>
-            Subscribe to access usage tracking and premium features
+            Subscribe to view usage limits
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center py-6">
             <p className="text-sm text-muted-foreground mb-4">
               {userStatus.userType === 'expired_trial' 
-                ? 'Your trial has expired. Upgrade to continue using premium features.'
-                : 'Your subscription is inactive. Reactivate to access premium features.'
+                ? 'Your trial has expired. Subscribe to access usage tracking and premium features.'
+                : 'Your subscription is inactive. Reactivate to access usage tracking and premium features.'
               }
             </p>
             <Button 
-              onClick={() => window.location.href = '/dashboard/settings'}
+              onClick={() => document.getElementById('available-plans')?.scrollIntoView({ behavior: 'smooth' })}
+              variant="outline"
+              size="sm"
               className="w-full"
             >
-              {userStatus.userType === 'expired_trial' ? 'Upgrade Now' : 'Reactivate Subscription'}
+              View Plans
             </Button>
           </div>
         </CardContent>
