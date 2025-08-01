@@ -17,7 +17,10 @@ import {
   Users,
   BarChart3,
   Palette,
-  HeadphonesIcon
+  HeadphonesIcon,
+  CalendarClock,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
@@ -181,6 +184,53 @@ export const BillingTab: React.FC = () => {
                     Save €{((currentPlan.price_monthly * 12) - (currentPlan.price_yearly || 0)).toFixed(0)} per year
                   </p>
                 )}
+              </div>
+            </div>
+
+            {/* Billing Timeline */}
+            <Separator className="bg-gray-700" />
+            <div>
+              <h4 className="text-white font-medium mb-4 flex items-center gap-2">
+                <CalendarClock className="w-4 h-4" />
+                Billing Timeline
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400 text-sm">Next Billing</span>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-blue-400" />
+                      <span className="text-white text-sm font-medium">
+                        {userStatus.subscriptionEndDate 
+                          ? new Date(userStatus.subscriptionEndDate).toLocaleDateString()
+                          : 'Mar 15, 2024'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400 text-sm">Billing Cycle</span>
+                    <span className="text-gray-300 text-sm">
+                      {billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400 text-sm">Last Payment</span>
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3 text-green-400" />
+                      <span className="text-gray-300 text-sm">Feb 15, 2024</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400 text-sm">Payment Status</span>
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3 text-green-400" />
+                      <span className="text-green-400 text-sm">Current</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
