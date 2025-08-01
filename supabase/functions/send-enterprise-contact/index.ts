@@ -136,128 +136,160 @@ const handler = async (req: Request): Promise<Response> => {
     const customerEmailResponse = await resend.emails.send({
       from: "BookingsAssistant <enterprise@bookingsassistant.com>",
       to: [email],
-      subject: "We hebben jouw Enterprise aanvraag ontvangen! 🚀",
+      subject: "Thank you for your Enterprise inquiry!",
       html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
-          <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
+          <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
             
-            <!-- Header -->
-            <div style="text-align: center; margin-bottom: 40px;">
-              <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; width: 80px; height: 80px; border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin-bottom: 20px;">
-                BA
-              </div>
+            <!-- Header with Logo -->
+            <div style="text-align: center; margin-bottom: 40px; border-bottom: 1px solid #e2e8f0; padding-bottom: 30px;">
+              <img src="https://grdgjhkygzciwwrxgvgy.supabase.co/storage/v1/object/public/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" alt="BookingsAssistant" style="height: 60px; margin-bottom: 20px;" />
               <h1 style="color: #1e293b; margin: 0; font-size: 28px; font-weight: 700; line-height: 1.3;">
-                Bedankt voor jouw interesse in BookingsAssistant Enterprise! 
+                Thank you for your Enterprise inquiry!
               </h1>
-              <div style="width: 60px; height: 4px; background: linear-gradient(90deg, #2563eb, #3b82f6); margin: 20px auto; border-radius: 2px;"></div>
+              <p style="color: #64748b; margin: 16px 0 0 0; font-size: 16px;">
+                We have received your request and will be in touch within 24 hours.
+              </p>
             </div>
 
             <!-- Main Content -->
             <div style="margin-bottom: 40px;">
-              <p style="color: #475569; font-size: 18px; line-height: 1.6; margin-bottom: 24px;">
-                Beste ${fullName},
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
+                Dear ${fullName},
               </p>
               
-              <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
-                We hebben jouw Enterprise aanvraag succesvol ontvangen en zijn enthousiast over jouw interesse in onze oplossingen voor ${companyName}!
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
+                Thank you for your interest in BookingsAssistant Enterprise! We have successfully received your inquiry for ${companyName} and our enterprise team is excited to help you transform your booking management.
               </p>
 
-              <!-- Success Badge -->
-              <div style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); border: 2px solid #16a34a; border-radius: 12px; padding: 20px; margin: 30px 0; text-align: center;">
-                <div style="color: #15803d; font-size: 48px; margin-bottom: 10px;">✅</div>
-                <h3 style="color: #15803d; margin: 0; font-size: 18px; font-weight: 600;">
-                  Jouw aanvraag is geregistreerd!
+              <!-- Confirmation Badge -->
+              <div style="background: #f0fdf4; border: 1px solid #16a34a; border-radius: 8px; padding: 20px; margin: 30px 0; text-align: center;">
+                <h3 style="color: #15803d; margin: 0 0 8px 0; font-size: 18px; font-weight: 600;">
+                  Your inquiry has been registered
                 </h3>
-                <p style="color: #166534; margin: 8px 0 0 0; font-size: 14px;">
-                  Referentienummer: ENT-${new Date().getTime().toString().slice(-6)}
+                <p style="color: #166534; margin: 0; font-size: 14px;">
+                  Reference: ENT-${new Date().getTime().toString().slice(-6)}
                 </p>
               </div>
 
-              <!-- Timeline -->
-              <div style="background: #f8fafc; border-radius: 12px; padding: 24px; margin: 30px 0;">
-                <h3 style="color: #2563eb; margin: 0 0 20px 0; font-size: 18px; font-weight: 600; display: flex; align-items: center;">
-                  <span style="background: #2563eb; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 12px;">📅</span>
-                  Wat gebeurt er nu?
+              <!-- What's Next Timeline -->
+              <div style="background: #f8fafc; border-radius: 8px; padding: 24px; margin: 30px 0;">
+                <h3 style="color: #1e293b; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">
+                  What happens next?
                 </h3>
-                <div style="border-left: 3px solid #2563eb; padding-left: 20px; margin-left: 12px;">
+                <div style="border-left: 3px solid #2563eb; padding-left: 20px;">
                   <div style="margin-bottom: 16px;">
-                    <div style="color: #1e293b; font-weight: 600; margin-bottom: 4px;">Binnen 24 uur</div>
-                    <div style="color: #64748b; font-size: 14px;">Een van onze Enterprise specialisten neemt persoonlijk contact met je op</div>
+                    <div style="color: #1e293b; font-weight: 600; margin-bottom: 4px;">Within 24 hours</div>
+                    <div style="color: #64748b; font-size: 14px;">One of our Enterprise specialists will personally contact you</div>
                   </div>
                   <div style="margin-bottom: 16px;">
-                    <div style="color: #1e293b; font-weight: 600; margin-bottom: 4px;">Persoonlijke demo</div>
-                    <div style="color: #64748b; font-size: 14px;">We laten je precies zien hoe BookingsAssistant jouw bedrijf kan helpen</div>
+                    <div style="color: #1e293b; font-weight: 600; margin-bottom: 4px;">Personalized demo</div>
+                    <div style="color: #64748b; font-size: 14px;">We'll show you exactly how BookingsAssistant can help your business</div>
                   </div>
                   <div>
-                    <div style="color: #1e293b; font-weight: 600; margin-bottom: 4px;">Op maat gemaakte offerte</div>
-                    <div style="color: #64748b; font-size: 14px;">Een voorstel dat perfect aansluit bij jouw wensen en budget</div>
+                    <div style="color: #1e293b; font-weight: 600; margin-bottom: 4px;">Custom proposal</div>
+                    <div style="color: #64748b; font-size: 14px;">A tailored solution that fits your needs and budget</div>
                   </div>
                 </div>
               </div>
 
-              <!-- Company Info Summary -->
-              <div style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 12px; padding: 24px; margin: 30px 0;">
-                <h3 style="color: #2563eb; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">
-                  📋 Jouw aanvraag samenvatting:
+              <!-- Your Submission Summary -->
+              <div style="background: #eff6ff; border-radius: 8px; padding: 24px; margin: 30px 0;">
+                <h3 style="color: #1e293b; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">
+                  Your submission summary
                 </h3>
-                <div style="display: grid; gap: 12px;">
-                  <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span style="color: #64748b; font-weight: 500;">Bedrijf:</span>
-                    <span style="color: #1e293b; font-weight: 600;">${companyName}</span>
+                
+                <!-- Contact Information -->
+                <div style="margin-bottom: 24px;">
+                  <h4 style="color: #374151; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">Contact Information</h4>
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 35%;">Full Name:</td>
+                      <td style="padding: 6px 0; color: #1e293b; font-weight: 600;">${fullName}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Email:</td>
+                      <td style="padding: 6px 0; color: #2563eb; font-weight: 600;">${email}</td>
+                    </tr>
+                    ${phoneNumber ? `
+                    <tr>
+                      <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Phone:</td>
+                      <td style="padding: 6px 0; color: #1e293b; font-weight: 600;">${phoneNumber}</td>
+                    </tr>
+                    ` : ''}
+                  </table>
+                </div>
+
+                <!-- Company Information -->
+                <div style="margin-bottom: 24px;">
+                  <h4 style="color: #374151; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">Company Information</h4>
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td style="padding: 6px 0; font-weight: 500; color: #6b7280; width: 35%;">Company:</td>
+                      <td style="padding: 6px 0; color: #1e293b; font-weight: 600;">${companyName}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Website:</td>
+                      <td style="padding: 6px 0; color: #2563eb; font-weight: 600;"><a href="${companyWebsite}" style="color: #2563eb; text-decoration: none;">${companyWebsite}</a></td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0; font-weight: 500; color: #6b7280;">Company Size:</td>
+                      <td style="padding: 6px 0; color: #1e293b; font-weight: 600;">${companySize} employees</td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- Features of Interest -->
+                <div style="margin-bottom: 24px;">
+                  <h4 style="color: #374151; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">Features you're interested in</h4>
+                  <ul style="list-style: none; padding: 0; margin: 0;">
+                    ${selectedFeaturesHtml}
+                  </ul>
+                </div>
+
+                ${message ? `
+                <!-- Additional Message -->
+                <div style="margin-bottom: 24px;">
+                  <h4 style="color: #374151; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">Your message</h4>
+                  <div style="background: white; padding: 16px; border-radius: 6px; border-left: 4px solid #2563eb;">
+                    <p style="margin: 0; color: #374151; line-height: 1.6;">${message}</p>
                   </div>
-                  <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span style="color: #64748b; font-weight: 500;">Bedrijfsgrootte:</span>
-                    <span style="color: #1e293b; font-weight: 600;">${companySize} medewerkers</span>
+                </div>
+                ` : ''}
+
+                <!-- Meeting Request -->
+                <div style="margin-bottom: 0;">
+                  <h4 style="color: #374151; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">Meeting preference</h4>
+                  <div style="background: ${requestMeeting ? '#f0fdf4' : '#fef3c7'}; border: 1px solid ${requestMeeting ? '#16a34a' : '#d97706'}; border-radius: 6px; padding: 12px;">
+                    <p style="margin: 0; color: #374151; font-weight: 600; font-size: 14px;">
+                      ${requestMeeting ? 'Consultation meeting requested' : 'Email contact preferred initially'}
+                    </p>
                   </div>
-                  <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span style="color: #64748b; font-weight: 500;">Website:</span>
-                    <span style="color: #2563eb;"><a href="${companyWebsite}" style="color: #2563eb; text-decoration: none;">${companyWebsite}</a></span>
-                  </div>
-                  ${requestMeeting ? `
-                  <div style="background: #dcfce7; border: 1px solid #16a34a; border-radius: 8px; padding: 12px; margin-top: 8px;">
-                    <span style="color: #15803d; font-weight: 600;">✅ Consultatie gesprek gewenst</span>
-                  </div>
-                  ` : ''}
                 </div>
               </div>
             </div>
 
-            <!-- CTA Section -->
-            <div style="text-align: center; margin: 40px 0;">
-              <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border-radius: 12px; padding: 24px; color: white;">
-                <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 600;">
-                  Ondertussen meer weten? 🤔
-                </h3>
-                <p style="margin: 0 0 20px 0; opacity: 0.9; font-size: 16px;">
-                  Bekijk onze Enterprise features en succes verhalen
-                </p>
-                <a href="${companyWebsite.includes('bookingsassistant') ? companyWebsite : 'https://bookingsassistant.com'}/enterprise" 
-                   style="background: white; color: #2563eb; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; transition: all 0.3s ease;">
-                  Enterprise Informatie →
-                </a>
-              </div>
-            </div>
-
-            <!-- Contact Info -->
-            <div style="border-top: 2px solid #e2e8f0; padding-top: 30px; text-align: center; color: #64748b;">
-              <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">
-                Vragen? We staan voor je klaar! 💬
+            <!-- Contact Information -->
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 30px; text-align: center;">
+              <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #374151;">
+                Questions? We're here to help!
               </p>
               <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
                 <a href="mailto:enterprise@bookingsassistant.com" style="color: #2563eb; text-decoration: none; font-weight: 500;">
-                  📧 enterprise@bookingsassistant.com
+                  enterprise@bookingsassistant.com
                 </a>
+                <span style="color: #d1d5db;">|</span>
                 <a href="tel:+31201234567" style="color: #2563eb; text-decoration: none; font-weight: 500;">
-                  📞 +31 20 123 4567
+                  +31 20 123 4567
                 </a>
               </div>
             </div>
 
             <!-- Footer -->
-            <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #e2e8f0;">
-              <p style="color: #94a3b8; font-size: 12px; margin: 0;">
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #f3f4f6;">
+              <p style="color: #9ca3af; font-size: 12px; margin: 0;">
                 BookingsAssistant Enterprise Team<br>
-                Dit is een automatisch gegenereerde bevestigingsmail.
+                This is an automated confirmation email.
               </p>
             </div>
           </div>
@@ -265,7 +297,7 @@ const handler = async (req: Request): Promise<Response> => {
           <!-- Outer Footer -->
           <div style="text-align: center; margin-top: 20px;">
             <p style="color: #64748b; font-size: 12px; margin: 0;">
-              © 2024 BookingsAssistant. De slimste manier om afspraken te beheren.
+              © 2024 BookingsAssistant. The smart way to manage appointments.
             </p>
           </div>
         </div>
