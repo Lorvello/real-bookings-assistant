@@ -24,6 +24,21 @@ const Dashboard = () => {
   // Auto scroll to top on route changes
   useScrollToTop();
 
+  // Handle post-payment refresh
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromPayment = urlParams.get('from');
+    
+    if (fromPayment === 'payment-success') {
+      console.log('Detected payment success, refreshing page in 500ms to sync subscription benefits...');
+      setTimeout(() => {
+        // Clean up URL and refresh
+        window.history.replaceState({}, '', window.location.pathname);
+        window.location.reload();
+      }, 500);
+    }
+  }, []);
+
   // Date range state for the dashboard
   const [selectedDateRange, setSelectedDateRange] = React.useState<DateRange>(() => {
     try {

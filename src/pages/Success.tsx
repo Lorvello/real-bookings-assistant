@@ -99,11 +99,6 @@ export default function Success() {
           });
         }
         
-        // Force a page refresh after a short delay to ensure subscription benefits are fully loaded
-        setTimeout(() => {
-          console.log('Forcing page refresh to sync subscription status...');
-          window.location.reload();
-        }, 500);
         
       } catch (error) {
         console.error('Error during verification:', error);
@@ -131,12 +126,12 @@ export default function Success() {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (countdown === 0) {
-      navigate('/dashboard');
+        navigate('/dashboard?from=payment-success');
     }
   }, [countdown, isVerifying, navigate]);
 
   const handleGoToDashboard = () => {
-    navigate('/dashboard');
+    navigate('/dashboard?from=payment-success');
   };
 
   return (
