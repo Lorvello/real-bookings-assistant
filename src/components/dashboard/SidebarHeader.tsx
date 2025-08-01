@@ -45,7 +45,7 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
           </button>
         </TooltipTrigger>
         {!isSidebarOpen && !tooltipsDisabled && (
-          <TooltipContent side="right" sideOffset={16} className="bg-popover border text-popover-foreground">
+          <TooltipContent className="bg-popover border text-popover-foreground">
             <p className="text-sm">Expand sidebar</p>
           </TooltipContent>
         )}
