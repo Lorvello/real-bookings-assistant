@@ -107,8 +107,9 @@ serve(async (req) => {
     const sessionConfig: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
+      client_reference_id: user.id, // Add user ID for session tracking
       mode: "subscription",
-      success_url: finalSuccessUrl,
+      success_url: `${finalSuccessUrl}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: finalCancelUrl,
       metadata: {
         user_id: user.id,
