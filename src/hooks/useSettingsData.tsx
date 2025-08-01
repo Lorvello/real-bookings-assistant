@@ -25,7 +25,8 @@ export const useSettingsData = () => {
     facebook: '',
     instagram: '',
     linkedin: '',
-    tiktok: ''
+    tiktok: '',
+    subscription_tier: null as string | null
   });
 
   const [businessData, setBusinessData] = useState({
@@ -93,7 +94,8 @@ export const useSettingsData = () => {
           facebook: data.facebook || '',
           instagram: data.instagram || '',
           linkedin: data.linkedin || '',
-          tiktok: data.tiktok || ''
+          tiktok: data.tiktok || '',
+          subscription_tier: data.subscription_tier || null
         });
 
         // Update business data
