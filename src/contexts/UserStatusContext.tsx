@@ -129,107 +129,61 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     console.log('[UserStatusContext] Invalidating cache with newStatus:', newStatus);
     
     try {
-      // Clear all relevant caches
-      sessionStorage.removeItem(USER_STATUS_CACHE_KEY);
+      // Clear ALL caches completely
+      sessionStorage.clear();
       localStorage.removeItem('userProfile');
     } catch (error) {
       console.error('Error clearing cache:', error);
     }
     
-    // For paid_subscriber status, do a force refresh with retry logic
+    // Reset completion flag to force fresh fetch
+    initialLoadComplete.current = false;
+    fetchInProgress.current = false;
+    
+    // For paid_subscriber status, immediately set and force re-fetch to verify
     if (newStatus === 'paid_subscriber') {
-      const maxRetries = 5;
-      let retryCount = 0;
+      // Immediately update the UI state for responsiveness
+      setUserStatusType('paid_subscriber');
+      setIsLoading(false);
       
-      const fetchAndVerifyPaidStatus = async (): Promise<void> => {
+      // Cache the new status immediately for persistence
+      try {
+        sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+          version: CACHE_VERSION,
+          data: { userStatusType: 'paid_subscriber' },
+          userId: profile.id,
+          timestamp: Date.now()
+        }));
+      } catch (error) {
+        console.error('Error caching new status:', error);
+      }
+      
+      // Background verification to ensure DB is synced (without blocking UI)
+      setTimeout(async () => {
         try {
-          console.log(`[UserStatusContext] Fetching fresh profile data (attempt ${retryCount + 1})`);
+          console.log('[UserStatusContext] Background verification of paid status...');
+          const { data } = await supabase.rpc('get_user_status_type', { p_user_id: profile.id });
           
-          // Wait a bit for database to update
-          await new Promise(resolve => setTimeout(resolve, 1000 + (retryCount * 500)));
-          
-          // Force fresh fetch from database
-          const { data: freshProfile, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', profile.id)
-            .single();
-          
-          if (error) {
-            throw error;
-          }
-          
-          console.log('[UserStatusContext] Fresh profile data:', {
-            subscription_status: freshProfile.subscription_status,
-            subscription_tier: freshProfile.subscription_tier,
-            subscription_end_date: freshProfile.subscription_end_date
-          });
-          
-          // Check if the user is actually a paid subscriber now
-          const isActivePaidSubscriber = freshProfile.subscription_status === 'active' && 
-                                        freshProfile.subscription_tier;
-          
-          if (!isActivePaidSubscriber) {
-            if (retryCount < maxRetries - 1) {
-              retryCount++;
-              console.log(`[UserStatusContext] User not yet paid subscriber, retrying in ${retryCount} seconds...`);
-              await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
-              return fetchAndVerifyPaidStatus();
-            } else {
-              console.warn('[UserStatusContext] Max retries reached, but paid subscriber status not confirmed');
-              // Still update to paid_subscriber to prevent UI issues
-              setUserStatusType('paid_subscriber');
-            }
+          if (data === 'paid_subscriber') {
+            console.log('[UserStatusContext] Background verification confirmed paid_subscriber status');
           } else {
-            console.log('[UserStatusContext] Paid subscriber status confirmed!');
-            setUserStatusType('paid_subscriber');
+            console.log('[UserStatusContext] Background verification shows status:', data, '- keeping UI optimistic');
           }
-          
-          // Cache the updated status
-          try {
-            sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
-              version: CACHE_VERSION,
-              data: { userStatusType: 'paid_subscriber' },
-              userId: profile.id,
-              timestamp: Date.now()
-            }));
-          } catch (error) {
-            console.error('Error caching new status:', error);
-          }
-          
-          setIsLoading(false);
-          initialLoadComplete.current = true;
-          
         } catch (error) {
-          console.error(`[UserStatusContext] Error in attempt ${retryCount + 1}:`, error);
-          
-          if (retryCount < maxRetries - 1) {
-            retryCount++;
-            console.log(`[UserStatusContext] Retrying in ${retryCount} seconds...`);
-            await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
-            return fetchAndVerifyPaidStatus();
-          } else {
-            console.error('[UserStatusContext] All retry attempts failed, falling back to optimistic update');
-            // Optimistically set the status to prevent UI issues
-            setUserStatusType('paid_subscriber');
-            setIsLoading(false);
-            initialLoadComplete.current = true;
-          }
+          console.error('[UserStatusContext] Background verification error:', error);
         }
-      };
+      }, 2000);
       
-      await fetchAndVerifyPaidStatus();
       return;
     }
     
-    // If we know the new status (other than paid_subscriber), update immediately without reload
+    // For other statuses, update immediately
     if (newStatus) {
-      console.log('Updating user status to:', newStatus);
+      console.log('[UserStatusContext] Updating user status to:', newStatus);
       setUserStatusType(newStatus);
       setIsLoading(false);
-      initialLoadComplete.current = true;
       
-      // Cache the new status immediately
+      // Cache immediately
       try {
         sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
           version: CACHE_VERSION,
@@ -244,11 +198,34 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       return;
     }
     
-    // For unknown status, reset state and refetch
-    initialLoadComplete.current = false;
-    fetchInProgress.current = false;
+    // For unknown status, force a fresh fetch
     setIsLoading(true);
     setUserStatusType('unknown');
+    
+    try {
+      const { data, error } = await supabase.rpc('get_user_status_type', { p_user_id: profile.id });
+      
+      if (!error && data) {
+        setUserStatusType(data);
+        
+        // Cache the fresh result
+        try {
+          sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+            version: CACHE_VERSION,
+            data: { userStatusType: data },
+            userId: profile.id,
+            timestamp: Date.now()
+          }));
+        } catch (cacheError) {
+          console.error('Error caching fresh status:', cacheError);
+        }
+      }
+    } catch (error) {
+      console.error('[UserStatusContext] Error fetching fresh status:', error);
+    } finally {
+      setIsLoading(false);
+      initialLoadComplete.current = true;
+    }
   };
 
   // Compute user status - optimized for performance
