@@ -136,18 +136,10 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-700">
-        <DialogHeader className="relative">
+        <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white text-center">
             Get Started with Enterprise
           </DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-0 top-0 text-gray-400 hover:text-white"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </DialogHeader>
 
         <Form {...form}>

@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
+import { EnterpriseContactForm } from "@/components/EnterpriseContactForm";
 
 export const Pricing = () => {
   const navigate = useNavigate();
@@ -178,10 +179,11 @@ export const Pricing = () => {
     }
   };
 
+  const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
+
   const handlePlanSelect = (plan: typeof plans[0]) => {
     if (plan.isEnterprise) {
-      // Contact sales functionality (future enhancement)
-      return;
+      setShowEnterpriseForm(true);
     } else {
       // Navigate to signup for Starter and Professional
       navigate('/signup');
@@ -517,6 +519,11 @@ export const Pricing = () => {
           </ScrollAnimatedSection>
         </div>
       </section>
+
+      <EnterpriseContactForm 
+        open={showEnterpriseForm} 
+        onOpenChange={setShowEnterpriseForm} 
+      />
     </TooltipProvider>
   );
 };

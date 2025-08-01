@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
 import { isTestMode, getPriceId } from '@/utils/stripeConfig';
+import { EnterpriseContactForm } from '@/components/EnterpriseContactForm';
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -225,10 +226,11 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
     }
   };
 
+  const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
+
   const handlePlanSelect = async (plan: typeof plans[0]) => {
     if (plan.isEnterprise) {
-      // Handle enterprise contact logic
-      window.open('mailto:sales@bookingsassistant.com', '_blank');
+      setShowEnterpriseForm(true);
       return;
     }
 
@@ -652,6 +654,11 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
           </div>
         </DialogContent>
       </Dialog>
+
+      <EnterpriseContactForm 
+        open={showEnterpriseForm} 
+        onOpenChange={setShowEnterpriseForm} 
+      />
     </TooltipProvider>
   );
 }

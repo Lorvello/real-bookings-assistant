@@ -1,13 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '@/components/Header';
 import ProcessHighlights from '@/components/how-it-works/ProcessHighlights';
 import AITestSection from '@/components/how-it-works/AITestSection';
 import { Pricing } from '@/components/Pricing';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
+import { EnterpriseContactForm } from '@/components/EnterpriseContactForm';
 
 const SeeHowItWorks = () => {
+  const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
+
   return (
     <PublicPageWrapper>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
@@ -90,6 +93,11 @@ const SeeHowItWorks = () => {
           <Pricing />
         </div>
       </div>
+
+      <EnterpriseContactForm 
+        open={showEnterpriseForm} 
+        onOpenChange={setShowEnterpriseForm} 
+      />
     </PublicPageWrapper>
   );
 };

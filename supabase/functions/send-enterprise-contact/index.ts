@@ -45,8 +45,8 @@ const handler = async (req: Request): Promise<Response> => {
       .join('');
 
     const emailResponse = await resend.emails.send({
-      from: "Enterprise Inquiries <zakelijk@bookingsassistant.com>",
-      to: ["zakelijk@bookingsassistant.com"],
+      from: "Enterprise Inquiries <business@bookingsassistant.com>",
+      to: ["business@bookingsassistant.com"],
       subject: `Enterprise Plan Inquiry - ${companyName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
