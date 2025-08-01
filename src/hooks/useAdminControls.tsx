@@ -7,6 +7,7 @@ export const useAdminControls = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Regular subscription update (for production use - no calendar creation)
   const updateUserSubscription = async (
     userId: string,
     updates: {
@@ -55,6 +56,7 @@ export const useAdminControls = () => {
     }
   };
 
+  // Developer-specific subscription update (with calendar creation for testing)
   const developerUpdateUserSubscription = async (
     userId: string,
     updates: {
