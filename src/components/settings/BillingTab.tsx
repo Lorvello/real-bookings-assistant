@@ -23,6 +23,7 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
+import { EnterpriseContactForm } from '@/components/EnterpriseContactForm';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
 import { useBillingData } from '@/hooks/useBillingData';
@@ -43,6 +44,7 @@ export const BillingTab: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
   
 
   const handleManageSubscription = async () => {
@@ -98,6 +100,10 @@ export const BillingTab: React.FC = () => {
     setShowAllHistory(!showAllHistory);
   };
 
+  const handleContactSales = () => {
+    setShowEnterpriseForm(true);
+  };
+
   const handleUpgrade = async (tierName: string) => {
     if (!tiers) return;
     
@@ -146,22 +152,6 @@ export const BillingTab: React.FC = () => {
     }
   };
 
-  const handleContactSales = () => {
-    const subject = encodeURIComponent('Enterprise Plan Inquiry');
-    const body = encodeURIComponent(`Hi,
-
-I'm interested in learning more about your Enterprise plan and would like to discuss:
-- Custom pricing for my organization
-- White-label branding options
-- Dedicated support and SLA
-- Custom integrations
-
-Please let me know when we can schedule a call.
-
-Thank you!`);
-    
-    window.open(`mailto:sales@company.com?subject=${subject}&body=${body}`, '_blank');
-  };
 
   const getStatusBadge = () => {
     switch (userStatus.userType) {
@@ -722,6 +712,12 @@ Thank you!`);
           </div>
         </CardContent>
       </Card>
+
+      {/* Enterprise Contact Form Modal */}
+      <EnterpriseContactForm 
+        open={showEnterpriseForm}
+        onOpenChange={setShowEnterpriseForm}
+      />
 
     </div>
   );
