@@ -10,6 +10,7 @@ import { useProfile } from '@/hooks/useProfile';
 interface StatusIndicatorProps {
   userStatus: UserStatus;
   isExpanded: boolean;
+  tooltipsDisabled?: boolean;
 }
 
 const formatSubscriptionTier = (tier?: string) => {
@@ -40,7 +41,7 @@ const getTierColor = (tier?: string) => {
   }
 };
 
-export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps) {
+export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = false }: StatusIndicatorProps) {
   const { userType, statusMessage, statusColor, daysRemaining } = userStatus;
   const navigate = useNavigate();
   const { profile } = useProfile();
@@ -229,8 +230,8 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
             )}
           </div>
         </TooltipTrigger>
-        {!isExpanded && (
-          <TooltipContent side="right" sideOffset={8} className="bg-popover border text-popover-foreground">
+        {!isExpanded && !tooltipsDisabled && (
+          <TooltipContent side="right" sideOffset={16} className="bg-popover border text-popover-foreground">
             <p className="text-sm">{getTooltipText()}</p>
           </TooltipContent>
         )}

@@ -7,9 +7,10 @@ interface SidebarHeaderProps {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
   isMobile?: boolean;
+  tooltipsDisabled?: boolean;
 }
 
-export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false }: SidebarHeaderProps) {
+export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false, tooltipsDisabled = false }: SidebarHeaderProps) {
   return (
     <TooltipProvider delayDuration={0} skipDelayDuration={0}>
       <div className="flex h-16 items-center justify-between pr-4 pl-2 border-b border-gray-700">
@@ -44,9 +45,9 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
             )}
           </button>
         </TooltipTrigger>
-        {!isSidebarOpen && (
-          <TooltipContent side="right" sideOffset={8} className="bg-popover border text-popover-foreground">
-            <p className="text-sm">{isSidebarOpen ? 'Sidebar inklappen' : 'Sidebar uitklappen'}</p>
+        {!isSidebarOpen && !tooltipsDisabled && (
+          <TooltipContent side="right" sideOffset={16} className="bg-popover border text-popover-foreground">
+            <p className="text-sm">Expand sidebar</p>
           </TooltipContent>
         )}
       </Tooltip>

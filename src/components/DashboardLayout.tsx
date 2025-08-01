@@ -58,6 +58,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [tooltipsDisabled, setTooltipsDisabled] = useState(false);
 
   // Close sidebar on mobile when screen size changes
   useEffect(() => {
@@ -91,6 +92,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const toggleSidebar = () => {
     const newState = !isSidebarOpen;
     setIsSidebarOpen(newState);
+    
+    // Disable tooltips for 500ms to prevent flash
+    setTooltipsDisabled(true);
+    setTimeout(() => setTooltipsDisabled(false), 500);
     
     // Alleen localStorage updaten voor desktop
     if (!isMobile) {
@@ -136,11 +141,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               isSidebarOpen={isSidebarOpen} 
               onToggleSidebar={toggleSidebar}
               isMobile={isMobile}
+              tooltipsDisabled={tooltipsDisabled}
             />
 
             <BackToWebsiteButton 
               isSidebarOpen={isSidebarOpen} 
-              onBackToWebsite={handleBackToWebsite} 
+              onBackToWebsite={handleBackToWebsite}
+              tooltipsDisabled={tooltipsDisabled}
             />
 
             {/* Visual Separator */}
@@ -149,7 +156,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* User Status Indicator - Shows for all users */}
             <StatusIndicator 
               userStatus={userStatus} 
-              isExpanded={isSidebarOpen} 
+              isExpanded={isSidebarOpen}
+              tooltipsDisabled={tooltipsDisabled}
             />
 
             {/* Upgrade Prompt - Shows for expired/canceled users */}
@@ -167,6 +175,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               isSidebarOpen={isSidebarOpen} 
               onNavigate={handleNavigation}
               onMobileNavigate={() => isMobile && setIsSidebarOpen(false)}
+              tooltipsDisabled={tooltipsDisabled}
             />
 
             {/* Visual Separator */}
@@ -179,7 +188,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             <UserProfileSection 
               isSidebarOpen={isSidebarOpen} 
-              onSignOut={handleSignOut} 
+              onSignOut={handleSignOut}
+              tooltipsDisabled={tooltipsDisabled}
             />
           </div>
         )}

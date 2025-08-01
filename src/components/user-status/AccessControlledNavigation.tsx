@@ -40,9 +40,10 @@ interface AccessControlledNavigationProps {
   isSidebarOpen: boolean;
   onNavigate: (href: string) => void;
   onMobileNavigate?: () => void;
+  tooltipsDisabled?: boolean;
 }
 
-export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobileNavigate }: AccessControlledNavigationProps) {
+export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobileNavigate, tooltipsDisabled = false }: AccessControlledNavigationProps) {
   const location = useLocation();
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
@@ -273,8 +274,8 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
                 )}
               </button>
             </TooltipTrigger>
-            {!isSidebarOpen && (
-              <TooltipContent side="right" sideOffset={8} className="bg-popover border text-popover-foreground">
+            {!isSidebarOpen && !tooltipsDisabled && (
+              <TooltipContent side="right" sideOffset={16} className="bg-popover border text-popover-foreground">
                 <p className="text-sm">
                   {item.isRestricted 
                     ? (item.href === '/whatsapp-booking-assistant' || item.href === '/test-ai-agent') && userStatus.isSetupIncomplete

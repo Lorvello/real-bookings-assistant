@@ -9,9 +9,10 @@ import { useProfile } from '@/hooks/useProfile';
 interface UserProfileSectionProps {
   isSidebarOpen: boolean;
   onSignOut: () => void;
+  tooltipsDisabled?: boolean;
 }
 
-export function UserProfileSection({ isSidebarOpen, onSignOut }: UserProfileSectionProps) {
+export function UserProfileSection({ isSidebarOpen, onSignOut, tooltipsDisabled = false }: UserProfileSectionProps) {
   const { user } = useAuth();
   const { profile } = useProfile();
 
@@ -61,9 +62,11 @@ export function UserProfileSection({ isSidebarOpen, onSignOut }: UserProfileSect
                   <LogOut className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right" sideOffset={8} className="bg-popover border text-popover-foreground">
-                <p className="text-sm">Sign Out</p>
-              </TooltipContent>
+              {!tooltipsDisabled && (
+                <TooltipContent side="right" sideOffset={16} className="bg-popover border text-popover-foreground">
+                  <p className="text-sm">Sign Out</p>
+                </TooltipContent>
+              )}
             </Tooltip>
           </div>
         )}
