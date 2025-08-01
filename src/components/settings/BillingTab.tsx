@@ -256,11 +256,48 @@ export const BillingTab: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Subscription Usage */}
-        <UsageSummary className="bg-gray-800 border-gray-700" />
-      </div>
+      {/* Subscription Usage */}
+      <UsageSummary className="bg-gray-800 border-gray-700" />
+    </div>
 
-      {/* Billing History - Middle Section */}
+    {/* Quick Actions Section */}
+    <Card className="bg-gray-800 border-gray-700">
+      <CardContent className="pt-6">
+        <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+          <Button 
+            onClick={handleManageSubscription}
+            disabled={loading}
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <CreditCard className="w-4 h-4" />
+            Update Payment
+          </Button>
+          <Button 
+            onClick={handleManageSubscription}
+            disabled={loading}
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Download Invoice
+          </Button>
+          <Button 
+            onClick={() => window.open('mailto:support@company.com?subject=Billing Support Request', '_blank')}
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <HeadphonesIcon className="w-4 h-4" />
+            Contact Support
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+
+    {/* Billing History - Middle Section */}
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
