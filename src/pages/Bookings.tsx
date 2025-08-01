@@ -79,8 +79,8 @@ const Bookings = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-full p-2 md:p-8">
-          <div className="space-y-4 md:space-y-6">
+        <div className="bg-gray-900 min-h-full p-1 md:p-8">
+          <div className="space-y-1 md:space-y-6">
             <SimplePageHeader title="Bookings" />
 
             {/* Create Calendar Section */}
@@ -118,12 +118,12 @@ const Bookings = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-2 md:p-8">
-        <div className="space-y-4 md:space-y-6">
+      <div className="bg-gray-900 min-h-full p-1 md:p-8">
+        <div className="space-y-1 md:space-y-6">
           <SimplePageHeader title="Bookings" />
           
           {/* Calendar Switcher */}
-          <div className="mb-6">
+          <div className="mb-1 md:mb-6">
             <CalendarSwitcher />
           </div>
 

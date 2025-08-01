@@ -54,31 +54,31 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
 
   return (
     <>
-      <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-3">
+        <div className="flex items-center space-x-1 sm:space-x-2">
           {/* Calendar Switcher Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="justify-between min-w-[200px] border-border hover:border-border/80 hover:bg-muted/50">
-                <div className="flex items-center space-x-2">
+              <Button variant="outline" className="justify-between min-w-[120px] sm:min-w-[150px] md:min-w-[200px] border-border hover:border-border/80 hover:bg-muted/50 text-xs sm:text-sm">
+                <div className="flex items-center space-x-1 sm:space-x-2">
                   {viewingAllCalendars && !hideAllCalendarsOption ? (
                     <>
-                      <Grid3X3 className="w-3 h-3 text-muted-foreground" />
-                      <span className="truncate text-sm">All calendars</span>
+                      <Grid3X3 className="w-2 h-2 sm:w-3 sm:h-3 text-muted-foreground" />
+                      <span className="truncate text-xs sm:text-sm">All calendars</span>
                     </>
                   ) : (
                     <>
                       <div 
-                        className="w-3 h-3 rounded-full border border-border" 
+                        className="w-2 h-2 sm:w-3 sm:h-3 rounded-full border border-border" 
                         style={{ backgroundColor: selectedCalendar?.color || '#6B7280' }}
                       />
-                      <span className="truncate text-sm">
+                      <span className="truncate text-xs sm:text-sm">
                         {selectedCalendar ? selectedCalendar.name : 'Select calendar'}
                       </span>
                     </>
                   )}
                 </div>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             

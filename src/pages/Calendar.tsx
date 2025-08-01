@@ -47,8 +47,8 @@ const Calendar = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
-          <div className="space-y-3 sm:space-y-4 md:space-y-6">
+        <div className="bg-gray-900 min-h-0 p-1 sm:p-1.5 md:p-8 pb-2 sm:pb-4 md:pb-12">
+          <div className="space-y-1 sm:space-y-2 md:space-y-6">
             <SimplePageHeader title="Calendar" />
 
             {/* Create Calendar Section */}
@@ -91,12 +91,12 @@ const Calendar = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
-        <div className="space-y-3 sm:space-y-4 md:space-y-6">
+      <div className="bg-gray-900 min-h-0 p-1 sm:p-1.5 md:p-8 pb-2 sm:pb-4 md:pb-12">
+        <div className="space-y-1 sm:space-y-2 md:space-y-6">
           <SimplePageHeader title={displayTitle} />
           
           {/* Calendar Switcher */}
-          <div className="mb-4 sm:mb-6">
+          <div className="mb-1 sm:mb-2 md:mb-6">
             <CalendarSwitcher />
           </div>
 
