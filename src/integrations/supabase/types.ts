@@ -3039,6 +3039,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      update_user_status: {
+        Args: {
+          p_user_id: string
+          p_status: string
+          p_tier?: string
+          p_subscription_end_date?: string
+        }
+        Returns: boolean
+      }
       validate_user_input: {
         Args: { p_input: string; p_type?: string; p_max_length?: number }
         Returns: boolean
