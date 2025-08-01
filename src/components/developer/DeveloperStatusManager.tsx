@@ -194,27 +194,40 @@ export const DeveloperStatusManager = () => {
     const selectedStatusOption = getSelectedUserStatusOption();
     if (!selectedStatusOption) return;
 
-    const effectiveTier = selectedStatusOption.tierRequired 
-      ? selectedStatusOption.tier 
-      : selectedTier || 'professional';
-
     try {
-      console.log('Updating user status to:', selectedUserStatus, 'with tier:', effectiveTier);
+      console.log('Updating user status to:', selectedUserStatus);
       
-      // For setup_incomplete, use the special function that clears all data
       if (selectedUserStatus === 'setup_incomplete') {
-        await setupMockIncompleteUser(profile.id);
+        // For setup_incomplete: ONLY clear all data, don't create anything new
+        const result = await setupMockIncompleteUser(profile.id);
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to setup incomplete user state');
+        }
+        
+        toast({
+          title: "Status Updated Successfully",
+          description: "User set to setup incomplete state - all data cleared",
+          variant: "default",
+        });
       } else {
-        // For other statuses, use developer function that creates calendars
+        // For all other statuses: use developer function that ensures calendar creation
+        const effectiveTier = selectedStatusOption.tierRequired 
+          ? selectedStatusOption.tier 
+          : selectedTier || 'professional';
+          
         const updates = mapStatusToDatabase(selectedUserStatus, effectiveTier);
-        await developerUpdateUserSubscription(profile.id, updates);
-      }
+        const result = await developerUpdateUserSubscription(profile.id, updates);
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to update user subscription');
+        }
 
-      toast({
-        title: "Status Updated Successfully",
-        description: `User status changed to ${selectedStatusOption.label}${effectiveTier ? ` with ${effectiveTier} tier` : ''}`,
-        variant: "default",
-      });
+        toast({
+          title: "Status Updated Successfully", 
+          description: `User status changed to ${selectedStatusOption.label}${effectiveTier ? ` with ${effectiveTier} tier` : ''}`,
+          variant: "default",
+        });
+      }
 
       // Force complete refresh
       console.log('Refreshing profile and clearing cache...');
