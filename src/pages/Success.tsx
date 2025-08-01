@@ -165,28 +165,35 @@ export default function Success() {
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   {subscriptionTier === 'Starter' && (
                     <>
-                      <li>• Up to 2 calendars</li>
-                      <li>• Basic calendar management</li>
-                      <li>• Email notifications</li>
-                      <li>• Customer booking portal</li>
+                      <li>• Strategic WhatsApp contact management (up to 500)</li>
+                      <li>• Dual-calendar orchestration system</li>
+                      <li>• AI-powered intelligent reminder sequences</li>
+                      <li>• Essential dashboard overview & live operations monitoring</li>
+                      <li>• Global multi-language localization</li>
+                      <li>• Streamlined payment processing & collection</li>
                     </>
                   )}
                   {subscriptionTier === 'Professional' && (
                     <>
-                      <li>• Unlimited calendars</li>
-                      <li>• Advanced analytics</li>
-                      <li>• Team collaboration</li>
-                      <li>• API access</li>
-                      <li>• Custom branding</li>
+                      <li>• All Starter premium features included</li>
+                      <li>• Professional WhatsApp contact management (up to 2,500)</li>
+                      <li>• Unlimited calendar orchestration platform</li>
+                      <li>• Advanced team collaboration suite (3+ users)</li>
+                      <li>• Multi-location business coordination</li>
+                      <li>• Complete analytics suite: Business Intelligence, Performance tracking & Future Insights</li>
+                      <li>• Dedicated priority customer success</li>
                     </>
                   )}
                   {subscriptionTier === 'Enterprise' && (
                     <>
-                      <li>• All Professional features</li>
-                      <li>• White-label solution</li>
-                      <li>• Advanced integrations</li>
-                      <li>• Dedicated support</li>
-                      <li>• Custom features</li>
+                      <li>• Complete professional suite included</li>
+                      <li>• Unlimited enterprise WhatsApp contact management</li>
+                      <li>• Dedicated WhatsApp Business API with custom branding</li>
+                      <li>• Intelligent voice call routing & distribution</li>
+                      <li>• Omnichannel social media DM orchestration</li>
+                      <li>• Advanced reputation management & review analytics</li>
+                      <li>• Enterprise SLA with dedicated success management</li>
+                      <li>• White-glove onboarding & strategic integration consulting</li>
                     </>
                   )}
                 </ul>
