@@ -228,7 +228,7 @@ export const BillingTab: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tiers?.map((tier) => {
+            {tiers?.filter(tier => tier.tier_name !== 'free' && tier.price_monthly > 0).map((tier) => {
               const isCurrentPlan = tier.tier_name === currentPlan?.tier_name;
               const isEnterprise = tier.tier_name === 'enterprise';
               
