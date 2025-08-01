@@ -75,7 +75,7 @@ const subscriptionTierOptions = [
 export const DeveloperStatusManager = () => {
   const { profile, refetch } = useProfile();
   const { userStatus, invalidateCache } = useUserStatus();
-  const { updateUserSubscription, developerUpdateUserSubscription, setupMockIncompleteUser, isLoading } = useAdminControls();
+  const { updateUserSubscription, setupMockIncompleteUser, isLoading } = useAdminControls();
   const { toast } = useToast();
   const [selectedUserStatus, setSelectedUserStatus] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<string>('');
@@ -194,40 +194,27 @@ export const DeveloperStatusManager = () => {
     const selectedStatusOption = getSelectedUserStatusOption();
     if (!selectedStatusOption) return;
 
-    try {
-      console.log('Updating user status to:', selectedUserStatus);
-      
-      if (selectedUserStatus === 'setup_incomplete') {
-        // For setup_incomplete: ONLY clear all data, don't create anything new
-        const result = await setupMockIncompleteUser(profile.id);
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to setup incomplete user state');
-        }
-        
-        toast({
-          title: "Status Updated Successfully",
-          description: "User set to setup incomplete state - all data cleared",
-          variant: "default",
-        });
-      } else {
-        // For all other statuses: use developer function that ensures calendar creation
-        const effectiveTier = selectedStatusOption.tierRequired 
-          ? selectedStatusOption.tier 
-          : selectedTier || 'professional';
-          
-        const updates = mapStatusToDatabase(selectedUserStatus, effectiveTier);
-        const result = await developerUpdateUserSubscription(profile.id, updates);
-        
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to update user subscription');
-        }
+    const effectiveTier = selectedStatusOption.tierRequired 
+      ? selectedStatusOption.tier 
+      : selectedTier || 'professional';
 
-        toast({
-          title: "Status Updated Successfully", 
-          description: `User status changed to ${selectedStatusOption.label}${effectiveTier ? ` with ${effectiveTier} tier` : ''}`,
-          variant: "default",
-        });
+    try {
+      console.log('Updating user status to:', selectedUserStatus, 'with tier:', effectiveTier);
+      
+      // For setup_incomplete, use the special function that clears all data
+      if (selectedUserStatus === 'setup_incomplete') {
+        await setupMockIncompleteUser(profile.id);
+      } else {
+        // For other statuses, use normal update
+        const updates = mapStatusToDatabase(selectedUserStatus, effectiveTier);
+        await updateUserSubscription(profile.id, updates);
       }
+
+      toast({
+        title: "Status Updated Successfully",
+        description: `User status changed to ${selectedStatusOption.label}${effectiveTier ? ` with ${effectiveTier} tier` : ''}`,
+        variant: "default",
+      });
 
       // Force complete refresh
       console.log('Refreshing profile and clearing cache...');
@@ -368,13 +355,8 @@ export const DeveloperStatusManager = () => {
           {isLoading ? 'Applying Changes...' : 'Apply Changes'}
         </Button>
 
-        <div className="space-y-2">
-          <div className="text-xs text-purple-600 bg-purple-100 dark:bg-purple-950 dark:text-purple-300 p-2 rounded">
-            <strong>Developer Tool:</strong> Test different user statuses and subscription tiers. Some combinations automatically determine the tier.
-          </div>
-          <div className="text-xs text-blue-600 bg-blue-100 dark:bg-blue-950 dark:text-blue-300 p-2 rounded">
-            💡 <strong>Mock Data:</strong> All status changes show mock data (calendars, bookings, business info) to prevent crashes and enable full feature testing.
-          </div>
+        <div className="text-xs text-purple-600 bg-purple-100 p-2 rounded">
+          <strong>Developer Tool:</strong> Test different user statuses and subscription tiers. Some combinations automatically determine the tier.
         </div>
       </CardContent>
     </Card>

@@ -47,9 +47,8 @@ export function ServiceTypeQuickCreateDialog({
     
     if (!formData.name.trim()) return;
     
-    // During calendar creation, allow service types without calendar_id
-    // They will be linked to the calendar after it's created
-    const targetCalendarId = calendarId || selectedCalendar?.id;
+    // Allow creation without a calendar (global service type)
+    const targetCalendarId = calendarId || selectedCalendar?.id || null;
     
     if (!user) {
       console.error("User not authenticated");
@@ -65,7 +64,7 @@ export function ServiceTypeQuickCreateDialog({
         price: formData.price ? parseFloat(formData.price) : undefined,
         color: formData.color,
         description: formData.description,
-        calendar_id: targetCalendarId || null, // Allow null for global service types during calendar creation
+        calendar_id: targetCalendarId, // Use provided calendarId or create global service type
         is_active: true,
         max_attendees: 1,
         preparation_time: 0,

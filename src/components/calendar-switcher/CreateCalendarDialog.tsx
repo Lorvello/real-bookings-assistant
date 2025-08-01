@@ -111,7 +111,6 @@ export function CreateCalendarDialog({
 
   const handleCreateCalendar = async () => {
     if (!newCalendar.name.trim()) return;
-    // Location is now optional
     if (selectedServiceTypes.length === 0) return;
     if (selectedTeamMembers.length === 0) return;
 
@@ -293,7 +292,7 @@ export function CreateCalendarDialog({
               <h4 className="font-medium text-foreground">Additional Information</h4>
               
               <div>
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">Location (optional)</Label>
                 <Input
                   id="location"
                   placeholder="Office, Room 1, etc."

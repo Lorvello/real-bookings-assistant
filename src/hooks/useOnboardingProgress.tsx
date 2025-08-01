@@ -85,7 +85,7 @@ export const useOnboardingProgress = () => {
       return;
     }
     
-    const isBusinessInfoComplete = !!(profile.business_name);
+    const isBusinessInfoComplete = !!(profile.business_name && profile.business_type);
     const isServiceTypesComplete = serviceTypeCount > 0;
     const isCalendarCreated = calendars.length > 0;
     const isAvailabilityComplete = availabilityRulesCount > 0;
@@ -133,11 +133,11 @@ export const useOnboardingProgress = () => {
       };
     }
 
-    // Updated to 4 essential steps - only business_name required
+    // Updated to 4 essential steps
     const steps = [
       {
         key: 'business_info',
-        completed: !!(profile.business_name),
+        completed: !!(profile.business_name && profile.business_type),
         name: 'Business Information',
         description: 'Complete your business profile'
       },

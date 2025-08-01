@@ -2617,22 +2617,6 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Json
       }
-      admin_developer_update_user_subscription: {
-        Args: {
-          p_user_id: string
-          p_subscription_status?: string
-          p_subscription_tier?: string
-          p_trial_end_date?: string
-          p_subscription_end_date?: string
-          p_business_name?: string
-          p_business_type?: string
-        }
-        Returns: Json
-      }
-      admin_ensure_user_has_calendar: {
-        Args: { p_user_id: string }
-        Returns: Json
-      }
       admin_extend_trial: {
         Args: { p_user_id: string; p_days?: number }
         Returns: Json
