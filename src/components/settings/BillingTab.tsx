@@ -25,14 +25,17 @@ import {
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
+import { useBillingData } from '@/hooks/useBillingData';
 import { useSettingsContext } from '@/contexts/SettingsContext';
 import { UsageSummary } from '@/components/ui/UsageSummary';
+import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const BillingTab: React.FC = () => {
   const { userStatus, accessControl } = useUserStatus();
   const { tiers, isLoading: tiersLoading } = useSubscriptionTiers();
+  const { billingData, isLoading: billingLoading } = useBillingData();
   const { profileData } = useSettingsContext();
   const { toast } = useToast();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -149,6 +152,43 @@ export const BillingTab: React.FC = () => {
       return `Canceled - access until ${userStatus.subscriptionEndDate ? new Date(userStatus.subscriptionEndDate).toLocaleDateString() : 'end date'}`;
     }
     return billingCycle === 'yearly' ? 'Billed annually' : 'Billed monthly';
+  };
+
+  // Helper function to get real billing timeline data
+  const getBillingTimelineData = () => {
+    const isNoSubscription = userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive';
+    
+    if (isNoSubscription || !billingData) {
+      return {
+        nextBilling: "—",
+        lastPayment: "No billing history yet", 
+        billingCycle: "—",
+        paymentStatus: "—"
+      };
+    }
+
+    const nextBilling = billingData.next_billing_date 
+      ? format(new Date(billingData.next_billing_date), "MMM d, yyyy")
+      : "—";
+
+    const lastPayment = billingData.last_payment_date && billingData.last_payment_amount
+      ? `${format(new Date(billingData.last_payment_date), "MMM d, yyyy")} - €${(billingData.last_payment_amount / 100).toFixed(2)}`
+      : "—";
+
+    const billingCycle = billingData.billing_cycle 
+      ? billingData.billing_cycle.charAt(0).toUpperCase() + billingData.billing_cycle.slice(1) + 'ly'
+      : "—";
+
+    const paymentStatus = billingData.payment_status === 'paid' ? 'Active' : 
+                         billingData.payment_status === 'unpaid' ? 'Failed' : 
+                         billingData.payment_status || "—";
+
+    return {
+      nextBilling,
+      lastPayment,
+      billingCycle,
+      paymentStatus
+    };
   };
 
   const currentPlan = getCurrentPlan();
@@ -276,55 +316,42 @@ export const BillingTab: React.FC = () => {
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3 text-blue-400" />
                           <span className="text-white text-sm font-medium">
-                            {userStatus.subscriptionEndDate 
-                              ? new Date(userStatus.subscriptionEndDate).toLocaleDateString()
-                              : userStatus.trialEndDate && userStatus.userType === 'trial'
-                              ? new Date(userStatus.trialEndDate).toLocaleDateString()
-                              : 'Not available'
-                            }
+                            {getBillingTimelineData().nextBilling}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-sm">Billing Cycle</span>
+                        <span className="text-gray-400 text-sm">Last Payment</span>
                         <span className="text-gray-300 text-sm">
-                          {userStatus.userType === 'trial' 
-                            ? 'Trial Period' 
-                            : getBillingStatus().includes('annually') 
-                            ? 'Yearly' 
-                            : 'Monthly'
-                          }
+                          {getBillingTimelineData().lastPayment}
                         </span>
                       </div>
                     </div>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-sm">Plan Status</span>
-                        <div className="flex items-center gap-1">
-                          {userStatus.userType === 'trial' ? (
-                            <AlertCircle className="w-3 h-3 text-yellow-400" />
-                          ) : userStatus.userType === 'canceled_subscriber' ? (
-                            <AlertCircle className="w-3 h-3 text-yellow-400" />
-                          ) : (
-                            <CheckCircle className="w-3 h-3 text-green-400" />
-                          )}
-                          <span className={`text-sm ${
-                            userStatus.userType === 'trial' ? 'text-yellow-400' :
-                            userStatus.userType === 'canceled_subscriber' ? 'text-yellow-400' :
-                            'text-green-400'
-                          }`}>
-                            {userStatus.userType === 'trial' ? 'Trial Active' :
-                             userStatus.userType === 'canceled_subscriber' ? 'Canceled' :
-                             'Active'
-                            }
-                          </span>
-                        </div>
+                        <span className="text-gray-400 text-sm">Billing Cycle</span>
+                        <span className="text-gray-300 text-sm">
+                          {getBillingTimelineData().billingCycle}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-sm">Current Plan</span>
-                        <span className="text-gray-300 text-sm font-medium">
-                          {currentPlan?.display_name || currentPlan?.tier_name || 'Free'}
-                        </span>
+                        <span className="text-gray-400 text-sm">Payment Status</span>
+                        <div className="flex items-center gap-1">
+                          {getBillingTimelineData().paymentStatus === 'Active' ? (
+                            <CheckCircle className="w-3 h-3 text-green-400" />
+                          ) : getBillingTimelineData().paymentStatus === 'Failed' ? (
+                            <AlertCircle className="w-3 h-3 text-red-400" />
+                          ) : (
+                            <AlertCircle className="w-3 h-3 text-gray-400" />
+                          )}
+                          <span className={`text-sm ${
+                            getBillingTimelineData().paymentStatus === 'Active' ? 'text-green-400' :
+                            getBillingTimelineData().paymentStatus === 'Failed' ? 'text-red-400' :
+                            'text-gray-400'
+                          }`}>
+                            {getBillingTimelineData().paymentStatus}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>

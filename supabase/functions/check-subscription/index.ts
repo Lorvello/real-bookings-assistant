@@ -90,13 +90,41 @@ serve(async (req) => {
     let subscriptionTier = null;
     let subscriptionEnd = null;
     let paymentStatus = 'unpaid';
+    let billingCycle = null;
+    let nextBillingDate = null;
+    let lastPaymentDate = null;
+    let lastPaymentAmount = null;
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      nextBillingDate = subscriptionEnd; // For active subs, next billing is current period end
       paymentStatus = 'paid';
+      billingCycle = subscription.items.data[0].price.recurring?.interval || 'month';
       
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+      // Get last payment info from invoices
+      try {
+        const invoices = await stripe.invoices.list({
+          customer: customerId,
+          status: 'paid',
+          limit: 1
+        });
+        if (invoices.data.length > 0) {
+          const lastInvoice = invoices.data[0];
+          lastPaymentDate = new Date(lastInvoice.created * 1000).toISOString();
+          lastPaymentAmount = lastInvoice.amount_paid;
+        }
+      } catch (invoiceError) {
+        logStep("Error fetching invoices", { error: invoiceError });
+      }
+      
+      logStep("Active subscription found", { 
+        subscriptionId: subscription.id, 
+        endDate: subscriptionEnd,
+        billingCycle,
+        lastPaymentDate,
+        lastPaymentAmount
+      });
       
       // Determine subscription tier from metadata first
       subscriptionTier = subscription.metadata?.tier_name || subscription.metadata?.tier;
@@ -184,7 +212,11 @@ serve(async (req) => {
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
       subscription_end: subscriptionEnd,
-      payment_status: paymentStatus
+      payment_status: paymentStatus,
+      billing_cycle: billingCycle,
+      next_billing_date: nextBillingDate,
+      last_payment_date: lastPaymentDate,
+      last_payment_amount: lastPaymentAmount
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
