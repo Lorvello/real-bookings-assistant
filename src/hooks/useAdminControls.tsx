@@ -55,6 +55,54 @@ export const useAdminControls = () => {
     }
   };
 
+  const developerUpdateUserSubscription = async (
+    userId: string,
+    updates: {
+      subscription_status?: string;
+      subscription_tier?: SubscriptionTier;
+      trial_end_date?: string;
+      subscription_end_date?: string;
+      business_name?: string | null;
+      business_type?: string | null;
+    }
+  ) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_developer_update_user_subscription', {
+        p_user_id: userId,
+        p_subscription_status: updates.subscription_status,
+        p_subscription_tier: updates.subscription_tier,
+        p_trial_end_date: updates.trial_end_date,
+        p_subscription_end_date: updates.subscription_end_date,
+        p_business_name: updates.business_name,
+        p_business_type: updates.business_type,
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; message?: string; user?: any; error?: string };
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message || "User subscription updated successfully (developer mode)",
+        });
+        return result.user;
+      } else {
+        throw new Error(result.error || "Failed to update user subscription");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update user subscription",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const extendTrial = async (userId: string, days: number = 30) => {
     setIsLoading(true);
     try {
@@ -150,6 +198,7 @@ export const useAdminControls = () => {
 
   return {
     updateUserSubscription,
+    developerUpdateUserSubscription,
     extendTrial,
     getUserSubscriptionDetails,
     setupMockIncompleteUser,

@@ -75,7 +75,7 @@ const subscriptionTierOptions = [
 export const DeveloperStatusManager = () => {
   const { profile, refetch } = useProfile();
   const { userStatus, invalidateCache } = useUserStatus();
-  const { updateUserSubscription, setupMockIncompleteUser, isLoading } = useAdminControls();
+  const { updateUserSubscription, developerUpdateUserSubscription, setupMockIncompleteUser, isLoading } = useAdminControls();
   const { toast } = useToast();
   const [selectedUserStatus, setSelectedUserStatus] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<string>('');
@@ -205,9 +205,9 @@ export const DeveloperStatusManager = () => {
       if (selectedUserStatus === 'setup_incomplete') {
         await setupMockIncompleteUser(profile.id);
       } else {
-        // For other statuses, use normal update
+        // For other statuses, use developer function that creates calendars
         const updates = mapStatusToDatabase(selectedUserStatus, effectiveTier);
-        await updateUserSubscription(profile.id, updates);
+        await developerUpdateUserSubscription(profile.id, updates);
       }
 
       toast({
