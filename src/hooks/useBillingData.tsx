@@ -11,6 +11,15 @@ interface BillingData {
   next_billing_date: string | null;
   last_payment_date: string | null;
   last_payment_amount: number | null;
+  billing_history: Array<{
+    id: string;
+    date: string;
+    amount: number;
+    currency: string;
+    status: string;
+    invoice_url: string | null;
+    description: string;
+  }>;
 }
 
 export const useBillingData = () => {

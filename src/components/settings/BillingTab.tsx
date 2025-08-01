@@ -375,112 +375,91 @@ export const BillingTab: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-gray-400">Date</TableHead>
-                  <TableHead className="text-gray-400">Amount</TableHead>
-                  <TableHead className="text-gray-400">Plan</TableHead>
-                  <TableHead className="text-gray-400">Status</TableHead>
-                  <TableHead className="text-gray-400 text-right">Invoice</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="text-white">Feb 15, 2024</TableCell>
-                  <TableCell className="text-white">€19</TableCell>
-                  <TableCell className="text-white">Starter</TableCell>
-                  <TableCell>
-                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
-                      Paid
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={handleManageSubscription}>
-                      <Download className="w-3 h-3" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-white">Jan 15, 2024</TableCell>
-                  <TableCell className="text-white">€19</TableCell>
-                  <TableCell className="text-white">Starter</TableCell>
-                  <TableCell>
-                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
-                      Paid
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={handleManageSubscription}>
-                      <Download className="w-3 h-3" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-white">Dec 15, 2023</TableCell>
-                  <TableCell className="text-white">€19</TableCell>
-                  <TableCell className="text-white">Starter</TableCell>
-                  <TableCell>
-                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
-                      Paid
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={handleManageSubscription}>
-                      <Download className="w-3 h-3" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-white">Nov 15, 2023</TableCell>
-                  <TableCell className="text-white">€19</TableCell>
-                  <TableCell className="text-white">Starter</TableCell>
-                  <TableCell>
-                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
-                      Paid
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={handleManageSubscription}>
-                      <Download className="w-3 h-3" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-white">Oct 15, 2023</TableCell>
-                  <TableCell className="text-white">€19</TableCell>
-                  <TableCell className="text-white">Starter</TableCell>
-                  <TableCell>
-                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
-                      Paid
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={handleManageSubscription}>
-                      <Download className="w-3 h-3" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-          
-          <div className="mt-4 text-center">
-            <Button 
-              onClick={handleManageSubscription}
-              disabled={loading}
-              variant="outline"
-              size="sm"
-            >
-              View All History
-            </Button>
-          </div>
+          {billingLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            </div>
+          ) : billingData?.billing_history && billingData.billing_history.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-gray-400">Date</TableHead>
+                    <TableHead className="text-gray-400">Amount</TableHead>
+                    <TableHead className="text-gray-400">Plan</TableHead>
+                    <TableHead className="text-gray-400">Status</TableHead>
+                    <TableHead className="text-gray-400 text-right">Invoice</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {billingData.billing_history.map((invoice) => (
+                    <TableRow key={invoice.id}>
+                      <TableCell className="text-white">
+                        {format(new Date(invoice.date), "MMM d, yyyy")}
+                      </TableCell>
+                      <TableCell className="text-white">
+                        €{(invoice.amount / 100).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-white capitalize">
+                        {invoice.description}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={
+                          invoice.status === 'paid' 
+                            ? "bg-green-500/10 text-green-400 border-green-500/20"
+                            : invoice.status === 'open' || invoice.status === 'draft'
+                            ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                            : "bg-red-500/10 text-red-400 border-red-500/20"
+                        }>
+                          {invoice.status === 'paid' ? 'Paid' : 
+                           invoice.status === 'open' ? 'Pending' :
+                           invoice.status === 'draft' ? 'Draft' : 
+                           invoice.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {invoice.invoice_url ? (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => window.open(invoice.invoice_url!, '_blank')}
+                          >
+                            <Download className="w-3 h-3" />
+                          </Button>
+                        ) : (
+                          <span className="text-gray-500 text-xs">No PDF</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <CreditCard className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+              <h3 className="text-white font-medium mb-2">No Billing History</h3>
+              <p className="text-gray-400 text-sm">
+                {userStatus.userType === 'trial' || userStatus.userType === 'expired_trial' 
+                  ? "Your billing history will appear here after you start a paid subscription."
+                  : "No billing records found for your account."
+                }
+              </p>
+              {(userStatus.userType === 'trial' || userStatus.userType === 'expired_trial') && (
+                <Button 
+                  className="mt-4" 
+                  onClick={() => document.getElementById('available-plans')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  View Plans
+                </Button>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Available Plans - Bottom Section */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card id="available-plans" className="bg-gray-800 border-gray-700">
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>

@@ -71,7 +71,12 @@ serve(async (req) => {
         subscribed: false,
         subscription_tier: null,
         subscription_end: null,
-        payment_status: 'unpaid'
+        payment_status: 'unpaid',
+        billing_cycle: null,
+        next_billing_date: null,
+        last_payment_date: null,
+        last_payment_amount: null,
+        billing_history: []
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -94,6 +99,7 @@ serve(async (req) => {
     let nextBillingDate = null;
     let lastPaymentDate = null;
     let lastPaymentAmount = null;
+    let billingHistory: Array<any> = [];
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
@@ -102,17 +108,30 @@ serve(async (req) => {
       paymentStatus = 'paid';
       billingCycle = subscription.items.data[0].price.recurring?.interval || 'month';
       
-      // Get last payment info from invoices
+      // Get payment history from invoices
       try {
         const invoices = await stripe.invoices.list({
           customer: customerId,
-          status: 'paid',
-          limit: 1
+          limit: 10 // Get last 10 invoices
         });
+        
         if (invoices.data.length > 0) {
-          const lastInvoice = invoices.data[0];
-          lastPaymentDate = new Date(lastInvoice.created * 1000).toISOString();
-          lastPaymentAmount = lastInvoice.amount_paid;
+          const lastPaidInvoice = invoices.data.find(inv => inv.status === 'paid');
+          if (lastPaidInvoice) {
+            lastPaymentDate = new Date(lastPaidInvoice.created * 1000).toISOString();
+            lastPaymentAmount = lastPaidInvoice.amount_paid;
+          }
+          
+          // Build billing history
+          billingHistory = invoices.data.map(invoice => ({
+            id: invoice.id,
+            date: new Date(invoice.created * 1000).toISOString(),
+            amount: invoice.amount_paid || invoice.amount_due,
+            currency: invoice.currency,
+            status: invoice.status,
+            invoice_url: invoice.hosted_invoice_url,
+            description: `${subscriptionTier || 'Subscription'} Plan`
+          }));
         }
       } catch (invoiceError) {
         logStep("Error fetching invoices", { error: invoiceError });
@@ -165,6 +184,28 @@ serve(async (req) => {
       logStep("Determined subscription tier", { subscriptionTier, paymentStatus });
     } else {
       logStep("No active subscription found");
+      
+      // Still get invoice history for canceled/expired users
+      try {
+        const invoices = await stripe.invoices.list({
+          customer: customerId,
+          limit: 10
+        });
+        
+        if (invoices.data.length > 0) {
+          billingHistory = invoices.data.map(invoice => ({
+            id: invoice.id,
+            date: new Date(invoice.created * 1000).toISOString(),
+            amount: invoice.amount_paid || invoice.amount_due,
+            currency: invoice.currency,
+            status: invoice.status,
+            invoice_url: invoice.hosted_invoice_url,
+            description: `Previous Subscription`
+          }));
+        }
+      } catch (invoiceError) {
+        logStep("Error fetching invoice history for inactive user", { error: invoiceError });
+      }
     }
 
     // Update user record in database with detailed logging
@@ -216,7 +257,8 @@ serve(async (req) => {
       billing_cycle: billingCycle,
       next_billing_date: nextBillingDate,
       last_payment_date: lastPaymentDate,
-      last_payment_amount: lastPaymentAmount
+      last_payment_amount: lastPaymentAmount,
+      billing_history: billingHistory
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
