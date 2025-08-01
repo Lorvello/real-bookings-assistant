@@ -299,7 +299,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             <div className="relative w-full">
 
             {/* Header */}
-            <div className="relative z-10 bg-black/20 backdrop-blur-sm border-b border-white/10 sticky top-0">
+            <div className="relative z-10 bg-black/20 backdrop-blur-sm border-b border-white/10">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 {/* Stripe Mode Indicator - Only show in test mode */}
                 {testMode && (
