@@ -4,7 +4,7 @@ import { Clock, AlertTriangle, CheckCircle, XCircle, Zap, Crown } from 'lucide-r
 import { UserStatus } from '@/types/userStatus';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProfile } from '@/hooks/useProfile';
 
 interface StatusIndicatorProps {
@@ -155,8 +155,7 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
   };
 
   return (
-    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-      <Tooltip>
+    <Tooltip>
         <TooltipTrigger asChild>
           <div className={`mb-2 ${isExpanded ? `px-3 py-2 rounded-lg border ${getBgColor()}` : 'w-12 h-12 flex flex-col items-center justify-center rounded-lg border mx-2'} ${getBgColor()}`}>
             {isExpanded ? (
@@ -235,7 +234,6 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
             <p className="text-sm">{getTooltipText()}</p>
           </TooltipContent>
         )}
-      </Tooltip>
-    </TooltipProvider>
+    </Tooltip>
   );
 }

@@ -2,7 +2,7 @@
 import React from 'react';
 import { UserCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -17,8 +17,7 @@ export function UserProfileSection({ isSidebarOpen, onSignOut, tooltipsDisabled 
   const { profile } = useProfile();
 
   return (
-    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-      <div className="border-t border-gray-700 p-4">
+    <div className="border-t border-gray-700 p-4">
         {isSidebarOpen ? (
           <>
             <div className="flex items-center">
@@ -70,7 +69,6 @@ export function UserProfileSection({ isSidebarOpen, onSignOut, tooltipsDisabled 
             </Tooltip>
           </div>
         )}
-      </div>
-    </TooltipProvider>
+    </div>
   );
 }

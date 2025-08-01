@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { PanelLeft, PanelRight } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SidebarHeaderProps {
   isSidebarOpen: boolean;
@@ -12,8 +12,7 @@ interface SidebarHeaderProps {
 
 export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false, tooltipsDisabled = false }: SidebarHeaderProps) {
   return (
-    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-      <div className="flex h-16 items-center justify-between pr-4 pl-2 border-b border-gray-700">
+    <div className="flex h-16 items-center justify-between pr-4 pl-2 border-b border-gray-700">
       {/* Logo - only show when expanded */}
       {isSidebarOpen && (
         <div className="transition-all duration-300 select-none">
@@ -52,6 +51,5 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
         )}
       </Tooltip>
     </div>
-    </TooltipProvider>
   );
 }

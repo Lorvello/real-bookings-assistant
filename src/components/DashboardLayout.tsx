@@ -16,6 +16,7 @@ import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { AuthenticatedPageWrapper } from '@/components/AuthenticatedPageWrapper';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -111,7 +112,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <AuthenticatedPageWrapper>
-      <div className="flex h-full bg-gray-900 w-full relative overflow-hidden">
+      <TooltipProvider delayDuration={0} skipDelayDuration={0}>
+        <div className="flex h-full bg-gray-900 w-full relative overflow-hidden">
       {/* Mobile Overlay */}
       {isMobile && isSidebarOpen && (
         <div 
@@ -223,6 +225,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         userType={userStatus.userType}
       />
       </div>
+      </TooltipProvider>
     </AuthenticatedPageWrapper>
   );
 }

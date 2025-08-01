@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface NavItem {
   name: string;
@@ -224,8 +224,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
   };
 
   return (
-    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-      <nav className="flex-1 space-y-1 px-2 py-4">
+    <nav className="flex-1 space-y-1 px-2 py-4">
         {navigationItems.map((item) => (
           <Tooltip key={item.name}>
             <TooltipTrigger asChild>
@@ -294,7 +293,6 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
             )}
           </Tooltip>
         ))}
-      </nav>
-    </TooltipProvider>
+    </nav>
   );
 }
