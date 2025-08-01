@@ -355,8 +355,13 @@ export const DeveloperStatusManager = () => {
           {isLoading ? 'Applying Changes...' : 'Apply Changes'}
         </Button>
 
-        <div className="text-xs text-purple-600 bg-purple-100 p-2 rounded">
-          <strong>Developer Tool:</strong> Test different user statuses and subscription tiers. Some combinations automatically determine the tier.
+        <div className="space-y-2">
+          <div className="text-xs text-purple-600 bg-purple-100 dark:bg-purple-950 dark:text-purple-300 p-2 rounded">
+            <strong>Developer Tool:</strong> Test different user statuses and subscription tiers. Some combinations automatically determine the tier.
+          </div>
+          <div className="text-xs text-blue-600 bg-blue-100 dark:bg-blue-950 dark:text-blue-300 p-2 rounded">
+            💡 <strong>Mock Data:</strong> All status changes show mock data (calendars, bookings, business info) to prevent crashes and enable full feature testing.
+          </div>
         </div>
       </CardContent>
     </Card>
