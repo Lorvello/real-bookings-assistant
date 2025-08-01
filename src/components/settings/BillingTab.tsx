@@ -42,14 +42,27 @@ export const BillingTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const handleManageSubscription = async () => {
+    // Only show customer portal for users with active subscriptions/billing history
+    if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
+      // Redirect to plans section for users without subscriptions
+      document.getElementById('available-plans')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
+      const { data, error } = await supabase.functions.invoke('customer-portal', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
       
       if (error) throw error;
       
-      if (data.url) {
+      if (data?.url) {
         window.open(data.url, '_blank');
+      } else {
+        throw new Error('No portal URL received');
       }
     } catch (error) {
       console.error('Error opening customer portal:', error);
@@ -63,17 +76,67 @@ export const BillingTab: React.FC = () => {
     }
   };
 
-  const handleUpgrade = async (tierId: string) => {
+  const handleViewAllHistory = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { tierId, billingCycle }
+      const { data, error } = await supabase.functions.invoke('customer-portal', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
       });
       
       if (error) throw error;
       
-      if (data.url) {
+      if (data?.url) {
         window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error opening billing history:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to open billing history. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpgrade = async (tierName: string) => {
+    if (!tiers) return;
+    
+    const selectedTier = tiers.find(tier => tier.tier_name === tierName);
+    if (!selectedTier) {
+      toast({
+        title: 'Error',
+        description: 'Selected plan not found. Please try again.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: { 
+          tier_name: selectedTier.tier_name,
+          price: billingCycle === 'yearly' ? selectedTier.price_yearly : selectedTier.price_monthly,
+          is_annual: billingCycle === 'yearly',
+          success_url: window.location.origin + '/settings?tab=billing&success=true',
+          cancel_url: window.location.origin + '/settings?tab=billing&canceled=true',
+          mode: 'test' // Will be determined by edge function based on environment
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error('No checkout URL received');
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
@@ -85,6 +148,23 @@ export const BillingTab: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleContactSales = () => {
+    const subject = encodeURIComponent('Enterprise Plan Inquiry');
+    const body = encodeURIComponent(`Hi,
+
+I'm interested in learning more about your Enterprise plan and would like to discuss:
+- Custom pricing for my organization
+- White-label branding options
+- Dedicated support and SLA
+- Custom integrations
+
+Please let me know when we can schedule a call.
+
+Thank you!`);
+    
+    window.open(`mailto:sales@company.com?subject=${subject}&body=${body}`, '_blank');
   };
 
   const getStatusBadge = () => {
@@ -369,10 +449,22 @@ export const BillingTab: React.FC = () => {
       {/* Billing History - Middle Section */}
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <CreditCard className="w-5 h-5" />
-            Billing History
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Billing History
+            </CardTitle>
+            {billingData?.billing_history && billingData.billing_history.length > 0 && (
+              <Button 
+                onClick={handleViewAllHistory}
+                disabled={loading}
+                variant="outline"
+                size="sm"
+              >
+                View All History
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {billingLoading ? (
@@ -593,7 +685,8 @@ export const BillingTab: React.FC = () => {
                     <Button 
                       className="w-full"
                       variant="outline"
-                      onClick={() => window.open('mailto:sales@company.com?subject=Enterprise Plan Inquiry', '_blank')}
+                      onClick={handleContactSales}
+                      disabled={loading}
                     >
                       Contact Sales
                     </Button>
@@ -602,9 +695,9 @@ export const BillingTab: React.FC = () => {
                       className="w-full"
                       variant={isCurrentPlan ? "outline" : "default"}
                       disabled={isCurrentPlan || loading}
-                      onClick={() => handleUpgrade(tier.id)}
+                      onClick={() => handleUpgrade(tier.tier_name)}
                     >
-                      {isCurrentPlan ? 'Current Plan' : `Switch to ${tier.display_name}`}
+                      {loading ? 'Loading...' : isCurrentPlan ? 'Current Plan' : `Switch to ${tier.display_name}`}
                     </Button>
                   )}
                 </div>
