@@ -32,13 +32,10 @@ serve(async (req) => {
     const stripeMode = Deno.env.get("STRIPE_MODE") || 'test'; // Default to test for safety
     const isTestMode = stripeMode === 'test';
     
+    // Use hardcoded keys for now since we have them
     const stripeKey = isTestMode 
-      ? Deno.env.get("STRIPE_TEST_SECRET_KEY") 
-      : Deno.env.get("STRIPE_SECRET_KEY");
-    
-    if (!stripeKey) {
-      throw new Error(`${isTestMode ? 'STRIPE_TEST_SECRET_KEY' : 'STRIPE_SECRET_KEY'} is not set`);
-    }
+      ? "sk_test_51RqIg2LcBboIITXgKEm5tW3HPrSXHKn3dz0k689nF8u3USXvIkjO7wLdRJTmlUphZ7KnfiLPOByp4tnlfFaRWxPj00UoWOQ0mq"
+      : "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";
     
     logStep("Stripe configuration", { mode: stripeMode, isTestMode, hasKey: !!stripeKey });
 
@@ -66,6 +63,7 @@ serve(async (req) => {
         subscription_status: 'expired',
         subscription_tier: null,
         subscription_end_date: null,
+        payment_status: 'unpaid',
         updated_at: new Date().toISOString(),
       }).eq('id', user.id);
 
@@ -117,6 +115,8 @@ serve(async (req) => {
         // Map specific price IDs to tiers (based on your Stripe prices)
         if (priceId === 'price_1RqwecLcBboIITXgsuyzCCcU' || priceId === 'price_1RqwcuLcBboIITXgCew589Ao') {
           subscriptionTier = "professional";
+        } else if (priceId === 'price_1RqwcHLcBboIITXgYhJupraj' || priceId === 'price_1RqwdWLcBboIITXgMHKmGtbv') {
+          subscriptionTier = "starter";
         } else {
           // Fallback to price-based determination
           const centAmount = amount;
