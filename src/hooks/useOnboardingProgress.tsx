@@ -3,11 +3,13 @@ import { useProfile } from './useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserStatus } from '@/contexts/UserStatusContext';
+import { useDeveloperAccess } from './useDeveloperAccess';
 
 export const useOnboardingProgress = () => {
   const { profile } = useProfile();
   const { selectedCalendar, calendars } = useCalendarContext();
   const { userStatus, invalidateCache } = useUserStatus();
+  const { isDeveloper } = useDeveloperAccess();
   const [serviceTypeCount, setServiceTypeCount] = useState(0);
   const [availabilityRulesCount, setAvailabilityRulesCount] = useState(0);
   const [bookingSettingsConfigured, setBookingSettingsConfigured] = useState(false);
@@ -72,8 +74,16 @@ export const useOnboardingProgress = () => {
   }, [profile?.id, calendars]);
 
   // Check if setup is complete and automatically progress user status
+  // Skip auto-promotion if developer has manually set the status
   useEffect(() => {
     if (!profile?.id || userStatus.userType !== 'setup_incomplete') return;
+    
+    // Skip automatic promotion if we're in developer mode
+    // This allows developers to simulate setup_incomplete status even with complete data
+    if (isDeveloper) {
+      console.log('Developer mode: Skipping automatic promotion to preserve manually set status');
+      return;
+    }
     
     const isBusinessInfoComplete = !!(profile.business_name && profile.business_type);
     const isServiceTypesComplete = serviceTypeCount > 0;
@@ -110,7 +120,7 @@ export const useOnboardingProgress = () => {
       
       progressToActiveTrial();
     }
-  }, [profile?.id, profile?.business_name, profile?.business_type, serviceTypeCount, calendars.length, availabilityRulesCount, userStatus.userType, invalidateCache]);
+  }, [profile?.id, profile?.business_name, profile?.business_type, serviceTypeCount, calendars.length, availabilityRulesCount, userStatus.userType, invalidateCache, isDeveloper]);
 
   const progress = useMemo(() => {
     if (!profile) {
