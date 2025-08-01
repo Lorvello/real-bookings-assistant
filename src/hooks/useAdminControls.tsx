@@ -89,7 +89,7 @@ export const useAdminControls = () => {
           title: "Success",
           description: result.message || "User subscription updated successfully (developer mode)",
         });
-        return result.user;
+        return result;
       } else {
         throw new Error(result.error || "Failed to update user subscription");
       }
