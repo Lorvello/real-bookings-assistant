@@ -134,13 +134,13 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
 
         {/* Tab Content */}
         <TabsContent value="overview">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-2 md:p-6">
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-1 md:p-6">
             <OverviewTab calendarIds={calendarIds} dateRange={dateRange} />
           </div>
         </TabsContent>
 
         <TabsContent value="business-intelligence">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-2 md:p-6">
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-1 md:p-6">
             {hasBusinessIntelligenceAccess ? (
               <BusinessIntelligenceTab 
                 calendarIds={calendarIds}
@@ -161,7 +161,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
         </TabsContent>
 
         <TabsContent value="performance-efficiency">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-2 md:p-6">
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-1 md:p-6">
             {hasPerformanceAccess ? (
               <PerformanceEfficiencyTab 
                 calendarIds={calendarIds}
@@ -182,13 +182,13 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
         </TabsContent>
 
         <TabsContent value="live-operations">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-2 md:p-6">
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-1 md:p-6">
             <LiveOperationsTab calendarIds={calendarIds} />
           </div>
         </TabsContent>
 
         <TabsContent value="future-insights">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-2 md:p-6">
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-1 md:p-6">
             {hasFutureInsightsAccess ? (
               <FutureInsightsTab calendarIds={calendarIds} />
             ) : (
