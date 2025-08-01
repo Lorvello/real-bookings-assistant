@@ -135,97 +135,133 @@ export const BillingTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Current Plan Overview */}
+      {/* Current Plan & Subscription Usage - Combined Top Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Current Plan */}
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-white flex items-center gap-2">
+                <Crown className="w-5 h-5 text-yellow-500" />
+                Current Plan
+              </CardTitle>
+              <Button 
+                onClick={handleManageSubscription}
+                disabled={loading}
+                variant="outline"
+                size="sm"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                {loading ? 'Loading...' : 'Manage Plan'}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col gap-4">
+              <div>
+                <h3 className="text-xl font-semibold text-white capitalize">
+                  {currentPlan?.tier_name || 'No Plan'} Plan
+                </h3>
+                <p className="text-gray-400">{currentPlan?.description}</p>
+                {userStatus.daysRemaining > 0 && userStatus.userType === 'trial' && (
+                  <p className="text-yellow-400 text-sm mt-1">
+                    {userStatus.daysRemaining} days remaining in trial
+                  </p>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-white">
+                  €{billingCycle === 'monthly' ? currentPlan?.price_monthly : currentPlan?.price_yearly}
+                  <span className="text-sm text-gray-400 font-normal">
+                    /{billingCycle === 'monthly' ? 'month' : 'year'}
+                  </span>
+                </div>
+                {billingCycle === 'yearly' && currentPlan?.price_monthly && (
+                  <p className="text-sm text-green-400">
+                    Save €{((currentPlan.price_monthly * 12) - (currentPlan.price_yearly || 0)).toFixed(0)} per year
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {currentPlan?.features && (
+              <div>
+                <h4 className="text-white font-medium mb-3">Plan Features</h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {(currentPlan.features as string[]).slice(0, 4).map((feature, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                      <span className="text-gray-300 text-sm">{feature}</span>
+                    </div>
+                  ))}
+                  {(currentPlan.features as string[]).length > 4 && (
+                    <p className="text-gray-400 text-xs mt-2">
+                      +{(currentPlan.features as string[]).length - 4} more features
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Subscription Usage */}
+        <UsageSummary className="bg-gray-800 border-gray-700" />
+      </div>
+
+      {/* Billing History - Middle Section */}
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-white flex items-center gap-2">
-              <Crown className="w-5 h-5 text-yellow-500" />
-              Current Plan
-            </CardTitle>
+          <CardTitle className="text-white flex items-center gap-2">
+            <CreditCard className="w-5 h-5" />
+            Billing History
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-400 mb-4">
+              View your complete billing history and download invoices in the Stripe customer portal.
+            </p>
             <Button 
               onClick={handleManageSubscription}
               disabled={loading}
               variant="outline"
-              size="sm"
             >
-              <Settings className="w-4 h-4 mr-2" />
-              {loading ? 'Loading...' : 'Manage Plan'}
+              <Download className="w-4 h-4 mr-2" />
+              View Billing History
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-semibold text-white capitalize">
-                {currentPlan?.tier_name || 'No Plan'} Plan
-              </h3>
-              <p className="text-gray-400">{currentPlan?.description}</p>
-              {userStatus.daysRemaining > 0 && userStatus.userType === 'trial' && (
-                <p className="text-yellow-400 text-sm mt-1">
-                  {userStatus.daysRemaining} days remaining in trial
-                </p>
-              )}
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-white">
-                €{billingCycle === 'monthly' ? currentPlan?.price_monthly : currentPlan?.price_yearly}
-                <span className="text-sm text-gray-400 font-normal">
-                  /{billingCycle === 'monthly' ? 'month' : 'year'}
-                </span>
-              </div>
-              {billingCycle === 'yearly' && currentPlan?.price_monthly && (
-                <p className="text-sm text-green-400">
-                  Save €{((currentPlan.price_monthly * 12) - (currentPlan.price_yearly || 0)).toFixed(0)} per year
-                </p>
-              )}
-            </div>
-          </div>
-
-          {currentPlan?.features && (
-            <div>
-              <h4 className="text-white font-medium mb-3">Plan Features</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {(currentPlan.features as string[]).map((feature, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {/* Billing Cycle Toggle */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-center gap-4">
-            <span className={`text-sm ${billingCycle === 'monthly' ? 'text-white' : 'text-gray-400'}`}>
-              Monthly
-            </span>
-            <Switch 
-              checked={billingCycle === 'yearly'}
-              onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
-            />
-            <span className={`text-sm ${billingCycle === 'yearly' ? 'text-white' : 'text-gray-400'}`}>
-              Yearly
-            </span>
-            {billingCycle === 'yearly' && (
-              <Badge className="bg-green-500/10 text-green-400 border-green-500/20 ml-2">
-                Save 20%
-              </Badge>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Plan Comparison */}
+      {/* Available Plans - Bottom Section */}
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
-          <CardTitle className="text-white">Available Plans</CardTitle>
-          <p className="text-gray-400">Choose the plan that best fits your needs</p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <CardTitle className="text-white">Available Plans</CardTitle>
+              <p className="text-gray-400">Choose the plan that best fits your needs</p>
+            </div>
+            {/* Billing Cycle Toggle */}
+            <div className="flex items-center gap-4">
+              <span className={`text-sm ${billingCycle === 'monthly' ? 'text-white' : 'text-gray-400'}`}>
+                Monthly
+              </span>
+              <Switch 
+                checked={billingCycle === 'yearly'}
+                onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
+              />
+              <span className={`text-sm ${billingCycle === 'yearly' ? 'text-white' : 'text-gray-400'}`}>
+                Yearly
+              </span>
+              {billingCycle === 'yearly' && (
+                <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                  Save 20%
+                </Badge>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -331,34 +367,6 @@ export const BillingTab: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Billing History */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <CreditCard className="w-5 h-5" />
-            Billing History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-400 mb-4">
-              View your complete billing history and download invoices in the Stripe customer portal.
-            </p>
-            <Button 
-              onClick={handleManageSubscription}
-              disabled={loading}
-              variant="outline"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              View Billing History
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Subscription Usage */}
       <UsageSummary className="bg-gray-800 border-gray-700" />
     </div>
   );
