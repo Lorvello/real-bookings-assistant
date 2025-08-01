@@ -54,7 +54,16 @@ const formSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
   companyName: z.string().min(2, 'Company name must be at least 2 characters'),
-  companyWebsite: z.string().url('Please enter a valid website URL'),
+  companyWebsite: z.string()
+    .min(1, 'Please enter your company website')
+    .transform((url) => {
+      // Add https:// if no protocol is provided
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        return `https://${url}`;
+      }
+      return url;
+    })
+    .pipe(z.string().url('Please enter a valid website URL')),
   phoneNumber: z.string().optional(),
   companySize: z.string().min(1, 'Please select your company size'),
   selectedFeatures: z.array(z.string()).min(1, 'Please select at least one feature of interest'),
