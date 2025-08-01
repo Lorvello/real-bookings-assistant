@@ -136,7 +136,7 @@ export const DeveloperStatusManager = () => {
         // For setup incomplete: clear business data but keep subscription settings  
         updates.subscription_status = 'trial';
         updates.subscription_tier = 'professional';
-        updates.trial_end_date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        updates.trial_end_date = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         updates.subscription_end_date = null;
         updates.business_name = null; // Clear to trigger setup_incomplete detection
         updates.business_type = null; // Clear to trigger setup_incomplete detection
@@ -145,7 +145,7 @@ export const DeveloperStatusManager = () => {
         // For active trial: complete business data with trial settings
         updates.subscription_status = 'trial';
         updates.subscription_tier = 'professional';
-        updates.trial_end_date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        updates.trial_end_date = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         updates.subscription_end_date = null;
         updates.business_name = 'Demo Business';
         updates.business_type = 'salon';
