@@ -152,15 +152,8 @@ serve(async (req) => {
       error: updateResult.error, 
       data: updateResult.data,
       subscription_status: hasActiveSub ? 'active' : 'expired',
-      subscription_tier: subscriptionTier,
-      rowsAffected: updateResult.count
+      subscription_tier: subscriptionTier 
     });
-    
-    // Verify the update worked by checking if any rows were affected
-    if (updateResult.error) {
-      logStep("ERROR: User table update failed", { error: updateResult.error });
-      throw new Error(`Failed to update user record: ${updateResult.error.message}`);
-    }
     
     // Also update subscribers table for backup tracking
     const subscriberUpdateResult = await supabaseClient.from("subscribers").upsert({
