@@ -100,24 +100,55 @@ export const BillingTab: React.FC = () => {
   };
 
   const getCurrentPlan = () => {
-    if (!tiers) return null;
+    if (!tiers || !profileData) return null;
     
-    // Get user's actual subscription tier from profile
-    const userTier = userStatus.isSetupIncomplete ? null : 
-      (userStatus.userType === 'subscriber' || userStatus.userType === 'canceled_subscriber' || userStatus.userType === 'trial') 
-        ? (profileData?.subscription_tier || 'starter') 
-        : 'starter';
-    
-    // If user has no tier or is setup incomplete, show free tier
-    if (!userTier || userStatus.isSetupIncomplete) {
-      return tiers.find(tier => tier.tier_name === 'free') || tiers[0];
+    // For users with no active subscription, return null
+    if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
+      return null;
     }
     
-    // Find the matching tier
+    // Get user's actual subscription tier from their profile data
+    const userTier = profileData.subscription_tier;
+    
+    // If no tier specified, default to starter for active users
+    if (!userTier) {
+      return tiers.find(tier => tier.tier_name === 'starter') || tiers[0];
+    }
+    
+    // Find the matching tier from the database
     const matchingTier = tiers.find(tier => tier.tier_name === userTier);
     
-    // Fallback to starter if tier not found
+    // Return the exact tier from database or fallback
     return matchingTier || tiers.find(tier => tier.tier_name === 'starter') || tiers[0];
+  };
+
+  const getCurrentPrice = () => {
+    if (!currentPlan) return { amount: 0, currency: '€', period: '/month', displayText: 'Free' };
+    
+    // For trial users, show the plan price but indicate it's free during trial
+    const price = billingCycle === 'yearly' ? currentPlan.price_yearly : currentPlan.price_monthly;
+    
+    if (!price || price === 0) {
+      return { amount: 0, currency: '€', period: '/month', displayText: 'Free' };
+    }
+    
+    const period = billingCycle === 'yearly' ? '/year' : '/month';
+    return { 
+      amount: price, 
+      currency: '€', 
+      period, 
+      displayText: `${price}${period}` 
+    };
+  };
+
+  const getBillingStatus = () => {
+    if (userStatus.userType === 'trial' && userStatus.daysRemaining > 0) {
+      return 'Free during trial period';
+    }
+    if (userStatus.userType === 'canceled_subscriber') {
+      return `Canceled - access until ${userStatus.subscriptionEndDate ? new Date(userStatus.subscriptionEndDate).toLocaleDateString() : 'end date'}`;
+    }
+    return billingCycle === 'yearly' ? 'Billed annually' : 'Billed monthly';
   };
 
   const currentPlan = getCurrentPlan();
@@ -208,23 +239,18 @@ export const BillingTab: React.FC = () => {
                 ) : (
                   <>
                     <div className="text-2xl font-bold text-white">
-                      {!currentPlan || currentPlan?.price_monthly === 0 ? (
-                        'Free'
+                      {getCurrentPrice().amount === 0 ? (
+                        getCurrentPrice().displayText
                       ) : (
                         <>
-                          €{currentPlan?.price_monthly || 0}
-                          <span className="text-sm text-gray-400 font-normal">/month</span>
+                          {getCurrentPrice().currency}{getCurrentPrice().amount}
+                          <span className="text-sm text-gray-400 font-normal">{getCurrentPrice().period}</span>
                         </>
                       )}
                     </div>
-                    {currentPlan && currentPlan?.price_monthly > 0 && (
+                    {currentPlan && getCurrentPrice().amount > 0 && (
                       <p className="text-sm text-gray-400">
-                        {userStatus.userType === 'trial' && userStatus.daysRemaining > 0 
-                          ? 'Free during trial period'
-                          : userStatus.userType === 'canceled_subscriber'
-                          ? 'Canceled - access until end date'
-                          : 'Billed monthly'
-                        }
+                        {getBillingStatus()}
                       </p>
                     )}
                   </>
@@ -232,52 +258,79 @@ export const BillingTab: React.FC = () => {
               </div>
             </div>
 
-            {/* Billing Timeline */}
-            <Separator className="bg-gray-700" />
-            <div>
-              <h4 className="text-white font-medium mb-4 flex items-center gap-2">
-                <CalendarClock className="w-4 h-4" />
-                Billing Timeline
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Next Billing</span>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-blue-400" />
-                      <span className="text-white text-sm font-medium">
-                        {userStatus.subscriptionEndDate 
-                          ? new Date(userStatus.subscriptionEndDate).toLocaleDateString()
-                          : 'Mar 15, 2024'
-                        }
-                      </span>
+            {/* Billing Timeline - Only show for users with subscriptions */}
+            {(userStatus.userType !== 'expired_trial' && userStatus.userType !== 'canceled_and_inactive') && (
+              <>
+                <Separator className="bg-gray-700" />
+                <div>
+                  <h4 className="text-white font-medium mb-4 flex items-center gap-2">
+                    <CalendarClock className="w-4 h-4" />
+                    Billing Timeline
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400 text-sm">
+                          {userStatus.userType === 'canceled_subscriber' ? 'Access Until' : 'Next Billing'}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-blue-400" />
+                          <span className="text-white text-sm font-medium">
+                            {userStatus.subscriptionEndDate 
+                              ? new Date(userStatus.subscriptionEndDate).toLocaleDateString()
+                              : userStatus.trialEndDate && userStatus.userType === 'trial'
+                              ? new Date(userStatus.trialEndDate).toLocaleDateString()
+                              : 'Not available'
+                            }
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400 text-sm">Billing Cycle</span>
+                        <span className="text-gray-300 text-sm">
+                          {userStatus.userType === 'trial' 
+                            ? 'Trial Period' 
+                            : getBillingStatus().includes('annually') 
+                            ? 'Yearly' 
+                            : 'Monthly'
+                          }
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Billing Cycle</span>
-                    <span className="text-gray-300 text-sm">
-                      {billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}
-                    </span>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400 text-sm">Plan Status</span>
+                        <div className="flex items-center gap-1">
+                          {userStatus.userType === 'trial' ? (
+                            <AlertCircle className="w-3 h-3 text-yellow-400" />
+                          ) : userStatus.userType === 'canceled_subscriber' ? (
+                            <AlertCircle className="w-3 h-3 text-yellow-400" />
+                          ) : (
+                            <CheckCircle className="w-3 h-3 text-green-400" />
+                          )}
+                          <span className={`text-sm ${
+                            userStatus.userType === 'trial' ? 'text-yellow-400' :
+                            userStatus.userType === 'canceled_subscriber' ? 'text-yellow-400' :
+                            'text-green-400'
+                          }`}>
+                            {userStatus.userType === 'trial' ? 'Trial Active' :
+                             userStatus.userType === 'canceled_subscriber' ? 'Canceled' :
+                             'Active'
+                            }
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400 text-sm">Current Plan</span>
+                        <span className="text-gray-300 text-sm font-medium">
+                          {currentPlan?.display_name || currentPlan?.tier_name || 'Free'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Last Payment</span>
-                    <div className="flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3 text-green-400" />
-                      <span className="text-gray-300 text-sm">Feb 15, 2024</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Payment Status</span>
-                    <div className="flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3 text-green-400" />
-                      <span className="text-green-400 text-sm">Current</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
 
           </CardContent>
         </Card>
