@@ -369,16 +369,12 @@ Thank you!`);
               </CardTitle>
               <Button 
                 onClick={handleManageSubscription}
-                disabled={loading}
+                disabled={loading || !userStatus.isSubscriber}
                 variant="outline"
                 size="sm"
               >
                 <Settings className="w-4 h-4 mr-2" />
-                {loading ? 'Loading...' : 
-                  (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') 
-                    ? 'Choose Plan' 
-                    : 'Manage Plan'
-                }
+                {loading ? 'Loading...' : 'Manage Subscription'}
               </Button>
             </div>
           </CardHeader>
