@@ -438,14 +438,16 @@ export const BillingTab: React.FC = () => {
           ) : (
             <div className="text-center py-8">
               <CreditCard className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-              <h3 className="text-white font-medium mb-2">No Billing History</h3>
+              <h3 className="text-white font-medium mb-2">No billing history available</h3>
               <p className="text-gray-400 text-sm">
-                {userStatus.userType === 'trial' || userStatus.userType === 'expired_trial' 
-                  ? "Your billing history will appear here after you start a paid subscription."
+                {userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive'
+                  ? "No billing history available"
+                  : userStatus.userType === 'trial' || userStatus.userType === 'setup_incomplete'
+                  ? "Your billing history will appear here after your first payment"
                   : "No billing records found for your account."
                 }
               </p>
-              {(userStatus.userType === 'trial' || userStatus.userType === 'expired_trial') && (
+              {(userStatus.userType === 'trial' || userStatus.userType === 'expired_trial' || userStatus.userType === 'setup_incomplete') && (
                 <Button 
                   className="mt-4" 
                   onClick={() => document.getElementById('available-plans')?.scrollIntoView({ behavior: 'smooth' })}
