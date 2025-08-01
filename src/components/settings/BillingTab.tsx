@@ -31,6 +31,7 @@ import { UsageSummary } from '@/components/ui/UsageSummary';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { SubscriptionManagementModal } from './SubscriptionManagementModal';
 
 export const BillingTab: React.FC = () => {
   const { userStatus, accessControl } = useUserStatus();
@@ -40,40 +41,17 @@ export const BillingTab: React.FC = () => {
   const { toast } = useToast();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
+  const [showManagementModal, setShowManagementModal] = useState(false);
 
   const handleManageSubscription = async () => {
-    // Only show customer portal for users with active subscriptions/billing history
+    // Only show management modal for users with active subscriptions/billing history
     if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
       // Redirect to plans section for users without subscriptions
       document.getElementById('available-plans')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
 
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('customer-portal', {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      } else {
-        throw new Error('No portal URL received');
-      }
-    } catch (error) {
-      console.error('Error opening customer portal:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to open billing portal. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
+    setShowManagementModal(true);
   };
 
   const handleViewAllHistory = async () => {
@@ -735,6 +713,13 @@ Thank you!`);
           </div>
         </CardContent>
       </Card>
+
+      <SubscriptionManagementModal
+        isOpen={showManagementModal}
+        onClose={() => setShowManagementModal(false)}
+        currentTier={billingData?.subscription_tier}
+        billingCycle={billingData?.billing_cycle}
+      />
     </div>
   );
 };

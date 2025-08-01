@@ -12,3 +12,9 @@ verify_jwt = true
 
 [functions.check-subscription]
 verify_jwt = true
+
+[functions.cancel-subscription]
+verify_jwt = true
+
+[functions.change-billing-cycle]
+verify_jwt = true
