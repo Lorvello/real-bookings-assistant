@@ -50,23 +50,14 @@ export function UserProfileSection({ isSidebarOpen, onSignOut, tooltipsDisabled 
               <UserCircle className="h-6 w-6 text-gray-400" />
             </div>
             
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={onSignOut}
-                  variant="ghost"
-                  className="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white transition-all duration-200 hover:scale-105 p-0"
-                  title="Sign Out"
-                >
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              {!tooltipsDisabled && (
-                <TooltipContent side="right" className="bg-popover border text-popover-foreground">
-                  <p className="text-sm">Sign Out</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
+            <Button
+              onClick={onSignOut}
+              variant="ghost"
+              className="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white transition-all duration-200 hover:scale-105 p-0"
+              title="Sign Out"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
           </div>
         )}
     </div>

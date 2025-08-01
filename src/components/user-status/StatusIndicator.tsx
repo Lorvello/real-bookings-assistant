@@ -155,85 +155,76 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
   };
 
   return (
-    <Tooltip>
-        <TooltipTrigger asChild>
-          <div className={`mb-2 ${isExpanded ? `px-3 py-2 rounded-lg border ${getBgColor()}` : 'w-12 h-12 flex flex-col items-center justify-center rounded-lg border mx-2'} ${getBgColor()}`}>
-            {isExpanded ? (
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  {getIcon()}
-                </div>
-                <div className="ml-3 min-w-0 flex-1">
-                  {userType === 'setup_incomplete' ? (
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium text-yellow-400">
-                        {daysRemaining} Days Free Trial Remaining
-                      </p>
-                      {currentTier && tierDisplay && (
-                        <div className="flex items-center gap-1">
-                          <Crown className={`h-3 w-3 ${getTierColor(currentTier)}`} />
-                          <p className={`text-xs ${getTierColor(currentTier)}`}>
-                            {tierDisplay}
-                          </p>
-                        </div>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate('/dashboard')}
-                        className="w-full h-6 text-xs py-1 px-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10"
-                      >
-                        Complete Setup
-                      </Button>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className={`text-xs font-medium ${getColorClass()}`}>
-                        {statusMessage}
-                      </p>
-                      {/* Always show subscription tier if available */}
-                      {currentTier && tierDisplay && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <Crown className={`h-3 w-3 ${getTierColor(currentTier)}`} />
-                          <p className={`text-xs ${getTierColor(currentTier)}`}>
-                            {tierDisplay}
-                          </p>
-                        </div>
-                      )}
-                      {/* Show additional info based on user type */}
-                      {userType === 'trial' && daysRemaining <= 3 && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          Upgrade to keep access
-                        </p>
-                      )}
-                      {userType === 'canceled_subscriber' && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          Access will end soon
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
+    <div className={`mb-2 ${isExpanded ? `px-3 py-2 rounded-lg border ${getBgColor()}` : 'w-12 h-12 flex flex-col items-center justify-center rounded-lg border mx-2'} ${getBgColor()}`}>
+      {isExpanded ? (
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            {getIcon()}
+          </div>
+          <div className="ml-3 min-w-0 flex-1">
+            {userType === 'setup_incomplete' ? (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-yellow-400">
+                  {daysRemaining} Days Free Trial Remaining
+                </p>
+                {currentTier && tierDisplay && (
+                  <div className="flex items-center gap-1">
+                    <Crown className={`h-3 w-3 ${getTierColor(currentTier)}`} />
+                    <p className={`text-xs ${getTierColor(currentTier)}`}>
+                      {tierDisplay}
+                    </p>
+                  </div>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full h-6 text-xs py-1 px-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10"
+                >
+                  Complete Setup
+                </Button>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center gap-0.5">
-                <div className="flex-shrink-0">
-                  {React.cloneElement(getIcon() as React.ReactElement, { className: `h-4 w-4 ${getColorClass()}` })}
-                </div>
-                {getCompactDisplay() && (
-                  <span className={`text-[8px] font-medium ${getColorClass()}`}>
-                    {getCompactDisplay()}
-                  </span>
+              <div>
+                <p className={`text-xs font-medium ${getColorClass()}`}>
+                  {statusMessage}
+                </p>
+                {/* Always show subscription tier if available */}
+                {currentTier && tierDisplay && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <Crown className={`h-3 w-3 ${getTierColor(currentTier)}`} />
+                    <p className={`text-xs ${getTierColor(currentTier)}`}>
+                      {tierDisplay}
+                    </p>
+                  </div>
+                )}
+                {/* Show additional info based on user type */}
+                {userType === 'trial' && daysRemaining <= 3 && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Upgrade to keep access
+                  </p>
+                )}
+                {userType === 'canceled_subscriber' && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    Access will end soon
+                  </p>
                 )}
               </div>
             )}
           </div>
-        </TooltipTrigger>
-        {!isExpanded && !tooltipsDisabled && (
-          <TooltipContent side="right" className="bg-popover border text-popover-foreground">
-            <p className="text-sm">{getTooltipText()}</p>
-          </TooltipContent>
-        )}
-    </Tooltip>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center gap-0.5">
+          <div className="flex-shrink-0">
+            {React.cloneElement(getIcon() as React.ReactElement, { className: `h-4 w-4 ${getColorClass()}` })}
+          </div>
+          {getCompactDisplay() && (
+            <span className={`text-[8px] font-medium ${getColorClass()}`}>
+              {getCompactDisplay()}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

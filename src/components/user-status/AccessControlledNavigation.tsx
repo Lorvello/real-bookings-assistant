@@ -226,72 +226,51 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
   return (
     <nav className="flex-1 space-y-1 px-2 py-4">
         {navigationItems.map((item) => (
-          <Tooltip key={item.name}>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => handleItemClick(item)}
-                className={`
-                  group flex items-center rounded-lg transition-all duration-200 w-full text-left hover:scale-105
-                  min-h-[44px] touch-manipulation mb-2
-                  ${isSidebarOpen 
-                    ? 'px-2 py-2 text-sm font-medium' 
-                    : 'w-12 h-12 justify-center p-0 mx-auto'
-                  }
-                  ${item.isActive 
-                    ? 'bg-green-600 text-white shadow-lg' 
-                    : item.isRestricted
-                      ? 'text-gray-500 hover:bg-gray-700 hover:text-gray-400 cursor-not-allowed'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  }
-                `}
-              >
-                <div className={`relative ${isSidebarOpen ? 'flex-shrink-0' : 'flex items-center justify-center'}`}>
-                  <item.icon
-                    className={`${isSidebarOpen ? 'mr-3' : ''} h-5 w-5 transition-colors duration-200 ${
-                      item.isActive 
-                        ? 'text-white' 
-                        : item.isRestricted 
-                          ? 'text-gray-600' 
-                          : 'text-gray-400 group-hover:text-white'
-                    }`}
-                  />
-                  {item.isRestricted && (
-                    <div className={`absolute ${isSidebarOpen ? '-top-1 -right-1' : '-top-1 -right-1'}`}>
-                      <Lock className="h-3 w-3 text-red-400" />
-                    </div>
-                  )}
+          <button
+            key={item.name}
+            onClick={() => handleItemClick(item)}
+            className={`
+              group flex items-center rounded-lg transition-all duration-200 w-full text-left hover:scale-105
+              min-h-[44px] touch-manipulation mb-2
+              ${isSidebarOpen 
+                ? 'px-2 py-2 text-sm font-medium' 
+                : 'w-12 h-12 justify-center p-0 mx-auto'
+              }
+              ${item.isActive 
+                ? 'bg-green-600 text-white shadow-lg' 
+                : item.isRestricted
+                  ? 'text-gray-500 hover:bg-gray-700 hover:text-gray-400 cursor-not-allowed'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              }
+            `}
+          >
+            <div className={`relative ${isSidebarOpen ? 'flex-shrink-0' : 'flex items-center justify-center'}`}>
+              <item.icon
+                className={`${isSidebarOpen ? 'mr-3' : ''} h-5 w-5 transition-colors duration-200 ${
+                  item.isActive 
+                    ? 'text-white' 
+                    : item.isRestricted 
+                      ? 'text-gray-600' 
+                      : 'text-gray-400 group-hover:text-white'
+                }`}
+              />
+              {item.isRestricted && (
+                <div className={`absolute ${isSidebarOpen ? '-top-1 -right-1' : '-top-1 -right-1'}`}>
+                  <Lock className="h-3 w-3 text-red-400" />
                 </div>
-                {isSidebarOpen && (
-                  <span className="overflow-hidden">
-                    {item.name}
-                  </span>
-                )}
-                {isSidebarOpen && item.isRestricted && (
-                  <div className="ml-auto">
-                    <Lock className="h-4 w-4 text-red-400" />
-                  </div>
-                )}
-              </button>
-            </TooltipTrigger>
-            {!isSidebarOpen && !tooltipsDisabled && (
-              <TooltipContent side="right" className="bg-popover border text-popover-foreground z-50">
-                <p className="text-sm">
-                  {item.isRestricted 
-                    ? (item.href === '/whatsapp-booking-assistant' || item.href === '/test-ai-agent') && userStatus.isSetupIncomplete
-                      ? `${item.name} - Complete setup to access this feature`
-                      : item.href === '/test-ai-agent' && userStatus.userType === 'expired_trial'
-                        ? `${item.name} - Trial expired, upgrade required`
-                        : item.href === '/test-ai-agent' && userStatus.userType === 'canceled_and_inactive'
-                          ? `${item.name} - Subscription required`
-                          : userStatus.isSetupIncomplete 
-                            ? `${item.name} - Setup required` 
-                            : `${item.name} - Upgrade required`
-                    : item.name
-                  }
-                </p>
-              </TooltipContent>
+              )}
+            </div>
+            {isSidebarOpen && (
+              <span className="overflow-hidden">
+                {item.name}
+              </span>
             )}
-          </Tooltip>
+            {isSidebarOpen && item.isRestricted && (
+              <div className="ml-auto">
+                <Lock className="h-4 w-4 text-red-400" />
+              </div>
+            )}
+          </button>
         ))}
     </nav>
   );
