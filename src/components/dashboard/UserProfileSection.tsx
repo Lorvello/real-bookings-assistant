@@ -16,7 +16,7 @@ export function UserProfileSection({ isSidebarOpen, onSignOut }: UserProfileSect
   const { profile } = useProfile();
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
       <div className="border-t border-gray-700 p-4">
         {isSidebarOpen ? (
           <>
@@ -45,19 +45,10 @@ export function UserProfileSection({ isSidebarOpen, onSignOut }: UserProfileSect
           </>
         ) : (
           <div className="flex flex-col items-center space-y-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="w-12 h-12 flex items-center justify-center rounded-lg hover:bg-gray-700 transition-colors cursor-pointer">
-                  <UserCircle className="h-6 w-6 text-gray-400" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="bg-popover border text-popover-foreground">
-                <div className="text-sm">
-                  <p className="font-medium">{profile?.full_name || 'User'}</p>
-                  <p className="text-muted-foreground">{user?.email}</p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
+            {/* Profile icon without tooltip when collapsed */}
+            <div className="w-12 h-12 flex items-center justify-center rounded-lg">
+              <UserCircle className="h-6 w-6 text-gray-400" />
+            </div>
             
             <Tooltip>
               <TooltipTrigger asChild>
@@ -70,7 +61,7 @@ export function UserProfileSection({ isSidebarOpen, onSignOut }: UserProfileSect
                   <LogOut className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-popover border text-popover-foreground">
+              <TooltipContent side="right" sideOffset={18} className="bg-popover border text-popover-foreground">
                 <p className="text-sm">Sign Out</p>
               </TooltipContent>
             </Tooltip>

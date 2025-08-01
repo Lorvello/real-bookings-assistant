@@ -154,7 +154,7 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
   };
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
       <Tooltip>
         <TooltipTrigger asChild>
           <div className={`mb-2 ${isExpanded ? `px-3 py-2 rounded-lg border ${getBgColor()}` : 'w-12 h-12 flex flex-col items-center justify-center rounded-lg border mx-2'} ${getBgColor()}`}>
@@ -229,7 +229,7 @@ export function StatusIndicator({ userStatus, isExpanded }: StatusIndicatorProps
             )}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="right" className="bg-popover border text-popover-foreground">
+        <TooltipContent side="right" sideOffset={18} className="bg-popover border text-popover-foreground">
           <p className="text-sm">{getTooltipText()}</p>
         </TooltipContent>
       </Tooltip>

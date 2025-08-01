@@ -10,7 +10,7 @@ interface BackToWebsiteButtonProps {
 
 export function BackToWebsiteButton({ isSidebarOpen, onBackToWebsite }: BackToWebsiteButtonProps) {
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={0} skipDelayDuration={0}>
       <div className="px-2 py-2 border-b border-gray-700">
         <Tooltip>
           <TooltipTrigger asChild>
@@ -35,7 +35,7 @@ export function BackToWebsiteButton({ isSidebarOpen, onBackToWebsite }: BackToWe
             </button>
           </TooltipTrigger>
           {!isSidebarOpen && (
-            <TooltipContent side="right" className="bg-popover border text-popover-foreground">
+            <TooltipContent side="right" sideOffset={18} className="bg-popover border text-popover-foreground">
               <p className="text-sm">Back to Website</p>
             </TooltipContent>
           )}
