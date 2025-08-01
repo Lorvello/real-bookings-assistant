@@ -367,7 +367,6 @@ export const BillingTab: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-      <UsageSummary className="bg-gray-800 border-gray-700" />
     </div>
   );
 };
