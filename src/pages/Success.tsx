@@ -93,12 +93,73 @@ export default function Success() {
           }
           
           console.log('Valid session/user found, verifying subscription...');
+          console.log('Current session token:', session?.access_token ? 'Present' : 'Missing');
           
-          // Now call check-subscription with valid session
-          const { data, error } = await supabase.functions.invoke('check-subscription');
+          // Test the check-subscription function call with detailed debugging
+          console.log('Calling check-subscription function...');
+          const startTime = Date.now();
+          
+          const { data, error } = await supabase.functions.invoke('check-subscription', {
+            headers: {
+              Authorization: `Bearer ${session?.access_token || 'no-token'}`,
+            }
+          });
+          
+          const endTime = Date.now();
+          console.log(`Function call completed in ${endTime - startTime}ms`);
+          console.log('Raw function response:', { data, error });
           
           if (error) {
-            console.error('Error verifying subscription:', error);
+            console.error('Function returned error:', {
+              message: error.message,
+              details: error.details,
+              code: error.code,
+              status: error.status
+            });
+            
+            // Check if it's an authentication issue
+            if (error.message?.includes('JWT') || error.message?.includes('auth') || error.status === 401) {
+              console.log('Authentication issue detected, trying to get fresh token...');
+              
+              // Try to get a fresh session
+              const { data: freshSession } = await supabase.auth.getSession();
+              if (freshSession.session) {
+                console.log('Retrying with fresh session...');
+                const { data: retryData, error: retryError } = await supabase.functions.invoke('check-subscription', {
+                  headers: {
+                    Authorization: `Bearer ${freshSession.session.access_token}`,
+                  }
+                });
+                
+                if (!retryError && retryData) {
+                  console.log('Retry successful:', retryData);
+                  // Process successful retry data
+                  const tierName = retryData?.subscription_tier;
+                  let displayTier = 'Professional';
+                  if (tierName === 'starter') {
+                    displayTier = 'Starter';
+                  } else if (tierName === 'professional') {
+                    displayTier = 'Professional';
+                  } else if (tierName === 'enterprise') {
+                    displayTier = 'Enterprise';
+                  }
+                  
+                  setSubscriptionTier(displayTier);
+                  await invalidateCache('paid_subscriber');
+                  
+                  if (!toastShownRef.current) {
+                    toastShownRef.current = true;
+                    toast({
+                      title: "Payment Successful!",
+                      description: `Your ${displayTier} subscription has been activated.`,
+                    });
+                  }
+                  return; // Exit successfully
+                } else {
+                  console.error('Retry also failed:', retryError);
+                }
+              }
+            }
             
             if (retryCount < maxRetries - 1) {
               retryCount++;
@@ -107,6 +168,7 @@ export default function Success() {
               return attemptVerification();
             }
             
+            // Final fallback - show success but recommend refresh
             if (!toastShownRef.current) {
               toastShownRef.current = true;
               toast({
@@ -115,7 +177,6 @@ export default function Success() {
                 variant: "default",
               });
             }
-            // Still navigate to dashboard 
             setTimeout(() => navigate('/dashboard'), 2000);
           } else {
             console.log('Subscription verified successfully:', data);
