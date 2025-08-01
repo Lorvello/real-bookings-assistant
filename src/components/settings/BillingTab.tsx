@@ -22,7 +22,6 @@ import {
   CalendarClock,
   CheckCircle,
   AlertCircle,
-  RefreshCw
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
@@ -43,6 +42,7 @@ export const BillingTab: React.FC = () => {
   const { toast } = useToast();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
+  const [showAllHistory, setShowAllHistory] = useState(false);
   
 
   const handleManageSubscription = async () => {
@@ -94,47 +94,8 @@ export const BillingTab: React.FC = () => {
     }
   };
 
-  const handleViewAllHistory = async () => {
-    setLoading(true);
-    try {
-      // Get current Stripe mode from utils
-      const { mode } = getStripeConfig();
-      
-      const { data, error } = await supabase.functions.invoke('customer-portal', {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: { mode },
-      });
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, '_blank');
-        
-        // Auto-refresh billing data after returning from portal
-        const checkForUpdates = () => {
-          document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-              setTimeout(() => {
-                refetch();
-              }, 2000);
-              document.removeEventListener('visibilitychange', checkForUpdates);
-            }
-          });
-        };
-        checkForUpdates();
-      }
-    } catch (error) {
-      console.error('Error opening billing history:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to open billing history. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleViewAllHistory = () => {
+    setShowAllHistory(!showAllHistory);
   };
 
   const handleUpgrade = async (tierName: string) => {
@@ -338,22 +299,7 @@ Thank you!`);
           <p className="text-gray-400 mt-1">Manage your subscription and billing preferences</p>
         </div>
         <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={billingLoading}
-          >
-            <RefreshCw className={`h-4 w-4 ${billingLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
           {getStatusBadge()}
-          {userStatus.subscriptionEndDate && (
-            <div className="text-sm text-gray-400">
-              <Calendar className="w-4 h-4 inline mr-1" />
-              Renews {new Date(userStatus.subscriptionEndDate).toLocaleDateString()}
-            </div>
-          )}
         </div>
       </div>
 
@@ -505,14 +451,14 @@ Thank you!`);
               <CreditCard className="w-5 h-5" />
               Billing History
             </CardTitle>
-            {billingData?.billing_history && billingData.billing_history.length > 0 && (
+            {billingData?.billing_history && billingData.billing_history.length > 3 && (
               <Button 
                 onClick={handleViewAllHistory}
                 disabled={loading}
                 variant="outline"
                 size="sm"
               >
-                View All History
+                {showAllHistory ? 'Show Less' : 'View All History'}
               </Button>
             )}
           </div>
@@ -538,6 +484,7 @@ Thank you!`);
                 <TableBody>
                   {billingData.billing_history
                     .filter(invoice => invoice && invoice.id) // Filter out invalid entries
+                    .slice(0, showAllHistory ? undefined : 3) // Show only 3 items unless viewing all
                     .map((invoice) => (
                     <TableRow key={invoice.id}>
                       <TableCell className="text-white">
