@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Check, X, ChevronLeft, ChevronRight, Info, ArrowRight } from 'lucide-react';
+import { Check, X, ChevronLeft, ChevronRight, Info, ArrowRight, Shield, Star, Users, Clock, TrendingUp, Award } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserType } from '@/types/userStatus';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -338,6 +338,112 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
 
             {/* Content */}
             <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12">
+              {/* Main Content Grid */}
+              <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-start">
+                
+                {/* Left Side - Trust & Value Section */}
+                <div className="lg:col-span-2 space-y-8">
+                  
+                  {/* Trust Indicators */}
+                  <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-sm border border-slate-700/40 rounded-2xl p-6 shadow-xl shadow-slate-900/30">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-emerald-500/20 rounded-lg">
+                        <Shield className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-white">Trusted & Secure</h3>
+                    </div>
+                    <div className="space-y-3 text-sm text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-emerald-400" />
+                        <span>SSL encrypted & secure payments</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-emerald-400" />
+                        <span>30-day money-back guarantee</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-emerald-400" />
+                        <span>Cancel anytime, no questions asked</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Social Proof */}
+                  <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-sm border border-slate-700/40 rounded-2xl p-6 shadow-xl shadow-slate-900/30">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-emerald-500/20 rounded-lg">
+                        <Users className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-white">Join 1,200+ Businesses</h3>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex -space-x-2">
+                          <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">JD</div>
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">SM</div>
+                          <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">AL</div>
+                        </div>
+                        <span className="text-sm text-slate-300">12 people signed up today</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex text-yellow-400">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="w-4 h-4 fill-current" />
+                          ))}
+                        </div>
+                        <span className="text-sm text-slate-300">4.9/5 from 150+ reviews</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Value Highlights */}
+                  <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-sm border border-slate-700/40 rounded-2xl p-6 shadow-xl shadow-slate-900/30">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-emerald-500/20 rounded-lg">
+                        <TrendingUp className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-white">What You're Getting</h3>
+                    </div>
+                    <div className="space-y-3 text-sm text-slate-300">
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-4 h-4 text-emerald-400" />
+                        <span>Save <strong className="text-white">15+ hours</strong> per week</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <TrendingUp className="w-4 h-4 text-emerald-400" />
+                        <span>Increase bookings by <strong className="text-white">40%</strong></span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Award className="w-4 h-4 text-emerald-400" />
+                        <span>Reduce no-shows by <strong className="text-white">60%</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Testimonial */}
+                  <div className="bg-gradient-to-br from-emerald-500/10 via-green-500/10 to-emerald-500/10 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-6 shadow-xl shadow-emerald-500/20">
+                    <div className="flex text-yellow-400 mb-3">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-slate-200 text-sm italic mb-3">
+                      "BookingsAssistant completely transformed our business. We went from chaos to organized efficiency in just one week!"
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">MB</div>
+                      <div>
+                        <div className="text-white text-sm font-medium">Maria Bakker</div>
+                        <div className="text-slate-400 text-xs">Beauty Salon Owner</div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Right Side - Plans Section */}
+                <div className="lg:col-span-3">
+                  
               {/* Premium Toggle */}
               <div className="flex items-center justify-center mb-8 md:mb-12">
                 <div className="bg-slate-800/50 rounded-full p-1 border border-slate-700/50">
@@ -372,7 +478,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
               </div>
 
               {/* Desktop Grid */}
-              <div className="hidden md:grid md:grid-cols-3 gap-8 items-stretch">
+              <div className="hidden md:grid md:grid-cols-3 gap-6 items-stretch">
                 {plans.map((plan, index) => (
                   <div key={plan.name} className={`relative rounded-3xl border h-full flex flex-col transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl ${
                     plan.isEnterprise
@@ -647,11 +753,14 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                     ))}
                   </div>
                 </div>
-              </div>
-            </div>
-            </div>
-            </div>
-          </div>
+              </div> {/* End Mobile Carousel */}
+              
+                </div> {/* End Right Side - Plans Section */}
+              </div> {/* End Main Content Grid */}
+            </div> {/* End Content */}
+            </div> {/* End Content container */}
+            </div> {/* End Premium Background */}
+          </div> {/* End Scrollable div */}
         </DialogContent>
       </Dialog>
 
