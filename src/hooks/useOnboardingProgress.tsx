@@ -133,7 +133,7 @@ export const useOnboardingProgress = () => {
       };
     }
 
-    // Updated to 4 essential steps
+    // Updated to 4 essential steps - ALL business fields required
     const steps = [
       {
         key: 'business_info',

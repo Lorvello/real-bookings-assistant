@@ -47,8 +47,13 @@ export function ServiceTypeQuickCreateDialog({
     
     if (!formData.name.trim()) return;
     
-    // Allow creation without a calendar (global service type)
-    const targetCalendarId = calendarId || selectedCalendar?.id || null;
+    // Require calendar ID for service creation - don't allow null
+    const targetCalendarId = calendarId || selectedCalendar?.id;
+    
+    if (!targetCalendarId) {
+      console.error("Cannot create service type without a calendar");
+      return;
+    }
     
     if (!user) {
       console.error("User not authenticated");
@@ -64,7 +69,7 @@ export function ServiceTypeQuickCreateDialog({
         price: formData.price ? parseFloat(formData.price) : undefined,
         color: formData.color,
         description: formData.description,
-        calendar_id: targetCalendarId, // Use provided calendarId or create global service type
+        calendar_id: targetCalendarId, // Fix: Don't pass null calendar_id, it causes foreign key errors
         is_active: true,
         max_attendees: 1,
         preparation_time: 0,
