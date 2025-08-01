@@ -56,7 +56,8 @@ export function UsageSummary({ className = "" }: UsageSummaryProps) {
   }
 
   const getUsagePercentage = (current: number, max: number | null) => {
-    if (max === null) return 0;
+    if (max === null || max === 0) return 0;
+    if (current === 0) return 0;
     return Math.max(0, Math.min((current / max) * 100, 100));
   };
 
@@ -110,6 +111,9 @@ export function UsageSummary({ className = "" }: UsageSummaryProps) {
       <CardContent className="space-y-4">
         {limits.map((limit) => {
           const Icon = limit.icon;
+          const showProgress = limit.max !== null && limit.max > 0;
+          const isUnlimited = limit.max === null;
+          
           return (
             <div key={limit.label} className="space-y-2">
               <div className="flex items-center justify-between text-sm">
@@ -117,20 +121,25 @@ export function UsageSummary({ className = "" }: UsageSummaryProps) {
                   <Icon className="h-4 w-4 text-muted-foreground" />
                   <span>{limit.label}</span>
                 </div>
-                <span className={`font-medium ${!limit.canAddMore ? 'text-destructive' : ''}`}>
-                  {limit.current}/{limit.max === null ? '∞' : limit.max}
+                <span className={`font-medium ${!limit.canAddMore && !isUnlimited ? 'text-destructive' : ''}`}>
+                  {limit.current || 0}/{isUnlimited ? '∞' : (limit.max || 0)}
                 </span>
               </div>
-              {limit.max !== null && (
+              {showProgress && (
                 <Progress 
-                  value={limit.percentage} 
+                  value={limit.percentage || 0} 
                   variant={limit.variant}
                   className="h-2"
                 />
               )}
-              {!limit.canAddMore && (
+              {!limit.canAddMore && !isUnlimited && limit.max && limit.max > 0 && (
                 <p className="text-xs text-destructive">
                   Limit reached - upgrade to add more {limit.label.toLowerCase()}
+                </p>
+              )}
+              {isUnlimited && (
+                <p className="text-xs text-muted-foreground">
+                  Unlimited {limit.label.toLowerCase()} available
                 </p>
               )}
             </div>

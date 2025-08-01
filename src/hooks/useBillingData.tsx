@@ -36,12 +36,28 @@ export const useBillingData = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Billing data fetch error:', error);
+        throw error;
+      }
+
+      // Ensure billing_history is always an array
+      if (data && !Array.isArray(data.billing_history)) {
+        data.billing_history = [];
+      }
+
       return data;
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
+    retry: (failureCount, error: any) => {
+      // Don't retry on authentication errors
+      if (error?.message?.includes('not authenticated')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
   return {

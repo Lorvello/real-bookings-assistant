@@ -238,36 +238,45 @@ Thank you!`);
   const getBillingTimelineData = () => {
     const isNoSubscription = userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive';
     
+    // Early return for users without subscription or billing data is loading
     if (isNoSubscription || !billingData) {
       return {
-        nextBilling: "—",
-        lastPayment: "No billing history yet", 
-        billingCycle: "—",
-        paymentStatus: "—"
+        nextBilling: "No active subscription",
+        lastPayment: "No billing history", 
+        billingCycle: "No subscription",
+        paymentStatus: "Inactive"
       };
     }
 
+    // Handle billing data that may be incomplete
     const nextBilling = billingData.next_billing_date 
       ? format(new Date(billingData.next_billing_date), "MMM d, yyyy")
-      : "—";
+      : (billingData.subscribed ? "Next billing date unavailable" : "No active subscription");
 
     const lastPayment = billingData.last_payment_date && billingData.last_payment_amount
       ? `${format(new Date(billingData.last_payment_date), "MMM d, yyyy")} - €${(billingData.last_payment_amount / 100).toFixed(2)}`
-      : "—";
+      : (billingData.subscribed ? "No payment history" : "No billing history");
 
     const billingCycle = billingData.billing_cycle 
       ? billingData.billing_cycle.charAt(0).toUpperCase() + billingData.billing_cycle.slice(1) + 'ly'
-      : "—";
+      : (billingData.subscribed ? "Cycle unavailable" : "No subscription");
 
-    const paymentStatus = billingData.payment_status === 'paid' ? 'Active' : 
-                         billingData.payment_status === 'unpaid' ? 'Failed' : 
-                         billingData.payment_status || "—";
+    // More robust payment status mapping
+    const getPaymentStatus = () => {
+      if (!billingData.subscribed) return 'Inactive';
+      if (billingData.payment_status === 'paid') return 'Active';
+      if (billingData.payment_status === 'unpaid') return 'Payment Failed';
+      if (billingData.payment_status === 'pending') return 'Payment Pending';
+      if (billingData.payment_status === 'requires_payment_method') return 'Payment Method Required';
+      if (billingData.payment_status === 'canceled') return 'Canceled';
+      return billingData.payment_status || 'Status Unknown';
+    };
 
     return {
       nextBilling,
       lastPayment,
       billingCycle,
-      paymentStatus
+      paymentStatus: getPaymentStatus()
     };
   };
 
@@ -470,30 +479,36 @@ Thank you!`);
           {billingLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <p className="text-gray-400 text-sm mt-2">Loading billing history...</p>
             </div>
-          ) : billingData?.billing_history && billingData.billing_history.length > 0 ? (
+          ) : (billingData?.billing_history && Array.isArray(billingData.billing_history) && billingData.billing_history.length > 0) ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-gray-400">Date</TableHead>
                     <TableHead className="text-gray-400">Amount</TableHead>
-                    <TableHead className="text-gray-400">Plan</TableHead>
+                    <TableHead className="text-gray-400">Description</TableHead>
                     <TableHead className="text-gray-400">Status</TableHead>
                     <TableHead className="text-gray-400 text-right">Invoice</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {billingData.billing_history.map((invoice) => (
+                  {billingData.billing_history
+                    .filter(invoice => invoice && invoice.id) // Filter out invalid entries
+                    .map((invoice) => (
                     <TableRow key={invoice.id}>
                       <TableCell className="text-white">
-                        {format(new Date(invoice.date), "MMM d, yyyy")}
+                        {invoice.date ? format(new Date(invoice.date), "MMM d, yyyy") : "Date unavailable"}
                       </TableCell>
                       <TableCell className="text-white">
-                        €{(invoice.amount / 100).toFixed(2)}
+                        {invoice.amount && typeof invoice.amount === 'number' 
+                          ? `${invoice.currency || '€'}${(invoice.amount / 100).toFixed(2)}`
+                          : "Amount unavailable"
+                        }
                       </TableCell>
-                      <TableCell className="text-white capitalize">
-                        {invoice.description}
+                      <TableCell className="text-white">
+                        {invoice.description || "No description"}
                       </TableCell>
                       <TableCell>
                         <Badge className={
@@ -506,7 +521,7 @@ Thank you!`);
                           {invoice.status === 'paid' ? 'Paid' : 
                            invoice.status === 'open' ? 'Pending' :
                            invoice.status === 'draft' ? 'Draft' : 
-                           invoice.status}
+                           invoice.status || 'Unknown'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -515,11 +530,12 @@ Thank you!`);
                             variant="ghost" 
                             size="sm" 
                             onClick={() => window.open(invoice.invoice_url!, '_blank')}
+                            title="Download invoice PDF"
                           >
                             <Download className="w-3 h-3" />
                           </Button>
                         ) : (
-                          <span className="text-gray-500 text-xs">No PDF</span>
+                          <span className="text-gray-500 text-xs">Not available</span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -530,21 +546,27 @@ Thank you!`);
           ) : (
             <div className="text-center py-8">
               <CreditCard className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-              <h3 className="text-white font-medium mb-2">No billing history available</h3>
-              <p className="text-gray-400 text-sm">
-                {userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive'
-                  ? "No billing history available"
-                  : userStatus.userType === 'trial' || userStatus.userType === 'setup_incomplete'
-                  ? "Your billing history will appear here after your first payment"
-                  : "No billing records found for your account."
-                }
+              <h3 className="text-white font-medium mb-2">No Billing History</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                {(() => {
+                  if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
+                    return "No billing history found for your account.";
+                  }
+                  if (userStatus.userType === 'trial' || userStatus.userType === 'setup_incomplete') {
+                    return "Your billing history will appear here after your first payment.";
+                  }
+                  if (billingData && !billingData.subscribed) {
+                    return "You don't have an active subscription yet.";
+                  }
+                  return "No billing records found. This may be due to a recent subscription or pending payment processing.";
+                })()}
               </p>
               {(userStatus.userType === 'trial' || userStatus.userType === 'expired_trial' || userStatus.userType === 'setup_incomplete') && (
                 <Button 
-                  className="mt-4" 
                   onClick={() => document.getElementById('available-plans')?.scrollIntoView({ behavior: 'smooth' })}
+                  variant="outline"
                 >
-                  View Plans
+                  View Available Plans
                 </Button>
               )}
             </div>
