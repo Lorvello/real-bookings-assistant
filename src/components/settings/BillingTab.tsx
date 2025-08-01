@@ -234,24 +234,6 @@ export const BillingTab: React.FC = () => {
               </div>
             </div>
 
-            {currentPlan?.features && (
-              <div>
-                <h4 className="text-white font-medium mb-3">Plan Features</h4>
-                <div className="grid grid-cols-1 gap-2">
-                  {(currentPlan.features as string[]).slice(0, 4).map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
-                      <span className="text-gray-300 text-sm">{feature}</span>
-                    </div>
-                  ))}
-                  {(currentPlan.features as string[]).length > 4 && (
-                    <p className="text-gray-400 text-xs mt-2">
-                      +{(currentPlan.features as string[]).length - 4} more features
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
