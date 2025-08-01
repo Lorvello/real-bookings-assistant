@@ -138,7 +138,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         {/* Only render sidebar content when visible on mobile or always on desktop */}
         {(!isMobile || isSidebarOpen) && (
-          <div className={`flex flex-col ${isMobile ? 'h-screen' : 'h-full'} overflow-y-auto`}>
+          <div className={`flex flex-col ${isMobile ? 'h-screen' : 'h-full'} overflow-y-auto dashboard-scrollbar`}>
             <SidebarHeader 
               isSidebarOpen={isSidebarOpen} 
               onToggleSidebar={toggleSidebar}
@@ -214,7 +214,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <div className={`flex-1 h-full ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`} style={isMobile ? { overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } : {}}>
-        <main className="w-full h-full overflow-y-auto">
+        <main className="w-full h-full overflow-y-auto dashboard-scrollbar">
           {children}
         </main>
       </div>
