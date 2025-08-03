@@ -56,15 +56,35 @@ export const LoginForm: React.FC = () => {
       if (error) {
         console.error('[Login] Email login error:', error);
         
+        // Handle email not confirmed - redirect to verification
+        if (error.message === 'email_not_confirmed') {
+          toast({
+            title: "Email Not Verified",
+            description: "Please verify your email address before signing in.",
+            variant: "destructive",
+          });
+          navigate('/verify-email', { state: { email: sanitizedEmail } });
+          return;
+        }
+        
         const errorMessages = {
           'invalid_credentials': 'Invalid email or password. Please check your credentials and try again.',
-          'email_not_confirmed': 'Please check your email and click the confirmation link before logging in.',
-          'too_many_requests': 'Too many login attempts. Please wait a moment and try again.'
+          'too_many_requests': 'Too many login attempts. Please wait 15 minutes and try again.',
+          'signup_disabled': 'Account creation is currently disabled. Please contact support.',
+          'email_address_invalid': 'Please enter a valid email address.',
+          'weak_password': 'Password does not meet security requirements.',
+          'user_not_found': 'No account found with this email address. Please check your email or create a new account.',
+          'account_suspended': 'Your account has been suspended. Please contact support for assistance.',
+          'network_request_failed': 'Network connection failed. Please check your internet connection and try again.'
         };
         
+        const userFriendlyMessage = errorMessages[error.message as keyof typeof errorMessages] || 
+          (error.message.includes('network') ? 'Connection failed. Please check your internet and try again.' : 
+           'Unable to sign in. Please try again or contact support if the issue continues.');
+        
         toast({
-          title: "Login Error",
-          description: errorMessages[error.message as keyof typeof errorMessages] || error.message,
+          title: "Sign In Failed",
+          description: userFriendlyMessage,
           variant: "destructive",
         });
         return;
@@ -135,7 +155,13 @@ export const LoginForm: React.FC = () => {
           </Button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-4 text-center">
+          <Link to="/forgot-password" className="text-sm text-primary hover:text-primary/80 underline">
+            Forgot your password?
+          </Link>
+        </div>
+
+        <div className="mt-4 text-center">
           <p className="text-sm text-muted-foreground">
             Don't have an account?{' '}
             <Link to="/signup" className="font-medium text-primary hover:text-primary/80 underline">

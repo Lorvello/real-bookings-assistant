@@ -66,12 +66,37 @@ export const useErrorHandler = () => {
       };
     }
 
-    // Auth errors
+    // Auth errors - comprehensive handling
     if (error?.message?.includes('JWT') || error?.status === 401) {
       return {
         type: 'auth',
-        message: 'Sessie verlopen - log opnieuw in',
+        message: 'Your session has expired. Please sign in again.',
         retryable: false
+      };
+    }
+
+    // Supabase specific auth errors
+    if (error?.message?.includes('email_not_confirmed')) {
+      return {
+        type: 'auth',
+        message: 'Please verify your email address before signing in.',
+        retryable: false
+      };
+    }
+
+    if (error?.message?.includes('invalid_credentials')) {
+      return {
+        type: 'auth',
+        message: 'Invalid email or password. Please check your credentials.',
+        retryable: false
+      };
+    }
+
+    if (error?.message?.includes('too_many_requests')) {
+      return {
+        type: 'auth',
+        message: 'Too many attempts. Please wait a moment and try again.',
+        retryable: true
       };
     }
 

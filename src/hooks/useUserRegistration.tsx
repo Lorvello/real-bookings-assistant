@@ -75,20 +75,36 @@ export const useUserRegistration = () => {
       if (authError) {
         console.error('[UserRegistration] Auth error:', authError);
         let errorMessage = authError.message;
+        let shouldShowToast = true;
         
-        if (authError.message.includes('already registered')) {
+        // Handle specific authentication errors with user-friendly messages
+        if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
           errorMessage = 'This email address is already registered';
-        } else if (authError.message.includes('invalid email')) {
-          errorMessage = 'Invalid email address';
-        } else if (authError.message.includes('password')) {
-          errorMessage = 'Password does not meet requirements (minimum 6 characters)';
+        } else if (authError.message.includes('invalid_email') || authError.message.includes('invalid email')) {
+          errorMessage = 'Please enter a valid email address';
+        } else if (authError.message.includes('weak_password') || authError.message.includes('password')) {
+          errorMessage = 'Password does not meet security requirements (minimum 8 characters with uppercase, lowercase, numbers, and special characters)';
+        } else if (authError.message.includes('signup_disabled')) {
+          errorMessage = 'Account registration is currently disabled. Please contact support.';
+        } else if (authError.message.includes('rate_limit') || authError.message.includes('too_many_requests')) {
+          errorMessage = 'Too many registration attempts. Please wait a few minutes and try again.';
+        } else if (authError.message.includes('network') || authError.message.includes('fetch')) {
+          errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+        } else if (authError.message.includes('email_rate_limit_exceeded')) {
+          errorMessage = 'Email verification limit reached. Please wait before requesting another verification email.';
+        } else {
+          // For unknown errors, provide a generic but helpful message
+          errorMessage = 'Unable to create account. Please try again or contact support if the issue continues.';
         }
 
-        toast({
-          title: "Registration failed",
-          description: errorMessage,
-          variant: "destructive",
-        });
+        if (shouldShowToast) {
+          toast({
+            title: "Registration Failed",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        }
+        
         setLoading(false);
         return { success: false, error: errorMessage };
       }

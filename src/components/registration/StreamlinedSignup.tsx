@@ -155,7 +155,28 @@ export const StreamlinedSignup: React.FC = () => {
       if (result.success) {
         navigate('/dashboard');
       } else {
-        setErrors({ general: result.error || 'Registration failed. Please try again.' });
+        // Handle specific registration errors
+        let errorMessage = result.error || 'Registration failed. Please try again.';
+        
+        if (result.error?.includes('already registered') || result.error?.includes('already been registered')) {
+          errorMessage = `An account with ${formData.email} already exists. Try signing in instead.`;
+          setErrors({ 
+            general: errorMessage,
+            email: 'This email is already registered'
+          });
+        } else if (result.error?.includes('invalid email')) {
+          setErrors({ 
+            general: 'Please enter a valid email address.',
+            email: 'Invalid email format'
+          });
+        } else if (result.error?.includes('password')) {
+          setErrors({ 
+            general: 'Password does not meet security requirements.',
+            password: 'Password too weak'
+          });
+        } else {
+          setErrors({ general: errorMessage });
+        }
       }
     } catch (error) {
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
