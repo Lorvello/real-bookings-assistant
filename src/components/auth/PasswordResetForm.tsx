@@ -44,24 +44,27 @@ export const PasswordResetForm: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log('[PasswordReset] Sending reset email to:', sanitizedEmail);
+      console.log('[PasswordReset] Sending reset email via edge function to:', sanitizedEmail);
       
-      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const { data, error } = await supabase.functions.invoke('send-password-reset', {
+        body: {
+          email: sanitizedEmail,
+          redirectTo: 'https://bookingassistant.com/reset-password'
+        }
       });
 
       if (error) {
-        console.error('[PasswordReset] Error:', error);
+        console.error('[PasswordReset] Edge function error:', error);
         handleError(error, 'Password reset request');
         return;
       }
 
-      console.log('[PasswordReset] Reset email sent successfully');
+      console.log('[PasswordReset] Reset email sent successfully via Resend');
       setResetSent(true);
       
       toast({
         title: "Reset Email Sent",
-        description: "Check your email for password reset instructions. If you don't see it, check your spam folder.",
+        description: "Check your email for password reset instructions from business@bookingassistant.com. If you don't see it, check your spam folder.",
       });
 
     } catch (error) {

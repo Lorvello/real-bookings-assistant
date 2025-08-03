@@ -1,0 +1,142 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "npm:resend@2.0.0";
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+interface PasswordResetRequest {
+  email: string;
+  redirectTo?: string;
+}
+
+const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
+  try {
+    const { email, redirectTo }: PasswordResetRequest = await req.json();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return new Response(JSON.stringify({ error: 'Valid email address is required' }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Generate a secure reset token (you'll need to implement this with your auth system)
+    const resetToken = crypto.randomUUID();
+    const resetUrl = `https://bookingassistant.com/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+    const expiryTime = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+    console.log("Sending password reset email to:", email);
+
+    const emailResponse = await resend.emails.send({
+      from: "BookingsAssistant <business@bookingassistant.com>",
+      to: [email],
+      subject: "Reset your BookingsAssistant password",
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
+          <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 40px; border-bottom: 1px solid #e2e8f0; padding-bottom: 30px;">
+              <img src="https://grdgjhkygzciwwrxgvgy.supabase.co/storage/v1/object/public/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" alt="BookingsAssistant" style="height: 60px; margin-bottom: 20px;" />
+              <h1 style="color: #1e293b; margin: 0; font-size: 28px; font-weight: 700; line-height: 1.3;">
+                Reset Your Password
+              </h1>
+              <p style="color: #64748b; margin: 16px 0 0 0; font-size: 16px;">
+                We received a request to reset your password
+              </p>
+            </div>
+
+            <!-- Main Content -->
+            <div style="margin-bottom: 40px;">
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
+                Hello,
+              </p>
+              
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 32px;">
+                We received a request to reset the password for your BookingsAssistant account. Click the button below to reset your password:
+              </p>
+
+              <!-- Reset Button -->
+              <div style="text-align: center; margin: 32px 0;">
+                <a href="${resetUrl}" style="display: inline-block; background-color: #2563eb; color: white; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+                  Reset Your Password
+                </a>
+              </div>
+
+              <!-- Alternative Link -->
+              <div style="background: #f8fafc; border-radius: 8px; padding: 20px; margin: 24px 0;">
+                <p style="color: #374151; font-size: 14px; margin: 0 0 12px 0;">
+                  If the button doesn't work, copy and paste this link into your browser:
+                </p>
+                <p style="color: #2563eb; font-size: 14px; margin: 0; word-break: break-all;">
+                  ${resetUrl}
+                </p>
+              </div>
+
+              <!-- Security Info -->
+              <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0;">
+                <p style="color: #92400e; font-size: 14px; margin: 0; font-weight: 600;">
+                  ⚠️ Important Security Information
+                </p>
+                <ul style="color: #92400e; font-size: 14px; margin: 8px 0 0 0; padding-left: 16px;">
+                  <li>This link will expire in 1 hour (at ${expiryTime.toLocaleString()})</li>
+                  <li>This link can only be used once</li>
+                  <li>If you didn't request this reset, you can safely ignore this email</li>
+                </ul>
+              </div>
+
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin-top: 32px;">
+                If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+              </p>
+            </div>
+
+            <!-- Footer -->
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 24px; text-align: center;">
+              <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                This email was sent by BookingsAssistant. If you have any questions, contact us at business@bookingassistant.com
+              </p>
+            </div>
+          </div>
+        </div>
+      `,
+    });
+
+    console.log("Password reset email sent successfully:", emailResponse);
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      message: 'Password reset email sent successfully' 
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+
+  } catch (error: any) {
+    console.error("Error in password reset function:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
+  }
+};
+
+serve(handler);
