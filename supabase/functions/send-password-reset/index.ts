@@ -44,7 +44,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending password reset email to:", email);
 
     const emailResponse = await resend.emails.send({
-      from: "BookingsAssistant <business@bookingassistant.com>",
+      from: "BookingsAssistant <business@bookingsassistant.com>",
       to: [email],
       subject: "Reset your BookingsAssistant password",
       html: `
