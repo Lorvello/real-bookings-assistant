@@ -18,8 +18,8 @@ export const PasswordResetConfirmForm: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Parse tokens from URL (try both hash and search params)
-  const parseTokenParams = () => {
+  // Parse both tokens and errors from URL
+  const parseUrlParams = () => {
     console.log("🔍 Current URL:", window.location.href);
     console.log("🔍 URL hash:", window.location.hash);
     console.log("🔍 URL search:", window.location.search);
@@ -29,8 +29,8 @@ export const PasswordResetConfirmForm: React.FC = () => {
     let params = new URLSearchParams(hash);
     
     // Fallback to search params if no tokens in hash
-    if (!params.get('access_token') && window.location.search) {
-      console.log("🔍 No tokens in hash, checking search params");
+    if (!params.get('access_token') && !params.get('error') && window.location.search) {
+      console.log("🔍 No tokens/errors in hash, checking search params");
       params = new URLSearchParams(window.location.search);
     }
     
@@ -38,6 +38,12 @@ export const PasswordResetConfirmForm: React.FC = () => {
       access_token: params.get('access_token'),
       refresh_token: params.get('refresh_token'),
       type: params.get('type')
+    };
+    
+    const errors = {
+      error: params.get('error'),
+      error_code: params.get('error_code'),
+      error_description: params.get('error_description')
     };
     
     console.log("🔍 Extracted tokens:", {
@@ -49,18 +55,47 @@ export const PasswordResetConfirmForm: React.FC = () => {
       source: hash ? 'hash' : 'search'
     });
     
-    return tokens;
+    console.log("🔍 Extracted errors:", errors);
+    
+    return { tokens, errors };
   };
 
   useEffect(() => {
-    // Check if we have the required tokens from hash fragments
-    const { access_token, refresh_token, type } = parseTokenParams();
+    // Parse both tokens and errors from URL
+    const { tokens, errors } = parseUrlParams();
+    const { access_token, refresh_token, type } = tokens;
     
     console.log("🔍 Token validation:", {
       hasTokens: !!(access_token && refresh_token),
       isRecoveryType: type === 'recovery',
-      currentPath: window.location.pathname
+      currentPath: window.location.pathname,
+      hasErrors: !!(errors.error)
     });
+    
+    // Check for URL-based errors first (like expired links)
+    if (errors.error) {
+      console.log("❌ Error in URL:", errors);
+      
+      let errorMessage = "Er is een probleem opgetreden met de reset link.";
+      let errorDescription = "Probeer opnieuw een nieuwe reset link aan te vragen.";
+      
+      if (errors.error_code === 'otp_expired' || errors.error === 'access_denied') {
+        errorMessage = "Reset Link Verlopen";
+        errorDescription = "Deze wachtwoord reset link is verlopen. Reset links zijn slechts 1 uur geldig. Vraag een nieuwe aan.";
+      } else if (errors.error_description) {
+        errorDescription = decodeURIComponent(errors.error_description.replace(/\+/g, ' '));
+      }
+      
+      toast({
+        title: errorMessage,
+        description: errorDescription,
+        variant: "destructive",
+      });
+      
+      // Stay on this page instead of redirecting, so user sees the error message
+      // They can manually navigate to forgot-password if needed
+      return;
+    }
     
     if (!access_token || !refresh_token || type !== 'recovery') {
       console.log("❌ Invalid tokens or type, redirecting to forgot-password");
