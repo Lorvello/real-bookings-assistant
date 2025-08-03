@@ -15,29 +15,7 @@ import PublicPageWrapper from "@/components/PublicPageWrapper";
 const Index = () => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Check for password reset parameters in URL hash or search
-    const urlParams = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
-    
-    // Check for any password reset related parameters
-    const hasResetParams = 
-      urlParams.get('access_token') || 
-      urlParams.get('refresh_token') || 
-      urlParams.get('token') || 
-      urlParams.get('type') === 'recovery' ||
-      hashParams.get('access_token') || 
-      hashParams.get('refresh_token') || 
-      hashParams.get('token') || 
-      hashParams.get('type') === 'recovery' ||
-      urlParams.get('error_description')?.includes('expired') ||
-      hashParams.get('error_description')?.includes('expired');
-
-    if (hasResetParams) {
-      console.log('Password reset parameters detected, redirecting to /reset-password');
-      navigate('/reset-password' + window.location.search + window.location.hash);
-    }
-  }, [navigate]);
+  // No password reset detection needed - emails now go directly to reset page
 
   return (
     <PublicPageWrapper>
