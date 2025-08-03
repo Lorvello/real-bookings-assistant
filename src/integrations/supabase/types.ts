@@ -1084,6 +1084,36 @@ export type Database = {
         }
         Relationships: []
       }
+      security_events: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       service_types: {
         Row: {
           calendar_id: string | null
@@ -2907,6 +2937,10 @@ export type Database = {
       get_user_subscription_details: {
         Args: { p_user_id: string }
         Returns: Json
+      }
+      get_user_subscription_tier: {
+        Args: { user_uuid: string }
+        Returns: string
       }
       get_whatsapp_data_retention_days: {
         Args: { p_calendar_id: string }
