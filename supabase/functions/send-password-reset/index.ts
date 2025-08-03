@@ -91,7 +91,31 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (supabaseError) {
       console.error("❌ Supabase password reset error:", supabaseError);
-      return new Response(JSON.stringify({ error: supabaseError.message }), {
+      
+      // Provide user-friendly error messages instead of exposing technical details
+      let userMessage = 'If this email is registered with us, you will receive a password reset link shortly.';
+      
+      // Only expose specific errors that are safe for users to see
+      if (supabaseError.message?.includes('rate limit')) {
+        userMessage = 'Too many password reset requests. Please wait a few minutes before trying again.';
+      } else if (supabaseError.message?.includes('invalid email')) {
+        userMessage = 'Please enter a valid email address.';
+      }
+      
+      // For security, always return success for user_not_found errors
+      // This prevents email enumeration attacks
+      if (supabaseError.code === 'user_not_found') {
+        console.log("User not found, but returning success message for security");
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: userMessage 
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      
+      return new Response(JSON.stringify({ error: userMessage }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
@@ -240,8 +264,12 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error("Error in password reset function:", error);
+    
+    // Don't expose internal errors to users
+    const userMessage = 'Something went wrong. Please try again in a few minutes.';
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: userMessage }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

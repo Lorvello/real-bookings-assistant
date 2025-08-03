@@ -28,17 +28,20 @@ export const PasswordResetConfirmForm: React.FC = () => {
     // Try hash fragments first (standard for Supabase auth)
     const hash = window.location.hash.substring(1);
     let params = new URLSearchParams(hash);
+    let source = 'hash';
     
-    // Fallback to search params if no tokens in hash
-    if (!params.get('access_token') && !params.get('error') && window.location.search) {
-      console.log("🔍 No tokens/errors in hash, checking search params");
+    // Fallback to search params if no auth-related tokens in hash
+    if (!params.get('access_token') && !params.get('error') && !params.get('type') && window.location.search) {
+      console.log("🔍 No auth tokens in hash, checking search params");
       params = new URLSearchParams(window.location.search);
+      source = 'search';
     }
     
     const tokens = {
       access_token: params.get('access_token'),
       refresh_token: params.get('refresh_token'),
-      type: params.get('type')
+      type: params.get('type'),
+      token: params.get('token'), // Sometimes Supabase uses 'token' instead
     };
     
     const errors = {
@@ -50,10 +53,12 @@ export const PasswordResetConfirmForm: React.FC = () => {
     console.log("🔍 Extracted tokens:", {
       hasAccessToken: !!tokens.access_token,
       hasRefreshToken: !!tokens.refresh_token,
+      hasToken: !!tokens.token,
       type: tokens.type,
       accessTokenLength: tokens.access_token?.length || 0,
       refreshTokenLength: tokens.refresh_token?.length || 0,
-      source: hash ? 'hash' : 'search'
+      tokenLength: tokens.token?.length || 0,
+      source
     });
     
     console.log("🔍 Extracted errors:", errors);
@@ -64,10 +69,11 @@ export const PasswordResetConfirmForm: React.FC = () => {
   useEffect(() => {
     // Parse both tokens and errors from URL
     const { tokens, errors } = parseUrlParams();
-    const { access_token, refresh_token, type } = tokens;
+    const { access_token, refresh_token, type, token } = tokens;
     
     console.log("🔍 Token validation:", {
-      hasTokens: !!(access_token && refresh_token),
+      hasAccessRefreshTokens: !!(access_token && refresh_token),
+      hasToken: !!token,
       isRecoveryType: type === 'recovery',
       currentPath: window.location.pathname,
       hasErrors: !!(errors.error)
@@ -78,12 +84,12 @@ export const PasswordResetConfirmForm: React.FC = () => {
       console.log("❌ Error in URL:", errors);
       setHasValidTokens(false);
       
-      let errorMessage = "Er is een probleem opgetreden met de reset link.";
-      let errorDescription = "Probeer opnieuw een nieuwe reset link aan te vragen.";
+      let errorMessage = "Problem with Reset Link";
+      let errorDescription = "Please request a new reset link.";
       
       if (errors.error_code === 'otp_expired' || errors.error === 'access_denied') {
-        errorMessage = "Reset Link Verlopen";
-        errorDescription = "Deze wachtwoord reset link is verlopen. Reset links zijn slechts 1 uur geldig. Vraag een nieuwe aan.";
+        errorMessage = "Reset Link Expired";
+        errorDescription = "This password reset link has expired. Reset links are only valid for 1 hour. Please request a new one.";
       } else if (errors.error_description) {
         errorDescription = decodeURIComponent(errors.error_description.replace(/\+/g, ' '));
       }
@@ -94,11 +100,18 @@ export const PasswordResetConfirmForm: React.FC = () => {
         variant: "destructive",
       });
       
+      // Don't return immediately - still show the manual mode
+      setHasValidTokens(false);
       return;
     }
     
-    // Check if we have valid tokens
-    if (!access_token || !refresh_token || type !== 'recovery') {
+    // Check if we have valid tokens (multiple patterns)
+    const hasValidTokenPattern = 
+      (access_token && refresh_token) || // Standard pattern
+      (token && type === 'recovery') ||  // Alternative pattern
+      type === 'recovery'; // Recovery type indicates this is a reset flow
+    
+    if (!hasValidTokenPattern) {
       console.log("❌ No valid tokens found - showing manual mode");
       setHasValidTokens(false);
       return;
@@ -108,22 +121,25 @@ export const PasswordResetConfirmForm: React.FC = () => {
     console.log("✅ Valid tokens found - setting session");
     setHasValidTokens(true);
     
-    supabase.auth.setSession({
-      access_token,
-      refresh_token
-    }).then(({ data, error }) => {
-      if (error) {
-        console.error("❌ Session setting error:", error);
-        setHasValidTokens(false);
-        toast({
-          title: "Session Error",
-          description: "Failed to establish reset session. Please try again.",
-          variant: "destructive",
-        });
-      } else {
-        console.log("✅ Session set successfully:", data.session?.user?.email);
-      }
-    });
+    // If we have access/refresh tokens, set the session
+    if (access_token && refresh_token) {
+      supabase.auth.setSession({
+        access_token,
+        refresh_token
+      }).then(({ data, error }) => {
+        if (error) {
+          console.error("❌ Session setting error:", error);
+          setHasValidTokens(false);
+          toast({
+            title: "Session Error",
+            description: "Failed to establish reset session. The reset link may be invalid or expired.",
+            variant: "destructive",
+          });
+        } else {
+          console.log("✅ Session set successfully:", data.session?.user?.email);
+        }
+      });
+    }
   }, [navigate, toast]);
 
   const validateForm = (): boolean => {
