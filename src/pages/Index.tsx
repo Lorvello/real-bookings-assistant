@@ -16,23 +16,37 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for password reset error parameters in URL
-    const checkPasswordResetErrors = () => {
+    // Enhanced password reset handling - detect both errors and valid tokens
+    const handlePasswordResetFlow = () => {
       const hash = window.location.hash.replace('#', '');
-      const params = new URLSearchParams(hash);
+      const searchParams = new URLSearchParams(window.location.search);
       
-      // Check if this is a password reset error (expired link, etc.)
+      // Try hash first, then search params
+      let params = new URLSearchParams(hash);
+      if (!params.toString() && searchParams.toString()) {
+        params = searchParams;
+      }
+      
+      // Check for any password reset related parameters
       const error = params.get('error');
       const errorCode = params.get('error_code');
+      const accessToken = params.get('access_token');
+      const type = params.get('type');
       
-      if (error && (errorCode === 'otp_expired' || error === 'access_denied')) {
-        console.log("🔍 Password reset error detected on homepage, redirecting to reset page");
-        // Redirect to reset password page with the error parameters preserved
-        navigate(`/reset-password${window.location.hash}`);
+      // If this is any password reset flow (errors or valid tokens), redirect to reset page
+      const isPasswordResetFlow = (
+        (error && (errorCode === 'otp_expired' || error === 'access_denied')) ||
+        (accessToken && type === 'recovery')
+      );
+      
+      if (isPasswordResetFlow) {
+        console.log("🔍 Password reset flow detected on homepage, redirecting to reset page");
+        const urlSuffix = hash ? `#${hash}` : window.location.search;
+        navigate(`/reset-password${urlSuffix}`);
       }
     };
 
-    checkPasswordResetErrors();
+    handlePasswordResetFlow();
   }, [navigate]);
 
   return (
