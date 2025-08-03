@@ -1,15 +1,16 @@
 /**
  * Password Reset Edge Function
  * 
- * IMPORTANT: If users are getting redirected to wrong domains (e.g., old lovable.app URLs),
- * check your Supabase Auth configuration:
+ * IMPORTANT: To fix password reset redirects, update your Supabase Auth configuration:
  * 1. Go to Supabase Dashboard → Authentication → URL Configuration
- * 2. Set Site URL to: https://bookingsassistant.com
- * 3. Add Redirect URLs for all valid domains:
+ * 2. Set Site URL to: https://bookingsassistant.com/reset-password
+ *    (This ensures reset links go directly to the reset page, not homepage)
+ * 3. Add these Redirect URLs:
  *    - https://bookingsassistant.com/**
  *    - https://preview--real-bookings-assistant.lovable.app/**
  *    - https://real-bookings-assistant.lovable.app/**
  * 4. Remove any old bookingsassistant.lovable.app references
+ * 5. Test the flow: Forgot Password → Email → Reset Password page
  * 
  * The redirectTo parameter in generateLink is often ignored in favor of the Site URL.
  */

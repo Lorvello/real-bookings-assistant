@@ -18,14 +18,22 @@ export const PasswordResetConfirmForm: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Parse hash fragments from URL
-  const parseHashParams = () => {
-    const hash = window.location.hash.substring(1); // Remove the # symbol
+  // Parse tokens from URL (try both hash and search params)
+  const parseTokenParams = () => {
     console.log("🔍 Current URL:", window.location.href);
     console.log("🔍 URL hash:", window.location.hash);
-    console.log("🔍 Parsed hash params:", hash);
+    console.log("🔍 URL search:", window.location.search);
     
-    const params = new URLSearchParams(hash);
+    // Try hash fragments first (standard for Supabase auth)
+    const hash = window.location.hash.substring(1);
+    let params = new URLSearchParams(hash);
+    
+    // Fallback to search params if no tokens in hash
+    if (!params.get('access_token') && window.location.search) {
+      console.log("🔍 No tokens in hash, checking search params");
+      params = new URLSearchParams(window.location.search);
+    }
+    
     const tokens = {
       access_token: params.get('access_token'),
       refresh_token: params.get('refresh_token'),
@@ -36,7 +44,9 @@ export const PasswordResetConfirmForm: React.FC = () => {
       hasAccessToken: !!tokens.access_token,
       hasRefreshToken: !!tokens.refresh_token,
       type: tokens.type,
-      accessTokenLength: tokens.access_token?.length || 0
+      accessTokenLength: tokens.access_token?.length || 0,
+      refreshTokenLength: tokens.refresh_token?.length || 0,
+      source: hash ? 'hash' : 'search'
     });
     
     return tokens;
@@ -44,7 +54,7 @@ export const PasswordResetConfirmForm: React.FC = () => {
 
   useEffect(() => {
     // Check if we have the required tokens from hash fragments
-    const { access_token, refresh_token, type } = parseHashParams();
+    const { access_token, refresh_token, type } = parseTokenParams();
     
     console.log("🔍 Token validation:", {
       hasTokens: !!(access_token && refresh_token),
