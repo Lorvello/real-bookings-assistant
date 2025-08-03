@@ -54,11 +54,25 @@ export const PasswordResetConfirmForm: React.FC = () => {
     
     if (!access_token || !refresh_token || type !== 'recovery') {
       console.log("❌ Invalid tokens or type, redirecting to forgot-password");
-      toast({
-        title: "Invalid Reset Link",
-        description: "This password reset link is invalid or has expired. Please request a new one.",
-        variant: "destructive",
-      });
+      
+      // Check if user came from wrong domain redirect
+      const currentDomain = window.location.origin;
+      const expectedDomain = 'https://bookingsassistant.com';
+      
+      if (currentDomain !== expectedDomain) {
+        console.log("⚠️  Domain mismatch detected:", { currentDomain, expectedDomain });
+        toast({
+          title: "Domain Configuration Issue",
+          description: "You were redirected from an incorrect domain. Please check your Supabase Auth URL configuration.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Invalid Reset Link",
+          description: "This password reset link is invalid or has expired. Please request a new one.",
+          variant: "destructive",
+        });
+      }
       navigate('/forgot-password');
       return;
     }

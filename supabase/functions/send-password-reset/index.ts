@@ -1,3 +1,19 @@
+/**
+ * Password Reset Edge Function
+ * 
+ * IMPORTANT: If users are getting redirected to wrong domains (e.g., old lovable.app URLs),
+ * check your Supabase Auth configuration:
+ * 1. Go to Supabase Dashboard → Authentication → URL Configuration
+ * 2. Set Site URL to: https://bookingsassistant.com
+ * 3. Add Redirect URLs for all valid domains:
+ *    - https://bookingsassistant.com/**
+ *    - https://preview--real-bookings-assistant.lovable.app/**
+ *    - https://real-bookings-assistant.lovable.app/**
+ * 4. Remove any old bookingsassistant.lovable.app references
+ * 
+ * The redirectTo parameter in generateLink is often ignored in favor of the Site URL.
+ */
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { Resend } from "npm:resend@2.0.0";
@@ -41,13 +57,28 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const baseUrl = redirectTo || 'https://bookingsassistant.com';
+    // Determine the correct base URL with fallback logic
+    const domains = [
+      'https://bookingsassistant.com',
+      'https://preview--real-bookings-assistant.lovable.app',
+      'https://real-bookings-assistant.lovable.app'
+    ];
+    
+    let baseUrl = redirectTo || 'https://bookingsassistant.com';
+    
+    // Ensure we're not using the old/wrong domain
+    if (baseUrl.includes('bookingsassistant.lovable.app')) {
+      console.log("⚠️  Detected old domain in redirectTo, using production domain instead");
+      baseUrl = 'https://bookingsassistant.com';
+    }
+    
     const fullResetUrl = `${baseUrl}/reset-password`;
     
     // Use Supabase's built-in password reset to generate secure tokens
     console.log("🔄 Generating password reset with Supabase for:", email);
     console.log("🌐 Base URL:", baseUrl);
     console.log("🔗 Full reset URL:", fullResetUrl);
+    console.log("🔗 Available domains:", domains);
     
     const { data, error: supabaseError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
