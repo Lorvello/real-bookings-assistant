@@ -21,32 +21,66 @@ export const PasswordResetConfirmForm: React.FC = () => {
   // Parse hash fragments from URL
   const parseHashParams = () => {
     const hash = window.location.hash.substring(1); // Remove the # symbol
+    console.log("🔍 Current URL:", window.location.href);
+    console.log("🔍 URL hash:", window.location.hash);
+    console.log("🔍 Parsed hash params:", hash);
+    
     const params = new URLSearchParams(hash);
-    return {
+    const tokens = {
       access_token: params.get('access_token'),
       refresh_token: params.get('refresh_token'),
       type: params.get('type')
     };
+    
+    console.log("🔍 Extracted tokens:", {
+      hasAccessToken: !!tokens.access_token,
+      hasRefreshToken: !!tokens.refresh_token,
+      type: tokens.type,
+      accessTokenLength: tokens.access_token?.length || 0
+    });
+    
+    return tokens;
   };
 
   useEffect(() => {
     // Check if we have the required tokens from hash fragments
     const { access_token, refresh_token, type } = parseHashParams();
     
+    console.log("🔍 Token validation:", {
+      hasTokens: !!(access_token && refresh_token),
+      isRecoveryType: type === 'recovery',
+      currentPath: window.location.pathname
+    });
+    
     if (!access_token || !refresh_token || type !== 'recovery') {
+      console.log("❌ Invalid tokens or type, redirecting to forgot-password");
       toast({
         title: "Invalid Reset Link",
         description: "This password reset link is invalid or has expired. Please request a new one.",
         variant: "destructive",
       });
       navigate('/forgot-password');
-    } else {
-      // Set the session with the tokens from the URL
-      supabase.auth.setSession({
-        access_token,
-        refresh_token
-      });
+      return;
     }
+
+    // Set the session with the tokens from the URL
+    console.log("✅ Setting session with tokens from URL");
+    supabase.auth.setSession({
+      access_token,
+      refresh_token
+    }).then(({ data, error }) => {
+      if (error) {
+        console.error("❌ Session setting error:", error);
+        toast({
+          title: "Session Error",
+          description: "Failed to establish reset session. Please try again.",
+          variant: "destructive",
+        });
+        navigate('/forgot-password');
+      } else {
+        console.log("✅ Session set successfully:", data.session?.user?.email);
+      }
+    });
   }, [navigate, toast]);
 
   const validateForm = (): boolean => {
