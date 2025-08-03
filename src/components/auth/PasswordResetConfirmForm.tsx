@@ -13,26 +13,41 @@ export const PasswordResetConfirmForm: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { handleError } = useErrorHandler();
-  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Parse hash fragments from URL
+  const parseHashParams = () => {
+    const hash = window.location.hash.substring(1); // Remove the # symbol
+    const params = new URLSearchParams(hash);
+    return {
+      access_token: params.get('access_token'),
+      refresh_token: params.get('refresh_token'),
+      type: params.get('type')
+    };
+  };
+
   useEffect(() => {
-    // Check if we have the required tokens
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    // Check if we have the required tokens from hash fragments
+    const { access_token, refresh_token, type } = parseHashParams();
     
-    if (!accessToken || !refreshToken) {
+    if (!access_token || !refresh_token || type !== 'recovery') {
       toast({
         title: "Invalid Reset Link",
         description: "This password reset link is invalid or has expired. Please request a new one.",
         variant: "destructive",
       });
       navigate('/forgot-password');
+    } else {
+      // Set the session with the tokens from the URL
+      supabase.auth.setSession({
+        access_token,
+        refresh_token
+      });
     }
-  }, [searchParams, navigate, toast]);
+  }, [navigate, toast]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -73,7 +88,7 @@ export const PasswordResetConfirmForm: React.FC = () => {
       if (error) {
         console.error('[PasswordReset] Update error:', error);
         
-        if (error.message.includes('token')) {
+        if (error.message.includes('token') || error.message.includes('session')) {
           toast({
             title: "Reset Link Expired",
             description: "This password reset link has expired. Please request a new one.",
