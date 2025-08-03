@@ -5,8 +5,11 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Content-Security-Policy": "default-src 'self'",
+  "X-Frame-Options": "DENY",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
 };
 
 interface EnterpriseContactRequest {
@@ -21,13 +24,147 @@ interface EnterpriseContactRequest {
   requestMeeting: boolean;
 }
 
+// Input validation and sanitization functions
+function sanitizeHtml(input: string): string {
+  if (!input) return '';
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+}
+
+function sanitizeString(input: string): string {
+  if (!input) return '';
+  return input
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .trim();
+}
+
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 254;
+}
+
+function validateUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return ['http:', 'https:'].includes(parsedUrl.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function validateInput(data: any): { isValid: boolean; errors: string[]; sanitizedData: any } {
+  const errors: string[] = [];
+  
+  // Check for required fields and validate types
+  if (!data.fullName || typeof data.fullName !== 'string' || data.fullName.trim().length === 0) {
+    errors.push('Full name is required');
+  } else if (data.fullName.length > 100) {
+    errors.push('Full name must be less than 100 characters');
+  }
+  
+  if (!data.email || typeof data.email !== 'string' || !validateEmail(data.email)) {
+    errors.push('Valid email address is required');
+  }
+  
+  if (!data.companyName || typeof data.companyName !== 'string' || data.companyName.trim().length === 0) {
+    errors.push('Company name is required');
+  } else if (data.companyName.length > 200) {
+    errors.push('Company name must be less than 200 characters');
+  }
+  
+  if (!data.companyWebsite || typeof data.companyWebsite !== 'string' || !validateUrl(data.companyWebsite)) {
+    errors.push('Valid company website URL is required');
+  } else if (data.companyWebsite.length > 500) {
+    errors.push('Company website URL must be less than 500 characters');
+  }
+  
+  if (!data.companySize || typeof data.companySize !== 'string') {
+    errors.push('Company size is required');
+  }
+  
+  if (!Array.isArray(data.selectedFeatures) || data.selectedFeatures.length === 0) {
+    errors.push('At least one feature of interest must be selected');
+  } else if (data.selectedFeatures.some((f: any) => typeof f !== 'string')) {
+    errors.push('All selected features must be valid strings');
+  }
+  
+  if (typeof data.requestMeeting !== 'boolean') {
+    errors.push('Meeting request preference must be specified');
+  }
+  
+  // Optional field validation
+  if (data.phoneNumber && (typeof data.phoneNumber !== 'string' || data.phoneNumber.length > 20)) {
+    errors.push('Phone number must be less than 20 characters');
+  }
+  
+  if (data.message && (typeof data.message !== 'string' || data.message.length > 2000)) {
+    errors.push('Additional message must be less than 2000 characters');
+  }
+  
+  // Sanitize data
+  const sanitizedData = {
+    fullName: sanitizeString(data.fullName),
+    email: data.email.toLowerCase().trim(),
+    companyName: sanitizeString(data.companyName),
+    companyWebsite: data.companyWebsite.trim(),
+    phoneNumber: data.phoneNumber ? sanitizeString(data.phoneNumber) : undefined,
+    companySize: sanitizeString(data.companySize),
+    selectedFeatures: data.selectedFeatures.map((f: string) => sanitizeString(f)),
+    message: data.message ? sanitizeString(data.message) : undefined,
+    requestMeeting: Boolean(data.requestMeeting),
+  };
+  
+  return { isValid: errors.length === 0, errors, sanitizedData };
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Security: Rate limiting check (basic implementation)
+  const userAgent = req.headers.get('user-agent') || '';
+  const contentLength = req.headers.get('content-length');
+  
+  // Basic security checks
+  if (contentLength && parseInt(contentLength) > 10000) { // 10KB limit
+    return new Response(JSON.stringify({ error: 'Request too large' }), {
+      status: 413,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
   try {
+    const rawData = await req.json();
+    
+    // Validate and sanitize input
+    const { isValid, errors, sanitizedData } = validateInput(rawData);
+    
+    if (!isValid) {
+      return new Response(JSON.stringify({ 
+        error: 'Validation failed', 
+        details: errors 
+      }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const {
       fullName,
       email,
@@ -38,7 +175,7 @@ const handler = async (req: Request): Promise<Response> => {
       selectedFeatures,
       message,
       requestMeeting,
-    }: EnterpriseContactRequest = await req.json();
+    } = sanitizedData;
 
     const selectedFeaturesHtml = selectedFeatures
       .map(feature => `<li style="margin-bottom: 8px;">${feature}</li>`)
@@ -318,8 +455,21 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error in send-enterprise-contact function:", error);
+    
+    // Log security event
+    const errorType = error.name || 'Unknown';
+    console.error(`Security Event: ${errorType} in enterprise contact form`, {
+      timestamp: new Date().toISOString(),
+      userAgent: req.headers.get('user-agent'),
+      errorType,
+      // Don't log sensitive data
+    });
+    
+    // Return generic error message to prevent information disclosure
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: 'An internal error occurred. Please try again later.' 
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
