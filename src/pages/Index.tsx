@@ -30,21 +30,39 @@ const Index = () => {
       // Check for any password reset related parameters
       const error = params.get('error');
       const errorCode = params.get('error_code');
+      const errorDescription = params.get('error_description');
       const accessToken = params.get('access_token');
       const refreshToken = params.get('refresh_token');
       const type = params.get('type');
       const token = params.get('token');
       
-      // Enhanced detection for all possible reset scenarios
+      // Debug logging
+      console.log("🔍 Homepage URL params:", {
+        error,
+        errorCode,
+        errorDescription,
+        accessToken: accessToken ? '***' : null,
+        refreshToken: refreshToken ? '***' : null,
+        type,
+        token: token ? '***' : null
+      });
+      
+      // Comprehensive detection for all password reset scenarios
       const isPasswordResetFlow = (
-        // Error scenarios (expired links, etc.)
-        (error && (errorCode === 'otp_expired' || error === 'access_denied')) ||
+        // Error scenarios - any error with expired OTP
+        (error && errorCode === 'otp_expired') ||
+        // Access denied errors (common for expired reset links)
+        (error === 'access_denied') ||
+        // Error descriptions mentioning email links
+        (errorDescription && errorDescription.toLowerCase().includes('email link')) ||
         // Valid recovery tokens
         (accessToken && type === 'recovery') ||
         (refreshToken && type === 'recovery') ||
         (token && type === 'recovery') ||
         // Any recovery type parameter
-        type === 'recovery'
+        type === 'recovery' ||
+        // Fallback: any error_code that suggests password reset
+        (errorCode && ['otp_expired', 'token_expired', 'link_expired'].includes(errorCode))
       );
       
       if (isPasswordResetFlow) {
