@@ -49,7 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: `${baseUrl}/reset-password`
+        redirectTo: baseUrl
       }
     });
 
@@ -79,72 +79,105 @@ const handler = async (req: Request): Promise<Response> => {
       to: [email],
       subject: "Reset your BookingsAssistant password",
       html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-          <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-            
-            <!-- Header -->
-            <div style="text-align: center; margin-bottom: 40px; border-bottom: 1px solid #e2e8f0; padding-bottom: 30px;">
-              <img src="https://grdgjhkygzciwwrxgvgy.supabase.co/storage/v1/object/public/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" alt="BookingsAssistant" style="height: 60px; margin-bottom: 20px;" />
-              <h1 style="color: #1e293b; margin: 0; font-size: 28px; font-weight: 700; line-height: 1.3;">
-                Reset Your Password
-              </h1>
-              <p style="color: #64748b; margin: 16px 0 0 0; font-size: 16px;">
-                We received a request to reset your password
-              </p>
-            </div>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Reset Your Password</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 20px 0;">
+            <tr>
+              <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                  
+                  <!-- Header -->
+                  <tr>
+                    <td style="padding: 40px 40px 30px 40px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+                      <img src="https://grdgjhkygzciwwrxgvgy.supabase.co/storage/v1/object/public/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" alt="BookingsAssistant" style="height: 60px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;" />
+                      <h1 style="color: #1e293b; margin: 0; font-size: 28px; font-weight: 700; line-height: 1.3;">
+                        Reset Your Password
+                      </h1>
+                      <p style="color: #64748b; margin: 16px 0 0 0; font-size: 16px;">
+                        We received a request to reset your password
+                      </p>
+                    </td>
+                  </tr>
 
-            <!-- Main Content -->
-            <div style="margin-bottom: 40px;">
-              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
-                Hello,
-              </p>
-              
-              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 32px;">
-                We received a request to reset the password for your BookingsAssistant account. Click the button below to reset your password:
-              </p>
+                  <!-- Main Content -->
+                  <tr>
+                    <td style="padding: 40px;">
+                      <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 24px; margin-top: 0;">
+                        Hello,
+                      </p>
+                      
+                      <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 32px;">
+                        We received a request to reset the password for your BookingsAssistant account. Click the button below to reset your password:
+                      </p>
 
-              <!-- Reset Button -->
-              <div style="text-align: center; margin: 32px 0;">
-                <a href="${resetUrl}" style="display: inline-block; background-color: #2563eb; color: white; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-                  Reset Your Password
-                </a>
-              </div>
+                      <!-- Reset Button -->
+                      <table width="100%" cellpadding="0" cellspacing="0" style="margin: 32px 0;">
+                        <tr>
+                          <td align="center">
+                            <a href="${resetUrl}" style="display: inline-block; background-color: #2563eb; color: white; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+                              Reset Your Password
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
 
-              <!-- Alternative Link -->
-              <div style="background: #f8fafc; border-radius: 8px; padding: 20px; margin: 24px 0;">
-                <p style="color: #374151; font-size: 14px; margin: 0 0 12px 0;">
-                  If the button doesn't work, copy and paste this link into your browser:
-                </p>
-                <p style="color: #2563eb; font-size: 14px; margin: 0; word-break: break-all;">
-                  ${resetUrl}
-                </p>
-              </div>
+                      <!-- Alternative Link -->
+                      <table width="100%" cellpadding="0" cellspacing="0" style="background: #f8fafc; border-radius: 8px; margin: 24px 0;">
+                        <tr>
+                          <td style="padding: 20px;">
+                            <p style="color: #374151; font-size: 14px; margin: 0 0 12px 0;">
+                              If the button doesn't work, copy and paste this link into your browser:
+                            </p>
+                            <p style="color: #2563eb; font-size: 14px; margin: 0; word-break: break-all;">
+                              ${resetUrl}
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
 
-              <!-- Security Info -->
-              <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0;">
-                <p style="color: #92400e; font-size: 14px; margin: 0; font-weight: 600;">
-                  ⚠️ Important Security Information
-                </p>
-                <ul style="color: #92400e; font-size: 14px; margin: 8px 0 0 0; padding-left: 16px;">
-                  <li>This link will expire in 1 hour (at ${expiryTime.toLocaleString()})</li>
-                  <li>This link can only be used once</li>
-                  <li>If you didn't request this reset, you can safely ignore this email</li>
-                </ul>
-              </div>
+                      <!-- Security Info -->
+                      <table width="100%" cellpadding="0" cellspacing="0" style="background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px; margin: 24px 0;">
+                        <tr>
+                          <td style="padding: 16px;">
+                            <p style="color: #92400e; font-size: 14px; margin: 0; font-weight: 600;">
+                              ⚠️ Important Security Information
+                            </p>
+                            <ul style="color: #92400e; font-size: 14px; margin: 8px 0 0 0; padding-left: 16px;">
+                              <li>This link will expire in 1 hour (at ${expiryTime.toLocaleString()})</li>
+                              <li>This link can only be used once</li>
+                              <li>If you didn't request this reset, you can safely ignore this email</li>
+                            </ul>
+                          </td>
+                        </tr>
+                      </table>
 
-              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin-top: 32px;">
-                If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
-              </p>
-            </div>
+                      <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin-top: 32px; margin-bottom: 0;">
+                        If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+                      </p>
+                    </td>
+                  </tr>
 
-            <!-- Footer -->
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 24px; text-align: center;">
-              <p style="color: #6b7280; font-size: 12px; margin: 0;">
-                This email was sent by BookingsAssistant. If you have any questions, contact us at business@bookingassistant.com
-              </p>
-            </div>
-          </div>
-        </div>
+                  <!-- Footer -->
+                  <tr>
+                    <td style="border-top: 1px solid #e2e8f0; padding: 24px 40px; text-align: center;">
+                      <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                        This email was sent by BookingsAssistant. If you have any questions, contact us at business@bookingsassistant.com
+                      </p>
+                    </td>
+                  </tr>
+                  
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `,
     });
 
