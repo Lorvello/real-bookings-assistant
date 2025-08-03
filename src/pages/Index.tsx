@@ -31,18 +31,27 @@ const Index = () => {
       const error = params.get('error');
       const errorCode = params.get('error_code');
       const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
       const type = params.get('type');
+      const token = params.get('token');
       
-      // If this is any password reset flow (errors or valid tokens), redirect to reset page
+      // Enhanced detection for all possible reset scenarios
       const isPasswordResetFlow = (
+        // Error scenarios (expired links, etc.)
         (error && (errorCode === 'otp_expired' || error === 'access_denied')) ||
-        (accessToken && type === 'recovery')
+        // Valid recovery tokens
+        (accessToken && type === 'recovery') ||
+        (refreshToken && type === 'recovery') ||
+        (token && type === 'recovery') ||
+        // Any recovery type parameter
+        type === 'recovery'
       );
       
       if (isPasswordResetFlow) {
         console.log("🔍 Password reset flow detected on homepage, redirecting to reset page");
+        // Preserve all URL parameters when redirecting
         const urlSuffix = hash ? `#${hash}` : window.location.search;
-        navigate(`/reset-password${urlSuffix}`);
+        navigate(`/reset-password${urlSuffix}`, { replace: true });
       }
     };
 
