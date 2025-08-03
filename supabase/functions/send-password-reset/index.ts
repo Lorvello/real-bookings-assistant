@@ -38,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Generate a secure reset token (you'll need to implement this with your auth system)
     const resetToken = crypto.randomUUID();
-    const resetUrl = `https://bookingassistant.com/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+    const resetUrl = `https://bookingsassistant.com/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
     const expiryTime = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
     console.log("Sending password reset email to:", email);

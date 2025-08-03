@@ -49,7 +49,7 @@ export const PasswordResetForm: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('send-password-reset', {
         body: {
           email: sanitizedEmail,
-          redirectTo: 'https://bookingassistant.com/reset-password'
+          redirectTo: 'https://bookingsassistant.com/reset-password'
         }
       });
 
