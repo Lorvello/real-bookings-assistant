@@ -1,4 +1,6 @@
 
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import BackgroundProvider from "@/components/BackgroundProvider";
@@ -11,6 +13,28 @@ import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 import PublicPageWrapper from "@/components/PublicPageWrapper";
 
 const Index = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check for password reset error parameters in URL
+    const checkPasswordResetErrors = () => {
+      const hash = window.location.hash.replace('#', '');
+      const params = new URLSearchParams(hash);
+      
+      // Check if this is a password reset error (expired link, etc.)
+      const error = params.get('error');
+      const errorCode = params.get('error_code');
+      
+      if (error && (errorCode === 'otp_expired' || error === 'access_denied')) {
+        console.log("🔍 Password reset error detected on homepage, redirecting to reset page");
+        // Redirect to reset password page with the error parameters preserved
+        navigate(`/reset-password${window.location.hash}`);
+      }
+    };
+
+    checkPasswordResetErrors();
+  }, [navigate]);
+
   return (
     <PublicPageWrapper>
       <div className="min-h-screen w-full">
