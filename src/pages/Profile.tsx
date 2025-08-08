@@ -3,10 +3,20 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { QRCodeDisplay } from '@/components/profile/QRCodeDisplay';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
+  const qrValue = React.useMemo(() => {
+    if (profile?.qr_code_data) return profile.qr_code_data;
+    if (user?.id) {
+      return JSON.stringify({ user_id: user.id, app: 'bookingassistant', type: 'user_profile' });
+    }
+    return '';
+  }, [profile?.qr_code_data, user?.id]);
 
   // Redirect if not authenticated
   React.useEffect(() => {
@@ -83,6 +93,15 @@ const Profile = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="bg-gray-800 rounded-xl p-3 md:p-6 border border-gray-700 mt-4 md:mt-6">
+          <h2 className="text-base md:text-xl font-semibold text-white mb-4 md:mb-2">Jouw QR-code</h2>
+          {profileLoading ? (
+            <div className="h-40 bg-gray-900/60 border border-gray-700 rounded-lg animate-pulse" />
+          ) : (
+            <QRCodeDisplay data={qrValue} />
+          )}
         </div>
       </div>
     </DashboardLayout>

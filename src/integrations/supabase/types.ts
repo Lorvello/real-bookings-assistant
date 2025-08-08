@@ -1437,6 +1437,7 @@ export type Database = {
           payment_status: string | null
           phone: string | null
           public_transport_info: string | null
+          qr_code_data: string | null
           show_opening_hours: boolean | null
           subscription_end_date: string | null
           subscription_start_date: string | null
@@ -1491,6 +1492,7 @@ export type Database = {
           payment_status?: string | null
           phone?: string | null
           public_transport_info?: string | null
+          qr_code_data?: string | null
           show_opening_hours?: boolean | null
           subscription_end_date?: string | null
           subscription_start_date?: string | null
@@ -1545,6 +1547,7 @@ export type Database = {
           payment_status?: string | null
           phone?: string | null
           public_transport_info?: string | null
+          qr_code_data?: string | null
           show_opening_hours?: boolean | null
           subscription_end_date?: string | null
           subscription_start_date?: string | null
