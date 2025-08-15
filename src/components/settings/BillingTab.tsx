@@ -591,8 +591,8 @@ export const BillingTab: React.FC = () => {
               let displayPrice, billingText, savingsText;
               
               if (isEnterprise) {
-                // Enterprise always shows "Starting at €499" regardless of billing cycle
-                displayPrice = 'Starting at €499';
+                // Enterprise always shows "Starting at €299" regardless of billing cycle
+                displayPrice = 'Starting at €299';
                 billingText = '/month';
                 savingsText = 'Custom pricing for large organizations';
               } else {
@@ -654,10 +654,11 @@ export const BillingTab: React.FC = () => {
                   <div className="space-y-3 mb-6">
                     {/* Updated features to match homepage exactly */}
                     {(tier.tier_name === 'starter' ? [
-                      "Strategic WhatsApp contact management (up to 500)",
-                      "Dual-calendar orchestration system", 
-                      "Individual user access management",
-                      "AI-powered intelligent reminder sequences",
+                       "Strategic WhatsApp contact management (up to 500)",
+                       "Dual-calendar orchestration system", 
+                       "VAT tracking & compliance",
+                       "Individual user access management",
+                       "AI-powered intelligent reminder sequences",
                       "Essential dashboard overview & live operations monitoring",
                       "Global multi-language localization",
                       "Streamlined payment processing & collection"

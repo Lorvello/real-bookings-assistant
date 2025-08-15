@@ -56,8 +56,8 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
     const planData = [
       {
         name: "Starter",
-        monthlyPrice: 19,
-        annualPrice: 15,
+        monthlyPrice: 30,
+        annualPrice: 24,
         description: "Perfect for beginners with basic WhatsApp automation and calendar management",
         features: [
           {
@@ -67,6 +67,10 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
           {
             text: "Dual-calendar orchestration system",
             tooltip: "Seamlessly sync and manage two separate calendars with automated booking coordination"
+          },
+          {
+            text: "VAT tracking & compliance",
+            tooltip: "Automated Dutch VAT administration and reporting for seamless tax compliance"
           },
           {
             text: "AI-powered intelligent reminder sequences",
@@ -92,8 +96,8 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
       },
       {
         name: "Professional",
-        monthlyPrice: 49,
-        annualPrice: 39,
+        monthlyPrice: 60,
+        annualPrice: 48,
         description: "Advanced features for teams with extended contact management and collaboration tools",
         features: [
           {
@@ -421,7 +425,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                       ) : (
                         <div>
                           <div className="flex items-baseline justify-center mb-2">
-                            <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €499</span>
+                            <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €299</span>
                             <span className="text-slate-400 text-lg ml-2">/month</span>
                           </div>
                           <div className="text-xs text-slate-500">
@@ -553,7 +557,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                               ) : (
                                 <div>
                                   <div className="flex items-baseline justify-center mb-1">
-                                    <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg">From €499</span>
+                                    <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg">From €299</span>
                                     <span className="text-slate-300/90 text-xs ml-1">/month</span>
                                   </div>
                                   <div className="text-[9px] text-slate-500">

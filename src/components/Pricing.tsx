@@ -14,8 +14,8 @@ export const Pricing = () => {
   const plans = [
     {
       name: "Starter",
-      monthlyPrice: 19,
-      annualPrice: 15,
+      monthlyPrice: 30,
+      annualPrice: 24,
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
         {
@@ -43,6 +43,10 @@ export const Pricing = () => {
           tooltip: "Automatically communicate with customers in their preferred language across multiple regions"
         },
         {
+          text: "VAT tracking & compliance",
+          tooltip: "Automated Dutch VAT administration and reporting for seamless tax compliance"
+        },
+        {
           text: "Streamlined payment processing & collection",
           tooltip: "Integrated payment system for booking deposits and service payments with automated invoicing"
         }
@@ -53,8 +57,8 @@ export const Pricing = () => {
     },
     {
       name: "Professional",
-      monthlyPrice: 49,
-      annualPrice: 39,
+      monthlyPrice: 60,
+      annualPrice: 48,
       description: "Advanced features for teams with extended contact management and collaboration tools",
       features: [
         {
@@ -302,7 +306,7 @@ export const Pricing = () => {
                     ) : (
                       <div>
                         <div className="flex items-baseline justify-center mb-2">
-                          <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €499</span>
+                          <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €299</span>
                           <span className="text-slate-400 text-lg ml-2">/month</span>
                         </div>
                         <div className="text-xs text-slate-500">

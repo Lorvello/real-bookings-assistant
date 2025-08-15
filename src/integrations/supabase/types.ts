@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -2636,13 +2636,13 @@ export type Database = {
       add_to_waitlist: {
         Args: {
           p_calendar_slug: string
-          p_service_type_id: string
-          p_customer_name: string
           p_customer_email: string
-          p_preferred_date: string
-          p_preferred_time_start?: string
-          p_preferred_time_end?: string
+          p_customer_name: string
           p_flexibility?: string
+          p_preferred_date: string
+          p_preferred_time_end?: string
+          p_preferred_time_start?: string
+          p_service_type_id: string
         }
         Returns: Json
       }
@@ -2652,13 +2652,13 @@ export type Database = {
       }
       admin_developer_update_user_subscription: {
         Args: {
-          p_user_id: string
+          p_business_name?: string
+          p_business_type?: string
+          p_subscription_end_date?: string
           p_subscription_status?: string
           p_subscription_tier?: string
           p_trial_end_date?: string
-          p_subscription_end_date?: string
-          p_business_name?: string
-          p_business_type?: string
+          p_user_id: string
         }
         Returns: Json
       }
@@ -2667,7 +2667,7 @@ export type Database = {
         Returns: Json
       }
       admin_extend_trial: {
-        Args: { p_user_id: string; p_days?: number }
+        Args: { p_days?: number; p_user_id: string }
         Returns: Json
       }
       admin_generate_comprehensive_mock_data: {
@@ -2675,18 +2675,18 @@ export type Database = {
         Returns: Json
       }
       admin_generate_mock_data: {
-        Args: { p_user_id: string; p_status: string }
+        Args: { p_status: string; p_user_id: string }
         Returns: Json
       }
       admin_set_user_status: {
         Args:
           | {
-              p_user_id: string
-              p_status: string
               p_clear_data?: boolean
               p_generate_mock_data?: boolean
+              p_status: string
+              p_user_id: string
             }
-          | { p_user_id: string; p_status_type: string }
+          | { p_status_type: string; p_user_id: string }
         Returns: Json
       }
       admin_setup_mock_incomplete_user: {
@@ -2696,20 +2696,20 @@ export type Database = {
       admin_update_user_subscription: {
         Args:
           | {
-              p_user_id: string
-              p_subscription_status?: string
-              p_subscription_tier?: string
-              p_trial_end_date?: string
-              p_subscription_end_date?: string
-            }
-          | {
-              p_user_id: string
-              p_subscription_status?: string
-              p_subscription_tier?: string
-              p_trial_end_date?: string
-              p_subscription_end_date?: string
               p_business_name?: string
               p_business_type?: string
+              p_subscription_end_date?: string
+              p_subscription_status?: string
+              p_subscription_tier?: string
+              p_trial_end_date?: string
+              p_user_id: string
+            }
+          | {
+              p_subscription_end_date?: string
+              p_subscription_status?: string
+              p_subscription_tier?: string
+              p_trial_end_date?: string
+              p_user_id: string
             }
         Returns: Json
       }
@@ -2724,22 +2724,22 @@ export type Database = {
       check_booking_conflicts: {
         Args: {
           p_calendar_id: string
-          p_start_time: string
           p_end_time: string
           p_exclude_booking_id?: string
+          p_start_time: string
         }
         Returns: boolean
       }
       check_team_member_limit: {
-        Args: { p_user_id: string; p_calendar_id: string }
+        Args: { p_calendar_id: string; p_user_id: string }
         Returns: boolean
       }
       check_whatsapp_contact_limit: {
-        Args: { p_user_id: string; p_calendar_id: string }
+        Args: { p_calendar_id: string; p_user_id: string }
         Returns: boolean
       }
       cleanup_duplicate_availability_rules: {
-        Args: { p_schedule_id: string; p_day_of_week: number }
+        Args: { p_day_of_week: number; p_schedule_id: string }
         Returns: undefined
       }
       cleanup_expired_context: {
@@ -2769,12 +2769,12 @@ export type Database = {
       create_booking: {
         Args: {
           p_calendar_slug: string
-          p_service_type_id: string
-          p_customer_name: string
           p_customer_email: string
+          p_customer_name: string
           p_customer_phone: string
-          p_start_time: string
           p_notes?: string
+          p_service_type_id: string
+          p_start_time: string
         }
         Returns: Json
       }
@@ -2783,15 +2783,15 @@ export type Database = {
         Returns: undefined
       }
       create_team_member_user: {
-        Args: { p_email: string; p_full_name: string; p_calendar_id: string }
+        Args: { p_calendar_id: string; p_email: string; p_full_name: string }
         Returns: string
       }
       create_user_with_calendar: {
         Args: {
-          p_email: string
-          p_full_name: string
           p_business_name?: string
           p_business_type?: string
+          p_email: string
+          p_full_name: string
         }
         Returns: Json
       }
@@ -2808,19 +2808,19 @@ export type Database = {
           | { p_calendar_id: string }
           | {
               p_calendar_id: string
-              p_start_date?: string
               p_end_date?: string
+              p_start_date?: string
             }
         Returns: Json
       }
       find_orphaned_whatsapp_conversations: {
         Args: Record<PropertyKey, never>
         Returns: {
-          conversation_id: string
-          contact_phone: string
           contact_name: string
-          message_count: number
+          contact_phone: string
+          conversation_id: string
           last_activity: string
+          message_count: number
         }[]
       }
       generate_confirmation_token: {
@@ -2828,42 +2828,42 @@ export type Database = {
         Returns: string
       }
       generate_mock_data: {
-        Args: { p_user_id: string; p_data_type?: string }
+        Args: { p_data_type?: string; p_user_id: string }
         Returns: undefined
       }
       get_available_slots: {
         Args: {
           p_calendar_id: string
-          p_service_type_id: string
           p_date: string
+          p_service_type_id: string
           p_timezone?: string
         }
         Returns: {
-          slot_start: string
-          slot_end: string
           is_available: boolean
+          slot_end: string
+          slot_start: string
         }[]
       }
       get_available_slots_range: {
         Args:
           | {
               p_calendar_id: string
+              p_end_date: string
               p_service_type_id: string
               p_start_date: string
-              p_end_date: string
             }
           | {
               p_calendar_id: string
+              p_end_date: string
               p_service_type_id: string
               p_start_date: string
-              p_end_date: string
               p_timezone?: string
             }
         Returns: {
-          slot_date: string
-          slot_start: string
-          slot_end: string
           is_available: boolean
+          slot_date: string
+          slot_end: string
+          slot_start: string
         }[]
       }
       get_booking_trends: {
@@ -2873,20 +2873,20 @@ export type Database = {
       get_business_available_slots: {
         Args: {
           p_calendar_slug: string
+          p_days?: number
           p_service_type_id?: string
           p_start_date?: string
-          p_days?: number
         }
         Returns: {
           business_name: string
           calendar_name: string
-          service_name: string
-          slot_date: string
-          slot_start: string
-          slot_end: string
           is_available: boolean
-          service_price: number
           service_duration: number
+          service_name: string
+          service_price: number
+          slot_date: string
+          slot_end: string
+          slot_start: string
         }[]
       }
       get_business_hours: {
@@ -2896,8 +2896,8 @@ export type Database = {
       get_calendar_availability: {
         Args: {
           p_calendar_slug: string
-          p_start_date?: string
           p_days?: number
+          p_start_date?: string
         }
         Returns: Json
       }
@@ -2906,7 +2906,7 @@ export type Database = {
         Returns: Json
       }
       get_conversation_context: {
-        Args: { p_phone_number: string; p_calendar_id: string }
+        Args: { p_calendar_id: string; p_phone_number: string }
         Returns: Json
       }
       get_dashboard_metrics: {
@@ -2965,20 +2965,20 @@ export type Database = {
       log_error: {
         Args: {
           p_calendar_id: string
-          p_error_type: string
-          p_error_message: string
           p_error_context?: Json
+          p_error_message: string
+          p_error_type: string
           p_user_id?: string
         }
         Returns: string
       }
       log_security_event: {
         Args: {
-          p_user_id: string
-          p_event_type: string
           p_event_details?: Json
+          p_event_type: string
           p_ip_address?: unknown
           p_user_agent?: string
+          p_user_id: string
         }
         Returns: undefined
       }
@@ -2988,8 +2988,8 @@ export type Database = {
       }
       match_quick_reply_flow: {
         Args:
+          | { p_calendar_id: string; p_message: string }
           | { p_calendar_id: string; p_message_text: string }
-          | { p_message: string; p_calendar_id: string }
         Returns: Json
       }
       process_automatic_status_transitions: {
@@ -3006,10 +3006,10 @@ export type Database = {
       }
       process_whatsapp_message: {
         Args: {
-          p_phone_number: string
-          p_message_id: string
-          p_message_content: string
           p_calendar_id: string
+          p_message_content: string
+          p_message_id: string
+          p_phone_number: string
         }
         Returns: Json
       }
@@ -3037,13 +3037,13 @@ export type Database = {
         Args:
           | {
               p_calendar_id: string
+              p_language?: string
               p_template_key: string
               p_variables?: Json
-              p_language?: string
             }
           | {
-              p_template_key: string
               p_calendar_id: string
+              p_template_key: string
               p_variables?: Json
             }
         Returns: Json
@@ -3051,17 +3051,17 @@ export type Database = {
       resolve_recurring_availability: {
         Args: {
           p_calendar_id: string
-          p_start_date: string
           p_end_date: string
+          p_start_date: string
         }
         Returns: {
-          resolved_date: string
-          pattern_id: string
           availability_rules: Json
+          pattern_id: string
+          resolved_date: string
         }[]
       }
       setup_calendar_defaults: {
-        Args: { p_calendar_id: string; p_business_type?: string }
+        Args: { p_business_type?: string; p_calendar_id: string }
         Returns: undefined
       }
       test_webhook_system: {
@@ -3078,15 +3078,15 @@ export type Database = {
       }
       update_user_status: {
         Args: {
-          p_user_id: string
           p_status: string
-          p_tier?: string
           p_subscription_end_date?: string
+          p_tier?: string
+          p_user_id: string
         }
         Returns: boolean
       }
       validate_user_input: {
-        Args: { p_input: string; p_type?: string; p_max_length?: number }
+        Args: { p_input: string; p_max_length?: number; p_type?: string }
         Returns: boolean
       }
     }

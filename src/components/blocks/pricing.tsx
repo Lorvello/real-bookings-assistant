@@ -42,13 +42,14 @@ export const Pricing: React.FC<PricingProps> = ({
   const defaultPlans = [
     {
       name: "Starter",
-      price: "19",
-      yearlyPrice: "15",
+      price: "30",
+      yearlyPrice: "24",
       period: "/month",
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
         "Strategic WhatsApp contact management (up to 500)",
         "Dual-calendar orchestration system", 
+        "VAT tracking & compliance",
         "AI-powered intelligent reminder sequences",
         "Essential dashboard overview & live operations monitoring",
         "Global multi-language localization",
@@ -60,8 +61,8 @@ export const Pricing: React.FC<PricingProps> = ({
     },
     {
       name: "Professional",
-      price: "49",
-      yearlyPrice: "39",
+      price: "60",
+      yearlyPrice: "48",
       period: "/month",
       description: "Advanced features for teams with extended contact management and collaboration tools",
       features: [
