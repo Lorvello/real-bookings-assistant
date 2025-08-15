@@ -656,7 +656,7 @@ export const BillingTab: React.FC = () => {
                     {(tier.tier_name === 'starter' ? [
                        "Strategic WhatsApp contact management (up to 500)",
                        "Dual-calendar orchestration system", 
-                       "Global tax compliance & automation",
+                       "Automated tax compliance & administration",
                        "Individual user access management",
                        "AI-powered intelligent reminder sequences",
                       "Essential dashboard overview & live operations monitoring",

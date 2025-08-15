@@ -69,7 +69,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             tooltip: "Seamlessly sync and manage two separate calendars with automated booking coordination"
           },
             {
-              text: "Global tax compliance & automation",
+              text: "Automated tax compliance & administration",
               tooltip: "Automated international tax administration, VAT, and reporting for seamless global compliance"
             },
           {
