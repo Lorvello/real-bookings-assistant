@@ -43,8 +43,8 @@ export const Pricing = () => {
           tooltip: "Automatically communicate with customers in their preferred language across multiple regions"
         },
         {
-          text: "VAT tracking & compliance",
-          tooltip: "Automated Dutch VAT administration and reporting for seamless tax compliance"
+          text: "Global tax compliance & automation",
+          tooltip: "Automated international tax administration, VAT, and reporting for seamless global compliance"
         },
         {
           text: "Streamlined payment processing & collection",

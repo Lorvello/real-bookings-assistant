@@ -68,10 +68,10 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             text: "Dual-calendar orchestration system",
             tooltip: "Seamlessly sync and manage two separate calendars with automated booking coordination"
           },
-          {
-            text: "VAT tracking & compliance",
-            tooltip: "Automated Dutch VAT administration and reporting for seamless tax compliance"
-          },
+            {
+              text: "Global tax compliance & automation",
+              tooltip: "Automated international tax administration, VAT, and reporting for seamless global compliance"
+            },
           {
             text: "AI-powered intelligent reminder sequences",
             tooltip: "Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates"
