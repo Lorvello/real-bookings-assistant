@@ -51,13 +51,16 @@ const CalendarMockup = () => {
   const handleDayClick = (day: Date, dayBookings: Booking[], event: React.MouseEvent) => {
     if (dayBookings.length >= 1) {
       const targetRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      const calendarRect = calendarRef.current?.getBoundingClientRect();
       
-      // Calculate position relative to viewport for fixed positioning
-      const x = targetRect.left + targetRect.width / 2;
-      const y = targetRect.top - 10;
+      if (!calendarRect) return;
       
-      // Check viewport boundaries and adjust position
-      const viewportWidth = window.innerWidth;
+      // Calculate position relative to calendar container for absolute positioning
+      const x = targetRect.left - calendarRect.left + targetRect.width / 2;
+      const y = targetRect.top - calendarRect.top - 10;
+      
+      // Check calendar boundaries and adjust position
+      const calendarWidth = calendarRect.width;
       const popupWidth = 320; // max-width of modal
       const popupHeight = 300; // estimated height
       
@@ -65,8 +68,8 @@ const CalendarMockup = () => {
       let adjustedY = y;
       
       // Check if popup would go off screen on the right
-      if (x + popupWidth / 2 > viewportWidth - 20) {
-        adjustedX = viewportWidth - popupWidth / 2 - 20;
+      if (x + popupWidth / 2 > calendarWidth - 20) {
+        adjustedX = calendarWidth - popupWidth / 2 - 20;
       }
       
       // Check if popup would go off screen on the left
@@ -77,7 +80,7 @@ const CalendarMockup = () => {
       // Account for translateY(-100%) transform - popup appears above y
       // Check if popup would go off screen on the top
       if (y - popupHeight < 20) {
-        adjustedY = targetRect.bottom + 10;
+        adjustedY = targetRect.bottom - calendarRect.top + 10;
       }
       
       setModalPosition({ x: adjustedX, y: adjustedY });
