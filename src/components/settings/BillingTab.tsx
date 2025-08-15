@@ -592,7 +592,7 @@ export const BillingTab: React.FC = () => {
               
               if (isEnterprise) {
                 // Enterprise always shows "Starting at €299" regardless of billing cycle
-                displayPrice = 'Starting at €299';
+                displayPrice = 'Starting at €300';
                 billingText = '/month';
                 savingsText = 'Custom pricing for large organizations';
               } else {
@@ -664,7 +664,7 @@ export const BillingTab: React.FC = () => {
                       "Streamlined payment processing & collection"
                     ] : tier.tier_name === 'professional' ? [
                       "All Starter premium features included",
-                      "Professional WhatsApp contact management (up to 2,500)",
+                      "Unlimited WhatsApp contact management",
                       "Unlimited calendar orchestration platform",
                       "Advanced team collaboration suite (2-10 users)",
                       "Multi-location business coordination", 
@@ -672,7 +672,7 @@ export const BillingTab: React.FC = () => {
                       "Dedicated priority customer success"
                     ] : [
                       "Complete professional suite included",
-                      "Unlimited enterprise WhatsApp contact management",
+                      
                       "Unlimited enterprise user access management",
                       "Dedicated WhatsApp Business API with custom branding",
                       "Intelligent voice call routing & distribution",

@@ -66,8 +66,8 @@ export const Pricing = () => {
           tooltip: "Everything from the Starter plan plus additional professional features"
         },
         {
-          text: "Professional WhatsApp contact management (up to 2,500)",
-          tooltip: "Manage up to 2,500 contacts with advanced segmentation, bulk messaging, and automated workflows"
+          text: "Unlimited WhatsApp contact management",
+          tooltip: "Unlimited WhatsApp contacts with advanced segmentation, bulk messaging, and automated workflows"
         },
         {
           text: "Unlimited calendar orchestration platform",
@@ -103,10 +103,6 @@ export const Pricing = () => {
         {
           text: "Complete professional suite included",
           tooltip: "All Professional plan features plus enterprise-grade capabilities"
-        },
-        {
-          text: "Unlimited enterprise WhatsApp contact management",
-          tooltip: "No limits on contacts with enterprise-grade security, compliance features, and bulk operations"
         },
         {
           text: "Unlimited enterprise user access management",
@@ -306,7 +302,7 @@ export const Pricing = () => {
                     ) : (
                       <div>
                         <div className="flex items-baseline justify-center mb-2">
-                          <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €299</span>
+                          <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €300</span>
                           <span className="text-slate-400 text-lg ml-2">/month</span>
                         </div>
                         <div className="text-xs text-slate-500">

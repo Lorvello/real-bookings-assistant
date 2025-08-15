@@ -105,8 +105,8 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             tooltip: "Everything from the Starter plan plus additional professional features"
           },
           {
-            text: "Professional WhatsApp contact management (up to 2,500)",
-            tooltip: "Manage up to 2,500 contacts with advanced segmentation, bulk messaging, and automated workflows"
+            text: "Unlimited WhatsApp contact management",
+            tooltip: "Unlimited WhatsApp contacts with advanced segmentation, bulk messaging, and automated workflows"
           },
           {
             text: "Unlimited calendar orchestration platform",
@@ -143,10 +143,6 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
           {
             text: "Complete professional suite included",
             tooltip: "All Professional plan features plus enterprise-grade capabilities"
-          },
-          {
-            text: "Unlimited enterprise WhatsApp contact management",
-            tooltip: "No limits on contacts with enterprise-grade security, compliance features, and bulk operations"
           },
           {
             text: "Dedicated WhatsApp Business API with custom branding",
@@ -425,7 +421,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                       ) : (
                         <div>
                           <div className="flex items-baseline justify-center mb-2">
-                            <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €299</span>
+                            <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €300</span>
                             <span className="text-slate-400 text-lg ml-2">/month</span>
                           </div>
                           <div className="text-xs text-slate-500">
@@ -557,7 +553,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                               ) : (
                                 <div>
                                   <div className="flex items-baseline justify-center mb-1">
-                                    <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg">From €299</span>
+                                    <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg">From €300</span>
                                     <span className="text-slate-300/90 text-xs ml-1">/month</span>
                                   </div>
                                   <div className="text-[9px] text-slate-500">

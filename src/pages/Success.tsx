@@ -176,7 +176,7 @@ export default function Success() {
                   {subscriptionTier === 'Professional' && (
                     <>
                       <li>• All Starter premium features included</li>
-                      <li>• Professional WhatsApp contact management (up to 2,500)</li>
+                      <li>• Unlimited WhatsApp contact management</li>
                       <li>• Unlimited calendar orchestration platform</li>
                       <li>• Advanced team collaboration suite (3+ users)</li>
                       <li>• Multi-location business coordination</li>
@@ -187,7 +187,7 @@ export default function Success() {
                   {subscriptionTier === 'Enterprise' && (
                     <>
                       <li>• Complete professional suite included</li>
-                      <li>• Unlimited enterprise WhatsApp contact management</li>
+                      
                       <li>• Dedicated WhatsApp Business API with custom branding</li>
                       <li>• Intelligent voice call routing & distribution</li>
                       <li>• Omnichannel social media DM orchestration</li>

@@ -33,7 +33,7 @@ import { Building2, Phone, Mail, Globe, Users, MessageSquare, X } from 'lucide-r
 
 const enterpriseFeatures = [
   'Complete professional suite included',
-  'Unlimited enterprise WhatsApp contact management',
+  
   'Unlimited enterprise user access management',
   'Dedicated WhatsApp Business API with custom branding',
   'Intelligent voice call routing & distribution',

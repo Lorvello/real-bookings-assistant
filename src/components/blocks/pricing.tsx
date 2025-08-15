@@ -67,7 +67,7 @@ export const Pricing: React.FC<PricingProps> = ({
       description: "Advanced features for teams with extended contact management and collaboration tools",
       features: [
         "All Starter premium features included",
-        "Professional WhatsApp contact management (up to 2,500)",
+        "Unlimited WhatsApp contact management",
         "Unlimited calendar orchestration platform",
         "Advanced team collaboration suite (3+ users)",
         "Multi-location business coordination",
@@ -86,7 +86,7 @@ export const Pricing: React.FC<PricingProps> = ({
       description: "Complete business solution with dedicated WhatsApp number and premium support",
       features: [
         "Complete professional suite included",
-        "Unlimited enterprise WhatsApp contact management",
+        
         "Dedicated WhatsApp Business API with custom branding",
         "Intelligent voice call routing & distribution",
         "Omnichannel social media DM orchestration",
