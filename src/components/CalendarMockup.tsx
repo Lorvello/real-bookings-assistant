@@ -52,33 +52,32 @@ const CalendarMockup = () => {
     if (dayBookings.length >= 1) {
       const targetRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
       
-      // Calculate position relative to document for absolute positioning
-      const x = targetRect.left + targetRect.width / 2 + window.scrollX;
-      const y = targetRect.top - 10 + window.scrollY;
+      // Calculate position relative to viewport for fixed positioning
+      const x = targetRect.left + targetRect.width / 2;
+      const y = targetRect.top - 10;
       
       // Check viewport boundaries and adjust position
       const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const popupWidth = 320;
-      const popupHeight = 300;
+      const popupWidth = 320; // max-width of modal
+      const popupHeight = 300; // estimated height
       
       let adjustedX = x;
       let adjustedY = y;
       
-      // Account for translateX(-50%) transform - popup is centered on x
       // Check if popup would go off screen on the right
-      if (x + popupWidth / 2 > viewportWidth + window.scrollX - 20) {
-        adjustedX = viewportWidth + window.scrollX - popupWidth / 2 - 20;
+      if (x + popupWidth / 2 > viewportWidth - 20) {
+        adjustedX = viewportWidth - popupWidth / 2 - 20;
       }
+      
       // Check if popup would go off screen on the left
-      if (x - popupWidth / 2 < window.scrollX + 20) {
-        adjustedX = window.scrollX + popupWidth / 2 + 20;
+      if (x - popupWidth / 2 < 20) {
+        adjustedX = popupWidth / 2 + 20;
       }
       
       // Account for translateY(-100%) transform - popup appears above y
       // Check if popup would go off screen on the top
-      if (y - popupHeight < window.scrollY + 20) {
-        adjustedY = targetRect.bottom + 10 + window.scrollY;
+      if (y - popupHeight < 20) {
+        adjustedY = targetRect.bottom + 10;
       }
       
       setModalPosition({ x: adjustedX, y: adjustedY });
