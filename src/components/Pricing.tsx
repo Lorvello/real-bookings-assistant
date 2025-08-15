@@ -339,7 +339,7 @@ export const Pricing = () => {
                                 <span className="text-slate-300 text-sm leading-relaxed font-medium hover:text-slate-200 transition-colors pr-4">
                                   {feature.text}
                                 </span>
-                                <Info className="w-2.5 h-2.5 text-slate-500 hover:text-slate-400 transition-colors absolute top-0 right-0 translate-y-0.5" />
+                                <Info className="w-2.5 h-2.5 text-slate-500 hover:text-slate-400 transition-colors absolute top-0 right-0 translate-y-2" />
                               </div>
                             </TooltipTrigger>
                             <TooltipContent 
