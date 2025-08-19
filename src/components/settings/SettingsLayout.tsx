@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Calendar, CreditCard, Brain, Wrench, Shield } from 'lucide-react';
+import { User, Calendar, CreditCard, Brain, Wrench, Shield, Lock } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
 import { AIKnowledgeTab } from './AIKnowledgeTab';
 import { CalendarTab } from './CalendarTab';
@@ -13,10 +13,12 @@ import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
 
 import { SettingsProvider } from '@/contexts/SettingsContext';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 
 export const SettingsLayout = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('users');
+  const { userStatus } = useUserStatus();
 
   // Handle tab from URL parameters
   useEffect(() => {
@@ -57,9 +59,12 @@ export const SettingsLayout = () => {
                 <Wrench className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Services</span>
               </TabsTrigger>
-              <TabsTrigger value="payments" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
+              <TabsTrigger value="payments" className="relative flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Shield className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Pay & Book</span>
+                {userStatus.isSetupIncomplete && (
+                  <Lock className="absolute -top-1 -right-1 h-3 w-3 text-red-400" />
+                )}
               </TabsTrigger>
               <TabsTrigger value="billing" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <CreditCard className="h-3 w-3 md:h-4 md:w-4" />
