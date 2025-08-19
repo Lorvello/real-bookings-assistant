@@ -33,7 +33,7 @@ serve(async (req) => {
     // Get existing account
     const { data: account, error: accountError } = await supabaseClient
       .from('business_stripe_accounts')
-      .select('stripe_account_id')
+      .select('stripe_account_id, onboarding_completed, charges_enabled, payouts_enabled')
       .eq('calendar_id', calendar_id)
       .single();
 
@@ -45,12 +45,49 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    // Create login link
-    const loginLink = await stripe.accounts.createLoginLink(account.stripe_account_id);
+    // Fetch latest account details from Stripe to verify status
+    const stripeAccount = await stripe.accounts.retrieve(account.stripe_account_id);
+    
+    // Update database with latest status
+    await supabaseClient
+      .from('business_stripe_accounts')
+      .update({
+        onboarding_completed: stripeAccount.details_submitted || false,
+        charges_enabled: stripeAccount.charges_enabled || false,
+        payouts_enabled: stripeAccount.payouts_enabled || false,
+        account_status: stripeAccount.charges_enabled && stripeAccount.payouts_enabled ? 'active' : 'pending',
+        updated_at: new Date().toISOString()
+      })
+      .eq('calendar_id', calendar_id);
+
+    // If account is fully onboarded, create login link
+    if (stripeAccount.details_submitted && stripeAccount.charges_enabled) {
+      const loginLink = await stripe.accounts.createLoginLink(account.stripe_account_id);
+      
+      return new Response(
+        JSON.stringify({
+          url: loginLink.url,
+          type: 'login_link'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    }
+
+    // If onboarding is incomplete, create account link for onboarding
+    const accountLink = await stripe.accountLinks.create({
+      account: account.stripe_account_id,
+      refresh_url: `${req.headers.get('origin') || 'http://localhost:3000'}/settings?tab=payments&refresh=true`,
+      return_url: `${req.headers.get('origin') || 'http://localhost:3000'}/settings?tab=payments&connected=true`,
+      type: 'account_onboarding',
+    });
 
     return new Response(
       JSON.stringify({
-        url: loginLink.url,
+        url: accountLink.url,
+        type: 'account_onboarding'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

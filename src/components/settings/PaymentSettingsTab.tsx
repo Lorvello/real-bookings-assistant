@@ -99,7 +99,8 @@ export function PaymentSettingsTab() {
     if (!selectedCalendar?.id) return;
     const loginUrl = await createLoginLink(selectedCalendar.id);
     if (loginUrl) {
-      window.open(loginUrl, '_blank');
+      // Redirect in the same tab for both login and onboarding flows
+      window.location.href = loginUrl;
     }
   };
 
