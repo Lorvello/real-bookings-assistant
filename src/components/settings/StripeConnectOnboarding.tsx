@@ -8,8 +8,9 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, ExternalLink, CheckCircle, CreditCard, Shield, Zap } from 'lucide-react';
+import { Loader2, ExternalLink, CheckCircle, Shield } from 'lucide-react';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
+import { useSettingsContext } from '@/contexts/SettingsContext';
 import type { BusinessStripeAccount } from '@/types/payments';
 
 interface StripeConnectOnboardingProps {
@@ -24,7 +25,28 @@ export function StripeConnectOnboarding({
   onClose 
 }: StripeConnectOnboardingProps) {
   const { createOnboardingLink, onboarding } = useStripeConnect();
+  const { businessData } = useSettingsContext();
   const [step, setStep] = useState<'intro' | 'onboarding' | 'complete'>('intro');
+
+  // Dynamic checklist - determine what the user still needs to provide
+  const getMissingRequirements = () => {
+    const requirements = [];
+    // Always needed for NL Stripe Express accounts
+    requirements.push('Business bank account (IBAN)');
+    requirements.push('KvK-nummer (NL business registration)');
+    requirements.push('Valid ID of representative/UBO (if requested)');
+    return requirements;
+  };
+
+  const getPrefilledItems = () => {
+    const items = [];
+    if (businessData.business_name) items.push('Company name');
+    if (businessData.business_street && businessData.business_city) items.push('Business address');
+    if (businessData.business_email || businessData.business_phone) items.push('Contact details (email, phone)');
+    // Add website if available in business data in the future
+    items.push('Description of services');
+    return items;
+  };
 
   const handleStartOnboarding = async () => {
     const onboardingLink = await createOnboardingLink(calendarId);
@@ -40,11 +62,11 @@ export function StripeConnectOnboarding({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <CreditCard className="h-5 w-5" />
+            <Shield className="h-5 w-5 text-green-600" />
             <span>Connect Stripe Account</span>
           </DialogTitle>
           <DialogDescription>
-            Set up Pay & Book for secure upfront payments
+            Enable Pay & Book for secure upfront payments.
           </DialogDescription>
         </DialogHeader>
 
@@ -57,9 +79,9 @@ export function StripeConnectOnboarding({
                     <div className="flex items-start space-x-3">
                       <Shield className="h-5 w-5 text-green-600 mt-0.5" />
                       <div>
-                        <h4 className="font-medium">Secure & Compliant</h4>
+                        <h4 className="font-medium text-green-600">Reduce no-shows</h4>
                         <p className="text-sm text-muted-foreground">
-                          Your customer payment data is handled securely by Stripe
+                          Upfront payments significantly lower missed appointments.
                         </p>
                       </div>
                     </div>
@@ -69,11 +91,11 @@ export function StripeConnectOnboarding({
                 <Card>
                   <CardContent className="pt-4">
                     <div className="flex items-start space-x-3">
-                      <Zap className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <Shield className="h-5 w-5 text-green-600 mt-0.5" />
                       <div>
-                        <h4 className="font-medium">Direct Payouts</h4>
+                        <h4 className="font-medium text-green-600">Faster cash flow</h4>
                         <p className="text-sm text-muted-foreground">
-                          Payments go directly to your business bank account
+                          Receive funds sooner instead of waiting until after the booking.
                         </p>
                       </div>
                     </div>
@@ -83,11 +105,11 @@ export function StripeConnectOnboarding({
                 <Card>
                   <CardContent className="pt-4">
                     <div className="flex items-start space-x-3">
-                      <CreditCard className="h-5 w-5 text-purple-600 mt-0.5" />
+                      <Shield className="h-5 w-5 text-green-600 mt-0.5" />
                       <div>
-                        <h4 className="font-medium">Multiple Payment Methods</h4>
+                        <h4 className="font-medium text-green-600">Secure & compliant</h4>
                         <p className="text-sm text-muted-foreground">
-                          Accept cards, iDEAL, Bancontact, and more
+                          Stripe processes payments safely and meets EU/PSD2 standards.
                         </p>
                       </div>
                     </div>
@@ -97,26 +119,24 @@ export function StripeConnectOnboarding({
 
               <div className="bg-muted/50 p-4 rounded-lg space-y-4">
                 <div>
-                  <h4 className="font-medium mb-2 text-foreground">What you'll need to provide:</h4>
+                  <h4 className="font-medium mb-2 text-foreground">What you'll still need</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Business bank account (IBAN / payout details)</li>
-                    <li>• KvK number (or equivalent business registration / tax ID)</li>
-                    <li>• Government-issued ID (passport or ID card)</li>
-                    <li>• Date of birth and address of representative</li>
-                    <li>• Beneficial ownership details (for anyone owning 25%+)</li>
+                    {getMissingRequirements().map((requirement, index) => (
+                      <li key={index}>• {requirement}</li>
+                    ))}
                   </ul>
                 </div>
                 
-                <div>
-                  <h4 className="font-medium mb-2 text-foreground">Already filled from your platform:</h4>
-                  <ul className="text-sm text-green-600 space-y-1">
-                    <li>• Company name</li>
-                    <li>• Business address</li>
-                    <li>• Contact details (email, phone)</li>
-                    <li>• Website</li>
-                    <li>• Description of services</li>
-                  </ul>
-                </div>
+                {getPrefilledItems().length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2 text-foreground">Already filled from your platform</h4>
+                    <ul className="text-sm text-green-600 space-y-1">
+                      {getPrefilledItems().map((item, index) => (
+                        <li key={index}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               <div className="flex space-x-2">
@@ -126,7 +146,7 @@ export function StripeConnectOnboarding({
                 <Button 
                   onClick={handleStartOnboarding} 
                   disabled={onboarding}
-                  className="flex-1"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                 >
                   {onboarding ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

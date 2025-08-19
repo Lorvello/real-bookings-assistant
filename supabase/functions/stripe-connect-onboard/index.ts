@@ -30,7 +30,7 @@ serve(async (req) => {
 
     const { calendar_id } = await req.json();
 
-    // Verify user owns the calendar
+    // Verify user owns the calendar and fetch user business data
     const { data: calendar, error: calendarError } = await supabaseClient
       .from('calendars')
       .select('id, name')
@@ -40,6 +40,21 @@ serve(async (req) => {
 
     if (calendarError || !calendar) {
       throw new Error('Calendar not found or access denied');
+    }
+
+    // Fetch user business data for prefilling
+    const { data: userData, error: userDataError } = await supabaseClient
+      .from('users')
+      .select(`
+        business_name, business_email, business_phone, business_street, 
+        business_number, business_postal, business_city, business_country,
+        business_description, full_name, email, phone, website
+      `)
+      .eq('id', user.id)
+      .single();
+
+    if (userDataError) {
+      console.log('Could not fetch user data for prefilling:', userDataError);
     }
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -57,23 +72,112 @@ serve(async (req) => {
 
     if (existingAccount?.stripe_account_id) {
       stripeAccountId = existingAccount.stripe_account_id;
+      
+      // Update existing account with latest user data
+      if (userData) {
+        const updateData: any = {
+          email: userData.business_email || user.email,
+          metadata: {
+            calendar_id: calendar_id,
+            business_name: userData.business_name || calendar.name,
+          },
+        };
+
+        // Add business profile if we have business data
+        if (userData.business_name) {
+          updateData.business_type = 'company';
+          updateData.company = {
+            name: userData.business_name,
+          };
+          
+          if (userData.business_street && userData.business_city) {
+            updateData.company.address = {
+              line1: `${userData.business_street} ${userData.business_number || ''}`.trim(),
+              city: userData.business_city,
+              postal_code: userData.business_postal,
+              country: 'NL',
+            };
+          }
+        }
+
+        // Add business profile
+        if (userData.business_email || userData.business_phone || userData.business_description) {
+          updateData.business_profile = {
+            support_email: userData.business_email || user.email,
+            support_phone: userData.business_phone,
+            product_description: userData.business_description || 'Professional booking services',
+          };
+          
+          if (userData.website) {
+            updateData.business_profile.url = userData.website;
+          }
+        }
+
+        try {
+          await stripe.accounts.update(stripeAccountId, updateData);
+        } catch (updateError) {
+          console.log('Could not update account with prefill data:', updateError);
+        }
+      }
     } else {
-      // Create new Stripe Connect account
-      const account = await stripe.accounts.create({
+      // Create new Stripe Connect account with prefilled data
+      const accountData: any = {
         type: 'express',
-        country: 'NL', // Netherlands
-        email: user.email,
+        country: 'NL',
+        default_currency: 'eur',
+        email: userData?.business_email || user.email,
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
-        business_type: 'individual',
         metadata: {
           calendar_id: calendar_id,
-          business_name: calendar.name,
+          business_name: userData?.business_name || calendar.name,
         },
-      });
+      };
 
+      // Determine business type and add company info
+      if (userData?.business_name) {
+        accountData.business_type = 'company';
+        accountData.company = {
+          name: userData.business_name,
+        };
+        
+        // Add business address if available
+        if (userData.business_street && userData.business_city) {
+          accountData.company.address = {
+            line1: `${userData.business_street} ${userData.business_number || ''}`.trim(),
+            city: userData.business_city,
+            postal_code: userData.business_postal,
+            country: 'NL',
+          };
+        }
+      } else {
+        accountData.business_type = 'individual';
+        // Add individual info if available
+        if (userData?.full_name) {
+          accountData.individual = {
+            first_name: userData.full_name.split(' ')[0],
+            last_name: userData.full_name.split(' ').slice(1).join(' ') || userData.full_name.split(' ')[0],
+            email: user.email,
+          };
+        }
+      }
+
+      // Add business profile
+      if (userData?.business_email || userData?.business_phone || userData?.business_description) {
+        accountData.business_profile = {
+          support_email: userData?.business_email || user.email,
+          support_phone: userData?.business_phone,
+          product_description: userData?.business_description || 'Professional booking services',
+        };
+        
+        if (userData?.website) {
+          accountData.business_profile.url = userData.website;
+        }
+      }
+
+      const account = await stripe.accounts.create(accountData);
       stripeAccountId = account.id;
 
       // Store account in database

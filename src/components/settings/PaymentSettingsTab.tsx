@@ -248,9 +248,24 @@ export function PaymentSettingsTab() {
               </div>
 
               {!stripeAccount.onboarding_completed && (
-                <Button onClick={() => setShowOnboarding(true)} className="w-full">
-                  Resume Onboarding
-                </Button>
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Setup Incomplete</p>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Complete your Stripe account setup to start accepting payments
+                      </p>
+                      <Button 
+                        onClick={() => setShowOnboarding(true)} 
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Continue Setup
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           ) : (
@@ -258,9 +273,12 @@ export function PaymentSettingsTab() {
               <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-medium mb-2">No Stripe Account Connected</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Connect your Stripe account to start accepting payments
+                Connect your Stripe account to enable secure upfront payments
               </p>
-              <Button onClick={() => setShowOnboarding(true)}>
+              <Button 
+                onClick={() => setShowOnboarding(true)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
                 Connect Stripe Account
               </Button>
             </div>
