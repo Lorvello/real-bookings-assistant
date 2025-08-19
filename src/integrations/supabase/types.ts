@@ -284,6 +284,68 @@ export type Database = {
           },
         ]
       }
+      booking_payments: {
+        Row: {
+          amount_cents: number
+          booking_id: string
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_name: string | null
+          id: string
+          payment_method_type: string | null
+          platform_fee_cents: number
+          refund_amount_cents: number | null
+          refunded_at: string | null
+          status: string
+          stripe_account_id: string
+          stripe_payment_intent_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          booking_id: string
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          payment_method_type?: string | null
+          platform_fee_cents?: number
+          refund_amount_cents?: number | null
+          refunded_at?: string | null
+          status?: string
+          stripe_account_id: string
+          stripe_payment_intent_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          booking_id?: string
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          payment_method_type?: string | null
+          platform_fee_cents?: number
+          refund_amount_cents?: number | null
+          refunded_at?: string | null
+          status?: string
+          stripe_account_id?: string
+          stripe_payment_intent_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_duration: number | null
@@ -302,11 +364,16 @@ export type Database = {
           id: string
           internal_notes: string | null
           notes: string | null
+          payment_currency: string | null
+          payment_deadline: string | null
+          payment_required: boolean | null
+          payment_status: string | null
           service_name: string | null
           service_type_id: string | null
           session_id: string | null
           start_time: string
           status: string | null
+          total_amount_cents: number | null
           total_price: number | null
           updated_at: string | null
         }
@@ -327,11 +394,16 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           notes?: string | null
+          payment_currency?: string | null
+          payment_deadline?: string | null
+          payment_required?: boolean | null
+          payment_status?: string | null
           service_name?: string | null
           service_type_id?: string | null
           session_id?: string | null
           start_time: string
           status?: string | null
+          total_amount_cents?: number | null
           total_price?: number | null
           updated_at?: string | null
         }
@@ -352,11 +424,16 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           notes?: string | null
+          payment_currency?: string | null
+          payment_deadline?: string | null
+          payment_required?: boolean | null
+          payment_status?: string | null
           service_name?: string | null
           service_type_id?: string | null
           session_id?: string | null
           start_time?: string
           status?: string | null
+          total_amount_cents?: number | null
           total_price?: number | null
           updated_at?: string | null
         }
@@ -430,6 +507,94 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "service_types"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_stripe_accounts: {
+        Row: {
+          account_status: string
+          account_type: string | null
+          calendar_id: string
+          charges_enabled: boolean
+          country: string | null
+          created_at: string
+          currency: string | null
+          id: string
+          onboarding_completed: boolean
+          payouts_enabled: boolean
+          stripe_account_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_status?: string
+          account_type?: string | null
+          calendar_id: string
+          charges_enabled?: boolean
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          payouts_enabled?: boolean
+          stripe_account_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_status?: string
+          account_type?: string | null
+          calendar_id?: string
+          charges_enabled?: boolean
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          payouts_enabled?: boolean
+          stripe_account_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
           },
         ]
       }
@@ -662,6 +827,7 @@ export type Database = {
           second_reminder_enabled: boolean | null
           second_reminder_timing_minutes: number | null
           slot_duration: number | null
+          stripe_connect_account_id: string | null
           whatsapp_bot_active: boolean | null
         }
         Insert: {
@@ -682,6 +848,7 @@ export type Database = {
           second_reminder_enabled?: boolean | null
           second_reminder_timing_minutes?: number | null
           slot_duration?: number | null
+          stripe_connect_account_id?: string | null
           whatsapp_bot_active?: boolean | null
         }
         Update: {
@@ -702,6 +869,7 @@ export type Database = {
           second_reminder_enabled?: boolean | null
           second_reminder_timing_minutes?: number | null
           slot_duration?: number | null
+          stripe_connect_account_id?: string | null
           whatsapp_bot_active?: boolean | null
         }
         Relationships: [
@@ -746,6 +914,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_settings_stripe_connect_account_id_fkey"
+            columns: ["stripe_connect_account_id"]
+            isOneToOne: false
+            referencedRelation: "business_stripe_accounts"
+            referencedColumns: ["stripe_account_id"]
           },
         ]
       }
@@ -895,6 +1070,91 @@ export type Database = {
           session_id?: string
         }
         Relationships: []
+      }
+      payment_settings: {
+        Row: {
+          allow_partial_refunds: boolean
+          auto_cancel_unpaid_bookings: boolean
+          calendar_id: string
+          created_at: string
+          id: string
+          payment_deadline_hours: number | null
+          payment_required_for_booking: boolean
+          platform_fee_percentage: number
+          refund_policy_text: string | null
+          secure_payments_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          allow_partial_refunds?: boolean
+          auto_cancel_unpaid_bookings?: boolean
+          calendar_id: string
+          created_at?: string
+          id?: string
+          payment_deadline_hours?: number | null
+          payment_required_for_booking?: boolean
+          platform_fee_percentage?: number
+          refund_policy_text?: string | null
+          secure_payments_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          allow_partial_refunds?: boolean
+          auto_cancel_unpaid_bookings?: boolean
+          calendar_id?: string
+          created_at?: string
+          id?: string
+          payment_deadline_hours?: number | null
+          payment_required_for_booking?: boolean
+          platform_fee_percentage?: number
+          refund_policy_text?: string | null
+          secure_payments_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
       }
       quick_reply_flows: {
         Row: {
