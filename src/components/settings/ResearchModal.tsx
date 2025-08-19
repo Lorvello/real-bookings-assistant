@@ -216,7 +216,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                   <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                     <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
                     <div className="text-slate-300 text-sm">
-                      <span className="font-medium">Auto Repair Shops:</span> Faster parts ordering thanks to immediate funds availability
+                      <span className="font-medium">Auto Repair Shops:</span> Guaranteed appointment slots with upfront payment eliminate no-shows for tire changes and repairs
                     </div>
                   </div>
                 </div>
