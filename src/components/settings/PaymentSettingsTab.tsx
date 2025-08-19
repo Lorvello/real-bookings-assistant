@@ -49,7 +49,7 @@ export function PaymentSettingsTab() {
   const [platformFee, setPlatformFee] = useState('2.50');
   const [paymentDeadline, setPaymentDeadline] = useState('24');
   const [refundPolicy, setRefundPolicy] = useState('');
-  const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | null>(null);
+  const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | 'professionalism' | null>(null);
 
   useEffect(() => {
     if (selectedCalendar?.id) {
@@ -288,28 +288,38 @@ export function PaymentSettingsTab() {
                   <span>Why we recommend this</span>
                 </h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Upfront payments help your business run more smoothly. They{' '}
+                  Upfront payments transform the way businesses operate. By asking customers to pay at the time of booking, you dramatically{' '}
                   <button 
                     onClick={() => setResearchModal('no-shows')}
                     className="underline cursor-pointer hover:text-foreground transition-colors"
                   >
                     reduce no-shows
                   </button>
-                  , create{' '}
+                  , unlock{' '}
                   <button 
                     onClick={() => setResearchModal('cashflow')}
                     className="underline cursor-pointer hover:text-foreground transition-colors"
                   >
-                    faster cashflow
+                    faster access to your cash
                   </button>
-                  , and keep everything{' '}
+                  , keep everything{' '}
                   <button 
                     onClick={() => setResearchModal('compliance')}
                     className="underline cursor-pointer hover:text-foreground transition-colors"
                   >
                     secure & compliant
                   </button>
+                  , and{' '}
+                  <button 
+                    onClick={() => setResearchModal('professionalism')}
+                    className="underline cursor-pointer hover:text-foreground transition-colors"
+                  >
+                    present yourself as a more professional business
+                  </button>
                   .
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Click a benefit above to see research findings, real-world examples, and trusted sources.
                 </p>
               </div>
 
