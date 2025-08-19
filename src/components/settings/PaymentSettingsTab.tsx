@@ -287,40 +287,47 @@ export function PaymentSettingsTab() {
                   <Shield className="h-4 w-4 text-green-600" />
                   <span>Why we recommend this</span>
                 </h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Upfront payments transform the way businesses operate. By asking customers to pay at the time of booking, you dramatically{' '}
-                  <button 
-                    onClick={() => setResearchModal('no-shows')}
-                    className="underline cursor-pointer hover:text-foreground transition-colors"
-                  >
-                    reduce no-shows
-                  </button>
-                  , unlock{' '}
-                  <button 
-                    onClick={() => setResearchModal('cashflow')}
-                    className="underline cursor-pointer hover:text-foreground transition-colors"
-                  >
-                    faster access to your cash
-                  </button>
-                  , keep everything{' '}
-                  <button 
-                    onClick={() => setResearchModal('compliance')}
-                    className="underline cursor-pointer hover:text-foreground transition-colors"
-                  >
-                    secure & compliant
-                  </button>
-                  , and{' '}
-                  <button 
-                    onClick={() => setResearchModal('professionalism')}
-                    className="underline cursor-pointer hover:text-foreground transition-colors"
-                  >
-                    present yourself as a more professional business
-                  </button>
-                  .
+                <p className="text-sm text-muted-foreground mb-3">
+                  Upfront payments transform the way businesses operate:
                 </p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Click a benefit above to see research findings, real-world examples, and trusted sources.
-                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-start space-x-2 text-sm">
+                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <button 
+                      onClick={() => setResearchModal('no-shows')}
+                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground"
+                    >
+                      Reduce no-shows dramatically
+                    </button>
+                  </li>
+                  <li className="flex items-start space-x-2 text-sm">
+                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <button 
+                      onClick={() => setResearchModal('cashflow')}
+                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground"
+                    >
+                      Faster access to your cash
+                    </button>
+                  </li>
+                  <li className="flex items-start space-x-2 text-sm">
+                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <button 
+                      onClick={() => setResearchModal('compliance')}
+                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground"
+                    >
+                      Secure & compliant payments
+                    </button>
+                  </li>
+                  <li className="flex items-start space-x-2 text-sm">
+                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <button 
+                      onClick={() => setResearchModal('professionalism')}
+                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground"
+                    >
+                      Present yourself as a professional business
+                    </button>
+                  </li>
+                </ul>
               </div>
 
               {/* What you'll need */}
