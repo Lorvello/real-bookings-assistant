@@ -18,7 +18,8 @@ import {
   Euro,
   Clock,
   RefreshCw,
-  Check
+  Check,
+  ArrowRight
 } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
@@ -291,43 +292,46 @@ export function PaymentSettingsTab() {
                   Upfront payments transform the way businesses operate:
                 </p>
                 <ul className="space-y-2">
-                  <li className="flex items-start space-x-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <li className="flex items-start space-x-3 text-sm group">
+                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
                     <button 
                       onClick={() => setResearchModal('no-shows')}
-                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground"
+                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
                     >
                       Reduce no-shows dramatically
                     </button>
                   </li>
-                  <li className="flex items-start space-x-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <li className="flex items-start space-x-3 text-sm group">
+                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
                     <button 
                       onClick={() => setResearchModal('cashflow')}
-                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground"
+                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
                     >
                       Faster access to your cash
                     </button>
                   </li>
-                  <li className="flex items-start space-x-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <li className="flex items-start space-x-3 text-sm group">
+                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
                     <button 
                       onClick={() => setResearchModal('compliance')}
-                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground"
+                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
                     >
                       Secure & compliant payments
                     </button>
                   </li>
-                  <li className="flex items-start space-x-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <li className="flex items-start space-x-3 text-sm group">
+                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
                     <button 
                       onClick={() => setResearchModal('professionalism')}
-                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground"
+                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
                     >
                       Present yourself as a professional business
                     </button>
                   </li>
                 </ul>
+                <p className="text-xs text-muted-foreground mt-3 italic">
+                  Click any benefit to learn more
+                </p>
               </div>
 
               {/* What you'll need */}
