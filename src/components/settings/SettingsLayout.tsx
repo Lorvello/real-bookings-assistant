@@ -14,11 +14,13 @@ import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
 import { SettingsProvider } from '@/contexts/SettingsContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
+import { useToast } from '@/hooks/use-toast';
 
 export const SettingsLayout = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('users');
   const { userStatus } = useUserStatus();
+  const { toast } = useToast();
 
   // Handle tab from URL parameters
   useEffect(() => {
@@ -29,6 +31,16 @@ export const SettingsLayout = () => {
   }, [searchParams]);
 
   const handleTabChange = (value: string) => {
+    // Check if trying to access payments tab when setup is incomplete
+    if (value === 'payments' && userStatus.isSetupIncomplete) {
+      toast({
+        title: "Complete Setup First",
+        description: "Please complete your profile setup before accessing payment settings.",
+        variant: "destructive",
+      });
+      return; // Don't change the tab
+    }
+    
     setActiveTab(value);
     // Clear the URL parameter after navigating
     setSearchParams({});
@@ -59,11 +71,23 @@ export const SettingsLayout = () => {
                 <Wrench className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Services</span>
               </TabsTrigger>
-              <TabsTrigger value="payments" className="relative flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
-                <Shield className="h-3 w-3 md:h-4 md:w-4" />
+              <TabsTrigger 
+                value="payments" 
+                className={`relative flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3 ${
+                  userStatus.isSetupIncomplete 
+                    ? 'text-gray-500 cursor-not-allowed' 
+                    : ''
+                }`}
+              >
+                <Shield className={`h-3 w-3 md:h-4 md:w-4 ${
+                  userStatus.isSetupIncomplete ? 'text-gray-600' : ''
+                }`} />
                 <span className="text-xs md:text-sm">Pay & Book</span>
                 {userStatus.isSetupIncomplete && (
-                  <Lock className="absolute -top-1 -right-1 h-3 w-3 text-red-400" />
+                  <>
+                    <Lock className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
+                    <Lock className="absolute -top-1 -right-1 h-3 w-3 text-red-400" />
+                  </>
                 )}
               </TabsTrigger>
               <TabsTrigger value="billing" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
