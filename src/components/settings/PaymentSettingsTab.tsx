@@ -271,9 +271,11 @@ export function PaymentSettingsTab() {
                       <Button 
                         onClick={handleStartOnboarding} 
                         size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        disabled={stripeLoading}
+                        className="bg-green-600 hover:bg-green-700 text-white font-medium"
                       >
-                        Continue Setup
+                        {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        Complete Setup in Minutes
                       </Button>
                     </div>
                   </div>
@@ -353,15 +355,24 @@ export function PaymentSettingsTab() {
                 </ul>
               </div>
 
-              <div className="text-center py-4">
-                <Button 
-                  onClick={handleStartOnboarding}
-                  disabled={stripeLoading}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Setup Stripe Account
-                </Button>
+              <div className="text-center py-6 space-y-3">
+                <div className="max-w-sm mx-auto">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Fast, compliant, and fully integrated with your Booking Assistant.
+                  </p>
+                  <Button 
+                    onClick={handleStartOnboarding}
+                    disabled={stripeLoading}
+                    size="lg"
+                    className="bg-green-600 hover:bg-green-700 text-white font-medium w-full shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {stripeLoading ? 'Setting up...' : 'Secure your payouts now — set up your Stripe Account in minutes'}
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    ✅ Secure & encrypted • ✅ No setup fees • ✅ Instant activation
+                  </p>
+                </div>
               </div>
             </div>
           )}
