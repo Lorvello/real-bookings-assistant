@@ -17,12 +17,13 @@ import {
   Loader2,
   Euro,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Check
 } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
-import { StripeConnectOnboarding } from './StripeConnectOnboarding';
+import { ResearchModal } from './ResearchModal';
 import type { BusinessStripeAccount } from '@/types/payments';
 
 export function PaymentSettingsTab() {
@@ -45,10 +46,10 @@ export function PaymentSettingsTab() {
   } = useStripeConnect();
 
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [platformFee, setPlatformFee] = useState('2.50');
   const [paymentDeadline, setPaymentDeadline] = useState('24');
   const [refundPolicy, setRefundPolicy] = useState('');
+  const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | null>(null);
 
   useEffect(() => {
     if (selectedCalendar?.id) {
@@ -101,6 +102,16 @@ export function PaymentSettingsTab() {
     if (loginUrl) {
       // Redirect in the same tab for both login and onboarding flows
       window.location.href = loginUrl;
+    }
+  };
+
+  const handleStartOnboarding = async () => {
+    if (!selectedCalendar?.id) return;
+    const { createOnboardingLink } = useStripeConnect();
+    const onboardingLink = await createOnboardingLink(selectedCalendar.id);
+    
+    if (onboardingLink) {
+      window.location.href = onboardingLink.url;
     }
   };
 
@@ -179,15 +190,15 @@ export function PaymentSettingsTab() {
         </CardContent>
       </Card>
 
-      {/* Stripe Connect Setup */}
+      {/* Stripe Account Setup */}
       <Card>
         <CardHeader>
           <div className="flex items-center space-x-2">
             <CreditCard className="h-5 w-5 text-primary" />
-            <CardTitle>Stripe Connect Account</CardTitle>
+            <CardTitle>Stripe Account</CardTitle>
           </div>
           <CardDescription>
-            Connect your Stripe account to receive payments directly to your business
+            Receive payments directly to your business account
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -254,10 +265,10 @@ export function PaymentSettingsTab() {
                     <div>
                       <p className="text-sm font-medium">Setup Incomplete</p>
                       <p className="text-xs text-muted-foreground mb-2">
-                        Complete your Stripe account setup to start accepting payments
+                        Complete your account setup to start accepting payments
                       </p>
                       <Button 
-                        onClick={() => setShowOnboarding(true)} 
+                        onClick={handleStartOnboarding} 
                         size="sm"
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
@@ -269,18 +280,68 @@ export function PaymentSettingsTab() {
               )}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="font-medium mb-2">No Stripe Account Connected</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Connect your Stripe account to enable secure upfront payments
-              </p>
-              <Button 
-                onClick={() => setShowOnboarding(true)}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                Connect Stripe Account
-              </Button>
+            <div className="space-y-6">
+              {/* Why we recommend this */}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h4 className="font-medium mb-3 text-foreground flex items-center space-x-2">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  <span>Why we recommend this</span>
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Upfront payments help your business run more smoothly. They{' '}
+                  <button 
+                    onClick={() => setResearchModal('no-shows')}
+                    className="underline cursor-pointer hover:text-foreground transition-colors"
+                  >
+                    reduce no-shows
+                  </button>
+                  , create{' '}
+                  <button 
+                    onClick={() => setResearchModal('cashflow')}
+                    className="underline cursor-pointer hover:text-foreground transition-colors"
+                  >
+                    faster cashflow
+                  </button>
+                  , and keep everything{' '}
+                  <button 
+                    onClick={() => setResearchModal('compliance')}
+                    className="underline cursor-pointer hover:text-foreground transition-colors"
+                  >
+                    secure & compliant
+                  </button>
+                  .
+                </p>
+              </div>
+
+              {/* What you'll need */}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h4 className="font-medium mb-3 text-foreground">What you'll need</h4>
+                <ul className="space-y-2">
+                  {[
+                    'Business bank account details',
+                    'Business registration or tax ID', 
+                    'Valid ID of representative (passport or ID card)',
+                    'Date of birth and address of representative',
+                    'Beneficial ownership details (if applicable)'
+                  ].map((requirement, index) => (
+                    <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span>{requirement}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="text-center py-4">
+                <Button 
+                  onClick={handleStartOnboarding}
+                  disabled={stripeLoading}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Setup Stripe Account
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
@@ -377,17 +438,11 @@ export function PaymentSettingsTab() {
         </Card>
       )}
 
-      {/* Onboarding Modal */}
-      {showOnboarding && selectedCalendar && (
-        <StripeConnectOnboarding
-          calendarId={selectedCalendar.id}
-          onComplete={(account) => {
-            setStripeAccount(account);
-            setShowOnboarding(false);
-          }}
-          onClose={() => setShowOnboarding(false)}
-        />
-      )}
+      {/* Research Modal */}
+      <ResearchModal 
+        type={researchModal} 
+        onClose={() => setResearchModal(null)} 
+      />
     </div>
   );
 }
