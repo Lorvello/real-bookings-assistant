@@ -95,14 +95,28 @@ export function StripeConnectOnboarding({
                 </Card>
               </div>
 
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">What you'll need:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Business bank account information</li>
-                  <li>• Business registration details</li>
-                  <li>• Valid identification document</li>
-                  <li>• Business address and contact information</li>
-                </ul>
+              <div className="bg-muted/50 p-4 rounded-lg space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2 text-foreground">What you'll need to provide:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Business bank account (IBAN / payout details)</li>
+                    <li>• KvK number (or equivalent business registration / tax ID)</li>
+                    <li>• Government-issued ID (passport or ID card)</li>
+                    <li>• Date of birth and address of representative</li>
+                    <li>• Beneficial ownership details (for anyone owning 25%+)</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2 text-foreground">Already filled from your platform:</h4>
+                  <ul className="text-sm text-green-600 space-y-1">
+                    <li>• Company name</li>
+                    <li>• Business address</li>
+                    <li>• Contact details (email, phone)</li>
+                    <li>• Website</li>
+                    <li>• Description of services</li>
+                  </ul>
+                </div>
               </div>
 
               <div className="flex space-x-2">
