@@ -30,37 +30,8 @@ export function StripeConnectOnboarding({
     const onboardingLink = await createOnboardingLink(calendarId);
     
     if (onboardingLink) {
-      setStep('onboarding');
-      // Open onboarding in new window
-      const popup = window.open(
-        onboardingLink.url, 
-        'stripe-onboarding',
-        'width=600,height=800,scrollbars=yes,resizable=yes'
-      );
-
-      // Poll for completion
-      const pollForCompletion = setInterval(() => {
-        if (popup?.closed) {
-          clearInterval(pollForCompletion);
-          setStep('complete');
-          // Here you would typically refresh the account status
-          // For now, we'll simulate completion
-          setTimeout(() => {
-            onComplete({
-              id: '',
-              calendar_id: calendarId,
-              stripe_account_id: 'acct_example',
-              account_status: 'active',
-              onboarding_completed: true,
-              charges_enabled: true,
-              payouts_enabled: true,
-              currency: 'eur',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            } as BusinessStripeAccount);
-          }, 1000);
-        }
-      }, 1000);
+      // Redirect to Stripe onboarding in the same tab
+      window.location.href = onboardingLink.url;
     }
   };
 
@@ -73,7 +44,7 @@ export function StripeConnectOnboarding({
             <span>Connect Stripe Account</span>
           </DialogTitle>
           <DialogDescription>
-            Set up secure payments for your booking system
+            Set up Pay & Book for secure upfront payments
           </DialogDescription>
         </DialogHeader>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -26,6 +27,7 @@ import type { BusinessStripeAccount } from '@/types/payments';
 
 export function PaymentSettingsTab() {
   const { selectedCalendar } = useCalendarContext();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     settings,
     loading: settingsLoading,
@@ -51,8 +53,25 @@ export function PaymentSettingsTab() {
   useEffect(() => {
     if (selectedCalendar?.id) {
       loadStripeAccount();
+      
+      // Handle return from Stripe onboarding
+      const success = searchParams.get('success');
+      const refresh = searchParams.get('refresh');
+      
+      if (success === 'true' || refresh === 'true') {
+        // Clear URL parameters
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('success');
+        newParams.delete('refresh');
+        setSearchParams(newParams);
+        
+        // Refresh account status after short delay
+        setTimeout(() => {
+          handleRefreshAccount();
+        }, 1000);
+      }
     }
-  }, [selectedCalendar?.id]);
+  }, [selectedCalendar?.id, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (settings) {
@@ -124,7 +143,7 @@ export function PaymentSettingsTab() {
         <CardHeader>
           <div className="flex items-center space-x-2">
             <Shield className="h-5 w-5 text-primary" />
-            <CardTitle>Secure Booking Payments</CardTitle>
+            <CardTitle>Pay & Book</CardTitle>
           </div>
           <CardDescription>
             Enable secure pre-payments for your bookings to reduce no-shows and secure revenue upfront.
@@ -134,9 +153,9 @@ export function PaymentSettingsTab() {
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-base">Enable Secure Payments</Label>
+              <Label className="text-base">Enable Pay & Book</Label>
               <div className="text-sm text-muted-foreground">
-                Allow customers to pay for bookings through WhatsApp
+                Allow customers to pay for bookings upfront through WhatsApp
               </div>
             </div>
             <Switch
@@ -151,7 +170,7 @@ export function PaymentSettingsTab() {
               <div className="flex items-center space-x-2">
                 <AlertCircle className="h-4 w-4 text-amber-600" />
                 <p className="text-sm text-amber-800">
-                  Complete Stripe Connect setup to enable payments
+                  Complete Stripe Connect setup to enable Pay & Book
                 </p>
               </div>
             </div>
@@ -229,7 +248,7 @@ export function PaymentSettingsTab() {
 
               {!stripeAccount.onboarding_completed && (
                 <Button onClick={() => setShowOnboarding(true)} className="w-full">
-                  Complete Stripe Setup
+                  Resume Onboarding
                 </Button>
               )}
             </div>
