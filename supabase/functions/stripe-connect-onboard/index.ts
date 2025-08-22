@@ -53,14 +53,25 @@ serve(async (req) => {
       .eq('id', user.id)
       .single();
 
-    if (userDataError) {
-      console.log('Could not fetch user data for prefilling:', userDataError);
+    console.log('[STRIPE-CONNECT-ONBOARD] User data for prefilling:', userData ? 'Data found' : 'No data', userDataError);
+    
+    if (userData) {
+      console.log('[STRIPE-CONNECT-ONBOARD] Prefill data available:', {
+        business_name: !!userData.business_name,
+        business_email: !!userData.business_email,
+        business_phone: !!userData.business_phone,
+        business_address: !!(userData.business_street && userData.business_city),
+        website: !!userData.website,
+        description: !!userData.business_description
+      });
     }
 
     // Initialize Stripe with correct secret key based on mode
     const stripeSecretKey = test_mode 
       ? Deno.env.get('STRIPE_TEST_SECRET_KEY') 
       : Deno.env.get('STRIPE_LIVE_SECRET_KEY');
+    
+    console.log('[STRIPE-CONNECT-ONBOARD] Stripe initialized:', { testMode: test_mode, keyConfigured: !!stripeSecretKey });
     
     if (!stripeSecretKey) {
       throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
@@ -186,8 +197,17 @@ serve(async (req) => {
         }
       }
 
+      console.log('[STRIPE-CONNECT-ONBOARD] Creating new Stripe account with data:', {
+        business_type: accountData.business_type,
+        has_company_info: !!accountData.company,
+        has_individual_info: !!accountData.individual,
+        has_business_profile: !!accountData.business_profile
+      });
+
       const account = await stripe.accounts.create(accountData);
       stripeAccountId = account.id;
+
+      console.log('[STRIPE-CONNECT-ONBOARD] Stripe account created:', { accountId: stripeAccountId });
 
       // Store account in database
       await supabaseClient
@@ -203,6 +223,8 @@ serve(async (req) => {
           country: 'NL',
           currency: 'eur',
         });
+
+      console.log('[STRIPE-CONNECT-ONBOARD] Account stored in database');
     }
 
     // Create onboarding link
@@ -211,6 +233,11 @@ serve(async (req) => {
       refresh_url: `${req.headers.get('origin')}/settings?tab=payments&refresh=true`,
       return_url: `${req.headers.get('origin')}/settings?tab=payments&success=true`,
       type: 'account_onboarding',
+    });
+
+    console.log('[STRIPE-CONNECT-ONBOARD] Onboarding link created:', { 
+      url: 'generated', 
+      expires_at: accountLink.expires_at 
     });
 
     return new Response(

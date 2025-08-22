@@ -21,50 +21,20 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
   onClose,
   onComplete,
 }) => {
-  const [step, setStep] = useState<'intro' | 'loading' | 'embedded' | 'complete' | 'error'>('intro');
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [connectedAccountId, setConnectedAccountId] = useState<string | null>(null);
   const { toast } = useToast();
   const { refreshAccountStatus } = useStripeConnect();
 
   const testMode = getStripeMode() === 'test';
 
   const handleStartOnboarding = async () => {
-    setStep('loading');
+    setLoading(true);
     setError(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('stripe-connect-embedded', {
-        body: { 
-          calendar_id: calendarId,
-          test_mode: testMode
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success && data.client_secret) {
-        setClientSecret(data.client_secret);
-        setConnectedAccountId(data.account_id);
-        setStep('embedded');
-      } else {
-        throw new Error(data.error || 'Failed to create embedded onboarding session');
-      }
-    } catch (err) {
-      console.error('Embedded onboarding error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to start onboarding');
-      setStep('error');
-      toast({
-        title: "Error",
-        description: "Failed to start Stripe onboarding. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleOpenStripeOnboard = async () => {
-    try {
+      console.log('[STRIPE ONBOARDING] Starting onboarding for calendar:', calendarId);
+      
       const { data, error } = await supabase.functions.invoke('stripe-connect-onboard', {
         body: { 
           calendar_id: calendarId,
@@ -72,112 +42,73 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[STRIPE ONBOARDING] Function error:', error);
+        throw error;
+      }
+
+      console.log('[STRIPE ONBOARDING] Function response:', data);
 
       if (data.url) {
-        // Open Stripe onboarding in new tab
-        window.open(data.url, '_blank');
-        onClose(); // Close modal since user will complete onboarding in new tab
+        console.log('[STRIPE ONBOARDING] Opening Stripe onboarding in new tab');
+        // Small delay to ensure state is updated before opening
+        setTimeout(() => {
+          window.open(data.url, '_blank');
+          onClose();
+        }, 100);
       } else {
-        throw new Error('No onboarding URL received');
+        throw new Error('No onboarding URL received from Stripe');
       }
     } catch (err) {
-      console.error('Stripe onboard error:', err);
+      console.error('[STRIPE ONBOARDING] Error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to start onboarding');
       toast({
         title: "Error",
         description: "Failed to open Stripe onboarding. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleComplete = async () => {
-    setStep('loading');
-    
+  const handleRetryOnboarding = () => {
+    setError(null);
+    handleStartOnboarding();
+  };
+
+  const handleCheckCompletion = async () => {
     try {
-      // Refresh account status to get latest data
+      console.log('[STRIPE ONBOARDING] Checking completion status');
       const account = await refreshAccountStatus(calendarId);
       if (account && account.onboarding_completed) {
-        setStep('complete');
-        setTimeout(() => {
-          onComplete();
-          onClose();
-        }, 2000);
+        console.log('[STRIPE ONBOARDING] Account setup completed successfully');
+        onComplete();
+        onClose();
       } else {
-        setError('Onboarding appears incomplete. Please try again.');
-        setStep('error');
+        console.log('[STRIPE ONBOARDING] Account setup not yet completed');
+        toast({
+          title: "Setup In Progress",
+          description: "Please complete the Stripe onboarding process to enable payments.",
+        });
       }
     } catch (err) {
-      console.error('Error checking completion:', err);
-      setError('Failed to verify completion. Please refresh the page.');
-      setStep('error');
+      console.error('[STRIPE ONBOARDING] Error checking completion:', err);
+      toast({
+        title: "Error",
+        description: "Failed to check completion status. Please refresh the page.",
+        variant: "destructive",
+      });
     }
   };
 
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setStep('intro');
+      setLoading(false);
       setError(null);
-      setClientSecret(null);
-      setConnectedAccountId(null);
     }
   }, [isOpen]);
-
-  // Load Stripe Connect JS when needed
-  useEffect(() => {
-    if (step === 'embedded' && clientSecret) {
-      const script = document.createElement('script');
-      script.src = 'https://js.stripe.com/v3/';
-      script.async = true;
-      script.onload = () => {
-        initializeStripeEmbedded();
-      };
-      document.head.appendChild(script);
-
-      return () => {
-        document.head.removeChild(script);
-      };
-    }
-  }, [step, clientSecret]);
-
-  const initializeStripeEmbedded = async () => {
-    if (!clientSecret) return;
-
-    try {
-      // @ts-ignore - Stripe is loaded dynamically
-      const stripe = Stripe(getStripePublishableKey());
-
-      // Use the correct embedded component API
-      const embeddedComponent = stripe.initEmbeddedComponent({
-        component: 'account_onboarding',
-        clientSecret: clientSecret,
-      });
-
-      const container = document.getElementById('stripe-embedded-onboarding');
-      if (container) {
-        await embeddedComponent.mount(container);
-        console.log('Stripe embedded component mounted successfully');
-      }
-
-      // Handle completion events
-      embeddedComponent.on('complete', () => {
-        console.log('Stripe onboarding completed');
-        handleComplete();
-      });
-
-      embeddedComponent.on('error', (event: any) => {
-        console.error('Stripe embedded component error:', event);
-        setError('Er ging iets mis met de embedded form. Probeer de Stripe pagina.');
-        setStep('error');
-      });
-
-    } catch (error) {
-      console.error('Failed to initialize Stripe embedded component:', error);
-      setError('Kan embedded form niet laden. Gebruik de externe Stripe link.');
-      setStep('error');
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -193,13 +124,13 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
           </DialogTitle>
         </DialogHeader>
 
-        {step === 'intro' && (
+        {!error && (
           <div className="space-y-4">
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 You'll need to provide some business information to accept payments through Stripe.
-                This is required for security and compliance reasons.
+                This will open Stripe's secure onboarding page in a new tab.
               </AlertDescription>
             </Alert>
 
@@ -209,7 +140,7 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
                 <li>• Business or personal information</li>
                 <li>• Bank account details for payouts</li>
                 <li>• Government-issued ID verification</li>
-                <li>• Business details (if applicable)</li>
+                <li>• Phone number for verification</li>
               </ul>
             </div>
 
@@ -217,74 +148,45 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button onClick={handleStartOnboarding}>
-                Start Setup
+              <Button onClick={handleStartOnboarding} disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Opening Stripe...
+                  </>
+                ) : (
+                  'Start Stripe Setup'
+                )}
               </Button>
             </div>
           </div>
         )}
 
-        {step === 'loading' && (
-          <div className="flex flex-col items-center justify-center py-8 space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <p className="text-sm text-muted-foreground">
-              {clientSecret ? 'Completing setup...' : 'Setting up your Stripe account...'}
-            </p>
-          </div>
-        )}
-
-        {step === 'embedded' && (
-          <div className="space-y-4">
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Complete the form below to finish setting up your Stripe account for payments.
-              </AlertDescription>
-            </Alert>
-            
-            <div 
-              id="stripe-embedded-onboarding" 
-              className="min-h-[400px] border border-border rounded-lg"
-            />
-          </div>
-        )}
-
-        {step === 'complete' && (
-          <div className="flex flex-col items-center justify-center py-8 space-y-4">
-            <CheckCircle2 className="h-12 w-12 text-green-500" />
-            <div className="text-center space-y-2">
-              <h3 className="font-medium">Setup Complete!</h3>
-              <p className="text-sm text-muted-foreground">
-                Your Stripe account has been successfully connected.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {step === 'error' && (
+        {error && (
           <div className="space-y-4">
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {error || 'An error occurred during setup'}
+                {error}
               </AlertDescription>
             </Alert>
 
-            <div className="flex flex-col gap-3">
-              <Button onClick={handleOpenStripeOnboard} className="w-full">
-                Open Stripe Onboarding Page
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={onClose} className="flex-1">
+                Close
               </Button>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={onClose} className="flex-1">
-                  Close
-                </Button>
-                <Button onClick={handleStartOnboarding} className="flex-1">
-                  Try Again
-                </Button>
-              </div>
+              <Button onClick={handleRetryOnboarding} className="flex-1">
+                Try Again
+              </Button>
             </div>
           </div>
         )}
+
+        <div className="pt-4 border-t">
+          <Button variant="ghost" onClick={handleCheckCompletion} className="w-full text-sm">
+            I've completed setup in Stripe - Check Status
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
