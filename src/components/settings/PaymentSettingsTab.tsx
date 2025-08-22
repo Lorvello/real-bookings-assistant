@@ -19,17 +19,23 @@ import {
   Clock,
   RefreshCw,
   Check,
-  ArrowRight
+  ArrowRight,
+  TestTube,
+  RotateCcw
 } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { ResearchModal } from './ResearchModal';
+import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
+import { getStripeConfig } from '@/utils/stripeConfig';
+import { useToast } from '@/hooks/use-toast';
 import type { BusinessStripeAccount } from '@/types/payments';
 
 export function PaymentSettingsTab() {
   const { selectedCalendar } = useCalendarContext();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
   const {
     settings,
     loading: settingsLoading,
@@ -43,14 +49,18 @@ export function PaymentSettingsTab() {
     loading: stripeLoading,
     getStripeAccount,
     refreshAccountStatus,
-    createLoginLink
+    createLoginLink,
+    createOnboardingLink
   } = useStripeConnect();
 
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
+  const [accountLoading, setAccountLoading] = useState(false);
   const [platformFee, setPlatformFee] = useState('2.50');
   const [paymentDeadline, setPaymentDeadline] = useState('24');
   const [refundPolicy, setRefundPolicy] = useState('');
   const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | 'professionalism' | null>(null);
+  
+  const stripeConfig = getStripeConfig();
 
   useEffect(() => {
     if (selectedCalendar?.id) {
@@ -85,8 +95,15 @@ export function PaymentSettingsTab() {
 
   const loadStripeAccount = async () => {
     if (!selectedCalendar?.id) return;
-    const account = await getStripeAccount(selectedCalendar.id);
-    setStripeAccount(account);
+    setAccountLoading(true);
+    try {
+      const account = await getStripeAccount(selectedCalendar.id);
+      setStripeAccount(account);
+    } catch (error) {
+      console.error('Error loading Stripe account:', error);
+    } finally {
+      setAccountLoading(false);
+    }
   };
 
   const handleRefreshAccount = async () => {
@@ -108,11 +125,36 @@ export function PaymentSettingsTab() {
 
   const handleStartOnboarding = async () => {
     if (!selectedCalendar?.id) return;
-    const { createOnboardingLink } = useStripeConnect();
-    const onboardingLink = await createOnboardingLink(selectedCalendar.id);
     
-    if (onboardingLink) {
-      window.location.href = onboardingLink.url;
+    try {
+      const onboardingLink = await createOnboardingLink(selectedCalendar.id);
+      if (onboardingLink) {
+        window.location.href = onboardingLink.url;
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start Stripe onboarding. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleResetStripeConnection = async () => {
+    if (!selectedCalendar?.id) return;
+    
+    try {
+      // This would require a new edge function to reset the connection
+      toast({
+        title: "Reset Connection",
+        description: "This feature is coming soon. Contact support if you need to reset your Stripe connection.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reset Stripe connection.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -149,8 +191,16 @@ export function PaymentSettingsTab() {
     );
   }
 
+  const hasStripeAccount = !!stripeAccount?.stripe_account_id;
+  const isStripeSetupComplete = stripeAccount?.onboarding_completed && stripeAccount?.charges_enabled;
+
   return (
     <div className="space-y-6">
+      {/* Stripe Mode Switcher (for development) */}
+      {stripeConfig.isTestMode && (
+        <StripeModeSwitcher />
+      )}
+
       {/* Feature Overview */}
       <Card>
         <CardHeader>
@@ -174,16 +224,19 @@ export function PaymentSettingsTab() {
             <Switch
               checked={settings?.secure_payments_enabled || false}
               onCheckedChange={toggleSecurePayments}
-              disabled={settingsSaving || !stripeAccount?.charges_enabled}
+              disabled={settingsSaving || !isStripeSetupComplete}
             />
           </div>
           
-          {settings?.secure_payments_enabled && !stripeAccount?.charges_enabled && (
+          {settings?.secure_payments_enabled && !isStripeSetupComplete && (
             <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
               <div className="flex items-center space-x-2">
                 <AlertCircle className="h-4 w-4 text-amber-600" />
                 <p className="text-sm text-amber-800">
-                  Complete Stripe Connect setup to enable Pay & Book
+                  {hasStripeAccount 
+                    ? "Complete your Stripe account setup to enable Pay & Book"
+                    : "Connect your Stripe account to enable Pay & Book"
+                  }
                 </p>
               </div>
             </div>
@@ -203,7 +256,12 @@ export function PaymentSettingsTab() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {stripeAccount ? (
+          {accountLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+              <span className="text-sm text-muted-foreground">Loading account status...</span>
+            </div>
+          ) : hasStripeAccount ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="space-y-1">
@@ -215,6 +273,12 @@ export function PaymentSettingsTab() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Account ID: {stripeAccount.stripe_account_id}
+                    {stripeConfig.isTestMode && (
+                      <Badge variant="secondary" className="ml-2 bg-orange-100 text-orange-800">
+                        <TestTube className="h-3 w-3 mr-1" />
+                        TEST MODE
+                      </Badge>
+                    )}
                   </p>
                   <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                     <span className="flex items-center space-x-1">
@@ -254,6 +318,17 @@ export function PaymentSettingsTab() {
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       Dashboard
+                    </Button>
+                  )}
+                  {stripeConfig.isTestMode && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetStripeConnection}
+                      disabled={stripeLoading}
+                    >
+                      <RotateCcw className="h-4 w-4 mr-1" />
+                      Reset
                     </Button>
                   )}
                 </div>
@@ -355,15 +430,23 @@ export function PaymentSettingsTab() {
                 </ul>
               </div>
 
-              <div className="text-center py-4">
+              <div className="text-center py-6">
                 <Button 
                   onClick={handleStartOnboarding}
                   disabled={stripeLoading}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  size="lg"
+                  className="bg-green-600 hover:bg-green-700 text-white font-medium"
                 >
                   {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Setup Stripe Account
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Connect Stripe Account
                 </Button>
+                {stripeConfig.isTestMode && (
+                  <p className="text-xs text-orange-600 mt-2">
+                    <TestTube className="h-3 w-3 inline mr-1" />
+                    Test mode - No real money will be processed
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -371,7 +454,7 @@ export function PaymentSettingsTab() {
       </Card>
 
       {/* Payment Configuration */}
-      {settings?.secure_payments_enabled && stripeAccount?.charges_enabled && (
+      {settings?.secure_payments_enabled && isStripeSetupComplete && (
         <Card>
           <CardHeader>
             <CardTitle>Payment Configuration</CardTitle>
