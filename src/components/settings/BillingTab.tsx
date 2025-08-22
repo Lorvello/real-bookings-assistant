@@ -606,15 +606,15 @@ export const BillingTab: React.FC = () => {
                 } else {
                   // Show rounded monthly equivalent for yearly billing
                   if (tier.tier_name === 'starter') {
-                    displayPrice = '€15';
-                    savingsText = 'Billed annually (€180/year)';
+                    displayPrice = '€24';
+                    savingsText = 'Billed annually (€288/year)';
                   } else if (tier.tier_name === 'professional') {
-                    displayPrice = '€39';
-                    savingsText = 'Billed annually (€468/year)';
+                    displayPrice = '€48';
+                    savingsText = 'Billed annually (€576/year)';
                   } else {
                     // Fallback for any other tiers
                     const yearlyMonthlyRate = tier.price_yearly / 12;
-                    displayPrice = `€${yearlyMonthlyRate.toFixed(2)}`;
+                    displayPrice = `€${Math.round(yearlyMonthlyRate)}`;
                     savingsText = `Billed annually (€${tier.price_yearly}/year)`;
                   }
                   billingText = '/month';
