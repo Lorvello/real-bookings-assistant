@@ -28,7 +28,7 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { calendar_id } = await req.json();
+    const { calendar_id, test_mode = false } = await req.json();
 
     // Get existing account
     const { data: account, error: accountError } = await supabaseClient
@@ -41,7 +41,16 @@ serve(async (req) => {
       throw new Error('Stripe account not found');
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    // Initialize Stripe with appropriate key based on mode
+    const stripeSecretKey = test_mode 
+      ? Deno.env.get("STRIPE_TEST_SECRET_KEY") 
+      : Deno.env.get("STRIPE_SECRET_KEY");
+
+    if (!stripeSecretKey) {
+      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
     });
 

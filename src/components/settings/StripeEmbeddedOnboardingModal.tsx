@@ -6,7 +6,7 @@ import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { supabase } from '@/integrations/supabase/client';
-import { getStripeMode } from '@/utils/stripeConfig';
+import { getStripeMode, getStripePublishableKey } from '@/utils/stripeConfig';
 
 interface StripeEmbeddedOnboardingModalProps {
   calendarId: string;
@@ -117,10 +117,7 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
     if (!clientSecret) return;
 
     // @ts-ignore - Stripe is loaded dynamically
-    const stripe = Stripe(testMode ? 
-      'pk_test_51QCw3HLcBboIITXgmtorLbhQYKnYWGhGW6L4HyIWmjhfGcnhFQCxN5qKBJBgM7pMBbvE4cZqkh4O3jE49Cn6zPKN00ULNlAojE' :
-      'pk_live_your_publishable_key'
-    );
+    const stripe = Stripe(getStripePublishableKey());
 
     const connectedAccountOnboarding = stripe.connectAccountOnboarding({
       clientSecret: clientSecret,

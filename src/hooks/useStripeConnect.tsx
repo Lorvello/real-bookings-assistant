@@ -61,9 +61,13 @@ export const useStripeConnect = () => {
   const refreshAccountStatus = async (calendarId: string): Promise<BusinessStripeAccount | null> => {
     try {
       setLoading(true);
+      const testMode = getStripeMode() === 'test';
       
       const { data, error } = await supabase.functions.invoke('stripe-connect-refresh', {
-        body: { calendar_id: calendarId }
+        body: { 
+          calendar_id: calendarId,
+          test_mode: testMode
+        }
       });
 
       if (error) throw error;

@@ -66,11 +66,11 @@ serve(async (req) => {
     logStep("Calendar verified", { calendarId: calendar.id, calendarName: calendar.name });
 
     // Get user business data
-    const { data: userData: userBusinessData, error: userDataError } = await supabaseClient
+    const { data: userBusinessData, error: userDataError } = await supabaseClient
       .from('users')
       .select('*')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (userDataError) {
       logStep("Warning: Could not fetch user business data", { error: userDataError.message });
@@ -96,7 +96,7 @@ serve(async (req) => {
       .from('business_stripe_accounts')
       .select('*')
       .eq('calendar_id', calendar_id)
-      .single();
+      .maybeSingle();
 
     let accountId = existingAccount?.stripe_account_id;
 
