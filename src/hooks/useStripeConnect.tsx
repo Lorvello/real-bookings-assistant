@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getStripeMode } from '@/utils/stripeConfig';
 import type { BusinessStripeAccount, StripeConnectOnboardingLink } from '@/types/payments';
 
 export const useStripeConnect = () => {
@@ -103,12 +104,102 @@ export const useStripeConnect = () => {
     }
   };
 
+  // Create embedded onboarding session
+  const createEmbeddedSession = async (calendarId: string): Promise<{ client_secret: string; account_id: string } | null> => {
+    try {
+      const testMode = getStripeMode() === 'test';
+      
+      const { data, error } = await supabase.functions.invoke('stripe-connect-embedded', {
+        body: { 
+          calendar_id: calendarId,
+          test_mode: testMode
+        }
+      });
+
+      if (error) {
+        console.error('Error creating embedded session:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create onboarding session",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      if (data.success) {
+        return {
+          client_secret: data.client_secret,
+          account_id: data.account_id
+        };
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to create session",
+          variant: "destructive",
+        });
+        return null;
+      }
+    } catch (error) {
+      console.error('Error creating embedded session:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  // Reset Stripe Connect account (for testing)
+  const resetStripeAccount = async (calendarId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-connect-reset', {
+        body: { calendar_id: calendarId }
+      });
+
+      if (error) {
+        console.error('Error resetting account:', error);
+        toast({
+          title: "Error",
+          description: "Failed to reset Stripe account",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Stripe account reset successfully",
+        });
+        return true;
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to reset account",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Error resetting account:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   return {
     loading,
     onboarding,
     createOnboardingLink,
     getStripeAccount,
     refreshAccountStatus,
-    createLoginLink
+    createLoginLink,
+    createEmbeddedSession,
+    resetStripeAccount
   };
 };

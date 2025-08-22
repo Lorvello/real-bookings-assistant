@@ -27,6 +27,7 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { ResearchModal } from './ResearchModal';
+import { StripeEmbeddedOnboardingModal } from './StripeEmbeddedOnboardingModal';
 import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
 import { getStripeConfig } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
@@ -50,7 +51,8 @@ export function PaymentSettingsTab() {
     getStripeAccount,
     refreshAccountStatus,
     createLoginLink,
-    createOnboardingLink
+    createOnboardingLink,
+    resetStripeAccount
   } = useStripeConnect();
 
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
@@ -59,6 +61,7 @@ export function PaymentSettingsTab() {
   const [paymentDeadline, setPaymentDeadline] = useState('24');
   const [refundPolicy, setRefundPolicy] = useState('');
   const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | 'professionalism' | null>(null);
+  const [showEmbeddedOnboarding, setShowEmbeddedOnboarding] = useState(false);
   
   const stripeConfig = getStripeConfig();
 
@@ -125,36 +128,17 @@ export function PaymentSettingsTab() {
 
   const handleStartOnboarding = async () => {
     if (!selectedCalendar?.id) return;
-    
-    try {
-      const onboardingLink = await createOnboardingLink(selectedCalendar.id);
-      if (onboardingLink) {
-        window.location.href = onboardingLink.url;
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to start Stripe onboarding. Please try again.",
-        variant: "destructive",
-      });
-    }
+    setShowEmbeddedOnboarding(true);
   };
 
   const handleResetStripeConnection = async () => {
     if (!selectedCalendar?.id) return;
     
-    try {
-      // This would require a new edge function to reset the connection
-      toast({
-        title: "Reset Connection",
-        description: "This feature is coming soon. Contact support if you need to reset your Stripe connection.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to reset Stripe connection.",
-        variant: "destructive",
-      });
+    const success = await resetStripeAccount(selectedCalendar.id);
+    if (success) {
+      setStripeAccount(null);
+      // Refresh payment settings to reflect changes
+      await loadStripeAccount();
     }
   };
 
@@ -549,6 +533,30 @@ export function PaymentSettingsTab() {
         type={researchModal} 
         onClose={() => setResearchModal(null)} 
       />
+
+      {/* Embedded Onboarding Modal */}
+      {showEmbeddedOnboarding && selectedCalendar && (
+        <StripeEmbeddedOnboardingModal
+          calendarId={selectedCalendar.id}
+          isOpen={showEmbeddedOnboarding}
+          onComplete={() => {
+            // Refresh account status after completion
+            if (selectedCalendar?.id) {
+              refreshAccountStatus(selectedCalendar.id).then((account) => {
+                if (account) {
+                  setStripeAccount(account);
+                }
+              });
+            }
+            setShowEmbeddedOnboarding(false);
+            toast({
+              title: "Success",
+              description: "Stripe account setup completed successfully!",
+            });
+          }}
+          onClose={() => setShowEmbeddedOnboarding(false)}
+        />
+      )}
     </div>
   );
 }

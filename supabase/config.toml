@@ -1,4 +1,3 @@
-
 project_id = "grdgjhkygzciwwrxgvgy"
 
 [api]
@@ -66,3 +65,9 @@ verify_jwt = true
 
 [functions.create-booking-payment]
 verify_jwt = false
+
+[functions.stripe-connect-embedded]
+verify_jwt = true
+
+[functions.stripe-connect-reset]
+verify_jwt = true
