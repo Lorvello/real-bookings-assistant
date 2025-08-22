@@ -63,6 +63,34 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
     }
   };
 
+  const handleOpenStripeOnboard = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-connect-onboard', {
+        body: { 
+          calendar_id: calendarId,
+          test_mode: testMode
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.url) {
+        // Open Stripe onboarding in new tab
+        window.open(data.url, '_blank');
+        onClose(); // Close modal since user will complete onboarding in new tab
+      } else {
+        throw new Error('No onboarding URL received');
+      }
+    } catch (err) {
+      console.error('Stripe onboard error:', err);
+      toast({
+        title: "Error",
+        description: "Failed to open Stripe onboarding. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleComplete = async () => {
     setStep('loading');
     
@@ -113,26 +141,42 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
     }
   }, [step, clientSecret]);
 
-  const initializeStripeEmbedded = () => {
+  const initializeStripeEmbedded = async () => {
     if (!clientSecret) return;
 
-    // @ts-ignore - Stripe is loaded dynamically
-    const stripe = Stripe(getStripePublishableKey());
+    try {
+      // @ts-ignore - Stripe is loaded dynamically
+      const stripe = Stripe(getStripePublishableKey());
 
-    const connectedAccountOnboarding = stripe.connectAccountOnboarding({
-      clientSecret: clientSecret,
-    });
+      // Use the correct embedded component API
+      const embeddedComponent = stripe.initEmbeddedComponent({
+        component: 'account_onboarding',
+        clientSecret: clientSecret,
+      });
 
-    const container = document.getElementById('stripe-embedded-onboarding');
-    if (container) {
-      connectedAccountOnboarding.mount(container);
+      const container = document.getElementById('stripe-embedded-onboarding');
+      if (container) {
+        await embeddedComponent.mount(container);
+        console.log('Stripe embedded component mounted successfully');
+      }
+
+      // Handle completion events
+      embeddedComponent.on('complete', () => {
+        console.log('Stripe onboarding completed');
+        handleComplete();
+      });
+
+      embeddedComponent.on('error', (event: any) => {
+        console.error('Stripe embedded component error:', event);
+        setError('Er ging iets mis met de embedded form. Probeer de Stripe pagina.');
+        setStep('error');
+      });
+
+    } catch (error) {
+      console.error('Failed to initialize Stripe embedded component:', error);
+      setError('Kan embedded form niet laden. Gebruik de externe Stripe link.');
+      setStep('error');
     }
-
-    // Handle completion
-    connectedAccountOnboarding.on('complete', () => {
-      console.log('Stripe onboarding completed');
-      handleComplete();
-    });
   };
 
   return (
@@ -226,13 +270,18 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
               </AlertDescription>
             </Alert>
 
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={onClose}>
-                Close
+            <div className="flex flex-col gap-3">
+              <Button onClick={handleOpenStripeOnboard} className="w-full">
+                Open Stripe Onboarding Page
               </Button>
-              <Button onClick={handleStartOnboarding}>
-                Try Again
-              </Button>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={onClose} className="flex-1">
+                  Close
+                </Button>
+                <Button onClick={handleStartOnboarding} className="flex-1">
+                  Try Again
+                </Button>
+              </div>
             </div>
           </div>
         )}

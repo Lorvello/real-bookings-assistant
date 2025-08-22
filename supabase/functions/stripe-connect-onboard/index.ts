@@ -28,7 +28,7 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { calendar_id } = await req.json();
+    const { calendar_id, test_mode } = await req.json();
 
     // Verify user owns the calendar and fetch user business data
     const { data: calendar, error: calendarError } = await supabaseClient
@@ -57,7 +57,16 @@ serve(async (req) => {
       console.log('Could not fetch user data for prefilling:', userDataError);
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    // Initialize Stripe with correct secret key based on mode
+    const stripeSecretKey = test_mode 
+      ? Deno.env.get('STRIPE_TEST_SECRET_KEY') 
+      : Deno.env.get('STRIPE_LIVE_SECRET_KEY');
+    
+    if (!stripeSecretKey) {
+      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
     });
 
