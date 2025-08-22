@@ -20,10 +20,18 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Initialize Supabase client
+    // Initialize Supabase clients (anon for auth, service for privileged writes)
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    if (!serviceRoleKey) {
+      throw new Error("Service role key not configured");
+    }
+    const supabaseService = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      serviceRoleKey
     );
 
     // Parse request
@@ -155,7 +163,7 @@ serve(async (req) => {
       logStep("Stripe account created", { accountId });
 
       // Store account in database
-      const { error: insertError } = await supabaseClient
+      const { error: insertError } = await supabaseService
         .from('business_stripe_accounts')
         .insert({
           calendar_id: calendar_id,
