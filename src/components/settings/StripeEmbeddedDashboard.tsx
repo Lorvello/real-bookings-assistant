@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, ExternalLink } from 'lucide-react';
+import { Loader2, ExternalLink, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
-import { getStripeMode, getStripePublishableKey } from '@/utils/stripeConfig';
-import { loadConnectAndInitialize } from '@stripe/connect-js';
+import { getStripeMode } from '@/utils/stripeConfig';
 
 interface StripeEmbeddedDashboardProps {
   isOpen: boolean;
@@ -19,56 +17,60 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showEmbedded, setShowEmbedded] = useState(false);
-  const [connectInstance, setConnectInstance] = useState<any>(null);
-  const dashboardRef = useRef<HTMLDivElement>(null);
+  const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
   
   const { toast } = useToast();
-  const { createDashboardSession, createLoginLink } = useStripeConnect();
+  const { createLoginLink } = useStripeConnect();
 
   const testMode = getStripeMode() === 'test';
 
-  const handleLoadDashboard = async () => {
+  const handleOpenDashboard = async () => {
+    if (!isOpen) return;
+    
     setLoading(true);
     setError(null);
+    setFallbackUrl(null);
 
     try {
-      console.log('[STRIPE DASHBOARD] Loading embedded dashboard...');
+      console.log('[STRIPE DASHBOARD] Creating login link for top-level redirect...');
       
-      // Create dashboard session
-      const session = await createDashboardSession();
-      if (!session) {
-        throw new Error('Failed to create dashboard session');
+      const url = await createLoginLink();
+      if (!url) {
+        throw new Error('NO_CONNECTED_ACCOUNT');
       }
 
-      console.log('[STRIPE DASHBOARD] Session created, loading Connect JS...');
+      console.log('[STRIPE DASHBOARD] Redirecting to:', url);
       
-      // Initialize Stripe Connect
-      const stripeConnectInstance = await loadConnectAndInitialize({
-        publishableKey: getStripePublishableKey(),
-        fetchClientSecret: async () => session.client_secret,
-      });
-      
-      setConnectInstance(stripeConnectInstance);
-      setShowEmbedded(true);
-      console.log('[STRIPE DASHBOARD] Dashboard initialized');
+      // Top-level redirect as requested
+      window.location.assign(url);
+      onClose();
       
     } catch (err) {
       console.error('[STRIPE DASHBOARD] Error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load dashboard';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to open dashboard';
       
-      // Provide specific error messages for common issues
-      let displayMessage = errorMessage;
-      if (errorMessage.includes('connect.stripe.com')) {
-        displayMessage = 'Unable to load embedded dashboard. This may be due to browser security settings or ad blockers. Please try the external dashboard option below.';
-      } else if (errorMessage.includes('duplicate key') || errorMessage.includes('constraint')) {
-        displayMessage = 'Account setup in progress. Please try again in a moment.';
+      // Handle specific error cases
+      if (errorMessage === 'NO_CONNECTED_ACCOUNT') {
+        setError('No Stripe account connected. Please complete onboarding first.');
+      } else {
+        setError(`Failed to open dashboard: ${errorMessage}`);
+        
+        // Try to get the URL anyway for fallback
+        try {
+          const fallbackUrl = await createLoginLink();
+          if (fallbackUrl) {
+            setFallbackUrl(fallbackUrl);
+          }
+        } catch {
+          // Ignore fallback errors
+        }
       }
       
-      setError(displayMessage);
       toast({
-        title: "Dashboard Load Error",
-        description: displayMessage,
+        title: "Dashboard Error",
+        description: errorMessage === 'NO_CONNECTED_ACCOUNT' 
+          ? 'Please complete Stripe onboarding first'
+          : 'Failed to open dashboard',
         variant: "destructive",
       });
     } finally {
@@ -76,144 +78,95 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
     }
   };
 
-  const handleExternalDashboard = async () => {
+  const copyToClipboard = async (url: string) => {
     try {
-      const url = await createLoginLink();
-      if (url) {
-        window.open(url, '_blank');
-        onClose();
-      }
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: "Success",
+        description: "Dashboard link copied to clipboard",
+      });
     } catch (err) {
       toast({
-        title: "Error",
-        description: "Failed to open external dashboard",
+        title: "Error", 
+        description: "Failed to copy link",
         variant: "destructive",
       });
     }
   };
 
-  // Load dashboard when modal opens
-  useEffect(() => {
-    if (isOpen && !showEmbedded && !loading && !error) {
-      handleLoadDashboard();
+  // Auto-trigger dashboard opening when modal opens
+  React.useEffect(() => {
+    if (isOpen && !loading && !error) {
+      handleOpenDashboard();
     }
   }, [isOpen]);
 
-  // Render embedded dashboard when ready
-  useEffect(() => {
-    if (showEmbedded && connectInstance && dashboardRef.current) {
-      let accountManagement: any = null;
-      
-      try {
-        console.log('[STRIPE DASHBOARD] Creating account management component...');
-        accountManagement = connectInstance.create('account-management');
-        
-        if (!accountManagement) {
-          throw new Error('Failed to create account management component');
-        }
-        
-        console.log('[STRIPE DASHBOARD] Appending component to container...');
-        // Clear any existing content
-        dashboardRef.current.innerHTML = '';
-        // Append the component as a child element (per Stripe docs)
-        dashboardRef.current.appendChild(accountManagement);
-        console.log('[STRIPE DASHBOARD] Component mounted successfully');
-        
-      } catch (err) {
-        console.error('[STRIPE DASHBOARD] Mount error:', err);
-        setError(`Failed to mount dashboard component: ${err instanceof Error ? err.message : 'Unknown error'}`);
-        setShowEmbedded(false);
-        return;
-      }
-      
-      // Cleanup function
-      return () => {
-        if (dashboardRef.current) {
-          try {
-            // Clear the container content
-            dashboardRef.current.innerHTML = '';
-            console.log('[STRIPE DASHBOARD] Component unmounted');
-          } catch (err) {
-            console.log('[STRIPE DASHBOARD] Cleanup error:', err);
-          }
-        }
-      };
-    }
-  }, [showEmbedded, connectInstance]);
-
-  // Reset state when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setLoading(false);
-      setError(null);
-      setShowEmbedded(false);
-      setConnectInstance(null);
-    }
-  }, [isOpen]);
+  // This component now just handles the redirect logic
+  // The modal is only shown if there's an error or fallback needed
+  if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] p-0">
-        <DialogHeader className="px-6 py-4 border-b">
-          <DialogTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {testMode && (
-                <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
-                  TEST MODE
-                </span>
-              )}
-              Stripe Dashboard
-            </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              ×
-            </Button>
-          </DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">
+            {testMode && (
+              <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded mr-2">
+                TEST MODE
+              </span>
+            )}
+            Stripe Dashboard
+          </h3>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            ×
+          </Button>
+        </div>
 
-        <div className="h-[700px] flex flex-col">
-          {loading && (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center space-y-3">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                <p className="text-sm text-muted-foreground">Loading your Stripe dashboard...</p>
-              </div>
-            </div>
-          )}
+        {loading && (
+          <div className="text-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-3" />
+            <p className="text-sm text-muted-foreground">Opening dashboard...</p>
+          </div>
+        )}
 
-          {error && (
-            <div className="flex-1 flex items-center justify-center p-6">
-              <div className="max-w-md w-full space-y-4">
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {error}
-                  </AlertDescription>
-                </Alert>
-                
-                <div className="space-y-2">
-                  <Button onClick={handleLoadDashboard} className="w-full">
-                    <Loader2 className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                    Retry Embedded Dashboard
-                  </Button>
-                  <Button variant="outline" onClick={handleExternalDashboard} className="w-full">
+        {error && (
+          <div className="space-y-4">
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+            
+            {fallbackUrl && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  The redirect was blocked. You can open the dashboard manually:
+                </p>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => window.open(fallbackUrl, '_blank')}
+                  >
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    Open External Dashboard
+                    Open Dashboard
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => copyToClipboard(fallbackUrl)}
+                  >
+                    <Copy className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-            </div>
-          )}
-
-          {showEmbedded && (
-            <div className="flex-1 p-6">
-              <div 
-                ref={dashboardRef}
-                className="w-full h-full border rounded-lg overflow-hidden"
-              />
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+            )}
+            
+            <Button onClick={handleOpenDashboard} className="w-full">
+              <Loader2 className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Try Again
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };

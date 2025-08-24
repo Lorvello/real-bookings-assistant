@@ -158,7 +158,7 @@ serve(async (req) => {
     if (!accounts || accounts.length === 0) {
       logStep('No account found', { accountOwnerId, environment, platformAccountId });
       return new Response(
-        JSON.stringify({ error: 'No Stripe account found for this user' }),
+        JSON.stringify({ error: 'NO_CONNECTED_ACCOUNT' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
       );
     }
@@ -221,45 +221,21 @@ serve(async (req) => {
         }
       );
     } catch (loginError) {
-      logStep('Login link creation failed, falling back to onboarding', { error: loginError.message });
-      // Fall through to onboarding link creation if login link fails
+      logStep('Login link creation failed', { error: loginError.message });
+      
+      // Return error instead of falling back to onboarding
+      // Dashboard route should only create login links, not new accounts
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to create login link for existing account',
+          details: loginError.message 
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
-
-    // Get base URL with robust resolution
-    const appBaseUrl = Deno.env.get('APP_BASE_URL');
-    const appEnv = Deno.env.get('APP_ENV') || 'development';
-    
-    let baseUrl: string;
-    if (appBaseUrl && appBaseUrl.startsWith('http')) {
-      baseUrl = appBaseUrl;
-    } else if (appEnv === 'production' || appEnv.includes('bookingsassistant.com')) {
-      baseUrl = 'https://bookingsassistant.com';
-    } else if (appEnv === 'preview' || appEnv.includes('lovable.app')) {
-      baseUrl = 'https://preview--real-bookings-assistant.lovable.app';
-    } else {
-      baseUrl = 'https://bookingsassistant.com';
-    }
-
-    // If onboarding is incomplete, create account link for onboarding
-    const accountLink = await stripe.accountLinks.create({
-      account: account.stripe_account_id,
-      refresh_url: `${baseUrl}/settings?tab=payments&refresh=true`,
-      return_url: `${baseUrl}/settings?tab=payments&connected=true`,
-      type: 'account_onboarding',
-    });
-
-    logStep('Onboarding link created', { accountId: account.stripe_account_id });
-
-    return new Response(
-      JSON.stringify({
-        url: accountLink.url,
-        type: 'account_onboarding'
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
   } catch (error) {
     logStep('ERROR', { message: error.message });
     return new Response(
