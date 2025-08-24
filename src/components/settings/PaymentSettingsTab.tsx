@@ -31,6 +31,7 @@ import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { useAccountRole } from '@/hooks/useAccountRole';
 import { ResearchModal } from './ResearchModal';
 import { StripeEmbeddedOnboardingModal } from './StripeEmbeddedOnboardingModal';
+import { StripeDashboardModal } from './StripeDashboardModal';
 import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
 import { getStripeConfig } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
@@ -66,6 +67,8 @@ export function PaymentSettingsTab() {
   const [refundPolicy, setRefundPolicy] = useState('');
   const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | 'professionalism' | null>(null);
   const [showEmbeddedOnboarding, setShowEmbeddedOnboarding] = useState(false);
+  const [showDashboardModal, setShowDashboardModal] = useState(false);
+  const [dashboardUrl, setDashboardUrl] = useState('');
   
   const stripeConfig = getStripeConfig();
 
@@ -136,8 +139,8 @@ export function PaymentSettingsTab() {
   const handleOpenStripeDashboard = async () => {
     const url = await createLoginLink();
     if (url) {
-      // Open Stripe dashboard in new tab
-      window.open(url, '_blank');
+      setDashboardUrl(url);
+      setShowDashboardModal(true);
     }
   };
 
@@ -720,6 +723,12 @@ export function PaymentSettingsTab() {
           onClose={() => setShowEmbeddedOnboarding(false)}
         />
       )}
+
+      <StripeDashboardModal
+        isOpen={showDashboardModal}
+        onClose={() => setShowDashboardModal(false)}
+        dashboardUrl={dashboardUrl}
+      />
     </div>
   );
 }
