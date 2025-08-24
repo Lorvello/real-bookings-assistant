@@ -102,15 +102,40 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
   // Render embedded dashboard when ready
   useEffect(() => {
     if (showEmbedded && connectInstance && dashboardRef.current) {
-      const accountManagement = connectInstance.create('account-management');
-      accountManagement.mount(dashboardRef.current);
+      let accountManagement: any = null;
+      
+      try {
+        console.log('[STRIPE DASHBOARD] Creating account management component...');
+        accountManagement = connectInstance.create('account-management');
+        
+        if (!accountManagement) {
+          throw new Error('Failed to create account management component');
+        }
+        
+        console.log('[STRIPE DASHBOARD] Appending component to container...');
+        // Clear any existing content
+        dashboardRef.current.innerHTML = '';
+        // Append the component as a child element (per Stripe docs)
+        dashboardRef.current.appendChild(accountManagement);
+        console.log('[STRIPE DASHBOARD] Component mounted successfully');
+        
+      } catch (err) {
+        console.error('[STRIPE DASHBOARD] Mount error:', err);
+        setError(`Failed to mount dashboard component: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        setShowEmbedded(false);
+        return;
+      }
       
       // Cleanup function
       return () => {
-        try {
-          accountManagement.unmount();
-        } catch (err) {
-          console.log('[STRIPE DASHBOARD] Cleanup error:', err);
+        if (dashboardRef.current) {
+          try {
+            // Clear the container content
+            dashboardRef.current.innerHTML = '';
+            console.log('[STRIPE DASHBOARD] Component unmounted');
+          } catch (err) {
+            console.log('[STRIPE DASHBOARD] Cleanup error:', err);
+          }
         }
       };
     }
