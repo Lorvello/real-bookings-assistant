@@ -15,7 +15,7 @@ export const getStripePublishableKey = (): string => {
   const mode = getStripeMode();
   
   if (mode === 'test') {
-    return 'pk_test_51QCw3HLcBboIITXgmtorLbhQYKnYWGhGW6L4HyIWmjhfGcnhFQCxN5qKBJBgM7pMBbvE4cZqkh4O3jE49Cn6zPKN00ULNlAojE';
+    return 'pk_test_51RqIgEPyiLcfGjGYOLNQiJdmchHRGvAA5gFET2PfbZYAY2jsqmGrdKH5RbOEH4NyRwoZVMLatkRl1k7bnmBTQUvE00LwV1G5xJ';
   } else {
     // Add your live publishable key here
     return 'pk_live_your_publishable_key';
