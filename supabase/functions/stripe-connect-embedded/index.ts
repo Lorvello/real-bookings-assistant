@@ -12,6 +12,15 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-CONNECT-EMBEDDED] ${step}${detailsStr}`);
 };
 
+// Validate required environment variables
+const validateEnvironment = () => {
+  const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_ANON_KEY', 'STRIPE_SECRET_KEY_TEST'];
+  const missing = required.filter(key => !Deno.env.get(key));
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -19,61 +28,84 @@ serve(async (req) => {
 
   try {
     logStep("Function started");
-
-    // Initialize Supabase clients
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
     
+    // Validate environment variables first
+    validateEnvironment();
+
+    // Parse request
+    const { test_mode = true } = await req.json();
+    logStep("Request parsed", { test_mode });
+
+    // Initialize Supabase clients - use service role for auth to avoid token issues
     const supabaseService = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Parse request
-    const { test_mode = false } = await req.json();
-    logStep("Request parsed", { test_mode });
-
-    // Authenticate user
+    // Authenticate user using JWT from header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("No authorization header provided");
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "No authorization header provided" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) {
-      throw new Error(`Authentication error: ${userError.message}`);
-    }
-
-    const user = userData.user;
-    if (!user?.email) {
-      throw new Error("User not authenticated");
+    const { data: { user }, error: userError } = await supabaseService.auth.getUser(token);
+    if (userError || !user) {
+      logStep("Authentication failed", userError);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "Authentication failed" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Get user data to determine account owner
-    const { data: userDataResult, error: userDataError } = await supabaseClient
+    // Get user data to determine account owner using service role
+    const { data: userDataResult, error: userDataError } = await supabaseService
       .from('users')
       .select('account_owner_id, business_name, business_email, business_phone')
       .eq('id', user.id)
       .single();
 
     if (userDataError) {
-      throw new Error(`Failed to fetch user data: ${userDataError.message}`);
+      logStep("User data fetch failed", userDataError);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: `Failed to fetch user data: ${userDataError.message}` 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
 
     const accountOwnerId = userDataResult.account_owner_id || user.id;
     logStep("Account owner determined", { accountOwnerId });
 
     // Initialize Stripe with correct secret key
-    const stripe = new Stripe(
-      test_mode 
-        ? Deno.env.get("STRIPE_SECRET_KEY_TEST") ?? ""
-        : Deno.env.get("STRIPE_SECRET_KEY_LIVE") ?? "",
-      { apiVersion: "2023-10-16" }
-    );
+    const stripeSecretKey = test_mode 
+      ? Deno.env.get("STRIPE_SECRET_KEY_TEST") 
+      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
+    
+    if (!stripeSecretKey) {
+      logStep("Missing Stripe secret key", { test_mode });
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "Stripe configuration missing" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
+    }
+
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     // Get platform account ID to track which Stripe account we're using
     const platformAccount = await stripe.accounts.retrieve();
@@ -87,8 +119,8 @@ serve(async (req) => {
       environment
     });
 
-    // Check for existing account for this platform
-    const { data: existingAccount } = await supabaseClient
+    // Check for existing account for this platform using service role
+    const { data: existingAccount } = await supabaseService
       .from('business_stripe_accounts')
       .select('*')
       .eq('account_owner_id', accountOwnerId)

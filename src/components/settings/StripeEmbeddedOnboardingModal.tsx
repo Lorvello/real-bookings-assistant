@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { supabase } from '@/integrations/supabase/client';
 import { getStripeMode, getStripePublishableKey } from '@/utils/stripeConfig';
+import { loadConnectAndInitialize } from '@stripe/connect-js';
 
 interface StripeEmbeddedOnboardingModalProps {
   isOpen: boolean;
@@ -21,8 +22,10 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showEmbedded, setShowEmbedded] = useState(false);
+  const [connectInstance, setConnectInstance] = useState<any>(null);
   const { toast } = useToast();
-  const { refreshAccountStatus } = useStripeConnect();
+  const { refreshAccountStatus, createEmbeddedSession } = useStripeConnect();
 
   const testMode = getStripeMode() === 'test';
 
@@ -31,53 +34,63 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
     setError(null);
 
     try {
-      console.log('[STRIPE ONBOARDING] Starting onboarding...');
+      console.log('[STRIPE EMBEDDED] Starting embedded onboarding...');
       
-      const { data, error } = await supabase.functions.invoke('stripe-connect-onboard', {
-        body: { 
-          test_mode: testMode
-        }
-      });
-
-      if (error) {
-        console.error('[STRIPE ONBOARDING] Function error:', error);
-        throw error;
+      // Try embedded session first
+      const session = await createEmbeddedSession();
+      if (!session) {
+        throw new Error('Failed to create embedded session');
       }
 
-      console.log('[STRIPE ONBOARDING] Function response:', data);
+      console.log('[STRIPE EMBEDDED] Session created, loading Connect JS...');
+      
+      try {
+        // Initialize Stripe Connect
+        const stripeConnectInstance = await loadConnectAndInitialize({
+          publishableKey: getStripePublishableKey(),
+          fetchClientSecret: async () => session.client_secret,
+        });
+        
+        setConnectInstance(stripeConnectInstance);
+        setShowEmbedded(true);
+        console.log('[STRIPE EMBEDDED] Embedded form initialized');
+        
+      } catch (embedError) {
+        console.warn('[STRIPE EMBEDDED] Failed to load embedded form, falling back to redirect:', embedError);
+        
+        // Fallback to regular onboarding
+        const { data, error } = await supabase.functions.invoke('stripe-connect-onboard', {
+          body: { test_mode: testMode }
+        });
 
-      if (data.url) {
-        console.log('[STRIPE ONBOARDING] Opening Stripe onboarding in new tab');
-        // Small delay to ensure state is updated before opening
-        setTimeout(() => {
+        if (error) throw error;
+        
+        if (data.url) {
           window.open(data.url, '_blank');
           onClose();
           
-          // Set up periodic status checking while user is onboarding
+          // Set up status checking
           const checkInterval = setInterval(async () => {
             try {
               const account = await refreshAccountStatus();
-              if (account && account.onboarding_completed) {
+              if (account?.onboarding_completed) {
                 clearInterval(checkInterval);
                 onComplete();
               }
             } catch (error) {
               console.log('[STRIPE ONBOARDING] Status check error:', error);
             }
-          }, 10000); // Check every 10 seconds
+          }, 10000);
 
-          // Stop checking after 10 minutes
           setTimeout(() => clearInterval(checkInterval), 600000);
-        }, 100);
-      } else {
-        throw new Error('No onboarding URL received from Stripe');
+        }
       }
     } catch (err) {
-      console.error('[STRIPE ONBOARDING] Error:', err);
+      console.error('[STRIPE EMBEDDED] Error:', err);
       setError(err instanceof Error ? err.message : 'Failed to start onboarding');
       toast({
         title: "Error",
-        description: "Failed to open Stripe onboarding. Please try again.",
+        description: "Failed to start Stripe setup. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -115,17 +128,27 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
     }
   };
 
+  // Handle embedded completion
+  const handleEmbeddedComplete = () => {
+    console.log('[STRIPE EMBEDDED] Onboarding completed');
+    setShowEmbedded(false);
+    onComplete();
+    onClose();
+  };
+
   // Reset state when modal opens/closes
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) {
       setLoading(false);
       setError(null);
+      setShowEmbedded(false);
+      setConnectInstance(null);
     }
   }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className={showEmbedded ? "max-w-4xl max-h-[90vh] overflow-hidden" : "max-w-2xl max-h-[90vh] overflow-y-auto"}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {testMode && (
@@ -137,13 +160,18 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
           </DialogTitle>
         </DialogHeader>
 
-        {!error && (
+        {showEmbedded && connectInstance ? (
+          <div className="w-full h-[600px] border rounded-lg overflow-hidden">
+            {/* Embedded Stripe Connect form will be rendered here */}
+            <div id="stripe-connect-onboarding" className="w-full h-full" />
+          </div>
+        ) : !error ? (
           <div className="space-y-4">
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 You'll need to provide some business information to accept payments through Stripe.
-                This will open Stripe's secure onboarding page in a new tab.
+                We'll try to show an embedded form, with a fallback to a new tab if needed.
               </AlertDescription>
             </Alert>
 
@@ -165,7 +193,7 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Opening Stripe...
+                    Setting up...
                   </>
                 ) : (
                   'Start Stripe Setup'
@@ -173,7 +201,7 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
               </Button>
             </div>
           </div>
-        )}
+        ) : null}
 
         {error && (
           <div className="space-y-4">
