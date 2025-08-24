@@ -35,7 +35,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { email, redirectTo }: PasswordResetRequest = await req.json();
+    const { email }: PasswordResetRequest = await req.json();
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return new Response(JSON.stringify({ error: 'Valid email is required' }), {
