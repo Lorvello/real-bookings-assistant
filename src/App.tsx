@@ -58,10 +58,13 @@ function RecoveryRedirector() {
   useEffect(() => {
     const redirectIfRecovery = () => {
       const { pathname, search, hash } = window.location;
-      const hasRecovery = (hash && (hash.includes('type=recovery') || hash.includes('access_token='))) ||
-                          (search && (search.includes('type=recovery') || search.includes('access_token=')));
+      const hasSupabaseTokens = (hash && (hash.includes('type=recovery') || hash.includes('access_token=') || hash.includes('refresh_token='))) ||
+                          (search && (search.includes('type=recovery') || search.includes('access_token=') || search.includes('refresh_token=')));
+      const hasAuthError = (hash && (hash.includes('error=') || hash.includes('error_code='))) ||
+                          (search && (search.includes('error=') || search.includes('error_code=')));
+      const needsRedirect = (hasSupabaseTokens || hasAuthError);
       const alreadyOnReset = pathname.includes('/reset-password');
-      if (hasRecovery && !alreadyOnReset) {
+      if (needsRedirect && !alreadyOnReset) {
         navigate(`/reset-password${search || ''}${hash || ''}`, { replace: true });
       }
     };
