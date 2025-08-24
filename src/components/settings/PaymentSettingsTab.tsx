@@ -205,6 +205,28 @@ export function PaymentSettingsTab() {
 
   return (
     <div className="space-y-6">
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          Payment settings are managed at the account level and apply to all team members and calendars.
+        </AlertDescription>
+      </Alert>
+
+      {/* User-level Stripe Banner */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-blue-900">
+              Stripe payments are managed at your account level
+            </p>
+            <p className="text-xs text-blue-700 mt-1">
+              One Stripe connection works for all your calendars and team members. Set it up once and you're ready to accept payments across all services.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Stripe Mode Switcher (for development) */}
       {stripeConfig.isTestMode && (
         <StripeModeSwitcher />
@@ -552,12 +574,6 @@ export function PaymentSettingsTab() {
           </CardContent>
         </Card>
       )}
-
-      {/* Account-level info */}
-      <div className="text-xs text-muted-foreground bg-muted/30 border border-muted rounded p-2 flex items-center space-x-2">
-        <Info className="h-3 w-3 flex-shrink-0" />
-        <span>Payment settings are managed at the account level and apply to all team members and calendars.</span>
-      </div>
 
       {/* Research Modal */}
       <ResearchModal 
