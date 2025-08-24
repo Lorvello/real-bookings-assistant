@@ -51,12 +51,15 @@ serve(async (req) => {
     const accountOwnerId = userData.account_owner_id || user.id;
 
     // Initialize Stripe with correct secret key
-    const stripe = new Stripe(
-      test_mode 
-        ? Deno.env.get("STRIPE_SECRET_KEY_TEST") ?? ""
-        : Deno.env.get("STRIPE_SECRET_KEY_LIVE") ?? "",
-      { apiVersion: "2023-10-16" }
-    );
+    const stripeSecretKey = test_mode 
+      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
+      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
+    
+    if (!stripeSecretKey) {
+      throw new Error(`Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode`);
+    }
+    
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     // Get platform account ID to track which Stripe account we're using
     const platformAccount = await stripe.accounts.retrieve();

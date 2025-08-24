@@ -71,14 +71,14 @@ serve(async (req) => {
 
     // Initialize Stripe with correct secret key based on mode
     const stripeSecretKey = test_mode 
-      ? Deno.env.get('STRIPE_TEST_SECRET_KEY') 
-      : Deno.env.get('STRIPE_LIVE_SECRET_KEY');
-    
-    console.log('[STRIPE-CONNECT-LOGIN] Stripe initialized:', { testMode: test_mode, keyConfigured: !!stripeSecretKey });
+      ? Deno.env.get('STRIPE_SECRET_KEY_TEST') 
+      : Deno.env.get('STRIPE_SECRET_KEY_LIVE');
     
     if (!stripeSecretKey) {
-      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
+      throw new Error(`Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode`);
     }
+    
+    console.log('[STRIPE-CONNECT-LOGIN] Stripe initialized:', { testMode: test_mode, keyConfigured: !!stripeSecretKey });
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',

@@ -74,13 +74,16 @@ serve(async (req) => {
       });
     }
 
-    // Initialize Stripe with test mode
-    const stripe = new Stripe(
-      testMode 
-        ? Deno.env.get("STRIPE_SECRET_KEY_TEST") ?? ""
-        : Deno.env.get("STRIPE_SECRET_KEY_LIVE") ?? "",
-      { apiVersion: "2023-10-16" }
-    );
+    // Initialize Stripe
+    const stripeSecretKey = testMode 
+      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
+      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
+    
+    if (!stripeSecretKey) {
+      throw new Error(`Missing Stripe secret key for ${testMode ? 'test' : 'live'} mode`);
+    }
+    
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
     
     // Get platform account ID to track which Stripe account we're using
     const platformAccount = await stripe.accounts.retrieve();
