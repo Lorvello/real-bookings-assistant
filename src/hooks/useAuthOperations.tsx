@@ -201,12 +201,18 @@ export const useAuthOperations = () => {
       }
 
       await retryWithBackoff(async () => {
-        const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
-          redirectTo: `${window.location.origin}/reset-password`,
+        const { data, error } = await supabase.functions.invoke('send-password-reset', {
+          body: {
+            email: sanitizedEmail,
+            redirectTo: `${window.location.origin}/reset-password`,
+          },
         });
 
         if (error) {
           throw error;
+        }
+        if (data && (data.error || data.success === false)) {
+          throw new Error(data.error || 'Failed to send reset email');
         }
       }, 2, 1000);
 

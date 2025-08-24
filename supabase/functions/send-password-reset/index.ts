@@ -51,7 +51,18 @@ const handler = async (req: Request): Promise<Response> => {
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: redirectTo || 'https://bookingsassistant.com/reset-password'
+        redirectTo: (() => {
+          try {
+            if (redirectTo) {
+              if (redirectTo.includes('/reset-password')) return redirectTo;
+              const u = new URL(redirectTo);
+              return `${u.origin}/reset-password`;
+            }
+          } catch (_e) {
+            console.warn('⚠️ Invalid redirectTo provided, falling back to default /reset-password');
+          }
+          return 'https://bookingsassistant.com/reset-password';
+        })()
       }
     });
 

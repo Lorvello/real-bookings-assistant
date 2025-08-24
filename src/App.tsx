@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CalendarProvider } from '@/contexts/CalendarContext';
@@ -52,6 +52,26 @@ function GlobalWebhookProcessor() {
   return null; // This component doesn't render anything
 }
 
+// Redirect any Supabase recovery link to /reset-password
+function RecoveryRedirector() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const redirectIfRecovery = () => {
+      const { pathname, search, hash } = window.location;
+      const hasRecovery = (hash && (hash.includes('type=recovery') || hash.includes('access_token='))) ||
+                          (search && (search.includes('type=recovery') || search.includes('access_token=')));
+      const alreadyOnReset = pathname.includes('/reset-password');
+      if (hasRecovery && !alreadyOnReset) {
+        navigate(`/reset-password${search || ''}${hash || ''}`, { replace: true });
+      }
+    };
+    redirectIfRecovery();
+    window.addEventListener('hashchange', redirectIfRecovery);
+    return () => window.removeEventListener('hashchange', redirectIfRecovery);
+  }, [navigate]);
+  return null;
+}
+
 function App() {
 
   return (
@@ -70,6 +90,7 @@ function App() {
                   }}
                 >
                   <GlobalWebhookProcessor />
+                  <RecoveryRedirector />
                   <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
