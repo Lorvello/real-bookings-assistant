@@ -62,8 +62,17 @@ function RecoveryRedirector() {
                           (search && (search.includes('type=recovery') || search.includes('access_token=') || search.includes('refresh_token=')));
       const hasAuthError = (hash && (hash.includes('error=') || hash.includes('error_code='))) ||
                           (search && (search.includes('error=') || search.includes('error_code=')));
-      const needsRedirect = (hasSupabaseTokens || hasAuthError);
+      
+      // Check if user might be coming from password reset email (empty hash on homepage)
+      const isHomepageWithEmptyHash = pathname === '/' && !hash && !search;
+      const mightBeFromEmail = isHomepageWithEmptyHash && 
+                              (document.referrer.includes('supabase') || 
+                               document.referrer.includes('auth') ||
+                               sessionStorage.getItem('password-reset-requested') === 'true');
+      
+      const needsRedirect = (hasSupabaseTokens || hasAuthError || mightBeFromEmail);
       const alreadyOnReset = pathname.includes('/reset-password');
+      
       if (needsRedirect && !alreadyOnReset) {
         navigate(`/reset-password${search || ''}${hash || ''}`, { replace: true });
       }

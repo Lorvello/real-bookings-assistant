@@ -200,6 +200,9 @@ export const useAuthOperations = () => {
         throw new Error('Please enter a valid email address');
       }
 
+      // Mark that a password reset was requested
+      sessionStorage.setItem('password-reset-requested', 'true');
+      
       await retryWithBackoff(async () => {
         const { data, error } = await supabase.functions.invoke('send-password-reset', {
           body: {
@@ -209,9 +212,11 @@ export const useAuthOperations = () => {
         });
 
         if (error) {
+          sessionStorage.removeItem('password-reset-requested');
           throw error;
         }
         if (data && (data.error || data.success === false)) {
+          sessionStorage.removeItem('password-reset-requested');
           throw new Error(data.error || 'Failed to send reset email');
         }
       }, 2, 1000);
