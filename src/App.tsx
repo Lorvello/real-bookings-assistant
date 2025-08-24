@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CalendarProvider } from '@/contexts/CalendarContext';
@@ -55,6 +55,8 @@ function GlobalWebhookProcessor() {
 // Redirect any Supabase recovery link to /reset-password
 function RecoveryRedirector() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => {
     const redirectIfRecovery = () => {
       const { pathname, search, hash } = window.location;
@@ -62,14 +64,14 @@ function RecoveryRedirector() {
 
       const hasSupabaseTokens = (normalizedHash && (normalizedHash.includes('type=recovery') || normalizedHash.includes('access_token=') || normalizedHash.includes('refresh_token='))) ||
                           (search && (search.includes('type=recovery') || search.includes('access_token=') || search.includes('refresh_token=')));
-      const hasAuthError = (normalizedHash && (normalizedHash.includes('error=') || normalizedHash.includes('error_code='))) ||
-                          (search && (search.includes('error=') || search.includes('error_code=')));
+      const hasAuthError = (normalizedHash && (normalizedHash.includes('error=') || normalizedHash.includes('error_code=') || normalizedHash.includes('error_description='))) ||
+                          (search && (search.includes('error=') || search.includes('error_code=') || search.includes('error_description=')));
       
       // Handle cases where Supabase redirects to homepage with an empty or lone '#' hash
       const isHomepageWithEmptyHash = pathname === '/' && !normalizedHash && !search;
       const mightBeFromEmail = isHomepageWithEmptyHash && 
                               ((document.referrer && (document.referrer.includes('supabase') || document.referrer.includes('/verify'))) ||
-                               sessionStorage.getItem('password-reset-requested') === 'true');
+                               sessionStorage.getItem('password-reset-requested') === '1');
       
       const needsRedirect = (hasSupabaseTokens || hasAuthError || mightBeFromEmail);
       const alreadyOnReset = pathname.includes('/reset-password');
@@ -80,10 +82,9 @@ function RecoveryRedirector() {
         navigate(`/reset-password${search || ''}${normalizedHash || ''}`, { replace: true });
       }
     };
+
     redirectIfRecovery();
-    window.addEventListener('hashchange', redirectIfRecovery);
-    return () => window.removeEventListener('hashchange', redirectIfRecovery);
-  }, [navigate]);
+  }, [navigate, location]);
   return null;
 }
 

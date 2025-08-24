@@ -201,7 +201,7 @@ export const useAuthOperations = () => {
       }
 
       // Mark that a password reset was requested
-      sessionStorage.setItem('password-reset-requested', 'true');
+      sessionStorage.setItem('password-reset-requested', '1');
       
       await retryWithBackoff(async () => {
         const { data, error } = await supabase.functions.invoke('send-password-reset', {
