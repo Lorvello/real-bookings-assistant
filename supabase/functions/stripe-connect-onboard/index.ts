@@ -71,20 +71,20 @@ serve(async (req) => {
     });
 
     // Check if user is account owner
-    const { data: userData, error: userError } = await supabaseClient
+    const { data: userRoleData, error: userRoleError } = await supabaseClient
       .from('users')
       .select('account_owner_id')
       .eq('id', user.id)
       .single();
 
-    if (userError) {
-      console.error('[STRIPE-CONNECT-ONBOARD] Failed to fetch user data:', userError);
-      throw new Error(`Failed to fetch user data: ${userError.message}`);
+    if (userRoleError) {
+      console.error('[STRIPE-CONNECT-ONBOARD] Failed to fetch user data:', userRoleError);
+      throw new Error(`Failed to fetch user data: ${userRoleError.message}`);
     }
 
     // Only account owners can onboard Stripe
-    if (userData.account_owner_id !== null) {
-      console.log('[STRIPE-CONNECT-ONBOARD] User is not account owner:', { userId: user.id, accountOwnerId: userData.account_owner_id });
+    if (userRoleData.account_owner_id !== null) {
+      console.log('[STRIPE-CONNECT-ONBOARD] User is not account owner:', { userId: user.id, accountOwnerId: userRoleData.account_owner_id });
       throw new Error('Only account owners can set up Stripe Connect');
     }
 
