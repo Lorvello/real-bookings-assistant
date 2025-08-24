@@ -36,6 +36,8 @@ import { getStripeConfig } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
 import type { BusinessStripeAccount } from '@/types/payments';
 
+// Fixed: Removed StripeEmbeddedDashboard component
+
 export function PaymentSettingsTab() {
   const { selectedCalendar } = useCalendarContext();
   const [searchParams, setSearchParams] = useSearchParams();
