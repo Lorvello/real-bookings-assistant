@@ -35,12 +35,8 @@ serve(async (req) => {
     );
 
     // Parse request
-    const { calendar_id, test_mode = true } = await req.json();
-    logStep("Request parsed", { calendar_id, test_mode });
-
-    if (!calendar_id) {
-      throw new Error("Calendar ID is required");
-    }
+    const { test_mode = true } = await req.json();
+    logStep("Request parsed", { test_mode });
 
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
@@ -60,35 +56,36 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Get calendar and verify ownership
-    const { data: calendar, error: calendarError } = await supabaseClient
-      .from('calendars')
-      .select('*')
-      .eq('id', calendar_id)
-      .eq('user_id', user.id)
+    // Get user data to determine account owner
+    const { data: userDataResult, error: userDataError } = await supabaseClient
+      .from('users')
+      .select('account_owner_id')
+      .eq('id', user.id)
       .single();
 
-    if (calendarError || !calendar) {
-      throw new Error("Calendar not found or access denied");
+    if (userDataError) {
+      throw new Error(`Failed to fetch user data: ${userDataError.message}`);
     }
-    logStep("Calendar verified", { calendarId: calendar.id, calendarName: calendar.name });
+
+    const accountOwnerId = userDataResult.account_owner_id || user.id;
+    logStep("Account owner determined", { accountOwnerId });
 
     // Get user business data
-    const { data: userBusinessData, error: userDataError } = await supabaseClient
+    const { data: userBusinessData, error: businessDataError } = await supabaseClient
       .from('users')
       .select('*')
       .eq('id', user.id)
       .maybeSingle();
 
-    if (userDataError) {
-      logStep("Warning: Could not fetch user business data", { error: userDataError.message });
+    if (businessDataError) {
+      logStep("Warning: Could not fetch user business data", { error: businessDataError.message });
     }
     logStep("User business data fetched", { hasData: !!userBusinessData });
 
     // Initialize Stripe with appropriate key
     const stripeSecretKey = test_mode 
       ? Deno.env.get("STRIPE_TEST_SECRET_KEY") 
-      : Deno.env.get("STRIPE_SECRET_KEY");
+      : Deno.env.get("STRIPE_LIVE_SECRET_KEY");
 
     if (!stripeSecretKey) {
       throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
@@ -103,7 +100,7 @@ serve(async (req) => {
     const { data: existingAccount } = await supabaseClient
       .from('business_stripe_accounts')
       .select('*')
-      .eq('calendar_id', calendar_id)
+      .eq('account_owner_id', accountOwnerId)
       .maybeSingle();
 
     let accountId = existingAccount?.stripe_account_id;
@@ -166,7 +163,7 @@ serve(async (req) => {
       const { error: insertError } = await supabaseService
         .from('business_stripe_accounts')
         .insert({
-          calendar_id: calendar_id,
+          account_owner_id: accountOwnerId,
           stripe_account_id: accountId,
           account_status: 'pending',
           onboarding_completed: false,

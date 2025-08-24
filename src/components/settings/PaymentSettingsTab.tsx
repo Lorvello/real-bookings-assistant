@@ -70,7 +70,7 @@ export function PaymentSettingsTab() {
   const stripeConfig = getStripeConfig();
 
   useEffect(() => {
-    if (selectedCalendar?.id) {
+    if (isAccountOwner) {
       loadStripeAccount();
       
       // Handle return from Stripe onboarding
@@ -90,7 +90,7 @@ export function PaymentSettingsTab() {
         }, 1000);
       }
     }
-  }, [selectedCalendar?.id, searchParams, setSearchParams]);
+  }, [isAccountOwner, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (settings) {
@@ -101,7 +101,6 @@ export function PaymentSettingsTab() {
   }, [settings]);
 
   const loadStripeAccount = async () => {
-    if (!selectedCalendar?.id) return;
     setAccountLoading(true);
     try {
       const account = await getStripeAccount();
@@ -114,24 +113,25 @@ export function PaymentSettingsTab() {
   };
 
   const handleRefreshAccount = async () => {
-    if (!selectedCalendar?.id) return;
     const account = await refreshAccountStatus();
     if (account) {
       setStripeAccount(account);
+      toast({
+        title: "Account status refreshed",
+        description: "Your Stripe account status has been updated.",
+      });
     }
   };
 
   const handleOpenStripeDashboard = async () => {
-    if (!selectedCalendar?.id) return;
     const url = await createLoginLink();
     if (url) {
-      // Redirect in the same tab for both login and onboarding flows
-      window.location.href = url;
+      // Open Stripe dashboard in new tab
+      window.open(url, '_blank');
     }
   };
 
   const handleStartOnboarding = async () => {
-    if (!selectedCalendar?.id) return;
     setShowEmbeddedOnboarding(true);
   };
 
@@ -144,12 +144,14 @@ export function PaymentSettingsTab() {
   };
 
   const handleResetStripeConnection = async () => {
-    if (!selectedCalendar?.id) return;
-    
     const success = await resetStripeAccount();
     if (success) {
       setStripeAccount(null);
-      // Refresh payment settings to reflect changes
+      toast({
+        title: "Stripe account reset",
+        description: "Your Stripe connection has been reset. You can now connect a new account.",
+      });
+      // Refresh to show the setup flow again
       await loadStripeAccount();
     }
   };
@@ -254,23 +256,111 @@ export function PaymentSettingsTab() {
       </Card>
 
       {/* Stripe Account Setup */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-2">
-            <CreditCard className="h-5 w-5 text-primary" />
-            <CardTitle>Stripe Account</CardTitle>
-          </div>
-          <CardDescription>
-            Receive payments directly to your business account
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {accountLoading ? (
-            <div className="flex items-center justify-center py-8">
+      {accountLoading ? (
+        <Card>
+          <CardContent className="py-8">
+            <div className="flex items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin mr-2" />
               <span className="text-sm text-muted-foreground">Loading account status...</span>
             </div>
-          ) : hasStripeAccount ? (
+          </CardContent>
+        </Card>
+      ) : isStripeSetupComplete ? (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              <CardTitle>Stripe Account</CardTitle>
+            </div>
+            <CardDescription>
+              Receive payments directly to your business account
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Why we recommend this */}
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <h4 className="font-medium mb-3 text-foreground flex items-center space-x-2">
+                <Shield className="h-4 w-4 text-green-600" />
+                <span>Why we recommend this</span>
+              </h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Upfront payments transform the way businesses operate:
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start space-x-3 text-sm group">
+                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+                  <button 
+                    onClick={() => setResearchModal('no-shows')}
+                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
+                  >
+                    Reduce no-shows dramatically
+                  </button>
+                </li>
+                <li className="flex items-start space-x-3 text-sm group">
+                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+                  <button 
+                    onClick={() => setResearchModal('cashflow')}
+                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
+                  >
+                    Faster access to your cash
+                  </button>
+                </li>
+                <li className="flex items-start space-x-3 text-sm group">
+                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+                  <button 
+                    onClick={() => setResearchModal('compliance')}
+                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
+                  >
+                    Secure & compliant payments
+                  </button>
+                </li>
+                <li className="flex items-start space-x-3 text-sm group">
+                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+                  <button 
+                    onClick={() => setResearchModal('professionalism')}
+                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
+                  >
+                    Present yourself as a professional business
+                  </button>
+                </li>
+              </ul>
+              <p className="text-xs text-muted-foreground mt-3 italic">
+                Click any benefit to learn more
+              </p>
+            </div>
+
+            <div className="text-center py-6">
+              <Button 
+                onClick={handleOpenStripeDashboard}
+                disabled={stripeLoading}
+                size="lg"
+                className="bg-green-600 hover:bg-green-700 text-white font-medium"
+              >
+                {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Go To Dashboard
+              </Button>
+              {stripeConfig.isTestMode && (
+                <p className="text-xs text-orange-600 mt-2">
+                  <TestTube className="h-3 w-3 inline mr-1" />
+                  Test mode - No real money will be processed
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ) : hasStripeAccount ? (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              <CardTitle>Stripe Account</CardTitle>
+            </div>
+            <CardDescription>
+              Receive payments directly to your business account
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="space-y-1">
@@ -318,17 +408,17 @@ export function PaymentSettingsTab() {
                     <RefreshCw className="h-4 w-4 mr-1" />
                     Refresh
                   </Button>
-                  {stripeAccount.onboarding_completed && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleOpenStripeDashboard}
-                      disabled={stripeLoading}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      Dashboard
-                    </Button>
-                  )}
+                   {stripeAccount.onboarding_completed && (
+                     <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={handleOpenStripeDashboard}
+                       disabled={stripeLoading}
+                     >
+                       <ExternalLink className="h-4 w-4 mr-1" />
+                       Go To Dashboard
+                     </Button>
+                   )}
                   {stripeConfig.isTestMode && (
                     <Button
                       variant="outline"
@@ -366,101 +456,112 @@ export function PaymentSettingsTab() {
                 </div>
               )}
             </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Why we recommend this */}
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-3 text-foreground flex items-center space-x-2">
-                  <Shield className="h-4 w-4 text-green-600" />
-                  <span>Why we recommend this</span>
-                </h4>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Upfront payments transform the way businesses operate:
-                </p>
-                <ul className="space-y-2">
-                  <li className="flex items-start space-x-3 text-sm group">
-                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                    <button 
-                      onClick={() => setResearchModal('no-shows')}
-                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                    >
-                      Reduce no-shows dramatically
-                    </button>
-                  </li>
-                  <li className="flex items-start space-x-3 text-sm group">
-                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                    <button 
-                      onClick={() => setResearchModal('cashflow')}
-                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                    >
-                      Faster access to your cash
-                    </button>
-                  </li>
-                  <li className="flex items-start space-x-3 text-sm group">
-                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                    <button 
-                      onClick={() => setResearchModal('compliance')}
-                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                    >
-                      Secure & compliant payments
-                    </button>
-                  </li>
-                  <li className="flex items-start space-x-3 text-sm group">
-                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                    <button 
-                      onClick={() => setResearchModal('professionalism')}
-                      className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                    >
-                      Present yourself as a professional business
-                    </button>
-                  </li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-3 italic">
-                  Click any benefit to learn more
-                </p>
-              </div>
-
-              {/* What you'll need */}
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-3 text-foreground">What you'll need</h4>
-                <ul className="space-y-2">
-                  {[
-                    'Business bank account details',
-                    'Business registration or tax ID', 
-                    'Valid ID of representative (passport or ID card)',
-                    'Date of birth and address of representative',
-                    'Beneficial ownership details (if applicable)'
-                  ].map((requirement, index) => (
-                    <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
-                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span>{requirement}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="text-center py-6">
-                <Button 
-                  onClick={handleStartOnboarding}
-                  disabled={stripeLoading}
-                  size="lg"
-                  className="bg-green-600 hover:bg-green-700 text-white font-medium"
-                >
-                  {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Connect Stripe Account
-                </Button>
-                {stripeConfig.isTestMode && (
-                  <p className="text-xs text-orange-600 mt-2">
-                    <TestTube className="h-3 w-3 inline mr-1" />
-                    Test mode - No real money will be processed
-                  </p>
-                )}
-              </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              <CardTitle>Stripe Account</CardTitle>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <CardDescription>
+              Receive payments directly to your business account
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Why we recommend this */}
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <h4 className="font-medium mb-3 text-foreground flex items-center space-x-2">
+                <Shield className="h-4 w-4 text-green-600" />
+                <span>Why we recommend this</span>
+              </h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Upfront payments transform the way businesses operate:
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start space-x-3 text-sm group">
+                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+                  <button 
+                    onClick={() => setResearchModal('no-shows')}
+                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
+                  >
+                    Reduce no-shows dramatically
+                  </button>
+                </li>
+                <li className="flex items-start space-x-3 text-sm group">
+                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+                  <button 
+                    onClick={() => setResearchModal('cashflow')}
+                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
+                  >
+                    Faster access to your cash
+                  </button>
+                </li>
+                <li className="flex items-start space-x-3 text-sm group">
+                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+                  <button 
+                    onClick={() => setResearchModal('compliance')}
+                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
+                  >
+                    Secure & compliant payments
+                  </button>
+                </li>
+                <li className="flex items-start space-x-3 text-sm group">
+                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+                  <button 
+                    onClick={() => setResearchModal('professionalism')}
+                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
+                  >
+                    Present yourself as a professional business
+                  </button>
+                </li>
+              </ul>
+              <p className="text-xs text-muted-foreground mt-3 italic">
+                Click any benefit to learn more
+              </p>
+            </div>
+
+            {/* What you'll need */}
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <h4 className="font-medium mb-3 text-foreground">What you'll need</h4>
+              <ul className="space-y-2">
+                {[
+                  'Business bank account details',
+                  'Business registration or tax ID', 
+                  'Valid ID of representative (passport or ID card)',
+                  'Date of birth and address of representative',
+                  'Beneficial ownership details (if applicable)'
+                ].map((requirement, index) => (
+                  <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
+                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>{requirement}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="text-center py-6">
+              <Button 
+                onClick={handleStartOnboarding}
+                disabled={stripeLoading}
+                size="lg"
+                className="bg-green-600 hover:bg-green-700 text-white font-medium"
+              >
+                {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <CreditCard className="h-4 w-4 mr-2" />
+                Start Stripe Setup
+              </Button>
+              {stripeConfig.isTestMode && (
+                <p className="text-xs text-orange-600 mt-2">
+                  <TestTube className="h-3 w-3 inline mr-1" />
+                  Test mode - No real money will be processed
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Payment Configuration */}
       {settings?.secure_payments_enabled && isStripeSetupComplete && (
@@ -571,17 +672,15 @@ export function PaymentSettingsTab() {
           isOpen={showEmbeddedOnboarding}
           onComplete={() => {
             // Refresh account status after completion
-            if (selectedCalendar?.id) {
-              refreshAccountStatus().then((account) => {
-                if (account) {
-                  setStripeAccount(account);
-                }
-              });
-            }
+            refreshAccountStatus().then((account) => {
+              if (account) {
+                setStripeAccount(account);
+              }
+            });
             setShowEmbeddedOnboarding(false);
             toast({
-              title: "Success",
-              description: "Stripe account setup completed successfully!",
+              title: "Setup Complete!",
+              description: "Your Stripe account is ready to accept payments.",
             });
           }}
           onClose={() => setShowEmbeddedOnboarding(false)}

@@ -25,13 +25,9 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    // Parse request
-    const { calendar_id } = await req.json();
-    logStep("Request parsed", { calendar_id });
-
-    if (!calendar_id) {
-      throw new Error("Calendar ID is required");
-    }
+    // Parse request - calendar_id is now optional as we work with account_owner_id
+    const body = await req.json();
+    logStep("Request parsed", body);
 
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
@@ -51,24 +47,25 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Verify calendar ownership
-    const { data: calendar, error: calendarError } = await supabaseClient
-      .from('calendars')
-      .select('*')
-      .eq('id', calendar_id)
-      .eq('user_id', user.id)
+    // Get user data to determine account owner
+    const { data: userData, error: userDataError } = await supabaseClient
+      .from('users')
+      .select('account_owner_id')
+      .eq('id', user.id)
       .single();
 
-    if (calendarError || !calendar) {
-      throw new Error("Calendar not found or access denied");
+    if (userDataError) {
+      throw new Error(`Failed to fetch user data: ${userDataError.message}`);
     }
-    logStep("Calendar verified", { calendarId: calendar.id });
 
-    // Delete Stripe account record
+    const accountOwnerId = userData.account_owner_id || user.id;
+    logStep("Account owner determined", { accountOwnerId });
+
+    // Delete Stripe account record by account_owner_id
     const { error: deleteError } = await supabaseClient
       .from('business_stripe_accounts')
       .delete()
-      .eq('calendar_id', calendar_id);
+      .eq('account_owner_id', accountOwnerId);
 
     if (deleteError) {
       logStep("Error deleting account", { error: deleteError.message });

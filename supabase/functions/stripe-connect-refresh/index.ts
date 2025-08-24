@@ -31,15 +31,15 @@ serve(async (req) => {
     const { test_mode = false } = await req.json();
 
     // Get user data and verify account ownership
-    const { data: userData, error: userError } = await supabaseClient
+    const { data: userData, error: userDataError } = await supabaseClient
       .from('users')
       .select('account_owner_id')
       .eq('id', user.id)
       .single();
 
-    if (userError) {
-      console.error('[STRIPE-CONNECT-REFRESH] Failed to fetch user data:', userError);
-      throw new Error(`Failed to fetch user data: ${userError.message}`);
+    if (userDataError) {
+      console.error('[STRIPE-CONNECT-REFRESH] Failed to fetch user data:', userDataError);
+      throw new Error(`Failed to fetch user data: ${userDataError.message}`);
     }
 
     // Get account owner's Stripe account
