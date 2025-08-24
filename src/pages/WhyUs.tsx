@@ -3,6 +3,7 @@ import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import Testimonials from '@/components/ui/testimonials-columns-1';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
+import { useVoiceflowChatbot } from '@/hooks/useVoiceflowChatbot';
 
 import { Shield, Zap, Users, Award, Clock, TrendingUp, CheckCircle, Star, Calendar, ArrowRight, Phone, MessageCircle, Bot, Target, Heart, Brain, Smartphone, Gauge, UserCheck, TabletSmartphone, Rocket } from 'lucide-react';
 import { Pricing } from '@/components/Pricing';
@@ -16,6 +17,7 @@ import MobileFirstDataDisclaimer from '@/components/MobileFirstDataDisclaimer';
 import MobileFirstMethodologyModal from '@/components/MobileFirstMethodologyModal';
 
 const WhyUs = () => {
+  useVoiceflowChatbot();
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
   const [flippedPsychCards, setFlippedPsychCards] = useState<boolean[]>([false, false, false, false]);

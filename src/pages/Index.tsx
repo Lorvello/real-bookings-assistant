@@ -11,9 +11,11 @@ import Testimonials from "@/components/ui/testimonials-columns-1";
 import { Pricing } from "@/components/Pricing";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 import PublicPageWrapper from "@/components/PublicPageWrapper";
+import { useVoiceflowChatbot } from "@/hooks/useVoiceflowChatbot";
 
 const Index = () => {
   const navigate = useNavigate();
+  useVoiceflowChatbot();
 
   useEffect(() => {
     // Check for password reset parameters in URL hash or search

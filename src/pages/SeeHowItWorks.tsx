@@ -7,8 +7,10 @@ import { Pricing } from '@/components/Pricing';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
 import { EnterpriseContactForm } from '@/components/EnterpriseContactForm';
+import { useVoiceflowChatbot } from '@/hooks/useVoiceflowChatbot';
 
 const SeeHowItWorks = () => {
+  useVoiceflowChatbot();
   const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
 
   return (

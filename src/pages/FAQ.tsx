@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
+import { useVoiceflowChatbot } from '@/hooks/useVoiceflowChatbot';
 import {
   Accordion,
   AccordionContent,
@@ -12,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { MessageCircle, Zap, Shield, Star, CheckCircle, HelpCircle, Phone, Mail, Search } from 'lucide-react';
 
 const FAQ = () => {
+  useVoiceflowChatbot();
   const [searchTerm, setSearchTerm] = useState('');
 
   const recommendedQuestions = [
