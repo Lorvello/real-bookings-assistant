@@ -24,7 +24,7 @@ export function StripeConnectOnboarding({
   onComplete, 
   onClose 
 }: StripeConnectOnboardingProps) {
-  const { createOnboardingLink, onboarding } = useStripeConnect();
+  const { createOnboardingLink, onboarding, refreshAccountStatus } = useStripeConnect();
   const [step, setStep] = useState<'intro' | 'onboarding' | 'complete'>('intro');
 
   const requirements = [
@@ -36,10 +36,34 @@ export function StripeConnectOnboarding({
   ];
 
   const handleStartOnboarding = async () => {
+    setStep('onboarding');
     const onboardingLink = await createOnboardingLink(calendarId);
     
     if (onboardingLink) {
-      window.location.href = onboardingLink.url;
+      // Open in new tab instead of redirecting
+      window.open(onboardingLink.url, '_blank');
+      
+      // Set up periodic status checking while user is onboarding
+      const checkInterval = setInterval(async () => {
+        try {
+          const account = await refreshAccountStatus(calendarId);
+          if (account && account.onboarding_completed) {
+            clearInterval(checkInterval);
+            setStep('complete');
+            onComplete(account);
+          }
+        } catch (error) {
+          console.log('[STRIPE ONBOARDING] Status check error:', error);
+        }
+      }, 10000); // Check every 10 seconds
+
+      // Stop checking after 10 minutes
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        setStep('intro');
+      }, 600000);
+    } else {
+      setStep('intro');
     }
   };
 

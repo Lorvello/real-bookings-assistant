@@ -55,6 +55,22 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
         setTimeout(() => {
           window.open(data.url, '_blank');
           onClose();
+          
+          // Set up periodic status checking while user is onboarding
+          const checkInterval = setInterval(async () => {
+            try {
+              const account = await refreshAccountStatus(calendarId);
+              if (account && account.onboarding_completed) {
+                clearInterval(checkInterval);
+                onComplete();
+              }
+            } catch (error) {
+              console.log('[STRIPE ONBOARDING] Status check error:', error);
+            }
+          }, 10000); // Check every 10 seconds
+
+          // Stop checking after 10 minutes
+          setTimeout(() => clearInterval(checkInterval), 600000);
         }, 100);
       } else {
         throw new Error('No onboarding URL received from Stripe');

@@ -38,13 +38,16 @@ serve(async (req) => {
       .single();
 
     if (accountError || !account) {
+      console.error('[STRIPE-CONNECT-REFRESH] Account lookup error:', accountError);
       throw new Error('Stripe account not found');
     }
+
+    console.log('[STRIPE-CONNECT-REFRESH] Found account:', account.stripe_account_id);
 
     // Initialize Stripe with appropriate key based on mode
     const stripeSecretKey = test_mode 
       ? Deno.env.get("STRIPE_TEST_SECRET_KEY") 
-      : Deno.env.get("STRIPE_SECRET_KEY");
+      : Deno.env.get("STRIPE_LIVE_SECRET_KEY");
 
     if (!stripeSecretKey) {
       throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
@@ -55,7 +58,14 @@ serve(async (req) => {
     });
 
     // Fetch current account status from Stripe
+    console.log('[STRIPE-CONNECT-REFRESH] Fetching account from Stripe...');
     const stripeAccount = await stripe.accounts.retrieve(account.stripe_account_id);
+    
+    console.log('[STRIPE-CONNECT-REFRESH] Stripe account status:', {
+      details_submitted: stripeAccount.details_submitted,
+      charges_enabled: stripeAccount.charges_enabled,
+      payouts_enabled: stripeAccount.payouts_enabled,
+    });
 
     // Update account in database
     const { data: updatedAccount, error: updateError } = await supabaseClient

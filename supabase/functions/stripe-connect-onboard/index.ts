@@ -209,10 +209,10 @@ serve(async (req) => {
 
       console.log('[STRIPE-CONNECT-ONBOARD] Stripe account created:', { accountId: stripeAccountId });
 
-      // Store account in database
-      await supabaseClient
+      // Store account in database with robust upsert
+      const { error: insertError } = await supabaseClient
         .from('business_stripe_accounts')
-        .insert({
+        .upsert({
           calendar_id: calendar_id,
           stripe_account_id: stripeAccountId,
           account_status: 'pending',
@@ -222,16 +222,30 @@ serve(async (req) => {
           account_type: 'express',
           country: 'NL',
           currency: 'eur',
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'calendar_id'
         });
+
+      if (insertError) {
+        console.error('[STRIPE-CONNECT-ONBOARD] Database error:', insertError);
+        throw new Error(`Failed to save account: ${insertError.message}`);
+      }
 
       console.log('[STRIPE-CONNECT-ONBOARD] Account stored in database');
     }
 
-    // Create onboarding link
+    // Get base URL from environment
+    const appEnv = Deno.env.get('APP_ENV') || 'development';
+    const baseUrl = appEnv === 'production' 
+      ? 'https://brandevolves.lovable.app'
+      : 'https://3461320d-933f-4e55-89c4-11076909a36e.sandbox.lovable.dev';
+
+    // Create onboarding link with fixed URLs
     const accountLink = await stripe.accountLinks.create({
       account: stripeAccountId,
-      refresh_url: `${req.headers.get('origin')}/settings?tab=payments&refresh=true`,
-      return_url: `${req.headers.get('origin')}/settings?tab=payments&success=true`,
+      refresh_url: `${baseUrl}/settings?tab=payments&refresh=true`,
+      return_url: `${baseUrl}/settings?tab=payments&success=true`,
       type: 'account_onboarding',
     });
 

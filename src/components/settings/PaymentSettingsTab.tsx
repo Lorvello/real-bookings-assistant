@@ -131,6 +131,14 @@ export function PaymentSettingsTab() {
     setShowEmbeddedOnboarding(true);
   };
 
+  const handleOnboardingComplete = () => {
+    setShowEmbeddedOnboarding(false);
+    // Reload the stripe account to get latest status
+    setTimeout(() => {
+      loadStripeAccount();
+    }, 1000);
+  };
+
   const handleResetStripeConnection = async () => {
     if (!selectedCalendar?.id) return;
     
