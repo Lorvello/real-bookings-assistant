@@ -515,7 +515,7 @@ export type Database = {
           account_owner_id: string | null
           account_status: string
           account_type: string | null
-          calendar_id: string
+          calendar_id: string | null
           charges_enabled: boolean
           country: string | null
           created_at: string
@@ -534,7 +534,7 @@ export type Database = {
           account_owner_id?: string | null
           account_status?: string
           account_type?: string | null
-          calendar_id: string
+          calendar_id?: string | null
           charges_enabled?: boolean
           country?: string | null
           created_at?: string
@@ -553,7 +553,7 @@ export type Database = {
           account_owner_id?: string | null
           account_status?: string
           account_type?: string | null
-          calendar_id?: string
+          calendar_id?: string | null
           charges_enabled?: boolean
           country?: string | null
           created_at?: string

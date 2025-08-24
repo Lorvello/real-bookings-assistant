@@ -202,9 +202,9 @@ serve(async (req) => {
       logStep("Stripe account created", { accountId });
 
       // Store account in database
-      const { error: insertError } = await supabaseService
+      const { data: upsertData, error: upsertError } = await supabaseService
         .from('business_stripe_accounts')
-        .insert({
+        .upsert({
           account_owner_id: accountOwnerId,
           user_id: user.id,
           stripe_account_id: accountId,
@@ -217,13 +217,16 @@ serve(async (req) => {
           account_type: 'express',
           country: 'NL',
           currency: 'eur',
-        });
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'account_owner_id,environment,platform_account_id' })
+        .select()
+        .single();
 
-      if (insertError) {
-        logStep("Error storing account", { error: insertError.message });
-        throw new Error(`Failed to store account: ${insertError.message}`);
+      if (upsertError) {
+        logStep("Error storing account", { error: upsertError.message });
+        throw new Error(`Failed to store account: ${upsertError.message}`);
       }
-      logStep("Account stored in database", { accountId, platformAccountId });
+      logStep("Account stored in database", { accountId, platformAccountId, recordId: upsertData?.id });
     }
 
     // Create account session for embedded component
