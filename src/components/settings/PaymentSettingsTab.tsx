@@ -31,7 +31,6 @@ import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { useAccountRole } from '@/hooks/useAccountRole';
 import { ResearchModal } from './ResearchModal';
 import { StripeEmbeddedOnboardingModal } from './StripeEmbeddedOnboardingModal';
-import { StripeEmbeddedDashboard } from './StripeEmbeddedDashboard';
 import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
 import { getStripeConfig } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
@@ -67,7 +66,6 @@ export function PaymentSettingsTab() {
   const [refundPolicy, setRefundPolicy] = useState('');
   const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | 'professionalism' | null>(null);
   const [showEmbeddedOnboarding, setShowEmbeddedOnboarding] = useState(false);
-  const [showEmbeddedDashboard, setShowEmbeddedDashboard] = useState(false);
   
   const stripeConfig = getStripeConfig();
 
@@ -135,8 +133,19 @@ export function PaymentSettingsTab() {
     }
   };
 
-  const handleOpenStripeDashboard = () => {
-    setShowEmbeddedDashboard(true);
+  const handleOpenStripeDashboard = async () => {
+    try {
+      const url = await createLoginLink();
+      if (url) {
+        window.open(url, '_blank');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to open Stripe dashboard",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleStartOnboarding = async () => {
@@ -719,10 +728,6 @@ export function PaymentSettingsTab() {
         />
       )}
 
-      <StripeEmbeddedDashboard
-        isOpen={showEmbeddedDashboard}
-        onClose={() => setShowEmbeddedDashboard(false)}
-      />
     </div>
   );
 }
