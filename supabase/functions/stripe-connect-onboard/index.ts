@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -27,7 +28,8 @@ serve(async (req) => {
     // Parse request
     const body = await req.json();
     const testMode = body.test_mode || false;
-    logStep("Request parsed", { testMode });
+    const environment = testMode ? 'test' : 'live';
+    logStep("Request parsed", { testMode, environment });
 
     // Authenticate the user
     const authHeader = req.headers.get('Authorization')!;
@@ -44,7 +46,7 @@ serve(async (req) => {
       .select(`
         business_name, business_email, business_phone, business_street, 
         business_number, business_postal, business_city, business_country,
-        business_description, full_name, email, phone, website
+        business_description, full_name, email, phone, website, account_owner_id
       `)
       .eq('id', user.id)
       .single();
@@ -88,7 +90,6 @@ serve(async (req) => {
     // Get platform account ID to track which Stripe account we're using
     const platformAccount = await stripe.accounts.retrieve();
     const platformAccountId = platformAccount.id;
-    const environment = testMode ? 'test' : 'live';
     
     logStep("Stripe initialized", { 
       testMode, 
@@ -98,34 +99,31 @@ serve(async (req) => {
     });
 
     // Check if user is account owner
-    const { data: userRoleData, error: userRoleError } = await supabaseClient
-      .from('users')
-      .select('account_owner_id')
-      .eq('id', user.id)
-      .single();
-
-    if (userRoleError) {
-      throw new Error(`Failed to fetch user data: ${userRoleError.message}`);
-    }
-
-    const accountOwnerId = userRoleData.account_owner_id || user.id;
+    const accountOwnerId = userData.account_owner_id || user.id;
     logStep("Account owner determined", { accountOwnerId });
 
     // Only account owners can onboard Stripe
-    if (userRoleData.account_owner_id !== null) {
+    if (userData.account_owner_id !== null) {
       throw new Error('Only account owners can set up Stripe Connect');
     }
 
-    // Check if Stripe account exists for this platform
-    const { data: existingAccount, error: accountError } = await supabaseClient
+    // FIXED: Use proper query to check for existing account with environment filter
+    let { data: existingAccounts, error: accountError } = await supabaseClient
       .from('business_stripe_accounts')
       .select('*')
       .eq('account_owner_id', accountOwnerId)
       .eq('environment', environment)
       .eq('platform_account_id', platformAccountId)
-      .single();
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    if (accountError) {
+      logStep("Error checking existing accounts", accountError);
+      throw new Error(`Database error: ${accountError.message}`);
+    }
 
     let stripeAccountId: string;
+    const existingAccount = existingAccounts && existingAccounts.length > 0 ? existingAccounts[0] : null;
     
     if (existingAccount) {
       stripeAccountId = existingAccount.stripe_account_id;
@@ -162,7 +160,8 @@ serve(async (req) => {
         }
       }
     } else {
-      // Create new Stripe account
+      // ONLY create new account if NO account exists for this environment/platform
+      logStep("No existing account found - creating new Stripe account");
       stripeAccountId = await createNewStripeAccount(stripe, user, prefillData);
       
       // Store in database
@@ -181,6 +180,7 @@ serve(async (req) => {
         });
       
       if (insertError) {
+        logStep("Error storing new account", insertError);
         throw new Error(`Failed to store account: ${insertError.message}`);
       }
       
@@ -190,22 +190,15 @@ serve(async (req) => {
     // Get base URL with robust resolution
     const appBaseUrl = Deno.env.get('APP_BASE_URL');
     const appEnv = Deno.env.get('APP_ENV') || 'development';
-    logStep("Environment", { 
-      ENV: appEnv, 
-      baseUrl: appBaseUrl,
-      currentUrl: req.url 
-    });
     
     let baseUrl: string;
     if (appBaseUrl && appBaseUrl.startsWith('http')) {
-      // Use explicit base URL if provided
       baseUrl = appBaseUrl;
     } else if (appEnv === 'production' || appEnv.includes('bookingsassistant.com')) {
       baseUrl = 'https://bookingsassistant.com';
     } else if (appEnv === 'preview' || appEnv.includes('lovable.app')) {
       baseUrl = 'https://preview--real-bookings-assistant.lovable.app';
     } else {
-      // Always default to production for safety
       baseUrl = 'https://bookingsassistant.com';
     }
 

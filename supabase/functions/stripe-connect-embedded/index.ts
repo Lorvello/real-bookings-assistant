@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -34,7 +35,8 @@ serve(async (req) => {
 
     // Parse request
     const { test_mode = true } = await req.json();
-    logStep("Request parsed", { test_mode });
+    const environment = test_mode ? 'test' : 'live';
+    logStep("Request parsed", { test_mode, environment });
 
     // Initialize Supabase clients - use service role for auth to avoid token issues
     const supabaseService = createClient(
@@ -110,7 +112,6 @@ serve(async (req) => {
     // Get platform account ID to track which Stripe account we're using
     const platformAccount = await stripe.accounts.retrieve();
     const platformAccountId = platformAccount.id;
-    const environment = test_mode ? 'test' : 'live';
 
     logStep("Stripe initialized", { 
       test_mode, 
@@ -119,33 +120,34 @@ serve(async (req) => {
       environment
     });
 
-    // Check for existing account for this platform using service role
+    // FIXED: Use proper query to find existing account without creating duplicates
     // First try to find a completed account, then fall back to any account
-    let { data: existingAccount } = await supabaseService
+    let { data: accounts, error: accountError } = await supabaseService
       .from('business_stripe_accounts')
       .select('*')
       .eq('account_owner_id', accountOwnerId)
       .eq('environment', environment)
       .eq('platform_account_id', platformAccountId)
       .eq('onboarding_completed', true)
-      .order('created_at', { ascending: false })
-      .maybeSingle();
+      .order('updated_at', { ascending: false })
+      .limit(1);
 
     // If no completed account found, check for any account but prefer the most recent
-    if (!existingAccount) {
-      const { data: anyAccount } = await supabaseService
+    if (!accounts || accounts.length === 0) {
+      const { data: anyAccounts } = await supabaseService
         .from('business_stripe_accounts')
         .select('*')
         .eq('account_owner_id', accountOwnerId)
         .eq('environment', environment)
         .eq('platform_account_id', platformAccountId)
-        .order('created_at', { ascending: false })
-        .maybeSingle();
+        .order('updated_at', { ascending: false })
+        .limit(1);
       
-      existingAccount = anyAccount;
+      accounts = anyAccounts;
     }
 
-    let accountId = existingAccount?.stripe_account_id;
+    let accountId: string;
+    const existingAccount = accounts && accounts.length > 0 ? accounts[0] : null;
 
     if (existingAccount) {
       accountId = existingAccount.stripe_account_id;
@@ -195,8 +197,8 @@ serve(async (req) => {
         }
       }
     } else {
-      // Create new Stripe Connect account
-      logStep("Creating new Stripe account");
+      // ONLY create new account if absolutely NO account exists
+      logStep("No existing account found - creating new Stripe account");
       
       const accountParams: any = {
         type: 'express',
@@ -219,9 +221,9 @@ serve(async (req) => {
       logStep("Stripe account created", { accountId });
 
       // Store account in database
-      const { data: upsertData, error: upsertError } = await supabaseService
+      const { data: insertData, error: insertError } = await supabaseService
         .from('business_stripe_accounts')
-        .upsert({
+        .insert({
           account_owner_id: accountOwnerId,
           user_id: user.id,
           stripe_account_id: accountId,
@@ -235,15 +237,15 @@ serve(async (req) => {
           country: 'NL',
           currency: 'eur',
           updated_at: new Date().toISOString()
-        }, { onConflict: 'account_owner_id,environment,platform_account_id' })
+        })
         .select()
         .single();
 
-      if (upsertError) {
-        logStep("Error storing account", { error: upsertError.message });
-        throw new Error(`Failed to store account: ${upsertError.message}`);
+      if (insertError) {
+        logStep("Error storing account", { error: insertError.message });
+        throw new Error(`Failed to store account: ${insertError.message}`);
       }
-      logStep("Account stored in database", { accountId, platformAccountId, recordId: upsertData?.id });
+      logStep("Account stored in database", { accountId, platformAccountId, recordId: insertData?.id });
     }
 
     // Check if account has completed onboarding to determine which components to enable
