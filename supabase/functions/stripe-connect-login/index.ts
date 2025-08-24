@@ -139,11 +139,16 @@ serve(async (req) => {
       })
       .eq('stripe_account_id', account.stripe_account_id);
 
-    // If account is fully onboarded, create login link
-    if (stripeAccount.details_submitted && stripeAccount.charges_enabled) {
+    // ALWAYS try to create login link for existing accounts first
+    // Even if not fully onboarded, let users access their Stripe dashboard
+    try {
       const loginLink = await stripe.accounts.createLoginLink(account.stripe_account_id);
       
-      logStep('Login link created', { accountId: account.stripe_account_id });
+      logStep('Login link created for existing account', { 
+        accountId: account.stripe_account_id,
+        details_submitted: stripeAccount.details_submitted,
+        charges_enabled: stripeAccount.charges_enabled
+      });
       
       return new Response(
         JSON.stringify({
@@ -155,6 +160,9 @@ serve(async (req) => {
           status: 200,
         }
       );
+    } catch (loginError) {
+      logStep('Login link creation failed, falling back to onboarding', { error: loginError.message });
+      // Fall through to onboarding link creation if login link fails
     }
 
     // Get base URL with robust resolution
