@@ -48,17 +48,17 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Get user data to determine account owner
-    const { data: userData, error: userDataError } = await supabaseClient
+    const { data: userAccountData, error: userAccountError } = await supabaseClient
       .from('users')
       .select('account_owner_id')
       .eq('id', user.id)
       .single();
 
-    if (userDataError) {
-      throw new Error(`Failed to fetch user data: ${userDataError.message}`);
+    if (userAccountError) {
+      throw new Error(`Failed to fetch user data: ${userAccountError.message}`);
     }
 
-    const accountOwnerId = userData.account_owner_id || user.id;
+    const accountOwnerId = userAccountData.account_owner_id || user.id;
     logStep("Account owner determined", { accountOwnerId });
 
     // Delete Stripe account record by account_owner_id

@@ -242,15 +242,27 @@ serve(async (req) => {
       console.log('[STRIPE-CONNECT-ONBOARD] Account stored in database');
     }
 
-    // Get base URL from environment with fixed mapping
+    // Get base URL with robust resolution
+    const appBaseUrl = Deno.env.get('APP_BASE_URL');
     const appEnv = Deno.env.get('APP_ENV') || 'development';
-    console.log('[STRIPE-CONNECT-ONBOARD] Environment:', { ENV: appEnv });
+    console.log('[STRIPE-CONNECT-ONBOARD] Environment:', { 
+      ENV: appEnv, 
+      baseUrl: appBaseUrl,
+      currentUrl: req.url 
+    });
     
-    const baseUrl = appEnv === 'production' 
-      ? 'https://bookingsassistant.com'
-      : appEnv === 'preview'
-      ? 'https://preview--real-bookings-assistant.lovable.app'
-      : 'http://localhost:5173';
+    let baseUrl: string;
+    if (appBaseUrl && appBaseUrl.startsWith('http')) {
+      // Use explicit base URL if provided
+      baseUrl = appBaseUrl;
+    } else if (appEnv === 'production' || appEnv.includes('bookingsassistant.com')) {
+      baseUrl = 'https://bookingsassistant.com';
+    } else if (appEnv === 'preview' || appEnv.includes('lovable.app')) {
+      baseUrl = 'https://preview--real-bookings-assistant.lovable.app';
+    } else {
+      // Always default to production for safety
+      baseUrl = 'https://bookingsassistant.com';
+    }
 
     // Create onboarding link with fixed URLs
     const accountLink = await stripe.accountLinks.create({

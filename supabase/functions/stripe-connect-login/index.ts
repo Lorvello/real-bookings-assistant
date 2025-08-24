@@ -28,16 +28,20 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
+    // Parse request body to get test_mode
+    const { test_mode } = await req.json();
+    console.log('[STRIPE-CONNECT-LOGIN] Request parameters:', { test_mode });
+
     // Get user data and verify account ownership
-    const { data: userData, error: userError } = await supabaseClient
+    const { data: userData, error: userDataError } = await supabaseClient
       .from('users')
       .select('account_owner_id')
       .eq('id', user.id)
       .single();
 
-    if (userError) {
-      console.error('[STRIPE-CONNECT-LOGIN] Failed to fetch user data:', userError);
-      throw new Error(`Failed to fetch user data: ${userError.message}`);
+    if (userDataError) {
+      console.error('[STRIPE-CONNECT-LOGIN] Failed to fetch user data:', userDataError);
+      throw new Error(`Failed to fetch user data: ${userDataError.message}`);
     }
 
     // Only account owners can access Stripe dashboard
@@ -65,7 +69,18 @@ serve(async (req) => {
       );
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    // Initialize Stripe with correct secret key based on mode
+    const stripeSecretKey = test_mode 
+      ? Deno.env.get('STRIPE_TEST_SECRET_KEY') 
+      : Deno.env.get('STRIPE_LIVE_SECRET_KEY');
+    
+    console.log('[STRIPE-CONNECT-LOGIN] Stripe initialized:', { testMode: test_mode, keyConfigured: !!stripeSecretKey });
+    
+    if (!stripeSecretKey) {
+      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
     });
 
@@ -100,13 +115,26 @@ serve(async (req) => {
       );
     }
 
-    // Get base URL from environment with fixed mapping
+    // Get base URL with robust resolution
+    const appBaseUrl = Deno.env.get('APP_BASE_URL');
     const appEnv = Deno.env.get('APP_ENV') || 'development';
-    const baseUrl = appEnv === 'production' 
-      ? 'https://bookingsassistant.com'
-      : appEnv === 'preview'
-      ? 'https://preview--real-bookings-assistant.lovable.app'
-      : 'http://localhost:5173';
+    console.log('[STRIPE-CONNECT-LOGIN] Environment:', { 
+      ENV: appEnv, 
+      baseUrl: appBaseUrl 
+    });
+    
+    let baseUrl: string;
+    if (appBaseUrl && appBaseUrl.startsWith('http')) {
+      // Use explicit base URL if provided
+      baseUrl = appBaseUrl;
+    } else if (appEnv === 'production' || appEnv.includes('bookingsassistant.com')) {
+      baseUrl = 'https://bookingsassistant.com';
+    } else if (appEnv === 'preview' || appEnv.includes('lovable.app')) {
+      baseUrl = 'https://preview--real-bookings-assistant.lovable.app';
+    } else {
+      // Always default to production for safety
+      baseUrl = 'https://bookingsassistant.com';
+    }
 
     // If onboarding is incomplete, create account link for onboarding
     const accountLink = await stripe.accountLinks.create({

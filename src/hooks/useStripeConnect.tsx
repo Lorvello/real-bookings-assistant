@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { getStripeMode } from '@/utils/stripeConfig';
+import { getStripeMode, getStripeConfig } from '@/utils/stripeConfig';
 import { useAccountRole } from '@/hooks/useAccountRole';
 import type { BusinessStripeAccount, StripeConnectOnboardingLink } from '@/types/payments';
 
@@ -93,7 +93,9 @@ export const useStripeConnect = () => {
       setLoading(true);
       
       const { data, error } = await supabase.functions.invoke('stripe-connect-login', {
-        body: {}
+        body: { 
+          test_mode: getStripeConfig().testMode 
+        }
       });
 
       if (error) throw error;
