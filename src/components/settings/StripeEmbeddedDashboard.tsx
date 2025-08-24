@@ -55,10 +55,20 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
       
     } catch (err) {
       console.error('[STRIPE DASHBOARD] Error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load dashboard');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load dashboard';
+      
+      // Provide specific error messages for common issues
+      let displayMessage = errorMessage;
+      if (errorMessage.includes('connect.stripe.com')) {
+        displayMessage = 'Unable to load embedded dashboard. This may be due to browser security settings or ad blockers. Please try the external dashboard option below.';
+      } else if (errorMessage.includes('duplicate key') || errorMessage.includes('constraint')) {
+        displayMessage = 'Account setup in progress. Please try again in a moment.';
+      }
+      
+      setError(displayMessage);
       toast({
-        title: "Error",
-        description: "Failed to load embedded dashboard. Please try the external dashboard link.",
+        title: "Dashboard Load Error",
+        description: displayMessage,
         variant: "destructive",
       });
     } finally {
