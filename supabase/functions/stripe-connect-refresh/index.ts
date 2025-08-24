@@ -30,11 +30,24 @@ serve(async (req) => {
 
     const { test_mode = false } = await req.json();
 
-    // Get user's Stripe account
+    // Get user data and verify account ownership
+    const { data: userData, error: userError } = await supabaseClient
+      .from('users')
+      .select('account_owner_id')
+      .eq('id', user.id)
+      .single();
+
+    if (userError) {
+      console.error('[STRIPE-CONNECT-REFRESH] Failed to fetch user data:', userError);
+      throw new Error(`Failed to fetch user data: ${userError.message}`);
+    }
+
+    // Get account owner's Stripe account
+    const accountOwnerId = userData.account_owner_id || user.id;
     const { data: account, error: accountError } = await supabaseClient
       .from('business_stripe_accounts')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('account_owner_id', accountOwnerId)
       .maybeSingle();
 
     if (accountError) {
@@ -89,7 +102,7 @@ serve(async (req) => {
         country: stripeAccount.country,
         updated_at: new Date().toISOString(),
       })
-      .eq('user_id', user.id)
+      .eq('account_owner_id', accountOwnerId)
       .select()
       .single();
 

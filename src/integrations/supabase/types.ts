@@ -512,6 +512,7 @@ export type Database = {
       }
       business_stripe_accounts: {
         Row: {
+          account_owner_id: string | null
           account_status: string
           account_type: string | null
           calendar_id: string
@@ -528,6 +529,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_owner_id?: string | null
           account_status?: string
           account_type?: string | null
           calendar_id: string
@@ -544,6 +546,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_owner_id?: string | null
           account_status?: string
           account_type?: string | null
           calendar_id?: string
@@ -560,6 +563,27 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "business_stripe_accounts_account_owner_id_fkey"
+            columns: ["account_owner_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "business_stripe_accounts_account_owner_id_fkey"
+            columns: ["account_owner_id"]
+            isOneToOne: false
+            referencedRelation: "user_status_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_stripe_accounts_account_owner_id_fkey"
+            columns: ["account_owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
@@ -1667,6 +1691,7 @@ export type Database = {
       users: {
         Row: {
           accessibility_info: string | null
+          account_owner_id: string | null
           address_city: string | null
           address_country: string | null
           address_number: string | null
@@ -1722,6 +1747,7 @@ export type Database = {
         }
         Insert: {
           accessibility_info?: string | null
+          account_owner_id?: string | null
           address_city?: string | null
           address_country?: string | null
           address_number?: string | null
@@ -1777,6 +1803,7 @@ export type Database = {
         }
         Update: {
           accessibility_info?: string | null
+          account_owner_id?: string | null
           address_city?: string | null
           address_country?: string | null
           address_number?: string | null
@@ -1830,7 +1857,29 @@ export type Database = {
           website?: string | null
           whatsapp_bot_active?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_account_owner_id_fkey"
+            columns: ["account_owner_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "users_account_owner_id_fkey"
+            columns: ["account_owner_id"]
+            isOneToOne: false
+            referencedRelation: "user_status_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_account_owner_id_fkey"
+            columns: ["account_owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       waitlist: {
         Row: {
@@ -3097,6 +3146,10 @@ export type Database = {
         Args: { p_data_type?: string; p_user_id: string }
         Returns: undefined
       }
+      get_account_owner_id: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       get_available_slots: {
         Args: {
           p_calendar_id: string
@@ -3223,6 +3276,10 @@ export type Database = {
           p_role?: string
         }
         Returns: Json
+      }
+      is_account_owner: {
+        Args: { p_user_id: string }
+        Returns: boolean
       }
       link_existing_whatsapp_conversations: {
         Args: Record<PropertyKey, never>

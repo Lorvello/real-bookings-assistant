@@ -28,11 +28,29 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    // Get user's Stripe account
+    // Get user data and verify account ownership
+    const { data: userData, error: userError } = await supabaseClient
+      .from('users')
+      .select('account_owner_id')
+      .eq('id', user.id)
+      .single();
+
+    if (userError) {
+      console.error('[STRIPE-CONNECT-LOGIN] Failed to fetch user data:', userError);
+      throw new Error(`Failed to fetch user data: ${userError.message}`);
+    }
+
+    // Only account owners can access Stripe dashboard
+    if (userData.account_owner_id !== null) {
+      console.log('[STRIPE-CONNECT-LOGIN] User is not account owner:', { userId: user.id, accountOwnerId: userData.account_owner_id });
+      throw new Error('Only account owners can access Stripe dashboard');
+    }
+
+    // Get account owner's Stripe account
     const { data: account, error: accountError } = await supabaseClient
       .from('business_stripe_accounts')
       .select('stripe_account_id, onboarding_completed, charges_enabled, payouts_enabled')
-      .eq('user_id', user.id)
+      .eq('account_owner_id', user.id)
       .maybeSingle();
 
     if (accountError) {
@@ -64,7 +82,7 @@ serve(async (req) => {
         account_status: stripeAccount.charges_enabled && stripeAccount.payouts_enabled ? 'active' : 'pending',
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', user.id);
+      .eq('account_owner_id', user.id);
 
     // If account is fully onboarded, create login link
     if (stripeAccount.details_submitted && stripeAccount.charges_enabled) {

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   CreditCard, 
   Shield, 
@@ -21,11 +22,13 @@ import {
   Check,
   ArrowRight,
   TestTube,
-  RotateCcw
+  RotateCcw,
+  Info
 } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
+import { useAccountRole } from '@/hooks/useAccountRole';
 import { ResearchModal } from './ResearchModal';
 import { StripeEmbeddedOnboardingModal } from './StripeEmbeddedOnboardingModal';
 import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
@@ -37,6 +40,7 @@ export function PaymentSettingsTab() {
   const { selectedCalendar } = useCalendarContext();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
+  const { isAccountOwner, loading: roleLoading } = useAccountRole();
   const {
     settings,
     loading: settingsLoading,
@@ -175,10 +179,23 @@ export function PaymentSettingsTab() {
     return account.account_status.charAt(0).toUpperCase() + account.account_status.slice(1);
   };
 
-  if (settingsLoading) {
+  if (settingsLoading || roleLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAccountOwner) {
+    return (
+      <div className="space-y-6">
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Only account owners can manage payment settings. Contact your account owner to configure Stripe Connect and payment options.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -188,6 +205,13 @@ export function PaymentSettingsTab() {
 
   return (
     <div className="space-y-6">
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          Payment settings are managed at the account level and apply to all team members and calendars.
+        </AlertDescription>
+      </Alert>
+
       {/* User-level Stripe Banner */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start space-x-3">
@@ -197,7 +221,7 @@ export function PaymentSettingsTab() {
               Stripe payments are managed at your account level
             </p>
             <p className="text-xs text-blue-700 mt-1">
-              One Stripe connection works for all your calendars. Set it up once and you're ready to accept payments across all services.
+              One Stripe connection works for all your calendars and team members. Set it up once and you're ready to accept payments across all services.
             </p>
           </div>
         </div>

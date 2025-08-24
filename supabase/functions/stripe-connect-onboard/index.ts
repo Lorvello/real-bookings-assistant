@@ -70,11 +70,29 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    // Check if account already exists for this user
+    // Check if user is account owner
+    const { data: userData, error: userError } = await supabaseClient
+      .from('users')
+      .select('account_owner_id')
+      .eq('id', user.id)
+      .single();
+
+    if (userError) {
+      console.error('[STRIPE-CONNECT-ONBOARD] Failed to fetch user data:', userError);
+      throw new Error(`Failed to fetch user data: ${userError.message}`);
+    }
+
+    // Only account owners can onboard Stripe
+    if (userData.account_owner_id !== null) {
+      console.log('[STRIPE-CONNECT-ONBOARD] User is not account owner:', { userId: user.id, accountOwnerId: userData.account_owner_id });
+      throw new Error('Only account owners can set up Stripe Connect');
+    }
+
+    // Check if account already exists for this account owner
     let { data: existingAccount } = await supabaseClient
       .from('business_stripe_accounts')
       .select('stripe_account_id')
-      .eq('user_id', user.id)
+      .eq('account_owner_id', user.id)
       .maybeSingle();
 
     let stripeAccountId: string;
@@ -198,11 +216,12 @@ serve(async (req) => {
 
       console.log('[STRIPE-CONNECT-ONBOARD] Stripe account created:', { accountId: stripeAccountId, userId: user.id });
 
-      // Store account in database using user_id (now unique)
+      // Store account in database using account_owner_id
       const { error: insertError } = await supabaseClient
         .from('business_stripe_accounts')
         .upsert({
           user_id: user.id,
+          account_owner_id: user.id, // Set account owner
           stripe_account_id: stripeAccountId,
           account_status: 'pending',
           onboarding_completed: false,

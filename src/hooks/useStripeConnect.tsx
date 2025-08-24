@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getStripeMode } from '@/utils/stripeConfig';
+import { useAccountRole } from '@/hooks/useAccountRole';
 import type { BusinessStripeAccount, StripeConnectOnboardingLink } from '@/types/payments';
 
 export const useStripeConnect = () => {
   const [loading, setLoading] = useState(false);
   const [onboarding, setOnboarding] = useState(false);
   const { toast } = useToast();
+  const { accountOwnerId } = useAccountRole();
 
   const createOnboardingLink = async (): Promise<StripeConnectOnboardingLink | null> => {
     try {
@@ -37,10 +39,12 @@ export const useStripeConnect = () => {
     try {
       setLoading(true);
       
+      if (!accountOwnerId) return null;
+      
       const { data, error } = await supabase
         .from('business_stripe_accounts')
         .select('*')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .eq('account_owner_id', accountOwnerId)
         .maybeSingle();
 
       if (error) throw error;
