@@ -41,8 +41,12 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
 
       console.log('[STRIPE DASHBOARD] Redirecting to:', url);
       
-      // Top-level redirect as requested
-      window.location.assign(url);
+      // Force top-level redirect to break out of any iframe/sandbox
+      if (window.top && window.top !== window) {
+        window.top.location.assign(url);
+      } else {
+        window.location.assign(url);
+      }
       onClose();
       
     } catch (err) {
