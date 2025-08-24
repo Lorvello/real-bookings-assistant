@@ -3,12 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getStripeMode, getStripeConfig } from '@/utils/stripeConfig';
 import { useAccountRole } from '@/hooks/useAccountRole';
+import { useAuth } from '@/hooks/useAuth';
 import type { BusinessStripeAccount, StripeConnectOnboardingLink } from '@/types/payments';
 
 export const useStripeConnect = () => {
   const [loading, setLoading] = useState(false);
   const [onboarding, setOnboarding] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   const { accountOwnerId } = useAccountRole();
 
   const createOnboardingLink = async (): Promise<StripeConnectOnboardingLink | null> => {
@@ -39,12 +41,19 @@ export const useStripeConnect = () => {
     try {
       setLoading(true);
       
-      if (!accountOwnerId) {
-        console.log('[STRIPE CONNECT] No account owner ID available');
+      // Use accountOwnerId if available, otherwise fallback to user.id
+      const ownerId = accountOwnerId || user?.id;
+      
+      if (!ownerId) {
+        console.log('[STRIPE CONNECT] No user ID or account owner ID available');
         return null;
       }
       
-      console.log('[STRIPE CONNECT] Fetching Stripe account for owner:', accountOwnerId);
+      console.log('[STRIPE CONNECT] Fetching Stripe account for owner:', ownerId, {
+        accountOwnerId,
+        userId: user?.id,
+        using: ownerId === accountOwnerId ? 'accountOwnerId' : 'user.id fallback'
+      });
       
       // Get the current environment mode
       const currentMode = getStripeMode();
@@ -53,7 +62,7 @@ export const useStripeConnect = () => {
       const { data, error } = await supabase
         .from('business_stripe_accounts')
         .select('*')
-        .eq('account_owner_id', accountOwnerId)
+        .eq('account_owner_id', ownerId)
         .eq('environment', currentMode)
         .order('created_at', { ascending: false })
         .limit(1)

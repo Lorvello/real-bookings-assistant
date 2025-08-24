@@ -42,6 +42,12 @@ export const useAccountRole = () => {
         const isAccountOwner = data.account_owner_id === null;
         const accountOwnerId = data.account_owner_id || user.id;
 
+        console.log('[ACCOUNT ROLE] Setting account role:', {
+          isAccountOwner,
+          accountOwnerId,
+          userId: user.id
+        });
+
         setAccountRole({
           isAccountOwner,
           accountOwnerId,

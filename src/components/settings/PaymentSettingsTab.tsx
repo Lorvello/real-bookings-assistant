@@ -40,7 +40,7 @@ export function PaymentSettingsTab() {
   const { selectedCalendar } = useCalendarContext();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
-  const { isAccountOwner, loading: roleLoading } = useAccountRole();
+  const { isAccountOwner, accountOwnerId, loading: roleLoading } = useAccountRole();
   const {
     settings,
     loading: settingsLoading,
@@ -70,7 +70,8 @@ export function PaymentSettingsTab() {
   const stripeConfig = getStripeConfig();
 
   useEffect(() => {
-    if (isAccountOwner) {
+    if (isAccountOwner && accountOwnerId && !roleLoading) {
+      console.log('[PAYMENT SETTINGS] Loading Stripe account for owner:', accountOwnerId);
       loadStripeAccount();
       
       // Handle return from Stripe onboarding
@@ -90,7 +91,7 @@ export function PaymentSettingsTab() {
         }, 1000);
       }
     }
-  }, [isAccountOwner, searchParams, setSearchParams]);
+  }, [isAccountOwner, accountOwnerId, roleLoading, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (settings) {
