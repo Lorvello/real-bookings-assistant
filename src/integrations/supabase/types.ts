@@ -557,42 +557,42 @@ export type Database = {
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "available_slots_view"
             referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "daily_booking_stats"
             referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "service_popularity_stats"
             referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },

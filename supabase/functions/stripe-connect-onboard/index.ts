@@ -209,7 +209,7 @@ serve(async (req) => {
 
       console.log('[STRIPE-CONNECT-ONBOARD] Stripe account created:', { accountId: stripeAccountId });
 
-      // Store account in database with robust upsert
+      // Store account in database with proper upsert using unique constraint
       const { error: insertError } = await supabaseClient
         .from('business_stripe_accounts')
         .upsert({
@@ -223,8 +223,6 @@ serve(async (req) => {
           country: 'NL',
           currency: 'eur',
           updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'calendar_id'
         });
 
       if (insertError) {
