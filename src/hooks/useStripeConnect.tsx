@@ -235,6 +235,51 @@ export const useStripeConnect = () => {
     }
   };
 
+  // Create embedded dashboard session
+  const createDashboardSession = async (): Promise<{ client_secret: string; account_id: string } | null> => {
+    try {
+      const testMode = getStripeMode() === 'test';
+      
+      const { data, error } = await supabase.functions.invoke('stripe-connect-embedded', {
+        body: { 
+          test_mode: testMode
+        }
+      });
+
+      if (error) {
+        console.error('Error creating dashboard session:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create dashboard session",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      if (data.success) {
+        return {
+          client_secret: data.client_secret,
+          account_id: data.account_id
+        };
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to create dashboard session",
+          variant: "destructive",
+        });
+        return null;
+      }
+    } catch (error) {
+      console.error('Error creating dashboard session:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   return {
     loading,
     onboarding,
@@ -243,6 +288,7 @@ export const useStripeConnect = () => {
     refreshAccountStatus,
     createLoginLink,
     createEmbeddedSession,
+    createDashboardSession,
     resetStripeAccount
   };
 };
