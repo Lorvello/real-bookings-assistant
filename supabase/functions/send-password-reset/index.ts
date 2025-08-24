@@ -46,23 +46,25 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('🔄 Generating password reset with Supabase for:', email);
 
-    // Compute desired redirect based on Origin header (fallback to production domain)
-    const origin = (() => {
-      try {
-        return new URL(req.headers.get('origin') ?? 'https://bookingsassistant.com').origin;
-      } catch (_e) {
-        return 'https://bookingsassistant.com';
-      }
-    })();
-    const desired = `${origin}/reset-password`;
-    console.log('[reset] desired redirectTo:', desired);
+    // Determine redirect target from APP_ENV, never from request origin
+    const ENV = Deno.env.get('APP_ENV') ?? 'prod';
+    const ORIGIN_MAP: Record<string, string> = {
+      prod: 'https://bookingsassistant.com',
+      preview: 'https://preview--real-bookings-assistant.lovable.app',
+      local: 'http://localhost:5173',
+    };
+    const origin = ORIGIN_MAP[ENV] ?? ORIGIN_MAP.prod;
+    const redirectTo = `${origin}/reset-password`;
+
+    console.log('[reset] ENV:', ENV);
+    console.log('[reset] redirectTo (final):', redirectTo);
 
     // Generate reset link using Supabase Admin API
     const { data, error } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: desired,
+        redirectTo,
       }
     });
 
@@ -90,7 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
     try {
       const urlObj = new URL(actionLink);
       const sp = new URLSearchParams(urlObj.search);
-      sp.set('redirect_to', desired);
+      sp.set('redirect_to', redirectTo);
       urlObj.search = sp.toString();
       finalLink = urlObj.toString();
     } catch (e) {
