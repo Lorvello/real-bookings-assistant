@@ -120,13 +120,30 @@ serve(async (req) => {
     });
 
     // Check for existing account for this platform using service role
-    const { data: existingAccount } = await supabaseService
+    // First try to find a completed account, then fall back to any account
+    let { data: existingAccount } = await supabaseService
       .from('business_stripe_accounts')
       .select('*')
       .eq('account_owner_id', accountOwnerId)
       .eq('environment', environment)
       .eq('platform_account_id', platformAccountId)
+      .eq('onboarding_completed', true)
+      .order('created_at', { ascending: false })
       .maybeSingle();
+
+    // If no completed account found, check for any account but prefer the most recent
+    if (!existingAccount) {
+      const { data: anyAccount } = await supabaseService
+        .from('business_stripe_accounts')
+        .select('*')
+        .eq('account_owner_id', accountOwnerId)
+        .eq('environment', environment)
+        .eq('platform_account_id', platformAccountId)
+        .order('created_at', { ascending: false })
+        .maybeSingle();
+      
+      existingAccount = anyAccount;
+    }
 
     let accountId = existingAccount?.stripe_account_id;
 
@@ -229,11 +246,27 @@ serve(async (req) => {
       logStep("Account stored in database", { accountId, platformAccountId, recordId: upsertData?.id });
     }
 
-    // Create account session for embedded component
+    // Check if account has completed onboarding to determine which components to enable
+    let isOnboardingCompleted = false;
+    try {
+      const stripeAccountDetails = await stripe.accounts.retrieve(accountId);
+      isOnboardingCompleted = stripeAccountDetails.details_submitted || false;
+      logStep("Account onboarding status checked", { 
+        accountId, 
+        details_submitted: stripeAccountDetails.details_submitted,
+        charges_enabled: stripeAccountDetails.charges_enabled 
+      });
+    } catch (err) {
+      logStep("Could not check account status, assuming incomplete", { error: err.message });
+    }
+
+    // Create account session with appropriate components based on onboarding status
     const accountSession = await stripe.accountSessions.create({
       account: accountId,
       components: {
-        account_onboarding: { enabled: true },
+        // Only enable onboarding if account is NOT completed
+        account_onboarding: { enabled: !isOnboardingCompleted },
+        // Always enable account management for dashboard view
         account_management: { enabled: true },
         balances: { enabled: true },
         documents: { enabled: true },

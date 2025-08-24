@@ -58,15 +58,32 @@ export const useStripeConnect = () => {
       // Get the current environment mode
       const currentMode = getStripeMode();
       
-      // Query for the account with current environment and platform account ID
-      const { data, error } = await supabase
+      // Query for the account with current environment - prioritize completed accounts
+      // First try to get a completed account
+      let { data, error } = await supabase
         .from('business_stripe_accounts')
         .select('*')
         .eq('account_owner_id', ownerId)
         .eq('environment', currentMode)
+        .eq('onboarding_completed', true)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      // If no completed account found, get any account (newest first)
+      if (!data && error?.code === 'PGRST116') {
+        const fallbackQuery = await supabase
+          .from('business_stripe_accounts')
+          .select('*')
+          .eq('account_owner_id', ownerId)
+          .eq('environment', currentMode)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        data = fallbackQuery.data;
+        error = fallbackQuery.error;
+      }
 
       if (error && error.code !== 'PGRST116') {
         throw error;
