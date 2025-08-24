@@ -212,20 +212,6 @@ export function PaymentSettingsTab() {
         </AlertDescription>
       </Alert>
 
-      {/* User-level Stripe Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start space-x-3">
-          <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-blue-900">
-              Stripe payments are managed at your account level
-            </p>
-            <p className="text-xs text-blue-700 mt-1">
-              One Stripe connection works for all your calendars and team members. Set it up once and you're ready to accept payments across all services.
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* Stripe Mode Switcher (for development) */}
       {stripeConfig.isTestMode && (
