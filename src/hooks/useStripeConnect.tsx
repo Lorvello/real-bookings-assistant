@@ -39,18 +39,42 @@ export const useStripeConnect = () => {
     try {
       setLoading(true);
       
-      if (!accountOwnerId) return null;
+      if (!accountOwnerId) {
+        console.log('[STRIPE CONNECT] No account owner ID available');
+        return null;
+      }
       
+      console.log('[STRIPE CONNECT] Fetching Stripe account for owner:', accountOwnerId);
+      
+      // Get the current environment mode
+      const currentMode = getStripeMode();
+      
+      // Query for the account with current environment and platform account ID
       const { data, error } = await supabase
         .from('business_stripe_accounts')
         .select('*')
         .eq('account_owner_id', accountOwnerId)
+        .eq('environment', currentMode)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      
+      console.log('[STRIPE CONNECT] Account query result:', {
+        found: !!data,
+        accountId: data?.stripe_account_id,
+        environment: data?.environment,
+        onboarding_completed: data?.onboarding_completed,
+        charges_enabled: data?.charges_enabled,
+        payouts_enabled: data?.payouts_enabled
+      });
+      
       return data as BusinessStripeAccount;
     } catch (error) {
-      console.error('Error fetching Stripe account:', error);
+      console.error('[STRIPE CONNECT] Error fetching Stripe account:', error);
       toast({
         title: "Error",
         description: "Failed to load Stripe account information",

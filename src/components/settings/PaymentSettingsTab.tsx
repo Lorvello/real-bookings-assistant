@@ -102,11 +102,20 @@ export function PaymentSettingsTab() {
 
   const loadStripeAccount = async () => {
     setAccountLoading(true);
+    console.log('[PAYMENT SETTINGS] Loading Stripe account...');
+    
     try {
       const account = await getStripeAccount();
+      console.log('[PAYMENT SETTINGS] Stripe account loaded:', {
+        hasAccount: !!account,
+        accountId: account?.stripe_account_id,
+        onboarding_completed: account?.onboarding_completed,
+        charges_enabled: account?.charges_enabled,
+        payouts_enabled: account?.payouts_enabled
+      });
       setStripeAccount(account);
     } catch (error) {
-      console.error('Error loading Stripe account:', error);
+      console.error('[PAYMENT SETTINGS] Error loading Stripe account:', error);
     } finally {
       setAccountLoading(false);
     }
@@ -135,12 +144,36 @@ export function PaymentSettingsTab() {
     setShowEmbeddedOnboarding(true);
   };
 
-  const handleOnboardingComplete = () => {
+  const handleOnboardingComplete = async () => {
     setShowEmbeddedOnboarding(false);
-    // Reload the stripe account to get latest status
-    setTimeout(() => {
-      loadStripeAccount();
-    }, 1000);
+    // Immediately refresh account status after onboarding completion
+    console.log('[PAYMENT SETTINGS] Onboarding completed, refreshing account status...');
+    
+    try {
+      const refreshedAccount = await refreshAccountStatus();
+      if (refreshedAccount) {
+        setStripeAccount(refreshedAccount);
+        console.log('[PAYMENT SETTINGS] Account refreshed:', {
+          onboarding_completed: refreshedAccount.onboarding_completed,
+          charges_enabled: refreshedAccount.charges_enabled,
+          payouts_enabled: refreshedAccount.payouts_enabled
+        });
+        
+        // Show success toast
+        toast({
+          title: "Stripe setup completed!",
+          description: refreshedAccount.charges_enabled && refreshedAccount.payouts_enabled 
+            ? "Your account is fully set up and ready to accept payments."
+            : "Account setup in progress. Some features may need additional verification.",
+        });
+      }
+    } catch (error) {
+      console.error('[PAYMENT SETTINGS] Error refreshing account:', error);
+      // Fallback to regular load
+      setTimeout(() => {
+        loadStripeAccount();
+      }, 2000);
+    }
   };
 
   const handleResetStripeConnection = async () => {
@@ -203,7 +236,7 @@ export function PaymentSettingsTab() {
   }
 
   const hasStripeAccount = !!stripeAccount?.stripe_account_id;
-  const isStripeSetupComplete = stripeAccount?.onboarding_completed && stripeAccount?.charges_enabled;
+  const isStripeSetupComplete = stripeAccount?.onboarding_completed && stripeAccount?.charges_enabled && stripeAccount?.payouts_enabled;
 
   return (
     <div className="space-y-6">

@@ -129,8 +129,21 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
   };
 
   // Handle embedded completion
-  const handleEmbeddedComplete = () => {
-    console.log('[STRIPE EMBEDDED] Onboarding completed');
+  const handleEmbeddedComplete = async () => {
+    console.log('[STRIPE EMBEDDED] Onboarding completed, refreshing account status...');
+    
+    try {
+      // Refresh account status to ensure we have the latest data
+      const refreshedAccount = await refreshAccountStatus();
+      console.log('[STRIPE EMBEDDED] Account status refreshed:', {
+        onboarding_completed: refreshedAccount?.onboarding_completed,
+        charges_enabled: refreshedAccount?.charges_enabled,
+        payouts_enabled: refreshedAccount?.payouts_enabled
+      });
+    } catch (error) {
+      console.error('[STRIPE EMBEDDED] Error refreshing status after completion:', error);
+    }
+    
     setShowEmbedded(false);
     onComplete();
     onClose();
