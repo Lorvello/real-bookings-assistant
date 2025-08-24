@@ -58,23 +58,26 @@ function RecoveryRedirector() {
   useEffect(() => {
     const redirectIfRecovery = () => {
       const { pathname, search, hash } = window.location;
-      const hasSupabaseTokens = (hash && (hash.includes('type=recovery') || hash.includes('access_token=') || hash.includes('refresh_token='))) ||
+      const normalizedHash = hash === '#' ? '' : hash; // Treat lone '#' as empty
+
+      const hasSupabaseTokens = (normalizedHash && (normalizedHash.includes('type=recovery') || normalizedHash.includes('access_token=') || normalizedHash.includes('refresh_token='))) ||
                           (search && (search.includes('type=recovery') || search.includes('access_token=') || search.includes('refresh_token=')));
-      const hasAuthError = (hash && (hash.includes('error=') || hash.includes('error_code='))) ||
+      const hasAuthError = (normalizedHash && (normalizedHash.includes('error=') || normalizedHash.includes('error_code='))) ||
                           (search && (search.includes('error=') || search.includes('error_code=')));
       
-      // Check if user might be coming from password reset email (empty hash on homepage)
-      const isHomepageWithEmptyHash = pathname === '/' && !hash && !search;
+      // Handle cases where Supabase redirects to homepage with an empty or lone '#' hash
+      const isHomepageWithEmptyHash = pathname === '/' && !normalizedHash && !search;
       const mightBeFromEmail = isHomepageWithEmptyHash && 
-                              (document.referrer.includes('supabase') || 
-                               document.referrer.includes('auth') ||
+                              ((document.referrer && (document.referrer.includes('supabase') || document.referrer.includes('/verify'))) ||
                                sessionStorage.getItem('password-reset-requested') === 'true');
       
       const needsRedirect = (hasSupabaseTokens || hasAuthError || mightBeFromEmail);
       const alreadyOnReset = pathname.includes('/reset-password');
       
       if (needsRedirect && !alreadyOnReset) {
-        navigate(`/reset-password${search || ''}${hash || ''}`, { replace: true });
+        // Clear the marker to avoid loops once we navigate
+        sessionStorage.removeItem('password-reset-requested');
+        navigate(`/reset-password${search || ''}${normalizedHash || ''}`, { replace: true });
       }
     };
     redirectIfRecovery();
