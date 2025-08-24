@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -61,11 +62,29 @@ serve(async (req) => {
     const accountOwnerId = userAccountData.account_owner_id || user.id;
     logStep("Account owner determined", { accountOwnerId });
 
-    // Delete Stripe account record by account_owner_id
+    // Get test mode from request body for platform consistency
+    const { test_mode = false } = body;
+    const environment = test_mode ? 'test' : 'live';
+    
+    // Initialize Stripe to get platform account ID
+    const stripe = new Stripe(
+      test_mode 
+        ? Deno.env.get("STRIPE_SECRET_KEY_TEST") ?? ""
+        : Deno.env.get("STRIPE_SECRET_KEY_LIVE") ?? "",
+      { apiVersion: "2023-10-16" }
+    );
+    
+    const platformAccount = await stripe.accounts.retrieve();
+    const platformAccountId = platformAccount.id;
+    logStep("Platform determined", { environment, platformAccountId });
+
+    // Delete Stripe account record by account_owner_id for specific platform
     const { error: deleteError } = await supabaseClient
       .from('business_stripe_accounts')
       .delete()
-      .eq('account_owner_id', accountOwnerId);
+      .eq('account_owner_id', accountOwnerId)
+      .eq('environment', environment)
+      .eq('platform_account_id', platformAccountId);
 
     if (deleteError) {
       logStep("Error deleting account", { error: deleteError.message });

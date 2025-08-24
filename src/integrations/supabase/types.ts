@@ -521,9 +521,11 @@ export type Database = {
           created_at: string
           currency: string | null
           details_submitted: boolean | null
+          environment: string | null
           id: string
           onboarding_completed: boolean
           payouts_enabled: boolean
+          platform_account_id: string | null
           stripe_account_id: string
           updated_at: string
           user_id: string
@@ -538,9 +540,11 @@ export type Database = {
           created_at?: string
           currency?: string | null
           details_submitted?: boolean | null
+          environment?: string | null
           id?: string
           onboarding_completed?: boolean
           payouts_enabled?: boolean
+          platform_account_id?: string | null
           stripe_account_id: string
           updated_at?: string
           user_id: string
@@ -555,9 +559,11 @@ export type Database = {
           created_at?: string
           currency?: string | null
           details_submitted?: boolean | null
+          environment?: string | null
           id?: string
           onboarding_completed?: boolean
           payouts_enabled?: boolean
+          platform_account_id?: string | null
           stripe_account_id?: string
           updated_at?: string
           user_id?: string

@@ -162,7 +162,9 @@ export const useStripeConnect = () => {
   const resetStripeAccount = async (): Promise<boolean> => {
     try {
       const { data, error } = await supabase.functions.invoke('stripe-connect-reset', {
-        body: {}
+        body: { 
+          test_mode: getStripeMode() === 'test'
+        }
       });
 
       if (error) {

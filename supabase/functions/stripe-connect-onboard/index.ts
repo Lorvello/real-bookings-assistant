@@ -7,6 +7,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[STRIPE-CONNECT-ONBOARD] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -19,6 +24,11 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    // Parse request
+    const body = await req.json();
+    const testMode = body.test_mode || false;
+    logStep("Request parsed", { testMode });
+
     // Authenticate the user
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
@@ -27,9 +37,6 @@ serve(async (req) => {
     if (userError || !user) {
       throw new Error('User not authenticated');
     }
-
-    // No need for calendar_id input anymore - we use the authenticated user directly
-    const { test_mode } = await req.json();
 
     // Get user's business data for prefilling
     const { data: userData, error: userDataError } = await supabaseClient
@@ -42,32 +49,49 @@ serve(async (req) => {
       .eq('id', user.id)
       .single();
 
-    console.log('[STRIPE-CONNECT-ONBOARD] User data for prefilling:', userData ? 'Data found' : 'No data', userDataError);
+    logStep("User data for prefilling", userData ? 'Data found' : null);
+    
+    const prefillData = {
+      business_name: userData?.business_name,
+      business_email: userData?.business_email,
+      business_phone: userData?.business_phone,
+      business_address: userData?.business_street && userData?.business_city ? 
+        `${userData.business_street} ${userData.business_number || ''}`.trim() : null,
+      business_city: userData?.business_city,
+      business_postal: userData?.business_postal,
+      website: userData?.website,
+      description: userData?.business_description
+    };
     
     if (userData) {
-      console.log('[STRIPE-CONNECT-ONBOARD] Prefill data available:', {
-        business_name: !!userData.business_name,
-        business_email: !!userData.business_email,
-        business_phone: !!userData.business_phone,
-        business_address: !!(userData.business_street && userData.business_city),
-        website: !!userData.website,
-        description: !!userData.business_description
+      logStep("Prefill data available", {
+        business_name: !!prefillData.business_name,
+        business_email: !!prefillData.business_email,
+        business_phone: !!prefillData.business_phone,
+        business_address: !!prefillData.business_address,
+        website: !!prefillData.website,
+        description: !!prefillData.description
       });
     }
 
-    // Initialize Stripe with correct secret key based on mode
-    const stripeSecretKey = test_mode 
-      ? Deno.env.get('STRIPE_TEST_SECRET_KEY') 
-      : Deno.env.get('STRIPE_LIVE_SECRET_KEY');
+    // Initialize Stripe with test mode
+    const stripe = new Stripe(
+      testMode 
+        ? Deno.env.get("STRIPE_SECRET_KEY_TEST") ?? ""
+        : Deno.env.get("STRIPE_SECRET_KEY_LIVE") ?? "",
+      { apiVersion: "2023-10-16" }
+    );
     
-    console.log('[STRIPE-CONNECT-ONBOARD] Stripe initialized:', { testMode: test_mode, keyConfigured: !!stripeSecretKey });
+    // Get platform account ID to track which Stripe account we're using
+    const platformAccount = await stripe.accounts.retrieve();
+    const platformAccountId = platformAccount.id;
+    const environment = testMode ? 'test' : 'live';
     
-    if (!stripeSecretKey) {
-      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
-    }
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: '2023-10-16',
+    logStep("Stripe initialized", { 
+      testMode, 
+      keyConfigured: !!(testMode ? Deno.env.get("STRIPE_SECRET_KEY_TEST") : Deno.env.get("STRIPE_SECRET_KEY_LIVE")),
+      platformAccountId,
+      environment
     });
 
     // Check if user is account owner
@@ -78,174 +102,92 @@ serve(async (req) => {
       .single();
 
     if (userRoleError) {
-      console.error('[STRIPE-CONNECT-ONBOARD] Failed to fetch user data:', userRoleError);
       throw new Error(`Failed to fetch user data: ${userRoleError.message}`);
     }
 
+    const accountOwnerId = userRoleData.account_owner_id || user.id;
+    logStep("Account owner determined", { accountOwnerId });
+
     // Only account owners can onboard Stripe
     if (userRoleData.account_owner_id !== null) {
-      console.log('[STRIPE-CONNECT-ONBOARD] User is not account owner:', { userId: user.id, accountOwnerId: userRoleData.account_owner_id });
       throw new Error('Only account owners can set up Stripe Connect');
     }
 
-    // Check if account already exists for this account owner
-    let { data: existingAccount } = await supabaseClient
+    // Check if Stripe account exists for this platform
+    const { data: existingAccount, error: accountError } = await supabaseClient
       .from('business_stripe_accounts')
-      .select('stripe_account_id')
-      .eq('account_owner_id', user.id)
-      .maybeSingle();
+      .select('*')
+      .eq('account_owner_id', accountOwnerId)
+      .eq('environment', environment)
+      .eq('platform_account_id', platformAccountId)
+      .single();
 
     let stripeAccountId: string;
-
-    if (existingAccount?.stripe_account_id) {
+    
+    if (existingAccount) {
       stripeAccountId = existingAccount.stripe_account_id;
+      logStep("Using existing account", { stripeAccountId, platformAccountId });
       
-      // Update existing account with latest user data
-      if (userData) {
-        const updateData: any = {
-          email: userData.business_email || user.email,
-          metadata: {
-            user_id: user.id,
-            business_name: userData.business_name || 'Professional Services',
-          },
-        };
-
-        // Add business profile if we have business data
-        if (userData.business_name) {
-          updateData.business_type = 'company';
-          updateData.company = {
-            name: userData.business_name,
-          };
+      // Test account accessibility
+      try {
+        await stripe.accounts.retrieve(stripeAccountId);
+        logStep("Account accessible");
+      } catch (accessError) {
+        if (accessError.statusCode === 403 || accessError.statusCode === 404) {
+          logStep("Account not accessible, creating new one", { error: accessError.message });
+          // Account exists in DB but not accessible via this platform - create new one
+          stripeAccountId = await createNewStripeAccount(stripe, user, prefillData);
           
-          if (userData.business_street && userData.business_city) {
-            updateData.company.address = {
-              line1: `${userData.business_street} ${userData.business_number || ''}`.trim(),
-              city: userData.business_city,
-              postal_code: userData.business_postal,
-              country: 'NL',
-            };
-          }
-        }
-
-        // Add business profile
-        if (userData.business_email || userData.business_phone || userData.business_description) {
-          updateData.business_profile = {
-            support_email: userData.business_email || user.email,
-            support_phone: userData.business_phone,
-            product_description: userData.business_description || 'Professional booking services',
-          };
+          // Update existing record instead of creating new one
+          await supabaseClient
+            .from('business_stripe_accounts')
+            .update({
+              stripe_account_id: stripeAccountId,
+              platform_account_id: platformAccountId,
+              environment,
+              account_status: 'pending',
+              onboarding_completed: false,
+              charges_enabled: false,
+              payouts_enabled: false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingAccount.id);
           
-          if (userData.website) {
-            updateData.business_profile.url = userData.website;
-          }
-        }
-
-        try {
-          await stripe.accounts.update(stripeAccountId, updateData);
-        } catch (updateError) {
-          console.log('Could not update account with prefill data:', updateError);
+          logStep("Updated existing record with new account", { stripeAccountId });
+        } else {
+          throw accessError;
         }
       }
     } else {
-      // Create new Stripe Connect account with prefilled data
-      const accountData: any = {
-        type: 'express',
-        country: 'NL',
-        default_currency: 'eur',
-        email: userData?.business_email || user.email,
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-        metadata: {
-          user_id: user.id,
-          business_name: userData?.business_name || 'Professional Services',
-        },
-      };
-
-      // Determine business type and add company info
-      if (userData?.business_name) {
-        accountData.business_type = 'company';
-        accountData.company = {
-          name: userData.business_name,
-        };
-        
-        // Add business address if available
-        if (userData.business_street && userData.business_city) {
-          accountData.company.address = {
-            line1: `${userData.business_street} ${userData.business_number || ''}`.trim(),
-            city: userData.business_city,
-            postal_code: userData.business_postal,
-            country: 'NL',
-          };
-        }
-      } else {
-        accountData.business_type = 'individual';
-        // Add individual info if available
-        if (userData?.full_name) {
-          accountData.individual = {
-            first_name: userData.full_name.split(' ')[0],
-            last_name: userData.full_name.split(' ').slice(1).join(' ') || userData.full_name.split(' ')[0],
-            email: user.email,
-          };
-        }
-      }
-
-      // Add business profile
-      if (userData?.business_email || userData?.business_phone || userData?.business_description) {
-        accountData.business_profile = {
-          support_email: userData?.business_email || user.email,
-          support_phone: userData?.business_phone,
-          product_description: userData?.business_description || 'Professional booking services',
-        };
-        
-        if (userData?.website) {
-          accountData.business_profile.url = userData.website;
-        }
-      }
-
-      console.log('[STRIPE-CONNECT-ONBOARD] Creating new Stripe account with data:', {
-        business_type: accountData.business_type,
-        has_company_info: !!accountData.company,
-        has_individual_info: !!accountData.individual,
-        has_business_profile: !!accountData.business_profile
-      });
-
-      const account = await stripe.accounts.create(accountData);
-      stripeAccountId = account.id;
-
-      console.log('[STRIPE-CONNECT-ONBOARD] Stripe account created:', { accountId: stripeAccountId, userId: user.id });
-
-      // Store account in database using account_owner_id
+      // Create new Stripe account
+      stripeAccountId = await createNewStripeAccount(stripe, user, prefillData);
+      
+      // Store in database
       const { error: insertError } = await supabaseClient
         .from('business_stripe_accounts')
-        .upsert({
+        .insert({
+          account_owner_id: accountOwnerId,
           user_id: user.id,
-          account_owner_id: user.id, // Set account owner
           stripe_account_id: stripeAccountId,
+          platform_account_id: platformAccountId,
+          environment,
           account_status: 'pending',
           onboarding_completed: false,
-          details_submitted: false,
           charges_enabled: false,
-          payouts_enabled: false,
-          account_type: 'express',
-          country: 'NL',
-          currency: 'eur',
-          updated_at: new Date().toISOString(),
+          payouts_enabled: false
         });
-
+      
       if (insertError) {
-        console.error('[STRIPE-CONNECT-ONBOARD] Database error:', insertError);
-        throw new Error(`Failed to save account: ${insertError.message}`);
+        throw new Error(`Failed to store account: ${insertError.message}`);
       }
-
-      console.log('[STRIPE-CONNECT-ONBOARD] Account stored in database');
+      
+      logStep("Account stored in database", { stripeAccountId, platformAccountId });
     }
 
     // Get base URL with robust resolution
     const appBaseUrl = Deno.env.get('APP_BASE_URL');
     const appEnv = Deno.env.get('APP_ENV') || 'development';
-    console.log('[STRIPE-CONNECT-ONBOARD] Environment:', { 
+    logStep("Environment", { 
       ENV: appEnv, 
       baseUrl: appBaseUrl,
       currentUrl: req.url 
@@ -272,7 +214,7 @@ serve(async (req) => {
       type: 'account_onboarding',
     });
 
-    console.log('[STRIPE-CONNECT-ONBOARD] Onboarding link created:', { 
+    logStep("Onboarding link created", { 
       url: 'generated', 
       expires_at: accountLink.expires_at,
       baseUrl,
@@ -290,7 +232,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error in stripe-connect-onboard:', error);
+    logStep("ERROR", { message: error.message });
     return new Response(
       JSON.stringify({ error: error.message }),
       {
@@ -300,3 +242,31 @@ serve(async (req) => {
     );
   }
 });
+
+async function createNewStripeAccount(stripe: any, user: any, prefillData: any): Promise<string> {
+  const accountData: any = {
+    type: 'express',
+    country: 'NL', // Default to Netherlands
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true }
+    }
+  };
+  
+  // Only add non-restricted prefill data for new accounts
+  if (prefillData.business_phone) {
+    accountData.business_profile = {
+      support_phone: prefillData.business_phone
+    };
+  }
+  
+  if (prefillData.website) {
+    accountData.business_profile = accountData.business_profile || {};
+    accountData.business_profile.url = prefillData.website;
+  }
+  
+  const stripeAccount = await stripe.accounts.create(accountData);
+  console.log(`[STRIPE-CONNECT-ONBOARD] Created new Stripe account: ${stripeAccount.id}`);
+  
+  return stripeAccount.id;
+}

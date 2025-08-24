@@ -7,6 +7,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[STRIPE-CONNECT-REFRESH] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -38,20 +43,39 @@ serve(async (req) => {
       .single();
 
     if (userDataError) {
-      console.error('[STRIPE-CONNECT-REFRESH] Failed to fetch user data:', userDataError);
+      logStep('Failed to fetch user data', userDataError);
       throw new Error(`Failed to fetch user data: ${userDataError.message}`);
     }
 
     // Get account owner's Stripe account
     const accountOwnerId = userData.account_owner_id || user.id;
+
+    // Initialize Stripe with correct secret key
+    const stripe = new Stripe(
+      test_mode 
+        ? Deno.env.get("STRIPE_SECRET_KEY_TEST") ?? ""
+        : Deno.env.get("STRIPE_SECRET_KEY_LIVE") ?? "",
+      { apiVersion: "2023-10-16" }
+    );
+
+    // Get platform account ID to track which Stripe account we're using
+    const platformAccount = await stripe.accounts.retrieve();
+    const platformAccountId = platformAccount.id;
+    const environment = test_mode ? 'test' : 'live';
+    
+    logStep("Stripe initialized", { test_mode, platformAccountId, environment });
+
+    // Get Stripe account from database for this platform
     const { data: account, error: accountError } = await supabaseClient
       .from('business_stripe_accounts')
       .select('*')
       .eq('account_owner_id', accountOwnerId)
+      .eq('environment', environment)
+      .eq('platform_account_id', platformAccountId)
       .maybeSingle();
 
     if (accountError) {
-      console.error('[STRIPE-CONNECT-REFRESH] Account lookup error:', accountError);
+      logStep('Account lookup error', accountError);
       throw new Error('Database error while looking up Stripe account');
     }
 
@@ -59,32 +83,19 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'No Stripe account found for this user' 
+          error: 'No Stripe account found for this platform/environment' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
       );
     }
 
-    console.log('[STRIPE-CONNECT-REFRESH] Found account:', { accountId: account.stripe_account_id, userId: user.id });
-
-    // Initialize Stripe with appropriate key based on mode
-    const stripeSecretKey = test_mode 
-      ? Deno.env.get("STRIPE_TEST_SECRET_KEY") 
-      : Deno.env.get("STRIPE_LIVE_SECRET_KEY");
-
-    if (!stripeSecretKey) {
-      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
-    }
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: '2023-10-16',
-    });
+    logStep('Found account', { accountId: account.stripe_account_id, userId: user.id, platformAccountId });
 
     // Fetch current account status from Stripe
-    console.log('[STRIPE-CONNECT-REFRESH] Fetching account from Stripe...');
+    logStep('Fetching account from Stripe...');
     const stripeAccount = await stripe.accounts.retrieve(account.stripe_account_id);
     
-    console.log('[STRIPE-CONNECT-REFRESH] Stripe account status:', {
+    logStep('Stripe account status', {
       details_submitted: stripeAccount.details_submitted,
       charges_enabled: stripeAccount.charges_enabled,
       payouts_enabled: stripeAccount.payouts_enabled,
@@ -103,6 +114,8 @@ serve(async (req) => {
         updated_at: new Date().toISOString(),
       })
       .eq('account_owner_id', accountOwnerId)
+      .eq('environment', environment)
+      .eq('platform_account_id', platformAccountId)
       .select()
       .single();
 
@@ -118,7 +131,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error in stripe-connect-refresh:', error);
+    logStep('ERROR', { message: error.message });
     return new Response(
       JSON.stringify({ error: error.message }),
       {
