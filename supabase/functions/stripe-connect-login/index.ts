@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -58,6 +57,27 @@ serve(async (req) => {
       throw new Error('Only account owners can access Stripe dashboard');
     }
 
+    // Try to get cached account ID from calendar_settings first
+    const { data: calendarData } = await supabaseClient
+      .from('calendars')
+      .select('id')
+      .eq('user_id', accountOwnerId)
+      .eq('is_active', true)
+      .limit(1)
+      .single();
+
+    let cachedAccountId = null;
+    if (calendarData) {
+      const { data: calendarSettings } = await supabaseClient
+        .from('calendar_settings')
+        .select('stripe_connect_account_id')
+        .eq('calendar_id', calendarData.id)
+        .single();
+      
+      cachedAccountId = calendarSettings?.stripe_connect_account_id;
+    }
+    logStep("Cached account ID check", { cachedAccountId, hasCalendar: !!calendarData });
+
     // Initialize Stripe with correct secret key based on mode
     const stripeSecretKey = test_mode 
       ? Deno.env.get('STRIPE_SECRET_KEY_TEST') 
@@ -77,31 +97,57 @@ serve(async (req) => {
     
     logStep("Stripe initialized", { testMode: test_mode, keyConfigured: !!stripeSecretKey, platformAccountId });
 
-    // FIXED: Use proper query to find SINGLE account with environment filter and ordering
-    // First try to get a completed account
-    let { data: accounts, error: accountError } = await supabaseClient
-      .from('business_stripe_accounts')
-      .select('stripe_account_id, onboarding_completed, charges_enabled, payouts_enabled')
-      .eq('account_owner_id', accountOwnerId)
-      .eq('environment', environment)
-      .eq('platform_account_id', platformAccountId)
-      .eq('onboarding_completed', true)
-      .order('updated_at', { ascending: false })
-      .limit(1);
+    // First try to use cached account ID, then query the database
+    let accounts = [];
+    let accountError = null;
 
-    if (accountError || !accounts || accounts.length === 0) {
-      // If no completed account, try any account for this environment/platform
-      const fallbackQuery = await supabaseClient
+    if (cachedAccountId) {
+      logStep("Using cached account ID", { cachedAccountId });
+      // Query by cached account ID directly
+      const { data: cachedAccounts, error: cachedError } = await supabaseClient
+        .from('business_stripe_accounts')
+        .select('stripe_account_id, onboarding_completed, charges_enabled, payouts_enabled')
+        .eq('stripe_account_id', cachedAccountId)
+        .eq('environment', environment)
+        .limit(1);
+      
+      if (cachedAccounts && cachedAccounts.length > 0) {
+        accounts = cachedAccounts;
+      } else {
+        logStep("Cached account not found, falling back to database query", { cachedError });
+      }
+    }
+
+    // Fallback to database query if no cached account found
+    if (accounts.length === 0) {
+      // First try to get a completed account
+      let { data: dbAccounts, error: dbError } = await supabaseClient
         .from('business_stripe_accounts')
         .select('stripe_account_id, onboarding_completed, charges_enabled, payouts_enabled')
         .eq('account_owner_id', accountOwnerId)
         .eq('environment', environment)
         .eq('platform_account_id', platformAccountId)
+        .eq('onboarding_completed', true)
         .order('updated_at', { ascending: false })
         .limit(1);
-      
-      accounts = fallbackQuery.data;
-      accountError = fallbackQuery.error;
+
+      if (dbError || !dbAccounts || dbAccounts.length === 0) {
+        // If no completed account, try any account for this environment/platform
+        const fallbackQuery = await supabaseClient
+          .from('business_stripe_accounts')
+          .select('stripe_account_id, onboarding_completed, charges_enabled, payouts_enabled')
+          .eq('account_owner_id', accountOwnerId)
+          .eq('environment', environment)
+          .eq('platform_account_id', platformAccountId)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+        
+        dbAccounts = fallbackQuery.data;
+        dbError = fallbackQuery.error;
+      }
+
+      accounts = dbAccounts || [];
+      accountError = dbError;
     }
 
     if (accountError) {
@@ -138,6 +184,20 @@ serve(async (req) => {
         updated_at: new Date().toISOString()
       })
       .eq('stripe_account_id', account.stripe_account_id);
+
+    // Update cache in calendar_settings if we have a calendar and account ID
+    if (calendarData && account.stripe_account_id) {
+      await supabaseClient
+        .from('calendar_settings')
+        .upsert({
+          calendar_id: calendarData.id,
+          stripe_connect_account_id: account.stripe_account_id
+        }, { onConflict: 'calendar_id' });
+      logStep("Updated cached account ID in calendar_settings", { 
+        calendarId: calendarData.id, 
+        accountId: account.stripe_account_id 
+      });
+    }
 
     // ALWAYS try to create login link for existing accounts first
     // Even if not fully onboarded, let users access their Stripe dashboard

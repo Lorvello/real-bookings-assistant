@@ -372,19 +372,56 @@ export function PaymentSettingsTab() {
               </p>
             </div>
 
-            <div className="text-center py-6">
+            <div className="text-center py-6 space-y-4">
               <Button 
                 onClick={handleOpenStripeDashboard}
                 disabled={stripeLoading}
                 size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white font-medium"
+                className="bg-green-600 hover:bg-green-700 text-white font-medium w-full max-w-xs"
               >
                 {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Go To Dashboard
               </Button>
+
+              {/* Troubleshooting for blocked domains */}
+              <div className="text-center space-y-2">
+                <div className="flex items-center justify-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (stripeAccount?.stripe_account_id) {
+                        const url = `https://connect.stripe.com/express/accounts/${stripeAccount.stripe_account_id}`;
+                        navigator.clipboard.writeText(url);
+                        toast({
+                          title: "Link copied!",
+                          description: "Dashboard link copied to clipboard",
+                        });
+                      }
+                    }}
+                    className="text-xs"
+                  >
+                    Copy Link
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefreshAccount}
+                    disabled={stripeLoading}
+                    className="text-xs"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Refresh Status
+                  </Button>
+                </div>
+                <div className="text-xs text-muted-foreground max-w-md mx-auto">
+                  If "Go to Dashboard" is blocked by your browser, use "Copy Link" to open it manually
+                </div>
+              </div>
+
               {stripeConfig.isTestMode && (
-                <p className="text-xs text-orange-600 mt-2">
+                <p className="text-xs text-orange-600">
                   <TestTube className="h-3 w-3 inline mr-1" />
                   Test mode - No real money will be processed
                 </p>
@@ -413,15 +450,20 @@ export function PaymentSettingsTab() {
                       {getAccountStatusText(stripeAccount)}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Account ID: {stripeAccount.stripe_account_id}
-                    {stripeConfig.isTestMode && (
-                      <Badge variant="secondary" className="ml-2 bg-orange-100 text-orange-800">
-                        <TestTube className="h-3 w-3 mr-1" />
-                        TEST MODE
-                      </Badge>
-                    )}
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      Account ID: {stripeAccount.stripe_account_id}
+                      {stripeConfig.isTestMode && (
+                        <Badge variant="secondary" className="ml-2 bg-orange-100 text-orange-800">
+                          <TestTube className="h-3 w-3 mr-1" />
+                          TEST MODE
+                        </Badge>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Environment: {stripeAccount.environment} | Updated: {new Date(stripeAccount.updated_at).toLocaleString()}
+                    </p>
+                  </div>
                   <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                     <span className="flex items-center space-x-1">
                       {stripeAccount.charges_enabled ? (

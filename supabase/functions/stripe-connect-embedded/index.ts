@@ -245,7 +245,26 @@ serve(async (req) => {
         logStep("Error storing account", { error: insertError.message });
         throw new Error(`Failed to store account: ${insertError.message}`);
       }
-      logStep("Account stored in database", { accountId, platformAccountId, recordId: insertData?.id });
+    logStep("Account stored in database", { accountId, platformAccountId, recordId: insertData?.id });
+    
+    // Store account ID in calendar_settings for faster access
+    const { data: calendarData } = await supabaseService
+      .from('calendars')
+      .select('id')
+      .eq('user_id', accountOwnerId)
+      .eq('is_active', true)
+      .limit(1)
+      .single();
+    
+    if (calendarData) {
+      await supabaseService
+        .from('calendar_settings')
+        .upsert({
+          calendar_id: calendarData.id,
+          stripe_connect_account_id: accountId
+        }, { onConflict: 'calendar_id' });
+      logStep("Account ID cached in calendar_settings", { calendarId: calendarData.id, accountId });
+    }
     }
 
     // Check if account has completed onboarding to determine which components to enable

@@ -23,6 +23,7 @@ export interface BusinessStripeAccount {
   account_type?: 'standard' | 'express' | 'custom';
   country?: string;
   currency: string;
+  environment: string;
   created_at: string;
   updated_at: string;
 }
