@@ -207,7 +207,6 @@ export const useAuthOperations = () => {
         const { data, error } = await supabase.functions.invoke('send-password-reset', {
           body: {
             email: sanitizedEmail,
-            redirectTo: `${window.location.origin}/reset-password`,
           },
         });
 

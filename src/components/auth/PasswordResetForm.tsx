@@ -4,74 +4,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { sanitizeUserInput } from '@/utils/inputSanitization';
-import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { ArrowLeft, Mail, Loader2 } from 'lucide-react';
+import { useAuthOperations } from '@/hooks/useAuthOperations';
 
 export const PasswordResetForm: React.FC = () => {
-  const { toast } = useToast();
-  const { handleError } = useErrorHandler();
+  const { resetPassword, loading } = useAuthOperations();
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const sanitizedEmail = sanitizeUserInput(email, 'email');
+    const result = await resetPassword({ email });
     
-    if (!sanitizedEmail) {
-      toast({
-        title: "Email Required",
-        description: "Please enter your email address",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Basic email format validation
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitizedEmail)) {
-      toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      console.log('[PasswordReset] Sending reset email via edge function to:', sanitizedEmail);
-      
-      const { data, error } = await supabase.functions.invoke('send-password-reset', {
-        body: {
-          email: sanitizedEmail,
-          redirectTo: `${window.location.origin}/reset-password`
-        }
-      });
-
-      if (error) {
-        console.error('[PasswordReset] Edge function error:', error);
-        handleError(error, 'Password reset request');
-        return;
-      }
-
-      console.log('[PasswordReset] Reset email sent successfully');
+    if (result.success) {
       setResetSent(true);
-      
-      toast({
-        title: "Reset Email Sent",
-        description: "Check your email for password reset instructions from business@bookingsassistant.com. If you don't see it, check your spam folder.",
-      });
-
-    } catch (error) {
-      console.error('[PasswordReset] Unexpected error:', error);
-      handleError(error, 'Password reset request');
-    } finally {
-      setLoading(false);
     }
   };
 
