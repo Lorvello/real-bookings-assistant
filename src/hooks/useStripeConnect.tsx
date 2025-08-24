@@ -9,12 +9,12 @@ export const useStripeConnect = () => {
   const [onboarding, setOnboarding] = useState(false);
   const { toast } = useToast();
 
-  const createOnboardingLink = async (calendarId: string): Promise<StripeConnectOnboardingLink | null> => {
+  const createOnboardingLink = async (): Promise<StripeConnectOnboardingLink | null> => {
     try {
       setOnboarding(true);
       
       const { data, error } = await supabase.functions.invoke('stripe-connect-onboard', {
-        body: { calendar_id: calendarId }
+        body: { test_mode: getStripeMode() === 'test' }
       });
 
       if (error) throw error;
@@ -33,14 +33,14 @@ export const useStripeConnect = () => {
     }
   };
 
-  const getStripeAccount = async (calendarId: string): Promise<BusinessStripeAccount | null> => {
+  const getStripeAccount = async (): Promise<BusinessStripeAccount | null> => {
     try {
       setLoading(true);
       
       const { data, error } = await supabase
         .from('business_stripe_accounts')
         .select('*')
-        .eq('calendar_id', calendarId)
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -58,14 +58,13 @@ export const useStripeConnect = () => {
     }
   };
 
-  const refreshAccountStatus = async (calendarId: string): Promise<BusinessStripeAccount | null> => {
+  const refreshAccountStatus = async (): Promise<BusinessStripeAccount | null> => {
     try {
       setLoading(true);
       const testMode = getStripeMode() === 'test';
       
       const { data, error } = await supabase.functions.invoke('stripe-connect-refresh', {
         body: { 
-          calendar_id: calendarId,
           test_mode: testMode
         }
       });
@@ -85,12 +84,12 @@ export const useStripeConnect = () => {
     }
   };
 
-  const createLoginLink = async (calendarId: string): Promise<string | null> => {
+  const createLoginLink = async (): Promise<string | null> => {
     try {
       setLoading(true);
       
       const { data, error } = await supabase.functions.invoke('stripe-connect-login', {
-        body: { calendar_id: calendarId }
+        body: {}
       });
 
       if (error) throw error;
@@ -109,13 +108,12 @@ export const useStripeConnect = () => {
   };
 
   // Create embedded onboarding session
-  const createEmbeddedSession = async (calendarId: string): Promise<{ client_secret: string; account_id: string } | null> => {
+  const createEmbeddedSession = async (): Promise<{ client_secret: string; account_id: string } | null> => {
     try {
       const testMode = getStripeMode() === 'test';
       
       const { data, error } = await supabase.functions.invoke('stripe-connect-embedded', {
         body: { 
-          calendar_id: calendarId,
           test_mode: testMode
         }
       });
@@ -155,10 +153,10 @@ export const useStripeConnect = () => {
   };
 
   // Reset Stripe Connect account (for testing)
-  const resetStripeAccount = async (calendarId: string): Promise<boolean> => {
+  const resetStripeAccount = async (): Promise<boolean> => {
     try {
       const { data, error } = await supabase.functions.invoke('stripe-connect-reset', {
-        body: { calendar_id: calendarId }
+        body: {}
       });
 
       if (error) {

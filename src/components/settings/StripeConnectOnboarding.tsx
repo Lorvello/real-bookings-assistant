@@ -14,13 +14,11 @@ import { useSettingsContext } from '@/contexts/SettingsContext';
 import type { BusinessStripeAccount } from '@/types/payments';
 
 interface StripeConnectOnboardingProps {
-  calendarId: string;
   onComplete: (account: BusinessStripeAccount) => void;
   onClose: () => void;
 }
 
 export function StripeConnectOnboarding({ 
-  calendarId, 
   onComplete, 
   onClose 
 }: StripeConnectOnboardingProps) {
@@ -37,16 +35,16 @@ export function StripeConnectOnboarding({
 
   const handleStartOnboarding = async () => {
     setStep('onboarding');
-    const onboardingLink = await createOnboardingLink(calendarId);
+    const link = await createOnboardingLink();
     
-    if (onboardingLink) {
+    if (link) {
       // Open in new tab instead of redirecting
-      window.open(onboardingLink.url, '_blank');
+      window.open(link.url, '_blank');
       
       // Set up periodic status checking while user is onboarding
       const checkInterval = setInterval(async () => {
         try {
-          const account = await refreshAccountStatus(calendarId);
+          const account = await refreshAccountStatus();
           if (account && account.onboarding_completed) {
             clearInterval(checkInterval);
             setStep('complete');

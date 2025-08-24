@@ -9,14 +9,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { getStripeMode, getStripePublishableKey } from '@/utils/stripeConfig';
 
 interface StripeEmbeddedOnboardingModalProps {
-  calendarId: string;
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
 }
 
 export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingModalProps> = ({
-  calendarId,
   isOpen,
   onClose,
   onComplete,
@@ -33,11 +31,10 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
     setError(null);
 
     try {
-      console.log('[STRIPE ONBOARDING] Starting onboarding for calendar:', calendarId);
+      console.log('[STRIPE ONBOARDING] Starting onboarding...');
       
       const { data, error } = await supabase.functions.invoke('stripe-connect-onboard', {
         body: { 
-          calendar_id: calendarId,
           test_mode: testMode
         }
       });
@@ -59,7 +56,7 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
           // Set up periodic status checking while user is onboarding
           const checkInterval = setInterval(async () => {
             try {
-              const account = await refreshAccountStatus(calendarId);
+              const account = await refreshAccountStatus();
               if (account && account.onboarding_completed) {
                 clearInterval(checkInterval);
                 onComplete();
@@ -96,7 +93,7 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
   const handleCheckCompletion = async () => {
     try {
       console.log('[STRIPE ONBOARDING] Checking completion status');
-      const account = await refreshAccountStatus(calendarId);
+    const account = await refreshAccountStatus();
       if (account && account.onboarding_completed) {
         console.log('[STRIPE ONBOARDING] Account setup completed successfully');
         onComplete();

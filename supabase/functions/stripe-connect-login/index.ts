@@ -28,17 +28,23 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { calendar_id } = await req.json();
-
-    // Get existing account
+    // Get user's Stripe account
     const { data: account, error: accountError } = await supabaseClient
       .from('business_stripe_accounts')
       .select('stripe_account_id, onboarding_completed, charges_enabled, payouts_enabled')
-      .eq('calendar_id', calendar_id)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-    if (accountError || !account) {
-      throw new Error('Stripe account not found');
+    if (accountError) {
+      console.error('[STRIPE-CONNECT-LOGIN] Account lookup error:', accountError);
+      throw new Error('Database error while looking up Stripe account');
+    }
+
+    if (!account) {
+      return new Response(
+        JSON.stringify({ error: 'No Stripe account found for this user' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+      );
     }
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -58,7 +64,7 @@ serve(async (req) => {
         account_status: stripeAccount.charges_enabled && stripeAccount.payouts_enabled ? 'active' : 'pending',
         updated_at: new Date().toISOString()
       })
-      .eq('calendar_id', calendar_id);
+      .eq('user_id', user.id);
 
     // If account is fully onboarded, create login link
     if (stripeAccount.details_submitted && stripeAccount.charges_enabled) {
@@ -76,11 +82,19 @@ serve(async (req) => {
       );
     }
 
+    // Get base URL from environment with fixed mapping
+    const appEnv = Deno.env.get('APP_ENV') || 'development';
+    const baseUrl = appEnv === 'production' 
+      ? 'https://bookingsassistant.com'
+      : appEnv === 'preview'
+      ? 'https://preview--real-bookings-assistant.lovable.app'
+      : 'http://localhost:5173';
+
     // If onboarding is incomplete, create account link for onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.stripe_account_id,
-      refresh_url: `${req.headers.get('origin') || 'http://localhost:3000'}/settings?tab=payments&refresh=true`,
-      return_url: `${req.headers.get('origin') || 'http://localhost:3000'}/settings?tab=payments&connected=true`,
+      refresh_url: `${baseUrl}/settings?tab=payments&refresh=true`,
+      return_url: `${baseUrl}/settings?tab=payments&connected=true`,
       type: 'account_onboarding',
     });
 

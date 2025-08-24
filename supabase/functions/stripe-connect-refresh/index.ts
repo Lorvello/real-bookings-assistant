@@ -28,21 +28,31 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { calendar_id, test_mode = false } = await req.json();
+    const { test_mode = false } = await req.json();
 
-    // Get existing account
+    // Get user's Stripe account
     const { data: account, error: accountError } = await supabaseClient
       .from('business_stripe_accounts')
       .select('*')
-      .eq('calendar_id', calendar_id)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-    if (accountError || !account) {
+    if (accountError) {
       console.error('[STRIPE-CONNECT-REFRESH] Account lookup error:', accountError);
-      throw new Error('Stripe account not found');
+      throw new Error('Database error while looking up Stripe account');
     }
 
-    console.log('[STRIPE-CONNECT-REFRESH] Found account:', account.stripe_account_id);
+    if (!account) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'No Stripe account found for this user' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+      );
+    }
+
+    console.log('[STRIPE-CONNECT-REFRESH] Found account:', { accountId: account.stripe_account_id, userId: user.id });
 
     // Initialize Stripe with appropriate key based on mode
     const stripeSecretKey = test_mode 
@@ -72,13 +82,14 @@ serve(async (req) => {
       .from('business_stripe_accounts')
       .update({
         account_status: stripeAccount.details_submitted ? 'active' : 'pending',
+        details_submitted: stripeAccount.details_submitted,
         onboarding_completed: stripeAccount.details_submitted,
         charges_enabled: stripeAccount.charges_enabled,
         payouts_enabled: stripeAccount.payouts_enabled,
         country: stripeAccount.country,
         updated_at: new Date().toISOString(),
       })
-      .eq('calendar_id', calendar_id)
+      .eq('user_id', user.id)
       .select()
       .single();
 

@@ -28,21 +28,10 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { calendar_id, test_mode } = await req.json();
+    // No need for calendar_id input anymore - we use the authenticated user directly
+    const { test_mode } = await req.json();
 
-    // Verify user owns the calendar and fetch user business data
-    const { data: calendar, error: calendarError } = await supabaseClient
-      .from('calendars')
-      .select('id, name')
-      .eq('id', calendar_id)
-      .eq('user_id', user.id)
-      .single();
-
-    if (calendarError || !calendar) {
-      throw new Error('Calendar not found or access denied');
-    }
-
-    // Fetch user business data for prefilling
+    // Get user's business data for prefilling
     const { data: userData, error: userDataError } = await supabaseClient
       .from('users')
       .select(`
@@ -81,12 +70,12 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    // Check if account already exists
+    // Check if account already exists for this user
     let { data: existingAccount } = await supabaseClient
       .from('business_stripe_accounts')
       .select('stripe_account_id')
-      .eq('calendar_id', calendar_id)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
 
     let stripeAccountId: string;
 
@@ -98,8 +87,8 @@ serve(async (req) => {
         const updateData: any = {
           email: userData.business_email || user.email,
           metadata: {
-            calendar_id: calendar_id,
-            business_name: userData.business_name || calendar.name,
+            user_id: user.id,
+            business_name: userData.business_name || 'Professional Services',
           },
         };
 
@@ -151,8 +140,8 @@ serve(async (req) => {
           transfers: { requested: true },
         },
         metadata: {
-          calendar_id: calendar_id,
-          business_name: userData?.business_name || calendar.name,
+          user_id: user.id,
+          business_name: userData?.business_name || 'Professional Services',
         },
       };
 
@@ -207,16 +196,17 @@ serve(async (req) => {
       const account = await stripe.accounts.create(accountData);
       stripeAccountId = account.id;
 
-      console.log('[STRIPE-CONNECT-ONBOARD] Stripe account created:', { accountId: stripeAccountId });
+      console.log('[STRIPE-CONNECT-ONBOARD] Stripe account created:', { accountId: stripeAccountId, userId: user.id });
 
-      // Store account in database with proper upsert using unique constraint
+      // Store account in database using user_id (now unique)
       const { error: insertError } = await supabaseClient
         .from('business_stripe_accounts')
         .upsert({
-          calendar_id: calendar_id,
+          user_id: user.id,
           stripe_account_id: stripeAccountId,
           account_status: 'pending',
           onboarding_completed: false,
+          details_submitted: false,
           charges_enabled: false,
           payouts_enabled: false,
           account_type: 'express',
@@ -233,11 +223,15 @@ serve(async (req) => {
       console.log('[STRIPE-CONNECT-ONBOARD] Account stored in database');
     }
 
-    // Get base URL from environment
+    // Get base URL from environment with fixed mapping
     const appEnv = Deno.env.get('APP_ENV') || 'development';
+    console.log('[STRIPE-CONNECT-ONBOARD] Environment:', { ENV: appEnv });
+    
     const baseUrl = appEnv === 'production' 
-      ? 'https://brandevolves.lovable.app'
-      : 'https://3461320d-933f-4e55-89c4-11076909a36e.sandbox.lovable.dev';
+      ? 'https://bookingsassistant.com'
+      : appEnv === 'preview'
+      ? 'https://preview--real-bookings-assistant.lovable.app'
+      : 'http://localhost:5173';
 
     // Create onboarding link with fixed URLs
     const accountLink = await stripe.accountLinks.create({
@@ -249,7 +243,9 @@ serve(async (req) => {
 
     console.log('[STRIPE-CONNECT-ONBOARD] Onboarding link created:', { 
       url: 'generated', 
-      expires_at: accountLink.expires_at 
+      expires_at: accountLink.expires_at,
+      baseUrl,
+      userId: user.id
     });
 
     return new Response(

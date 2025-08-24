@@ -100,7 +100,7 @@ export function PaymentSettingsTab() {
     if (!selectedCalendar?.id) return;
     setAccountLoading(true);
     try {
-      const account = await getStripeAccount(selectedCalendar.id);
+      const account = await getStripeAccount();
       setStripeAccount(account);
     } catch (error) {
       console.error('Error loading Stripe account:', error);
@@ -111,7 +111,7 @@ export function PaymentSettingsTab() {
 
   const handleRefreshAccount = async () => {
     if (!selectedCalendar?.id) return;
-    const account = await refreshAccountStatus(selectedCalendar.id);
+    const account = await refreshAccountStatus();
     if (account) {
       setStripeAccount(account);
     }
@@ -119,10 +119,10 @@ export function PaymentSettingsTab() {
 
   const handleOpenStripeDashboard = async () => {
     if (!selectedCalendar?.id) return;
-    const loginUrl = await createLoginLink(selectedCalendar.id);
-    if (loginUrl) {
+    const url = await createLoginLink();
+    if (url) {
       // Redirect in the same tab for both login and onboarding flows
-      window.location.href = loginUrl;
+      window.location.href = url;
     }
   };
 
@@ -142,7 +142,7 @@ export function PaymentSettingsTab() {
   const handleResetStripeConnection = async () => {
     if (!selectedCalendar?.id) return;
     
-    const success = await resetStripeAccount(selectedCalendar.id);
+    const success = await resetStripeAccount();
     if (success) {
       setStripeAccount(null);
       // Refresh payment settings to reflect changes
@@ -188,6 +188,21 @@ export function PaymentSettingsTab() {
 
   return (
     <div className="space-y-6">
+      {/* User-level Stripe Banner */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-blue-900">
+              Stripe payments are managed at your account level
+            </p>
+            <p className="text-xs text-blue-700 mt-1">
+              One Stripe connection works for all your calendars. Set it up once and you're ready to accept payments across all services.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Stripe Mode Switcher (for development) */}
       {stripeConfig.isTestMode && (
         <StripeModeSwitcher />
@@ -543,14 +558,13 @@ export function PaymentSettingsTab() {
       />
 
       {/* Embedded Onboarding Modal */}
-      {showEmbeddedOnboarding && selectedCalendar && (
+      {showEmbeddedOnboarding && (
         <StripeEmbeddedOnboardingModal
-          calendarId={selectedCalendar.id}
           isOpen={showEmbeddedOnboarding}
           onComplete={() => {
             // Refresh account status after completion
             if (selectedCalendar?.id) {
-              refreshAccountStatus(selectedCalendar.id).then((account) => {
+              refreshAccountStatus().then((account) => {
                 if (account) {
                   setStripeAccount(account);
                 }

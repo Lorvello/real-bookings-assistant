@@ -519,11 +519,13 @@ export type Database = {
           country: string | null
           created_at: string
           currency: string | null
+          details_submitted: boolean | null
           id: string
           onboarding_completed: boolean
           payouts_enabled: boolean
           stripe_account_id: string
           updated_at: string
+          user_id: string
         }
         Insert: {
           account_status?: string
@@ -533,11 +535,13 @@ export type Database = {
           country?: string | null
           created_at?: string
           currency?: string | null
+          details_submitted?: boolean | null
           id?: string
           onboarding_completed?: boolean
           payouts_enabled?: boolean
           stripe_account_id: string
           updated_at?: string
+          user_id: string
         }
         Update: {
           account_status?: string
@@ -547,52 +551,54 @@ export type Database = {
           country?: string | null
           created_at?: string
           currency?: string | null
+          details_submitted?: boolean | null
           id?: string
           onboarding_completed?: boolean
           payouts_enabled?: boolean
           stripe_account_id?: string
           updated_at?: string
+          user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "available_slots_view"
             referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "business_availability_overview"
             referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "daily_booking_stats"
             referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "service_popularity_stats"
             referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
