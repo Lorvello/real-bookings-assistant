@@ -1,29 +1,19 @@
 // Stripe configuration and helper functions
+// SECURITY: Always enforce test mode for payment security
 
-export const getStripeMode = (): 'test' | 'live' => {
-  // For development, always use test mode
-  if (import.meta.env.DEV) {
-    return 'test';
-  }
-  
-  // In production, you can add logic to determine test vs live mode
-  // For now, default to test mode for safety
+export const getStripeMode = (): 'test' => {
+  // SECURITY: Force test mode only - live mode disabled for security
   return 'test';
 };
 
 export const getStripePublishableKey = (): string => {
-  const mode = getStripeMode();
-  
-  if (mode === 'test') {
-    return 'pk_test_51RqIgEPyiLcfGjGYOLNQiJdmchHRGvAA5gFET2PfbZYAY2jsqmGrdKH5RbOEH4NyRwoZVMLatkRl1k7bnmBTQUvE00LwV1G5xJ';
-  } else {
-    // Add your live publishable key here
-    return 'pk_live_your_publishable_key';
-  }
+  // SECURITY: Only return test mode publishable key
+  return 'pk_test_51RqIgEPyiLcfGjGYOLNQiJdmchHRGvAA5gFET2PfbZYAY2jsqmGrdKH5RbOEH4NyRwoZVMLatkRl1k7bnmBTQUvE00LwV1G5xJ';
 };
 
 export const isTestMode = (): boolean => {
-  return getStripeMode() === 'test';
+  // SECURITY: Always true since we only allow test mode
+  return true;
 };
 
 export const getStripeConfig = () => {

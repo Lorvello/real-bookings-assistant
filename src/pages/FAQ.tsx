@@ -125,7 +125,7 @@ const FAQ = () => {
         },
         {
           question: "Can it process payments?",
-          answer: "Not directly at the moment, but we can send payment links via WhatsApp. Full payment integration is coming soon."
+          answer: "Yes, secure payment processing is available through our integrated Stripe system for authenticated users."
         },
         {
           question: "Does it handle no-shows?",

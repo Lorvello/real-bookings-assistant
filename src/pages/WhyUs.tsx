@@ -219,7 +219,7 @@ const WhyUs = () => {
         "Smart WhatsApp bot with trainer schedule integration",
         "Automatic session reminders with prep tips",
         "Easy session rescheduling without phone calls",
-        "Payment links and membership renewals via chat"
+        "Secure payment processing and membership renewals"
       ],
       results: [
         "50% increase in personal training session bookings",

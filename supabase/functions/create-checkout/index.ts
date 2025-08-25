@@ -7,6 +7,54 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Rate limiting helper
+const checkRateLimit = async (supabase: any, ipAddress: string, endpoint: string): Promise<boolean> => {
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+  
+  // Clean up old attempts
+  await supabase
+    .from('rate_limits')
+    .delete()
+    .lt('first_attempt_at', tenMinutesAgo.toISOString());
+  
+  // Check current attempts
+  const { data: existingAttempts } = await supabase
+    .from('rate_limits')
+    .select('attempt_count')
+    .eq('ip_address', ipAddress)
+    .eq('endpoint', endpoint)
+    .gte('first_attempt_at', tenMinutesAgo.toISOString())
+    .maybeSingle();
+  
+  if (existingAttempts && existingAttempts.attempt_count >= 3) {
+    return false; // Rate limited
+  }
+  
+  // Update or create attempt record
+  if (existingAttempts) {
+    await supabase
+      .from('rate_limits')
+      .update({
+        attempt_count: existingAttempts.attempt_count + 1,
+        last_attempt_at: new Date().toISOString()
+      })
+      .eq('ip_address', ipAddress)
+      .eq('endpoint', endpoint);
+  } else {
+    await supabase
+      .from('rate_limits')
+      .insert({
+        ip_address: ipAddress,
+        endpoint: endpoint,
+        attempt_count: 1,
+        first_attempt_at: new Date().toISOString(),
+        last_attempt_at: new Date().toISOString()
+      });
+  }
+  
+  return true; // Not rate limited
+};
+
 // Helper logging function for enhanced debugging
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -21,19 +69,39 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Parse request body first to get mode
-    const { priceId, tier_name, price, is_annual, success_url, cancel_url, mode } = await req.json();
+    // Get IP address for rate limiting
+    const ipAddress = req.headers.get("x-forwarded-for") || 
+                     req.headers.get("x-real-ip") || 
+                     "unknown";
+
+    // Create Supabase service client for rate limiting check
+    const supabaseService = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // Check rate limiting (3 attempts per 10 minutes per IP)
+    const rateLimitOk = await checkRateLimit(supabaseService, ipAddress, "create-checkout");
+    if (!rateLimitOk) {
+      logStep("Rate limit exceeded", { ipAddress });
+      return new Response(JSON.stringify({ 
+        error: "Rate limit exceeded. Please try again in 10 minutes." 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 429,
+      });
+    }
+
+    // Parse request body
+    const { tier_name, is_annual, success_url, cancel_url } = await req.json();
     
-    // Determine Stripe mode - use frontend mode if provided, otherwise fall back to environment
-    const stripeMode = mode || Deno.env.get("STRIPE_MODE") || 'test'; // Default to test for safety
-    const isTestMode = stripeMode === 'test';
+    // SECURITY: Always enforce test mode only
+    const stripeMode = 'test';
+    const isTestMode = true;
     
-    const stripeKey = isTestMode 
-      ? Deno.env.get("STRIPE_TEST_SECRET_KEY") 
-      : Deno.env.get("STRIPE_SECRET_KEY");
-    
+    const stripeKey = Deno.env.get("STRIPE_TEST_SECRET_KEY");
     if (!stripeKey) {
-      throw new Error(`${isTestMode ? 'STRIPE_TEST_SECRET_KEY' : 'STRIPE_SECRET_KEY'} is not set`);
+      throw new Error("STRIPE_TEST_SECRET_KEY is not set");
     }
     
     logStep("Stripe configuration", { mode: stripeMode, isTestMode, hasKey: !!stripeKey });
@@ -84,74 +152,62 @@ serve(async (req) => {
       logStep("No existing customer found, will create new one in checkout");
     }
 
-    // Create product name based on tier
-    const productNames = {
-      starter: "Starter Plan",
-      professional: "Professional Plan",
-      enterprise: "Enterprise Plan"
-    };
+    // Get server-side pricing from subscription_plans table
+    const { data: planData, error: planError } = await supabaseClient
+      .from('subscription_plans')
+      .select('*')
+      .eq('tier_name', tier_name)
+      .eq('is_active', true)
+      .single();
 
-    const productName = productNames[tier_name as keyof typeof productNames] || "Subscription Plan";
+    if (planError || !planData) {
+      throw new Error(`Invalid subscription plan: ${tier_name}`);
+    }
+
+    const priceId = is_annual 
+      ? planData.stripe_test_yearly_price_id 
+      : planData.stripe_test_monthly_price_id;
     
-    // Convert price to cents (Stripe uses smallest currency unit)
-    const unitAmount = Math.round(price * 100);
+    if (!priceId) {
+      throw new Error(`Price ID not configured for ${tier_name} ${is_annual ? 'yearly' : 'monthly'}`);
+    }
     
     logStep("Creating checkout session", { 
-      productName, 
-      unitAmount, 
+      tier_name,
+      priceId,
       interval: is_annual ? 'year' : 'month',
       customerId 
     });
 
-    // Create checkout session - use Price ID if provided, otherwise use dynamic pricing
+    // Create checkout session using server-side pricing only
     const sessionConfig: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      client_reference_id: user.id, // Add user ID for session tracking
+      client_reference_id: user.id,
       mode: "subscription",
       success_url: `${finalSuccessUrl}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: finalCancelUrl,
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
       metadata: {
         user_id: user.id,
-        tier_name: tier_name || 'unknown',
+        tier_name: tier_name,
         is_annual: is_annual ? 'true' : 'false'
       },
       subscription_data: {
         metadata: {
           user_id: user.id,
-          tier_name: tier_name || 'unknown',
+          tier_name: tier_name,
           is_annual: is_annual ? 'true' : 'false'
         }
       }
     };
-
-    if (priceId) {
-      // Use predefined Stripe Price ID
-      sessionConfig.line_items = [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ];
-      logStep("Using predefined Price ID", { priceId });
-    } else {
-      // Legacy dynamic pricing
-      sessionConfig.line_items = [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: { 
-              name: productName,
-              description: `${tier_name.charAt(0).toUpperCase() + tier_name.slice(1)} subscription plan`
-            },
-            unit_amount: unitAmount,
-            recurring: { interval: is_annual ? 'year' : 'month' },
-          },
-          quantity: 1,
-        },
-      ];
-      logStep("Using dynamic pricing", { productName, unitAmount, interval: is_annual ? 'year' : 'month' });
-    }
+    
+    logStep("Using server-side Price ID", { priceId, tier_name });
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
 
