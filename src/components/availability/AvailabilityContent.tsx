@@ -22,11 +22,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
   const { profile, loading: profileLoading } = useProfile();
   const { selectedCalendar, refreshCalendars } = useCalendarContext();
   
-  // DEBUG: Log CalendarContext values
-  console.log('=== AVAILABILITYCONTENT CONTEXT DEBUG ===');
-  console.log('refreshCalendars from context:', refreshCalendars);
-  console.log('refreshCalendars type:', typeof refreshCalendars);
-  console.log('refreshCalendars is function?', typeof refreshCalendars === 'function');
+  // Production-optimized: Debug logging removed
   const { toast } = useToast();
 
   // OPTIMIZED: Single state source to prevent cascading updates
@@ -112,14 +108,11 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     }
     
     const previousTimezone = localTimezone;
-    console.log(`🔥 TIMEZONE CHANGE INITIATED: ${previousTimezone} → ${newTimezone}`);
-    console.log(`📋 Target Calendar:`, { id: selectedCalendar.id, name: selectedCalendar.name });
+    // Production: Timezone change initiated without debug logging
     
     // STOP LYING TO USERS - Do NOT update UI until database confirms save
     try {
-      console.log('💾 STEP 1: Writing to database...');
-      
-      // Database write operation with detailed error tracking
+      // Database write operation with error tracking
       const { data: updateData, error: updateError } = await supabase
         .from('calendars')
         .update({ timezone: newTimezone })
@@ -127,20 +120,14 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
         .select('id, timezone');
 
       if (updateError) {
-        console.error('❌ STEP 1 FAILED: Database write error:', updateError);
         throw new Error(`Database write failed: ${updateError.message}`);
       }
 
       if (!updateData || updateData.length === 0) {
-        console.error('❌ STEP 1 FAILED: No rows updated');
         throw new Error('No calendar record was updated');
       }
 
-      console.log('✅ STEP 1 SUCCESS: Database write completed', updateData);
-
-      console.log('🔍 STEP 2: Verifying database contains correct value...');
-      
-      // BRUTAL VERIFICATION - Read back immediately to confirm save
+      // Verify database contains correct value
       const { data: verifyData, error: verifyError } = await supabase
         .from('calendars')
         .select('id, name, timezone')
@@ -148,38 +135,22 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
         .single();
 
       if (verifyError) {
-        console.error('❌ STEP 2 FAILED: Verification read error:', verifyError);
         throw new Error(`Verification failed: ${verifyError.message}`);
       }
 
       if (!verifyData) {
-        console.error('❌ STEP 2 FAILED: Calendar not found during verification');
         throw new Error('Calendar not found during verification');
       }
 
       if (verifyData.timezone !== newTimezone) {
-        console.error('❌ STEP 2 FAILED: Database contains wrong timezone:', {
-          expected: newTimezone,
-          actual: verifyData.timezone,
-          calendar: verifyData
-        });
         throw new Error(`Timezone mismatch: expected ${newTimezone}, got ${verifyData.timezone}`);
       }
 
-      console.log('✅ STEP 2 SUCCESS: Database verification passed', verifyData);
-
-      console.log('🔄 STEP 3: Syncing application state...');
-      
-      // Force refresh calendar context FIRST - do NOT update UI until this completes
-      console.log('🔄 Refreshing calendar context...');
+      // Force refresh calendar context
       await refreshCalendars();
-      console.log('✅ Calendar context refreshed');
 
-      // ONLY update local state AFTER calendar context is refreshed
+      // Update local state after calendar context is refreshed
       setLocalTimezone(newTimezone);
-      console.log('✅ Local timezone state updated');
-      
-      console.log('🎉 TIMEZONE CHANGE COMPLETE: All steps successful');
       
       toast({
         title: "Timezone updated successfully",
@@ -187,23 +158,13 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
       });
       
     } catch (error) {
-      console.error('💥 TIMEZONE CHANGE FAILED:', error);
-      
-      // HONEST ERROR HANDLING - Tell user exactly what went wrong
+      // Restore previous timezone on error
       setLocalTimezone(previousTimezone);
       
       toast({
         title: "Failed to save timezone",
         description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
-      });
-      
-      // ADDITIONAL DEBUG INFO
-      console.log('🔍 DEBUG INFO:', {
-        selectedCalendar: selectedCalendar.id,
-        previousTimezone,
-        attemptedTimezone: newTimezone,
-        error: error instanceof Error ? error.message : error
       });
     }
   }, [selectedCalendar?.id, localTimezone, refreshCalendars, toast]);
@@ -293,15 +254,6 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
           selectedCalendar={selectedCalendar ? { id: selectedCalendar.id, timezone: selectedCalendar.timezone } : undefined}
           refreshCalendars={refreshCalendars}
         />
-        {/* DEBUG: Log what we're passing to GuidedAvailabilityModal */}
-        <div style={{ display: 'none' }}>
-          {(() => {
-            console.log('=== PASSING TO GUIDEDAVAILABILITYMODAL ===');
-            console.log('refreshCalendars being passed:', refreshCalendars);
-            console.log('refreshCalendars type being passed:', typeof refreshCalendars);
-            return null;
-          })()}
-        </div>
       </div>
     );
   }

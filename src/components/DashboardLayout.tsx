@@ -81,12 +81,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const handleNavigation = (href: string) => {
-    console.log('Navigating to:', href);
+    // Production-safe navigation logging removed
     navigate(href);
   };
 
   const handleBackToWebsite = () => {
-    console.log('Navigating back to website homepage');
+    // Production-safe navigation logging removed
     navigate('/');
   };
 

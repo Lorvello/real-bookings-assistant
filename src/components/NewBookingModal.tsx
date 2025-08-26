@@ -18,7 +18,7 @@ interface NewBookingModalProps {
 
 export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }: NewBookingModalProps) {
   const handleBookingSuccess = () => {
-    console.log('🎉 Booking created successfully, calling callbacks');
+    // Booking success callback executed
     onBookingCreated?.();
     onClose();
   };

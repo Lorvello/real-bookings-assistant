@@ -20,14 +20,7 @@ export function RealtimeDashboard({ calendarId }: RealtimeDashboardProps) {
   
   const { metrics, loading, error } = useDashboardAnalytics();
 
-  console.log('🎯 RealtimeDashboard render with WhatsApp metrics:', { 
-    calendarId, 
-    metrics, 
-    loading, 
-    error,
-    whatsappConversations: metrics?.whatsapp_conversations,
-    whatsappMessagesToday: metrics?.whatsapp_messages_today
-  });
+  // RealtimeDashboard metrics tracking removed from production
 
   if (loading) {
     return <DashboardLoadingState />;
