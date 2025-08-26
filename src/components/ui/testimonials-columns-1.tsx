@@ -79,30 +79,28 @@ export const TestimonialsColumn = (props: {
         }}
         className="flex flex-col gap-4 md:gap-6 pb-4 md:pb-6 bg-background"
       >
-        {[
-          ...new Array(2).fill(0).map((_, index) => (
-            <React.Fragment key={`testimonial-group-${index}`}>
-              {props.testimonials.map(({ text, image, name, role }, i) => (
-                <div className="p-3 md:p-10 rounded-2xl md:rounded-3xl border shadow-lg shadow-primary/10 max-w-[280px] md:max-w-xs w-full" key={`${index}-${i}`}>
-                  <div className="text-[10px] md:text-base leading-tight md:leading-normal">{text}</div>
-                  <div className="flex items-center gap-2 mt-3 md:mt-5">
-                    <img
-                      width={32}
-                      height={32}
-                      src={image}
-                      alt={name}
-                      className="h-8 w-8 md:h-10 md:w-10 rounded-full"
-                    />
-                    <div className="flex flex-col">
-                      <div className="font-medium tracking-tight leading-tight text-[10px] md:text-base md:leading-5">{name}</div>
-                      <div className="leading-tight md:leading-5 opacity-60 tracking-tight text-[9px] md:text-base">{role}</div>
-                    </div>
+        {new Array(2).fill(0).map((_, index) => (
+          <React.Fragment key={`testimonial-group-${index}`}>
+            {props.testimonials.map(({ text, image, name, role }, i) => (
+              <div className="p-3 md:p-10 rounded-2xl md:rounded-3xl border shadow-lg shadow-primary/10 max-w-[280px] md:max-w-xs w-full" key={`${index}-${i}`}>
+                <div className="text-[10px] md:text-base leading-tight md:leading-normal">{text}</div>
+                <div className="flex items-center gap-2 mt-3 md:mt-5">
+                  <img
+                    width={32}
+                    height={32}
+                    src={image}
+                    alt={name}
+                    className="h-8 w-8 md:h-10 md:w-10 rounded-full"
+                  />
+                  <div className="flex flex-col">
+                    <div className="font-medium tracking-tight leading-tight text-[10px] md:text-base md:leading-5">{name}</div>
+                    <div className="leading-tight md:leading-5 opacity-60 tracking-tight text-[9px] md:text-base">{role}</div>
                   </div>
                 </div>
-              ))}
-            </React.Fragment>
-          )),
-        ]}
+              </div>
+            ))}
+          </React.Fragment>
+        ))}
       </motion.div>
     </div>
   );
