@@ -26,8 +26,7 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
   // Get refreshCalendars from CalendarContext
   const { refreshCalendars } = useCalendarContext();
   
-  console.log('🔍 AvailabilityOverview: refreshCalendars function available:', !!refreshCalendars);
-  console.log('🔍 AvailabilityOverview: refreshCalendars type:', typeof refreshCalendars);
+  // Production: Debug logging removed for performance
 
   const handleEditDay = (dayIndex: number) => {
     setEditDay(dayIndex);

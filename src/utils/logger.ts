@@ -29,8 +29,14 @@ class Logger {
   }
 
   error(message: string, error?: Error | any, context?: LogContext) {
-    // Always log errors, even in production
-    console.error(`❌ [ERROR] ${message}`, error, context || '');
+    // Always log errors, even in production, but filter sensitive data
+    const sanitizedError = error instanceof Error ? {
+      name: error.name,
+      message: error.message,
+      stack: this.isDevelopment ? error.stack : undefined
+    } : error;
+    
+    console.error(`❌ [ERROR] ${message}`, sanitizedError, context || '');
   }
 
   success(message: string, context?: LogContext) {

@@ -43,13 +43,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   selectedCalendar,
   refreshCalendars
 }) => {
-  // DEBUG: Log props at component start
-  console.log('=== GUIDEDAVAILABILITYMODAL PROPS DEBUG ===');
-  console.log('refreshCalendars prop value:', refreshCalendars);
-  console.log('refreshCalendars type:', typeof refreshCalendars);
-  console.log('refreshCalendars is function?', typeof refreshCalendars === 'function');
-  console.log('selectedCalendar:', selectedCalendar);
-  console.log('editMode:', editMode);
+  // Production: Debug logging removed for performance
   // Get DAYS first from the hook
   const { DAYS, syncToDatabase, createDefaultSchedule, defaultSchedule, availability: existingAvailability, setAvailability } = useDailyAvailabilityManager(() => {});
   

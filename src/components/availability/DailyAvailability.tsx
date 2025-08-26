@@ -97,7 +97,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   };
 
   const addTimeBlock = async (dayKey: string) => {
-    console.log(`Adding time block for ${dayKey}`);
+    // Production: Time block addition optimized
     
     const currentBlocks = availability[dayKey].timeBlocks;
     const newBlockId = `${dayKey}-${Date.now()}`; 
