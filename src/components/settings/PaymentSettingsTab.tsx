@@ -31,7 +31,7 @@ import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { useAccountRole } from '@/hooks/useAccountRole';
 import { ResearchModal } from './ResearchModal';
 import { StripeEmbeddedOnboardingModal } from './StripeEmbeddedOnboardingModal';
-
+import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
 import { getStripeConfig } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
 import type { BusinessStripeAccount } from '@/types/payments';
@@ -250,14 +250,9 @@ export function PaymentSettingsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Security Notice */}
+      {/* Stripe Mode Switcher (for development) */}
       {stripeConfig.isTestMode && (
-        <Alert>
-          <Badge variant="secondary" className="bg-orange-500 text-white mr-2">TEST MODE</Badge>
-          <AlertDescription>
-            Stripe is running in test mode only for security. No real payments will be processed.
-          </AlertDescription>
-        </Alert>
+        <StripeModeSwitcher />
       )}
 
       {/* Feature Overview */}

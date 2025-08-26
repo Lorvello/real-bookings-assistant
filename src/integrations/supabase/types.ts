@@ -1268,36 +1268,6 @@ export type Database = {
           },
         ]
       }
-      rate_limits: {
-        Row: {
-          attempt_count: number
-          created_at: string
-          endpoint: string
-          first_attempt_at: string
-          id: string
-          ip_address: unknown
-          last_attempt_at: string
-        }
-        Insert: {
-          attempt_count?: number
-          created_at?: string
-          endpoint: string
-          first_attempt_at?: string
-          id?: string
-          ip_address: unknown
-          last_attempt_at?: string
-        }
-        Update: {
-          attempt_count?: number
-          created_at?: string
-          endpoint?: string
-          first_attempt_at?: string
-          id?: string
-          ip_address?: unknown
-          last_attempt_at?: string
-        }
-        Relationships: []
-      }
       recurring_availability: {
         Row: {
           calendar_id: string | null
@@ -1564,54 +1534,6 @@ export type Database = {
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      subscription_plans: {
-        Row: {
-          created_at: string
-          display_name: string
-          features: Json | null
-          id: string
-          is_active: boolean | null
-          monthly_price_cents: number
-          stripe_live_monthly_price_id: string | null
-          stripe_live_yearly_price_id: string | null
-          stripe_test_monthly_price_id: string | null
-          stripe_test_yearly_price_id: string | null
-          tier_name: string
-          updated_at: string
-          yearly_price_cents: number
-        }
-        Insert: {
-          created_at?: string
-          display_name: string
-          features?: Json | null
-          id?: string
-          is_active?: boolean | null
-          monthly_price_cents: number
-          stripe_live_monthly_price_id?: string | null
-          stripe_live_yearly_price_id?: string | null
-          stripe_test_monthly_price_id?: string | null
-          stripe_test_yearly_price_id?: string | null
-          tier_name: string
-          updated_at?: string
-          yearly_price_cents: number
-        }
-        Update: {
-          created_at?: string
-          display_name?: string
-          features?: Json | null
-          id?: string
-          is_active?: boolean | null
-          monthly_price_cents?: number
-          stripe_live_monthly_price_id?: string | null
-          stripe_live_yearly_price_id?: string | null
-          stripe_test_monthly_price_id?: string | null
-          stripe_test_yearly_price_id?: string | null
-          tier_name?: string
-          updated_at?: string
-          yearly_price_cents?: number
         }
         Relationships: []
       }

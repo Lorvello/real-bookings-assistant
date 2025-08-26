@@ -11,6 +11,7 @@ import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { DeveloperStatusManager } from '@/components/developer/DeveloperStatusManager';
+import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
 import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcherSection';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
@@ -97,7 +98,10 @@ const Dashboard = () => {
         <div className="bg-gray-900 min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
           {/* Developer Tools Section */}
           <div className="mb-4 space-y-3 sm:space-y-4">
-            <DeveloperStatusManager />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+              <DeveloperStatusManager />
+              <StripeModeSwitcher />
+            </div>
           </div>
 
           <div className="flex items-center justify-center h-full">
@@ -116,7 +120,10 @@ const Dashboard = () => {
       <div className="bg-gray-900 min-h-0 p-1 sm:p-1.5 md:p-8 pb-2 sm:pb-4 md:pb-12">
         {/* Developer Tools Section */}
         <div className="mb-1 space-y-1 sm:space-y-2">
-          <DeveloperStatusManager />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 sm:gap-2">
+            <DeveloperStatusManager />
+            <StripeModeSwitcher />
+          </div>
         </div>
 
 

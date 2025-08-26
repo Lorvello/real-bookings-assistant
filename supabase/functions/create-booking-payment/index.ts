@@ -21,73 +21,11 @@ serve(async (req) => {
   }
 
   try {
-    // SECURITY: Require authentication for all payment operations
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("Authentication required for payment operations");
-    }
-
-    // Get IP address for rate limiting
-    const ipAddress = req.headers.get("x-forwarded-for") || 
-                     req.headers.get("x-real-ip") || 
-                     "unknown";
-
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { persistSession: false } }
     );
-
-    // Rate limiting check (3 attempts per 10 minutes per IP)
-    const checkRateLimit = async (ipAddr: string, endpoint: string): Promise<boolean> => {
-      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-      
-      const { data: existingAttempts } = await supabaseClient
-        .from('rate_limits')
-        .select('attempt_count')
-        .eq('ip_address', ipAddr)
-        .eq('endpoint', endpoint)
-        .gte('first_attempt_at', tenMinutesAgo.toISOString())
-        .maybeSingle();
-      
-      if (existingAttempts && existingAttempts.attempt_count >= 3) {
-        return false;
-      }
-      
-      if (existingAttempts) {
-        await supabaseClient
-          .from('rate_limits')
-          .update({
-            attempt_count: existingAttempts.attempt_count + 1,
-            last_attempt_at: new Date().toISOString()
-          })
-          .eq('ip_address', ipAddr)
-          .eq('endpoint', endpoint);
-      } else {
-        await supabaseClient
-          .from('rate_limits')
-          .insert({
-            ip_address: ipAddr,
-            endpoint: endpoint,
-            attempt_count: 1,
-            first_attempt_at: new Date().toISOString(),
-            last_attempt_at: new Date().toISOString()
-          });
-      }
-      
-      return true;
-    };
-
-    const rateLimitOk = await checkRateLimit(ipAddress, "create-booking-payment");
-    if (!rateLimitOk) {
-      return new Response(JSON.stringify({ 
-        success: false,
-        error: "Rate limit exceeded. Please try again in 10 minutes." 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 429,
-      });
-    }
 
     const {
       booking_id,
@@ -134,8 +72,7 @@ serve(async (req) => {
     const platformFeePercentage = paymentSettings?.platform_fee_percentage || 2.50;
     const platformFeeCents = Math.round(amount_cents * (platformFeePercentage / 100));
 
-    // SECURITY: Force test mode only
-    const stripe = new Stripe(Deno.env.get('STRIPE_TEST_SECRET_KEY') || '', {
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
 
