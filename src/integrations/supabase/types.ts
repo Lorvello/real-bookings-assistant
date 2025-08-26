@@ -202,6 +202,36 @@ export type Database = {
           },
         ]
       }
+      blocked_ips: {
+        Row: {
+          block_reason: string
+          blocked_by: string | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          permanent_block: boolean | null
+        }
+        Insert: {
+          block_reason: string
+          blocked_by?: string | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address: unknown
+          permanent_block?: boolean | null
+        }
+        Update: {
+          block_reason?: string
+          blocked_by?: string | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          permanent_block?: boolean | null
+        }
+        Relationships: []
+      }
       booking_intents: {
         Row: {
           booking_id: string | null
@@ -1106,6 +1136,189 @@ export type Database = {
           session_id?: string
         }
         Relationships: []
+      }
+      payment_rate_limits: {
+        Row: {
+          attempt_count: number | null
+          blocked_until: string | null
+          created_at: string | null
+          first_attempt_at: string | null
+          id: string
+          ip_address: unknown
+          last_attempt_at: string | null
+          total_blocks: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          first_attempt_at?: string | null
+          id?: string
+          ip_address: unknown
+          last_attempt_at?: string | null
+          total_blocks?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          first_attempt_at?: string | null
+          id?: string
+          ip_address?: unknown
+          last_attempt_at?: string | null
+          total_blocks?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      payment_security_logs: {
+        Row: {
+          amount_cents: number | null
+          block_reason: string | null
+          booking_id: string | null
+          created_at: string | null
+          currency: string | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          request_data: Json | null
+          severity: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          block_reason?: string | null
+          booking_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          request_data?: Json | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number | null
+          block_reason?: string | null
+          booking_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          request_data?: Json | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_security_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_security_settings: {
+        Row: {
+          blocked_countries: string[] | null
+          calendar_id: string | null
+          card_testing_detection_enabled: boolean | null
+          created_at: string | null
+          id: string
+          max_cards_per_user_per_day: number | null
+          max_payment_amount_cents: number | null
+          min_payment_amount_cents: number | null
+          new_user_payment_delay_hours: number | null
+          rate_limit_attempts: number | null
+          rate_limit_window_minutes: number | null
+          require_captcha_threshold: number | null
+          suspicious_amount_threshold_cents: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          blocked_countries?: string[] | null
+          calendar_id?: string | null
+          card_testing_detection_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          max_cards_per_user_per_day?: number | null
+          max_payment_amount_cents?: number | null
+          min_payment_amount_cents?: number | null
+          new_user_payment_delay_hours?: number | null
+          rate_limit_attempts?: number | null
+          rate_limit_window_minutes?: number | null
+          require_captcha_threshold?: number | null
+          suspicious_amount_threshold_cents?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          blocked_countries?: string[] | null
+          calendar_id?: string | null
+          card_testing_detection_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          max_cards_per_user_per_day?: number | null
+          max_payment_amount_cents?: number | null
+          min_payment_amount_cents?: number | null
+          new_user_payment_delay_hours?: number | null
+          rate_limit_attempts?: number | null
+          rate_limit_window_minutes?: number | null
+          require_captcha_threshold?: number | null
+          suspicious_amount_threshold_cents?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_security_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_security_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "business_availability_overview"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_security_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_security_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_security_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_security_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
       }
       payment_settings: {
         Row: {
@@ -3051,6 +3264,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_payment_rate_limit: {
+        Args: { p_calendar_id: string; p_ip_address: unknown }
+        Returns: Json
+      }
       check_team_member_limit: {
         Args: { p_calendar_id: string; p_user_id: string }
         Returns: boolean
@@ -3346,6 +3563,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      record_payment_attempt: {
+        Args: {
+          p_calendar_id: string
+          p_ip_address: unknown
+          p_success?: boolean
+        }
+        Returns: undefined
+      }
       refresh_analytics_views: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -3413,6 +3638,18 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      validate_payment_security: {
+        Args: {
+          p_amount_cents: number
+          p_calendar_id: string
+          p_country_code?: string
+          p_currency: string
+          p_ip_address: unknown
+          p_user_agent?: string
+          p_user_email: string
+        }
+        Returns: Json
       }
       validate_user_input: {
         Args: { p_input: string; p_max_length?: number; p_type?: string }
