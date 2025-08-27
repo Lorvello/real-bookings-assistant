@@ -53,6 +53,7 @@ import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
 import { getStripeConfig } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
 import type { BusinessStripeAccount } from '@/types/payments';
+import { PaymentOptions } from '../payments/PaymentOptions';
 
 // Fixed: Removed StripeEmbeddedDashboard component
 
@@ -755,31 +756,15 @@ export function PaymentSettingsTab() {
             </div>
 
             {/* Payment Methods */}
-            <div className="bg-muted/50 p-4 rounded-lg">
-              <h4 className="font-medium mb-3 text-foreground">Payment Methods</h4>
-              <div className="space-y-3">
-                <Select defaultValue="ideal">
-                  <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Choose payment methods" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border shadow-lg z-50">
-                    <SelectItem value="ideal">iDEAL (Recommended for Netherlands)</SelectItem>
-                    <SelectItem value="cards">Credit & Debit Cards</SelectItem>
-                    <SelectItem value="bancontact">Bancontact (Belgium)</SelectItem>
-                    <SelectItem value="sofort">SOFORT</SelectItem>
-                    <SelectItem value="sepa">SEPA Direct Debit</SelectItem>
-                    <SelectItem value="giropay">Giropay</SelectItem>
-                    <SelectItem value="eps">EPS</SelectItem>
-                    <SelectItem value="revolut">Revolut Pay</SelectItem>
-                    <SelectItem value="apple-google">Apple Pay & Google Pay</SelectItem>
-                    <SelectItem value="klarna">Klarna</SelectItem>
-                    <SelectItem value="afterpay">Afterpay</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  You can enable multiple payment methods. iDEAL is recommended for Dutch customers.
-                </p>
-              </div>
+            <div className="bg-muted/50 p-6 rounded-lg">
+              <h4 className="font-medium mb-6 text-foreground">Payment Methods</h4>
+              <PaymentOptions 
+                selectedMethods={['ideal']}
+                onSelectionChange={(methods) => {
+                  console.log('Selected payment methods:', methods);
+                  // Here you would save the selected methods to your settings
+                }}
+              />
             </div>
           </CardContent>
         </Card>
