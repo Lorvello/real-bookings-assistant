@@ -10,6 +10,19 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from '@/components/ui/collapsible';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { 
   CreditCard, 
   Shield, 
   ExternalLink, 
@@ -23,7 +36,11 @@ import {
   ArrowRight,
   TestTube,
   RotateCcw,
-  Info
+  Info,
+  ChevronDown,
+  TrendingUp,
+  Zap,
+  Lock
 } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
@@ -68,6 +85,7 @@ export function PaymentSettingsTab() {
   const [refundPolicy, setRefundPolicy] = useState('');
   const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | 'professionalism' | null>(null);
   const [showEmbeddedOnboarding, setShowEmbeddedOnboarding] = useState(false);
+  const [feesInfoOpen, setFeesInfoOpen] = useState(false);
   
   const stripeConfig = getStripeConfig();
 
@@ -279,6 +297,7 @@ export function PaymentSettingsTab() {
               checked={settings?.secure_payments_enabled || false}
               onCheckedChange={toggleSecurePayments}
               disabled={settingsSaving || !isStripeSetupComplete}
+              data-pay-book-toggle
             />
           </div>
           
@@ -384,41 +403,6 @@ export function PaymentSettingsTab() {
                 Go To Dashboard
               </Button>
 
-              {/* Troubleshooting for blocked domains */}
-              <div className="text-center space-y-2">
-                <div className="flex items-center justify-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      if (stripeAccount?.stripe_account_id) {
-                        const url = `https://connect.stripe.com/express/accounts/${stripeAccount.stripe_account_id}`;
-                        navigator.clipboard.writeText(url);
-                        toast({
-                          title: "Link copied!",
-                          description: "Dashboard link copied to clipboard",
-                        });
-                      }
-                    }}
-                    className="text-xs"
-                  >
-                    Copy Link
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRefreshAccount}
-                    disabled={stripeLoading}
-                    className="text-xs"
-                  >
-                    <RefreshCw className="h-3 w-3 mr-1" />
-                    Refresh Status
-                  </Button>
-                </div>
-                <div className="text-xs text-muted-foreground max-w-md mx-auto">
-                  If "Go to Dashboard" is blocked by your browser, use "Copy Link" to open it manually
-                </div>
-              </div>
 
               {stripeConfig.isTestMode && (
                 <p className="text-xs text-orange-600">
@@ -643,6 +627,143 @@ export function PaymentSettingsTab() {
                   Test mode - No real money will be processed
                 </p>
               )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pay & Book with Stripe Information Section */}
+      {isStripeSetupComplete && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Shield className="h-5 w-5 text-primary" />
+              <CardTitle>Pay & Book met Stripe</CardTitle>
+            </div>
+            <CardDescription>
+              Transparant overzicht van kosten en hoe het werkt
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Introductie */}
+            <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                Als ondernemer krijg je een volledig <strong>Stripe Dashboard</strong> waarin je alle uitbetalingen, 
+                uitgaven en transacties kunt bekijken. Stripe zorgt voor veilige betalingen en automatische uitbetalingen naar je zakelijke rekening.
+              </p>
+            </div>
+
+            {/* Fees Overzicht en Meer Informatie */}
+            <div className="space-y-4">
+              <Collapsible open={feesInfoOpen} onOpenChange={setFeesInfoOpen}>
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium text-foreground">Kostenoverzicht</h4>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-1">
+                      <Info className="h-4 w-4 mr-1" />
+                      Meer informatie
+                      <ChevronDown className={`h-4 w-4 ml-1 transition-transform ${feesInfoOpen ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+
+                {/* Fees Tabel */}
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="min-w-[140px]">Type Kosten</TableHead>
+                          <TableHead className="min-w-[120px]">Standaard Uitbetaling</TableHead>
+                          <TableHead className="min-w-[120px]">Instant Uitbetaling</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell className="font-medium">Platform fee</TableCell>
+                          <TableCell>1,9% + €0,25</TableCell>
+                          <TableCell>1,9% + €0,35</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Stripe uitbetaling</TableCell>
+                          <TableCell>0,25% + €0,10</TableCell>
+                          <TableCell>1%</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">iDEAL betaling</TableCell>
+                          <TableCell>€0,29</TableCell>
+                          <TableCell>€0,29</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+
+                <CollapsibleContent className="space-y-4">
+                  {/* Uitgebreide Informatie */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Uitbetalingen */}
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Clock className="h-4 w-4 text-blue-600" />
+                        <h5 className="font-medium">Uitbetalingen</h5>
+                      </div>
+                      <div className="text-sm text-muted-foreground space-y-2">
+                        <p><strong>Standaard uitbetaling:</strong> 2-3 werkdagen naar je zakelijke rekening</p>
+                        <p><strong>Instant uitbetaling:</strong> Direct op je rekening binnen enkele minuten</p>
+                        <p>Alle fees worden automatisch verrekend voor uitbetaling.</p>
+                      </div>
+                    </div>
+
+                    {/* Veiligheid */}
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <Lock className="h-4 w-4 text-green-600" />
+                        <h5 className="font-medium">Veiligheid</h5>
+                      </div>
+                      <div className="text-sm text-muted-foreground space-y-2">
+                        <p><strong>PCI-DSS gecertificeerd:</strong> Hoogste veiligheidsnormen</p>
+                        <p><strong>End-to-end encryptie:</strong> Kaartgegevens volledig beveiligd</p>
+                        <p><strong>Fraud detectie:</strong> Automatische bescherming tegen fraude</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Voordelen */}
+                  <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-lg">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <TrendingUp className="h-4 w-4 text-green-600" />
+                      <h5 className="font-medium text-green-800 dark:text-green-200">Voordelen voor jouw business</h5>
+                    </div>
+                    <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                      <li>• <strong>Voorspelbare cashflow:</strong> Geld direct binnen na betaling</li>
+                      <li>• <strong>Lagere no-shows:</strong> Klanten verschijnen vaker als ze vooraf betalen</li>
+                      <li>• <strong>Veilige betalingen:</strong> Klanten betalen via vertrouwde WhatsApp link</li>
+                      <li>• <strong>Professionele uitstraling:</strong> Moderne betaalervaring voor klanten</li>
+                    </ul>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
+            {/* Call to Action */}
+            <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 p-6 rounded-lg text-center">
+              <div className="flex items-center justify-center space-x-2 mb-3">
+                <Zap className="h-5 w-5 text-primary" />
+                <h4 className="font-semibold text-foreground">Begin vandaag nog</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Activeer veilig vooraf betalen en verbeter je cashflow direct
+              </p>
+              <Button 
+                onClick={() => {
+                  // Scroll to the Pay & Book toggle at the top
+                  document.querySelector('[data-pay-book-toggle]')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white"
+              >
+                Activeer Pay & Book in jouw dashboard
+              </Button>
             </div>
           </CardContent>
         </Card>
