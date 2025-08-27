@@ -646,99 +646,102 @@ export function PaymentSettingsTab() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Cost Overview */}
+            {/* Payout Options & Fees */}
             <div className="bg-muted/50 p-4 rounded-lg">
-              <h4 className="font-medium mb-3 text-foreground">Cost Overview</h4>
-              <div className="space-y-3">
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <div className="flex items-center justify-between p-3 bg-background/50 rounded border cursor-pointer hover:bg-background/70 transition-colors group">
-                      <div>
-                        <div className="font-medium text-sm">Standard Payout</div>
-                        <div className="text-xs text-muted-foreground">Total fee: 2.15% + €0.64</div>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-2 p-3 bg-background/30 rounded border">
-                    <div className="space-y-1 text-xs text-muted-foreground">
-                      <div className="flex justify-between">
-                        <span>Booking Assistant platform fee:</span>
-                        <span>1.9% + €0.25</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Stripe processing fee:</span>
-                        <span>0.25% + €0.10</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>iDEAL transaction fee:</span>
-                        <span>€0.29</span>
-                      </div>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <div className="flex items-center justify-between p-3 bg-background/50 rounded border cursor-pointer hover:bg-background/70 transition-colors group">
-                      <div>
-                        <div className="font-medium text-sm">Instant Payout</div>
-                        <div className="text-xs text-muted-foreground">Total fee: 3.15% + €0.89</div>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-2 p-3 bg-background/30 rounded border">
-                    <div className="space-y-1 text-xs text-muted-foreground">
-                      <div className="flex justify-between">
-                        <span>Booking Assistant platform fee:</span>
-                        <span>1.9% + €0.25</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Stripe processing fee:</span>
-                        <span>0.25% + €0.10</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>iDEAL transaction fee:</span>
-                        <span>€0.29</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Instant payout fee:</span>
-                        <span>1% (min €0.25)</span>
-                      </div>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-            </div>
-
-            {/* Payout Options */}
-            <div className="bg-muted/50 p-4 rounded-lg">
-              <h4 className="font-medium mb-3 text-foreground">Payout Options</h4>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3 p-3 bg-background/50 rounded border">
+              <h4 className="font-medium mb-3 text-foreground">Payout Options & Fees</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Standard Payout Card */}
+                <div className="relative">
                   <input 
                     type="radio" 
                     id="standard-payout" 
                     name="payout-option" 
-                    className="h-4 w-4 text-primary" 
+                    className="sr-only peer" 
                     defaultChecked 
                   />
-                  <label htmlFor="standard-payout" className="flex-1 cursor-pointer">
-                    <div className="font-medium text-sm">Standard Payout</div>
-                    <div className="text-xs text-muted-foreground">3 business days to your business account</div>
+                  <label 
+                    htmlFor="standard-payout" 
+                    className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary/5"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-semibold text-foreground">Standard Payout</div>
+                      <div className="text-lg font-bold text-primary">2.15% + €0.64</div>
+                    </div>
+                    <div className="text-sm text-muted-foreground mb-3">
+                      3 business days to your business account
+                    </div>
+                    
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <div className="flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors group">
+                          <span>View fee breakdown</span>
+                          <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2 pt-2 border-t border-border/50">
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          <div className="flex justify-between">
+                            <span>Booking Assistant platform fee:</span>
+                            <span>1.9% + €0.25</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Stripe processing fee:</span>
+                            <span>0.25% + €0.10</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>iDEAL transaction fee:</span>
+                            <span>€0.29</span>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </label>
                 </div>
-                <div className="flex items-center space-x-3 p-3 bg-background/50 rounded border">
+
+                {/* Instant Payout Card */}
+                <div className="relative">
                   <input 
                     type="radio" 
                     id="instant-payout" 
                     name="payout-option" 
-                    className="h-4 w-4 text-primary" 
+                    className="sr-only peer" 
                   />
-                  <label htmlFor="instant-payout" className="flex-1 cursor-pointer">
-                    <div className="font-medium text-sm">Instant Payout</div>
-                    <div className="text-xs text-muted-foreground">Direct within minutes</div>
+                  <label 
+                    htmlFor="instant-payout" 
+                    className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary/5"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-semibold text-foreground">Instant Payout</div>
+                      <div className="text-lg font-bold text-primary">2.9% + €0.54</div>
+                    </div>
+                    <div className="text-sm text-muted-foreground mb-3">
+                      Direct within minutes
+                    </div>
+                    
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <div className="flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors group">
+                          <span>View fee breakdown</span>
+                          <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2 pt-2 border-t border-border/50">
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          <div className="flex justify-between">
+                            <span>Booking Assistant platform fee:</span>
+                            <span>1.9% + €0.25</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>iDEAL transaction fee:</span>
+                            <span>€0.29</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Instant payout fee:</span>
+                            <span>1% (min €0.25)</span>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </label>
                 </div>
               </div>
