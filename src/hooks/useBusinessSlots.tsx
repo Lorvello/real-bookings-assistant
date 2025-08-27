@@ -36,7 +36,12 @@ export const useBusinessSlots = () => {
       }
 
       setLoading(false);
-      return slotsData || [];
+      // Transform data to match BusinessSlot interface
+      return (slotsData || []).map((slot: any) => ({
+        ...slot,
+        business_name: slot.calendar_name,
+        slot_date: slot.slot_start.split('T')[0] // Extract date from timestamp
+      }));
     } catch (error) {
       console.error('Error fetching business slots:', error);
       toast({

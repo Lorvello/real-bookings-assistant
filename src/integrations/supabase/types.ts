@@ -3212,13 +3212,14 @@ export type Database = {
           p_start_date?: string
         }
         Returns: {
-          business_name: string
+          calendar_id: string
           calendar_name: string
+          duration_minutes: number
           is_available: boolean
           service_duration: number
           service_name: string
           service_price: number
-          slot_date: string
+          service_type_id: string
           slot_end: string
           slot_start: string
         }[]
