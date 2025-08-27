@@ -119,45 +119,6 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
     }
   };
 
-  const handleOpenEmbedded = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const session = await createDashboardSession();
-      if (!session) throw new Error('Failed to create embedded dashboard session');
-
-      const connect = await loadConnectAndInitialize({
-        publishableKey: getStripePublishableKey(),
-        fetchClientSecret: async () => session.client_secret,
-      });
-
-      setConnectInstance(connect);
-      setShowEmbedded(true);
-
-      // Mount dashboard component
-      setTimeout(() => {
-        try {
-          const dashboardEl = (connect as StripeConnectInstance).create({
-            element: 'dashboard',
-            accountId: session.account_id as any,
-          }) as unknown as HTMLElement;
-          if (embedRef.current && dashboardEl) {
-            embedRef.current.innerHTML = '';
-            embedRef.current.appendChild(dashboardEl);
-          }
-        } catch (e) {
-          console.error('[STRIPE EMBEDDED] Mount error:', e);
-          setError('Kon het ingesloten dashboard niet laden');
-        }
-      }, 0);
-    } catch (e: any) {
-      console.error('[STRIPE EMBEDDED] Error:', e);
-      setError(e?.message || 'Embedded dashboard is mislukt');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Auto-trigger dashboard opening when modal opens
   React.useEffect(() => {
     if (isOpen && !loading && !error) {
@@ -165,14 +126,6 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setShowEmbedded(false);
-      setConnectInstance(null);
-      setFallbackUrl(null);
-      setError(null);
-    }
-  }, [isOpen]);
 
   // This component now just handles the redirect logic
   // The modal is only shown if there's an error or fallback needed
@@ -220,7 +173,14 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
                     onClick={() => window.open(fallbackUrl, '_blank')}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    Open Dashboard
+                    Open in new tab
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={handleOpenInThisTab}
+                  >
+                    Open in this tab
                   </Button>
                   <Button 
                     variant="outline" 
