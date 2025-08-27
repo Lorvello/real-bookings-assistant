@@ -22,12 +22,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   CreditCard, 
   Shield, 
   ExternalLink, 
   CheckCircle, 
-  AlertCircle, 
+  AlertCircle,
   Loader2,
   Euro,
   Clock,
@@ -637,148 +638,138 @@ export function PaymentSettingsTab() {
         <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-primary" />
+              <CreditCard className="h-5 w-5 text-primary" />
               <CardTitle>Pay & Book with Stripe</CardTitle>
             </div>
             <CardDescription>
-              Transparent overview of costs and how it works
+              Payment costs and configuration for your business
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Introduction */}
+            {/* Cost Overview */}
             <div className="bg-muted/50 p-4 rounded-lg">
-              <h4 className="font-medium mb-3 text-foreground flex items-center space-x-2">
-                <CreditCard className="h-4 w-4 text-primary" />
-                <span>Pay & Book with Stripe</span>
-              </h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                As a business owner, you get a complete <strong>Stripe Dashboard</strong> where you can view all payouts, 
-                expenses and transactions. Stripe ensures secure payments and automatic payouts to your business account.
-              </p>
-              
-              {/* Cost overview as clickable items */}
-              <ul className="space-y-2">
-                <li className="flex items-start space-x-3 text-sm group">
-                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setFeesInfoOpen(!feesInfoOpen)}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
-                    Platform fees and cost overview
-                  </button>
-                </li>
-                <li className="flex items-start space-x-3 text-sm group">
-                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setFeesInfoOpen(!feesInfoOpen)}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
-                    Payout options and security
-                  </button>
-                </li>
-                <li className="flex items-start space-x-3 text-sm group">
-                  <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setFeesInfoOpen(!feesInfoOpen)}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
-                    Benefits for your business
-                  </button>
-                </li>
-              </ul>
-              <p className="text-xs text-muted-foreground mt-3 italic">
-                Click for more information about costs and benefits
-              </p>
+              <h4 className="font-medium mb-3 text-foreground">Cost Overview</h4>
+              <div className="space-y-3">
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <div className="flex items-center justify-between p-3 bg-background/50 rounded border cursor-pointer hover:bg-background/70 transition-colors group">
+                      <div>
+                        <div className="font-medium text-sm">Standard Payout</div>
+                        <div className="text-xs text-muted-foreground">Total fee: 2.15% + €0.64</div>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2 p-3 bg-background/30 rounded border">
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span>Booking Assistant platform fee:</span>
+                        <span>1.9% + €0.25</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Stripe processing fee:</span>
+                        <span>0.25% + €0.10</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>iDEAL transaction fee:</span>
+                        <span>€0.29</span>
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <div className="flex items-center justify-between p-3 bg-background/50 rounded border cursor-pointer hover:bg-background/70 transition-colors group">
+                      <div>
+                        <div className="font-medium text-sm">Instant Payout</div>
+                        <div className="text-xs text-muted-foreground">Total fee: 3.15% + €0.89</div>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2 p-3 bg-background/30 rounded border">
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span>Booking Assistant platform fee:</span>
+                        <span>1.9% + €0.25</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Stripe processing fee:</span>
+                        <span>0.25% + €0.10</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>iDEAL transaction fee:</span>
+                        <span>€0.29</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Instant payout fee:</span>
+                        <span>1% (min €0.25)</span>
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             </div>
 
-            {/* Collapsible details */}
-            <Collapsible open={feesInfoOpen} onOpenChange={setFeesInfoOpen}>
-              <CollapsibleContent className="space-y-4">
-                {/* Cost overview */}
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h5 className="font-medium mb-3 text-foreground">Cost Overview</h5>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Platform fee (standard payout):</span>
-                      <span className="font-medium">1.9% + €0.25</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Platform fee (instant payout):</span>
-                      <span className="font-medium">1.9% + €0.35</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Stripe payout (standard):</span>
-                      <span className="font-medium">0.25% + €0.10</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Stripe payout (instant):</span>
-                      <span className="font-medium">1%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">iDEAL payment:</span>
-                      <span className="font-medium">€0.29</span>
-                    </div>
-                  </div>
+            {/* Payout Options */}
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <h4 className="font-medium mb-3 text-foreground">Payout Options</h4>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3 p-3 bg-background/50 rounded border">
+                  <input 
+                    type="radio" 
+                    id="standard-payout" 
+                    name="payout-option" 
+                    className="h-4 w-4 text-primary" 
+                    defaultChecked 
+                  />
+                  <label htmlFor="standard-payout" className="flex-1 cursor-pointer">
+                    <div className="font-medium text-sm">Standard Payout</div>
+                    <div className="text-xs text-muted-foreground">3 business days to your business account</div>
+                  </label>
                 </div>
-
-                {/* Payouts and Security */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h5 className="font-medium mb-3 text-foreground flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-primary" />
-                      <span>Payouts</span>
-                    </h5>
-                    <div className="text-sm text-muted-foreground space-y-2">
-                      <p><strong>Standard:</strong> 2-3 business days to your business account</p>
-                      <p><strong>Instant:</strong> Direct to your account within minutes</p>
-                      <p>All fees are automatically deducted before payout.</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <h5 className="font-medium mb-3 text-foreground flex items-center space-x-2">
-                      <Lock className="h-4 w-4 text-primary" />
-                      <span>Security</span>
-                    </h5>
-                    <div className="text-sm text-muted-foreground space-y-2">
-                      <p><strong>PCI-DSS certified:</strong> Highest security standards</p>
-                      <p><strong>End-to-end encryption:</strong> Card data fully secured</p>
-                      <p><strong>Fraud detection:</strong> Automatic protection against fraud</p>
-                    </div>
-                  </div>
+                <div className="flex items-center space-x-3 p-3 bg-background/50 rounded border">
+                  <input 
+                    type="radio" 
+                    id="instant-payout" 
+                    name="payout-option" 
+                    className="h-4 w-4 text-primary" 
+                  />
+                  <label htmlFor="instant-payout" className="flex-1 cursor-pointer">
+                    <div className="font-medium text-sm">Instant Payout</div>
+                    <div className="text-xs text-muted-foreground">Direct within minutes</div>
+                  </label>
                 </div>
+              </div>
+            </div>
 
-                {/* Benefits */}
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h5 className="font-medium mb-3 text-foreground flex items-center space-x-2">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                    <span>Benefits for your business</span>
-                  </h5>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• <strong>Predictable cashflow:</strong> Money directly received after payment</li>
-                    <li>• <strong>Lower no-shows:</strong> Customers show up more often when they pay upfront</li>
-                    <li>• <strong>Secure payments:</strong> Customers pay via trusted WhatsApp link</li>
-                    <li>• <strong>Professional appearance:</strong> Modern payment experience for customers</li>
-                  </ul>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-
-            {/* Call to Action */}
-            <div className="bg-muted/50 p-4 rounded-lg text-center">
-              <h4 className="font-medium mb-2 text-foreground">Start today</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Activate secure upfront payments and improve your cashflow immediately
-              </p>
-              <Button 
-                onClick={() => {
-                  // Scroll to the Pay & Book toggle at the top
-                  document.querySelector('[data-pay-book-toggle]')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="w-full"
-              >
-                Activate Pay & Book in your dashboard
-              </Button>
+            {/* Payment Methods */}
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <h4 className="font-medium mb-3 text-foreground">Payment Methods</h4>
+              <div className="space-y-3">
+                <Select defaultValue="ideal">
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Choose payment methods" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border shadow-lg z-50">
+                    <SelectItem value="ideal">iDEAL (Recommended for Netherlands)</SelectItem>
+                    <SelectItem value="cards">Credit & Debit Cards</SelectItem>
+                    <SelectItem value="bancontact">Bancontact (Belgium)</SelectItem>
+                    <SelectItem value="sofort">SOFORT</SelectItem>
+                    <SelectItem value="sepa">SEPA Direct Debit</SelectItem>
+                    <SelectItem value="giropay">Giropay</SelectItem>
+                    <SelectItem value="eps">EPS</SelectItem>
+                    <SelectItem value="revolut">Revolut Pay</SelectItem>
+                    <SelectItem value="apple-google">Apple Pay & Google Pay</SelectItem>
+                    <SelectItem value="klarna">Klarna</SelectItem>
+                    <SelectItem value="afterpay">Afterpay</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  You can enable multiple payment methods. iDEAL is recommended for Dutch customers.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
