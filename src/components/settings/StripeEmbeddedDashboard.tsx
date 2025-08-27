@@ -24,6 +24,7 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
 
   const testMode = getStripeMode() === 'test';
 
+
   const handleOpenDashboard = async () => {
     if (!isOpen) return;
     
@@ -106,10 +107,70 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
     }
   };
 
+  const handleOpenInThisTab = () => {
+    try {
+      if (window.top && window.top !== window) {
+        window.top.location.assign('/stripe/go');
+      } else {
+        window.location.assign('/stripe/go');
+      }
+    } catch {
+      window.location.assign('/stripe/go');
+    }
+  };
+
+  const handleOpenEmbedded = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const session = await createDashboardSession();
+      if (!session) throw new Error('Failed to create embedded dashboard session');
+
+      const connect = await loadConnectAndInitialize({
+        publishableKey: getStripePublishableKey(),
+        fetchClientSecret: async () => session.client_secret,
+      });
+
+      setConnectInstance(connect);
+      setShowEmbedded(true);
+
+      // Mount dashboard component
+      setTimeout(() => {
+        try {
+          const dashboardEl = (connect as StripeConnectInstance).create({
+            element: 'dashboard',
+            accountId: session.account_id as any,
+          }) as unknown as HTMLElement;
+          if (embedRef.current && dashboardEl) {
+            embedRef.current.innerHTML = '';
+            embedRef.current.appendChild(dashboardEl);
+          }
+        } catch (e) {
+          console.error('[STRIPE EMBEDDED] Mount error:', e);
+          setError('Kon het ingesloten dashboard niet laden');
+        }
+      }, 0);
+    } catch (e: any) {
+      console.error('[STRIPE EMBEDDED] Error:', e);
+      setError(e?.message || 'Embedded dashboard is mislukt');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Auto-trigger dashboard opening when modal opens
   React.useEffect(() => {
     if (isOpen && !loading && !error) {
       handleOpenDashboard();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowEmbedded(false);
+      setConnectInstance(null);
+      setFallbackUrl(null);
+      setError(null);
     }
   }, [isOpen]);
 

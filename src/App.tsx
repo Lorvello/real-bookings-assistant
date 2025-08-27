@@ -37,6 +37,7 @@ import Index from '@/pages/Index';
 import Dashboard from '@/pages/Dashboard';
 import Calendar from '@/pages/Calendar';
 import Bookings from '@/pages/Bookings';
+import StripeGo from '@/pages/StripeGo';
 
 const queryClient = new QueryClient();
 
@@ -134,6 +135,7 @@ function App() {
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/stripe/go" element={<StripeGo />} />
                   <Route path="*" element={<NotFound />} />
                   </Routes>
                   <Toaster />
