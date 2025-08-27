@@ -3239,6 +3239,10 @@ export type Database = {
         Args: { p_calendar_id: string }
         Returns: Json
       }
+      get_client_ip: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
+      }
       get_conversation_context: {
         Args: { p_calendar_id: string; p_phone_number: string }
         Returns: Json

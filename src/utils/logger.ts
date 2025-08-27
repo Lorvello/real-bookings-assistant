@@ -5,6 +5,14 @@ interface LogContext {
   component?: string;
   action?: string;
   data?: any;
+  userId?: string;
+  email?: string;
+  timestamp?: string;
+  calendarSlug?: string;
+  slug?: string;
+  calendarId?: string;
+  bookingId?: string;
+  [key: string]: any; // Allow additional fields
 }
 
 class Logger {
