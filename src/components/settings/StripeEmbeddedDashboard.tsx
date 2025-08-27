@@ -32,22 +32,30 @@ export const StripeEmbeddedDashboard: React.FC<StripeEmbeddedDashboardProps> = (
     setFallbackUrl(null);
 
     try {
-      console.log('[STRIPE DASHBOARD] Creating login link for top-level redirect...');
+      console.log('[STRIPE DASHBOARD] Creating login link for direct redirect...');
       
       const url = await createLoginLink();
       if (!url) {
         throw new Error('NO_CONNECTED_ACCOUNT');
       }
 
-      console.log('[STRIPE DASHBOARD] Redirecting to:', url);
+      console.log('[STRIPE DASHBOARD] Opening dashboard in new tab:', url);
       
-      // Force top-level redirect to break out of any iframe/sandbox
-      if (window.top && window.top !== window) {
-        window.top.location.assign(url);
-      } else {
-        window.location.assign(url);
+      // Open in new tab to avoid browser blocking issues
+      const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+      
+      if (!newWindow) {
+        // Fallback if popup blocked - store URL for manual opening
+        console.log('[STRIPE DASHBOARD] Popup blocked, providing fallback...');
+        setFallbackUrl(url);
+        setError('Browser blocked popup. Please use the manual link below.');
+        return;
       }
-      onClose();
+      
+      // Success - close modal after short delay
+      setTimeout(() => {
+        onClose();
+      }, 1000);
       
     } catch (err) {
       console.error('[STRIPE DASHBOARD] Error:', err);

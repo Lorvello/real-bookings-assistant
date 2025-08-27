@@ -33,8 +33,14 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    // Parse request body to get test_mode
-    const { test_mode } = await req.json();
+    // Parse request body to get test_mode (default to test for safety)
+    let test_mode = true;
+    try {
+      const body = await req.json();
+      test_mode = body.test_mode !== false; // Default to test mode
+    } catch {
+      // If no body, default to test mode
+    }
     const environment = test_mode ? 'test' : 'live';
     logStep("Request parameters", { test_mode, environment });
 
@@ -84,7 +90,8 @@ serve(async (req) => {
       : Deno.env.get('STRIPE_SECRET_KEY_LIVE');
     
     if (!stripeSecretKey) {
-      throw new Error(`Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode`);
+      logStep('Missing Stripe secret key', { test_mode, hasTestKey: !!Deno.env.get('STRIPE_SECRET_KEY_TEST'), hasLiveKey: !!Deno.env.get('STRIPE_SECRET_KEY_LIVE') });
+      throw new Error(`Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode. Please configure STRIPE_SECRET_KEY_${test_mode ? 'TEST' : 'LIVE'} in Edge Function secrets.`);
     }
     
     const stripe = new Stripe(stripeSecretKey, {

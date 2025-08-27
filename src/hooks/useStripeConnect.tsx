@@ -141,20 +141,29 @@ export const useStripeConnect = () => {
   const createLoginLink = async (): Promise<string | null> => {
     try {
       setLoading(true);
+      const testMode = getStripeConfig().testMode;
+      console.log('[useStripeConnect] Creating login link with test_mode:', testMode);
       
       const { data, error } = await supabase.functions.invoke('stripe-connect-login', {
-        body: { 
-          test_mode: getStripeConfig().testMode 
-        }
+        body: { test_mode: testMode }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Stripe login link error:', error);
+        throw new Error(error.message || 'Failed to create login link');
+      }
+
+      if (!data?.url) {
+        throw new Error('No login URL received from Stripe');
+      }
+
+      console.log('[useStripeConnect] Login link created successfully');
       return data.url;
     } catch (error) {
       console.error('Error creating login link:', error);
       toast({
         title: "Error",
-        description: "Failed to create Stripe dashboard link",
+        description: error.message || "Failed to create Stripe dashboard link",
         variant: "destructive",
       });
       return null;
