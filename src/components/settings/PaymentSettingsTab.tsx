@@ -638,25 +638,25 @@ export function PaymentSettingsTab() {
           <CardHeader>
             <div className="flex items-center space-x-2">
               <Shield className="h-5 w-5 text-primary" />
-              <CardTitle>Pay & Book met Stripe</CardTitle>
+              <CardTitle>Pay & Book with Stripe</CardTitle>
             </div>
             <CardDescription>
-              Transparant overzicht van kosten en hoe het werkt
+              Transparent overview of costs and how it works
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Introductie */}
+            {/* Introduction */}
             <div className="bg-muted/50 p-4 rounded-lg">
               <h4 className="font-medium mb-3 text-foreground flex items-center space-x-2">
                 <CreditCard className="h-4 w-4 text-primary" />
-                <span>Pay & Book met Stripe</span>
+                <span>Pay & Book with Stripe</span>
               </h4>
               <p className="text-sm text-muted-foreground mb-3">
-                Als ondernemer krijg je een volledig <strong>Stripe Dashboard</strong> waarin je alle uitbetalingen, 
-                uitgaven en transacties kunt bekijken. Stripe zorgt voor veilige betalingen en automatische uitbetalingen naar je zakelijke rekening.
+                As a business owner, you get a complete <strong>Stripe Dashboard</strong> where you can view all payouts, 
+                expenses and transactions. Stripe ensures secure payments and automatic payouts to your business account.
               </p>
               
-              {/* Kostenoverzicht als clickable items */}
+              {/* Cost overview as clickable items */}
               <ul className="space-y-2">
                 <li className="flex items-start space-x-3 text-sm group">
                   <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
@@ -664,7 +664,7 @@ export function PaymentSettingsTab() {
                     onClick={() => setFeesInfoOpen(!feesInfoOpen)}
                     className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
                   >
-                    Platform fees en kostenoverzicht
+                    Platform fees and cost overview
                   </button>
                 </li>
                 <li className="flex items-start space-x-3 text-sm group">
@@ -673,7 +673,7 @@ export function PaymentSettingsTab() {
                     onClick={() => setFeesInfoOpen(!feesInfoOpen)}
                     className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
                   >
-                    Uitbetalingsopties en veiligheid
+                    Payout options and security
                   </button>
                 </li>
                 <li className="flex items-start space-x-3 text-sm group">
@@ -682,83 +682,83 @@ export function PaymentSettingsTab() {
                     onClick={() => setFeesInfoOpen(!feesInfoOpen)}
                     className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
                   >
-                    Voordelen voor jouw business
+                    Benefits for your business
                   </button>
                 </li>
               </ul>
               <p className="text-xs text-muted-foreground mt-3 italic">
-                Klik voor meer informatie over kosten en voordelen
+                Click for more information about costs and benefits
               </p>
             </div>
 
-            {/* Uitklapbare details */}
+            {/* Collapsible details */}
             <Collapsible open={feesInfoOpen} onOpenChange={setFeesInfoOpen}>
               <CollapsibleContent className="space-y-4">
-                {/* Kostenoverzicht */}
+                {/* Cost overview */}
                 <div className="bg-muted/50 p-4 rounded-lg">
-                  <h5 className="font-medium mb-3 text-foreground">Kostenoverzicht</h5>
+                  <h5 className="font-medium mb-3 text-foreground">Cost Overview</h5>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Platform fee (standaard uitbetaling):</span>
-                      <span className="font-medium">1,9% + €0,25</span>
+                      <span className="text-muted-foreground">Platform fee (standard payout):</span>
+                      <span className="font-medium">1.9% + €0.25</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Platform fee (instant uitbetaling):</span>
-                      <span className="font-medium">1,9% + €0,35</span>
+                      <span className="text-muted-foreground">Platform fee (instant payout):</span>
+                      <span className="font-medium">1.9% + €0.35</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Stripe uitbetaling (standaard):</span>
-                      <span className="font-medium">0,25% + €0,10</span>
+                      <span className="text-muted-foreground">Stripe payout (standard):</span>
+                      <span className="font-medium">0.25% + €0.10</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Stripe uitbetaling (instant):</span>
+                      <span className="text-muted-foreground">Stripe payout (instant):</span>
                       <span className="font-medium">1%</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">iDEAL betaling:</span>
-                      <span className="font-medium">€0,29</span>
+                      <span className="text-muted-foreground">iDEAL payment:</span>
+                      <span className="font-medium">€0.29</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Uitbetalingen en Veiligheid */}
+                {/* Payouts and Security */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-muted/50 p-4 rounded-lg">
                     <h5 className="font-medium mb-3 text-foreground flex items-center space-x-2">
                       <Clock className="h-4 w-4 text-primary" />
-                      <span>Uitbetalingen</span>
+                      <span>Payouts</span>
                     </h5>
                     <div className="text-sm text-muted-foreground space-y-2">
-                      <p><strong>Standaard:</strong> 2-3 werkdagen naar je zakelijke rekening</p>
-                      <p><strong>Instant:</strong> Direct op je rekening binnen enkele minuten</p>
-                      <p>Alle fees worden automatisch verrekend voor uitbetaling.</p>
+                      <p><strong>Standard:</strong> 2-3 business days to your business account</p>
+                      <p><strong>Instant:</strong> Direct to your account within minutes</p>
+                      <p>All fees are automatically deducted before payout.</p>
                     </div>
                   </div>
 
                   <div className="bg-muted/50 p-4 rounded-lg">
                     <h5 className="font-medium mb-3 text-foreground flex items-center space-x-2">
                       <Lock className="h-4 w-4 text-primary" />
-                      <span>Veiligheid</span>
+                      <span>Security</span>
                     </h5>
                     <div className="text-sm text-muted-foreground space-y-2">
-                      <p><strong>PCI-DSS gecertificeerd:</strong> Hoogste veiligheidsnormen</p>
-                      <p><strong>End-to-end encryptie:</strong> Kaartgegevens volledig beveiligd</p>
-                      <p><strong>Fraud detectie:</strong> Automatische bescherming tegen fraude</p>
+                      <p><strong>PCI-DSS certified:</strong> Highest security standards</p>
+                      <p><strong>End-to-end encryption:</strong> Card data fully secured</p>
+                      <p><strong>Fraud detection:</strong> Automatic protection against fraud</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Voordelen */}
+                {/* Benefits */}
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <h5 className="font-medium mb-3 text-foreground flex items-center space-x-2">
                     <TrendingUp className="h-4 w-4 text-primary" />
-                    <span>Voordelen voor jouw business</span>
+                    <span>Benefits for your business</span>
                   </h5>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• <strong>Voorspelbare cashflow:</strong> Geld direct binnen na betaling</li>
-                    <li>• <strong>Lagere no-shows:</strong> Klanten verschijnen vaker als ze vooraf betalen</li>
-                    <li>• <strong>Veilige betalingen:</strong> Klanten betalen via vertrouwde WhatsApp link</li>
-                    <li>• <strong>Professionele uitstraling:</strong> Moderne betaalervaring voor klanten</li>
+                    <li>• <strong>Predictable cashflow:</strong> Money directly received after payment</li>
+                    <li>• <strong>Lower no-shows:</strong> Customers show up more often when they pay upfront</li>
+                    <li>• <strong>Secure payments:</strong> Customers pay via trusted WhatsApp link</li>
+                    <li>• <strong>Professional appearance:</strong> Modern payment experience for customers</li>
                   </ul>
                 </div>
               </CollapsibleContent>
@@ -766,9 +766,9 @@ export function PaymentSettingsTab() {
 
             {/* Call to Action */}
             <div className="bg-muted/50 p-4 rounded-lg text-center">
-              <h4 className="font-medium mb-2 text-foreground">Begin vandaag nog</h4>
+              <h4 className="font-medium mb-2 text-foreground">Start today</h4>
               <p className="text-sm text-muted-foreground mb-3">
-                Activeer veilig vooraf betalen en verbeter je cashflow direct
+                Activate secure upfront payments and improve your cashflow immediately
               </p>
               <Button 
                 onClick={() => {
@@ -777,7 +777,7 @@ export function PaymentSettingsTab() {
                 }}
                 className="w-full"
               >
-                Activeer Pay & Book in jouw dashboard
+                Activate Pay & Book in your dashboard
               </Button>
             </div>
           </CardContent>
