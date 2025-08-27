@@ -1,5 +1,5 @@
 // Enhanced error handling utility for production
-import { logger } from './logger';
+import { secureLogger } from './secureLogger';
 
 export interface ErrorHandlerOptions {
   showToast?: boolean;
@@ -12,10 +12,10 @@ export class ProductionErrorHandler {
     const { context, component } = options;
     
     // Log with appropriate context
-    logger.error(message, error, { 
+    secureLogger.error(message, error, { 
       component,
       action: context,
-      data: { timestamp: new Date().toISOString() }
+      timestamp: new Date().toISOString()
     });
 
     // Return standardized error for UI

@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeUserInput } from '@/utils/inputSanitization';
-import { logger } from '@/utils/logger';
+import { secureLogger } from '@/utils/secureLogger';
+import ProductionSecurity from '@/utils/productionSecurity';
 
 interface BookingData {
   calendarSlug: string;
@@ -60,10 +61,9 @@ export const usePublicBookingCreation = () => {
         throw new Error('End time must be after start time');
       }
 
-      logger.info('Creating secured public booking', { 
+      secureLogger.info('Creating secured public booking', { 
         component: 'usePublicBookingCreation',
-        calendarSlug: sanitizedData.calendarSlug,
-        customerEmail: sanitizedData.customerEmail.substring(0, 3) + '***'
+        calendarSlug: sanitizedData.calendarSlug
       });
 
       // Get the calendar ID based on the slug
@@ -75,9 +75,8 @@ export const usePublicBookingCreation = () => {
         .single();
 
       if (calendarError || !calendar) {
-        logger.error('Calendar lookup failed', calendarError, { 
-          component: 'usePublicBookingCreation',
-          slug: sanitizedData.calendarSlug 
+        secureLogger.error('Calendar lookup failed', calendarError, { 
+          component: 'usePublicBookingCreation'
         });
         throw new Error('Calendar not found or inactive');
       }
@@ -92,9 +91,8 @@ export const usePublicBookingCreation = () => {
       });
 
       if (!isValid) {
-        logger.error('Booking security validation failed', null, { 
-          component: 'usePublicBookingCreation',
-          calendarId: calendar.id 
+        secureLogger.error('Booking security validation failed', null, { 
+          component: 'usePublicBookingCreation'
         });
         throw new Error('Invalid booking parameters or time conflict detected');
       }
@@ -118,15 +116,14 @@ export const usePublicBookingCreation = () => {
         .single();
 
       if (bookingError) {
-        logger.error('Booking creation failed', bookingError, { 
-          component: 'usePublicBookingCreation',
-          calendarId: calendar.id 
+        secureLogger.error('Booking creation failed', bookingError, { 
+          component: 'usePublicBookingCreation'
         });
         throw new Error(bookingError.message || 'Failed to create booking');
       }
 
       // Log successful booking creation
-      logger.success('Booking created successfully', { 
+      secureLogger.success('Booking created successfully', { 
         component: 'usePublicBookingCreation',
         bookingId: booking.id 
       });
@@ -141,7 +138,7 @@ export const usePublicBookingCreation = () => {
         booking
       };
     } catch (error: any) {
-      logger.error('Booking creation error', error, { 
+      secureLogger.error('Booking creation error', error, { 
         component: 'usePublicBookingCreation' 
       });
 

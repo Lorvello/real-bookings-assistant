@@ -8,6 +8,7 @@ import { UserStatusProvider } from '@/contexts/UserStatusContext';
 import { useEffect } from 'react';
 import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
 import { useAuth } from '@/hooks/useAuth';
+import SecurityAlertsMonitor from '@/components/security/SecurityAlertsMonitor';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import AuthCallback from '@/pages/AuthCallback';
@@ -136,6 +137,7 @@ function App() {
                   <Route path="*" element={<NotFound />} />
                   </Routes>
                   <Toaster />
+                  <SecurityAlertsMonitor />
                 </div>
               </Router>
             </div>
