@@ -127,34 +127,69 @@ serve(async (req) => {
 
     // Fallback to database query if no cached account found
     if (accounts.length === 0) {
-      // First try to get a completed account
-      let { data: dbAccounts, error: dbError } = await supabaseClient
+      logStep("Querying database for Stripe accounts", { accountOwnerId, environment, platformAccountId });
+      
+      // Get ALL accounts for this user/environment/platform and sort by priority
+      const { data: allAccounts, error: dbError } = await supabaseClient
         .from('business_stripe_accounts')
-        .select('stripe_account_id, onboarding_completed, charges_enabled, payouts_enabled')
+        .select('stripe_account_id, onboarding_completed, charges_enabled, payouts_enabled, created_at, updated_at')
         .eq('account_owner_id', accountOwnerId)
         .eq('environment', environment)
         .eq('platform_account_id', platformAccountId)
-        .eq('onboarding_completed', true)
-        .order('updated_at', { ascending: false })
-        .limit(1);
+        .order('updated_at', { ascending: false });
 
-      if (dbError || !dbAccounts || dbAccounts.length === 0) {
-        // If no completed account, try any account for this environment/platform
-        const fallbackQuery = await supabaseClient
-          .from('business_stripe_accounts')
-          .select('stripe_account_id, onboarding_completed, charges_enabled, payouts_enabled')
-          .eq('account_owner_id', accountOwnerId)
-          .eq('environment', environment)
-          .eq('platform_account_id', platformAccountId)
-          .order('updated_at', { ascending: false })
-          .limit(1);
+      logStep("Database query result", { 
+        accountCount: allAccounts?.length || 0, 
+        error: dbError?.message,
+        accounts: allAccounts?.map(acc => ({
+          id: acc.stripe_account_id,
+          onboarding_completed: acc.onboarding_completed,
+          charges_enabled: acc.charges_enabled,
+          payouts_enabled: acc.payouts_enabled
+        }))
+      });
+
+      if (dbError) {
+        accountError = dbError;
+        accounts = [];
+      } else if (allAccounts && allAccounts.length > 0) {
+        // Prioritize accounts in this order:
+        // 1. Fully completed (onboarding_completed AND charges_enabled)
+        // 2. Onboarding completed but charges not enabled yet
+        // 3. Any other account (newest first)
         
-        dbAccounts = fallbackQuery.data;
-        dbError = fallbackQuery.error;
-      }
+        const fullyCompleted = allAccounts.filter(acc => 
+          acc.onboarding_completed && acc.charges_enabled
+        );
+        const onboardingCompleted = allAccounts.filter(acc => 
+          acc.onboarding_completed && !acc.charges_enabled
+        );
+        const others = allAccounts.filter(acc => 
+          !acc.onboarding_completed
+        );
 
-      accounts = dbAccounts || [];
-      accountError = dbError;
+        logStep("Account prioritization", {
+          fullyCompleted: fullyCompleted.length,
+          onboardingCompleted: onboardingCompleted.length,
+          others: others.length
+        });
+
+        // Pick the best account available
+        if (fullyCompleted.length > 0) {
+          accounts = [fullyCompleted[0]]; // Use most recent fully completed
+          logStep("Selected fully completed account", { accountId: fullyCompleted[0].stripe_account_id });
+        } else if (onboardingCompleted.length > 0) {
+          accounts = [onboardingCompleted[0]]; // Use most recent onboarding completed
+          logStep("Selected onboarding completed account", { accountId: onboardingCompleted[0].stripe_account_id });
+        } else if (others.length > 0) {
+          accounts = [others[0]]; // Use most recent account
+          logStep("Selected newest available account", { accountId: others[0].stripe_account_id });
+        } else {
+          accounts = [];
+        }
+      } else {
+        accounts = [];
+      }
     }
 
     if (accountError) {
