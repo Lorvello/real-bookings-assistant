@@ -348,6 +348,42 @@ export type Database = {
           },
         ]
       }
+      booking_rate_limits: {
+        Row: {
+          attempt_count: number | null
+          blocked_until: string | null
+          calendar_id: string
+          created_at: string | null
+          first_attempt_at: string | null
+          id: string
+          ip_address: unknown
+          last_attempt_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          calendar_id: string
+          created_at?: string | null
+          first_attempt_at?: string | null
+          id?: string
+          ip_address: unknown
+          last_attempt_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          calendar_id?: string
+          created_at?: string | null
+          first_attempt_at?: string | null
+          id?: string
+          ip_address?: unknown
+          last_attempt_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_duration: number | null
@@ -1485,6 +1521,45 @@ export type Database = {
           event_type?: string
           id?: string
           ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      security_events_log: {
+        Row: {
+          blocked: boolean | null
+          calendar_id: string | null
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          severity: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          blocked?: boolean | null
+          calendar_id?: string | null
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          blocked?: boolean | null
+          calendar_id?: string | null
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
@@ -2977,6 +3052,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_booking_rate_limit: {
+        Args: { p_calendar_id: string; p_ip_address: unknown }
+        Returns: Json
+      }
       check_payment_rate_limit: {
         Args: { p_calendar_id: string; p_ip_address: unknown }
         Returns: Json
@@ -3349,6 +3428,16 @@ export type Database = {
           p_subscription_end_date?: string
           p_tier?: string
           p_user_id: string
+        }
+        Returns: boolean
+      }
+      validate_booking_security: {
+        Args: {
+          p_calendar_id: string
+          p_customer_email: string
+          p_end_time: string
+          p_service_type_id: string
+          p_start_time: string
         }
         Returns: boolean
       }
