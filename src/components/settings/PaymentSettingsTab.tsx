@@ -648,7 +648,8 @@ export function PaymentSettingsTab() {
           <CardContent className="space-y-6">
             {/* Payout Options & Fees */}
             <div className="bg-muted/50 p-4 rounded-lg">
-              <h4 className="font-medium mb-3 text-foreground">Payout Options & Fees</h4>
+              <h4 className="font-medium mb-1 text-foreground">Payout Options & Fees</h4>
+              <p className="text-sm text-muted-foreground mb-4">Choose how quickly you want to receive your payments</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Standard Payout Card */}
                 <div className="relative">
@@ -663,9 +664,8 @@ export function PaymentSettingsTab() {
                     htmlFor="standard-payout" 
                     className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary/5"
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="mb-2">
                       <div className="font-semibold text-foreground">Standard Payout</div>
-                      <div className="text-lg font-bold text-primary">2.15% + €0.64</div>
                     </div>
                     <div className="text-sm text-muted-foreground mb-3">
                       3 business days to your business account
@@ -692,6 +692,10 @@ export function PaymentSettingsTab() {
                             <span>iDEAL transaction fee:</span>
                             <span>€0.29</span>
                           </div>
+                          <div className="flex justify-between border-t border-border/50 pt-1 mt-1">
+                            <span className="font-medium">Total fee:</span>
+                            <span className="text-primary font-medium">2.15% + €0.64</span>
+                          </div>
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
@@ -710,9 +714,8 @@ export function PaymentSettingsTab() {
                     htmlFor="instant-payout" 
                     className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary/5"
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="mb-2">
                       <div className="font-semibold text-foreground">Instant Payout</div>
-                      <div className="text-lg font-bold text-primary">2.9% + €0.54</div>
                     </div>
                     <div className="text-sm text-muted-foreground mb-3">
                       Direct within minutes
@@ -729,15 +732,19 @@ export function PaymentSettingsTab() {
                         <div className="space-y-1 text-xs text-muted-foreground">
                           <div className="flex justify-between">
                             <span>Booking Assistant platform fee:</span>
-                            <span>1.9% + €0.25</span>
+                            <span>1.9% + €0.35</span>
                           </div>
                           <div className="flex justify-between">
                             <span>iDEAL transaction fee:</span>
                             <span>€0.29</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Instant payout fee:</span>
-                            <span>1% (min €0.25)</span>
+                            <span>Stripe Instant Payout Processing Fee:</span>
+                            <span>1%</span>
+                          </div>
+                          <div className="flex justify-between border-t border-border/50 pt-1 mt-1">
+                            <span className="font-medium">Total fee:</span>
+                            <span className="text-primary font-medium">2.9% + €0.64</span>
                           </div>
                         </div>
                       </CollapsibleContent>
