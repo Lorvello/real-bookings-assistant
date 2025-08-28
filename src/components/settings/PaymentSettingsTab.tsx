@@ -388,7 +388,7 @@ export function PaymentSettingsTab() {
       </div>;
   }
   const hasStripeAccount = !!stripeAccount?.stripe_account_id;
-  const isStripeSetupComplete = stripeAccount?.onboarding_completed;
+  const isStripeSetupComplete = stripeAccount?.onboarding_completed && stripeAccount?.charges_enabled && stripeAccount?.payouts_enabled;
   return <div className="space-y-6">
       {/* Stripe Mode Switcher (for development) */}
       {stripeConfig.isTestMode && <StripeModeSwitcher />}
@@ -652,58 +652,7 @@ export function PaymentSettingsTab() {
           </CardContent>
         </Card>}
 
-      {/* Pay & Book with Stripe Information Section - Only show if onboarding is completed */}
-      {hasStripeAccount && !isStripeSetupComplete && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <CreditCard className="h-5 w-5 text-amber-600" />
-              <CardTitle>Complete Stripe Setup</CardTitle>
-            </div>
-            <CardDescription>
-              Finish your Stripe account setup to access all payment features
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <div className="flex items-center space-x-2 mb-2">
-                  <AlertCircle className="h-4 w-4 text-amber-600" />
-                  <h4 className="font-medium text-amber-800">Setup Incomplete</h4>
-                </div>
-                <p className="text-sm text-amber-700 mb-3">
-                  Your Stripe account needs to be completed before you can access payment methods, payout options, and other features.
-                </p>
-              </div>
-              
-              <div className="flex gap-3">
-                <Button 
-                  onClick={handleStartOnboarding}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Complete Setup
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  onClick={handleRefreshAccount}
-                  disabled={accountLoading}
-                >
-                  {accountLoading ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                  )}
-                  Refresh Status
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Full Payment Settings - Only show when onboarding is completed */}
+      {/* Pay & Book with Stripe Information Section */}
       {isStripeSetupComplete && <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
@@ -887,75 +836,71 @@ export function PaymentSettingsTab() {
                     <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Payment initiated in local currency</p>
                   </div>
                   
-                   {/* First connecting line with floating fee annotations */}
-                   <div className="relative flex items-center justify-center h-12 flex-1 px-2">
-                      <div className="w-full border-t-2 border-dashed border-primary/30 relative">
-                        <ArrowRight className="absolute -right-1 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/60" />
-                     </div>
-                     
-                     {/* Floating fee annotations positioned absolutely below the arrow */}
-                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 flex flex-wrap justify-center gap-1 max-w-[180px]">
-                        <div className="group relative">
-                          <span className="text-[9px] text-muted-foreground/70 bg-background/25 px-1 py-0.5 rounded border border-muted/10 cursor-help hover:bg-muted/15 transition-colors whitespace-nowrap">
-                            +2% Currency
-                          </span>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                            +2% fee if payment currency ≠ account currency
-                          </div>
-                        </div>
-                        <div className="group relative">
-                          <span className="text-[9px] text-muted-foreground/70 bg-background/25 px-1 py-0.5 rounded border border-muted/10 cursor-help hover:bg-muted/15 transition-colors whitespace-nowrap">
-                            Method Fee
-                          </span>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                            Based on method (see Fees section)
-                          </div>
-                        </div>
-                        <div className="group relative">
-                          <span className="text-[9px] text-muted-foreground/70 bg-background/25 px-1 py-0.5 rounded border border-muted/10 cursor-help hover:bg-muted/15 transition-colors whitespace-nowrap">
-                            Platform 1.9%
-                          </span>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                            Deducted by Booking Assistant platform
-                          </div>
+                  {/* First connecting line with annotations */}
+                  <div className="flex flex-col items-center gap-1 flex-1 px-2">
+                    <div className="w-full border-t-2 border-dashed border-primary/30 relative">
+                      <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
+                    </div>
+                    <div className="text-center space-y-1">
+                      <div className="group relative">
+                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                          Currency Conversion (+2% if applicable)
+                        </span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                          +2% fee if payment currency ≠ account currency
                         </div>
                       </div>
-                   </div>
+                      <div className="group relative">
+                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                          Payment Method Fee deducted
+                        </span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                          Based on method (see Fees section)
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   
                   {/* Connected Account */}
                   <div className="flex flex-col items-center">
                     <div className="bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-full text-sm font-medium shadow-sm">
                       Connected Account
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Net funds after platform fee deduction</p>
+                    <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Gross funds received in account currency</p>
                   </div>
                   
-                   {/* Second connecting line with floating fee annotations */}
-                   <div className="relative flex items-center justify-center h-12 flex-1 px-2">
-                      <div className="w-full border-t-2 border-dashed border-primary/30 relative">
-                        <ArrowRight className="absolute -right-1 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/60" />
-                     </div>
-                     
-                     {/* Floating fee annotations positioned absolutely below the arrow */}
-                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 flex flex-wrap justify-center gap-1 max-w-[160px]">
-                        <div className="group relative">
-                           <span className="text-[9px] text-muted-foreground/70 bg-background/25 px-1 py-0.5 rounded border border-muted/10 cursor-help hover:bg-muted/15 transition-colors whitespace-nowrap">
-                             Stripe 0.25%/1%
-                           </span>
-                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                             0.25% + €0.10 for Standard Payout, 1% for Instant Payout
-                           </div>
-                        </div>
-                        <div className="group relative">
-                          <span className="text-[9px] text-muted-foreground/70 bg-background/25 px-1 py-0.5 rounded border border-muted/10 cursor-help hover:bg-muted/15 transition-colors whitespace-nowrap">
-                            Net Balance
-                          </span>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                            Final amount after all deductions
+                  {/* Second connecting line with annotations */}
+                  <div className="flex flex-col items-center gap-1 flex-1 px-2">
+                    <div className="w-full border-t-2 border-dashed border-primary/30 relative">
+                      <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
+                    </div>
+                    <div className="text-center space-y-1">
+                      <div className="group relative">
+                         <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                           Stripe Processing Fee (0.25% + €0.10 / 1%)
+                         </span>
+                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                           0.25% + €0.10 for Standard Payout, 1% for Instant Payout
                          </div>
-                       </div>
-                     </div>
-                   </div>
+                      </div>
+                      <div className="group relative">
+                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                          Platform Fee (1.9% + €0.25/€0.35)
+                        </span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                          Deducted by Booking Assistant platform
+                        </div>
+                      </div>
+                      <div className="group relative">
+                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                          Net available balance
+                        </span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                          Final amount after all deductions
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   
                   {/* Bank Account */}
                   <div className="flex flex-col items-center">
