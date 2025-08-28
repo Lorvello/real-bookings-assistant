@@ -910,6 +910,30 @@ export function PaymentSettingsTab() {
                           <span className="text-muted-foreground">Revolut Pay</span>
                           <span className="text-muted-foreground">1.5% + €0.25 (+2% currency conversion)</span>
                         </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Sofort</span>
+                          <span className="text-muted-foreground">1.4% + €0.25</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">EPS</span>
+                          <span className="text-muted-foreground">1.6% + €0.25</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Przelewy24</span>
+                          <span className="text-muted-foreground">2.2% + €0.30</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Pay by Bank</span>
+                          <span className="text-muted-foreground">~1.5% + £0.20</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Cartes Bancaires</span>
+                          <span className="text-muted-foreground">Same as cards</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Google Pay</span>
+                          <span className="text-muted-foreground">Same as cards</span>
+                        </div>
                       </div>
                     </div>
 
