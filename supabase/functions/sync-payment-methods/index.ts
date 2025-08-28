@@ -20,10 +20,16 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    const { payment_methods: paymentMethods, calendar_id: calendarId, test_mode = false } = await req.json();
+    
+    const stripeSecretKey = test_mode 
+      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
+      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
+    
     if (!stripeSecretKey) {
-      throw new Error("STRIPE_SECRET_KEY is not set");
+      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
     }
+    logStep("Stripe key retrieved", { mode: test_mode ? 'test' : 'live' });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -46,8 +52,6 @@ serve(async (req) => {
     if (userError || !userData.user) {
       throw new Error("Authentication failed");
     }
-
-    const { payment_methods: paymentMethods, calendar_id: calendarId } = await req.json();
     
     if (!paymentMethods || !Array.isArray(paymentMethods)) {
       throw new Error("Invalid payment methods provided");
@@ -57,21 +61,23 @@ serve(async (req) => {
       throw new Error("Calendar ID is required");
     }
 
-    logStep("Request validated", { calendarId, paymentMethods, userId: userData.user.id });
+    logStep("Request validated", { calendarId, paymentMethods, userId: userData.user.id, testMode: test_mode });
 
     // Initialize Stripe client
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     // Get Stripe account for this user/calendar
+    const environmentFilter = test_mode ? 'test' : 'live';
     const { data: stripeAccount, error: stripeError } = await supabaseClient
       .from('business_stripe_accounts')
       .select('stripe_account_id')
       .eq('calendar_id', calendarId)
+      .eq('environment', environmentFilter)
       .eq('account_status', 'active')
       .single();
 
     if (stripeError || !stripeAccount) {
-      logStep("No active Stripe account found", { calendarId });
+      logStep("No active Stripe account found", { calendarId, environment: environmentFilter });
       return new Response(JSON.stringify({ 
         success: true, 
         message: "Payment methods saved locally. Stripe account not connected yet."
@@ -82,7 +88,7 @@ serve(async (req) => {
     }
 
     const stripeAccountId = stripeAccount.stripe_account_id;
-    logStep("Found Stripe account", { stripeAccountId });
+    logStep("Found Stripe account", { stripeAccountId, environment: environmentFilter });
 
     // Map payment method names to Stripe payment method types
     const stripeMethodMap: Record<string, string> = {
@@ -126,11 +132,12 @@ serve(async (req) => {
         }, {} as Record<string, { requested: boolean }>)
       });
 
-      logStep("Successfully updated Stripe account capabilities", { stripeAccountId, enabledMethods });
+      logStep("Successfully updated Stripe account capabilities", { stripeAccountId, enabledMethods, environment: environmentFilter });
 
       return new Response(JSON.stringify({ 
         success: true, 
-        message: "Payment methods synced with Stripe successfully"
+        message: "Payment methods synced with Stripe successfully",
+        test_mode: test_mode
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -143,7 +150,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         success: true, 
         message: "Payment methods saved locally. Stripe sync will be retried later.",
-        warning: stripeErr.message
+        warning: stripeErr.message,
+        test_mode: test_mode
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

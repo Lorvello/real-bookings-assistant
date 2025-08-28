@@ -27,7 +27,7 @@ serve(async (req) => {
       throw new Error("User not authenticated");
     }
 
-    const { booking_id, calendar_id } = await req.json();
+    const { booking_id, calendar_id, test_mode = false } = await req.json();
 
     // Get booking details
     const { data: booking, error: bookingError } = await supabaseClient
@@ -55,8 +55,16 @@ serve(async (req) => {
       throw new Error("Stripe account not connected or charges not enabled");
     }
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Initialize Stripe with appropriate key based on mode
+    const stripeKey = test_mode 
+      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
+      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
+    
+    if (!stripeKey) {
+      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
+    }
+    
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 

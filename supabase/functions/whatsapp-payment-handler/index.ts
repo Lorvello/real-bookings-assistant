@@ -7,24 +7,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[WHATSAPP-PAYMENT-HANDLER] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
+    logStep("Function started");
+    
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
-    )
+    );
 
-    const { 
-      conversationId, 
-      serviceTypeId, 
-      paymentType = 'full',
-      installmentPlan = null 
-    } = await req.json()
+    const { conversationId, serviceTypeId, paymentType = 'full', installmentPlan, testMode = false } = await req.json();
+    logStep("Request parsed", { conversationId, serviceTypeId, paymentType, installmentPlan, testMode });
+
+    // Initialize Stripe with appropriate key based on mode
+    const stripeKey = testMode 
+      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
+      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
+    
+    if (!stripeKey) {
+      throw new Error(`Stripe ${testMode ? 'test' : 'live'} secret key not configured`);
+    }
+    
+    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+    logStep("Stripe initialized", { mode: testMode ? 'test' : 'live' });
+
+    const isTestMode = testMode;
 
     console.log('Processing WhatsApp payment for:', { conversationId, serviceTypeId, paymentType })
 
@@ -50,31 +67,25 @@ serve(async (req) => {
       throw new Error('Service type not found')
     }
 
-    // Calculate payment amount
-    let amountCents = Math.round((serviceType.price || 0) * 100)
-    
+    // Calculate payment amount based on type
+    let amount = serviceType.price * 100 // Convert to cents
     if (paymentType === 'installment' && installmentPlan) {
-      // For installments, calculate first payment amount
-      const firstPayment = installmentPlan.payments?.[0]
-      if (firstPayment) {
-        amountCents = Math.round((firstPayment.amount || 0) * 100)
+      const plan = serviceType.installment_plans?.find((p: any) => p.id === installmentPlan.id)
+      if (plan) {
+        amount = plan.amount_per_payment * 100
       }
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-      apiVersion: '2023-10-16',
-    })
-
-    // Use appropriate Stripe price ID (test vs live)
-    const isTestMode = true // Could be determined by calendar settings
-    const stripePriceId = isTestMode ? serviceType.stripe_test_price_id : serviceType.stripe_live_price_id
-
+    // Use the appropriate Stripe price ID based on test mode
+    const stripePriceId = isTestMode ? serviceType.stripe_price_id_test : serviceType.stripe_price_id_live;
+    
     if (!stripePriceId) {
-      throw new Error('No Stripe price configured for this service')
+      throw new Error(`No Stripe price ID found for ${isTestMode ? 'test' : 'live'} mode`);
     }
 
-    // Create Stripe checkout session
+    // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card', 'ideal'],
       line_items: [
         {
           price: stripePriceId,
@@ -82,56 +93,58 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin') || 'https://your-domain.com'}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get('origin') || 'https://your-domain.com'}/booking-cancelled`,
+      success_url: `${req.headers.get('origin') || 'https://localhost:3000'}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.get('origin') || 'https://localhost:3000'}/payment-cancelled`,
       metadata: {
         conversation_id: conversationId,
         service_type_id: serviceTypeId,
         payment_type: paymentType,
-        calendar_id: conversation.calendar_id,
+        test_mode: isTestMode.toString(),
       },
     })
 
-    // Create payment session record
-    const { data: paymentSession, error: paymentError } = await supabaseClient
+    // Store payment session in Supabase
+    const { data: paymentSession, error: sessionError } = await supabaseClient
       .from('whatsapp_payment_sessions')
-      .insert([{
+      .insert({
         conversation_id: conversationId,
         service_type_id: serviceTypeId,
-        calendar_id: conversation.calendar_id,
-        amount_cents: amountCents,
-        payment_type: paymentType,
-        installment_plan: installmentPlan,
         stripe_session_id: session.id,
         payment_url: session.url,
-      }])
-      .select('*')
+        amount_cents: amount,
+        payment_type: paymentType,
+        installment_plan_id: installmentPlan?.id,
+        status: 'pending',
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+        test_mode: isTestMode
+      })
+      .select()
       .single()
 
-    if (paymentError) {
-      console.error('Error creating payment session:', paymentError)
-      throw paymentError
+    if (sessionError) {
+      console.error('Error storing payment session:', sessionError)
+      throw new Error('Failed to store payment session')
     }
-
-    console.log('Payment session created:', paymentSession.id)
 
     return new Response(
       JSON.stringify({
         success: true,
-        paymentUrl: session.url,
-        sessionId: session.id,
-        paymentSessionId: paymentSession.id,
+        payment_url: session.url,
+        session_id: session.id,
+        payment_session_id: paymentSession.id,
+        test_mode: isTestMode
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       }
     )
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in whatsapp-payment-handler:', error)
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Internal server error' 
+        success: false, 
+        error: error.message 
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
