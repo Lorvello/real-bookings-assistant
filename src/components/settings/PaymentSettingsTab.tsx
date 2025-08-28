@@ -41,7 +41,8 @@ import {
   ChevronDown,
   TrendingUp,
   Zap,
-  Lock
+  Lock,
+  X
 } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
@@ -88,6 +89,7 @@ export function PaymentSettingsTab() {
   const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | 'professionalism' | null>(null);
   const [showEmbeddedOnboarding, setShowEmbeddedOnboarding] = useState(false);
   const [feesInfoOpen, setFeesInfoOpen] = useState(false);
+  const [currencyConversionModalOpen, setCurrencyConversionModalOpen] = useState(false);
   
   const stripeConfig = getStripeConfig();
 
@@ -871,71 +873,179 @@ export function PaymentSettingsTab() {
                 <CollapsibleContent>
                   <div className="mt-3 space-y-4">
                     {/* Payment Methods Fees */}
-                    <div>
-                      <h5 className="text-xs font-medium text-muted-foreground mb-2">Payment Methods Fees</h5>
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">iDEAL</span>
-                          <span className="text-muted-foreground">€0.29 (+2% currency conversion)</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Cards (EEA)</span>
-                          <span className="text-muted-foreground">1.5% + €0.25</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Cards (UK)</span>
-                          <span className="text-muted-foreground">2.5% + €0.25</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Cards (International)</span>
-                          <span className="text-muted-foreground">3.25% + €0.25</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Apple Pay</span>
-                          <span className="text-muted-foreground">Same as cards</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Bancontact</span>
-                          <span className="text-muted-foreground">€0.35 (+2% currency conversion)</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">BLIK</span>
-                          <span className="text-muted-foreground">1.6% + €0.25 (+2% currency conversion)</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">TWINT</span>
-                          <span className="text-muted-foreground">1.9% + CHF 0.30</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Revolut Pay</span>
-                          <span className="text-muted-foreground">1.5% + €0.25 (+2% currency conversion)</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Sofort</span>
-                          <span className="text-muted-foreground">1.4% + €0.25</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">EPS</span>
-                          <span className="text-muted-foreground">1.6% + €0.25</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Przelewy24</span>
-                          <span className="text-muted-foreground">2.2% + €0.30</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Pay by Bank</span>
-                          <span className="text-muted-foreground">~1.5% + £0.20</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Cartes Bancaires</span>
-                          <span className="text-muted-foreground">Same as cards</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Google Pay</span>
-                          <span className="text-muted-foreground">Same as cards</span>
-                        </div>
-                      </div>
-                    </div>
+                     <div>
+                       <h5 className="text-xs font-medium text-muted-foreground mb-2">Payment Methods Fees</h5>
+                       <div className="space-y-1">
+                         <div className="flex justify-between items-center text-xs">
+                           <span className="text-muted-foreground">iDEAL</span>
+                           <span className="text-muted-foreground">€0.29</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">Cards (EEA)</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">1.5% + €0.25</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">Cards (UK)</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">2.5% + €0.25</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">Cards (International)</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">3.25% + €0.25</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">Apple Pay</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">Same as cards</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">Bancontact</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">€0.35</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">BLIK</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">1.6% + €0.25</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">TWINT</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">1.9% + CHF 0.30</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">Revolut Pay</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">1.5% + €0.25</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">Sofort</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">1.4% + €0.25</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">EPS</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">1.6% + €0.25</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">Przelewy24</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">2.2% + €0.30</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <span className="text-muted-foreground">Pay by Bank</span>
+                           <span className="text-muted-foreground">~1.5% + £0.20</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <span className="text-muted-foreground">Cartes Bancaires</span>
+                           <span className="text-muted-foreground">Same as cards</span>
+                         </div>
+                         <div className="flex justify-between items-center text-xs">
+                           <div className="flex items-center gap-2">
+                             <span className="text-muted-foreground">Google Pay</span>
+                             <button
+                               onClick={() => setCurrencyConversionModalOpen(true)}
+                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
+                               aria-label="Currency conversion info"
+                             >
+                               <Info className="w-3 h-3 text-muted-foreground" />
+                             </button>
+                           </div>
+                           <span className="text-muted-foreground">Same as cards</span>
+                         </div>
+                       </div>
+                     </div>
 
                     {/* Fee Impact Example */}
                     <div className="border-t border-muted/40 pt-3">
@@ -1093,6 +1203,57 @@ export function PaymentSettingsTab() {
           }}
           onClose={() => setShowEmbeddedOnboarding(false)}
         />
+      )}
+
+      {/* Currency Conversion Modal */}
+      {currencyConversionModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={() => setCurrencyConversionModalOpen(false)}
+        >
+          <div 
+            className="relative w-full max-w-[calc(100vw-32px)] sm:max-w-md bg-background rounded-2xl border shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <Info className="h-5 w-5 text-primary" />
+                Currency Conversion Fee
+              </h2>
+              <button
+                onClick={() => setCurrencyConversionModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="px-6 py-4 space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                  <span className="text-sm text-foreground">
+                    Stripe applies an additional 2% fee if the payment currency is different from your account currency.
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                  <span className="text-sm text-foreground">
+                    Example: a UK customer pays £100 in GBP → funds are converted to EUR with 2% added on top of the exchange rate.
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                  <span className="text-sm text-foreground">
+                    If the customer pays in the same currency as your account (e.g., EUR), this fee does not apply.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
