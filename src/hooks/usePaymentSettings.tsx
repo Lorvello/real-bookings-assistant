@@ -122,7 +122,39 @@ export const usePaymentSettings = (calendarId?: string) => {
   };
 
   const updatePayoutOption = async (option: 'standard' | 'instant') => {
-    return await updateSettings({ payout_option: option });
+    // First update local settings
+    const success = await updateSettings({ payout_option: option });
+    
+    if (success && calendarId) {
+      try {
+        // Sync to Stripe
+        const { error } = await supabase.functions.invoke('sync-payout-settings', {
+          body: {
+            calendarId,
+            payoutOption: option,
+            testMode: true // TODO: Get from stripe config
+          }
+        });
+
+        if (error) {
+          console.error('Failed to sync payout settings to Stripe:', error);
+          toast({
+            title: "Warning",
+            description: "Settings saved locally but failed to sync to Stripe",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: `Payout settings updated to ${option} in Stripe`,
+          });
+        }
+      } catch (error) {
+        console.error('Error syncing payout settings:', error);
+      }
+    }
+    
+    return success;
   };
 
   useEffect(() => {
