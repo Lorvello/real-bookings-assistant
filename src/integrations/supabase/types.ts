@@ -1254,6 +1254,7 @@ export type Database = {
           id: string
           payment_deadline_hours: number | null
           payment_required_for_booking: boolean
+          payout_option: string | null
           platform_fee_percentage: number
           refund_policy_text: string | null
           secure_payments_enabled: boolean
@@ -1268,6 +1269,7 @@ export type Database = {
           id?: string
           payment_deadline_hours?: number | null
           payment_required_for_booking?: boolean
+          payout_option?: string | null
           platform_fee_percentage?: number
           refund_policy_text?: string | null
           secure_payments_enabled?: boolean
@@ -1282,6 +1284,7 @@ export type Database = {
           id?: string
           payment_deadline_hours?: number | null
           payment_required_for_booking?: boolean
+          payout_option?: string | null
           platform_fee_percentage?: number
           refund_policy_text?: string | null
           secure_payments_enabled?: boolean

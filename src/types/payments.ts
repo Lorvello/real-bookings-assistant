@@ -9,6 +9,7 @@ export interface PaymentSettings {
   payment_deadline_hours: number;
   auto_cancel_unpaid_bookings: boolean;
   enabled_payment_methods: string[];
+  payout_option: 'standard' | 'instant';
   created_at: string;
   updated_at: string;
 }

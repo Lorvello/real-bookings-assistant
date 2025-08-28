@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 import { 
   Collapsible,
   CollapsibleContent,
@@ -71,7 +72,8 @@ export function PaymentSettingsTab() {
     updateSettings,
     toggleSecurePayments,
     togglePaymentRequired,
-    updatePaymentMethods
+    updatePaymentMethods,
+    updatePayoutOption
   } = usePaymentSettings(selectedCalendar?.id);
   
   const {
@@ -95,6 +97,10 @@ export function PaymentSettingsTab() {
   const [selectedMethods, setSelectedMethods] = useState<string[]>(['ideal']);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingMethods, setSavingMethods] = useState(false);
+  
+  // Payout options state
+  const [selectedPayoutOption, setSelectedPayoutOption] = useState<'standard' | 'instant'>('standard');
+  const [hasUnsavedPayoutChanges, setHasUnsavedPayoutChanges] = useState(false);
   
   const stripeConfig = getStripeConfig();
 
@@ -145,6 +151,12 @@ export function PaymentSettingsTab() {
     const currentKey = [...selectedMethods].sort().join(',');
     setHasUnsavedChanges(originalKey !== currentKey);
   }, [selectedMethods, settings?.enabled_payment_methods]);
+
+  // Track changes to payout options
+  useEffect(() => {
+    const original = settings?.payout_option ?? 'standard';
+    setHasUnsavedPayoutChanges(original !== selectedPayoutOption);
+  }, [selectedPayoutOption, settings?.payout_option]);
 
   const loadStripeAccount = async () => {
     setAccountLoading(true);
@@ -300,6 +312,29 @@ export function PaymentSettingsTab() {
       toast({
         title: "Error",
         description: "Failed to save payment methods",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingMethods(false);
+    }
+  };
+
+  const handleSavePayoutOption = async (option: 'standard' | 'instant') => {
+    setSavingMethods(true);
+    try {
+      const success = await updatePayoutOption(option);
+      if (success) {
+        setHasUnsavedPayoutChanges(false);
+        toast({
+          title: "Success",
+          description: "Payout option saved successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving payout option:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save payout option",
         variant: "destructive",
       });
     } finally {
@@ -741,8 +776,25 @@ export function PaymentSettingsTab() {
 
             {/* Payout Options */}
             <div className="bg-muted/50 p-4 rounded-lg">
-              <h4 className="font-medium mb-1 text-foreground">Payout Options</h4>
-              <p className="text-sm text-muted-foreground mb-4">Choose how quickly you want to receive your payments</p>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h4 className="font-medium text-foreground">Payout Options</h4>
+                  <p className="text-sm text-muted-foreground">Choose how quickly you want to receive your payments</p>
+                </div>
+                <button
+                  onClick={() => handleSavePayoutOption(selectedPayoutOption)}
+                  disabled={!hasUnsavedPayoutChanges || savingMethods}
+                  aria-disabled={!hasUnsavedPayoutChanges || savingMethods}
+                  className={cn(
+                    "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                    "bg-primary text-primary-foreground hover:bg-primary/90",
+                    (!hasUnsavedPayoutChanges || savingMethods) && "opacity-50 cursor-not-allowed hover:bg-primary"
+                  )}
+                  title={!hasUnsavedPayoutChanges ? "Geen wijzigingen om op te slaan" : undefined}
+                >
+                  {savingMethods ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Standard Payout Card */}
                 <div className="relative">
@@ -751,7 +803,8 @@ export function PaymentSettingsTab() {
                     id="standard-payout" 
                     name="payout-option" 
                     className="sr-only peer" 
-                    defaultChecked 
+                    checked={selectedPayoutOption === 'standard'}
+                    onChange={() => setSelectedPayoutOption('standard')}
                   />
                   <label 
                     htmlFor="standard-payout" 
@@ -802,6 +855,8 @@ export function PaymentSettingsTab() {
                     id="instant-payout" 
                     name="payout-option" 
                     className="sr-only peer" 
+                    checked={selectedPayoutOption === 'instant'}
+                    onChange={() => setSelectedPayoutOption('instant')}
                   />
                   <label 
                     htmlFor="instant-payout" 

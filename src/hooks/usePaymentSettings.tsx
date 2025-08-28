@@ -30,7 +30,8 @@ export const usePaymentSettings = (calendarId?: string) => {
           ...data,
           enabled_payment_methods: Array.isArray(data.enabled_payment_methods) 
             ? data.enabled_payment_methods as string[]
-            : ['ideal']
+            : ['ideal'],
+          payout_option: (data.payout_option as 'standard' | 'instant') || 'standard'
         });
       }
     } catch (error) {
@@ -67,7 +68,8 @@ export const usePaymentSettings = (calendarId?: string) => {
           ...data,
           enabled_payment_methods: Array.isArray(data.enabled_payment_methods) 
             ? data.enabled_payment_methods as string[]
-            : ['ideal']
+            : ['ideal'],
+          payout_option: (data.payout_option as 'standard' | 'instant') || 'standard'
         });
       } else {
         // Update existing settings
@@ -83,7 +85,8 @@ export const usePaymentSettings = (calendarId?: string) => {
           ...data,
           enabled_payment_methods: Array.isArray(data.enabled_payment_methods) 
             ? data.enabled_payment_methods as string[]
-            : ['ideal']
+            : ['ideal'],
+          payout_option: (data.payout_option as 'standard' | 'instant') || 'standard'
         });
       }
 
@@ -118,6 +121,10 @@ export const usePaymentSettings = (calendarId?: string) => {
     return await updateSettings({ enabled_payment_methods: methods });
   };
 
+  const updatePayoutOption = async (option: 'standard' | 'instant') => {
+    return await updateSettings({ payout_option: option });
+  };
+
   useEffect(() => {
     fetchSettings();
   }, [calendarId]);
@@ -130,6 +137,7 @@ export const usePaymentSettings = (calendarId?: string) => {
     toggleSecurePayments,
     togglePaymentRequired,
     updatePaymentMethods,
+    updatePayoutOption,
     refetch: fetchSettings
   };
 };
