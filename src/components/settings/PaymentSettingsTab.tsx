@@ -656,6 +656,7 @@ export function PaymentSettingsTab() {
                   console.log('Selected payment methods:', methods);
                   // Here you would save the selected methods to your settings
                 }}
+                onFeesOpen={() => setFeesInfoOpen(true)}
               />
             </div>
 
@@ -955,11 +956,6 @@ export function PaymentSettingsTab() {
         </Card>
       )}
 
-      {/* Account-level info */}
-      <div className="text-xs text-muted-foreground bg-muted/30 border border-muted rounded p-2 flex items-center space-x-2">
-        <Info className="h-3 w-3 flex-shrink-0" />
-        <span>Payment settings are managed at the account level and apply to all team members and calendars.</span>
-      </div>
 
       {/* Research Modal */}
       <ResearchModal 

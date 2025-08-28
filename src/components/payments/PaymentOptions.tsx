@@ -148,6 +148,7 @@ const paymentMethods: PaymentMethod[] = [
 interface PaymentOptionsProps {
   selectedMethods?: string[];
   onSelectionChange?: (selectedMethods: string[]) => void;
+  onFeesOpen?: () => void;
   className?: string;
 }
 
@@ -155,9 +156,10 @@ interface PaymentMethodModalProps {
   method: PaymentMethod;
   isOpen: boolean;
   onClose: () => void;
+  onFeesOpen?: () => void;
 }
 
-function PaymentMethodModal({ method, isOpen, onClose }: PaymentMethodModalProps) {
+function PaymentMethodModal({ method, isOpen, onClose, onFeesOpen }: PaymentMethodModalProps) {
   const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
@@ -233,12 +235,13 @@ function PaymentMethodModal({ method, isOpen, onClose }: PaymentMethodModalProps
               className="text-primary text-sm hover:underline"
               onClick={() => {
                 onClose();
-                // Scroll to fees section
+                // Scroll to fees section and open it
                 setTimeout(() => {
                   const feesSection = document.getElementById('fees-section');
                   if (feesSection) {
                     feesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
+                  onFeesOpen?.();
                 }, 100);
               }}
             >
@@ -254,6 +257,7 @@ function PaymentMethodModal({ method, isOpen, onClose }: PaymentMethodModalProps
 export function PaymentOptions({ 
   selectedMethods = ['ideal'], 
   onSelectionChange,
+  onFeesOpen,
   className 
 }: PaymentOptionsProps) {
   const [selected, setSelected] = useState<string[]>(selectedMethods);
@@ -349,6 +353,7 @@ export function PaymentOptions({
                   method={method}
                   isOpen={openModalId === method.id}
                   onClose={() => setOpenModalId(null)}
+                  onFeesOpen={onFeesOpen}
                 />
               </div>
             );
@@ -368,7 +373,7 @@ export function PaymentOptions({
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          More payment options = higher conversion rates. Each method targets specific customer preferences.
+          Choose payment methods that are popular in your country and have low fees for optimal results.
         </p>
       </div>
     </div>
