@@ -691,7 +691,7 @@ export function PaymentSettingsTab() {
                     <Collapsible>
                       <CollapsibleTrigger asChild>
                         <div className="flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors group">
-                          <span>View fee breakdown</span>
+                           <span>View fee breakdown example</span>
                           <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                         </div>
                       </CollapsibleTrigger>
@@ -749,7 +749,7 @@ export function PaymentSettingsTab() {
                     <Collapsible>
                       <CollapsibleTrigger asChild>
                         <div className="flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors group">
-                          <span>View fee breakdown</span>
+                          <span>View fee breakdown example</span>
                           <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                         </div>
                       </CollapsibleTrigger>
