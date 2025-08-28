@@ -8,6 +8,7 @@ export interface PaymentSettings {
   refund_policy_text?: string;
   payment_deadline_hours: number;
   auto_cancel_unpaid_bookings: boolean;
+  enabled_payment_methods: string[];
   created_at: string;
   updated_at: string;
 }

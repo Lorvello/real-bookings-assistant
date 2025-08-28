@@ -1250,6 +1250,7 @@ export type Database = {
           auto_cancel_unpaid_bookings: boolean
           calendar_id: string
           created_at: string
+          enabled_payment_methods: Json | null
           id: string
           payment_deadline_hours: number | null
           payment_required_for_booking: boolean
@@ -1263,6 +1264,7 @@ export type Database = {
           auto_cancel_unpaid_bookings?: boolean
           calendar_id: string
           created_at?: string
+          enabled_payment_methods?: Json | null
           id?: string
           payment_deadline_hours?: number | null
           payment_required_for_booking?: boolean
@@ -1276,6 +1278,7 @@ export type Database = {
           auto_cancel_unpaid_bookings?: boolean
           calendar_id?: string
           created_at?: string
+          enabled_payment_methods?: Json | null
           id?: string
           payment_deadline_hours?: number | null
           payment_required_for_booking?: boolean

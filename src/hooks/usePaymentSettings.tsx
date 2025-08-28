@@ -25,7 +25,14 @@ export const usePaymentSettings = (calendarId?: string) => {
 
       if (error) throw error;
 
-      setSettings(data);
+      if (data) {
+        setSettings({
+          ...data,
+          enabled_payment_methods: Array.isArray(data.enabled_payment_methods) 
+            ? data.enabled_payment_methods as string[]
+            : ['ideal']
+        });
+      }
     } catch (error) {
       console.error('Error fetching payment settings:', error);
       toast({
@@ -56,7 +63,12 @@ export const usePaymentSettings = (calendarId?: string) => {
           .single();
 
         if (error) throw error;
-        setSettings(data);
+        setSettings({
+          ...data,
+          enabled_payment_methods: Array.isArray(data.enabled_payment_methods) 
+            ? data.enabled_payment_methods as string[]
+            : ['ideal']
+        });
       } else {
         // Update existing settings
         const { data, error } = await supabase
@@ -67,7 +79,12 @@ export const usePaymentSettings = (calendarId?: string) => {
           .single();
 
         if (error) throw error;
-        setSettings(data);
+        setSettings({
+          ...data,
+          enabled_payment_methods: Array.isArray(data.enabled_payment_methods) 
+            ? data.enabled_payment_methods as string[]
+            : ['ideal']
+        });
       }
 
       toast({
@@ -97,6 +114,10 @@ export const usePaymentSettings = (calendarId?: string) => {
     return await updateSettings({ payment_required_for_booking: required });
   };
 
+  const updatePaymentMethods = async (methods: string[]) => {
+    return await updateSettings({ enabled_payment_methods: methods });
+  };
+
   useEffect(() => {
     fetchSettings();
   }, [calendarId]);
@@ -108,6 +129,7 @@ export const usePaymentSettings = (calendarId?: string) => {
     updateSettings,
     toggleSecurePayments,
     togglePaymentRequired,
+    updatePaymentMethods,
     refetch: fetchSettings
   };
 };

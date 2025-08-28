@@ -55,6 +55,7 @@ import { getStripeConfig } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
 import type { BusinessStripeAccount } from '@/types/payments';
 import { PaymentOptions } from '../payments/PaymentOptions';
+import { supabase } from '@/integrations/supabase/client';
 
 // Fixed: Removed StripeEmbeddedDashboard component
 
@@ -69,7 +70,8 @@ export function PaymentSettingsTab() {
     saving: settingsSaving,
     updateSettings,
     toggleSecurePayments,
-    togglePaymentRequired
+    togglePaymentRequired,
+    updatePaymentMethods
   } = usePaymentSettings(selectedCalendar?.id);
   
   const {
@@ -90,6 +92,9 @@ export function PaymentSettingsTab() {
   const [showEmbeddedOnboarding, setShowEmbeddedOnboarding] = useState(false);
   const [feesInfoOpen, setFeesInfoOpen] = useState(false);
   const [currencyConversionModalOpen, setCurrencyConversionModalOpen] = useState(false);
+  const [selectedMethods, setSelectedMethods] = useState<string[]>(['ideal']);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [savingMethods, setSavingMethods] = useState(false);
   
   const stripeConfig = getStripeConfig();
 
@@ -124,6 +129,23 @@ export function PaymentSettingsTab() {
       setRefundPolicy(settings.refund_policy_text || '');
     }
   }, [settings]);
+
+  // Load saved payment methods
+  useEffect(() => {
+    if (settings?.enabled_payment_methods) {
+      setSelectedMethods(settings.enabled_payment_methods);
+      setHasUnsavedChanges(false);
+    }
+  }, [settings?.enabled_payment_methods]);
+
+  // Track changes to payment methods
+  useEffect(() => {
+    if (settings?.enabled_payment_methods) {
+      const originalMethods = settings.enabled_payment_methods.sort().join(',');
+      const currentMethods = selectedMethods.sort().join(',');
+      setHasUnsavedChanges(originalMethods !== currentMethods);
+    }
+  }, [selectedMethods, settings?.enabled_payment_methods]);
 
   const loadStripeAccount = async () => {
     setAccountLoading(true);
@@ -227,6 +249,63 @@ export function PaymentSettingsTab() {
       payment_deadline_hours: parseInt(paymentDeadline),
       refund_policy_text: refundPolicy
     });
+  };
+
+  const handleToggleMethod = (methodId: string) => {
+    setSelectedMethods(prev => 
+      prev.includes(methodId) 
+        ? prev.filter(id => id !== methodId)
+        : [...prev, methodId]
+    );
+  };
+
+  const handleSavePaymentMethods = async () => {
+    if (!selectedMethods.length) {
+      toast({
+        title: "Error",
+        description: "Please select at least one payment method",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSavingMethods(true);
+    try {
+      // Save to database
+      const success = await updatePaymentMethods(selectedMethods);
+      if (!success) return;
+
+      // Sync with Stripe if account is connected
+      if (stripeAccount?.stripe_account_id && selectedCalendar?.id) {
+        try {
+          const { data, error } = await supabase.functions.invoke('sync-payment-methods', {
+            body: { 
+              payment_methods: selectedMethods,
+              calendar_id: selectedCalendar.id
+            }
+          });
+          
+          if (error) throw error;
+        } catch (syncError) {
+          console.warn('Stripe sync failed, but settings saved locally:', syncError);
+        }
+      }
+
+      setHasUnsavedChanges(false);
+      toast({
+        title: "Success",
+        description: "Payment methods saved successfully",
+      });
+    } catch (error) {
+      console.error('Error saving payment methods:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save payment methods",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingMethods(false);
+    }
   };
 
   const getAccountStatusColor = (status: string) => {
@@ -653,13 +732,33 @@ export function PaymentSettingsTab() {
             <div className="bg-muted/50 p-6 rounded-lg">
               <h4 className="font-medium mb-6 text-foreground">Payment Methods</h4>
               <PaymentOptions 
-                selectedMethods={['ideal']}
-                onSelectionChange={(methods) => {
-                  console.log('Selected payment methods:', methods);
-                  // Here you would save the selected methods to your settings
-                }}
+                selectedMethods={selectedMethods}
+                onSelectionChange={setSelectedMethods}
                 onFeesOpen={() => setFeesInfoOpen(true)}
               />
+
+              {/* Save Button */}
+              {hasUnsavedChanges && (
+                <div className="flex justify-end pt-4 border-t">
+                  <Button
+                    onClick={handleSavePaymentMethods}
+                    disabled={savingMethods || !selectedMethods.length}
+                    className="min-w-[120px]"
+                  >
+                    {savingMethods ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="mr-2 h-4 w-4" />
+                        Save Methods
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Payout Options */}
