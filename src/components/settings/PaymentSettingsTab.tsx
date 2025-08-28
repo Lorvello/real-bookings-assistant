@@ -14,6 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreditCard, Shield, ExternalLink, CheckCircle, AlertCircle, Loader2, Euro, Clock, RefreshCw, Check, ArrowRight, TestTube, RotateCcw, Info, ChevronDown, TrendingUp, Zap, Lock, X } from 'lucide-react';
+import { FundFlowCard } from './FundFlowCard';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
@@ -875,9 +876,9 @@ export function PaymentSettingsTab() {
                 <CollapsibleContent>
                   <div className="mt-3 space-y-4">
               
-                    {/* 3-step simplified diagram */}
-                    <div className="mb-4">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-2">
+                     {/* Redesigned flow diagram */}
+                     <div className="mb-4">
+                       <div className="flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-2">
                   {/* Customer */}
                   <div className="flex flex-col items-center">
                     <div className="bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-full text-sm font-medium shadow-sm">
@@ -886,30 +887,30 @@ export function PaymentSettingsTab() {
                     <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Payment initiated in local currency</p>
                   </div>
                   
-                  {/* First connecting line with annotations */}
-                  <div className="flex flex-col items-center gap-1 flex-1 px-2">
-                    <div className="w-full border-t-2 border-dashed border-primary/30 relative">
-                      <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
-                    </div>
-                    <div className="text-center space-y-1">
-                      <div className="group relative">
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                          Currency Conversion (+2% if applicable)
-                        </span>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                          +2% fee if payment currency ≠ account currency
-                        </div>
-                      </div>
-                      <div className="group relative">
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                          Payment Method Fee deducted
-                        </span>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                          Based on method (see Fees section)
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                         {/* First arrow with Platform Fee card */}
+                         <div className="flex flex-col items-center gap-2 flex-1 px-2">
+                           <div className="w-full border-t-2 border-dashed border-primary/30 relative">
+                             <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
+                           </div>
+                           <FundFlowCard 
+                             title="Payment Processing"
+                             items={[
+                               {
+                                 label: "Currency Conversion",
+                                 description: "+2% fee if payment currency differs from your account currency"
+                               },
+                               {
+                                 label: "Payment Method Fee", 
+                                 description: "Based on selected method (iDEAL: €0.29, Cards: 1.5-2.5% + €0.25)"
+                               },
+                               {
+                                 label: "Platform Fee",
+                                 description: "1.9% + €0.25/€0.35 deducted by Booking Assistant platform"
+                               }
+                             ]}
+                             className="max-w-[200px]"
+                           />
+                         </div>
                   
                   {/* Connected Account */}
                   <div className="flex flex-col items-center">
@@ -919,36 +920,22 @@ export function PaymentSettingsTab() {
                     <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Gross funds received in account currency</p>
                   </div>
                   
-                  {/* Second connecting line with annotations */}
-                  <div className="flex flex-col items-center gap-1 flex-1 px-2">
-                    <div className="w-full border-t-2 border-dashed border-primary/30 relative">
-                      <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
-                    </div>
-                    <div className="text-center space-y-1">
-                      <div className="group relative">
-                         <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                           Stripe Processing Fee (0.25% + €0.10 / 1%)
-                         </span>
-                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                           0.25% + €0.10 for Standard Payout, 1% for Instant Payout
+                         {/* Second arrow with Stripe Processing Fee card */}
+                         <div className="flex flex-col items-center gap-2 flex-1 px-2">
+                           <div className="w-full border-t-2 border-dashed border-primary/30 relative">
+                             <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
+                           </div>
+                           <FundFlowCard 
+                             title="Stripe Processing"
+                             items={[
+                               {
+                                 label: "Stripe Processing Fee",
+                                 description: "0.25% + €0.10 for Standard Payout, 1% for Instant Payout"
+                               }
+                             ]}
+                             className="max-w-[200px]"
+                           />
                          </div>
-                      </div>
-                      <div className="group relative">
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                          Platform Fee (1.9% + €0.25/€0.35)
-                        </span>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                          Deducted by Booking Assistant platform
-                        </div>
-                      </div>
-                      <div className="group relative">
-                        
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                          Final amount after all deductions
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                   
                   {/* Bank Account */}
                   <div className="flex flex-col items-center">
