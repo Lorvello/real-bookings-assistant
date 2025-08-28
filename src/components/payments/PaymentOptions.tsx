@@ -8,17 +8,17 @@ import applePayLogo from '@/assets/payment-logos/apple-pay.svg';
 import visaLogo from '@/assets/payment-logos/visa.svg';
 import mastercardLogo from '@/assets/payment-logos/mastercard.svg';
 
-// Exact logo imports (temporary: using local SVGs until PNGs are added)
-import googlePayLogo from '@/assets/payment-logos/google-pay-updated.svg';
-import cartesBancairesLogo from '@/assets/payment-logos/cartes-bancaires.svg';
-import payByBankLogo from '@/assets/payment-logos/pay-by-bank.svg';
-import przelewy24Logo from '@/assets/payment-logos/przelewy24.svg';
-import epsLogo from '@/assets/payment-logos/eps.svg';
-import sofortLogo from '@/assets/payment-logos/sofort-updated.svg';
-import revolutLogo from '@/assets/payment-logos/revolut.svg';
-import twintLogo from '@/assets/payment-logos/twint-updated.svg';
-import blikLogo from '@/assets/payment-logos/blik.svg';
-import bancontactLogo from '@/assets/payment-logos/bancontact-updated.svg';
+// High-quality PNG payment logos
+import googlePayLogo from '@/assets/payment-logos/google-pay.png';
+import cartesBancairesLogo from '@/assets/payment-logos/cartes-bancaires.png';
+import payByBankLogo from '@/assets/payment-logos/pay-by-bank.png';
+import przelewy24Logo from '@/assets/payment-logos/przelewy24.png';
+import epsLogo from '@/assets/payment-logos/eps.png';
+import sofortLogo from '@/assets/payment-logos/sofort.png';
+import revolutLogo from '@/assets/payment-logos/revolut.png';
+import twintLogo from '@/assets/payment-logos/twint.png';
+import blikLogo from '@/assets/payment-logos/blik.png';
+import bancontactLogo from '@/assets/payment-logos/bancontact.png';
 
 interface PaymentMethod {
   id: string;
