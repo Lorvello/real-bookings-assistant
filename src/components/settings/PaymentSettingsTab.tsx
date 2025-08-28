@@ -39,15 +39,48 @@ export function PaymentSettingsTab() {
     { id: 'apple_pay', name: 'Apple Pay', fee: '1.5% + €0.25', feeType: 'percentage' },
     { id: 'bancontact', name: 'Bancontact', fee: '€0.35', feeType: 'fixed' },
     { id: 'blik', name: 'BLIK', fee: '1.6% + €0.25', feeType: 'percentage' },
-    { id: 'twint', name: 'TWINT', fee: '1.9% + CHF 0.30', feeType: 'percentage' },
+    { id: 'twint', name: 'TWINT', fee: '1.9% + 0.30', feeType: 'percentage' },
     { id: 'revolut_pay', name: 'Revolut Pay', fee: '1.5% + €0.25', feeType: 'percentage' },
     { id: 'sofort', name: 'Sofort', fee: '1.4% + €0.25', feeType: 'percentage' },
     { id: 'eps', name: 'EPS', fee: '1.6% + €0.25', feeType: 'percentage' },
     { id: 'przelewy24', name: 'Przelewy24', fee: '2.2% + €0.30', feeType: 'percentage' },
-    { id: 'pay_by_bank', name: 'Pay by Bank', fee: '~1.5% + £0.20', feeType: 'percentage' },
+    { id: 'pay_by_bank', name: 'Pay by Bank', fee: '1.5% + €0.20', feeType: 'percentage' },
     { id: 'cartes_bancaires', name: 'Cartes Bancaires', fee: '1.5% + €0.25', feeType: 'percentage' },
     { id: 'google_pay', name: 'Google Pay', fee: '1.5% + €0.25', feeType: 'percentage' }
   ];
+
+  // Helper functions for fee calculations
+  const calculateTotalFee = (payoutType: 'standard' | 'instant', paymentMethod: string) => {
+    const method = paymentMethodsFees.find(m => m.id === paymentMethod);
+    if (!method) return 'N/A';
+
+    // Platform fees
+    const platformPercentage = 1.9;
+    const platformFixed = payoutType === 'standard' ? 0.25 : 0.35;
+
+    // Stripe processing fees
+    const stripePercentage = payoutType === 'standard' ? 0.25 : 1.0;
+    const stripeFixed = payoutType === 'standard' ? 0.10 : 0;
+
+    if (method.feeType === 'fixed') {
+      // For fixed fees like iDEAL (€0.29)
+      const methodFixed = parseFloat(method.fee.replace(/[€£CHF]/g, '').replace(/[^0-9.]/g, ''));
+      const totalPercentage = platformPercentage + stripePercentage;
+      const totalFixed = platformFixed + stripeFixed + methodFixed;
+      
+      return `${totalPercentage}% + €${totalFixed.toFixed(2)}`;
+    } else {
+      // For percentage fees
+      const parts = method.fee.split(' + ');
+      const methodPercentage = parseFloat(parts[0].replace('%', ''));
+      const methodFixed = parts[1] ? parseFloat(parts[1].replace(/[€£CHF]/g, '').replace(/[^0-9.]/g, '')) : 0;
+      
+      const totalPercentage = platformPercentage + stripePercentage + methodPercentage;
+      const totalFixed = platformFixed + stripeFixed + methodFixed;
+      
+      return `${totalPercentage.toFixed(2)}% + €${totalFixed.toFixed(2)}`;
+    }
+  };
 
   const {
     selectedCalendar
@@ -693,10 +726,7 @@ export function PaymentSettingsTab() {
                           <div className="flex justify-between border-t border-border/50 pt-1 mt-1">
                             <span className="font-medium">Total fee:</span>
                             <span className="text-primary font-medium">
-                              {paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.feeType === 'fixed' 
-                                ? `2.15% + €${(0.64 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.replace('€', '') || '0')).toFixed(2)}`
-                                : `${2.15 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('%')[0] || '0')}% + €${(0.35 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('€')[1] || paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('+ ')[1]?.replace(/[^0-9.]/g, '') || '0')).toFixed(2)}`
-                              }
+                              {calculateTotalFee('standard', selectedPaymentMethod)}
                             </span>
                           </div>
                         </div>
@@ -754,10 +784,7 @@ export function PaymentSettingsTab() {
                           <div className="flex justify-between border-t border-border/50 pt-1 mt-1">
                             <span className="font-medium">Total fee:</span>
                             <span className="text-primary font-medium">
-                              {paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.feeType === 'fixed' 
-                                ? `2.9% + €${(0.35 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.replace('€', '') || '0')).toFixed(2)}`
-                                : `${2.9 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('%')[0] || '0')}% + €${(0.35 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('€')[1] || paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('+ ')[1]?.replace(/[^0-9.]/g, '') || '0')).toFixed(2)}`
-                              }
+                              {calculateTotalFee('instant', selectedPaymentMethod)}
                             </span>
                           </div>
                         </div>
