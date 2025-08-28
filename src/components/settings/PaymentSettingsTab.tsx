@@ -780,24 +780,9 @@ export function PaymentSettingsTab() {
 
             {/* Payout Options */}
             <div className="bg-muted/50 p-4 rounded-lg">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h4 className="font-medium text-foreground">Payout Options</h4>
-                  <p className="text-sm text-muted-foreground">Choose how quickly you want to receive your payments</p>
-                </div>
-                <button
-                  onClick={() => handleSavePayoutOption(selectedPayoutOption)}
-                  disabled={!hasUnsavedPayoutChanges || savingMethods}
-                  aria-disabled={!hasUnsavedPayoutChanges || savingMethods}
-                  className={cn(
-                    "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                    "bg-primary text-primary-foreground hover:bg-primary/90",
-                    (!hasUnsavedPayoutChanges || savingMethods) && "opacity-50 cursor-not-allowed hover:bg-primary"
-                  )}
-                  title={!hasUnsavedPayoutChanges ? "Geen wijzigingen om op te slaan" : undefined}
-                >
-                  {savingMethods ? 'Saving...' : 'Save Changes'}
-                </button>
+              <div className="mb-4">
+                <h4 className="font-medium text-foreground">Payout Options</h4>
+                <p className="text-sm text-muted-foreground">Choose how quickly you want to receive your payments</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Standard Payout Card */}
@@ -902,6 +887,30 @@ export function PaymentSettingsTab() {
                       </CollapsibleContent>
                     </Collapsible>
                   </label>
+                </div>
+              </div>
+              
+              {/* Summary with Save Button */}
+              <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm">
+                    <span className="font-medium text-foreground">
+                      Selected payout option: {selectedPayoutOption === 'standard' ? 'Standard (3 business days)' : 'Instant (within minutes)'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleSavePayoutOption(selectedPayoutOption)}
+                    disabled={!hasUnsavedPayoutChanges || savingMethods}
+                    aria-disabled={!hasUnsavedPayoutChanges || savingMethods}
+                    className={cn(
+                      "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                      "bg-primary text-primary-foreground hover:bg-primary/90",
+                      (!hasUnsavedPayoutChanges || savingMethods) && "opacity-50 cursor-not-allowed hover:bg-primary"
+                    )}
+                    title={!hasUnsavedPayoutChanges ? "Geen wijzigingen om op te slaan" : undefined}
+                  >
+                    {savingMethods ? 'Saving...' : 'Save Changes'}
+                  </button>
                 </div>
               </div>
             </div>
