@@ -10,41 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
-import { 
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from '@/components/ui/collapsible';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  CreditCard, 
-  Shield, 
-  ExternalLink, 
-  CheckCircle, 
-  AlertCircle,
-  Loader2,
-  Euro,
-  Clock,
-  RefreshCw,
-  Check,
-  ArrowRight,
-  TestTube,
-  RotateCcw,
-  Info,
-  ChevronDown,
-  TrendingUp,
-  Zap,
-  Lock,
-  X
-} from 'lucide-react';
+import { CreditCard, Shield, ExternalLink, CheckCircle, AlertCircle, Loader2, Euro, Clock, RefreshCw, Check, ArrowRight, TestTube, RotateCcw, Info, ChevronDown, TrendingUp, Zap, Lock, X } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
@@ -61,10 +30,18 @@ import { supabase } from '@/integrations/supabase/client';
 // Fixed: Removed StripeEmbeddedDashboard component
 
 export function PaymentSettingsTab() {
-  const { selectedCalendar } = useCalendarContext();
+  const {
+    selectedCalendar
+  } = useCalendarContext();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { toast } = useToast();
-  const { isAccountOwner, accountOwnerId, loading: roleLoading } = useAccountRole();
+  const {
+    toast
+  } = useToast();
+  const {
+    isAccountOwner,
+    accountOwnerId,
+    loading: roleLoading
+  } = useAccountRole();
   const {
     settings,
     loading: settingsLoading,
@@ -75,7 +52,6 @@ export function PaymentSettingsTab() {
     updatePaymentMethods,
     updatePayoutOption
   } = usePaymentSettings(selectedCalendar?.id);
-  
   const {
     loading: stripeLoading,
     getStripeAccount,
@@ -84,7 +60,6 @@ export function PaymentSettingsTab() {
     createOnboardingLink,
     resetStripeAccount
   } = useStripeConnect();
-
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
   const [platformFee, setPlatformFee] = useState('2.50');
@@ -97,29 +72,26 @@ export function PaymentSettingsTab() {
   const [selectedMethods, setSelectedMethods] = useState<string[]>(['ideal']);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingMethods, setSavingMethods] = useState(false);
-  
+
   // Payout options state
   const [selectedPayoutOption, setSelectedPayoutOption] = useState<'standard' | 'instant'>('standard');
   const [hasUnsavedPayoutChanges, setHasUnsavedPayoutChanges] = useState(false);
-  
   const stripeConfig = getStripeConfig();
-
   useEffect(() => {
     if (isAccountOwner && accountOwnerId && !roleLoading) {
       console.log('[PAYMENT SETTINGS] Loading Stripe account for owner:', accountOwnerId);
       loadStripeAccount();
-      
+
       // Handle return from Stripe onboarding
       const success = searchParams.get('success');
       const refresh = searchParams.get('refresh');
-      
       if (success === 'true' || refresh === 'true') {
         // Clear URL parameters
         const newParams = new URLSearchParams(searchParams);
         newParams.delete('success');
         newParams.delete('refresh');
         setSearchParams(newParams);
-        
+
         // Refresh account status after short delay
         setTimeout(() => {
           handleRefreshAccount();
@@ -127,7 +99,6 @@ export function PaymentSettingsTab() {
       }
     }
   }, [isAccountOwner, accountOwnerId, roleLoading, searchParams, setSearchParams]);
-
   useEffect(() => {
     if (settings) {
       setPlatformFee(settings.platform_fee_percentage.toString());
@@ -161,11 +132,9 @@ export function PaymentSettingsTab() {
     const original = settings?.payout_option ?? 'standard';
     setHasUnsavedPayoutChanges(original !== selectedPayoutOption);
   }, [selectedPayoutOption, settings?.payout_option]);
-
   const loadStripeAccount = async () => {
     setAccountLoading(true);
     console.log('[PAYMENT SETTINGS] Loading Stripe account...');
-    
     try {
       const account = await getStripeAccount();
       console.log('[PAYMENT SETTINGS] Stripe account loaded:', {
@@ -182,18 +151,16 @@ export function PaymentSettingsTab() {
       setAccountLoading(false);
     }
   };
-
   const handleRefreshAccount = async () => {
     const account = await refreshAccountStatus();
     if (account) {
       setStripeAccount(account);
       toast({
         title: "Account status refreshed",
-        description: "Your Stripe account status has been updated.",
+        description: "Your Stripe account status has been updated."
       });
     }
   };
-
   const handleOpenStripeDashboard = async () => {
     try {
       const url = await createLoginLink();
@@ -204,20 +171,17 @@ export function PaymentSettingsTab() {
       toast({
         title: "Error",
         description: "Failed to open Stripe dashboard",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleStartOnboarding = async () => {
     setShowEmbeddedOnboarding(true);
   };
-
   const handleOnboardingComplete = async () => {
     setShowEmbeddedOnboarding(false);
     // Immediately refresh account status after onboarding completion
     console.log('[PAYMENT SETTINGS] Onboarding completed, refreshing account status...');
-    
     try {
       const refreshedAccount = await refreshAccountStatus();
       if (refreshedAccount) {
@@ -227,13 +191,11 @@ export function PaymentSettingsTab() {
           charges_enabled: refreshedAccount.charges_enabled,
           payouts_enabled: refreshedAccount.payouts_enabled
         });
-        
+
         // Show success toast
         toast({
           title: "Stripe setup completed!",
-          description: refreshedAccount.charges_enabled && refreshedAccount.payouts_enabled 
-            ? "Your account is fully set up and ready to accept payments."
-            : "Account setup in progress. Some features may need additional verification.",
+          description: refreshedAccount.charges_enabled && refreshedAccount.payouts_enabled ? "Your account is fully set up and ready to accept payments." : "Account setup in progress. Some features may need additional verification."
         });
       }
     } catch (error) {
@@ -244,20 +206,18 @@ export function PaymentSettingsTab() {
       }, 2000);
     }
   };
-
   const handleResetStripeConnection = async () => {
     const success = await resetStripeAccount();
     if (success) {
       setStripeAccount(null);
       toast({
         title: "Stripe account reset",
-        description: "Your Stripe connection has been reset. You can now connect a new account.",
+        description: "Your Stripe connection has been reset. You can now connect a new account."
       });
       // Refresh to show the setup flow again
       await loadStripeAccount();
     }
   };
-
   const handleUpdateSettings = async () => {
     await updateSettings({
       platform_fee_percentage: parseFloat(platformFee),
@@ -265,25 +225,18 @@ export function PaymentSettingsTab() {
       refund_policy_text: refundPolicy
     });
   };
-
   const handleToggleMethod = (methodId: string) => {
-    setSelectedMethods(prev => 
-      prev.includes(methodId) 
-        ? prev.filter(id => id !== methodId)
-        : [...prev, methodId]
-    );
+    setSelectedMethods(prev => prev.includes(methodId) ? prev.filter(id => id !== methodId) : [...prev, methodId]);
   };
-
   const handleSavePaymentMethods = async () => {
     if (!selectedMethods.length) {
       toast({
         title: "Error",
         description: "Please select at least one payment method",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setSavingMethods(true);
     try {
       // Save to database
@@ -293,36 +246,36 @@ export function PaymentSettingsTab() {
       // Sync with Stripe if account is connected
       if (stripeAccount?.stripe_account_id && selectedCalendar?.id) {
         try {
-          const { data, error } = await supabase.functions.invoke('sync-payment-methods', {
-            body: { 
+          const {
+            data,
+            error
+          } = await supabase.functions.invoke('sync-payment-methods', {
+            body: {
               payment_methods: selectedMethods,
               calendar_id: selectedCalendar.id
             }
           });
-          
           if (error) throw error;
         } catch (syncError) {
           console.warn('Stripe sync failed, but settings saved locally:', syncError);
         }
       }
-
       setHasUnsavedChanges(false);
       toast({
         title: "Success",
-        description: "Payment methods saved successfully",
+        description: "Payment methods saved successfully"
       });
     } catch (error) {
       console.error('Error saving payment methods:', error);
       toast({
         title: "Error",
         description: "Failed to save payment methods",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setSavingMethods(false);
     }
   };
-
   const handleSavePayoutOption = async (option: 'standard' | 'instant') => {
     setSavingMethods(true);
     try {
@@ -331,7 +284,7 @@ export function PaymentSettingsTab() {
         setHasUnsavedPayoutChanges(false);
         toast({
           title: "Success",
-          description: "Payout option saved successfully",
+          description: "Payout option saved successfully"
         });
       }
     } catch (error) {
@@ -339,60 +292,52 @@ export function PaymentSettingsTab() {
       toast({
         title: "Error",
         description: "Failed to save payout option",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setSavingMethods(false);
     }
   };
-
   const getAccountStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'default';
-      case 'pending': return 'secondary';
-      case 'restricted': return 'destructive';
-      case 'disabled': return 'destructive';
-      default: return 'secondary';
+      case 'active':
+        return 'default';
+      case 'pending':
+        return 'secondary';
+      case 'restricted':
+        return 'destructive';
+      case 'disabled':
+        return 'destructive';
+      default:
+        return 'secondary';
     }
   };
-
   const getAccountStatusText = (account: BusinessStripeAccount) => {
     if (!account.onboarding_completed) return 'Setup Required';
     if (account.charges_enabled && account.payouts_enabled) return 'Active';
     if (account.charges_enabled) return 'Charges Only';
     return account.account_status.charAt(0).toUpperCase() + account.account_status.slice(1);
   };
-
   if (settingsLoading || roleLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
+    return <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+      </div>;
   }
-
   if (!isAccountOwner) {
-    return (
-      <div className="space-y-6">
+    return <div className="space-y-6">
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
             Only account owners can manage payment settings. Contact your account owner to configure Stripe Connect and payment options.
           </AlertDescription>
         </Alert>
-      </div>
-    );
+      </div>;
   }
-
   const hasStripeAccount = !!stripeAccount?.stripe_account_id;
   const isStripeSetupComplete = stripeAccount?.onboarding_completed && stripeAccount?.charges_enabled && stripeAccount?.payouts_enabled;
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Stripe Mode Switcher (for development) */}
-      {stripeConfig.isTestMode && (
-        <StripeModeSwitcher />
-      )}
+      {stripeConfig.isTestMode && <StripeModeSwitcher />}
 
       {/* Feature Overview */}
       <Card>
@@ -414,42 +359,29 @@ export function PaymentSettingsTab() {
                 Allow customers to pay for bookings upfront through WhatsApp
               </div>
             </div>
-            <Switch
-              checked={settings?.secure_payments_enabled || false}
-              onCheckedChange={toggleSecurePayments}
-              disabled={settingsSaving || !isStripeSetupComplete}
-              data-pay-book-toggle
-            />
+            <Switch checked={settings?.secure_payments_enabled || false} onCheckedChange={toggleSecurePayments} disabled={settingsSaving || !isStripeSetupComplete} data-pay-book-toggle />
           </div>
           
-          {settings?.secure_payments_enabled && !isStripeSetupComplete && (
-            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          {settings?.secure_payments_enabled && !isStripeSetupComplete && <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
               <div className="flex items-center space-x-2">
                 <AlertCircle className="h-4 w-4 text-amber-600" />
                 <p className="text-sm text-amber-800">
-                  {hasStripeAccount 
-                    ? "Complete your Stripe account setup to enable Pay & Book"
-                    : "Connect your Stripe account to enable Pay & Book"
-                  }
+                  {hasStripeAccount ? "Complete your Stripe account setup to enable Pay & Book" : "Connect your Stripe account to enable Pay & Book"}
                 </p>
               </div>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
 
       {/* Stripe Account Setup */}
-      {accountLoading ? (
-        <Card>
+      {accountLoading ? <Card>
           <CardContent className="py-8">
             <div className="flex items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin mr-2" />
               <span className="text-sm text-muted-foreground">Loading account status...</span>
             </div>
           </CardContent>
-        </Card>
-      ) : isStripeSetupComplete ? (
-        <Card>
+        </Card> : isStripeSetupComplete ? <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
               <CreditCard className="h-5 w-5 text-primary" />
@@ -472,37 +404,25 @@ export function PaymentSettingsTab() {
               <ul className="space-y-2">
                 <li className="flex items-start space-x-3 text-sm group">
                   <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setResearchModal('no-shows')}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
+                  <button onClick={() => setResearchModal('no-shows')} className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground">
                     Reduce no-shows dramatically
                   </button>
                 </li>
                 <li className="flex items-start space-x-3 text-sm group">
                   <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setResearchModal('cashflow')}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
+                  <button onClick={() => setResearchModal('cashflow')} className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground">
                     Faster access to your cash
                   </button>
                 </li>
                 <li className="flex items-start space-x-3 text-sm group">
                   <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setResearchModal('compliance')}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
+                  <button onClick={() => setResearchModal('compliance')} className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground">
                     Secure & compliant payments
                   </button>
                 </li>
                 <li className="flex items-start space-x-3 text-sm group">
                   <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setResearchModal('professionalism')}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
+                  <button onClick={() => setResearchModal('professionalism')} className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground">
                     Present yourself as a professional business
                   </button>
                 </li>
@@ -513,29 +433,20 @@ export function PaymentSettingsTab() {
             </div>
 
             <div className="text-center py-3 space-y-4">
-              <Button 
-                onClick={handleOpenStripeDashboard}
-                disabled={stripeLoading}
-                size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white font-medium w-full max-w-xs"
-              >
+              <Button onClick={handleOpenStripeDashboard} disabled={stripeLoading} size="lg" className="bg-green-600 hover:bg-green-700 text-white font-medium w-full max-w-xs">
                 {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Go To Dashboard
               </Button>
 
 
-              {stripeConfig.isTestMode && (
-                <p className="text-xs text-orange-600">
+              {stripeConfig.isTestMode && <p className="text-xs text-orange-600">
                   <TestTube className="h-3 w-3 inline mr-1" />
                   Test mode - No real money will be processed
-                </p>
-              )}
+                </p>}
             </div>
           </CardContent>
-        </Card>
-      ) : hasStripeAccount ? (
-        <Card>
+        </Card> : hasStripeAccount ? <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
               <CreditCard className="h-5 w-5 text-primary" />
@@ -558,12 +469,10 @@ export function PaymentSettingsTab() {
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
                       Account ID: {stripeAccount.stripe_account_id}
-                      {stripeConfig.isTestMode && (
-                        <Badge variant="secondary" className="ml-2 bg-orange-100 text-orange-800">
+                      {stripeConfig.isTestMode && <Badge variant="secondary" className="ml-2 bg-orange-100 text-orange-800">
                           <TestTube className="h-3 w-3 mr-1" />
                           TEST MODE
-                        </Badge>
-                      )}
+                        </Badge>}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Environment: {stripeAccount.environment} | Updated: {new Date(stripeAccount.updated_at).toLocaleString()}
@@ -571,60 +480,32 @@ export function PaymentSettingsTab() {
                   </div>
                   <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                     <span className="flex items-center space-x-1">
-                      {stripeAccount.charges_enabled ? (
-                        <CheckCircle className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <AlertCircle className="h-3 w-3 text-amber-600" />
-                      )}
+                      {stripeAccount.charges_enabled ? <CheckCircle className="h-3 w-3 text-green-600" /> : <AlertCircle className="h-3 w-3 text-amber-600" />}
                       <span>Charges {stripeAccount.charges_enabled ? 'Enabled' : 'Disabled'}</span>
                     </span>
                     <span className="flex items-center space-x-1">
-                      {stripeAccount.payouts_enabled ? (
-                        <CheckCircle className="h-3 w-3 text-green-600" />
-                      ) : (
-                        <AlertCircle className="h-3 w-3 text-amber-600" />
-                      )}
+                      {stripeAccount.payouts_enabled ? <CheckCircle className="h-3 w-3 text-green-600" /> : <AlertCircle className="h-3 w-3 text-amber-600" />}
                       <span>Payouts {stripeAccount.payouts_enabled ? 'Enabled' : 'Disabled'}</span>
                     </span>
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRefreshAccount}
-                    disabled={stripeLoading}
-                  >
+                  <Button variant="outline" size="sm" onClick={handleRefreshAccount} disabled={stripeLoading}>
                     <RefreshCw className="h-4 w-4 mr-1" />
                     Refresh
                   </Button>
-                   {stripeAccount.onboarding_completed && (
-                     <Button
-                       variant="outline"
-                       size="sm"
-                       onClick={handleOpenStripeDashboard}
-                       disabled={stripeLoading}
-                     >
+                   {stripeAccount.onboarding_completed && <Button variant="outline" size="sm" onClick={handleOpenStripeDashboard} disabled={stripeLoading}>
                        <ExternalLink className="h-4 w-4 mr-1" />
                        Go To Dashboard
-                     </Button>
-                   )}
-                  {stripeConfig.isTestMode && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleResetStripeConnection}
-                      disabled={stripeLoading}
-                    >
+                     </Button>}
+                  {stripeConfig.isTestMode && <Button variant="outline" size="sm" onClick={handleResetStripeConnection} disabled={stripeLoading}>
                       <RotateCcw className="h-4 w-4 mr-1" />
                       Reset
-                    </Button>
-                  )}
+                    </Button>}
                 </div>
               </div>
 
-              {!stripeAccount.onboarding_completed && (
-                <div className="bg-muted/50 p-3 rounded-lg">
+              {!stripeAccount.onboarding_completed && <div className="bg-muted/50 p-3 rounded-lg">
                   <div className="flex items-start space-x-3">
                     <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
                     <div>
@@ -632,24 +513,16 @@ export function PaymentSettingsTab() {
                       <p className="text-xs text-muted-foreground mb-2">
                         Complete your account setup to start accepting payments
                       </p>
-                      <Button 
-                        onClick={handleStartOnboarding} 
-                        size="sm"
-                        disabled={stripeLoading}
-                        className="bg-green-600 hover:bg-green-700 text-white font-medium"
-                      >
+                      <Button onClick={handleStartOnboarding} size="sm" disabled={stripeLoading} className="bg-green-600 hover:bg-green-700 text-white font-medium">
                         {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                         Complete Setup in Minutes
                       </Button>
                     </div>
                   </div>
-                </div>
-              )}
+                </div>}
             </div>
           </CardContent>
-        </Card>
-      ) : (
-        <Card>
+        </Card> : <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
               <CreditCard className="h-5 w-5 text-primary" />
@@ -672,37 +545,25 @@ export function PaymentSettingsTab() {
               <ul className="space-y-2">
                 <li className="flex items-start space-x-3 text-sm group">
                   <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setResearchModal('no-shows')}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
+                  <button onClick={() => setResearchModal('no-shows')} className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground">
                     Reduce no-shows dramatically
                   </button>
                 </li>
                 <li className="flex items-start space-x-3 text-sm group">
                   <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setResearchModal('cashflow')}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
+                  <button onClick={() => setResearchModal('cashflow')} className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground">
                     Faster access to your cash
                   </button>
                 </li>
                 <li className="flex items-start space-x-3 text-sm group">
                   <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setResearchModal('compliance')}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
+                  <button onClick={() => setResearchModal('compliance')} className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground">
                     Secure & compliant payments
                   </button>
                 </li>
                 <li className="flex items-start space-x-3 text-sm group">
                   <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-                  <button 
-                    onClick={() => setResearchModal('professionalism')}
-                    className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground"
-                  >
+                  <button onClick={() => setResearchModal('professionalism')} className="text-left cursor-pointer hover:text-foreground transition-colors text-muted-foreground group-hover:text-foreground">
                     Present yourself as a professional business
                   </button>
                 </li>
@@ -716,46 +577,29 @@ export function PaymentSettingsTab() {
             <div className="bg-muted/50 p-4 rounded-lg">
               <h4 className="font-medium mb-3 text-foreground">What you'll need</h4>
               <ul className="space-y-2">
-                {[
-                  'Business bank account details',
-                  'Business registration or tax ID', 
-                  'Valid ID of representative (passport or ID card)',
-                  'Date of birth and address of representative',
-                  'Beneficial ownership details (if applicable)'
-                ].map((requirement, index) => (
-                  <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
+                {['Business bank account details', 'Business registration or tax ID', 'Valid ID of representative (passport or ID card)', 'Date of birth and address of representative', 'Beneficial ownership details (if applicable)'].map((requirement, index) => <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
                     <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                     <span>{requirement}</span>
-                  </li>
-                ))}
+                  </li>)}
               </ul>
             </div>
 
             <div className="text-center py-6">
-              <Button 
-                onClick={handleStartOnboarding}
-                disabled={stripeLoading}
-                size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white font-medium"
-              >
+              <Button onClick={handleStartOnboarding} disabled={stripeLoading} size="lg" className="bg-green-600 hover:bg-green-700 text-white font-medium">
                 {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 <CreditCard className="h-4 w-4 mr-2" />
                 Start Stripe Setup
               </Button>
-              {stripeConfig.isTestMode && (
-                <p className="text-xs text-orange-600 mt-2">
+              {stripeConfig.isTestMode && <p className="text-xs text-orange-600 mt-2">
                   <TestTube className="h-3 w-3 inline mr-1" />
                   Test mode - No real money will be processed
-                </p>
-              )}
+                </p>}
             </div>
           </CardContent>
-        </Card>
-      )}
+        </Card>}
 
       {/* Pay & Book with Stripe Information Section */}
-      {isStripeSetupComplete && (
-        <Card>
+      {isStripeSetupComplete && <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
               <CreditCard className="h-5 w-5 text-primary" />
@@ -769,13 +613,7 @@ export function PaymentSettingsTab() {
             {/* Payment Methods */}
             <div className="bg-muted/50 p-6 rounded-lg">
               <h4 className="font-medium mb-6 text-foreground">Payment Methods</h4>
-              <PaymentOptions 
-                selectedMethods={selectedMethods}
-                onSelectionChange={setSelectedMethods}
-                onSave={handleSavePaymentMethods}
-                onFeesOpen={() => setFeesInfoOpen(true)}
-                hasUnsavedChanges={hasUnsavedChanges}
-              />
+              <PaymentOptions selectedMethods={selectedMethods} onSelectionChange={setSelectedMethods} onSave={handleSavePaymentMethods} onFeesOpen={() => setFeesInfoOpen(true)} hasUnsavedChanges={hasUnsavedChanges} />
             </div>
 
             {/* Payout Options */}
@@ -787,18 +625,8 @@ export function PaymentSettingsTab() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Standard Payout Card */}
                 <div className="relative">
-                  <input 
-                    type="radio" 
-                    id="standard-payout" 
-                    name="payout-option" 
-                    className="sr-only peer" 
-                    checked={selectedPayoutOption === 'standard'}
-                    onChange={() => setSelectedPayoutOption('standard')}
-                  />
-                  <label 
-                    htmlFor="standard-payout" 
-                    className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary/5"
-                  >
+                  <input type="radio" id="standard-payout" name="payout-option" className="sr-only peer" checked={selectedPayoutOption === 'standard'} onChange={() => setSelectedPayoutOption('standard')} />
+                  <label htmlFor="standard-payout" className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary/5">
                     <div className="mb-2">
                       <div className="font-semibold text-foreground">Standard Payout</div>
                     </div>
@@ -839,18 +667,8 @@ export function PaymentSettingsTab() {
 
                 {/* Instant Payout Card */}
                 <div className="relative">
-                  <input 
-                    type="radio" 
-                    id="instant-payout" 
-                    name="payout-option" 
-                    className="sr-only peer" 
-                    checked={selectedPayoutOption === 'instant'}
-                    onChange={() => setSelectedPayoutOption('instant')}
-                  />
-                  <label 
-                    htmlFor="instant-payout" 
-                    className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary/5"
-                  >
+                  <input type="radio" id="instant-payout" name="payout-option" className="sr-only peer" checked={selectedPayoutOption === 'instant'} onChange={() => setSelectedPayoutOption('instant')} />
+                  <label htmlFor="instant-payout" className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary/5">
                     <div className="mb-2">
                       <div className="font-semibold text-foreground">Instant Payout</div>
                     </div>
@@ -898,17 +716,7 @@ export function PaymentSettingsTab() {
                       Selected payout option: {selectedPayoutOption === 'standard' ? 'Standard (3 business days)' : 'Instant (within minutes)'}
                     </span>
                   </div>
-                  <button
-                    onClick={() => handleSavePayoutOption(selectedPayoutOption)}
-                    disabled={!hasUnsavedPayoutChanges || savingMethods}
-                    aria-disabled={!hasUnsavedPayoutChanges || savingMethods}
-                    className={cn(
-                      "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                      "bg-primary text-primary-foreground hover:bg-primary/90",
-                      (!hasUnsavedPayoutChanges || savingMethods) && "opacity-50 cursor-not-allowed hover:bg-primary"
-                    )}
-                    title={!hasUnsavedPayoutChanges ? "Geen wijzigingen om op te slaan" : undefined}
-                  >
+                  <button onClick={() => handleSavePayoutOption(selectedPayoutOption)} disabled={!hasUnsavedPayoutChanges || savingMethods} aria-disabled={!hasUnsavedPayoutChanges || savingMethods} className={cn("px-4 py-2 text-sm font-medium rounded-md transition-colors", "bg-primary text-primary-foreground hover:bg-primary/90", (!hasUnsavedPayoutChanges || savingMethods) && "opacity-50 cursor-not-allowed hover:bg-primary")} title={!hasUnsavedPayoutChanges ? "Geen wijzigingen om op te slaan" : undefined}>
                     {savingMethods ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
@@ -1028,26 +836,19 @@ export function PaymentSettingsTab() {
               </ul>
               
               {/* Learn more link */}
-              <div className="text-center">
-                <button
-                  onClick={() => setCurrencyConversionModalOpen(true)}
-                  className="text-xs text-primary hover:text-primary/80 underline transition-colors"
-                >
-                  Learn more in Fees
-                </button>
-              </div>
-              <button 
-                onClick={() => {
-                  setFeesInfoOpen(true);
-                  setTimeout(() => {
-                    const feesSection = document.getElementById('fees-section');
-                    if (feesSection) {
-                      feesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  }, 100);
-                }}
-                className="text-xs text-primary hover:underline flex items-center space-x-1"
-              >
+              
+              <button onClick={() => {
+            setFeesInfoOpen(true);
+            setTimeout(() => {
+              const feesSection = document.getElementById('fees-section');
+              if (feesSection) {
+                feesSection.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start'
+                });
+              }
+            }, 100);
+          }} className="text-xs text-primary hover:underline flex items-center space-x-1">
                 <TrendingUp className="h-3 w-3" />
                 <span>Learn more in Fees</span>
               </button>
@@ -1079,11 +880,7 @@ export function PaymentSettingsTab() {
                          <div className="flex justify-between items-center text-xs">
                            <div className="flex items-center gap-2">
                              <span className="text-muted-foreground">Cards (EEA)</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
+                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
@@ -1092,11 +889,7 @@ export function PaymentSettingsTab() {
                          <div className="flex justify-between items-center text-xs">
                            <div className="flex items-center gap-2">
                              <span className="text-muted-foreground">Cards (UK)</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
+                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
@@ -1105,11 +898,7 @@ export function PaymentSettingsTab() {
                          <div className="flex justify-between items-center text-xs">
                            <div className="flex items-center gap-2">
                              <span className="text-muted-foreground">Cards (International)</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
+                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
@@ -1118,11 +907,7 @@ export function PaymentSettingsTab() {
                          <div className="flex justify-between items-center text-xs">
                            <div className="flex items-center gap-2">
                              <span className="text-muted-foreground">Apple Pay</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
+                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
@@ -1131,11 +916,7 @@ export function PaymentSettingsTab() {
                          <div className="flex justify-between items-center text-xs">
                            <div className="flex items-center gap-2">
                              <span className="text-muted-foreground">Bancontact</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
+                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
@@ -1144,11 +925,7 @@ export function PaymentSettingsTab() {
                          <div className="flex justify-between items-center text-xs">
                            <div className="flex items-center gap-2">
                              <span className="text-muted-foreground">BLIK</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
+                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
@@ -1193,11 +970,7 @@ export function PaymentSettingsTab() {
                       <div className="border-t border-muted/40 pt-3">
                         <div className="flex items-center gap-2 mb-2">
                           <h5 className="text-xs font-medium text-muted-foreground">Currency Conversion Fee</h5>
-                          <button
-                            onClick={() => setCurrencyConversionModalOpen(true)}
-                            className="p-1 rounded-full hover:bg-muted transition-colors"
-                            aria-label="Currency conversion info"
-                          >
+                          <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-1 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                             <Info className="w-4 h-4 text-muted-foreground" />
                           </button>
                         </div>
@@ -1242,12 +1015,10 @@ export function PaymentSettingsTab() {
               </div>
             </Collapsible>
           </CardContent>
-        </Card>
-      )}
+        </Card>}
 
       {/* Payment Configuration */}
-      {settings?.secure_payments_enabled && isStripeSetupComplete && (
-        <Card>
+      {settings?.secure_payments_enabled && isStripeSetupComplete && <Card>
           <CardHeader>
             <CardTitle>Payment Configuration</CardTitle>
             <CardDescription>
@@ -1262,11 +1033,7 @@ export function PaymentSettingsTab() {
                   Payment must be completed before booking is confirmed
                 </div>
               </div>
-              <Switch
-                checked={settings?.payment_required_for_booking || false}
-                onCheckedChange={togglePaymentRequired}
-                disabled={settingsSaving}
-              />
+              <Switch checked={settings?.payment_required_for_booking || false} onCheckedChange={togglePaymentRequired} disabled={settingsSaving} />
             </div>
 
             <Separator />
@@ -1277,15 +1044,7 @@ export function PaymentSettingsTab() {
                   <Euro className="h-4 w-4" />
                   <span>Platform Fee (%)</span>
                 </Label>
-                <Input
-                  id="platform-fee"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="10"
-                  value={platformFee}
-                  onChange={(e) => setPlatformFee(e.target.value)}
-                />
+                <Input id="platform-fee" type="number" step="0.01" min="0" max="10" value={platformFee} onChange={e => setPlatformFee(e.target.value)} />
                 <p className="text-xs text-muted-foreground">
                   Fee charged per transaction (max 10%)
                 </p>
@@ -1296,14 +1055,7 @@ export function PaymentSettingsTab() {
                   <Clock className="h-4 w-4" />
                   <span>Payment Deadline (hours)</span>
                 </Label>
-                <Input
-                  id="payment-deadline"
-                  type="number"
-                  min="1"
-                  max="168"
-                  value={paymentDeadline}
-                  onChange={(e) => setPaymentDeadline(e.target.value)}
-                />
+                <Input id="payment-deadline" type="number" min="1" max="168" value={paymentDeadline} onChange={e => setPaymentDeadline(e.target.value)} />
                 <p className="text-xs text-muted-foreground">
                   Time limit for payment after booking (max 7 days)
                 </p>
@@ -1312,78 +1064,48 @@ export function PaymentSettingsTab() {
 
             <div className="space-y-2">
               <Label htmlFor="refund-policy">Refund Policy</Label>
-              <Textarea
-                id="refund-policy"
-                placeholder="Describe your refund policy for customers..."
-                value={refundPolicy}
-                onChange={(e) => setRefundPolicy(e.target.value)}
-                rows={3}
-              />
+              <Textarea id="refund-policy" placeholder="Describe your refund policy for customers..." value={refundPolicy} onChange={e => setRefundPolicy(e.target.value)} rows={3} />
               <p className="text-xs text-muted-foreground">
                 This will be shown to customers during payment
               </p>
             </div>
 
-            <Button
-              onClick={handleUpdateSettings}
-              disabled={settingsSaving}
-              className="w-full"
-            >
+            <Button onClick={handleUpdateSettings} disabled={settingsSaving} className="w-full">
               {settingsSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Save Payment Settings
             </Button>
           </CardContent>
-        </Card>
-      )}
+        </Card>}
 
 
       {/* Research Modal */}
-      <ResearchModal 
-        type={researchModal} 
-        onClose={() => setResearchModal(null)} 
-      />
+      <ResearchModal type={researchModal} onClose={() => setResearchModal(null)} />
 
       {/* Embedded Onboarding Modal */}
-      {showEmbeddedOnboarding && (
-        <StripeEmbeddedOnboardingModal
-          isOpen={showEmbeddedOnboarding}
-          onComplete={() => {
-            // Refresh account status after completion
-            refreshAccountStatus().then((account) => {
-              if (account) {
-                setStripeAccount(account);
-              }
-            });
-            setShowEmbeddedOnboarding(false);
-            toast({
-              title: "Setup Complete!",
-              description: "Your Stripe account is ready to accept payments.",
-            });
-          }}
-          onClose={() => setShowEmbeddedOnboarding(false)}
-        />
-      )}
+      {showEmbeddedOnboarding && <StripeEmbeddedOnboardingModal isOpen={showEmbeddedOnboarding} onComplete={() => {
+      // Refresh account status after completion
+      refreshAccountStatus().then(account => {
+        if (account) {
+          setStripeAccount(account);
+        }
+      });
+      setShowEmbeddedOnboarding(false);
+      toast({
+        title: "Setup Complete!",
+        description: "Your Stripe account is ready to accept payments."
+      });
+    }} onClose={() => setShowEmbeddedOnboarding(false)} />}
 
       {/* Currency Conversion Modal */}
-      {currencyConversionModalOpen && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={() => setCurrencyConversionModalOpen(false)}
-        >
-          <div 
-            className="relative w-full max-w-[calc(100vw-32px)] sm:max-w-md bg-background rounded-2xl border shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {currencyConversionModalOpen && <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setCurrencyConversionModalOpen(false)}>
+          <div className="relative w-full max-w-[calc(100vw-32px)] sm:max-w-md bg-background rounded-2xl border shadow-lg" onClick={e => e.stopPropagation()}>
             {/* Modal Header */}
             <div className="border-b px-6 py-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <Info className="h-5 w-5 text-primary" />
                 Currency Conversion Fee
               </h2>
-              <button
-                onClick={() => setCurrencyConversionModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
-              >
+              <button onClick={() => setCurrencyConversionModalOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors">
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
@@ -1434,9 +1156,7 @@ export function PaymentSettingsTab() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        </div>}
 
-    </div>
-  );
+    </div>;
 }
