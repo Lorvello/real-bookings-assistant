@@ -1,11 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, Info, CreditCard, Smartphone, Banknote, Globe, Building2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 interface PaymentMethod {
   id: string;
@@ -199,7 +194,9 @@ interface PaymentMethodModalProps {
 }
 
 function PaymentMethodModal({ method, isOpen, onClose }: PaymentMethodModalProps) {
-  React.useEffect(() => {
+  const [showContent, setShowContent] = useState(false);
+
+  useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         onClose();
@@ -209,11 +206,21 @@ function PaymentMethodModal({ method, isOpen, onClose }: PaymentMethodModalProps
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
+      // Delay content animation to match ResearchModal
+      const timer = setTimeout(() => setShowContent(true), 200);
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = '';
+      };
+    } else {
+      setShowContent(false);
+      document.body.style.overflow = '';
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
   }, [isOpen, onClose]);
 
@@ -221,52 +228,52 @@ function PaymentMethodModal({ method, isOpen, onClose }: PaymentMethodModalProps
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md mx-4">
-        <div 
-          className="bg-background rounded-2xl shadow-2xl border animate-scale-in"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
-                <method.icon className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold">{method.modalContent.title}</h3>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-muted rounded-full transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+      <div 
+        className="relative w-full max-w-[calc(100vw-32px)] sm:max-w-md bg-background rounded-2xl border shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Header */}
+        <div className="border-b px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <method.icon className="h-5 w-5 text-primary" />
+            {method.modalContent.title}
+          </h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+          >
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-4">
-            <p className="text-muted-foreground leading-relaxed">
-              {method.modalContent.description}
-            </p>
-            
-            <ul className="space-y-3">
-              {method.modalContent.bullets.map((bullet, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2.5 flex-shrink-0" />
-                  <span className="text-sm leading-relaxed">
-                    {bullet.includes('View fees') ? (
-                      <span className="text-primary hover:text-primary/80 cursor-pointer">
-                        {bullet}
-                      </span>
-                    ) : (
-                      bullet
-                    )}
-                  </span>
-                </li>
-              ))}
-            </ul>
+        {/* Modal Content */}
+        <div className="px-6 py-4 space-y-4">
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            {method.modalContent.description}
+          </p>
+          
+          <div className="space-y-2">
+            {method.modalContent.bullets.slice(0, -1).map((bullet, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                <span className="text-sm text-foreground">{bullet}</span>
+              </div>
+            ))}
+          </div>
+          
+          <div className="pt-2">
+            <button 
+              className="text-primary text-sm hover:underline"
+              onClick={() => {
+                // Scroll to fees section logic could go here
+                onClose();
+              }}
+            >
+              View fees in the Fees section
+            </button>
           </div>
         </div>
       </div>
@@ -292,9 +299,9 @@ export function PaymentOptions({
   };
 
   return (
-    <div className={cn("space-y-6", className)}>
-      {/* Payment Methods Grid */}
-      <div className="grid grid-cols-1 gap-4">
+    <div className={cn("space-y-3", className)}>
+      {/* Payment Methods List */}
+      <div className="space-y-3">
         {paymentMethods
           .sort((a, b) => a.priority - b.priority)
           .map((method) => {
@@ -303,68 +310,68 @@ export function PaymentOptions({
             return (
               <div key={method.id}>
                 <div
-                  className={cn(
-                    "group relative flex items-center p-4 rounded-2xl border-2 transition-all duration-300 cursor-pointer",
-                    "hover:shadow-lg hover:shadow-primary/5 hover:border-primary/30",
-                    "bg-gradient-to-br from-background to-muted/20",
-                    isSelected
-                      ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
-                      : "border-border/50"
-                  )}
                   onClick={() => handleMethodToggle(method.id)}
+                  className={cn(
+                    "relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200",
+                    "bg-background hover:border-primary/50",
+                    isSelected 
+                      ? "border-primary bg-primary/5" 
+                      : "border-border"
+                  )}
                 >
-                  {/* Selection Checkbox */}
-                  <div className={cn(
-                    "w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all duration-200 mr-4",
-                    isSelected
-                      ? "bg-primary border-primary"
-                      : "border-muted-foreground/30 group-hover:border-primary/50"
-                  )}>
-                    {isSelected && (
-                      <Check className="h-3 w-3 text-primary-foreground" />
-                    )}
-                  </div>
-                  
-                  {/* Payment Method Icon */}
-                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 mr-4">
-                    <method.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  
-                  {/* Method Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-foreground">{method.name}</h3>
-                      {method.badge && (
-                        <span className="text-xs bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-2 py-1 rounded-full font-medium">
-                          Recommended
-                        </span>
-                      )}
-                      {method.country && (
-                        <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
-                          {method.country}
-                        </span>
-                      )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      {/* Checkbox */}
+                      <div className={cn(
+                        "w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center",
+                        isSelected 
+                          ? "bg-primary border-primary" 
+                          : "border-border"
+                      )}>
+                        {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                      </div>
+                      
+                      {/* Method Icon */}
+                      <div className={cn(
+                        "p-2 rounded-lg transition-all duration-200",
+                        isSelected 
+                          ? "bg-primary/10 text-primary" 
+                          : "bg-muted text-muted-foreground"
+                      )}>
+                        <method.icon className="h-5 w-5" />
+                      </div>
+                      
+                      {/* Method Info */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-medium text-foreground">{method.name}</h3>
+                          {method.badge && (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full border border-primary/20">
+                              Recommended
+                            </span>
+                          )}
+                          {method.country && (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full">
+                              {method.country}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{method.description}</p>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{method.description}</p>
+                    
+                    {/* Info Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenModalId(method.id);
+                      }}
+                      className="p-2 rounded-full hover:bg-muted transition-colors"
+                      aria-label={`More info about ${method.name}`}
+                    >
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                    </button>
                   </div>
-                  
-                  {/* Info Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenModalId(method.id);
-                    }}
-                    className="p-2 ml-2 hover:bg-primary/10 rounded-full transition-colors group/info"
-                  >
-                    <Info className="h-4 w-4 text-muted-foreground group-hover/info:text-primary transition-colors" />
-                  </button>
-                  
-                  {/* Subtle Glow Effect */}
-                  <div className={cn(
-                    "absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 pointer-events-none",
-                    "bg-gradient-to-r from-primary/5 via-transparent to-primary/5",
-                    "group-hover:opacity-100"
-                  )} />
                 </div>
 
                 {/* Modal for this method */}
@@ -378,19 +385,20 @@ export function PaymentOptions({
           })}
       </div>
 
-      {/* Selection Summary */}
-      {selected.length > 0 && (
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">
-            {selected.length} payment method{selected.length !== 1 ? 's' : ''} enabled
-          </p>
+      {/* Summary */}
+      <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+        <div className="text-sm">
+          <span className="font-medium text-foreground">
+            {selected.length} payment method{selected.length !== 1 ? 's' : ''} selected
+          </span>
+          {selected.length > 0 && (
+            <span className="text-muted-foreground ml-2">
+              ({selected.map(id => paymentMethods.find(m => m.id === id)?.name).join(', ')})
+            </span>
+          )}
         </div>
-      )}
-
-      {/* Information */}
-      <div className="p-4 bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl border border-muted/40">
-        <p className="text-sm text-muted-foreground text-center leading-relaxed">
-          Customers can choose from your selected payment methods during checkout for the best possible experience.
+        <p className="text-xs text-muted-foreground mt-2">
+          More payment options = higher conversion rates. Each method targets specific customer preferences.
         </p>
       </div>
     </div>
