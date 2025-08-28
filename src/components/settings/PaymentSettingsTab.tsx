@@ -30,6 +30,25 @@ import { supabase } from '@/integrations/supabase/client';
 // Fixed: Removed StripeEmbeddedDashboard component
 
 export function PaymentSettingsTab() {
+  // Payment methods data with their fees
+  const paymentMethodsFees = [
+    { id: 'ideal', name: 'iDEAL', fee: '€0.29', feeType: 'fixed' },
+    { id: 'cards_eea', name: 'Cards (EEA)', fee: '1.5% + €0.25', feeType: 'percentage' },
+    { id: 'cards_uk', name: 'Cards (UK)', fee: '2.5% + €0.25', feeType: 'percentage' },
+    { id: 'cards_international', name: 'Cards (International)', fee: '3.25% + €0.25', feeType: 'percentage' },
+    { id: 'apple_pay', name: 'Apple Pay', fee: '1.5% + €0.25', feeType: 'percentage' },
+    { id: 'bancontact', name: 'Bancontact', fee: '€0.35', feeType: 'fixed' },
+    { id: 'blik', name: 'BLIK', fee: '1.6% + €0.25', feeType: 'percentage' },
+    { id: 'twint', name: 'TWINT', fee: '1.9% + CHF 0.30', feeType: 'percentage' },
+    { id: 'revolut_pay', name: 'Revolut Pay', fee: '1.5% + €0.25', feeType: 'percentage' },
+    { id: 'sofort', name: 'Sofort', fee: '1.4% + €0.25', feeType: 'percentage' },
+    { id: 'eps', name: 'EPS', fee: '1.6% + €0.25', feeType: 'percentage' },
+    { id: 'przelewy24', name: 'Przelewy24', fee: '2.2% + €0.30', feeType: 'percentage' },
+    { id: 'pay_by_bank', name: 'Pay by Bank', fee: '~1.5% + £0.20', feeType: 'percentage' },
+    { id: 'cartes_bancaires', name: 'Cartes Bancaires', fee: '1.5% + €0.25', feeType: 'percentage' },
+    { id: 'google_pay', name: 'Google Pay', fee: '1.5% + €0.25', feeType: 'percentage' }
+  ];
+
   const {
     selectedCalendar
   } = useCalendarContext();
@@ -77,6 +96,7 @@ export function PaymentSettingsTab() {
   // Payout options state
   const [selectedPayoutOption, setSelectedPayoutOption] = useState<'standard' | 'instant'>('standard');
   const [hasUnsavedPayoutChanges, setHasUnsavedPayoutChanges] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('ideal');
   const stripeConfig = getStripeConfig();
   useEffect(() => {
     if (isAccountOwner && accountOwnerId && !roleLoading) {
@@ -643,7 +663,7 @@ export function PaymentSettingsTab() {
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="mt-2 pt-2 border-t border-border/50">
-                        <div className="space-y-1 text-xs text-muted-foreground">
+                         <div className="space-y-1 text-xs text-muted-foreground">
                           <div className="flex justify-between">
                             <span>Booking Assistant platform fee:</span>
                             <span>1.9% + €0.25</span>
@@ -652,13 +672,32 @@ export function PaymentSettingsTab() {
                             <span>Stripe processing fee:</span>
                             <span>0.25% + €0.10</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span>iDEAL transaction fee:</span>
-                            <span>€0.29</span>
+                          <div className="flex justify-between items-center">
+                            <span>Transaction fee:</span>
+                            <div className="flex items-center gap-2">
+                              <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
+                                <SelectTrigger className="w-32 h-6 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {paymentMethodsFees.map((method) => (
+                                    <SelectItem key={method.id} value={method.id} className="text-xs">
+                                      {method.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <span>{paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee}</span>
+                            </div>
                           </div>
                           <div className="flex justify-between border-t border-border/50 pt-1 mt-1">
                             <span className="font-medium">Total fee:</span>
-                            <span className="text-primary font-medium">2.15% + €0.64</span>
+                            <span className="text-primary font-medium">
+                              {paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.feeType === 'fixed' 
+                                ? `2.15% + €${(0.64 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.replace('€', '') || '0')).toFixed(2)}`
+                                : `${2.15 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('%')[0] || '0')}% + €${(0.35 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('€')[1] || paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('+ ')[1]?.replace(/[^0-9.]/g, '') || '0')).toFixed(2)}`
+                              }
+                            </span>
                           </div>
                         </div>
                       </CollapsibleContent>
@@ -685,7 +724,7 @@ export function PaymentSettingsTab() {
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="mt-2 pt-2 border-t border-border/50">
-                        <div className="space-y-1 text-xs text-muted-foreground">
+                         <div className="space-y-1 text-xs text-muted-foreground">
                           <div className="flex justify-between">
                             <span>Booking Assistant platform fee:</span>
                             <span>1.9% + €0.35</span>
@@ -694,13 +733,32 @@ export function PaymentSettingsTab() {
                             <span>Stripe Instant Payout Processing Fee:</span>
                             <span>1%</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span>iDEAL transaction fee:</span>
-                            <span>€0.29</span>
+                          <div className="flex justify-between items-center">
+                            <span>Transaction fee:</span>
+                            <div className="flex items-center gap-2">
+                              <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
+                                <SelectTrigger className="w-32 h-6 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {paymentMethodsFees.map((method) => (
+                                    <SelectItem key={method.id} value={method.id} className="text-xs">
+                                      {method.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <span>{paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee}</span>
+                            </div>
                           </div>
                           <div className="flex justify-between border-t border-border/50 pt-1 mt-1">
                             <span className="font-medium">Total fee:</span>
-                            <span className="text-primary font-medium">2.9% + €0.64</span>
+                            <span className="text-primary font-medium">
+                              {paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.feeType === 'fixed' 
+                                ? `2.9% + €${(0.35 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.replace('€', '') || '0')).toFixed(2)}`
+                                : `${2.9 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('%')[0] || '0')}% + €${(0.35 + parseFloat(paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('€')[1] || paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee.split('+ ')[1]?.replace(/[^0-9.]/g, '') || '0')).toFixed(2)}`
+                              }
+                            </span>
                           </div>
                         </div>
                       </CollapsibleContent>
