@@ -268,8 +268,14 @@ function PaymentMethodModal({ method, isOpen, onClose }: PaymentMethodModalProps
             <button 
               className="text-primary text-sm hover:underline"
               onClick={() => {
-                // Scroll to fees section logic could go here
                 onClose();
+                // Scroll to fees section
+                setTimeout(() => {
+                  const feesSection = document.getElementById('fees-section');
+                  if (feesSection) {
+                    feesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 100);
               }}
             >
               View fees in the Fees section
