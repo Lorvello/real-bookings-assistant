@@ -720,13 +720,13 @@ export function PaymentSettingsTab() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Payment Methods */}
-            <div className="bg-muted/50 p-6 rounded-lg">
+            <div className="space-y-4">
               <h4 className="font-medium mb-6 text-foreground">Payment Methods</h4>
               <PaymentOptions selectedMethods={selectedMethods} onSelectionChange={setSelectedMethods} onSave={handleSavePaymentMethods} onFeesOpen={() => setFeesInfoOpen(true)} hasUnsavedChanges={hasUnsavedChanges} />
             </div>
 
             {/* Payout Options */}
-            <div className="bg-muted/50 p-4 rounded-lg">
+            <div className="space-y-4">
               <div className="mb-4">
                 <h4 className="font-medium text-foreground">Payout Options</h4>
                 <p className="text-sm text-muted-foreground">Choose how quickly you want to receive your payments</p>
