@@ -350,10 +350,11 @@ function PaymentMethodModal({ method, isOpen, onClose, onFeesOpen }: PaymentMeth
               <img 
                 src={method.logo} 
                 alt={`${method.name} logo`}
-                className="h-5 w-auto object-contain"
+                className="h-6 w-auto object-contain"
+                loading="lazy"
               />
             ) : (
-              <method.icon className="h-5 w-5 text-primary" />
+              <method.icon className="h-6 w-6 text-primary" />
             )}
             {method.modalContent.title}
           </h2>
@@ -462,7 +463,7 @@ export function PaymentOptions({
               
               {/* Method Icon/Logo */}
               <div className={cn(
-                "p-2 rounded-lg transition-all duration-200 flex items-center justify-center",
+                "p-1 rounded-lg transition-all duration-200 flex items-center justify-center",
                 isSelected 
                   ? "bg-primary/10 text-primary" 
                   : "bg-muted text-muted-foreground"
@@ -471,10 +472,11 @@ export function PaymentOptions({
                   <img 
                     src={method.logo} 
                     alt={`${method.name} logo`}
-                    className="h-6 w-auto max-w-[48px] object-contain"
+                    className="h-10 w-auto max-w-[80px] object-contain"
+                    loading="lazy"
                   />
                 ) : (
-                  <method.icon className="h-5 w-5" />
+                  <method.icon className="h-8 w-8" />
                 )}
               </div>
               
