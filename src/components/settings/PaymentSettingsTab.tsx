@@ -889,8 +889,8 @@ export function PaymentSettingsTab() {
                   
                   {/* First connecting line with annotations */}
                   <div className="flex flex-col items-center gap-1 flex-1 px-2">
-                    <div className="w-full border-t-2 border-dashed border-primary/30 relative">
-                      <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
+                     <div className="w-full border-t-2 border-dashed border-primary/30 relative">
+                       <ArrowRight className="absolute -right-1 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/60" />
                     </div>
                     <div className="text-center space-y-1">
                       <div className="group relative">
@@ -930,8 +930,8 @@ export function PaymentSettingsTab() {
                   
                   {/* Second connecting line with annotations */}
                   <div className="flex flex-col items-center gap-1 flex-1 px-2">
-                    <div className="w-full border-t-2 border-dashed border-primary/30 relative">
-                      <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
+                     <div className="w-full border-t-2 border-dashed border-primary/30 relative">
+                       <ArrowRight className="absolute -right-1 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/60" />
                     </div>
                     <div className="text-center space-y-1">
                       <div className="group relative">
