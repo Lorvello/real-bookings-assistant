@@ -142,7 +142,11 @@ export function PaymentSettingsTab() {
       setSelectedMethods(settings.enabled_payment_methods);
       setHasUnsavedChanges(false);
     }
-  }, [settings?.enabled_payment_methods]);
+    if (settings?.payout_option) {
+      setSelectedPayoutOption(settings.payout_option);
+      setHasUnsavedPayoutChanges(false);
+    }
+  }, [settings?.enabled_payment_methods, settings?.payout_option]);
 
   // Track changes to payment methods
   useEffect(() => {
