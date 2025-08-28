@@ -1,0 +1,9 @@
+<svg width="100" height="60" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="100" height="60" rx="4" fill="#FFFFFF"/>
+<polygon points="30,15 50,15 60,25 50,35 30,35 40,25" fill="#FFFFFF" stroke="#E0E0E0"/>
+<path d="M35 20L45 20L50 25L45 30L35 30L40 25Z" fill="#00BFFF"/>
+<path d="M40 22L45 22L47 25L45 28L40 28L42 25Z" fill="#FFA500"/>
+<path d="M42 24L43 24L44 25L43 26L42 26L42.5 25Z" fill="#FF4500"/>
+<text x="20" y="50" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF">TWINT</text>
+<rect width="100" height="60" rx="4" fill="none" stroke="#E0E0E0"/>
+</svg>

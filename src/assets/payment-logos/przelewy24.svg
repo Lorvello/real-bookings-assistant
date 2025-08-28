@@ -1,0 +1,6 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="120" height="40" rx="4" fill="#FFFFFF"/>
+<path d="M10 15C15 10 25 10 30 15L25 20C22 17 18 17 15 20L10 15Z" fill="#C5C5C5" opacity="0.7"/>
+<text x="10" y="28" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#DC2626">Przelewy</text>
+<text x="70" y="28" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#9CA3AF">24</text>
+</svg>

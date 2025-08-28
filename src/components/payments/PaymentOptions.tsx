@@ -5,12 +5,18 @@ import { cn } from '@/lib/utils';
 // Import payment logos
 import idealLogo from '@/assets/payment-logos/ideal.svg';
 import applePayLogo from '@/assets/payment-logos/apple-pay.svg';
-import googlePayLogo from '@/assets/payment-logos/google-pay.svg';
+import googlePayLogo from '@/assets/payment-logos/google-pay-updated.svg';
 import visaLogo from '@/assets/payment-logos/visa.svg';
 import mastercardLogo from '@/assets/payment-logos/mastercard.svg';
-import bancontactLogo from '@/assets/payment-logos/bancontact.svg';
-import sofortLogo from '@/assets/payment-logos/sofort.svg';
-import twintLogo from '@/assets/payment-logos/twint.svg';
+import bancontactLogo from '@/assets/payment-logos/bancontact-updated.svg';
+import sofortLogo from '@/assets/payment-logos/sofort-updated.svg';
+import twintLogo from '@/assets/payment-logos/twint-updated.svg';
+import blikLogo from '@/assets/payment-logos/blik.svg';
+import revolutLogo from '@/assets/payment-logos/revolut.svg';
+import epsLogo from '@/assets/payment-logos/eps.svg';
+import przelewy24Logo from '@/assets/payment-logos/przelewy24.svg';
+import payByBankLogo from '@/assets/payment-logos/pay-by-bank.svg';
+import cartesBancairesLogo from '@/assets/payment-logos/cartes-bancaires.svg';
 
 interface PaymentMethod {
   id: string;
@@ -110,6 +116,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'BLIK',
     description: 'Poland\'s mobile payment system',
     icon: Smartphone,
+    logo: blikLogo,
     country: 'Poland',
     modalContent: {
       title: 'BLIK',
@@ -147,6 +154,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'Revolut Pay',
     description: 'Fast checkout for Revolut users',
     icon: Globe,
+    logo: revolutLogo,
     modalContent: {
       title: 'Revolut Pay',
       description: 'Fast checkout for Revolut users, with strong SCA.',
@@ -184,6 +192,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'EPS',
     description: 'Austria\'s local bank payment',
     icon: Building2,
+    logo: epsLogo,
     country: 'Austria',
     modalContent: {
       title: 'EPS',
@@ -202,6 +211,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'Przelewy24',
     description: 'Popular Polish bank network',
     icon: Building2,
+    logo: przelewy24Logo,
     country: 'Poland',
     modalContent: {
       title: 'Przelewy24 (P24)',
@@ -220,6 +230,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'Pay by Bank',
     description: 'UK open-banking flow',
     icon: Building2,
+    logo: payByBankLogo,
     country: 'United Kingdom',
     modalContent: {
       title: 'Pay by Bank',
@@ -238,7 +249,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'Cartes Bancaires',
     description: 'France\'s domestic card scheme',
     icon: CreditCard,
-    logo: mastercardLogo,
+    logo: cartesBancairesLogo,
     country: 'France',
     modalContent: {
       title: 'Cartes Bancaires (CB)',
