@@ -1580,11 +1580,16 @@ export type Database = {
           description: string | null
           duration: number
           id: string
+          installment_options: Json | null
           is_active: boolean | null
           max_attendees: number | null
           name: string
+          payment_description: string | null
           preparation_time: number | null
           price: number | null
+          stripe_live_price_id: string | null
+          stripe_test_price_id: string | null
+          supports_installments: boolean | null
           user_id: string | null
         }
         Insert: {
@@ -1595,11 +1600,16 @@ export type Database = {
           description?: string | null
           duration: number
           id?: string
+          installment_options?: Json | null
           is_active?: boolean | null
           max_attendees?: number | null
           name: string
+          payment_description?: string | null
           preparation_time?: number | null
           price?: number | null
+          stripe_live_price_id?: string | null
+          stripe_test_price_id?: string | null
+          supports_installments?: boolean | null
           user_id?: string | null
         }
         Update: {
@@ -1610,11 +1620,16 @@ export type Database = {
           description?: string | null
           duration?: number
           id?: string
+          installment_options?: Json | null
           is_active?: boolean | null
           max_attendees?: number | null
           name?: string
+          payment_description?: string | null
           preparation_time?: number | null
           price?: number | null
+          stripe_live_price_id?: string | null
+          stripe_test_price_id?: string | null
+          supports_installments?: boolean | null
           user_id?: string | null
         }
         Relationships: [
@@ -2497,6 +2512,124 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_payment_sessions: {
+        Row: {
+          amount_cents: number
+          calendar_id: string | null
+          conversation_id: string | null
+          created_at: string
+          currency: string
+          expires_at: string | null
+          id: string
+          installment_plan: Json | null
+          payment_status: string
+          payment_type: string
+          payment_url: string | null
+          service_type_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          calendar_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          installment_plan?: Json | null
+          payment_status?: string
+          payment_type?: string
+          payment_url?: string | null
+          service_type_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          calendar_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          installment_plan?: Json | null
+          payment_status?: string
+          payment_type?: string
+          payment_url?: string | null
+          service_type_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_type_stats"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
         ]
