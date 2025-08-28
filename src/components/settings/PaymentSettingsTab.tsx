@@ -647,6 +647,18 @@ export function PaymentSettingsTab() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Payment Methods */}
+            <div className="bg-muted/50 p-6 rounded-lg">
+              <h4 className="font-medium mb-6 text-foreground">Payment Methods</h4>
+              <PaymentOptions 
+                selectedMethods={['ideal']}
+                onSelectionChange={(methods) => {
+                  console.log('Selected payment methods:', methods);
+                  // Here you would save the selected methods to your settings
+                }}
+              />
+            </div>
+
             {/* Payout Options & Fees */}
             <div className="bg-muted/50 p-4 rounded-lg">
               <h4 className="font-medium mb-1 text-foreground">Payout Options & Fees</h4>
@@ -736,12 +748,12 @@ export function PaymentSettingsTab() {
                             <span>1.9% + €0.35</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>iDEAL transaction fee:</span>
-                            <span>€0.29</span>
-                          </div>
-                          <div className="flex justify-between">
                             <span>Stripe Instant Payout Processing Fee:</span>
                             <span>1%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>iDEAL transaction fee:</span>
+                            <span>€0.29</span>
                           </div>
                           <div className="flex justify-between border-t border-border/50 pt-1 mt-1">
                             <span className="font-medium">Total fee:</span>
@@ -753,18 +765,6 @@ export function PaymentSettingsTab() {
                   </label>
                 </div>
               </div>
-            </div>
-
-            {/* Payment Methods */}
-            <div className="bg-muted/50 p-6 rounded-lg">
-              <h4 className="font-medium mb-6 text-foreground">Payment Methods</h4>
-              <PaymentOptions 
-                selectedMethods={['ideal']}
-                onSelectionChange={(methods) => {
-                  console.log('Selected payment methods:', methods);
-                  // Here you would save the selected methods to your settings
-                }}
-              />
             </div>
           </CardContent>
         </Card>
