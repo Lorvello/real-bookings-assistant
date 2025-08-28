@@ -393,7 +393,7 @@ export function PaymentSettingsTab() {
               </p>
             </div>
 
-            <div className="text-center py-6 space-y-4">
+            <div className="text-center py-3 space-y-4">
               <Button 
                 onClick={handleOpenStripeDashboard}
                 disabled={stripeLoading}
@@ -768,13 +768,101 @@ export function PaymentSettingsTab() {
               </div>
             </div>
 
+            {/* Fund Flow Section */}
+            <div className="bg-muted/30 border border-muted/40 p-4 rounded-lg">
+              <h4 className="text-sm font-medium text-foreground mb-1">Fund Flow (How money moves)</h4>
+              <p className="text-xs text-muted-foreground mb-4">Understand the payment journey for your bookings</p>
+              
+              {/* 5-node diagram */}
+              <div className="mb-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-1">
+                  {/* Customer */}
+                  <div className="flex flex-col items-center">
+                    <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
+                      Customer
+                    </div>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
+                  
+                  {/* Connected Account */}
+                  <div className="flex flex-col items-center">
+                    <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                      Connected Account
+                    </div>
+                    <span className="text-xs text-muted-foreground mt-1">(gross)</span>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
+                  
+                  {/* Stripe deducts fees */}
+                  <div className="flex flex-col items-center">
+                    <div className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">
+                      Stripe deducts fees
+                    </div>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
+                  
+                  {/* Available balance */}
+                  <div className="flex flex-col items-center">
+                    <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium">
+                      Available balance
+                    </div>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
+                  
+                  {/* Bank payout */}
+                  <div className="flex flex-col items-center">
+                    <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                      Bank payout
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 4 bullet points */}
+              <ul className="space-y-1.5 mb-3">
+                <li className="flex items-start space-x-2 text-xs">
+                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground">Payments go from the customer directly to your Connected Account.</span>
+                </li>
+                <li className="flex items-start space-x-2 text-xs">
+                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground">Stripe fees and our platform fee are automatically deducted before payout.</span>
+                </li>
+                <li className="flex items-start space-x-2 text-xs">
+                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground">Choose Standard (cheapest) or Instant (fastest) payout in "Payout Options".</span>
+                </li>
+                <li className="flex items-start space-x-2 text-xs">
+                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground">For fee amounts, see the Fees section.</span>
+                </li>
+              </ul>
+              
+              {/* Learn more link */}
+              <button 
+                onClick={() => {
+                  setFeesInfoOpen(true);
+                  setTimeout(() => {
+                    const feesSection = document.getElementById('fees-section');
+                    if (feesSection) {
+                      feesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }, 100);
+                }}
+                className="text-xs text-primary hover:underline flex items-center space-x-1"
+              >
+                <TrendingUp className="h-3 w-3" />
+                <span>Learn more in Fees</span>
+              </button>
+            </div>
+
             {/* Fees Section */}
             <Collapsible open={feesInfoOpen} onOpenChange={setFeesInfoOpen}>
               <div id="fees-section" className="bg-muted/30 border border-muted/40 p-3 rounded-lg">
                 <CollapsibleTrigger asChild>
                   <button className="flex items-center justify-between w-full text-left">
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-0.5">Fees</h4>
+                      <h4 className="text-sm font-medium text-foreground mb-0.5">Fees</h4>
                       <p className="text-xs text-muted-foreground">Payment processing fees overview</p>
                     </div>
                     <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${feesInfoOpen ? 'rotate-180' : ''}`} />
@@ -861,94 +949,6 @@ export function PaymentSettingsTab() {
                 </CollapsibleContent>
               </div>
             </Collapsible>
-
-            {/* Fund Flow Section */}
-            <div className="bg-muted/30 border border-muted/40 p-4 rounded-lg">
-              <h4 className="text-sm font-medium text-muted-foreground mb-1">Fund Flow (How money moves)</h4>
-              <p className="text-xs text-muted-foreground mb-4">Understand the payment journey for your bookings</p>
-              
-              {/* 5-node diagram */}
-              <div className="mb-4">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-1">
-                  {/* Customer */}
-                  <div className="flex flex-col items-center">
-                    <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
-                      Customer
-                    </div>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
-                  
-                  {/* Connected Account */}
-                  <div className="flex flex-col items-center">
-                    <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
-                      Connected Account
-                    </div>
-                    <span className="text-xs text-muted-foreground mt-1">(gross)</span>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
-                  
-                  {/* Stripe deducts fees */}
-                  <div className="flex flex-col items-center">
-                    <div className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">
-                      Stripe deducts fees
-                    </div>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
-                  
-                  {/* Available balance */}
-                  <div className="flex flex-col items-center">
-                    <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium">
-                      Available balance
-                    </div>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
-                  
-                  {/* Bank payout */}
-                  <div className="flex flex-col items-center">
-                    <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
-                      Bank payout
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* 4 bullet points */}
-              <ul className="space-y-1.5 mb-3">
-                <li className="flex items-start space-x-2 text-xs">
-                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">Payments go from the customer directly to your Connected Account.</span>
-                </li>
-                <li className="flex items-start space-x-2 text-xs">
-                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">Stripe fees and our platform fee are automatically deducted before payout.</span>
-                </li>
-                <li className="flex items-start space-x-2 text-xs">
-                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">Choose Standard (cheapest) or Instant (fastest) payout in "Payout Options".</span>
-                </li>
-                <li className="flex items-start space-x-2 text-xs">
-                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">For fee amounts, see the Fees section.</span>
-                </li>
-              </ul>
-              
-              {/* Learn more link */}
-              <button 
-                onClick={() => {
-                  setFeesInfoOpen(true);
-                  setTimeout(() => {
-                    const feesSection = document.getElementById('fees-section');
-                    if (feesSection) {
-                      feesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  }, 100);
-                }}
-                className="text-xs text-primary hover:underline flex items-center space-x-1"
-              >
-                <TrendingUp className="h-3 w-3" />
-                <span>Learn more in Fees</span>
-              </button>
-            </div>
           </CardContent>
         </Card>
       )}
