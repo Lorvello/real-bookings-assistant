@@ -786,7 +786,7 @@ export function PaymentSettingsTab() {
                   
                   {/* Connected Account */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-secondary/10 text-secondary-foreground border border-secondary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
+                    <div className="bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Connected Account
                     </div>
                     <span className="text-xs text-muted-foreground mt-1 font-medium">(gross)</span>
@@ -795,7 +795,7 @@ export function PaymentSettingsTab() {
                   
                   {/* Stripe deducts fees */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-muted/80 text-muted-foreground border border-border px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
+                    <div className="bg-green-100 text-green-800 border border-green-300 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Stripe deducts fees
                     </div>
                   </div>
@@ -803,7 +803,7 @@ export function PaymentSettingsTab() {
                   
                   {/* Available balance */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-accent/10 text-accent-foreground border border-accent/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
+                    <div className="bg-green-200 text-green-900 border border-green-400 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Available balance
                     </div>
                   </div>
@@ -811,7 +811,7 @@ export function PaymentSettingsTab() {
                   
                   {/* Bank payout */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
+                    <div className="bg-green-300 text-green-950 border border-green-500 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Bank payout
                     </div>
                   </div>
