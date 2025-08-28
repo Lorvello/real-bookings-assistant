@@ -920,7 +920,7 @@ export function PaymentSettingsTab() {
               <h4 className="text-sm font-medium text-foreground mb-1">Fund Flow (How money moves)</h4>
               <p className="text-xs text-muted-foreground mb-4">Understand the payment journey for your bookings</p>
               
-              {/* 5-node diagram */}
+              {/* 6-node diagram with Currency Conversion */}
               <div className="mb-4">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-1">
                   {/* Customer */}
@@ -928,6 +928,16 @@ export function PaymentSettingsTab() {
                     <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Customer
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">Payment initiated in local currency</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
+                  
+                  {/* Currency Conversion */}
+                  <div className="flex flex-col items-center">
+                    <div className="bg-orange-500/10 text-orange-600 border border-orange-500/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
+                      Currency Conversion
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">If applicable (+2% fee)</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
@@ -936,6 +946,7 @@ export function PaymentSettingsTab() {
                     <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Connected Account
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">Gross funds in account currency</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
@@ -944,6 +955,7 @@ export function PaymentSettingsTab() {
                     <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Stripe deducts fees
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">Payment + platform fees deducted</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
@@ -952,6 +964,7 @@ export function PaymentSettingsTab() {
                     <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Available balance
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">Net funds after deductions</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
@@ -960,6 +973,7 @@ export function PaymentSettingsTab() {
                     <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Bank payout
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">Standard or Instant transfer</p>
                   </div>
                 </div>
               </div>
@@ -1103,71 +1117,26 @@ export function PaymentSettingsTab() {
                            </div>
                            <span className="text-muted-foreground">1.6% + €0.25</span>
                          </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">TWINT</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
-                           </div>
-                           <span className="text-muted-foreground">1.9% + CHF 0.30</span>
-                         </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Revolut Pay</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
-                           </div>
-                           <span className="text-muted-foreground">1.5% + €0.25</span>
-                         </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Sofort</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
-                           </div>
-                           <span className="text-muted-foreground">1.4% + €0.25</span>
-                         </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">EPS</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
-                           </div>
-                           <span className="text-muted-foreground">1.6% + €0.25</span>
-                         </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Przelewy24</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
-                           </div>
-                           <span className="text-muted-foreground">2.2% + €0.30</span>
-                         </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">TWINT</span>
+                            <span className="text-muted-foreground">1.9% + CHF 0.30</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">Revolut Pay</span>
+                            <span className="text-muted-foreground">1.5% + €0.25</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">Sofort</span>
+                            <span className="text-muted-foreground">1.4% + €0.25</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">EPS</span>
+                            <span className="text-muted-foreground">1.6% + €0.25</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">Przelewy24</span>
+                            <span className="text-muted-foreground">2.2% + €0.30</span>
+                          </div>
                          <div className="flex justify-between items-center text-xs">
                            <span className="text-muted-foreground">Pay by Bank</span>
                            <span className="text-muted-foreground">~1.5% + £0.20</span>
@@ -1176,24 +1145,32 @@ export function PaymentSettingsTab() {
                            <span className="text-muted-foreground">Cartes Bancaires</span>
                            <span className="text-muted-foreground">Same as cards</span>
                          </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Google Pay</span>
-                             <button
-                               onClick={() => setCurrencyConversionModalOpen(true)}
-                               className="p-0.5 rounded-full hover:bg-muted transition-colors"
-                               aria-label="Currency conversion info"
-                             >
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
-                           </div>
-                           <span className="text-muted-foreground">Same as cards</span>
-                         </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">Google Pay</span>
+                            <span className="text-muted-foreground">Same as cards</span>
+                          </div>
                        </div>
-                     </div>
+                      </div>
 
-                    {/* Fee Impact Example */}
-                    <div className="border-t border-muted/40 pt-3">
+                      {/* Currency Conversion Fee Info */}
+                      <div className="border-t border-muted/40 pt-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h5 className="text-xs font-medium text-muted-foreground">Currency Conversion Fee</h5>
+                          <button
+                            onClick={() => setCurrencyConversionModalOpen(true)}
+                            className="p-1 rounded-full hover:bg-muted transition-colors"
+                            aria-label="Currency conversion info"
+                          >
+                            <Info className="w-4 h-4 text-muted-foreground" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Additional 2% fee applies when customer payment currency differs from your account currency.
+                        </p>
+                      </div>
+
+                     {/* Fee Impact Example */}
+                     <div className="border-t border-muted/40 pt-3">
                       <h5 className="text-xs font-medium text-muted-foreground mb-2">Fee Impact Example</h5>
                       <div className="bg-background/50 p-2 rounded border border-muted/40">
                         <div className="space-y-1 text-xs">
@@ -1376,24 +1353,46 @@ export function PaymentSettingsTab() {
 
             {/* Modal Content */}
             <div className="px-6 py-4 space-y-4">
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-foreground">
-                    Stripe applies an additional 2% fee if the payment currency is different from your account currency.
+                    Stripe applies an additional 2% fee if the payment currency differs from your account currency.
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-foreground">
-                    Example: a UK customer pays £100 in GBP → funds are converted to EUR with 2% added on top of the exchange rate.
+                    <strong>Example:</strong> A UK customer pays £100 in GBP → funds are converted to EUR with a 2% markup on the exchange rate.
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-foreground">
+                    This fee is charged on top of the normal payment processing fee.
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-foreground">
+                    Customers always see the charge in their own currency; the conversion happens on your side as the merchant.
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-foreground">
                     If the customer pays in the same currency as your account (e.g., EUR), this fee does not apply.
                   </span>
+                </div>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mt-4">
+                  <div className="flex items-start gap-2">
+                    <div className="w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                    </div>
+                    <span className="text-sm text-foreground font-medium">
+                      <strong>Tip:</strong> To avoid this fee, try to charge in the same currency as your Stripe account.
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
