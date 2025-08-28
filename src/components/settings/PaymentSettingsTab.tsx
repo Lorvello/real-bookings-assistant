@@ -1104,50 +1104,19 @@ export function PaymentSettingsTab() {
                         </p>
                       </div>
 
-                      {/* Fee Structure Transparency */}
+                      {/* Fee Structure */}
                       <div className="border-t border-muted/40 pt-3 mb-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm">💳</span>
-                          <h5 className="text-sm font-medium text-foreground">Fee Structure Transparency</h5>
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                          We believe in complete transparency about fees. Here's exactly how our pricing works:
-                        </p>
-                        <div className="space-y-2 text-xs">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-primary/60"></div>
-                              <span className="font-medium text-foreground">Stripe Processing Fees</span>
-                            </div>
-                            <div className="ml-3.5 text-muted-foreground">
-                              <div>• Standard payout: 0.25% + €0.10 per transaction</div>
-                              <div>• Instant payout: 1% per transaction</div>
-                            </div>
+                        <h5 className="text-xs font-medium text-muted-foreground mb-2">Fee Structure</h5>
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          <div>
+                            <span className="font-medium">Stripe Processing Fees:</span> Standard payout 0.25% + €0.10, Instant payout 1% per transaction
                           </div>
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-primary/60"></div>
-                              <span className="font-medium text-foreground">Platform Fees</span>
-                            </div>
-                            <div className="ml-3.5 text-muted-foreground">
-                              <div>• Standard payout: 1.9% + €0.25 per booking</div>
-                              <div>• Instant payout: 1.9% + €0.35 per booking</div>
-                            </div>
+                          <div>
+                            <span className="font-medium">Platform Fees:</span> Standard payout 1.9% + €0.25, Instant payout 1.9% + €0.35 per booking
                           </div>
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-primary/60"></div>
-                              <span className="font-medium text-foreground">Payment Method Fees</span>
-                            </div>
-                            <div className="ml-3.5 text-muted-foreground">
-                              Vary by payment method (e.g., iDEAL €0.29, Card fees vary)
-                            </div>
+                          <div className="mt-2 text-xs text-muted-foreground">
+                            These fees cover secure payment processing, instant payouts when selected, and platform maintenance.
                           </div>
-                        </div>
-                        <div className="mt-3 p-2 bg-muted/30 rounded border border-muted/40">
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            These fees cover secure payment processing, instant payouts when selected, and platform maintenance including booking management and customer support.
-                          </p>
                         </div>
                       </div>
 
