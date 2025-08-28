@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Check, Info, CreditCard, Smartphone, Banknote, Globe, Building2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// Import payment logos
+import idealLogo from '@/assets/payment-logos/ideal.svg';
+import applePayLogo from '@/assets/payment-logos/apple-pay.svg';
+import googlePayLogo from '@/assets/payment-logos/google-pay.svg';
+import visaLogo from '@/assets/payment-logos/visa.svg';
+import mastercardLogo from '@/assets/payment-logos/mastercard.svg';
+import bancontactLogo from '@/assets/payment-logos/bancontact.svg';
+import sofortLogo from '@/assets/payment-logos/sofort.svg';
+import twintLogo from '@/assets/payment-logos/twint.svg';
+
 interface PaymentMethod {
   id: string;
   name: string;
@@ -25,6 +35,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'iDEAL',
     description: 'Trusted bank-to-bank payments',
     icon: Building2,
+    logo: idealLogo,
     badge: 'Recommended in the Netherlands',
     country: 'Netherlands',
     modalContent: {
@@ -44,6 +55,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'Cards',
     description: 'Visa & Mastercard',
     icon: CreditCard,
+    logo: visaLogo,
     modalContent: {
       title: 'Cards (Visa/Mastercard)',
       description: 'Universal acceptance and familiar experience.',
@@ -61,6 +73,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'Apple Pay',
     description: 'One-tap checkout on Apple devices',
     icon: Smartphone,
+    logo: applePayLogo,
     modalContent: {
       title: 'Apple Pay',
       description: 'One-tap checkout on Apple devices; biometric authentication.',
@@ -78,6 +91,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'Bancontact',
     description: 'Belgium\'s preferred payment method',
     icon: Building2,
+    logo: bancontactLogo,
     country: 'Belgium',
     modalContent: {
       title: 'Bancontact',
@@ -114,6 +128,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'TWINT',
     description: 'Switzerland\'s mobile wallet',
     icon: Smartphone,
+    logo: twintLogo,
     country: 'Switzerland',
     modalContent: {
       title: 'TWINT',
@@ -150,6 +165,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'Sofort',
     description: 'Bank transfer for DACH region',
     icon: Building2,
+    logo: sofortLogo,
     country: 'Germany',
     modalContent: {
       title: 'Sofort',
@@ -222,6 +238,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'Cartes Bancaires',
     description: 'France\'s domestic card scheme',
     icon: CreditCard,
+    logo: mastercardLogo,
     country: 'France',
     modalContent: {
       title: 'Cartes Bancaires (CB)',
@@ -240,6 +257,7 @@ const paymentMethods: PaymentMethod[] = [
     name: 'Google Pay',
     description: 'One-tap checkout on Android/Chrome',
     icon: Smartphone,
+    logo: googlePayLogo,
     modalContent: {
       title: 'Google Pay',
       description: 'One-tap checkout on Android/Chrome; same pricing as cards; excellent mobile conversion.',
@@ -315,7 +333,15 @@ function PaymentMethodModal({ method, isOpen, onClose, onFeesOpen }: PaymentMeth
         {/* Modal Header */}
         <div className="border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <method.icon className="h-5 w-5 text-primary" />
+            {method.logo ? (
+              <img 
+                src={method.logo} 
+                alt={`${method.name} logo`}
+                className="h-5 w-auto object-contain"
+              />
+            ) : (
+              <method.icon className="h-5 w-5 text-primary" />
+            )}
             {method.modalContent.title}
           </h2>
           <button
@@ -421,14 +447,22 @@ export function PaymentOptions({
                 {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
               </div>
               
-              {/* Method Icon */}
+              {/* Method Icon/Logo */}
               <div className={cn(
-                "p-2 rounded-lg transition-all duration-200",
+                "p-2 rounded-lg transition-all duration-200 flex items-center justify-center",
                 isSelected 
                   ? "bg-primary/10 text-primary" 
                   : "bg-muted text-muted-foreground"
               )}>
-                <method.icon className="h-5 w-5" />
+                {method.logo ? (
+                  <img 
+                    src={method.logo} 
+                    alt={`${method.name} logo`}
+                    className="h-6 w-auto max-w-[48px] object-contain"
+                  />
+                ) : (
+                  <method.icon className="h-5 w-5" />
+                )}
               </div>
               
               {/* Method Info */}
