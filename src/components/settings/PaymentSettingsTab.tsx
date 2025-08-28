@@ -768,85 +768,98 @@ export function PaymentSettingsTab() {
             </div>
 
             {/* Fees Section */}
-            <div id="fees-section" className="bg-muted/50 p-4 rounded-lg">
-              <h4 className="font-medium mb-1 text-foreground">Fees</h4>
-              <p className="text-sm text-muted-foreground mb-4">Overview of all payment processing fees</p>
-              
-              {/* Payment Methods Fees */}
-              <div className="mb-6">
-                <h5 className="font-medium text-sm text-foreground mb-3">Payment Methods Fees</h5>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">iDEAL</span>
-                    <span className="font-medium">€0.29</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Cards (Visa, Mastercard)</span>
-                    <span className="font-medium">1.5% + €0.25</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Apple Pay</span>
-                    <span className="font-medium">1.5% + €0.25</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Bancontact</span>
-                    <span className="font-medium">€0.35</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">BLIK</span>
-                    <span className="font-medium">1.6% + €0.25</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">TWINT</span>
-                    <span className="font-medium">1.9% + CHF 0.30</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Revolut Pay</span>
-                    <span className="font-medium">1.5% + €0.25</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">giropay</span>
-                    <span className="font-medium text-amber-600">Discontinued</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Sofort</span>
-                    <span className="font-medium text-amber-600">Discontinued</span>
-                  </div>
-                </div>
-              </div>
+            <Collapsible open={feesInfoOpen} onOpenChange={setFeesInfoOpen}>
+              <div id="fees-section" className="bg-muted/30 border border-muted/40 p-3 rounded-lg">
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center justify-between w-full text-left">
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-0.5">Fees</h4>
+                      <p className="text-xs text-muted-foreground">Payment processing fees overview</p>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${feesInfoOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent>
+                  <div className="mt-3 space-y-4">
+                    {/* Payment Methods Fees */}
+                    <div>
+                      <h5 className="text-xs font-medium text-muted-foreground mb-2">Payment Methods Fees</h5>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">iDEAL</span>
+                          <span className="text-muted-foreground">€0.29 (+2% currency conversion)</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Cards (EEA)</span>
+                          <span className="text-muted-foreground">1.5% + €0.25</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Cards (UK)</span>
+                          <span className="text-muted-foreground">2.5% + €0.25</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Cards (International)</span>
+                          <span className="text-muted-foreground">3.25% + €0.25</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Apple Pay</span>
+                          <span className="text-muted-foreground">Same as cards</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Bancontact</span>
+                          <span className="text-muted-foreground">€0.35 (+2% currency conversion)</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">BLIK</span>
+                          <span className="text-muted-foreground">1.6% + €0.25 (+2% currency conversion)</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">TWINT</span>
+                          <span className="text-muted-foreground">1.9% + CHF 0.30</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Revolut Pay</span>
+                          <span className="text-muted-foreground">1.5% + €0.25 (+2% currency conversion)</span>
+                        </div>
+                      </div>
+                    </div>
 
-              {/* Fee Impact Example */}
-              <div className="border-t border-border/50 pt-4">
-                <h5 className="font-medium text-sm text-foreground mb-3">Fee Impact Example</h5>
-                <div className="bg-background p-3 rounded border">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Booking amount:</span>
-                      <span className="font-medium">€100.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Payment method fee (iDEAL):</span>
-                      <span className="text-red-600">-€0.29</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Platform fee (1.9%):</span>
-                      <span className="text-red-600">-€1.90</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Stripe processing:</span>
-                      <span className="text-red-600">-€0.35</span>
-                    </div>
-                    <div className="border-t border-border/50 pt-2 flex justify-between font-medium">
-                      <span className="text-foreground">Net payout:</span>
-                      <span className="text-green-600">€97.46</span>
+                    {/* Fee Impact Example */}
+                    <div className="border-t border-muted/40 pt-3">
+                      <h5 className="text-xs font-medium text-muted-foreground mb-2">Fee Impact Example</h5>
+                      <div className="bg-background/50 p-2 rounded border border-muted/40">
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Booking amount:</span>
+                            <span className="text-muted-foreground">€100.00</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Payment method fee (iDEAL):</span>
+                            <span className="text-muted-foreground">-€0.29</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Platform fee (1.9%):</span>
+                            <span className="text-muted-foreground">-€1.90</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Stripe processing:</span>
+                            <span className="text-muted-foreground">-€0.35</span>
+                          </div>
+                          <div className="border-t border-muted/40 pt-1 mt-1 flex justify-between">
+                            <span className="text-muted-foreground font-medium">Net payout:</span>
+                            <span className="text-muted-foreground font-medium">€97.46</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1.5 opacity-75">
+                        All fees are deducted from your total booking amount before payout
+                      </p>
                     </div>
                   </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  All fees are deducted from your total booking amount before payout
-                </p>
+                </CollapsibleContent>
               </div>
-            </div>
+            </Collapsible>
           </CardContent>
         </Card>
       )}

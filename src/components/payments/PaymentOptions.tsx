@@ -49,7 +49,7 @@ const paymentMethods: PaymentMethod[] = [
       bullets: [
         'Great for international customers and repeat buyers',
         'Supports saved cards and subscriptions',
-        'Fees are higher vs. local bank methods; chargebacks possible',
+        'Tiered pricing: EEA cards (1.5% + €0.25), UK cards (2.5% + €0.25), International cards (3.25% + €0.25)',
         'View fees in the Fees section'
       ]
     },
@@ -91,42 +91,6 @@ const paymentMethods: PaymentMethod[] = [
     priority: 4
   },
   {
-    id: 'giropay',
-    name: 'giropay',
-    description: 'German online banking method',
-    icon: Banknote,
-    country: 'Germany',
-    modalContent: {
-      title: 'giropay',
-      description: 'German online banking method.',
-      bullets: [
-        'Recognized brand, bank-level trust in DE',
-        'Good alternative to cards for German shoppers',
-        'Recommended when targeting Germany',
-        'View fees in the Fees section'
-      ]
-    },
-    priority: 5
-  },
-  {
-    id: 'sofort',
-    name: 'Sofort',
-    description: 'Instant bank transfer flow',
-    icon: Banknote,
-    country: 'Germany / Austria / Switzerland',
-    modalContent: {
-      title: 'Sofort',
-      description: 'Instant bank transfer flow; familiar in DACH.',
-      bullets: [
-        'Wide coverage across Germany, Austria, Switzerland',
-        'Strong adoption for higher-value purchases',
-        'Great add-on for DACH audiences',
-        'View fees in the Fees section'
-      ]
-    },
-    priority: 6
-  },
-  {
     id: 'blik',
     name: 'BLIK',
     description: 'Poland\'s mobile payment system',
@@ -142,7 +106,7 @@ const paymentMethods: PaymentMethod[] = [
         'View fees in the Fees section'
       ]
     },
-    priority: 7
+    priority: 5
   },
   {
     id: 'twint',
@@ -160,7 +124,7 @@ const paymentMethods: PaymentMethod[] = [
         'View fees in the Fees section'
       ]
     },
-    priority: 8
+    priority: 6
   },
   {
     id: 'revolut-pay',
@@ -177,7 +141,7 @@ const paymentMethods: PaymentMethod[] = [
         'View fees in the Fees section'
       ]
     },
-    priority: 9
+    priority: 7
   }
 ];
 
