@@ -869,84 +869,95 @@ export function PaymentSettingsTab() {
                 
                 <CollapsibleContent>
                   <div className="mt-3 space-y-4">
-                    {/* Payment Methods Fees */}
+                    {/* Payment Methods Fees - Table Layout */}
                      <div>
-                       <h5 className="text-xs font-medium text-muted-foreground mb-2">Payment Methods Fees</h5>
-                       <div className="space-y-1">
-                         <div className="flex justify-between items-center text-xs">
-                           <span className="text-muted-foreground">iDEAL</span>
-                           <span className="text-muted-foreground">€0.29</span>
+                       <h5 className="text-xs font-medium text-muted-foreground mb-3">Payment Methods Fees</h5>
+                       <div className="bg-background/50 rounded-lg border border-border/40 overflow-hidden">
+                         {/* Payment method rows with subtle separators */}
+                         <div className="py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
+                           <span className="text-muted-foreground text-xs">iDEAL</span>
+                           <span className="text-muted-foreground text-xs font-medium">€0.29</span>
                          </div>
-                         <div className="flex justify-between items-center text-xs">
+                         
+                         <div className="border-t border-border/20 py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
                            <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Cards (EEA)</span>
+                             <span className="text-muted-foreground text-xs">Cards (EEA)</span>
                              <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
-                           <span className="text-muted-foreground">1.5% + €0.25</span>
+                           <span className="text-muted-foreground text-xs font-medium">1.5% + €0.25</span>
                          </div>
-                         <div className="flex justify-between items-center text-xs">
+                         
+                         <div className="border-t border-border/20 py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
                            <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Cards (UK)</span>
+                             <span className="text-muted-foreground text-xs">Cards (UK)</span>
                              <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
-                           <span className="text-muted-foreground">2.5% + €0.25</span>
+                           <span className="text-muted-foreground text-xs font-medium">2.5% + €0.25</span>
                          </div>
-                         <div className="flex justify-between items-center text-xs">
+                         
+                         <div className="border-t border-border/20 py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
                            <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Cards (International)</span>
+                             <span className="text-muted-foreground text-xs">Cards (International)</span>
                              <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
-                           <span className="text-muted-foreground">3.25% + €0.25</span>
+                           <span className="text-muted-foreground text-xs font-medium">3.25% + €0.25</span>
                          </div>
-                         <div className="flex justify-between items-center text-xs">
+                         
+                         <div className="border-t border-border/20 py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
                            <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Apple Pay</span>
+                             <span className="text-muted-foreground text-xs">Apple Pay</span>
                              <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
-                           <span className="text-muted-foreground">Same as cards</span>
+                           <span className="text-muted-foreground text-xs font-medium">Same as cards</span>
                          </div>
-                         <div className="flex justify-between items-center text-xs">
+                         
+                         <div className="border-t border-border/20 py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
                            <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Bancontact</span>
+                             <span className="text-muted-foreground text-xs">Bancontact</span>
                              <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
-                           <span className="text-muted-foreground">€0.35</span>
+                           <span className="text-muted-foreground text-xs font-medium">€0.35</span>
                          </div>
-                         <div className="flex justify-between items-center text-xs">
+                         
+                         <div className="border-t border-border/20 py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
                            <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">BLIK</span>
+                             <span className="text-muted-foreground text-xs">BLIK</span>
                              <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
                                <Info className="w-3 h-3 text-muted-foreground" />
                              </button>
                            </div>
-                           <span className="text-muted-foreground">1.6% + €0.25</span>
+                           <span className="text-muted-foreground text-xs font-medium">1.6% + €0.25</span>
                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground">TWINT</span>
-                            <span className="text-muted-foreground">1.9% + CHF 0.30</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground">Revolut Pay</span>
-                            <span className="text-muted-foreground">1.5% + €0.25</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground">Sofort</span>
-                            <span className="text-muted-foreground">1.4% + €0.25</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground">EPS</span>
-                            <span className="text-muted-foreground">1.6% + €0.25</span>
-                          </div>
+                         
+                         <div className="border-t border-border/20 py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
+                           <span className="text-muted-foreground text-xs">TWINT</span>
+                           <span className="text-muted-foreground text-xs font-medium">1.9% + CHF 0.30</span>
+                         </div>
+                         
+                         <div className="border-t border-border/20 py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
+                           <span className="text-muted-foreground text-xs">Revolut Pay</span>
+                           <span className="text-muted-foreground text-xs font-medium">1.5% + €0.25</span>
+                         </div>
+                         
+                         <div className="border-t border-border/20 py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
+                           <span className="text-muted-foreground text-xs">Sofort</span>
+                           <span className="text-muted-foreground text-xs font-medium">1.4% + €0.25</span>
+                         </div>
+                         
+                         <div className="border-t border-border/20 py-2.5 px-3 flex justify-between items-center hover:bg-muted/20 transition-colors">
+                           <span className="text-muted-foreground text-xs">EPS</span>
+                           <span className="text-muted-foreground text-xs font-medium">1.6% + €0.25</span>
+                         </div>
                           <div className="flex justify-between items-center text-xs">
                             <span className="text-muted-foreground">Przelewy24</span>
                             <span className="text-muted-foreground">2.2% + €0.30</span>
