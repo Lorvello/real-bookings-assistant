@@ -892,32 +892,32 @@ export function PaymentSettingsTab() {
                      <div className="w-full border-t-2 border-dashed border-primary/30 relative">
                        <ArrowRight className="absolute -right-1 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/60" />
                     </div>
-                    <div className="text-center space-y-1">
-                      <div className="group relative">
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                          Currency Conversion (+2% if applicable)
-                        </span>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                          +2% fee if payment currency ≠ account currency
-                        </div>
-                      </div>
-                      <div className="group relative">
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                          Payment Method Fee deducted
-                        </span>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                          Based on method (see Fees section)
-                        </div>
-                      </div>
-                      <div className="group relative">
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                          Platform Fee (1.9% + €0.25/€0.35)
-                        </span>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                          Deducted by Booking Assistant platform
-                        </div>
-                      </div>
-                    </div>
+                     <div className="text-center space-y-0.5">
+                       <div className="group relative">
+                         <span className="text-[10px] text-muted-foreground/80 bg-background/40 px-1.5 py-0.5 rounded border border-muted/20 cursor-help hover:bg-muted/30 transition-colors">
+                           Currency Conversion (+2% if applicable)
+                         </span>
+                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                           +2% fee if payment currency ≠ account currency
+                         </div>
+                       </div>
+                       <div className="group relative">
+                         <span className="text-[10px] text-muted-foreground/80 bg-background/40 px-1.5 py-0.5 rounded border border-muted/20 cursor-help hover:bg-muted/30 transition-colors">
+                           Payment Method Fee deducted
+                         </span>
+                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                           Based on method (see Fees section)
+                         </div>
+                       </div>
+                       <div className="group relative">
+                         <span className="text-[10px] text-muted-foreground/80 bg-background/40 px-1.5 py-0.5 rounded border border-muted/20 cursor-help hover:bg-muted/30 transition-colors">
+                           Platform Fee (1.9% + €0.25/€0.35)
+                         </span>
+                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                           Deducted by Booking Assistant platform
+                         </div>
+                       </div>
+                     </div>
                   </div>
                   
                   {/* Connected Account */}
@@ -933,21 +933,21 @@ export function PaymentSettingsTab() {
                      <div className="w-full border-t-2 border-dashed border-primary/30 relative">
                        <ArrowRight className="absolute -right-1 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/60" />
                     </div>
-                    <div className="text-center space-y-1">
-                      <div className="group relative">
-                         <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                           Stripe Processing Fee (0.25% + €0.10 / 1%)
+                     <div className="text-center space-y-0.5">
+                       <div className="group relative">
+                          <span className="text-[10px] text-muted-foreground/80 bg-background/40 px-1.5 py-0.5 rounded border border-muted/20 cursor-help hover:bg-muted/30 transition-colors">
+                            Stripe Processing Fee (0.25% + €0.10 / 1%)
+                          </span>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                            0.25% + €0.10 for Standard Payout, 1% for Instant Payout
+                          </div>
+                       </div>
+                       <div className="group relative">
+                         <span className="text-[10px] text-muted-foreground/80 bg-background/40 px-1.5 py-0.5 rounded border border-muted/20 cursor-help hover:bg-muted/30 transition-colors">
+                           Net available balance
                          </span>
                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                           0.25% + €0.10 for Standard Payout, 1% for Instant Payout
-                         </div>
-                      </div>
-                      <div className="group relative">
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                          Net available balance
-                        </span>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                          Final amount after all deductions
+                           Final amount after all deductions
                         </div>
                       </div>
                     </div>
