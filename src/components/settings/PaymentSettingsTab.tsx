@@ -31,23 +31,82 @@ import { supabase } from '@/integrations/supabase/client';
 
 export function PaymentSettingsTab() {
   // Payment methods data with their fees
-  const paymentMethodsFees = [
-    { id: 'ideal', name: 'iDEAL', fee: '€0.29', feeType: 'fixed' },
-    { id: 'cards_eea', name: 'Cards (EEA)', fee: '1.5% + €0.25', feeType: 'percentage' },
-    { id: 'cards_uk', name: 'Cards (UK)', fee: '2.5% + €0.25', feeType: 'percentage' },
-    { id: 'cards_international', name: 'Cards (International)', fee: '3.25% + €0.25', feeType: 'percentage' },
-    { id: 'apple_pay', name: 'Apple Pay', fee: '1.5% + €0.25', feeType: 'percentage' },
-    { id: 'bancontact', name: 'Bancontact', fee: '€0.35', feeType: 'fixed' },
-    { id: 'blik', name: 'BLIK', fee: '1.6% + €0.25', feeType: 'percentage' },
-    { id: 'twint', name: 'TWINT', fee: '1.9% + 0.30', feeType: 'percentage' },
-    { id: 'revolut_pay', name: 'Revolut Pay', fee: '1.5% + €0.25', feeType: 'percentage' },
-    { id: 'sofort', name: 'Sofort', fee: '1.4% + €0.25', feeType: 'percentage' },
-    { id: 'eps', name: 'EPS', fee: '1.6% + €0.25', feeType: 'percentage' },
-    { id: 'przelewy24', name: 'Przelewy24', fee: '2.2% + €0.30', feeType: 'percentage' },
-    { id: 'pay_by_bank', name: 'Pay by Bank', fee: '1.5% + €0.20', feeType: 'percentage' },
-    { id: 'cartes_bancaires', name: 'Cartes Bancaires', fee: '1.5% + €0.25', feeType: 'percentage' },
-    { id: 'google_pay', name: 'Google Pay', fee: '1.5% + €0.25', feeType: 'percentage' }
-  ];
+  const paymentMethodsFees = [{
+    id: 'ideal',
+    name: 'iDEAL',
+    fee: '€0.29',
+    feeType: 'fixed'
+  }, {
+    id: 'cards_eea',
+    name: 'Cards (EEA)',
+    fee: '1.5% + €0.25',
+    feeType: 'percentage'
+  }, {
+    id: 'cards_uk',
+    name: 'Cards (UK)',
+    fee: '2.5% + €0.25',
+    feeType: 'percentage'
+  }, {
+    id: 'cards_international',
+    name: 'Cards (International)',
+    fee: '3.25% + €0.25',
+    feeType: 'percentage'
+  }, {
+    id: 'apple_pay',
+    name: 'Apple Pay',
+    fee: '1.5% + €0.25',
+    feeType: 'percentage'
+  }, {
+    id: 'bancontact',
+    name: 'Bancontact',
+    fee: '€0.35',
+    feeType: 'fixed'
+  }, {
+    id: 'blik',
+    name: 'BLIK',
+    fee: '1.6% + €0.25',
+    feeType: 'percentage'
+  }, {
+    id: 'twint',
+    name: 'TWINT',
+    fee: '1.9% + 0.30',
+    feeType: 'percentage'
+  }, {
+    id: 'revolut_pay',
+    name: 'Revolut Pay',
+    fee: '1.5% + €0.25',
+    feeType: 'percentage'
+  }, {
+    id: 'sofort',
+    name: 'Sofort',
+    fee: '1.4% + €0.25',
+    feeType: 'percentage'
+  }, {
+    id: 'eps',
+    name: 'EPS',
+    fee: '1.6% + €0.25',
+    feeType: 'percentage'
+  }, {
+    id: 'przelewy24',
+    name: 'Przelewy24',
+    fee: '2.2% + €0.30',
+    feeType: 'percentage'
+  }, {
+    id: 'pay_by_bank',
+    name: 'Pay by Bank',
+    fee: '1.5% + €0.20',
+    feeType: 'percentage'
+  }, {
+    id: 'cartes_bancaires',
+    name: 'Cartes Bancaires',
+    fee: '1.5% + €0.25',
+    feeType: 'percentage'
+  }, {
+    id: 'google_pay',
+    name: 'Google Pay',
+    fee: '1.5% + €0.25',
+    feeType: 'percentage'
+  }];
 
   // Helper functions for fee calculations
   const calculateTotalFee = (payoutType: 'standard' | 'instant', paymentMethod: string) => {
@@ -61,27 +120,22 @@ export function PaymentSettingsTab() {
     // Stripe processing fees
     const stripePercentage = payoutType === 'standard' ? 0.25 : 1.0;
     const stripeFixed = payoutType === 'standard' ? 0.10 : 0;
-
     if (method.feeType === 'fixed') {
       // For fixed fees like iDEAL (€0.29)
       const methodFixed = parseFloat(method.fee.replace(/[€£CHF]/g, '').replace(/[^0-9.]/g, ''));
       const totalPercentage = platformPercentage + stripePercentage;
       const totalFixed = platformFixed + stripeFixed + methodFixed;
-      
       return `${totalPercentage}% + €${totalFixed.toFixed(2)}`;
     } else {
       // For percentage fees
       const parts = method.fee.split(' + ');
       const methodPercentage = parseFloat(parts[0].replace('%', ''));
       const methodFixed = parts[1] ? parseFloat(parts[1].replace(/[€£CHF]/g, '').replace(/[^0-9.]/g, '')) : 0;
-      
       const totalPercentage = platformPercentage + stripePercentage + methodPercentage;
       const totalFixed = platformFixed + stripeFixed + methodFixed;
-      
       return `${totalPercentage.toFixed(2)}% + €${totalFixed.toFixed(2)}`;
     }
   };
-
   const {
     selectedCalendar
   } = useCalendarContext();
@@ -713,11 +767,9 @@ export function PaymentSettingsTab() {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {paymentMethodsFees.map((method) => (
-                                    <SelectItem key={method.id} value={method.id} className="text-xs">
+                                  {paymentMethodsFees.map(method => <SelectItem key={method.id} value={method.id} className="text-xs">
                                       {method.name}
-                                    </SelectItem>
-                                  ))}
+                                    </SelectItem>)}
                                 </SelectContent>
                               </Select>
                               <span>{paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee}</span>
@@ -771,11 +823,9 @@ export function PaymentSettingsTab() {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {paymentMethodsFees.map((method) => (
-                                    <SelectItem key={method.id} value={method.id} className="text-xs">
+                                  {paymentMethodsFees.map(method => <SelectItem key={method.id} value={method.id} className="text-xs">
                                       {method.name}
-                                    </SelectItem>
-                                  ))}
+                                    </SelectItem>)}
                                 </SelectContent>
                               </Select>
                               <span>{paymentMethodsFees.find(m => m.id === selectedPaymentMethod)?.fee}</span>
@@ -892,9 +942,7 @@ export function PaymentSettingsTab() {
                         </div>
                       </div>
                       <div className="group relative">
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                          Net available balance
-                        </span>
+                        
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
                           Final amount after all deductions
                         </div>
@@ -935,17 +983,17 @@ export function PaymentSettingsTab() {
               {/* Learn more link */}
               
                     <button onClick={() => {
-                      setFeesInfoOpen(true);
-                      setTimeout(() => {
-                        const feesSection = document.getElementById('fees-section');
-                        if (feesSection) {
-                          feesSection.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                          });
-                        }
-                      }, 100);
-                    }} className="text-xs text-primary hover:underline flex items-center space-x-1">
+                  setFeesInfoOpen(true);
+                  setTimeout(() => {
+                    const feesSection = document.getElementById('fees-section');
+                    if (feesSection) {
+                      feesSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                      });
+                    }
+                  }, 100);
+                }} className="text-xs text-primary hover:underline flex items-center space-x-1">
                       <TrendingUp className="h-3 w-3" />
                       <span>Learn more in Fees</span>
                     </button>
@@ -1104,19 +1152,50 @@ export function PaymentSettingsTab() {
                         </p>
                       </div>
 
-                      {/* Fee Structure */}
+                      {/* Fee Structure Transparency */}
                       <div className="border-t border-muted/40 pt-3 mb-3">
-                        <h5 className="text-xs font-medium text-muted-foreground mb-2">Fee Structure</h5>
-                        <div className="space-y-1 text-xs text-muted-foreground">
-                          <div>
-                            <span className="font-medium">Stripe Processing Fees:</span> Standard payout 0.25% + €0.10, Instant payout 1% per transaction
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm">💳</span>
+                          <h5 className="text-sm font-medium text-foreground">Fee Structure Transparency</h5>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                          We believe in complete transparency about fees. Here's exactly how our pricing works:
+                        </p>
+                        <div className="space-y-2 text-xs">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary/60"></div>
+                              <span className="font-medium text-foreground">Stripe Processing Fees</span>
+                            </div>
+                            <div className="ml-3.5 text-muted-foreground">
+                              <div>• Standard payout: 0.25% + €0.10 per transaction</div>
+                              <div>• Instant payout: 1% per transaction</div>
+                            </div>
                           </div>
-                          <div>
-                            <span className="font-medium">Platform Fees:</span> Standard payout 1.9% + €0.25, Instant payout 1.9% + €0.35 per booking
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary/60"></div>
+                              <span className="font-medium text-foreground">Platform Fees</span>
+                            </div>
+                            <div className="ml-3.5 text-muted-foreground">
+                              <div>• Standard payout: 1.9% + €0.25 per booking</div>
+                              <div>• Instant payout: 1.9% + €0.35 per booking</div>
+                            </div>
                           </div>
-                          <div className="mt-2 text-xs text-muted-foreground">
-                            These fees cover secure payment processing, instant payouts when selected, and platform maintenance.
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary/60"></div>
+                              <span className="font-medium text-foreground">Payment Method Fees</span>
+                            </div>
+                            <div className="ml-3.5 text-muted-foreground">
+                              Vary by payment method (e.g., iDEAL €0.29, Card fees vary)
+                            </div>
                           </div>
+                        </div>
+                        <div className="mt-3 p-2 bg-muted/30 rounded border border-muted/40">
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            These fees cover secure payment processing, instant payouts when selected, and platform maintenance including booking management and customer support.
+                          </p>
                         </div>
                       </div>
 
