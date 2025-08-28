@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Check, Star } from 'lucide-react';
+import { Check, Star, CreditCard, Smartphone, Banknote, Zap, Globe, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PaymentMethod {
   id: string;
   name: string;
   description?: string;
-  logo: string;
+  icon: React.ComponentType<{ className?: string }>;
   badge?: string;
   countryCode?: string;
   priority?: number;
@@ -17,7 +17,7 @@ const paymentMethods: PaymentMethod[] = [
     id: 'ideal',
     name: 'iDEAL',
     description: 'Trusted by millions in the Netherlands',
-    logo: '🏦',
+    icon: Building2,
     badge: 'Recommended in the Netherlands',
     countryCode: 'NL',
     priority: 1
@@ -26,21 +26,21 @@ const paymentMethods: PaymentMethod[] = [
     id: 'cards',
     name: 'Credit Cards',
     description: 'Visa & Mastercard accepted',
-    logo: '💳',
+    icon: CreditCard,
     priority: 2
   },
   {
     id: 'apple-pay',
     name: 'Apple Pay',
     description: 'One-touch secure payments',
-    logo: '🍎',
+    icon: Smartphone,
     priority: 3
   },
   {
     id: 'bancontact',
     name: 'Bancontact',
     description: 'Belgium\'s preferred payment method',
-    logo: '🇧🇪',
+    icon: Building2,
     countryCode: 'BE',
     priority: 4
   },
@@ -48,7 +48,7 @@ const paymentMethods: PaymentMethod[] = [
     id: 'giropay',
     name: 'giropay',
     description: 'Direct bank transfer from Germany',
-    logo: '🇩🇪',
+    icon: Banknote,
     countryCode: 'DE',
     priority: 5
   },
@@ -56,7 +56,7 @@ const paymentMethods: PaymentMethod[] = [
     id: 'sofort',
     name: 'Sofort',
     description: 'Germany, Austria & Switzerland',
-    logo: '⚡',
+    icon: Zap,
     countryCode: 'DE',
     priority: 6
   },
@@ -64,7 +64,7 @@ const paymentMethods: PaymentMethod[] = [
     id: 'blik',
     name: 'BLIK',
     description: 'Poland\'s mobile payment system',
-    logo: '🇵🇱',
+    icon: Smartphone,
     countryCode: 'PL',
     priority: 7
   },
@@ -72,7 +72,7 @@ const paymentMethods: PaymentMethod[] = [
     id: 'twint',
     name: 'TWINT',
     description: 'Switzerland\'s mobile payment app',
-    logo: '🇨🇭',
+    icon: Smartphone,
     countryCode: 'CH',
     priority: 8
   },
@@ -80,7 +80,7 @@ const paymentMethods: PaymentMethod[] = [
     id: 'revolut-pay',
     name: 'Revolut Pay',
     description: 'Fast & secure global payments',
-    logo: '🌐',
+    icon: Globe,
     priority: 9
   }
 ];
@@ -133,13 +133,13 @@ export function PaymentOptions({
                 onClick={() => handleMethodToggle(method.id)}
                 className={cn(
                   "relative group cursor-pointer",
-                  "p-6 rounded-xl border-2 transition-all duration-300",
-                  "hover:shadow-lg hover:scale-[1.02] transform",
-                  "bg-gradient-to-b from-background to-muted/20",
+                  "p-4 rounded-lg border transition-all duration-200",
+                  "hover:shadow-md",
+                  "bg-background",
                   isSelected
-                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                    ? "border-primary bg-primary/5 shadow-sm"
                     : "border-border hover:border-primary/50",
-                  isRecommended && "ring-2 ring-primary/20"
+                  isRecommended && "ring-1 ring-primary/30"
                 )}
               >
                 {/* Selection Indicator */}
@@ -166,15 +166,15 @@ export function PaymentOptions({
 
                 {/* Payment Method Content */}
                 <div className="space-y-3">
-                  {/* Logo */}
-                  <div className="text-3xl mb-2">
-                    {method.logo}
+                  {/* Icon */}
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted/50">
+                    <method.icon className="h-5 w-5 text-muted-foreground" />
                   </div>
 
                   {/* Name */}
                   <div className="space-y-1">
                     <h3 className={cn(
-                      "font-semibold text-lg leading-tight transition-colors",
+                      "font-semibold text-base leading-tight transition-colors",
                       isSelected ? "text-primary" : "text-foreground group-hover:text-primary"
                     )}>
                       {method.name}
@@ -221,7 +221,7 @@ export function PaymentOptions({
                   key={methodId}
                   className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full border border-primary/20"
                 >
-                  <span>{method.logo}</span>
+                  <method.icon className="h-3 w-3" />
                   <span>{method.name}</span>
                 </span>
               ) : null;
@@ -229,6 +229,18 @@ export function PaymentOptions({
           </div>
         </div>
       )}
+
+      {/* Payment Methods Information */}
+      <div className="p-4 bg-muted/30 rounded-lg border border-muted/40">
+        <div className="space-y-2 text-center">
+          <p className="text-sm text-muted-foreground">
+            When you select payment methods, customers will have the option to pay with any of the selected methods during booking.
+          </p>
+          <p className="text-xs text-muted-foreground/80">
+            Note: Different payment methods have varying transaction fees. Final fees will be calculated based on the customer's chosen payment method.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
