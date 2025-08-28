@@ -388,7 +388,7 @@ export function PaymentSettingsTab() {
       </div>;
   }
   const hasStripeAccount = !!stripeAccount?.stripe_account_id;
-  const isStripeSetupComplete = stripeAccount?.onboarding_completed && stripeAccount?.charges_enabled && stripeAccount?.payouts_enabled;
+  const isStripeSetupComplete = stripeAccount?.onboarding_completed;
   return <div className="space-y-6">
       {/* Stripe Mode Switcher (for development) */}
       {stripeConfig.isTestMode && <StripeModeSwitcher />}
@@ -652,7 +652,58 @@ export function PaymentSettingsTab() {
           </CardContent>
         </Card>}
 
-      {/* Pay & Book with Stripe Information Section */}
+      {/* Pay & Book with Stripe Information Section - Only show if onboarding is completed */}
+      {hasStripeAccount && !isStripeSetupComplete && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <CreditCard className="h-5 w-5 text-amber-600" />
+              <CardTitle>Complete Stripe Setup</CardTitle>
+            </div>
+            <CardDescription>
+              Finish your Stripe account setup to access all payment features
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <h4 className="font-medium text-amber-800">Setup Incomplete</h4>
+                </div>
+                <p className="text-sm text-amber-700 mb-3">
+                  Your Stripe account needs to be completed before you can access payment methods, payout options, and other features.
+                </p>
+              </div>
+              
+              <div className="flex gap-3">
+                <Button 
+                  onClick={handleStartOnboarding}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Complete Setup
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={handleRefreshAccount}
+                  disabled={accountLoading}
+                >
+                  {accountLoading ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                  )}
+                  Refresh Status
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Full Payment Settings - Only show when onboarding is completed */}
       {isStripeSetupComplete && <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
