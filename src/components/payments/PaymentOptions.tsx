@@ -8,17 +8,17 @@ import applePayLogo from '@/assets/payment-logos/apple-pay.svg';
 import visaLogo from '@/assets/payment-logos/visa.svg';
 import mastercardLogo from '@/assets/payment-logos/mastercard.svg';
 
-// High-quality PNG payment logos
-import googlePayLogo from '@/assets/payment-logos/google-pay.png';
-import cartesBancairesLogo from '@/assets/payment-logos/cartes-bancaires.png';
-import payByBankLogo from '@/assets/payment-logos/pay-by-bank.png';
-import przelewy24Logo from '@/assets/payment-logos/przelewy24.png';
-import epsLogo from '@/assets/payment-logos/eps.png';
-import sofortLogo from '@/assets/payment-logos/sofort.png';
-import revolutLogo from '@/assets/payment-logos/revolut.png';
-import twintLogo from '@/assets/payment-logos/twint.png';
-import blikLogo from '@/assets/payment-logos/blik.png';
-import bancontactLogo from '@/assets/payment-logos/bancontact.png';
+// Direct URLs to uploaded payment logos (fallback while assets copy is pending)
+const googlePayLogo = "/lovable-uploads/385e7546-0b46-4471-a5f1-bfea68119377.png";
+const cartesBancairesLogo = "/lovable-uploads/d67ea0a3-cda6-4958-b5ee-63ac62ed2df3.png";
+const payByBankLogo = "/lovable-uploads/56681463-1294-4e26-9327-57c08216a9a8.png";
+const przelewy24Logo = "/lovable-uploads/aea8da7e-b0b3-4997-81e8-e47542fde82e.png";
+const epsLogo = "/lovable-uploads/d8e83d28-6277-43e8-a523-ce0dd385145e.png";
+const sofortLogo = "/lovable-uploads/81b0d28e-eae6-4092-b63c-cd5099e26bdd.png";
+const revolutLogo = "/lovable-uploads/c4dcd094-64f4-4baf-8fa2-bf8cbfde9c14.png";
+const twintLogo = "/lovable-uploads/a361c4b3-8aa1-4871-8f1e-0a2d473cbab3.png";
+const blikLogo = "/lovable-uploads/1808307f-106b-484b-b430-8af55e9c4bb5.png";
+const bancontactLogo = "/lovable-uploads/8bc2532e-2959-4f9f-a1e1-8c847bee47a7.png";
 
 interface PaymentMethod {
   id: string;
