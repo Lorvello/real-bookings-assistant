@@ -839,16 +839,16 @@ export function PaymentSettingsTab() {
                             <span className="text-muted-foreground">-€0.29</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Platform fee (1.9%):</span>
-                            <span className="text-muted-foreground">-€1.90</span>
+                            <span className="text-muted-foreground">Platform fee (1.9% + €0.25):</span>
+                            <span className="text-muted-foreground">-€2.15</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Stripe processing:</span>
+                            <span className="text-muted-foreground">Stripe processing (0.25% + €0.10):</span>
                             <span className="text-muted-foreground">-€0.35</span>
                           </div>
                           <div className="border-t border-muted/40 pt-1 mt-1 flex justify-between">
                             <span className="text-muted-foreground font-medium">Net payout:</span>
-                            <span className="text-muted-foreground font-medium">€97.46</span>
+                            <span className="text-muted-foreground font-medium">€97.21</span>
                           </div>
                         </div>
                       </div>
