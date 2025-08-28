@@ -858,6 +858,14 @@ export function PaymentSettingsTab() {
                           Based on method (see Fees section)
                         </div>
                       </div>
+                      <div className="group relative">
+                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                          Platform Fee (1.9% + €0.25/€0.35)
+                        </span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                          Deducted by Booking Assistant platform
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
@@ -866,7 +874,7 @@ export function PaymentSettingsTab() {
                     <div className="bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-full text-sm font-medium shadow-sm">
                       Connected Account
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Gross funds received in account currency</p>
+                    <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Net funds after platform fee deduction</p>
                   </div>
                   
                   {/* Second connecting line with annotations */}
@@ -882,14 +890,6 @@ export function PaymentSettingsTab() {
                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
                            0.25% + €0.10 for Standard Payout, 1% for Instant Payout
                          </div>
-                      </div>
-                      <div className="group relative">
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                          Platform Fee (1.9% + €0.25/€0.35)
-                        </span>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                          Deducted by Booking Assistant platform
-                        </div>
                       </div>
                       <div className="group relative">
                         <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
