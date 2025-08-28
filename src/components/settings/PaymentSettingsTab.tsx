@@ -920,85 +920,122 @@ export function PaymentSettingsTab() {
               <h4 className="text-sm font-medium text-foreground mb-1">Fund Flow (How money moves)</h4>
               <p className="text-xs text-muted-foreground mb-4">Understand the payment journey for your bookings</p>
               
-              {/* 6-node diagram with Currency Conversion */}
+              {/* 3-step simplified diagram */}
               <div className="mb-4">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-1">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-2">
                   {/* Customer */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
+                    <div className="bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-full text-sm font-medium shadow-sm">
                       Customer
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">Payment initiated in local currency</p>
+                    <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Payment initiated in local currency</p>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
-                  {/* Currency Conversion */}
-                  <div className="flex flex-col items-center">
-                    <div className="bg-orange-500/10 text-orange-600 border border-orange-500/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
-                      Currency Conversion
+                  {/* First connecting line with annotations */}
+                  <div className="flex flex-col items-center gap-1 flex-1 px-2">
+                    <div className="w-full border-t-2 border-dashed border-primary/30 relative">
+                      <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">If applicable (+2% fee)</p>
+                    <div className="text-center space-y-1">
+                      <div className="group relative">
+                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                          Currency Conversion (+2% if applicable)
+                        </span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                          +2% fee if payment currency ≠ account currency
+                        </div>
+                      </div>
+                      <div className="group relative">
+                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                          Payment Method Fee deducted
+                        </span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                          Based on method (see Fees section)
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
                   {/* Connected Account */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
+                    <div className="bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-full text-sm font-medium shadow-sm">
                       Connected Account
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">Gross funds in account currency</p>
+                    <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Gross funds received in account currency</p>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
-                  {/* Stripe deducts fees */}
-                  <div className="flex flex-col items-center">
-                    <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
-                      Stripe deducts fees
+                  {/* Second connecting line with annotations */}
+                  <div className="flex flex-col items-center gap-1 flex-1 px-2">
+                    <div className="w-full border-t-2 border-dashed border-primary/30 relative">
+                      <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">Payment + platform fees deducted</p>
+                    <div className="text-center space-y-1">
+                      <div className="group relative">
+                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                          Stripe Processing Fee (0.25% + €0.10)
+                        </span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                          Stripe payout processing fee
+                        </div>
+                      </div>
+                      <div className="group relative">
+                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                          Platform Fee (1.9% + €0.25/€0.35)
+                        </span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                          Deducted by Booking Assistant platform
+                        </div>
+                      </div>
+                      <div className="group relative">
+                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                          Net available balance
+                        </span>
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                          Final amount after all deductions
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
-                  {/* Available balance */}
+                  {/* Bank Account */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
-                      Available balance
+                    <div className="bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-full text-sm font-medium shadow-sm">
+                      Bank Account
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">Net funds after deductions</p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
-                  
-                  {/* Bank payout */}
-                  <div className="flex flex-col items-center">
-                    <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
-                      Bank payout
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1 text-center max-w-[80px]">Standard or Instant transfer</p>
+                    <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Funds transferred (Standard or Instant payout)</p>
                   </div>
                 </div>
               </div>
               
-              {/* 4 bullet points */}
+              {/* Updated bullet points */}
               <ul className="space-y-1.5 mb-3">
                 <li className="flex items-start space-x-2 text-xs">
                   <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">Payments go from the customer directly to your Connected Account.</span>
+                  <span className="text-muted-foreground">Payments always start with the customer's currency.</span>
                 </li>
                 <li className="flex items-start space-x-2 text-xs">
                   <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">Stripe fees and our platform fee are automatically deducted before payout.</span>
+                  <span className="text-muted-foreground">If different from your account currency, Stripe applies a 2% conversion fee.</span>
                 </li>
                 <li className="flex items-start space-x-2 text-xs">
                   <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">Choose Standard (cheapest) or Instant (fastest) payout in "Payout Options".</span>
+                  <span className="text-muted-foreground">Payment method fee, Stripe fee, and platform fee are all deducted automatically before payout.</span>
                 </li>
                 <li className="flex items-start space-x-2 text-xs">
                   <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">For fee amounts, see the Fees section.</span>
+                  <span className="text-muted-foreground">Final payout = net balance transferred to your bank (Standard or Instant).</span>
                 </li>
               </ul>
               
               {/* Learn more link */}
+              <div className="text-center">
+                <button
+                  onClick={() => setCurrencyConversionModalOpen(true)}
+                  className="text-xs text-primary hover:text-primary/80 underline transition-colors"
+                >
+                  Learn more in Fees
+                </button>
+              </div>
               <button 
                 onClick={() => {
                   setFeesInfoOpen(true);
