@@ -869,100 +869,177 @@ export function PaymentSettingsTab() {
                 
                 <CollapsibleContent>
                   <div className="mt-3 space-y-4">
-                    {/* Payment Methods Fees */}
+                     {/* Payment Methods Fees */}
                      <div>
-                       <h5 className="text-xs font-medium text-muted-foreground mb-2">Payment Methods Fees</h5>
-                       <div className="space-y-1">
-                         <div className="flex justify-between items-center text-xs">
-                           <span className="text-muted-foreground">iDEAL</span>
-                           <span className="text-muted-foreground">€0.29</span>
-                         </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Cards (EEA)</span>
-                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
+                       <h5 className="text-xs font-medium text-muted-foreground mb-3">Payment Methods Fees</h5>
+                       <div className="space-y-0">
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                           {/* Row 1 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">iDEAL</span>
+                               <span className="text-muted-foreground sm:hidden">€0.29</span>
+                             </div>
                            </div>
-                           <span className="text-muted-foreground">1.5% + €0.25</span>
-                         </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Cards (UK)</span>
-                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">€0.29</span>
                            </div>
-                           <span className="text-muted-foreground">2.5% + €0.25</span>
-                         </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Cards (International)</span>
-                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
+                           
+                           {/* Row 2 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Cards (EEA)</span>
+                               <span className="text-muted-foreground sm:hidden">1.5% + €0.25</span>
+                             </div>
                            </div>
-                           <span className="text-muted-foreground">3.25% + €0.25</span>
-                         </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Apple Pay</span>
-                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">1.5% + €0.25</span>
                            </div>
-                           <span className="text-muted-foreground">Same as cards</span>
-                         </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">Bancontact</span>
-                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
+                           
+                           {/* Row 3 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Cards (UK)</span>
+                               <span className="text-muted-foreground sm:hidden">2.5% + €0.25</span>
+                             </div>
                            </div>
-                           <span className="text-muted-foreground">€0.35</span>
-                         </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <div className="flex items-center gap-2">
-                             <span className="text-muted-foreground">BLIK</span>
-                             <button onClick={() => setCurrencyConversionModalOpen(true)} className="p-0.5 rounded-full hover:bg-muted transition-colors" aria-label="Currency conversion info">
-                               <Info className="w-3 h-3 text-muted-foreground" />
-                             </button>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">2.5% + €0.25</span>
                            </div>
-                           <span className="text-muted-foreground">1.6% + €0.25</span>
+                           
+                           {/* Row 4 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Cards (International)</span>
+                               <span className="text-muted-foreground sm:hidden">3.25% + €0.25</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">3.25% + €0.25</span>
+                           </div>
+                           
+                           {/* Row 5 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Apple Pay</span>
+                               <span className="text-muted-foreground sm:hidden">Same as cards</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">Same as cards</span>
+                           </div>
+                           
+                           {/* Row 6 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Bancontact</span>
+                               <span className="text-muted-foreground sm:hidden">€0.35</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">€0.35</span>
+                           </div>
+                           
+                           {/* Row 7 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">BLIK</span>
+                               <span className="text-muted-foreground sm:hidden">1.6% + €0.25</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">1.6% + €0.25</span>
+                           </div>
+                           
+                           {/* Row 8 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">TWINT</span>
+                               <span className="text-muted-foreground sm:hidden">1.9% + CHF 0.30</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">1.9% + CHF 0.30</span>
+                           </div>
+                           
+                           {/* Row 9 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Revolut Pay</span>
+                               <span className="text-muted-foreground sm:hidden">1.5% + €0.25</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">1.5% + €0.25</span>
+                           </div>
+                           
+                           {/* Row 10 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Sofort</span>
+                               <span className="text-muted-foreground sm:hidden">1.4% + €0.25</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">1.4% + €0.25</span>
+                           </div>
+                           
+                           {/* Row 11 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">EPS</span>
+                               <span className="text-muted-foreground sm:hidden">1.6% + €0.25</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">1.6% + €0.25</span>
+                           </div>
                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground">TWINT</span>
-                            <span className="text-muted-foreground">1.9% + CHF 0.30</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground">Revolut Pay</span>
-                            <span className="text-muted-foreground">1.5% + €0.25</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground">Sofort</span>
-                            <span className="text-muted-foreground">1.4% + €0.25</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground">EPS</span>
-                            <span className="text-muted-foreground">1.6% + €0.25</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground">Przelewy24</span>
-                            <span className="text-muted-foreground">2.2% + €0.30</span>
-                          </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <span className="text-muted-foreground">Pay by Bank</span>
-                           <span className="text-muted-foreground">~1.5% + £0.20</span>
+                           
+                           {/* Row 12 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Przelewy24</span>
+                               <span className="text-muted-foreground sm:hidden">2.2% + €0.30</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">2.2% + €0.30</span>
+                           </div>
+                           
+                           {/* Row 13 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Pay by Bank</span>
+                               <span className="text-muted-foreground sm:hidden">~1.5% + £0.20</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">~1.5% + £0.20</span>
+                           </div>
+                           
+                           {/* Row 14 */}
+                           <div className="py-1.5 border-b border-border/30 sm:border-b-0">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Cartes Bancaires</span>
+                               <span className="text-muted-foreground sm:hidden">Same as cards</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">Same as cards</span>
+                           </div>
+                           
+                           {/* Row 15 */}
+                           <div className="py-1.5">
+                             <div className="flex justify-between items-center text-xs sm:block">
+                               <span className="text-muted-foreground">Google Pay</span>
+                               <span className="text-muted-foreground sm:hidden">Same as cards</span>
+                             </div>
+                           </div>
+                           <div className="hidden sm:flex items-center justify-end py-1.5 text-xs">
+                             <span className="text-muted-foreground">Same as cards</span>
+                           </div>
                          </div>
-                         <div className="flex justify-between items-center text-xs">
-                           <span className="text-muted-foreground">Cartes Bancaires</span>
-                           <span className="text-muted-foreground">Same as cards</span>
-                         </div>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground">Google Pay</span>
-                            <span className="text-muted-foreground">Same as cards</span>
-                          </div>
                        </div>
                       </div>
 
