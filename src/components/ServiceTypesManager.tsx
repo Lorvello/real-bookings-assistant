@@ -5,6 +5,7 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { ServiceTypesEmptyState } from '@/components/settings/service-types/ServiceTypesEmptyState';
 import { ServiceTypeForm } from '@/components/settings/service-types/ServiceTypeForm';
 import { ServiceTypeCard } from '@/components/settings/service-types/ServiceTypeCard';
+import { ServiceTypeStripeConfig } from '@/components/settings/service-types/ServiceTypeStripeConfig';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
@@ -174,14 +175,26 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
           <DialogHeader>
             <DialogTitle>{editingService ? 'Edit Service' : 'Add Service'}</DialogTitle>
           </DialogHeader>
-          <ServiceTypeForm
-            formData={formData}
-            setFormData={setFormData}
-            onSave={handleSave}
-            onCancel={handleClose}
-            saving={saving}
-            isEditing={!!editingService}
-          />
+          <div className="space-y-6">
+            <ServiceTypeForm
+              formData={formData}
+              setFormData={setFormData}
+              onSave={handleSave}
+              onCancel={handleClose}
+              saving={saving}
+              isEditing={!!editingService}
+            />
+            
+            {editingService && (
+              <ServiceTypeStripeConfig
+                serviceType={editingService}
+                onUpdate={(updates) => {
+                  updateServiceType(editingService.id, updates);
+                  setEditingService(prev => prev ? { ...prev, ...updates } : null);
+                }}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

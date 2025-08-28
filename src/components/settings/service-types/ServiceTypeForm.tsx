@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { ServiceTypeStripeConfig } from './ServiceTypeStripeConfig';
+import { ServiceType } from '@/types/calendar';
 
 interface ServiceTypeFormData {
   name: string;

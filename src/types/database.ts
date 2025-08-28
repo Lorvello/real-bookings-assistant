@@ -89,7 +89,27 @@ export interface ServiceType {
   max_attendees: number;
   preparation_time: number;
   cleanup_time: number;
+  stripe_test_price_id?: string;
+  stripe_live_price_id?: string;
+  supports_installments?: boolean;
+  installment_options?: InstallmentOption[];
+  payment_description?: string;
   created_at: string;
+}
+
+export interface InstallmentOption {
+  id: string;
+  name: string;
+  description?: string;
+  payments: InstallmentPayment[];
+}
+
+export interface InstallmentPayment {
+  order: number;
+  percentage: number;
+  amount: number;
+  due_days: number;
+  description?: string;
 }
 
 export interface AvailabilitySchedule {

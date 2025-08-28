@@ -74,3 +74,9 @@ verify_jwt = true
 
 [functions.sync-payment-methods]
 verify_jwt = true
+
+[functions.create-service-type-with-stripe]
+verify_jwt = true
+
+[functions.whatsapp-payment-handler]
+verify_jwt = false

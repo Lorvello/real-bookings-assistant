@@ -4,6 +4,25 @@ import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { ServiceType } from '@/types/calendar';
 
+// Helper function to transform database data to our interface
+const transformServiceType = (data: any): ServiceType => {
+  return {
+    ...data,
+    installment_options: data.installment_options ? 
+      (typeof data.installment_options === 'string' ? 
+        JSON.parse(data.installment_options) : data.installment_options) : []
+  };
+};
+
+// Helper function to transform our interface to database format
+const transformForDatabase = (data: any) => {
+  return {
+    ...data,
+    installment_options: data.installment_options ? 
+      JSON.stringify(data.installment_options) : null
+  };
+};
+
 export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false) => {
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +67,8 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
           index === self.findIndex(t => t.id === item.id)
         );
 
-        setServiceTypes(uniqueServiceTypes.sort((a, b) => 
+        const transformedData = uniqueServiceTypes.map(transformServiceType);
+        setServiceTypes(transformedData.sort((a, b) => 
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ));
       } else {
@@ -63,7 +83,8 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
           throw error;
         }
         
-        setServiceTypes(data || []);
+        const transformedData = (data || []).map(transformServiceType);
+        setServiceTypes(transformedData);
       }
     } catch (error) {
       console.error('Error fetching service types:', error);
@@ -79,32 +100,62 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
 
   const createServiceType = async (serviceData: Omit<ServiceType, 'id'>) => {
     try {
-      // Get current user to ensure user_id is set
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('User not authenticated');
+      // Check if we should create with Stripe integration
+      if (serviceData.price && serviceData.price > 0) {
+        console.log('Creating service type with Stripe integration...');
+        
+        const { data, error } = await supabase.functions.invoke('create-service-type-with-stripe', {
+          body: {
+            serviceData: transformForDatabase(serviceData),
+            isTestMode: true, // Could be configurable
+          },
+        });
+
+        if (error) {
+          console.error('Error creating service with Stripe:', error);
+          throw error;
+        }
+
+        const transformedData = transformServiceType(data.serviceType);
+        setServiceTypes(prev => [transformedData, ...prev]);
+        toast({
+          title: "Service created with Stripe integration",
+          description: `Service type created successfully with Stripe price ID: ${data.stripePriceId}`,
+        });
+        
+        return transformedData;
+      } else {
+        // Fallback to regular creation for free services
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          throw new Error('User not authenticated');
+        }
+
+        const serviceDataForDb = transformForDatabase({
+          ...serviceData,
+          user_id: userData.user.id
+        });
+
+        const { data, error } = await supabase
+          .from('service_types')
+          .insert([serviceDataForDb])
+          .select('*')
+          .single();
+
+        if (error) {
+          console.error('Supabase error creating service type:', error);
+          throw error;
+        }
+
+        const transformedData = transformServiceType(data);
+        setServiceTypes(prev => [transformedData, ...prev]);
+        toast({
+          title: "Service created",
+          description: "The service type was created successfully.",
+        });
+        
+        return transformedData;
       }
-
-      // Ensure user_id is included in service data
-      const serviceDataWithUser = {
-        ...serviceData,
-        user_id: userData.user.id
-      };
-
-      const { data, error } = await supabase.from('service_types').insert([serviceDataWithUser]).select('*').single();
-
-      if (error) {
-        console.error('Supabase error creating service type:', error);
-        throw error;
-      }
-
-      setServiceTypes(prev => [data as ServiceType, ...prev]);
-      toast({
-        title: "Service created",
-        description: "The service type was created successfully.",
-      });
-      
-      return data as ServiceType;
     } catch (error) {
       console.error('Error creating service type:', error);
       toast({
@@ -118,7 +169,11 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
 
   const updateServiceType = async (id: string, serviceData: Partial<ServiceType>) => {
     try {
-      const { error } = await supabase.from('service_types').update(serviceData).eq('id', id);
+      const serviceDataForDb = transformForDatabase(serviceData);
+      const { error } = await supabase
+        .from('service_types')
+        .update(serviceDataForDb)
+        .eq('id', id);
 
       if (error) {
         throw error;
