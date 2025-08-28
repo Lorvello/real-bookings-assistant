@@ -778,40 +778,40 @@ export function PaymentSettingsTab() {
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-1">
                   {/* Customer */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
+                    <div className="bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Customer
                     </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
+                  <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
                   {/* Connected Account */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                    <div className="bg-secondary/10 text-secondary-foreground border border-secondary/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Connected Account
                     </div>
-                    <span className="text-xs text-muted-foreground mt-1">(gross)</span>
+                    <span className="text-xs text-muted-foreground mt-1 font-medium">(gross)</span>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
+                  <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
                   {/* Stripe deducts fees */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">
+                    <div className="bg-muted/80 text-muted-foreground border border-border px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Stripe deducts fees
                     </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
+                  <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
                   {/* Available balance */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium">
+                    <div className="bg-accent/10 text-accent-foreground border border-accent/20 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Available balance
                     </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground rotate-90 sm:rotate-0" />
+                  <ArrowRight className="h-4 w-4 text-primary/60 rotate-90 sm:rotate-0" />
                   
                   {/* Bank payout */}
                   <div className="flex flex-col items-center">
-                    <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                    <div className="bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
                       Bank payout
                     </div>
                   </div>
