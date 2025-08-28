@@ -2,21 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { Check, Info, CreditCard, Smartphone, Banknote, Globe, Building2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Import payment logos
+// Import payment logos - using exact uploaded logos
 import idealLogo from '@/assets/payment-logos/ideal.svg';
 import applePayLogo from '@/assets/payment-logos/apple-pay.svg';
-import googlePayLogo from '@/assets/payment-logos/google-pay-updated.svg';
 import visaLogo from '@/assets/payment-logos/visa.svg';
 import mastercardLogo from '@/assets/payment-logos/mastercard.svg';
-import bancontactLogo from '@/assets/payment-logos/bancontact-updated.svg';
-import sofortLogo from '@/assets/payment-logos/sofort-updated.svg';
-import twintLogo from '@/assets/payment-logos/twint-updated.svg';
-import blikLogo from '@/assets/payment-logos/blik.svg';
-import revolutLogo from '@/assets/payment-logos/revolut.svg';
-import epsLogo from '@/assets/payment-logos/eps.svg';
-import przelewy24Logo from '@/assets/payment-logos/przelewy24.svg';
-import payByBankLogo from '@/assets/payment-logos/pay-by-bank.svg';
-import cartesBancairesLogo from '@/assets/payment-logos/cartes-bancaires.svg';
+
+// Direct URLs to uploaded payment logos
+const googlePayLogo = "/lovable-uploads/6d260403-ab9f-4e38-a5c3-5afeb067b34e.png";
+const cartesBancairesLogo = "/lovable-uploads/0f3a661e-cb82-4320-893b-30cbe163e889.png";
+const payByBankLogo = "/lovable-uploads/410ccbb7-c5c0-4b18-95eb-33b58f200ed5.png";
+const przelewy24Logo = "/lovable-uploads/624b75c8-20dc-4280-97f9-96ae0fd111c9.png";
+const epsLogo = "/lovable-uploads/7514e0f1-ae4e-413d-8c90-bac98d9b3bff.png";
+const sofortLogo = "/lovable-uploads/d969a61b-43fd-4756-be12-b10cb8db1c3a.png";
+const revolutLogo = "/lovable-uploads/c66f70cd-0aca-42ac-a4ef-21aba8a28d31.png";
+const twintLogo = "/lovable-uploads/fb9f2d63-c689-45c3-b318-47e00faf0953.png";
+const blikLogo = "/lovable-uploads/785837c0-d2e3-44f6-80be-0d5c3948fe7c.png";
+const bancontactLogo = "/lovable-uploads/bd9b6a41-7bdb-4a70-85c5-e66d542ef7cf.png";
 
 interface PaymentMethod {
   id: string;
