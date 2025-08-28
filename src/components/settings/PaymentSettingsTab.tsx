@@ -892,24 +892,20 @@ export function PaymentSettingsTab() {
                            <div className="w-full border-t-2 border-dashed border-primary/30 relative">
                              <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
                            </div>
-                           <FundFlowCard 
-                             title="Payment Processing"
-                             items={[
-                               {
-                                 label: "Currency Conversion",
-                                 description: "+2% fee if payment currency differs from your account currency"
-                               },
-                               {
-                                 label: "Payment Method Fee", 
-                                 description: "Based on selected method (iDEAL: €0.29, Cards: 1.5-2.5% + €0.25)"
-                               },
-                               {
-                                 label: "Platform Fee",
-                                 description: "1.9% + €0.25/€0.35 deducted by Booking Assistant platform"
-                               }
-                             ]}
-                             className="max-w-[200px]"
-                           />
+                            <FundFlowCard 
+                              title="Platform Fees"
+                              items={[
+                                {
+                                  label: "Currency Conversion",
+                                  description: "+2% fee if payment currency differs from your account currency"
+                                },
+                                {
+                                  label: "Platform Fee",
+                                  description: "• Standard payout: 1.9% + €0.25 per booking • Instant payout: 1.9% + €0.35 per booking"
+                                }
+                              ]}
+                              className="max-w-[200px]"
+                            />
                          </div>
                   
                   {/* Connected Account */}
