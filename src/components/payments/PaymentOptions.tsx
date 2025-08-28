@@ -503,14 +503,19 @@ export function PaymentOptions({
               </span>
             )}
           </div>
-          {hasUnsavedChanges && onSave && (
             <button
-              onClick={() => onSave(selected)}
-              className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary/90 transition-colors"
+              onClick={() => onSave?.(selected)}
+              disabled={!hasUnsavedChanges || !onSave}
+              aria-disabled={!hasUnsavedChanges || !onSave}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                "bg-primary text-primary-foreground hover:bg-primary/90",
+                (!hasUnsavedChanges || !onSave) && "opacity-50 cursor-not-allowed hover:bg-primary"
+              )}
+              title={!hasUnsavedChanges ? "Geen wijzigingen om op te slaan" : undefined}
             >
               Save Changes
             </button>
-          )}
         </div>
         <p className="text-xs text-muted-foreground mt-2">
           Choose payment methods that are popular in your country and have low fees for optimal results.

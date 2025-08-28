@@ -140,11 +140,10 @@ export function PaymentSettingsTab() {
 
   // Track changes to payment methods
   useEffect(() => {
-    if (settings?.enabled_payment_methods) {
-      const originalMethods = settings.enabled_payment_methods.sort().join(',');
-      const currentMethods = selectedMethods.sort().join(',');
-      setHasUnsavedChanges(originalMethods !== currentMethods);
-    }
+    const original = settings?.enabled_payment_methods ?? [];
+    const originalKey = [...original].sort().join(',');
+    const currentKey = [...selectedMethods].sort().join(',');
+    setHasUnsavedChanges(originalKey !== currentKey);
   }, [selectedMethods, settings?.enabled_payment_methods]);
 
   const loadStripeAccount = async () => {
