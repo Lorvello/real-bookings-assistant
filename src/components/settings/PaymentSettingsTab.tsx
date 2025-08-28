@@ -734,31 +734,10 @@ export function PaymentSettingsTab() {
               <PaymentOptions 
                 selectedMethods={selectedMethods}
                 onSelectionChange={setSelectedMethods}
+                onSave={handleSavePaymentMethods}
                 onFeesOpen={() => setFeesInfoOpen(true)}
+                hasUnsavedChanges={hasUnsavedChanges}
               />
-
-              {/* Save Button */}
-              {hasUnsavedChanges && (
-                <div className="flex justify-end pt-4 border-t">
-                  <Button
-                    onClick={handleSavePaymentMethods}
-                    disabled={savingMethods || !selectedMethods.length}
-                    className="min-w-[120px]"
-                  >
-                    {savingMethods ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="mr-2 h-4 w-4" />
-                        Save Methods
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
             </div>
 
             {/* Payout Options */}

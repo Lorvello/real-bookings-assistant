@@ -93,9 +93,11 @@ serve(async (req) => {
       'przelewy24': 'p24',
       'blik': 'blik',
       'twint': 'twint',
-      'apple_pay': 'card', // Apple Pay uses card processing
-      'google_pay': 'card', // Google Pay uses card processing
-      'revolut_pay': 'card', // Revolut Pay uses card processing
+      'apple-pay': 'card', // Apple Pay uses card processing
+      'google-pay': 'card', // Google Pay uses card processing
+      'revolut-pay': 'card', // Revolut Pay uses card processing
+      'pay-by-bank': 'bacs_debit', // UK Open Banking
+      'cartes-bancaires': 'card', // French card scheme
       'cards': 'card'
     };
 
@@ -105,9 +107,10 @@ serve(async (req) => {
 
     // Always include card as it's the base for Apple Pay, Google Pay, etc.
     if (!enabledMethods.includes('card') && 
-        (paymentMethods.includes('apple_pay') || 
-         paymentMethods.includes('google_pay') || 
-         paymentMethods.includes('revolut_pay') ||
+        (paymentMethods.includes('apple-pay') || 
+         paymentMethods.includes('google-pay') || 
+         paymentMethods.includes('revolut-pay') ||
+         paymentMethods.includes('cartes-bancaires') ||
          paymentMethods.includes('cards'))) {
       enabledMethods.push('card');
     }

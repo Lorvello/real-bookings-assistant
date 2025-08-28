@@ -257,8 +257,10 @@ const paymentMethods: PaymentMethod[] = [
 interface PaymentOptionsProps {
   selectedMethods?: string[];
   onSelectionChange?: (selectedMethods: string[]) => void;
+  onSave?: (selectedMethods: string[]) => void;
   onFeesOpen?: () => void;
   className?: string;
+  hasUnsavedChanges?: boolean;
 }
 
 interface PaymentMethodModalProps {
@@ -366,11 +368,18 @@ function PaymentMethodModal({ method, isOpen, onClose, onFeesOpen }: PaymentMeth
 export function PaymentOptions({ 
   selectedMethods = ['ideal'], 
   onSelectionChange,
+  onSave,
   onFeesOpen,
-  className 
+  className,
+  hasUnsavedChanges = false
 }: PaymentOptionsProps) {
   const [selected, setSelected] = useState<string[]>(selectedMethods);
   const [openModalId, setOpenModalId] = useState<string | null>(null);
+
+  // Sync internal state with props when selectedMethods changes
+  useEffect(() => {
+    setSelected(selectedMethods);
+  }, [selectedMethods]);
 
   const handleMethodToggle = (methodId: string) => {
     const newSelected = selected.includes(methodId)
@@ -481,16 +490,26 @@ export function PaymentOptions({
         </div>
       </div>
 
-      {/* Summary */}
+      {/* Summary with Save Button */}
       <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-        <div className="text-sm">
-          <span className="font-medium text-foreground">
-            {selected.length} payment method{selected.length !== 1 ? 's' : ''} selected
-          </span>
-          {selected.length > 0 && (
-            <span className="text-muted-foreground ml-2">
-              ({selected.map(id => paymentMethods.find(m => m.id === id)?.name).join(', ')})
+        <div className="flex items-center justify-between">
+          <div className="text-sm">
+            <span className="font-medium text-foreground">
+              {selected.length} payment method{selected.length !== 1 ? 's' : ''} selected
             </span>
+            {selected.length > 0 && (
+              <span className="text-muted-foreground ml-2">
+                ({selected.map(id => paymentMethods.find(m => m.id === id)?.name).join(', ')})
+              </span>
+            )}
+          </div>
+          {hasUnsavedChanges && onSave && (
+            <button
+              onClick={() => onSave(selected)}
+              className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary/90 transition-colors"
+            >
+              Save Changes
+            </button>
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-2">
