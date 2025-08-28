@@ -68,6 +68,7 @@ export function PaymentSettingsTab() {
   const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | 'professionalism' | null>(null);
   const [showEmbeddedOnboarding, setShowEmbeddedOnboarding] = useState(false);
   const [feesInfoOpen, setFeesInfoOpen] = useState(false);
+  const [fundFlowOpen, setFundFlowOpen] = useState(false);
   const [currencyConversionModalOpen, setCurrencyConversionModalOpen] = useState(false);
   const [selectedMethods, setSelectedMethods] = useState<string[]>(['ideal']);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -724,12 +725,23 @@ export function PaymentSettingsTab() {
             </div>
 
             {/* Fund Flow Section */}
-            <div className="bg-muted/30 border border-muted/40 p-4 rounded-lg">
-              <h4 className="text-sm font-medium text-foreground mb-1">Fund Flow (How money moves)</h4>
-              <p className="text-xs text-muted-foreground mb-4">Understand the payment journey for your bookings</p>
+            <Collapsible open={fundFlowOpen} onOpenChange={setFundFlowOpen}>
+              <div className="bg-muted/30 border border-muted/40 p-3 rounded-lg">
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center justify-between w-full text-left">
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground mb-0.5">Fund Flow (How money moves)</h4>
+                      <p className="text-xs text-muted-foreground">Understand the payment journey for your bookings</p>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${fundFlowOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent>
+                  <div className="mt-3 space-y-4">
               
-              {/* 3-step simplified diagram */}
-              <div className="mb-4">
+                    {/* 3-step simplified diagram */}
+                    <div className="mb-4">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-2">
                   {/* Customer */}
                   <div className="flex flex-col items-center">
@@ -779,12 +791,12 @@ export function PaymentSettingsTab() {
                     </div>
                     <div className="text-center space-y-1">
                       <div className="group relative">
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
-                          Stripe Processing Fee (0.25% + €0.10)
-                        </span>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
-                          Stripe payout processing fee
-                        </div>
+                         <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
+                           Stripe Processing Fee (0.25% + €0.10 / 1%)
+                         </span>
+                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-md shadow-md border opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 w-48 pointer-events-none">
+                           0.25% + €0.10 for Standard Payout, 1% for Instant Payout
+                         </div>
                       </div>
                       <div className="group relative">
                         <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border border-muted/40 cursor-help hover:bg-muted/50 transition-colors">
@@ -810,49 +822,52 @@ export function PaymentSettingsTab() {
                     <div className="bg-primary/10 text-primary border border-primary/20 px-4 py-2 rounded-full text-sm font-medium shadow-sm">
                       Bank Account
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Funds transferred (Standard or Instant payout)</p>
-                  </div>
-                </div>
-              </div>
+                      <p className="text-xs text-muted-foreground mt-2 text-center max-w-[120px]">Funds transferred (Standard or Instant payout)</p>
+                    </div>
+                      </div>
+                    </div>
               
-              {/* Updated bullet points */}
-              <ul className="space-y-1.5 mb-3">
-                <li className="flex items-start space-x-2 text-xs">
-                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">Payments always start with the customer's currency.</span>
-                </li>
-                <li className="flex items-start space-x-2 text-xs">
-                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">If different from your account currency, Stripe applies a 2% conversion fee.</span>
-                </li>
-                <li className="flex items-start space-x-2 text-xs">
-                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">Payment method fee, Stripe fee, and platform fee are all deducted automatically before payout.</span>
-                </li>
-                <li className="flex items-start space-x-2 text-xs">
-                  <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">Final payout = net balance transferred to your bank (Standard or Instant).</span>
-                </li>
-              </ul>
+                    {/* Updated bullet points */}
+                    <ul className="space-y-1.5 mb-3">
+                      <li className="flex items-start space-x-2 text-xs">
+                        <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground">Payments always start with the customer's currency.</span>
+                      </li>
+                      <li className="flex items-start space-x-2 text-xs">
+                        <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground">If different from your account currency, Stripe applies a 2% conversion fee.</span>
+                      </li>
+                      <li className="flex items-start space-x-2 text-xs">
+                        <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground">Payment method fee, Stripe fee, and platform fee are all deducted automatically before payout.</span>
+                      </li>
+                      <li className="flex items-start space-x-2 text-xs">
+                        <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground">Final payout = net balance transferred to your bank (Standard or Instant).</span>
+                      </li>
+                    </ul>
               
               {/* Learn more link */}
               
-              <button onClick={() => {
-            setFeesInfoOpen(true);
-            setTimeout(() => {
-              const feesSection = document.getElementById('fees-section');
-              if (feesSection) {
-                feesSection.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'start'
-                });
-              }
-            }, 100);
-          }} className="text-xs text-primary hover:underline flex items-center space-x-1">
-                <TrendingUp className="h-3 w-3" />
-                <span>Learn more in Fees</span>
-              </button>
-            </div>
+                    <button onClick={() => {
+                      setFeesInfoOpen(true);
+                      setTimeout(() => {
+                        const feesSection = document.getElementById('fees-section');
+                        if (feesSection) {
+                          feesSection.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                          });
+                        }
+                      }, 100);
+                    }} className="text-xs text-primary hover:underline flex items-center space-x-1">
+                      <TrendingUp className="h-3 w-3" />
+                      <span>Learn more in Fees</span>
+                    </button>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
 
             {/* Fees Section */}
             <Collapsible open={feesInfoOpen} onOpenChange={setFeesInfoOpen}>
