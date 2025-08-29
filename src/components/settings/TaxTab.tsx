@@ -29,6 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
+import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { ConnectTaxThresholdMonitoring } from '@/components/tax/ConnectTaxThresholdMonitoring';
 import { TaxExportComponent } from '@/components/tax/TaxExportComponent';
 import { StripeEmbeddedTaxSettings } from '@/components/tax/StripeEmbeddedTaxSettings';
@@ -64,6 +65,7 @@ export const TaxTab = () => {
   const { checkAccess } = useAccessControl();
   const { toast } = useToast();
   const { isDeveloper } = useDeveloperAccess();
+  const { getStripeAccount, createOnboardingLink, createLoginLink } = useStripeConnect();
   
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [taxData, setTaxData] = useState<any>(null);
@@ -73,6 +75,8 @@ export const TaxTab = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [useMockData, setUseMockData] = useState(false);
+  const [stripeAccount, setStripeAccount] = useState<any>(null);
+  const [checkingStripe, setCheckingStripe] = useState(true);
 
   const hasAccess = checkAccess('canAccessTaxCompliance');
 
@@ -81,11 +85,28 @@ export const TaxTab = () => {
 
   useEffect(() => {
     if (hasAccess && selectedCalendar?.id) {
-      loadTaxData();
-      loadTaxSettings();
-      loadTaxCodes();
+      checkStripeAccountStatus();
     }
   }, [hasAccess, selectedCalendar?.id]);
+
+  const checkStripeAccountStatus = async () => {
+    try {
+      setCheckingStripe(true);
+      const account = await getStripeAccount();
+      setStripeAccount(account);
+      
+      // Only load tax data if Stripe is fully onboarded
+      if (account?.onboarding_completed && account?.charges_enabled) {
+        loadTaxData();
+        loadTaxSettings();
+        loadTaxCodes();
+      }
+    } catch (error) {
+      console.error('Failed to check Stripe account:', error);
+    } finally {
+      setCheckingStripe(false);
+    }
+  };
 
   const loadTaxData = async () => {
     setLoading(true);
@@ -392,6 +413,132 @@ export const TaxTab = () => {
           onClose={() => setShowUpgradeModal(false)}
           userType={userStatus.userType}
         />
+      </div>
+    );
+  }
+
+  // Show loading state while checking Stripe account
+  if (checkingStripe) {
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Tax Compliance & Administration</h1>
+            <p className="text-gray-400 mt-1">Automated tax management powered by Stripe Tax</p>
+          </div>
+        </div>
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-8 text-center">
+            <RefreshCw className="w-8 h-8 text-blue-400 animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Checking Stripe account status...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show Stripe onboarding required state
+  if (!stripeAccount?.onboarding_completed || !stripeAccount?.charges_enabled) {
+    const handleStartOnboarding = async () => {
+      const link = await createOnboardingLink();
+      if (link?.url) {
+        window.open(link.url, '_blank');
+      }
+    };
+
+    const handleOpenDashboard = async () => {
+      const dashboardUrl = await createLoginLink();
+      if (dashboardUrl) {
+        window.open(dashboardUrl, '_blank');
+      }
+    };
+
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Tax Compliance & Administration</h1>
+            <p className="text-gray-400 mt-1">Automated tax management powered by Stripe Tax</p>
+          </div>
+        </div>
+
+        <Card className="bg-orange-900/20 border-orange-700">
+          <CardContent className="p-8 text-center">
+            <div className="max-w-md mx-auto space-y-6">
+              <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto">
+                <AlertCircle className="w-8 h-8 text-orange-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-2">Stripe Connect Setup Required</h3>
+                <p className="text-gray-400">
+                  Complete your Stripe Connect onboarding to access tax compliance features and start collecting payments.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button 
+                  onClick={handleStartOnboarding}
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                  size="lg"
+                >
+                  <ArrowUpRight className="w-4 h-4 mr-2" />
+                  {stripeAccount ? 'Complete Setup' : 'Start Onboarding'}
+                </Button>
+                {stripeAccount && (
+                  <Button 
+                    onClick={handleOpenDashboard}
+                    variant="outline"
+                    className="border-orange-600 text-orange-400 hover:bg-orange-600/10"
+                    size="lg"
+                  >
+                    Check Status
+                  </Button>
+                )}
+                <Button 
+                  onClick={checkStripeAccountStatus}
+                  variant="outline"
+                  className="border-gray-600 text-gray-400 hover:bg-gray-600/10"
+                  size="lg"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {stripeAccount && (
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Info className="w-5 h-5" />
+                Account Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Onboarding Completed</span>
+                  <Badge variant={stripeAccount.onboarding_completed ? "default" : "secondary"}>
+                    {stripeAccount.onboarding_completed ? "Yes" : "No"}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Charges Enabled</span>
+                  <Badge variant={stripeAccount.charges_enabled ? "default" : "secondary"}>
+                    {stripeAccount.charges_enabled ? "Yes" : "No"}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Account Status</span>
+                  <Badge variant={stripeAccount.account_status === 'complete' ? "default" : "secondary"}>
+                    {stripeAccount.account_status || "Unknown"}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   }

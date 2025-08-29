@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getStripeMode } from '@/utils/stripeConfig';
 
 interface AccountSessionData {
   client_secret: string;
@@ -29,7 +30,10 @@ export const useStripeAccountSession = (options: UseStripeAccountSessionOptions)
     
     try {
       const { data, error } = await supabase.functions.invoke('create-account-session', {
-        body: { components }
+        body: { 
+          components,
+          test_mode: getStripeMode() === 'test'
+        }
       });
 
       if (error) {
