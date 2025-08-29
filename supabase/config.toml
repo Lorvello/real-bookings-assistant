@@ -86,3 +86,6 @@ verify_jwt = true
 
 [functions.generate-tax-report]
 verify_jwt = true
+
+[functions.get-tax-settings]
+verify_jwt = true

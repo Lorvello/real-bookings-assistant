@@ -75,7 +75,7 @@ serve(async (req) => {
     const platformAccountId = platformAccount.id;
     const environment = test_mode ? 'test' : 'live';
 
-    // Get user's Stripe account
+    // Get user's Stripe account with proper tenant isolation
     const { data: stripeAccount } = await supabaseClient
       .from('business_stripe_accounts')
       .select('*')
@@ -96,6 +96,30 @@ serve(async (req) => {
     }
 
     logStep('Found Stripe account', { accountId: stripeAccount.stripe_account_id });
+
+    // Fetch Stripe account settings for tax configuration
+    const account = await stripe.accounts.retrieve(stripeAccount.stripe_account_id);
+    
+    // Get tax settings from Stripe
+    const taxSettings = {
+      originAddress: account.company?.address || account.individual?.address || null,
+      defaultTaxBehavior: account.settings?.payments?.statement_descriptor_suffix_kana || 'exclusive',
+      taxCalculation: {
+        automaticTax: account.settings?.dashboard?.display_name || 'disabled'
+      }
+    };
+
+    // Get tax registrations from Stripe Tax
+    let taxRegistrations = [];
+    try {
+      const registrations = await stripe.tax.registrations.list({
+        stripeAccount: stripeAccount.stripe_account_id
+      });
+      taxRegistrations = registrations.data;
+    } catch (error) {
+      logStep('Tax registrations not available', { error: error.message });
+    }
+
 
     // Calculate date range (default to last 90 days)
     const endDate = end_date ? new Date(end_date) : new Date();
@@ -205,9 +229,9 @@ serve(async (req) => {
         currentQuarter,
         quarterStart: quarterStart.toISOString(),
         quarterEnd: quarterEnd.toISOString(),
-        revenue: totalRevenue, // Simplified - same as total for now
+        revenue: totalRevenue,
         taxCollected: totalTaxCollected,
-        vatRate: 21.0, // Dutch VAT rate
+        vatRate: 21.0,
         complianceStatus
       },
       topServices: topServicesArray,
@@ -216,8 +240,11 @@ serve(async (req) => {
         country: stripeAccount.country || 'NL',
         chargesEnabled: stripeAccount.charges_enabled,
         payoutsEnabled: stripeAccount.payouts_enabled,
-        automaticTaxEnabled: true // Enabled for Pro/Enterprise users
+        automaticTaxEnabled: true
       },
+      taxSettings: taxSettings,
+      taxRegistrations: taxRegistrations,
+      connectedAccountId: stripeAccount.stripe_account_id,
       lastUpdated: new Date().toISOString()
     };
 

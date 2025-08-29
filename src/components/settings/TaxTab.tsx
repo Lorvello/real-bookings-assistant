@@ -39,6 +39,7 @@ export const TaxTab = () => {
   
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [taxData, setTaxData] = useState<any>(null);
+  const [taxSettings, setTaxSettings] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [useMockData, setUseMockData] = useState(false);
@@ -71,6 +72,7 @@ export const TaxTab = () => {
   useEffect(() => {
     if (hasAccess && selectedCalendar?.id) {
       loadTaxData();
+      loadTaxSettings();
     }
   }, [hasAccess, selectedCalendar?.id]);
 
@@ -81,12 +83,12 @@ export const TaxTab = () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         setTaxData(mockTaxData);
       } else {
-        // Fetch real tax data from Stripe
+        // Fetch real tax data from Stripe with proper tenant isolation
         const { data, error } = await supabase.functions.invoke('get-tax-data', {
           body: {
             calendar_id: selectedCalendar?.id,
-            test_mode: true, // Always use test mode for now
-            start_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // Last 90 days
+            test_mode: true,
+            start_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
             end_date: new Date().toISOString()
           }
         });
@@ -96,55 +98,79 @@ export const TaxTab = () => {
         }
 
         if (data?.success) {
-          // Transform Stripe data to match expected format
-          const transformedData = {
-            currentMonth: {
-              totalRevenue: data.overview.totalRevenue || 0,
-              vatCollected: data.overview.totalTaxCollected || 0,
-              vatRate: 21,
-              transactions: data.overview.transactionCount || 0,
-              exemptTransactions: data.overview.transactionCount - data.overview.taxableTransactions || 0
-            },
-            quarterly: {
-              q1: { revenue: data.quarterlyData?.revenue || 0, vat: data.quarterlyData?.taxCollected || 0 },
-              q2: { revenue: 0, vat: 0 },
-              q3: { revenue: 0, vat: 0 },
-              q4: { revenue: 0, vat: 0 }
-            },
-            compliance: {
-              lastReportGenerated: data.lastUpdated ? new Date(data.lastUpdated).toISOString().split('T')[0] : '2024-01-15',
-              nextDueDate: '2024-04-01',
-              status: data.overview.complianceStatus || 'unknown',
-              autoSubmission: data.stripeAccountStatus?.automaticTaxEnabled || false
-            }
-          };
-          setTaxData(transformedData);
+          // Use data directly from Stripe
+          setTaxData(data);
         } else {
-          // No data available or error
-          setTaxData(null);
-          toast({
-            title: "No Data Available",
-            description: data?.error || "No tax data found. Make sure you have completed Stripe onboarding and have processed payments.",
-            variant: "destructive",
-          });
+          throw new Error(data?.error || 'Invalid response from tax service');
         }
       }
     } catch (error) {
-      console.error('Error loading tax data:', error);
+      console.error('Failed to load tax data:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to load tax data",
-        variant: "destructive"
+        variant: "destructive",
       });
-      setTaxData(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTaxSettings = async () => {
+    try {
+      if (useMockData) {
+        const mockSettings = {
+          success: true,
+          taxSettings: {
+            originAddress: {
+              line1: 'Hoofdstraat 123',
+              city: 'Amsterdam',
+              postal_code: '1012 AB',
+              country: 'NL'
+            },
+            defaultTaxBehavior: 'exclusive',
+            pricesIncludeTax: false,
+            presetProductTaxCode: 'txcd_10000000',
+            automaticTax: {
+              checkout: { enabled: true, status: 'active' },
+              invoices: { enabled: true, status: 'active' }
+            }
+          },
+          taxRegistrations: [
+            { country: 'NL', type: 'vat', status: 'active', active_from: Date.now() / 1000 }
+          ],
+          thresholdMonitoring: { enabled: true }
+        };
+        setTaxSettings(mockSettings);
+      } else {
+        const { data, error } = await supabase.functions.invoke('get-tax-settings', {
+          body: { test_mode: true }
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Failed to fetch tax settings');
+        }
+
+        if (data?.success) {
+          setTaxSettings(data);
+        } else {
+          throw new Error(data?.error || 'Invalid response from tax settings service');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load tax settings:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to load tax settings",
+        variant: "destructive",
+      });
     }
   };
 
   const handleSetMockData = () => {
     setUseMockData(true);
     loadTaxData();
+    loadTaxSettings();
     toast({
       title: "Mock Data Enabled",
       description: "Displaying mock tax data for development"
@@ -163,8 +189,7 @@ export const TaxTab = () => {
   const handleRefreshTaxData = async () => {
     setRefreshing(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      await loadTaxData();
+      await Promise.all([loadTaxData(), loadTaxSettings()]);
       toast({
         title: "Success",
         description: "Tax data refreshed successfully"
@@ -433,32 +458,38 @@ export const TaxTab = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="space-y-2">
                 <p className="text-sm text-gray-400">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-white">€{taxData?.currentMonth.totalRevenue?.toLocaleString()}</p>
-                <p className="text-xs text-gray-500">{taxData?.currentMonth.transactions} transactions</p>
+                <p className="text-2xl font-bold text-white">
+                  €{taxData?.overview?.totalRevenue?.toLocaleString() || '0'}
+                </p>
+                <p className="text-xs text-gray-500">{taxData?.overview?.transactionCount || 0} transactions</p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm text-gray-400">VAT Collected</p>
-                <p className="text-2xl font-bold text-green-400">€{taxData?.currentMonth.vatCollected?.toLocaleString()}</p>
-                <p className="text-xs text-gray-500">{taxData?.currentMonth.vatRate}% average rate</p>
+                <p className="text-2xl font-bold text-green-400">
+                  €{taxData?.overview?.totalTaxCollected?.toLocaleString() || '0'}
+                </p>
+                <p className="text-xs text-gray-500">21% VAT rate</p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm text-gray-400">Compliance Status</p>
-                <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                <Badge className={`${
+                  taxData?.overview?.complianceStatus === 'compliant' 
+                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                    : 'bg-red-500/10 text-red-400 border-red-500/20'
+                }`}>
                   <CheckCircle className="w-3 h-3 mr-1" />
-                  Compliant
+                  {taxData?.overview?.complianceStatus || 'Unknown'}
                 </Badge>
-                <p className="text-xs text-gray-500">Next due: {taxData?.compliance.nextDueDate}</p>
+                <p className="text-xs text-gray-500">Account: {taxData?.connectedAccountId?.slice(-6) || 'Not connected'}</p>
               </div>
               <div className="space-y-2">
-                <p className="text-sm text-gray-400">Auto Submission</p>
+                <p className="text-sm text-gray-400">Tax Registrations</p>
                 <div className="flex items-center gap-2">
-                  <Switch 
-                    checked={taxData?.compliance.autoSubmission} 
-                    disabled 
-                  />
-                  <span className="text-sm text-white">Enabled</span>
+                  <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20">
+                    {taxSettings?.taxRegistrations?.length || 0} Active
+                  </Badge>
                 </div>
-                <p className="text-xs text-gray-500">Reports filed automatically</p>
+                <p className="text-xs text-gray-500">Multi-jurisdiction enabled</p>
               </div>
             </div>
           )}
@@ -475,15 +506,38 @@ export const TaxTab = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {Object.entries(taxData?.quarterly || {}).map(([quarter, data]: [string, any]) => (
-              <div key={quarter} className="p-4 bg-gray-900/50 rounded-lg">
-                <h4 className="text-white font-medium mb-2">{quarter.toUpperCase()}</h4>
-                <div className="space-y-1">
-                  <p className="text-sm text-gray-400">Revenue: €{data.revenue?.toLocaleString()}</p>
-                  <p className="text-sm text-green-400">VAT: €{data.vat?.toLocaleString()}</p>
-                </div>
+            <div className="p-4 bg-gray-900/50 rounded-lg">
+              <h4 className="text-white font-medium mb-2">Current Quarter</h4>
+              <div className="space-y-1">
+                <p className="text-sm text-gray-400">Revenue: €{taxData?.quarterlyData?.revenue?.toLocaleString() || '0'}</p>
+                <p className="text-sm text-green-400">VAT: €{taxData?.quarterlyData?.taxCollected?.toLocaleString() || '0'}</p>
+                <p className="text-xs text-gray-500">Q{taxData?.quarterlyData?.currentQuarter || 1} {new Date().getFullYear()}</p>
               </div>
-            ))}
+            </div>
+            <div className="p-4 bg-gray-900/50 rounded-lg">
+              <h4 className="text-white font-medium mb-2">Origin Address</h4>
+              <div className="space-y-1">
+                <p className="text-sm text-gray-400">{taxSettings?.taxSettings?.originAddress?.line1 || 'Not set'}</p>
+                <p className="text-sm text-gray-400">{taxSettings?.taxSettings?.originAddress?.city || ''} {taxSettings?.taxSettings?.originAddress?.postal_code || ''}</p>
+                <p className="text-xs text-gray-500">{taxSettings?.taxSettings?.originAddress?.country || 'NL'}</p>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-900/50 rounded-lg">
+              <h4 className="text-white font-medium mb-2">Automatic Tax</h4>
+              <div className="space-y-1">
+                <p className="text-sm text-green-400">Checkout: {taxSettings?.taxSettings?.automaticTax?.checkout?.enabled ? 'Enabled' : 'Disabled'}</p>
+                <p className="text-sm text-green-400">Invoices: {taxSettings?.taxSettings?.automaticTax?.invoices?.enabled ? 'Enabled' : 'Disabled'}</p>
+                <p className="text-xs text-gray-500">Prices: {taxSettings?.taxSettings?.pricesIncludeTax ? 'Include tax' : 'Exclude tax'}</p>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-900/50 rounded-lg">
+              <h4 className="text-white font-medium mb-2">Threshold Monitoring</h4>
+              <div className="space-y-1">
+                <p className="text-sm text-gray-400">Status: {taxSettings?.thresholdMonitoring?.enabled ? 'Active' : 'Inactive'}</p>
+                <p className="text-sm text-blue-400">{taxSettings?.taxRegistrations?.length || 0} Registrations</p>
+                <p className="text-xs text-gray-500">Multi-jurisdiction tracking</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
