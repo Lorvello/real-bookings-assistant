@@ -43,10 +43,6 @@ export const Pricing = () => {
           tooltip: "Automatically communicate with customers in their preferred language across multiple regions"
         },
         {
-          text: "Automated tax compliance & administration",
-          tooltip: "Automated international tax administration, VAT, and reporting for seamless global compliance"
-        },
-        {
           text: "Streamlined payment processing & collection",
           tooltip: "Integrated payment system for booking deposits and service payments with automated invoicing"
         }

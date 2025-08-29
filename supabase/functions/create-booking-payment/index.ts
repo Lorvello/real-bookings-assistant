@@ -71,7 +71,18 @@ serve(async (req) => {
     // Calculate amount (use booking total_price or service price)
     const amount = Math.round((booking.total_price || booking.service_types?.price || 0) * 100);
 
-    // Create payment intent with destination charges and automatic tax calculation
+    // Get user's subscription tier for tax compliance
+    const { data: userData } = await supabaseClient
+      .from("users")
+      .select("subscription_tier")
+      .eq("id", user.id)
+      .single();
+
+    // Enable automatic tax only for Professional and Enterprise tiers
+    const enableAutomaticTax = userData?.subscription_tier === 'professional' || 
+                              userData?.subscription_tier === 'enterprise';
+
+    // Create payment intent with conditional tax calculation
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: booking.payment_currency || "eur",
@@ -80,13 +91,14 @@ serve(async (req) => {
         destination: stripeAccount.stripe_account_id,
       },
       automatic_tax: {
-        enabled: true,
+        enabled: enableAutomaticTax,
       },
       metadata: {
         booking_id: booking.id,
         calendar_id: calendar_id,
         customer_email: booking.customer_email,
         service_name: booking.service_types?.name || 'Appointment Service',
+        subscription_tier: userData?.subscription_tier || 'starter',
       },
     });
 

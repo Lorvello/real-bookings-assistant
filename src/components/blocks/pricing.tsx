@@ -49,7 +49,6 @@ export const Pricing: React.FC<PricingProps> = ({
       features: [
         "Unlimited WhatsApp contact management",
         "Dual-calendar orchestration system", 
-        "Automated tax compliance & administration",
         "AI-powered intelligent reminder sequences",
         "Essential dashboard overview & live operations monitoring",
         "Global multi-language localization",
