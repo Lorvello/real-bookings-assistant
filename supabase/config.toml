@@ -89,3 +89,6 @@ verify_jwt = true
 
 [functions.get-tax-settings]
 verify_jwt = true
+
+[functions.get-tax-codes]
+verify_jwt = true

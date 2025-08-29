@@ -28,6 +28,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
+import { ConnectTaxThresholdMonitoring } from '@/components/tax/ConnectTaxThresholdMonitoring';
+import { TaxExportComponent } from '@/components/tax/TaxExportComponent';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export const TaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -40,6 +57,8 @@ export const TaxTab = () => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [taxData, setTaxData] = useState<any>(null);
   const [taxSettings, setTaxSettings] = useState<any>(null);
+  const [taxCodes, setTaxCodes] = useState<any[]>([]);
+  const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [useMockData, setUseMockData] = useState(false);
@@ -73,6 +92,7 @@ export const TaxTab = () => {
     if (hasAccess && selectedCalendar?.id) {
       loadTaxData();
       loadTaxSettings();
+      loadTaxCodes();
     }
   }, [hasAccess, selectedCalendar?.id]);
 
@@ -153,6 +173,10 @@ export const TaxTab = () => {
 
         if (data?.success) {
           setTaxSettings(data);
+          // Set registrations from the response
+          if (data.taxRegistrations) {
+            setRegistrations(data.taxRegistrations);
+          }
         } else {
           throw new Error(data?.error || 'Invalid response from tax settings service');
         }
@@ -167,10 +191,45 @@ export const TaxTab = () => {
     }
   };
 
+  const loadTaxCodes = async () => {
+    try {
+      if (useMockData) {
+        const mockCodes = [
+          { id: 'txcd_10000000', name: 'General - Tangible Goods', description: 'Physical products' },
+          { id: 'txcd_10501000', name: 'Digital - Software', description: 'Software and apps' },
+          { id: 'txcd_30000000', name: 'Services - Professional', description: 'Professional services' }
+        ];
+        setTaxCodes(mockCodes);
+      } else {
+        const { data, error } = await supabase.functions.invoke('get-tax-codes', {
+          body: { test_mode: true }
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Failed to fetch tax codes');
+        }
+
+        if (data?.success) {
+          setTaxCodes(data.taxCodes || []);
+        } else {
+          throw new Error(data?.error || 'Invalid response from tax codes service');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load tax codes:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to load tax codes",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSetMockData = () => {
     setUseMockData(true);
     loadTaxData();
     loadTaxSettings();
+    loadTaxCodes();
     toast({
       title: "Mock Data Enabled",
       description: "Displaying mock tax data for development"
@@ -179,17 +238,19 @@ export const TaxTab = () => {
 
   const handleRemoveMockData = () => {
     setUseMockData(false);
-    setTaxData(null);
+    loadTaxData();
+    loadTaxSettings();
+    loadTaxCodes();
     toast({
       title: "Mock Data Disabled",
-      description: "Mock tax data has been cleared"
+      description: "Mock data has been cleared"
     });
   };
 
   const handleRefreshTaxData = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([loadTaxData(), loadTaxSettings()]);
+      await Promise.all([loadTaxData(), loadTaxSettings(), loadTaxCodes()]);
       toast({
         title: "Success",
         description: "Tax data refreshed successfully"
@@ -370,316 +431,288 @@ export const TaxTab = () => {
     );
   }
 
-  // Professional/Enterprise content
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Tax Compliance & Administration</h1>
-          <p className="text-gray-400 mt-1">Automated tax management powered by Stripe Tax</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Professional
-          </Badge>
-          <Button 
-            onClick={handleRefreshTaxData}
-            disabled={refreshing}
-            variant="outline"
-            size="sm"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh Data
-          </Button>
-        </div>
-      </div>
-
+    <div className="space-y-4 md:space-y-6">
       {/* Developer Controls */}
       {isDeveloper && (
         <Card className="bg-yellow-900/20 border-yellow-700">
           <CardHeader>
-            <CardTitle className="text-yellow-400 flex items-center gap-2">
-              <Calculator className="w-5 h-5" />
-              Developer Controls
-            </CardTitle>
-            <CardDescription className="text-yellow-200/70">
-              Mock data controls for development and testing
-            </CardDescription>
+            <CardTitle className="text-yellow-400 text-sm">Developer Controls</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-3">
-              <Button 
-                onClick={handleSetMockData}
-                disabled={useMockData || loading}
-                variant="outline"
-                size="sm"
-                className="border-yellow-600 text-yellow-400 hover:bg-yellow-900/30"
-              >
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button onClick={handleSetMockData} variant="outline" size="sm">
                 Set MockData
               </Button>
-              <Button 
-                onClick={handleRemoveMockData}
-                disabled={!useMockData || loading}
-                variant="outline"
-                size="sm"
-                className="border-yellow-600 text-yellow-400 hover:bg-yellow-900/30"
-              >
+              <Button onClick={handleRemoveMockData} variant="outline" size="sm">
                 Remove MockData
               </Button>
-              {useMockData && (
-                <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20">
-                  Mock Data Active
-                </Badge>
-              )}
+              <span className="text-xs text-gray-400 self-center">
+                Current: {useMockData ? 'Mock Data' : 'Live Data'}
+              </span>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Tax Status Overview */}
+      {/* Overview Card */}
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
+            <Shield className="w-5 h-5" />
             Tax Overview
           </CardTitle>
-          <CardDescription>
-            Current month tax collection and compliance status
+          <CardDescription className="text-gray-400">
+            Current tax configuration and status
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="space-y-2">
-                <p className="text-sm text-gray-400">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-white">
-                  €{taxData?.overview?.totalRevenue?.toLocaleString() || '0'}
-                </p>
-                <p className="text-xs text-gray-500">{taxData?.overview?.transactionCount || 0} transactions</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-gray-400">VAT Collected</p>
-                <p className="text-2xl font-bold text-green-400">
-                  €{taxData?.overview?.totalTaxCollected?.toLocaleString() || '0'}
-                </p>
-                <p className="text-xs text-gray-500">21% VAT rate</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-gray-400">Compliance Status</p>
-                <Badge className={`${
-                  taxData?.overview?.complianceStatus === 'compliant' 
-                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                    : 'bg-red-500/10 text-red-400 border-red-500/20'
-                }`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label className="text-gray-400 text-sm">Tax Enabled</Label>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
                   <CheckCircle className="w-3 h-3 mr-1" />
-                  {taxData?.overview?.complianceStatus || 'Unknown'}
+                  Enabled
                 </Badge>
-                <p className="text-xs text-gray-500">Account: {taxData?.connectedAccountId?.slice(-6) || 'Not connected'}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-gray-400">Tax Registrations</p>
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20">
-                    {taxSettings?.taxRegistrations?.length || 0} Active
-                  </Badge>
-                </div>
-                <p className="text-xs text-gray-500">Multi-jurisdiction enabled</p>
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Quarterly Overview */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Quarterly Tax Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 bg-gray-900/50 rounded-lg">
-              <h4 className="text-white font-medium mb-2">Current Quarter</h4>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-400">Revenue: €{taxData?.quarterlyData?.revenue?.toLocaleString() || '0'}</p>
-                <p className="text-sm text-green-400">VAT: €{taxData?.quarterlyData?.taxCollected?.toLocaleString() || '0'}</p>
-                <p className="text-xs text-gray-500">Q{taxData?.quarterlyData?.currentQuarter || 1} {new Date().getFullYear()}</p>
+            <div className="space-y-2">
+              <Label className="text-gray-400 text-sm">Origin Address</Label>
+              <div className="text-sm text-white">
+                {taxSettings?.taxSettings?.originAddress?.line1 || 'Not set'}
+                <br />
+                <span className="text-gray-400">
+                  {taxSettings?.taxSettings?.originAddress?.city || ''} {taxSettings?.taxSettings?.originAddress?.postal_code || ''}
+                </span>
               </div>
             </div>
-            <div className="p-4 bg-gray-900/50 rounded-lg">
-              <h4 className="text-white font-medium mb-2">Origin Address</h4>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-400">{taxSettings?.taxSettings?.originAddress?.line1 || 'Not set'}</p>
-                <p className="text-sm text-gray-400">{taxSettings?.taxSettings?.originAddress?.city || ''} {taxSettings?.taxSettings?.originAddress?.postal_code || ''}</p>
-                <p className="text-xs text-gray-500">{taxSettings?.taxSettings?.originAddress?.country || 'NL'}</p>
+            <div className="space-y-2">
+              <Label className="text-gray-400 text-sm">Preset PTC</Label>
+              <div className="text-sm text-white">
+                {taxSettings?.taxSettings?.presetProductTaxCode || 'txcd_10000000'}
+                <br />
+                <span className="text-gray-400">General - Tangible Goods</span>
               </div>
             </div>
-            <div className="p-4 bg-gray-900/50 rounded-lg">
-              <h4 className="text-white font-medium mb-2">Automatic Tax</h4>
-              <div className="space-y-1">
-                <p className="text-sm text-green-400">Checkout: {taxSettings?.taxSettings?.automaticTax?.checkout?.enabled ? 'Enabled' : 'Disabled'}</p>
-                <p className="text-sm text-green-400">Invoices: {taxSettings?.taxSettings?.automaticTax?.invoices?.enabled ? 'Enabled' : 'Disabled'}</p>
-                <p className="text-xs text-gray-500">Prices: {taxSettings?.taxSettings?.pricesIncludeTax ? 'Include tax' : 'Exclude tax'}</p>
-              </div>
-            </div>
-            <div className="p-4 bg-gray-900/50 rounded-lg">
-              <h4 className="text-white font-medium mb-2">Threshold Monitoring</h4>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-400">Status: {taxSettings?.thresholdMonitoring?.enabled ? 'Active' : 'Inactive'}</p>
-                <p className="text-sm text-blue-400">{taxSettings?.taxRegistrations?.length || 0} Registrations</p>
-                <p className="text-xs text-gray-500">Multi-jurisdiction tracking</p>
+            <div className="space-y-2">
+              <Label className="text-gray-400 text-sm">Price-Tax Behavior</Label>
+              <div className="text-sm text-white">
+                {taxSettings?.taxSettings?.pricesIncludeTax ? 'Inclusive' : 'Exclusive'}
+                <br />
+                <span className="text-gray-400">
+                  Automatic Tax: {taxSettings?.taxSettings?.automaticTax?.checkout?.enabled ? 'On' : 'Off'}
+                </span>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Tax Settings & Reports */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Tax Settings */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Shield className="w-5 h-5" />
-              Tax Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-white">Automatic Tax Calculation</Label>
-                <p className="text-sm text-gray-400">Enable automatic tax calculation for all payments</p>
-              </div>
-              <Switch checked={true} disabled />
-            </div>
-            
-            <Separator className="bg-gray-700" />
-            
-            <div className="space-y-3">
-              <h4 className="text-white font-medium">Current Configuration</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Default Tax Rate</span>
-                  <span className="text-white">21% (Netherlands VAT)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Multi-jurisdiction</span>
-                  <span className="text-green-400">Enabled</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Tax ID Validation</span>
-                  <span className="text-green-400">Enabled</span>
-                </div>
-              </div>
-            </div>
-
-            <Alert className="bg-blue-900/20 border-blue-700">
-              <Info className="h-4 w-4" />
-              <AlertDescription className="text-blue-200">
-                Tax settings are automatically synchronized with your Stripe account and cannot be modified here.
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
-
-        {/* Reports & Actions */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Reports & Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <Button 
-                onClick={handleGenerateReport}
-                disabled={loading}
-                className="w-full justify-start"
-                variant="outline"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Generate Monthly Tax Report
-              </Button>
-              
-              <Button 
-                onClick={handleGenerateReport}
-                disabled={loading}
-                className="w-full justify-start"
-                variant="outline"
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Download Quarterly Summary
-              </Button>
-              
-              <Button 
-                onClick={() => window.open('https://dashboard.stripe.com/tax', '_blank')}
-                className="w-full justify-start"
-                variant="outline"
-              >
-                <ArrowUpRight className="w-4 h-4 mr-2" />
-                Open Stripe Tax Dashboard
-              </Button>
-            </div>
-
-            <Separator className="bg-gray-700" />
-
-            <div className="space-y-2">
-              <h4 className="text-white font-medium text-sm">Recent Activity</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Last Data Sync</span>
-                  <span className="text-white">{taxData?.lastUpdated ? new Date(taxData.lastUpdated).toLocaleString() : 'N/A'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Next Filing Due</span>
-                  <span className="text-yellow-400">{taxData?.quarterlyData?.quarterEnd ? new Date(taxData.quarterlyData.quarterEnd).toLocaleDateString() : 'N/A'}</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Integration Status */}
+      {/* Registrations Card */}
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
-            <Shield className="w-5 h-5 text-green-400" />
-            Integration Status
+            <FileText className="w-5 h-5" />
+            Tax Registrations
+          </CardTitle>
+          <CardDescription className="text-gray-400">
+            Manage tax registrations across jurisdictions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {registrations.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-700">
+                    <TableHead className="text-gray-400">Location</TableHead>
+                    <TableHead className="text-gray-400">Status</TableHead>
+                    <TableHead className="text-gray-400">Effective Date</TableHead>
+                    <TableHead className="text-gray-400">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {registrations.map((registration, index) => (
+                    <TableRow key={index} className="border-gray-700">
+                      <TableCell className="text-white">{registration.country}</TableCell>
+                      <TableCell>
+                        <Badge className={`${
+                          registration.status === 'active' 
+                            ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                            : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        }`}>
+                          {registration.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-gray-400">
+                        {new Date(registration.active_from * 1000).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm" className="text-xs">
+                          Configure
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>No tax registrations found</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-2"
+                onClick={() => window.open('https://dashboard.stripe.com/tax/registrations', '_blank')}
+              >
+                Add Registration in Stripe
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Threshold Monitoring Card */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Threshold Monitoring
+          </CardTitle>
+          <CardDescription className="text-gray-400">
+            Monitor sales thresholds across jurisdictions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ConnectTaxThresholdMonitoring accountId={taxData?.connectedAccountId} />
+        </CardContent>
+      </Card>
+
+      {/* Product Tax Codes Card */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Calculator className="w-5 h-5" />
+            Product Tax Codes
+          </CardTitle>
+          <CardDescription className="text-gray-400">
+            Assign tax codes to products and prices
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Mock product entries for demonstration */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-900/50 rounded-lg">
+                <div className="flex-1">
+                  <h4 className="text-white font-medium">Hair Cut Service</h4>
+                  <p className="text-sm text-gray-400">Professional hair cutting service</p>
+                </div>
+                <div className="flex-shrink-0">
+                  <Select defaultValue="txcd_30000000">
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {taxCodes.map((code) => (
+                        <SelectItem key={code.id} value={code.id}>
+                          {code.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-900/50 rounded-lg">
+                <div className="flex-1">
+                  <h4 className="text-white font-medium">Consultation Service</h4>
+                  <p className="text-sm text-gray-400">Professional consultation session</p>
+                </div>
+                <div className="flex-shrink-0">
+                  <Select defaultValue="txcd_30000000">
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {taxCodes.map((code) => (
+                        <SelectItem key={code.id} value={code.id}>
+                          {code.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            
+            <Alert className="bg-blue-900/20 border-blue-700">
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-blue-200">
+                Tax codes determine how tax is calculated for each product. 
+                <a href="https://dashboard.stripe.com/tax/tax-codes" target="_blank" className="underline ml-1">
+                  View all codes in Stripe →
+                </a>
+              </AlertDescription>
+            </Alert>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Exports Card */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Download className="w-5 h-5" />
+            Export Tax Transactions
+          </CardTitle>
+          <CardDescription className="text-gray-400">
+            Download detailed tax transaction reports
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TaxExportComponent accountId={taxData?.connectedAccountId} />
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <ArrowUpRight className="w-5 h-5" />
+            Quick Actions
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-400" />
-              <div>
-                <p className="text-white font-medium">Stripe Tax</p>
-                <p className="text-sm text-gray-400">Connected & Active</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-400" />
-              <div>
-                <p className="text-white font-medium">Payment Processing</p>
-                <p className="text-sm text-gray-400">Tax calculation enabled</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-400" />
-              <div>
-                <p className="text-white font-medium">Compliance Monitoring</p>
-                <p className="text-sm text-gray-400">Real-time tracking active</p>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <Button 
+              onClick={() => window.open('https://dashboard.stripe.com/tax', '_blank')}
+              variant="outline"
+              className="justify-start"
+            >
+              <ArrowUpRight className="w-4 h-4 mr-2" />
+              Open Stripe Tax Dashboard
+            </Button>
+            <Button 
+              onClick={() => window.open('https://dashboard.stripe.com/tax/registrations', '_blank')}
+              variant="outline"
+              className="justify-start"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Manage Registrations
+            </Button>
+            <Button 
+              onClick={handleRefreshTaxData}
+              disabled={refreshing}
+              variant="outline"
+              className="justify-start"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Refresh Data
+            </Button>
           </div>
         </CardContent>
       </Card>
