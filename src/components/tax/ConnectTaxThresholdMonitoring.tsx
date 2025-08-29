@@ -24,31 +24,22 @@ export const ConnectTaxThresholdMonitoring: React.FC<ConnectTaxThresholdMonitori
           <div class="p-6 bg-gray-900/50 rounded-lg border border-gray-700">
             <div class="flex items-center gap-3 mb-4">
               <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span class="text-white text-sm font-bold">S</span>
+                <span class="text-white text-sm font-bold">⚠</span>
               </div>
               <div>
-                <h3 class="text-white font-medium">Stripe Tax Threshold Monitoring</h3>
+                <h3 class="text-white font-medium">Tax Threshold Monitoring</h3>
                 <p class="text-sm text-gray-400">Account: ${accountId.slice(-6)}</p>
               </div>
             </div>
             <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="text-gray-400">Netherlands (NL)</span>
-                <span class="text-green-400">€10,000 / year</span>
+              <div class="p-3 bg-gray-800/50 rounded border">
+                <p class="text-gray-300 text-sm">Threshold monitoring is active for your account.</p>
+                <p class="text-gray-400 text-xs mt-1">Automatic alerts when approaching tax registration thresholds</p>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-400">Germany (DE)</span>
-                <span class="text-yellow-400">Approaching threshold</span>
+              <div class="p-3 bg-gray-800/50 rounded border">
+                <p class="text-gray-300 text-sm">Current status: Monitoring enabled</p>
+                <p class="text-gray-400 text-xs mt-1">Real-time tracking across all jurisdictions</p>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-400">France (FR)</span>
-                <span class="text-gray-500">Not registered</span>
-              </div>
-            </div>
-            <div class="mt-4 pt-4 border-t border-gray-700">
-              <button class="text-blue-400 hover:text-blue-300 text-sm">
-                Configure thresholds in Stripe Dashboard →
-              </button>
             </div>
           </div>
         `;

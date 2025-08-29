@@ -45,10 +45,6 @@ export const TaxExportComponent: React.FC<TaxExportComponentProps> = ({
                   <span>📋</span>
                   Custom Date Range
                 </button>
-                <button class="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors">
-                  <span>🔗</span>
-                  Open in Stripe
-                </button>
               </div>
               
               <div class="mt-3 pt-3 border-t border-gray-700 text-xs text-gray-400">

@@ -192,8 +192,8 @@ export const TaxTab = () => {
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">BTW & Belastingbeheer</h1>
-            <p className="text-muted-foreground mt-1">Geautomatiseerd belastingbeheer voor Nederland</p>
+            <h1 className="text-2xl font-bold">Tax & Compliance</h1>
+            <p className="text-muted-foreground mt-1">Automated tax management for your business</p>
           </div>
         </div>
 
@@ -206,7 +206,7 @@ export const TaxTab = () => {
               <div>
                 <h3 className="text-xl font-semibold mb-2">Professional Feature</h3>
                 <p className="text-muted-foreground">
-                  Geautomatiseerd BTW-beheer en belastingadministratie is beschikbaar voor Professional plan gebruikers en hoger.
+                  Automated tax management and compliance is available for Professional plan users and above.
                 </p>
               </div>
               <Button 
@@ -214,7 +214,7 @@ export const TaxTab = () => {
                 size="lg"
               >
                 <Crown className="w-4 h-4 mr-2" />
-                Upgrade naar Professional
+                Upgrade to Professional
               </Button>
             </div>
           </CardContent>
@@ -224,7 +224,7 @@ export const TaxTab = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              Wat je krijgt met Professional BTW-beheer
+              What you get with Professional Tax Management
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -233,22 +233,22 @@ export const TaxTab = () => {
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium">Automatische BTW-berekening</h4>
-                    <p className="text-sm text-muted-foreground">BTW wordt automatisch berekend voor alle transacties (21% & 9%)</p>
+                    <h4 className="font-medium">Automatic tax calculation</h4>
+                    <p className="text-sm text-muted-foreground">Tax is automatically calculated for all transactions</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium">Internationale ondersteuning</h4>
-                    <p className="text-sm text-muted-foreground">Juiste belastingtarieven voor klanten uit verschillende landen</p>
+                    <h4 className="font-medium">International support</h4>
+                    <p className="text-sm text-muted-foreground">Correct tax rates for customers from different countries</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium">Geautomatiseerde rapporten</h4>
-                    <p className="text-sm text-muted-foreground">Genereer belastingrapporten voor eenvoudige aangifte</p>
+                    <h4 className="font-medium">Automated reports</h4>
+                    <p className="text-sm text-muted-foreground">Generate tax reports for easy filing</p>
                   </div>
                 </div>
               </div>
@@ -257,21 +257,21 @@ export const TaxTab = () => {
                   <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="font-medium">Compliance monitoring</h4>
-                    <p className="text-sm text-muted-foreground">Real-time compliance status en waarschuwingen</p>
+                    <p className="text-sm text-muted-foreground">Real-time compliance status and alerts</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium">Automatische updates</h4>
-                    <p className="text-sm text-muted-foreground">Automatische updates wanneer belastingtarieven wijzigen</p>
+                    <h4 className="font-medium">Automatic updates</h4>
+                    <p className="text-sm text-muted-foreground">Automatic updates when tax rates change</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="font-medium">Audit trail</h4>
-                    <p className="text-sm text-muted-foreground">Volledige audit trail voor alle belasting-gerelateerde transacties</p>
+                    <p className="text-sm text-muted-foreground">Complete audit trail for all tax-related transactions</p>
                   </div>
                 </div>
               </div>
@@ -295,7 +295,7 @@ export const TaxTab = () => {
         <Card>
           <CardContent className="p-8 text-center">
             <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Stripe account status controleren...</p>
+            <p className="text-muted-foreground">Checking Stripe account status...</p>
           </CardContent>
         </Card>
       </div>
@@ -313,9 +313,9 @@ export const TaxTab = () => {
                 <Shield className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">Voltooi Stripe Onboarding</h3>
+                <h3 className="text-xl font-semibold mb-2">Complete Stripe Onboarding</h3>
                 <p className="text-muted-foreground">
-                  Ga naar de Pay & Book pagina om je Stripe onboarding te voltooien voordat je belastinginstellingen configureert.
+                  Go to the Pay & Book page to complete your Stripe onboarding before configuring tax settings.
                 </p>
               </div>
               <Button 
@@ -328,7 +328,7 @@ export const TaxTab = () => {
                 size="lg"
               >
                 <Building2 className="w-4 h-4 mr-2" />
-                Voltooi Stripe Onboarding
+                Complete Stripe Onboarding
               </Button>
             </div>
           </CardContent>
@@ -345,9 +345,9 @@ export const TaxTab = () => {
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <CardTitle className="text-2xl font-bold">BTW & Belastingbeheer</CardTitle>
+              <CardTitle className="text-2xl font-bold">Tax & Compliance</CardTitle>
               <CardDescription>
-                Geautomatiseerd belastingbeheer voor Nederlandse bedrijven
+                Automated tax management for your business
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -358,7 +358,7 @@ export const TaxTab = () => {
                 size="sm"
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                Ververs Data
+                Refresh Data
               </Button>
             </div>
           </div>
@@ -397,15 +397,15 @@ export const TaxTab = () => {
         </Card>
       )}
 
-      {/* BTW-profiel (NL) - In-platform status */}
+      {/* Tax Profile - In-platform status */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
-            BTW-profiel (Nederland)
+            Tax Profile
           </CardTitle>
           <CardDescription>
-            Status van je belastingconfiguratie voor Nederlandse BTW
+            Status of your tax configuration and compliance
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -415,30 +415,30 @@ export const TaxTab = () => {
                 <div className="p-4 rounded-lg border">
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-2 h-2 rounded-full ${stripeAccount?.onboarding_completed ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                    <span className="font-medium">Stripe Verbinding</span>
+                    <span className="font-medium">Stripe Connection</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {stripeAccount?.onboarding_completed ? 'Verbonden en actief' : 'Onboarding vereist'}
+                    {stripeAccount?.onboarding_completed ? 'Connected and active' : 'Onboarding required'}
                   </p>
                 </div>
                 
                 <div className="p-4 rounded-lg border">
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-2 h-2 rounded-full ${taxSettings.automaticTaxEnabled ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                    <span className="font-medium">Automatische BTW</span>
+                    <span className="font-medium">Automatic Tax</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {taxSettings.automaticTaxEnabled ? 'Geactiveerd' : 'Niet geactiveerd'}
+                    {taxSettings.automaticTaxEnabled ? 'Enabled' : 'Not enabled'}
                   </p>
                 </div>
 
                 <div className="p-4 rounded-lg border">
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-2 h-2 rounded-full ${(taxSettings.registrations || 0) > 0 ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                    <span className="font-medium">BTW Registraties</span>
+                    <span className="font-medium">Tax Registrations</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {taxSettings.registrations || 0} actieve registratie(s)
+                    {taxSettings.registrations || 0} active registration(s)
                   </p>
                 </div>
               </div>
@@ -447,30 +447,30 @@ export const TaxTab = () => {
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Voor Express accounts wordt belastingbeheer binnen het platform afgehandeld. 
-                Uitgebreide instellingen zijn automatisch geconfigureerd voor Nederlandse BTW-vereisten.
+                For Express accounts, tax management is handled within the platform. 
+                Advanced settings are automatically configured for your tax requirements.
               </AlertDescription>
             </Alert>
           </div>
         </CardContent>
       </Card>
 
-      {/* Service Types BTW Codes */}
+      {/* Service Types Tax Codes */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calculator className="w-5 h-5" />
-            Service BTW-tarieven (Nederland)
+            Service Tax Rates
           </CardTitle>
           <CardDescription>
-            Configureer BTW-tarieven voor je services (21% standaard, 9% gereduceerd)
+            Configure tax rates for your services
           </CardDescription>
         </CardHeader>
         <CardContent>
           {selectedCalendar?.id ? (
             <ServiceTypeTaxCodes calendarId={selectedCalendar.id} />
           ) : (
-            <p className="text-muted-foreground">Selecteer een kalender om BTW-tarieven te configureren.</p>
+            <p className="text-muted-foreground">Select a calendar to configure tax rates.</p>
           )}
         </CardContent>
       </Card>
