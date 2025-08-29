@@ -18,7 +18,8 @@ import {
   CheckCircle,
   Download,
   RefreshCw,
-  Info
+  Info,
+  Code
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -45,6 +46,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { 
+  mockTaxSettings, 
+  mockTaxCodes, 
+  mockTaxData,
+  type MockTaxSettings,
+  type MockTaxCode,
+  type MockTaxData
+} from '@/types/mockTaxData';
 
 export const TaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -65,28 +74,8 @@ export const TaxTab = () => {
 
   const hasAccess = checkAccess('canAccessTaxCompliance');
 
-  // Mock tax data for demonstration
-  const mockTaxData = {
-    currentMonth: {
-      totalRevenue: 4850.00,
-      vatCollected: 1019.50,
-      vatRate: 21,
-      transactions: 47,
-      exemptTransactions: 2
-    },
-    quarterly: {
-      q1: { revenue: 13240.00, vat: 2780.40 },
-      q2: { revenue: 15680.00, vat: 3292.80 },
-      q3: { revenue: 14520.00, vat: 3049.20 },
-      q4: { revenue: 16180.00, vat: 3397.80 }
-    },
-    compliance: {
-      lastReportGenerated: '2024-01-15',
-      nextDueDate: '2024-04-01',
-      status: 'compliant',
-      autoSubmission: true
-    }
-  };
+  // Check if we're in production
+  const isProduction = import.meta.env.PROD;
 
   useEffect(() => {
     if (hasAccess && selectedCalendar?.id) {
@@ -139,29 +128,8 @@ export const TaxTab = () => {
   const loadTaxSettings = async () => {
     try {
       if (useMockData) {
-        const mockSettings = {
-          success: true,
-          taxSettings: {
-            originAddress: {
-              line1: 'Hoofdstraat 123',
-              city: 'Amsterdam',
-              postal_code: '1012 AB',
-              country: 'NL'
-            },
-            defaultTaxBehavior: 'exclusive',
-            pricesIncludeTax: false,
-            presetProductTaxCode: 'txcd_10000000',
-            automaticTax: {
-              checkout: { enabled: true, status: 'active' },
-              invoices: { enabled: true, status: 'active' }
-            }
-          },
-          taxRegistrations: [
-            { country: 'NL', type: 'vat', status: 'active', active_from: Date.now() / 1000 }
-          ],
-          thresholdMonitoring: { enabled: true }
-        };
-        setTaxSettings(mockSettings);
+        setTaxSettings(mockTaxSettings);
+        setRegistrations(mockTaxSettings.taxRegistrations);
       } else {
         const { data, error } = await supabase.functions.invoke('get-tax-settings', {
           body: { test_mode: true }
@@ -194,12 +162,7 @@ export const TaxTab = () => {
   const loadTaxCodes = async () => {
     try {
       if (useMockData) {
-        const mockCodes = [
-          { id: 'txcd_10000000', name: 'General - Tangible Goods', description: 'Physical products' },
-          { id: 'txcd_10501000', name: 'Digital - Software', description: 'Software and apps' },
-          { id: 'txcd_30000000', name: 'Services - Professional', description: 'Professional services' }
-        ];
-        setTaxCodes(mockCodes);
+        setTaxCodes(mockTaxCodes);
       } else {
         const { data, error } = await supabase.functions.invoke('get-tax-codes', {
           body: { test_mode: true }
@@ -433,26 +396,48 @@ export const TaxTab = () => {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Developer Controls */}
-      {isDeveloper && (
-        <Card className="bg-yellow-900/20 border-yellow-700">
-          <CardHeader>
-            <CardTitle className="text-yellow-400 text-sm">Developer Controls</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button onClick={handleSetMockData} variant="outline" size="sm">
-                Set MockData
-              </Button>
-              <Button onClick={handleRemoveMockData} variant="outline" size="sm">
-                Remove MockData
-              </Button>
-              <span className="text-xs text-gray-400 self-center">
-                Current: {useMockData ? 'Mock Data' : 'Live Data'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Developer Controls - Only show in non-production */}
+      {!isProduction && (
+        <div className="space-y-3">
+          <Card className="bg-blue-900/20 border-blue-700">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Code className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm font-medium text-blue-400">Dev Mode</span>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <Button 
+                    onClick={handleSetMockData} 
+                    variant="outline" 
+                    size="sm"
+                    className="border-blue-600 text-blue-400 hover:bg-blue-600/10"
+                  >
+                    Set MockData
+                  </Button>
+                  <Button 
+                    onClick={handleRemoveMockData} 
+                    variant="outline" 
+                    size="sm"
+                    className="border-blue-600 text-blue-400 hover:bg-blue-600/10"
+                  >
+                    Remove MockData
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Mock Data Active Banner */}
+          {useMockData && (
+            <Alert className="bg-orange-900/20 border-orange-700">
+              <AlertCircle className="h-4 w-4 text-orange-400" />
+              <AlertDescription className="text-orange-300">
+                <strong>Dev Mock Data active</strong> - Displaying sample data for development
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
       )}
 
       {/* Overview Card */}
