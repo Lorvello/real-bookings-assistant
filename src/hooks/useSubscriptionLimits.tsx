@@ -94,8 +94,8 @@ export const useWhatsAppLimits = (calendarId?: string) => {
     enabled: !!user,
   });
 
-  const maxContacts = accessControl?.maxWhatsAppContacts;
-  const canAddMore = maxContacts === null || currentCount < maxContacts;
+  const maxContacts = null; // Always unlimited
+  const canAddMore = true; // Always unlimited
 
   return {
     currentCount,

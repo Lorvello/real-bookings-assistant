@@ -165,7 +165,7 @@ export default function Success() {
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   {subscriptionTier === 'Starter' && (
                     <>
-                      <li>• Strategic WhatsApp contact management (up to 500)</li>
+                      <li>• Unlimited WhatsApp contact management</li>
                       <li>• Dual-calendar orchestration system</li>
                       <li>• AI-powered intelligent reminder sequences</li>
                       <li>• Essential dashboard overview & live operations monitoring</li>

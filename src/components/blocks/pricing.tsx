@@ -47,7 +47,7 @@ export const Pricing: React.FC<PricingProps> = ({
       period: "/month",
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
-        "Strategic WhatsApp contact management (up to 500)",
+        "Unlimited WhatsApp contact management",
         "Dual-calendar orchestration system", 
         "Automated tax compliance & administration",
         "AI-powered intelligent reminder sequences",

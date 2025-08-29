@@ -19,8 +19,8 @@ export const Pricing = () => {
       description: "Perfect for beginners with basic WhatsApp automation and calendar management",
       features: [
         {
-          text: "Strategic WhatsApp contact management (up to 500)",
-          tooltip: "Organize and manage up to 500 WhatsApp contacts with smart categorization and automated responses"
+          text: "Unlimited WhatsApp contact management",
+          tooltip: "Unlimited WhatsApp contacts with smart categorization and automated responses"
         },
         {
           text: "Dual-calendar orchestration system",

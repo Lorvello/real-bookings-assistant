@@ -654,7 +654,7 @@ export const BillingTab: React.FC = () => {
                   <div className="space-y-3 mb-6">
                     {/* Updated features to match homepage exactly */}
                     {(tier.tier_name === 'starter' ? [
-                       "Strategic WhatsApp contact management (up to 500)",
+                       "Unlimited WhatsApp contact management",
                        "Dual-calendar orchestration system", 
                        "Automated tax compliance & administration",
                        "Individual user access management",

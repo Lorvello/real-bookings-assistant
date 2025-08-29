@@ -404,7 +404,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             maxCalendars: tierLimits?.max_calendars || 2,
             maxBookingsPerMonth: tierLimits?.max_bookings_per_month || null,
             maxTeamMembers: tierLimits?.max_team_members || 1,
-            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts || 500
+            maxWhatsAppContacts: null
           };
         case 'professional':
           return {
@@ -420,7 +420,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             maxCalendars: tierLimits?.max_calendars,
             maxBookingsPerMonth: tierLimits?.max_bookings_per_month,
             maxTeamMembers: tierLimits?.max_team_members || 10,
-            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts || 2500
+            maxWhatsAppContacts: null
           };
         case 'enterprise':
           return {
@@ -436,7 +436,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             maxCalendars: tierLimits?.max_calendars,
             maxBookingsPerMonth: tierLimits?.max_bookings_per_month,
             maxTeamMembers: tierLimits?.max_team_members,
-            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts
+            maxWhatsAppContacts: null
           };
         default:
           return {
@@ -452,7 +452,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             maxCalendars: 2,
             maxBookingsPerMonth: null,
             maxTeamMembers: 1,
-            maxWhatsAppContacts: 500
+            maxWhatsAppContacts: null
           };
       }
     }
@@ -488,7 +488,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             maxCalendars: tierLimits?.max_calendars || 2,
             maxBookingsPerMonth: tierLimits?.max_bookings_per_month || null,
             maxTeamMembers: tierLimits?.max_team_members || 1,
-            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts || 500
+            maxWhatsAppContacts: null
           };
         case 'professional':
           return {
@@ -504,7 +504,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             maxCalendars: tierLimits?.max_calendars,
             maxBookingsPerMonth: tierLimits?.max_bookings_per_month,
             maxTeamMembers: tierLimits?.max_team_members || 10,
-            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts || 2500
+            maxWhatsAppContacts: null
           };
         case 'enterprise':
           return {
@@ -520,7 +520,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             maxCalendars: tierLimits?.max_calendars,
             maxBookingsPerMonth: tierLimits?.max_bookings_per_month,
             maxTeamMembers: tierLimits?.max_team_members,
-            maxWhatsAppContacts: tierLimits?.max_whatsapp_contacts
+            maxWhatsAppContacts: null
           };
         default:
           return {
@@ -536,7 +536,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
             maxCalendars: 2,
             maxBookingsPerMonth: null,
             maxTeamMembers: 1,
-            maxWhatsAppContacts: 500
+            maxWhatsAppContacts: null
           };
       }
     }
@@ -567,7 +567,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
           maxCalendars: professionalTierLimits?.max_calendars,
           maxBookingsPerMonth: professionalTierLimits?.max_bookings_per_month,
           maxTeamMembers: professionalTierLimits?.max_team_members || 10,
-          maxWhatsAppContacts: professionalTierLimits?.max_whatsapp_contacts || 2500
+          maxWhatsAppContacts: null
         };
       }
       
@@ -626,7 +626,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         maxCalendars: freeTierLimits?.max_calendars || 0,
         maxBookingsPerMonth: freeTierLimits?.max_bookings_per_month || null,
         maxTeamMembers: freeTierLimits?.max_team_members || 1,
-        maxWhatsAppContacts: freeTierLimits?.max_whatsapp_contacts || 500
+        maxWhatsAppContacts: null
       };
     }
 
@@ -653,7 +653,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         maxCalendars: freeTierLimits?.max_calendars || 0,
         maxBookingsPerMonth: freeTierLimits?.max_bookings_per_month || null,
         maxTeamMembers: freeTierLimits?.max_team_members || 1,
-        maxWhatsAppContacts: freeTierLimits?.max_whatsapp_contacts || 500
+        maxWhatsAppContacts: null
       };
     }
 
@@ -682,7 +682,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         maxCalendars: professionalTierLimits?.max_calendars,
         maxBookingsPerMonth: professionalTierLimits?.max_bookings_per_month,
         maxTeamMembers: professionalTierLimits?.max_team_members || 10,
-        maxWhatsAppContacts: professionalTierLimits?.max_whatsapp_contacts || 2500
+        maxWhatsAppContacts: null
       };
     }
 
@@ -708,7 +708,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       maxCalendars: hasFullAccess ? (starterTierLimits?.max_calendars || 2) : 0,
       maxBookingsPerMonth: hasFullAccess ? (starterTierLimits?.max_bookings_per_month || null) : 0,
       maxTeamMembers: hasFullAccess ? (starterTierLimits?.max_team_members || 1) : 0,
-      maxWhatsAppContacts: hasFullAccess ? (starterTierLimits?.max_whatsapp_contacts || 500) : 0
+      maxWhatsAppContacts: hasFullAccess ? null : 0
     };
   }, [userStatus, profile?.subscription_tier, tiers]);
 
