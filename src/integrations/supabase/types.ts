@@ -1590,6 +1590,7 @@ export type Database = {
           stripe_live_price_id: string | null
           stripe_test_price_id: string | null
           supports_installments: boolean | null
+          tax_code: string | null
           user_id: string | null
         }
         Insert: {
@@ -1610,6 +1611,7 @@ export type Database = {
           stripe_live_price_id?: string | null
           stripe_test_price_id?: string | null
           supports_installments?: boolean | null
+          tax_code?: string | null
           user_id?: string | null
         }
         Update: {
@@ -1630,6 +1632,7 @@ export type Database = {
           stripe_live_price_id?: string | null
           stripe_test_price_id?: string | null
           supports_installments?: boolean | null
+          tax_code?: string | null
           user_id?: string | null
         }
         Relationships: [

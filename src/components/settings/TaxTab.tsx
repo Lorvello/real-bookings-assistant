@@ -50,14 +50,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  mockTaxSettings, 
-  mockTaxCodes, 
-  mockTaxData,
-  type MockTaxSettings,
-  type MockTaxCode,
-  type MockTaxData
-} from '@/types/mockTaxData';
+import { useTaxConfiguration } from '@/hooks/useTaxConfiguration';
+import { TaxConfigurationProgress } from '@/components/tax/TaxConfigurationProgress';
+import { ServiceTypeTaxCodes } from '@/components/tax/ServiceTypeTaxCodes';
 
 export const TaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -71,13 +66,14 @@ export const TaxTab = () => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [taxData, setTaxData] = useState<any>(null);
   const [taxSettings, setTaxSettings] = useState<any>(null);
-  const [taxCodes, setTaxCodes] = useState<any[]>([]);
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [useMockData, setUseMockData] = useState(false);
   const [stripeAccount, setStripeAccount] = useState<any>(null);
   const [checkingStripe, setCheckingStripe] = useState(true);
+  const [activeSection, setActiveSection] = useState<'overview' | 'configuration' | 'services'>('overview');
+
+  const { status: configStatus, loading: configLoading, refetch: refetchConfig } = useTaxConfiguration(selectedCalendar?.id);
 
   const hasAccess = checkAccess('canAccessTaxCompliance');
 
@@ -100,7 +96,7 @@ export const TaxTab = () => {
       if (account?.onboarding_completed && account?.charges_enabled) {
         loadTaxData();
         loadTaxSettings();
-        loadTaxCodes();
+        // Tax codes are loaded by ServiceTypeTaxCodes component
       }
     } catch (error) {
       console.error('Failed to check Stripe account:', error);
@@ -109,135 +105,29 @@ export const TaxTab = () => {
     }
   };
 
-  const loadTaxData = async (mockMode = false) => {
-    setLoading(true);
-    try {
-      if (mockMode || useMockData) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setTaxData(mockTaxData);
-      } else {
-        // Import getStripeMode for test_mode detection
-        const { getStripeMode } = await import('@/utils/stripeConfig');
-        
-        // Fetch real tax data from Stripe with proper tenant isolation
-        const { data, error } = await supabase.functions.invoke('get-tax-data', {
-          body: {
-            calendar_id: selectedCalendar?.id,
-            test_mode: getStripeMode() === 'test',
-            start_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-            end_date: new Date().toISOString()
-          }
-        });
-
-        if (error) {
-          throw new Error(error.message || 'Failed to fetch tax data');
-        }
-
-        if (data?.success) {
-          // Use data directly from Stripe
-          setTaxData(data);
-        } else {
-          // Handle specific error codes with user-friendly UI instead of toast errors
-          if (data?.code === 'UPGRADE_REQUIRED') {
-            setShowUpgradeModal(true);
-            return;
-          } else if (data?.code === 'NO_ACCOUNT') {
-            // This should be handled at the parent level, but just in case
-            await checkStripeAccountStatus();
-            return;
-          }
-          throw new Error(data?.error || 'Invalid response from tax service');
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load tax data:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load tax data",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const loadTaxSettings = async () => {
     try {
-      if (useMockData) {
-        setTaxSettings(mockTaxSettings);
-        setRegistrations(mockTaxSettings.taxRegistrations);
-      } else {
-        // Import getStripeMode for test_mode detection
-        const { getStripeMode } = await import('@/utils/stripeConfig');
-        
-        const { data, error } = await supabase.functions.invoke('get-tax-settings', {
-          body: { test_mode: getStripeMode() === 'test' }
-        });
+      const { getStripeMode } = await import('@/utils/stripeConfig');
+      
+      const { data, error } = await supabase.functions.invoke('get-tax-settings', {
+        body: { test_mode: getStripeMode() === 'test' }
+      });
 
-        if (error) {
-          throw new Error(error.message || 'Failed to fetch tax settings');
-        }
+      if (error) throw error;
 
-        if (data?.success) {
-          setTaxSettings(data);
-          // Set registrations from the response
-          if (data.taxRegistrations) {
-            setRegistrations(data.taxRegistrations);
-          }
-        } else {
-          // Handle specific error codes 
-          if (data?.code === 'UPGRADE_REQUIRED') {
-            setShowUpgradeModal(true);
-            return;
-          } else if (data?.code === 'NO_ACCOUNT') {
-            await checkStripeAccountStatus();
-            return;
-          }
-          throw new Error(data?.error || 'Invalid response from tax settings service');
+      if (data?.success) {
+        setTaxSettings(data);
+        if (data.taxRegistrations) {
+          setRegistrations(data.taxRegistrations);
         }
+      } else if (data?.code === 'UPGRADE_REQUIRED') {
+        setShowUpgradeModal(true);
       }
     } catch (error) {
       console.error('Failed to load tax settings:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to load tax settings",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const loadTaxCodes = async () => {
-    try {
-      if (useMockData) {
-        setTaxCodes(mockTaxCodes);
-      } else {
-        // Import getStripeMode for test_mode detection
-        const { getStripeMode } = await import('@/utils/stripeConfig');
-        
-        const { data, error } = await supabase.functions.invoke('get-tax-codes', {
-          body: { test_mode: getStripeMode() === 'test' }
-        });
-
-        if (error) {
-          throw new Error(error.message || 'Failed to fetch tax codes');
-        }
-
-        if (data?.success) {
-          setTaxCodes(data.taxCodes || []);
-        } else {
-          // Handle specific error codes 
-          if (data?.code === 'UPGRADE_REQUIRED') {
-            setShowUpgradeModal(true);
-            return;
-          }
-          throw new Error(data?.error || 'Invalid response from tax codes service');
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load tax codes:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load tax codes",
+        description: "Failed to load tax settings",
         variant: "destructive",
       });
     }
@@ -246,10 +136,11 @@ export const TaxTab = () => {
   const refreshTaxData = async () => {
     setRefreshing(true);
     try {
-      // Load data in sequence to avoid race conditions
-      await loadTaxSettings(); // Load settings first (contains account status)
-      await loadTaxData();      // Then load tax data 
-      await loadTaxCodes();     // Finally load codes
+      await Promise.all([
+        loadTaxSettings(),
+        loadTaxData(),
+        refetchConfig()
+      ]);
       
       toast({
         title: "Success",
@@ -257,16 +148,46 @@ export const TaxTab = () => {
       });
     } catch (error) {
       console.error('Refresh error:', error);
-      // Only show toast if it's not a handled error code
-      if (!error.message?.includes('upgrade') && !error.message?.includes('account')) {
-        toast({
-          title: "Error", 
-          description: "Failed to refresh tax data",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Error", 
+        description: "Failed to refresh tax data",
+        variant: "destructive"
+      });
     } finally {
       setRefreshing(false);
+    }
+  };
+
+      const loadTaxData = async () => {
+    setLoading(true);
+    try {
+      const { getStripeMode } = await import('@/utils/stripeConfig');
+      
+      const { data, error } = await supabase.functions.invoke('get-tax-data', {
+        body: {
+          calendar_id: selectedCalendar?.id,
+          test_mode: getStripeMode() === 'test',
+          start_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+          end_date: new Date().toISOString()
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setTaxData(data);
+      } else if (data?.code === 'UPGRADE_REQUIRED') {
+        setShowUpgradeModal(true);
+      }
+    } catch (error) {
+      console.error('Failed to load tax data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load tax data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -276,6 +197,14 @@ export const TaxTab = () => {
       await refreshTaxData();
     }
   };
+
+  // Initial load with proper sequence
+  useEffect(() => {
+    if (hasAccess && selectedCalendar?.id && stripeAccount?.onboarding_completed) {
+      loadTaxSettings();
+      loadTaxData();
+    }
+  }, [hasAccess, selectedCalendar?.id, stripeAccount?.onboarding_completed]);
 
   // Locked state for users without Professional access
   if (!hasAccess) {
@@ -397,53 +326,47 @@ export const TaxTab = () => {
     );
   }
 
-  // Show Stripe onboarding required state
-  if (!stripeAccount?.onboarding_completed || !stripeAccount?.charges_enabled) {
+  // Show configuration flow if not fully set up
+  if (!stripeAccount?.onboarding_completed || !stripeAccount?.charges_enabled || !configStatus?.isFullyConfigured) {
     return (
       <div className="space-y-6">
-        <Card className="border-warning bg-warning/5">
-          <CardHeader>
-            <CardTitle className="text-warning flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Stripe Connect Setup Required
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-warning/80">
-              Complete your Stripe Connect onboarding to access tax compliance features and start collecting payments.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                onClick={async () => {
-                  const link = await createOnboardingLink();
-                  if (link?.url) {
-                    window.open(link.url, '_blank');
-                  }
-                }}
-                disabled={loading}
-                variant="default"
-              >
-                <ArrowUpRight className="w-4 h-4 mr-2" />
-                {stripeAccount?.onboarding_completed ? 'Go To Dashboard' : 'Start Onboarding'}
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={checkStripeAccountStatus}
-                disabled={loading}
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Check Status
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={refreshAll}
-                disabled={loading}
-              >
-                Refresh
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Configuration Progress */}
+        {configStatus && (
+          <TaxConfigurationProgress
+            status={configStatus}
+            onStripeOnboarding={async () => {
+              const link = await createOnboardingLink();
+              if (link?.url) {
+                window.open(link.url, '_blank');
+              }
+            }}
+            onOpenTaxSettings={() => setActiveSection('configuration')}
+            onOpenTaxRegistrations={() => setActiveSection('configuration')}
+            onConfigureServiceTypes={() => setActiveSection('services')}
+          />
+        )}
+
+        {/* Configuration Sections */}
+        {activeSection === 'configuration' && stripeAccount?.onboarding_completed && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <StripeEmbeddedTaxSettings />
+            <StripeEmbeddedTaxRegistrations />
+          </div>
+        )}
+
+        {activeSection === 'services' && selectedCalendar?.id && (
+          <ServiceTypeTaxCodes calendarId={selectedCalendar.id} />
+        )}
+
+        {/* Back to Overview */}
+        {activeSection !== 'overview' && (
+          <Button
+            variant="outline"
+            onClick={() => setActiveSection('overview')}
+          >
+            Back to Overview
+          </Button>
+        )}
       </div>
     );
   }
@@ -503,7 +426,7 @@ export const TaxTab = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => loadTaxData(true)}
+                onClick={() => loadTaxData()}
                 disabled={loading}
               >
                 Load Mock Data
@@ -589,11 +512,8 @@ export const TaxTab = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {taxCodes.map((code) => (
-                        <SelectItem key={code.id} value={code.id}>
-                          {code.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="txcd_30000000">Professional Services</SelectItem>
+                      <SelectItem value="txcd_10000000">General Products</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -610,11 +530,8 @@ export const TaxTab = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {taxCodes.map((code) => (
-                        <SelectItem key={code.id} value={code.id}>
-                          {code.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="txcd_30000000">Professional Services</SelectItem>
+                      <SelectItem value="txcd_10000000">General Products</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
