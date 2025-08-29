@@ -4,7 +4,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Settings, RefreshCw, AlertCircle } from 'lucide-react';
 import { useStripeAccountSession } from '@/hooks/useStripeAccountSession';
-import '@/types/stripe-connect';
+import '@/types/stripe-connect.d.ts';
 
 interface StripeEmbeddedTaxSettingsProps {
   fallbackData?: any;
