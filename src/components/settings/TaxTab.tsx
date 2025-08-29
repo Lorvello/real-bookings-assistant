@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -39,8 +38,22 @@ export const TaxTab = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const isProfessionalOrHigher = userStatus.userType === 'subscriber' && 
-    (userStatus.statusMessage.includes('Professional') || userStatus.statusMessage.includes('Enterprise'));
+  // Check if user has Professional or Enterprise tier
+  const isProfessionalOrHigher = () => {
+    console.log('Checking user access:', {
+      userType: userStatus.userType,
+      isSubscriber: userStatus.isSubscriber,
+      hasFullAccess: userStatus.hasFullAccess,
+      statusMessage: userStatus.statusMessage
+    });
+    
+    // Allow access for subscribers (Professional/Enterprise) and active trials
+    return userStatus.isSubscriber || 
+           (userStatus.userType === 'trial' && userStatus.hasFullAccess) ||
+           userStatus.userType === 'subscriber';
+  };
+
+  const hasAccess = isProfessionalOrHigher();
 
   // Mock tax data for demonstration
   const mockTaxData = {
@@ -66,16 +79,15 @@ export const TaxTab = () => {
   };
 
   useEffect(() => {
-    if (isProfessionalOrHigher && selectedCalendar?.id) {
+    if (hasAccess && selectedCalendar?.id) {
       loadTaxData();
     }
-  }, [isProfessionalOrHigher, selectedCalendar?.id]);
+  }, [hasAccess, selectedCalendar?.id]);
 
   const loadTaxData = async () => {
     setLoading(true);
     try {
       // In real implementation, this would fetch actual tax data from Stripe
-      // For now, simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       setTaxData(mockTaxData);
     } catch (error) {
@@ -93,7 +105,6 @@ export const TaxTab = () => {
   const handleRefreshTaxData = async () => {
     setRefreshing(true);
     try {
-      // Simulate refresh from Stripe
       await new Promise(resolve => setTimeout(resolve, 2000));
       await loadTaxData();
       toast({
@@ -114,7 +125,6 @@ export const TaxTab = () => {
   const handleGenerateReport = async () => {
     setLoading(true);
     try {
-      // Simulate report generation
       await new Promise(resolve => setTimeout(resolve, 1500));
       toast({
         title: "Report Generated",
@@ -131,71 +141,48 @@ export const TaxTab = () => {
     }
   };
 
-  // Locked state for Starter tier users
-  if (!isProfessionalOrHigher) {
+  // Locked state for users without Professional access
+  if (!hasAccess) {
     return (
-      <div className="space-y-6">
-        {/* Locked Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
-            <div className="text-center space-y-4 p-8">
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <Lock className="w-8 h-8 text-white" />
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Tax Compliance & Administration</h1>
+            <p className="text-gray-400 mt-1">Automated tax management powered by Stripe Tax</p>
+          </div>
+        </div>
+
+        {/* Professional Feature Lock */}
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-8 text-center">
+            <div className="max-w-md mx-auto space-y-6">
+              <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto">
+                <Lock className="w-8 h-8 text-yellow-500" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-white mb-2">Professional Feature</h3>
-                <p className="text-gray-300 max-w-md mx-auto">
+                <p className="text-gray-400">
                   Automated tax compliance & administration is available for Professional plan users and above.
                 </p>
               </div>
               <Button 
                 onClick={() => setShowUpgradeModal(true)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
                 size="lg"
               >
                 <Crown className="w-4 h-4 mr-2" />
                 Upgrade to Professional
               </Button>
             </div>
-          </div>
-
-          {/* Blurred Content Preview */}
-          <div className="opacity-30 pointer-events-none">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Calculator className="w-5 h-5" />
-                  Tax Compliance Dashboard
-                </CardTitle>
-                <CardDescription>
-                  Automated tax calculation, collection, and reporting for all your bookings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-400">Current Month Revenue</p>
-                    <p className="text-2xl font-bold text-white">€4,850.00</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-400">VAT Collected</p>
-                    <p className="text-2xl font-bold text-green-400">€1,019.50</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-400">Compliance Status</p>
-                    <Badge className="bg-green-500/10 text-green-400">Compliant</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Feature Benefits */}
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Shield className="w-5 h-5 text-blue-400" />
+              <Shield className="w-5 h-5" />
               What You Get with Professional Tax Compliance
             </CardTitle>
           </CardHeader>
@@ -203,21 +190,21 @@ export const TaxTab = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="text-white font-medium">Automatic Tax Calculation</h4>
                     <p className="text-sm text-gray-400">VAT and taxes calculated automatically for all transactions</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="text-white font-medium">Multi-jurisdiction Support</h4>
                     <p className="text-sm text-gray-400">Handle customers from different countries with correct tax rates</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="text-white font-medium">Automated Reports</h4>
                     <p className="text-sm text-gray-400">Generate tax reports for easy filing with authorities</p>
@@ -226,21 +213,21 @@ export const TaxTab = () => {
               </div>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="text-white font-medium">Compliance Monitoring</h4>
                     <p className="text-sm text-gray-400">Real-time compliance status and alerts</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="text-white font-medium">Tax Rate Updates</h4>
                     <p className="text-sm text-gray-400">Automatic updates when tax rates change</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="text-white font-medium">Audit Trail</h4>
                     <p className="text-sm text-gray-400">Complete audit trail for all tax-related transactions</p>
@@ -262,9 +249,9 @@ export const TaxTab = () => {
 
   // Professional/Enterprise content
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Tax Compliance & Administration</h1>
           <p className="text-gray-400 mt-1">Automated tax management powered by Stripe Tax</p>
