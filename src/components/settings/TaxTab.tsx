@@ -2,25 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
 import { 
   Calculator, 
   Shield, 
-  TrendingUp, 
-  FileText, 
   Crown, 
   Lock, 
-  ArrowUpRight,
-  AlertCircle,
   CheckCircle,
-  Download,
   RefreshCw,
   Info,
   Code,
-  AlertTriangle
+  Building2,
+  FileSpreadsheet
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -33,23 +26,7 @@ import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { ConnectTaxThresholdMonitoring } from '@/components/tax/ConnectTaxThresholdMonitoring';
 import { TaxExportComponent } from '@/components/tax/TaxExportComponent';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useTaxConfiguration } from '@/hooks/useTaxConfiguration';
-import { TaxConfigurationProgress } from '@/components/tax/TaxConfigurationProgress';
 import { ServiceTypeTaxCodes } from '@/components/tax/ServiceTypeTaxCodes';
 
 export const TaxTab = () => {
@@ -59,24 +36,19 @@ export const TaxTab = () => {
   const { checkAccess } = useAccessControl();
   const { toast } = useToast();
   const { isDeveloper } = useDeveloperAccess();
-  const { getStripeAccount, createOnboardingLink, createLoginLink, refreshAccountStatus } = useStripeConnect();
+  const { getStripeAccount, createOnboardingLink, refreshAccountStatus } = useStripeConnect();
   
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [taxData, setTaxData] = useState<any>(null);
   const [taxSettings, setTaxSettings] = useState<any>(null);
-  const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [stripeAccount, setStripeAccount] = useState<any>(null);
   const [checkingStripe, setCheckingStripe] = useState(true);
-  const [activeSection, setActiveSection] = useState<'overview' | 'configuration' | 'services'>('overview');
 
   const { status: configStatus, loading: configLoading, refetch: refetchConfig } = useTaxConfiguration(selectedCalendar?.id);
 
   const hasAccess = checkAccess('canAccessTaxCompliance');
-
-  // Check if we're in production
-  const isProduction = import.meta.env.PROD;
 
   useEffect(() => {
     if (hasAccess && selectedCalendar?.id) {
@@ -88,59 +60,25 @@ export const TaxTab = () => {
     try {
       setCheckingStripe(true);
       
-      // First try to get fresh account data from Stripe (no hooks here)
       const freshAccount = await refreshAccountStatus();
-
       let account = freshAccount || (await getStripeAccount());
       setStripeAccount(account);
 
-      console.log('Stripe account status check (after refresh):', {
+      console.log('Stripe account status check:', {
         exists: !!account,
         onboardingCompleted: account?.onboarding_completed,
         chargesEnabled: account?.charges_enabled,
         accountId: account?.stripe_account_id
       });
 
-      // If onboarding not marked completed, try dashboard login link as heuristic
-      if (!account?.onboarding_completed) {
-        try {
-          const dashboardUrl = await createLoginLink();
-          if (dashboardUrl) {
-            console.log('Login link obtained; treating onboarding as completed');
-            // Locally mark as completed so UI can proceed
-            if (account) {
-              account = { ...account, onboarding_completed: true };
-              setStripeAccount(account);
-            }
-          }
-        } catch (e) {
-          console.warn('Login link heuristic failed:', e);
-        }
-      }
-
-      // Load tax data/settings when considered onboarded
       if (account?.onboarding_completed) {
         loadTaxData();
         loadTaxSettings();
       }
     } catch (error) {
       console.error('Failed to check Stripe account:', error);
-
-      // Fallback to local data on error
       const localAccount = await getStripeAccount();
       setStripeAccount(localAccount);
-
-      // Last attempt: if we can get a login link, assume onboarded
-      try {
-        if (!localAccount?.onboarding_completed) {
-          const dashboardUrl = await createLoginLink();
-          if (dashboardUrl && localAccount) {
-            setStripeAccount({ ...localAccount, onboarding_completed: true });
-          }
-        }
-      } catch (e) {
-        console.warn('Login link heuristic in catch failed:', e);
-      }
     } finally {
       setCheckingStripe(false);
     }
@@ -158,9 +96,6 @@ export const TaxTab = () => {
 
       if (data?.success) {
         setTaxSettings(data);
-        if (data.taxRegistrations) {
-          setRegistrations(data.taxRegistrations);
-        }
       } else if (data?.code === 'UPGRADE_REQUIRED') {
         setShowUpgradeModal(true);
       }
@@ -174,32 +109,7 @@ export const TaxTab = () => {
     }
   };
 
-  const refreshTaxData = async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([
-        loadTaxSettings(),
-        loadTaxData(),
-        refetchConfig()
-      ]);
-      
-      toast({
-        title: "Success",
-        description: "Tax data refreshed successfully"
-      });
-    } catch (error) {
-      console.error('Refresh error:', error);
-      toast({
-        title: "Error", 
-        description: "Failed to refresh tax data",
-        variant: "destructive"
-      });
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-      const loadTaxData = async () => {
+  const loadTaxData = async () => {
     setLoading(true);
     try {
       const { getStripeMode } = await import('@/utils/stripeConfig');
@@ -232,10 +142,28 @@ export const TaxTab = () => {
     }
   };
 
-  const refreshAll = async () => {
-    await checkStripeAccountStatus();
-    if (stripeAccount?.onboarding_completed) {
-      await refreshTaxData();
+  const refreshTaxData = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        loadTaxSettings(),
+        loadTaxData(),
+        refetchConfig()
+      ]);
+      
+      toast({
+        title: "Success",
+        description: "Tax data refreshed successfully"
+      });
+    } catch (error) {
+      console.error('Refresh error:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to refresh tax data",
+        variant: "destructive"
+      });
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -247,7 +175,7 @@ export const TaxTab = () => {
     }
   }, [hasAccess, selectedCalendar?.id, stripeAccount?.onboarding_completed]);
 
-  // Re-check status when tab becomes visible (user may finish onboarding in Stripe)
+  // Re-check status when tab becomes visible
   useEffect(() => {
     const onVis = () => {
       if (document.visibilityState === 'visible' && hasAccess && selectedCalendar?.id) {
@@ -257,96 +185,93 @@ export const TaxTab = () => {
     document.addEventListener('visibilitychange', onVis);
     return () => document.removeEventListener('visibilitychange', onVis);
   }, [hasAccess, selectedCalendar?.id]);
+
   // Locked state for users without Professional access
   if (!hasAccess) {
     return (
       <div className="space-y-8">
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Tax Compliance & Administration</h1>
-            <p className="text-gray-400 mt-1">Automated tax management powered by Stripe Tax</p>
+            <h1 className="text-2xl font-bold">BTW & Belastingbeheer</h1>
+            <p className="text-muted-foreground mt-1">Geautomatiseerd belastingbeheer voor Nederland</p>
           </div>
         </div>
 
-        {/* Professional Feature Lock */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card>
           <CardContent className="p-8 text-center">
             <div className="max-w-md mx-auto space-y-6">
-              <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto">
-                <Lock className="w-8 h-8 text-yellow-500" />
+              <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
+                <Lock className="w-8 h-8 text-amber-500" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-white mb-2">Professional Feature</h3>
-                <p className="text-gray-400">
-                  Automated tax compliance & administration is available for Professional plan users and above.
+                <h3 className="text-xl font-semibold mb-2">Professional Feature</h3>
+                <p className="text-muted-foreground">
+                  Geautomatiseerd BTW-beheer en belastingadministratie is beschikbaar voor Professional plan gebruikers en hoger.
                 </p>
               </div>
               <Button 
                 onClick={() => setShowUpgradeModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
                 size="lg"
               >
                 <Crown className="w-4 h-4 mr-2" />
-                Upgrade to Professional
+                Upgrade naar Professional
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Feature Benefits */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              What You Get with Professional Tax Compliance
+              Wat je krijgt met Professional BTW-beheer
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-white font-medium">Automatic Tax Calculation</h4>
-                    <p className="text-sm text-gray-400">VAT and taxes calculated automatically for all transactions</p>
+                    <h4 className="font-medium">Automatische BTW-berekening</h4>
+                    <p className="text-sm text-muted-foreground">BTW wordt automatisch berekend voor alle transacties (21% & 9%)</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-white font-medium">Multi-jurisdiction Support</h4>
-                    <p className="text-sm text-gray-400">Handle customers from different countries with correct tax rates</p>
+                    <h4 className="font-medium">Internationale ondersteuning</h4>
+                    <p className="text-sm text-muted-foreground">Juiste belastingtarieven voor klanten uit verschillende landen</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-white font-medium">Automated Reports</h4>
-                    <p className="text-sm text-gray-400">Generate tax reports for easy filing with authorities</p>
+                    <h4 className="font-medium">Geautomatiseerde rapporten</h4>
+                    <p className="text-sm text-muted-foreground">Genereer belastingrapporten voor eenvoudige aangifte</p>
                   </div>
                 </div>
               </div>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-white font-medium">Compliance Monitoring</h4>
-                    <p className="text-sm text-gray-400">Real-time compliance status and alerts</p>
+                    <h4 className="font-medium">Compliance monitoring</h4>
+                    <p className="text-sm text-muted-foreground">Real-time compliance status en waarschuwingen</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-white font-medium">Tax Rate Updates</h4>
-                    <p className="text-sm text-gray-400">Automatic updates when tax rates change</p>
+                    <h4 className="font-medium">Automatische updates</h4>
+                    <p className="text-sm text-muted-foreground">Automatische updates wanneer belastingtarieven wijzigen</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="text-white font-medium">Audit Trail</h4>
-                    <p className="text-sm text-gray-400">Complete audit trail for all tax-related transactions</p>
+                    <h4 className="font-medium">Audit trail</h4>
+                    <p className="text-sm text-muted-foreground">Volledige audit trail voor alle belasting-gerelateerde transacties</p>
                   </div>
                 </div>
               </div>
@@ -369,28 +294,28 @@ export const TaxTab = () => {
       <div className="space-y-6">
         <Card>
           <CardContent className="p-8 text-center">
-            <RefreshCw className="w-8 h-8 text-blue-400 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Checking Stripe account status...</p>
+            <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Stripe account status controleren...</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  // Show simple onboarding message if Stripe is not set up (only check onboarding completion)
+  // Show simple onboarding message if Stripe is not set up
   if (!stripeAccount?.onboarding_completed) {
     return (
       <div className="space-y-6">
         <Card>
           <CardContent className="p-8 text-center">
             <div className="max-w-md mx-auto space-y-6">
-              <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto">
-                <Shield className="w-8 h-8 text-blue-500" />
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <Shield className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">Complete Stripe Onboarding</h3>
+                <h3 className="text-xl font-semibold mb-2">Voltooi Stripe Onboarding</h3>
                 <p className="text-muted-foreground">
-                  Go to the Pay & Book page to complete your Stripe onboarding before configuring tax settings.
+                  Ga naar de Pay & Book pagina om je Stripe onboarding te voltooien voordat je belastinginstellingen configureert.
                 </p>
               </div>
               <Button 
@@ -400,11 +325,10 @@ export const TaxTab = () => {
                     window.open(link.url, '_blank');
                   }
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
                 size="lg"
               >
-                <ArrowUpRight className="w-4 h-4 mr-2" />
-                Complete Stripe Onboarding
+                <Building2 className="w-4 h-4 mr-2" />
+                Voltooi Stripe Onboarding
               </Button>
             </div>
           </CardContent>
@@ -416,14 +340,14 @@ export const TaxTab = () => {
   // Main Tax Tab UI
   return (
     <div className="space-y-6">
-      {/* Tax Compliance & Administration Header */}
+      {/* Header */}
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <CardTitle className="text-2xl font-bold">Tax Compliance & Administration</CardTitle>
+              <CardTitle className="text-2xl font-bold">BTW & Belastingbeheer</CardTitle>
               <CardDescription>
-                Automated Tax Management Powered by Stripe
+                Geautomatiseerd belastingbeheer voor Nederlandse bedrijven
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -434,20 +358,7 @@ export const TaxTab = () => {
                 size="sm"
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                Refresh Data
-              </Button>
-              <Button 
-                onClick={async () => {
-                  const dashboardUrl = await createLoginLink();
-                  if (dashboardUrl) {
-                    window.open(dashboardUrl, '_blank');
-                  }
-                }}
-                variant="outline"
-                size="sm"
-              >
-                <ArrowUpRight className="w-4 h-4 mr-2" />
-                Go To Dashboard
+                Ververs Data
               </Button>
             </div>
           </div>
@@ -486,204 +397,89 @@ export const TaxTab = () => {
         </Card>
       )}
 
-      {/* Tax Settings Section */}
+      {/* BTW-profiel (NL) - In-platform status */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
-            Tax Settings
+            <Building2 className="h-5 w-5" />
+            BTW-profiel (Nederland)
           </CardTitle>
           <CardDescription>
-            Configure your tax settings and automatic tax calculation
+            Status van je belastingconfiguratie voor Nederlandse BTW
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Configure your automatic tax calculation settings directly in your Stripe dashboard.
-            </p>
-            <Button 
-              onClick={async () => {
-                const dashboardUrl = await createLoginLink();
-                if (dashboardUrl) {
-                  window.open(dashboardUrl, '_blank');
-                }
-              }}
-              className="w-full"
-            >
-              <ArrowUpRight className="w-4 h-4 mr-2" />
-              Open Tax Settings in Stripe
-            </Button>
-            
             {taxSettings && (
-              <div className="mt-4 p-4 bg-muted rounded-lg">
-                <h4 className="font-medium mb-2">Current Settings</h4>
-                <div className="text-sm space-y-1">
-                  <p>Account ID: {taxSettings.accountId}</p>
-                  <p>Automatic Tax: {taxSettings.automaticTaxEnabled ? 'Enabled' : 'Disabled'}</p>
-                  <p>Registrations: {taxSettings.registrations || 0}</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 rounded-lg border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-2 h-2 rounded-full ${stripeAccount?.onboarding_completed ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                    <span className="font-medium">Stripe Verbinding</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {stripeAccount?.onboarding_completed ? 'Verbonden en actief' : 'Onboarding vereist'}
+                  </p>
+                </div>
+                
+                <div className="p-4 rounded-lg border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-2 h-2 rounded-full ${taxSettings.automaticTaxEnabled ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                    <span className="font-medium">Automatische BTW</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {taxSettings.automaticTaxEnabled ? 'Geactiveerd' : 'Niet geactiveerd'}
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-lg border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-2 h-2 rounded-full ${(taxSettings.registrations || 0) > 0 ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                    <span className="font-medium">BTW Registraties</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {taxSettings.registrations || 0} actieve registratie(s)
+                  </p>
                 </div>
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Tax Registrations Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Tax Registrations
-          </CardTitle>
-          <CardDescription>
-            Manage your tax registrations in different jurisdictions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Manage your tax registrations for different jurisdictions directly in your Stripe dashboard.
-            </p>
-            <Button 
-              onClick={async () => {
-                const dashboardUrl = await createLoginLink();
-                if (dashboardUrl) {
-                  window.open(dashboardUrl, '_blank');
-                }
-              }}
-              className="w-full"
-            >
-              <ArrowUpRight className="w-4 h-4 mr-2" />
-              Open Tax Registrations in Stripe
-            </Button>
-            
-            {registrations && registrations.length > 0 && (
-              <div className="mt-4">
-                <h4 className="font-medium mb-2">Current Registrations</h4>
-                <div className="space-y-2">
-                  {registrations.map((registration, index) => (
-                    <div key={index} className="flex justify-between items-center p-2 bg-muted rounded">
-                      <span className="text-sm">{registration.country}</span>
-                      <Badge variant="secondary">{registration.status}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Threshold Monitoring */}
-      <ConnectTaxThresholdMonitoring />
-
-      {/* Product Tax Codes Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
-            Product Tax Codes
-          </CardTitle>
-          <CardDescription>
-            Assign tax codes to products and prices
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Mock product entries for demonstration */}
-            <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-muted rounded-lg">
-                <div className="flex-1">
-                  <h4 className="font-medium">Hair Cut Service</h4>
-                  <p className="text-sm text-muted-foreground">Professional hair cutting service</p>
-                </div>
-                <div className="flex-shrink-0">
-                  <Select defaultValue="txcd_30000000">
-                    <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="txcd_30000000">Professional Services</SelectItem>
-                      <SelectItem value="txcd_10000000">General Products</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-muted rounded-lg">
-                <div className="flex-1">
-                  <h4 className="font-medium">Consultation Service</h4>
-                  <p className="text-sm text-muted-foreground">Professional consultation session</p>
-                </div>
-                <div className="flex-shrink-0">
-                  <Select defaultValue="txcd_30000000">
-                    <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="txcd_30000000">Professional Services</SelectItem>
-                      <SelectItem value="txcd_10000000">General Products</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
             
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Tax codes determine how tax is calculated for each product. 
-                <a href="https://dashboard.stripe.com/tax/tax-codes" target="_blank" className="underline ml-1">
-                  View all codes in Stripe →
-                </a>
+                Voor Express accounts wordt belastingbeheer binnen het platform afgehandeld. 
+                Uitgebreide instellingen zijn automatisch geconfigureerd voor Nederlandse BTW-vereisten.
               </AlertDescription>
             </Alert>
           </div>
         </CardContent>
       </Card>
 
-      {/* Exports Card */}
-      <TaxExportComponent />
-
-      {/* Quick Actions */}
+      {/* Service Types BTW Codes */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <ArrowUpRight className="w-5 h-5" />
-            Quick Actions
+            <Calculator className="w-5 h-5" />
+            Service BTW-tarieven (Nederland)
           </CardTitle>
+          <CardDescription>
+            Configureer BTW-tarieven voor je services (21% standaard, 9% gereduceerd)
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <Button 
-              onClick={() => window.open('https://dashboard.stripe.com/tax', '_blank')}
-              variant="outline"
-              className="justify-start"
-            >
-              <ArrowUpRight className="w-4 h-4 mr-2" />
-              Open Stripe Tax Dashboard
-            </Button>
-            <Button 
-              onClick={() => window.open('https://dashboard.stripe.com/tax/registrations', '_blank')}
-              variant="outline"
-              className="justify-start"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Manage Registrations
-            </Button>
-            <Button 
-              onClick={refreshTaxData}
-              disabled={refreshing}
-              variant="outline"
-              className="justify-start"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh Data
-            </Button>
-          </div>
+          {selectedCalendar?.id ? (
+            <ServiceTypeTaxCodes calendarId={selectedCalendar.id} />
+          ) : (
+            <p className="text-muted-foreground">Selecteer een kalender om BTW-tarieven te configureren.</p>
+          )}
         </CardContent>
       </Card>
+
+      {/* Threshold Monitoring */}
+      <ConnectTaxThresholdMonitoring accountId={stripeAccount?.stripe_account_id} />
+
+      {/* Tax Data Exports */}
+      <TaxExportComponent accountId={stripeAccount?.stripe_account_id} />
     </div>
   );
 };
