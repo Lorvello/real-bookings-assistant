@@ -1050,6 +1050,71 @@ export type Database = {
         }
         Relationships: []
       }
+      installment_payments: {
+        Row: {
+          amount_cents: number
+          booking_id: string
+          created_at: string
+          currency: string
+          due_date: string | null
+          id: string
+          installment_number: number
+          paid_at: string | null
+          payment_method: string
+          payment_timing: string
+          status: string
+          stripe_invoice_id: string | null
+          stripe_payment_intent_id: string | null
+          total_installments: number
+          updated_at: string
+          whatsapp_session_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          booking_id: string
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          installment_number: number
+          paid_at?: string | null
+          payment_method: string
+          payment_timing: string
+          status?: string
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+          total_installments: number
+          updated_at?: string
+          whatsapp_session_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          booking_id?: string
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          installment_number?: number
+          paid_at?: string | null
+          payment_method?: string
+          payment_timing?: string
+          status?: string
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+          total_installments?: number
+          updated_at?: string
+          whatsapp_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installment_payments_whatsapp_session_id_fkey"
+            columns: ["whatsapp_session_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_payment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       n8n_chat_histories: {
         Row: {
           id: number
@@ -1577,10 +1642,12 @@ export type Database = {
           cleanup_time: number | null
           color: string | null
           created_at: string | null
+          custom_installment_plan: Json | null
           description: string | null
           duration: number
           id: string
           installment_options: Json | null
+          installments_enabled: boolean | null
           is_active: boolean | null
           max_attendees: number | null
           name: string
@@ -1600,10 +1667,12 @@ export type Database = {
           cleanup_time?: number | null
           color?: string | null
           created_at?: string | null
+          custom_installment_plan?: Json | null
           description?: string | null
           duration: number
           id?: string
           installment_options?: Json | null
+          installments_enabled?: boolean | null
           is_active?: boolean | null
           max_attendees?: number | null
           name: string
@@ -1623,10 +1692,12 @@ export type Database = {
           cleanup_time?: number | null
           color?: string | null
           created_at?: string | null
+          custom_installment_plan?: Json | null
           description?: string | null
           duration?: number
           id?: string
           installment_options?: Json | null
+          installments_enabled?: boolean | null
           is_active?: boolean | null
           max_attendees?: number | null
           name?: string
@@ -1889,6 +1960,7 @@ export type Database = {
           business_whatsapp: string | null
           created_at: string | null
           date_of_birth: string | null
+          default_installment_plan: Json | null
           default_tax_behavior: string | null
           email: string
           facebook: string | null
@@ -1897,6 +1969,7 @@ export type Database = {
           grace_period_end: string | null
           id: string
           instagram: string | null
+          installments_enabled: boolean | null
           language: string | null
           last_payment_date: string | null
           linkedin: string | null
@@ -1947,6 +2020,7 @@ export type Database = {
           business_whatsapp?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          default_installment_plan?: Json | null
           default_tax_behavior?: string | null
           email: string
           facebook?: string | null
@@ -1955,6 +2029,7 @@ export type Database = {
           grace_period_end?: string | null
           id: string
           instagram?: string | null
+          installments_enabled?: boolean | null
           language?: string | null
           last_payment_date?: string | null
           linkedin?: string | null
@@ -2005,6 +2080,7 @@ export type Database = {
           business_whatsapp?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          default_installment_plan?: Json | null
           default_tax_behavior?: string | null
           email?: string
           facebook?: string | null
@@ -2013,6 +2089,7 @@ export type Database = {
           grace_period_end?: string | null
           id?: string
           instagram?: string | null
+          installments_enabled?: boolean | null
           language?: string | null
           last_payment_date?: string | null
           linkedin?: string | null
