@@ -36,15 +36,16 @@ export const useTaxConfiguration = (calendarId?: string) => {
       if (data?.success) {
         const nextSteps: string[] = [];
         
-        // Check Stripe account status
-        const stripeAccountReady = data.stripeAccount?.details_submitted && data.stripeAccount?.charges_enabled;
+        // Check Stripe account status - use onboarding_completed and charges_enabled
+        const stripeAccountReady = data.stripeAccountStatus?.onboardingCompleted && data.stripeAccountStatus?.chargesEnabled;
         if (!stripeAccountReady) {
           nextSteps.push('Complete Stripe Connect onboarding');
         }
 
-        // Check origin address configuration
-        const originAddressConfigured = data.taxSettings?.address_configured;
-        if (!originAddressConfigured) {
+        // Check origin address configuration - check for line1, postal_code, and country
+        const originAddress = data.taxSettings?.originAddress;
+        const originAddressConfigured = !!(originAddress?.line1 && originAddress?.postal_code && originAddress?.country);
+        if (!originAddressConfigured && stripeAccountReady) {
           nextSteps.push('Configure your business origin address');
         }
 
@@ -54,11 +55,8 @@ export const useTaxConfiguration = (calendarId?: string) => {
           nextSteps.push('Register for tax collection in your jurisdictions');
         }
 
-        // Check automatic tax
-        const automaticTaxEnabled = data.taxSettings?.automatic_tax_enabled;
-        if (!automaticTaxEnabled) {
-          nextSteps.push('Enable automatic tax calculation');
-        }
+        // Check automatic tax - this is implied when registrations exist
+        const automaticTaxEnabled = hasActiveTaxRegistrations;
 
         // Check service types configuration
         const { data: serviceTypes } = await supabase
@@ -75,7 +73,6 @@ export const useTaxConfiguration = (calendarId?: string) => {
         const isFullyConfigured = stripeAccountReady && 
           originAddressConfigured && 
           hasActiveTaxRegistrations && 
-          automaticTaxEnabled && 
           serviceTypesConfigured;
 
         setStatus({

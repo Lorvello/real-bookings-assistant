@@ -31,14 +31,16 @@ export const TaxConfigurationProgress: React.FC<TaxConfigurationProgressProps> =
   onOpenTaxRegistrations,
   onConfigureServiceTypes
 }) => {
-  const steps = [
+  // Only show relevant steps based on current status
+  const allSteps = [
     {
       id: 'stripe',
       title: 'Stripe Connect Setup',
       description: 'Complete your Stripe account onboarding',
       completed: status.stripeAccountReady,
       action: onStripeOnboarding,
-      icon: Shield
+      icon: Shield,
+      show: !status.stripeAccountReady
     },
     {
       id: 'address',
@@ -46,7 +48,8 @@ export const TaxConfigurationProgress: React.FC<TaxConfigurationProgressProps> =
       description: 'Configure your business origin address',
       completed: status.originAddressConfigured,
       action: onOpenTaxSettings,
-      icon: Settings
+      icon: Settings,
+      show: status.stripeAccountReady && !status.originAddressConfigured
     },
     {
       id: 'registrations',
@@ -54,7 +57,8 @@ export const TaxConfigurationProgress: React.FC<TaxConfigurationProgressProps> =
       description: 'Register for tax collection in your jurisdictions',
       completed: status.hasActiveTaxRegistrations,
       action: onOpenTaxRegistrations,
-      icon: FileText
+      icon: FileText,
+      show: true // Always show
     },
     {
       id: 'services',
@@ -62,9 +66,12 @@ export const TaxConfigurationProgress: React.FC<TaxConfigurationProgressProps> =
       description: 'Configure tax codes for your service types',
       completed: status.serviceTypesConfigured,
       action: onConfigureServiceTypes,
-      icon: Calculator
+      icon: Calculator,
+      show: true // Always show
     }
   ];
+
+  const steps = allSteps.filter(step => step.show);
 
   const completedSteps = steps.filter(step => step.completed).length;
   const progress = (completedSteps / steps.length) * 100;
