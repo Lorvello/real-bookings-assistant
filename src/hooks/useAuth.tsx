@@ -16,7 +16,7 @@ export const useAuth = () => {
     let mounted = true;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
         
         // Log auth events for security monitoring
