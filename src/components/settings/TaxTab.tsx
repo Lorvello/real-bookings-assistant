@@ -1,52 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  Calculator, 
   Shield, 
   Crown, 
   Lock, 
   CheckCircle,
-  RefreshCw,
-  Info,
   Code,
-  Building2,
-  FileSpreadsheet
+  Building2
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 import { useAccessControl } from '@/hooks/useAccessControl';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
-import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
-import { ConnectTaxThresholdMonitoring } from '@/components/tax/ConnectTaxThresholdMonitoring';
-import { TaxExportComponent } from '@/components/tax/TaxExportComponent';
-import { useTaxConfiguration } from '@/hooks/useTaxConfiguration';
+import { TaxOverview } from '@/components/tax/TaxOverview';
+import { TaxRegistrations } from '@/components/tax/TaxRegistrations';
+import { TaxThresholdMonitoring } from '@/components/tax/TaxThresholdMonitoring';
+import { TaxExports } from '@/components/tax/TaxExports';
 import { ServiceTypeTaxCodes } from '@/components/tax/ServiceTypeTaxCodes';
 
 export const TaxTab = () => {
   const { userStatus } = useUserStatus();
   const { selectedCalendar } = useCalendarContext();
-  const { settings } = usePaymentSettings(selectedCalendar?.id);
   const { checkAccess } = useAccessControl();
   const { toast } = useToast();
-  const { isDeveloper } = useDeveloperAccess();
   const { getStripeAccount, createOnboardingLink, refreshAccountStatus } = useStripeConnect();
   
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [taxData, setTaxData] = useState<any>(null);
-  const [taxSettings, setTaxSettings] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [stripeAccount, setStripeAccount] = useState<any>(null);
   const [checkingStripe, setCheckingStripe] = useState(true);
-
-  const { status: configStatus, loading: configLoading, refetch: refetchConfig } = useTaxConfiguration(selectedCalendar?.id);
+  const [useMockData, setUseMockData] = useState(false);
 
   const hasAccess = checkAccess('canAccessTaxCompliance');
 
@@ -70,11 +57,6 @@ export const TaxTab = () => {
         chargesEnabled: account?.charges_enabled,
         accountId: account?.stripe_account_id
       });
-
-      if (account?.onboarding_completed) {
-        loadTaxData();
-        loadTaxSettings();
-      }
     } catch (error) {
       console.error('Failed to check Stripe account:', error);
       const localAccount = await getStripeAccount();
@@ -84,107 +66,13 @@ export const TaxTab = () => {
     }
   };
 
-  const loadTaxSettings = async () => {
-    try {
-      const { getStripeMode } = await import('@/utils/stripeConfig');
-      
-      const { data, error } = await supabase.functions.invoke('get-tax-settings', {
-        body: { test_mode: getStripeMode() === 'test' }
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        setTaxSettings(data);
-      } else if (data?.code === 'UPGRADE_REQUIRED') {
-        setShowUpgradeModal(true);
-      }
-    } catch (error) {
-      console.error('Failed to load tax settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load tax settings",
-        variant: "destructive",
-      });
-    }
+  const toggleMockData = () => {
+    setUseMockData(!useMockData);
+    toast({
+      title: useMockData ? "Live Mode Enabled" : "Mock Mode Enabled",
+      description: useMockData ? "Showing live Stripe Tax data" : "Showing mock data for development"
+    });
   };
-
-  const loadTaxData = async () => {
-    setLoading(true);
-    try {
-      const { getStripeMode } = await import('@/utils/stripeConfig');
-      
-      const { data, error } = await supabase.functions.invoke('get-tax-data', {
-        body: {
-          calendar_id: selectedCalendar?.id,
-          test_mode: getStripeMode() === 'test',
-          start_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-          end_date: new Date().toISOString()
-        }
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        setTaxData(data);
-      } else if (data?.code === 'UPGRADE_REQUIRED') {
-        setShowUpgradeModal(true);
-      }
-    } catch (error) {
-      console.error('Failed to load tax data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load tax data",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const refreshTaxData = async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([
-        loadTaxSettings(),
-        loadTaxData(),
-        refetchConfig()
-      ]);
-      
-      toast({
-        title: "Success",
-        description: "Tax data refreshed successfully"
-      });
-    } catch (error) {
-      console.error('Refresh error:', error);
-      toast({
-        title: "Error", 
-        description: "Failed to refresh tax data",
-        variant: "destructive"
-      });
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  // Initial load with proper sequence
-  useEffect(() => {
-    if (hasAccess && selectedCalendar?.id && stripeAccount?.onboarding_completed) {
-      loadTaxSettings();
-      loadTaxData();
-    }
-  }, [hasAccess, selectedCalendar?.id, stripeAccount?.onboarding_completed]);
-
-  // Re-check status when tab becomes visible
-  useEffect(() => {
-    const onVis = () => {
-      if (document.visibilityState === 'visible' && hasAccess && selectedCalendar?.id) {
-        checkStripeAccountStatus();
-      }
-    };
-    document.addEventListener('visibilitychange', onVis);
-    return () => document.removeEventListener('visibilitychange', onVis);
-  }, [hasAccess, selectedCalendar?.id]);
 
   // Locked state for users without Professional access
   if (!hasAccess) {
@@ -294,7 +182,7 @@ export const TaxTab = () => {
       <div className="space-y-6">
         <Card>
           <CardContent className="p-8 text-center">
-            <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
+            <Shield className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
             <p className="text-muted-foreground">Checking Stripe account status...</p>
           </CardContent>
         </Card>
@@ -337,149 +225,90 @@ export const TaxTab = () => {
     );
   }
 
-  // Main Tax Tab UI
+  // Main Tax Tab UI - Completely rebuilt for functional Stripe Tax integration
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Developer Mode Toggle */}
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <CardTitle className="text-2xl font-bold">Tax & Compliance</CardTitle>
               <CardDescription>
-                Automated tax management for your business
+                Live Stripe Tax integration for Express accounts
               </CardDescription>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                onClick={refreshTaxData} 
-                disabled={refreshing || loading}
-                variant="outline"
-                size="sm"
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                Refresh Data
-              </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Developer Mode Toggle - Non-production only */}
+              {!import.meta.env.PROD && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-amber-100 dark:bg-amber-900/20 rounded-lg border border-amber-300">
+                  <Code className="w-4 h-4 text-amber-600" />
+                  <span className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                    {useMockData ? 'Mock Data' : 'Live Mode'}
+                  </span>
+                  <Switch
+                    checked={useMockData}
+                    onCheckedChange={toggleMockData}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </CardHeader>
       </Card>
 
-      {/* Developer Tools */}
-      {!import.meta.env.PROD && (
-        <Card className="border-dashed border-amber-300 bg-amber-50/50">
-          <CardHeader>
-            <CardTitle className="text-amber-800 flex items-center gap-2">
-              <Code className="h-5 w-5" />
-              Developer Controls
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => loadTaxData()}
-                disabled={loading}
-              >
-                Load Mock Data
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={refreshTaxData}
-                disabled={loading}
-              >
-                Refresh Real Data
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Tax Settings Overview */}
+      <TaxOverview 
+        accountId={stripeAccount?.stripe_account_id} 
+        useMockData={useMockData}
+      />
 
-      {/* Tax Profile - In-platform status */}
+      {/* Tax Registrations */}
+      <TaxRegistrations 
+        accountId={stripeAccount?.stripe_account_id}
+      />
+
+      {/* Threshold Monitoring - Stripe Embedded Component */}
+      <TaxThresholdMonitoring 
+        accountId={stripeAccount?.stripe_account_id}
+        useMockData={useMockData}
+      />
+
+      {/* Product Tax Codes per Service Type */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Tax Profile
+            <Building2 className="w-5 h-5" />
+            Product Tax Codes
           </CardTitle>
           <CardDescription>
-            Status of your tax configuration and compliance
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {taxSettings && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-lg border">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-2 h-2 rounded-full ${stripeAccount?.onboarding_completed ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                    <span className="font-medium">Stripe Connection</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {stripeAccount?.onboarding_completed ? 'Connected and active' : 'Onboarding required'}
-                  </p>
-                </div>
-                
-                <div className="p-4 rounded-lg border">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-2 h-2 rounded-full ${taxSettings.automaticTaxEnabled ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                    <span className="font-medium">Automatic Tax</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {taxSettings.automaticTaxEnabled ? 'Enabled' : 'Not enabled'}
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-lg border">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-2 h-2 rounded-full ${(taxSettings.registrations || 0) > 0 ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                    <span className="font-medium">Tax Registrations</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {taxSettings.registrations || 0} active registration(s)
-                  </p>
-                </div>
-              </div>
-            )}
-            
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                For Express accounts, tax management is handled within the platform. 
-                Advanced settings are automatically configured for your tax requirements.
-              </AlertDescription>
-            </Alert>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Service Types Tax Codes */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="w-5 h-5" />
-            Service Tax Rates
-          </CardTitle>
-          <CardDescription>
-            Configure tax rates for your services
+            Configure tax codes for your services using Stripe Tax codes
           </CardDescription>
         </CardHeader>
         <CardContent>
           {selectedCalendar?.id ? (
             <ServiceTypeTaxCodes calendarId={selectedCalendar.id} />
           ) : (
-            <p className="text-muted-foreground">Select a calendar to configure tax rates.</p>
+            <Alert>
+              <AlertDescription>
+                Select a calendar to configure product tax codes for your services.
+              </AlertDescription>
+            </Alert>
           )}
         </CardContent>
       </Card>
 
-      {/* Threshold Monitoring */}
-      <ConnectTaxThresholdMonitoring accountId={stripeAccount?.stripe_account_id} />
+      {/* Tax Reports & Exports - Stripe Embedded Component */}
+      <TaxExports 
+        accountId={stripeAccount?.stripe_account_id}
+        useMockData={useMockData}
+      />
 
-      {/* Tax Data Exports */}
-      <TaxExportComponent accountId={stripeAccount?.stripe_account_id} />
+      <SubscriptionModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        userType={userStatus.userType}
+      />
     </div>
   );
 };
