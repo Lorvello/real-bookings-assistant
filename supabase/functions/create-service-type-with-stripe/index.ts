@@ -43,6 +43,48 @@ serve(async (req) => {
     const { serviceData, testMode = false } = await req.json();
     logStep("Request data parsed", { hasServiceData: !!serviceData, testMode });
 
+    // Check if tax is enabled for this service
+    if (serviceData.tax_enabled) {
+      logStep("Tax enabled for service, checking user tax configuration");
+      
+      // Check if user has completed tax configuration
+      const { data: userTaxData, error: userTaxError } = await supabaseClient
+        .from('users')
+        .select('tax_configured, default_tax_behavior')
+        .eq('id', userData.user.id)
+        .single();
+
+      if (userTaxError) {
+        logStep("Error fetching user tax configuration", userTaxError);
+        throw new Error('Failed to check tax configuration: ' + userTaxError.message);
+      }
+
+      if (!userTaxData.tax_configured) {
+        logStep("User has not configured tax yet");
+        throw new Error('Configure tax first. Please complete your tax settings before enabling tax on services.');
+      }
+
+      // Validate tax data for the service
+      if (!serviceData.tax_code) {
+        throw new Error('Tax code is required when tax is enabled');
+      }
+
+      if (!serviceData.tax_behavior) {
+        // Use user's default tax behavior as fallback
+        serviceData.tax_behavior = userTaxData.default_tax_behavior || 'exclusive';
+        logStep("Using fallback tax behavior", { tax_behavior: serviceData.tax_behavior });
+      }
+
+      if (!['inclusive', 'exclusive'].includes(serviceData.tax_behavior)) {
+        throw new Error('Tax behavior must be either "inclusive" or "exclusive"');
+      }
+
+      logStep("Tax validation passed", { 
+        tax_code: serviceData.tax_code, 
+        tax_behavior: serviceData.tax_behavior 
+      });
+    }
+
     // Initialize Stripe with appropriate key based on mode
     const stripeKey = testMode 
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
@@ -69,6 +111,22 @@ serve(async (req) => {
           calendar_id: serviceData.calendar_id || '',
         },
       },
+    }
+
+    // Add tax configuration to Stripe Price if tax is enabled
+    if (serviceData.tax_enabled && serviceData.tax_code) {
+      logStep("Adding tax configuration to Stripe Price", {
+        tax_code: serviceData.tax_code,
+        tax_behavior: serviceData.tax_behavior
+      });
+
+      // Set tax code on the product
+      priceData.product_data.tax_code = serviceData.tax_code;
+
+      // Set tax behavior on the price
+      priceData.tax_behavior = serviceData.tax_behavior;
+
+      logStep("Tax configuration added to price data");
     }
 
     // Add installment-specific metadata if present

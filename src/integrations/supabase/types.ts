@@ -1889,6 +1889,7 @@ export type Database = {
           business_whatsapp: string | null
           created_at: string | null
           date_of_birth: string | null
+          default_tax_behavior: string | null
           email: string
           facebook: string | null
           full_name: string | null
@@ -1913,6 +1914,7 @@ export type Database = {
           subscription_tier:
             | Database["public"]["Enums"]["subscription_tier"]
             | null
+          tax_configured: boolean | null
           team_size: string | null
           tiktok: string | null
           timezone: string | null
@@ -1945,6 +1947,7 @@ export type Database = {
           business_whatsapp?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          default_tax_behavior?: string | null
           email: string
           facebook?: string | null
           full_name?: string | null
@@ -1969,6 +1972,7 @@ export type Database = {
           subscription_tier?:
             | Database["public"]["Enums"]["subscription_tier"]
             | null
+          tax_configured?: boolean | null
           team_size?: string | null
           tiktok?: string | null
           timezone?: string | null
@@ -2001,6 +2005,7 @@ export type Database = {
           business_whatsapp?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          default_tax_behavior?: string | null
           email?: string
           facebook?: string | null
           full_name?: string | null
@@ -2025,6 +2030,7 @@ export type Database = {
           subscription_tier?:
             | Database["public"]["Enums"]["subscription_tier"]
             | null
+          tax_configured?: boolean | null
           team_size?: string | null
           tiktok?: string | null
           timezone?: string | null

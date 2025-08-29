@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ServiceTypeStripeConfig } from './ServiceTypeStripeConfig';
 import { ServiceType } from '@/types/calendar';
-import { Lock } from 'lucide-react';
+import { Lock, AlertTriangle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ServiceTypeFormData {
@@ -29,6 +29,7 @@ interface ServiceTypeFormProps {
   saving: boolean;
   isEditing: boolean;
   taxConfigured?: boolean;
+  userTaxBehavior?: string | null;
 }
 
 const colorOptions = [
@@ -52,8 +53,33 @@ export function ServiceTypeForm({
   onCancel, 
   saving, 
   isEditing,
-  taxConfigured = false
+  taxConfigured = false,
+  userTaxBehavior
 }: ServiceTypeFormProps) {
+  const [showTaxBehaviorWarning, setShowTaxBehaviorWarning] = useState(false);
+  const [previousTaxBehavior] = useState(formData.tax_behavior);
+
+  // Validation function
+  const isValidForm = () => {
+    if (!formData.name.trim()) return false;
+    
+    // If tax is enabled, require tax_code and tax_behavior
+    if (formData.tax_enabled) {
+      if (!formData.tax_code || !formData.tax_behavior) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  // Handle tax behavior change with warning
+  const handleTaxBehaviorChange = (newBehavior: 'inclusive' | 'exclusive') => {
+    if (isEditing && previousTaxBehavior === 'inclusive' && newBehavior === 'exclusive') {
+      setShowTaxBehaviorWarning(true);
+    }
+    setFormData(prev => ({ ...prev, tax_behavior: newBehavior }));
+  };
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -162,11 +188,39 @@ export function ServiceTypeForm({
               <Switch
                 id="tax-enabled"
                 checked={formData.tax_enabled}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, tax_enabled: checked }))}
+                onCheckedChange={(checked) => {
+                  // If enabling tax, apply fallback tax behavior if not set
+                  if (checked && !formData.tax_behavior) {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      tax_enabled: checked,
+                      tax_behavior: (userTaxBehavior as 'inclusive' | 'exclusive') || 'exclusive'
+                    }));
+                  } else {
+                    setFormData(prev => ({ ...prev, tax_enabled: checked }));
+                  }
+                }}
                 disabled={!taxConfigured}
               />
             </div>
           </div>
+
+          {!taxConfigured && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              <p className="text-sm text-destructive">
+                Configure tax first. Please complete your tax settings before enabling tax on services.
+              </p>
+            </div>
+          )}
+
+          {/* Show validation error if tax enabled but missing required fields */}
+          {formData.tax_enabled && (!formData.tax_code || !formData.tax_behavior) && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              <p className="text-sm text-destructive">
+                Tax code and tax behavior are required when tax is enabled.
+              </p>
+            </div>
+          )}
 
           {formData.tax_enabled && (
             <div className="space-y-4 pl-4 border-l-2 border-primary/20">
@@ -174,9 +228,7 @@ export function ServiceTypeForm({
                 <Label className="text-sm font-medium">Tax Behavior</Label>
                 <RadioGroup
                   value={formData.tax_behavior}
-                  onValueChange={(value: 'inclusive' | 'exclusive') => 
-                    setFormData(prev => ({ ...prev, tax_behavior: value }))
-                  }
+                  onValueChange={handleTaxBehaviorChange}
                   className="space-y-2"
                 >
                   <div className="flex items-center space-x-2">
@@ -195,6 +247,26 @@ export function ServiceTypeForm({
                 <p className="text-xs text-muted-foreground">
                   <strong>Inclusive:</strong> Price includes tax • <strong>Exclusive:</strong> Tax added on top
                 </p>
+                
+                {/* Tax behavior warning */}
+                {showTaxBehaviorWarning && (
+                  <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/20 rounded-md">
+                    <AlertTriangle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
+                    <div className="space-y-2">
+                      <p className="text-sm text-warning-foreground">
+                        <strong>Warning:</strong> This changes what your customer pays at checkout. 
+                        Switching from inclusive to exclusive tax will increase the final amount customers pay.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowTaxBehaviorWarning(false)}
+                        className="text-xs underline text-warning-foreground"
+                      >
+                        I understand
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -227,7 +299,7 @@ export function ServiceTypeForm({
         <Button variant="outline" onClick={onCancel} disabled={saving}>
           Cancel
         </Button>
-        <Button onClick={onSave} disabled={saving || !formData.name.trim()}>
+        <Button onClick={onSave} disabled={saving || !isValidForm()}>
           {saving ? 'Saving...' : isEditing ? 'Update' : 'Create'}
         </Button>
       </div>

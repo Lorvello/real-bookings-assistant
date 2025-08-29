@@ -21,8 +21,8 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Parse request body first to get mode
-    const { priceId, tier_name, price, is_annual, success_url, cancel_url, mode } = await req.json();
+    // Parse request body first to get mode and service information
+    const { priceId, tier_name, price, is_annual, success_url, cancel_url, mode, serviceIds = [], automaticTax = false } = await req.json();
     
     // Determine Stripe mode - use frontend mode if provided, otherwise fall back to environment
     const stripeMode = mode || Deno.env.get("STRIPE_MODE") || 'test'; // Default to test for safety
@@ -103,29 +103,77 @@ serve(async (req) => {
       customerId 
     });
 
+    // Handle service-based bookings with Stripe Price IDs
+    let finalLineItems = [];
+    
+    if (serviceIds.length > 0) {
+      logStep("Fetching service information for checkout", { serviceIds });
+      
+      // Fetch service types to get their Stripe Price IDs
+      const { data: services, error: serviceError } = await supabaseClient
+        .from('service_types')
+        .select('id, stripe_test_price_id, stripe_live_price_id, name, price, tax_enabled')
+        .in('id', serviceIds);
+
+      if (serviceError) {
+        throw new Error('Failed to fetch service information: ' + serviceError.message);
+      }
+
+      finalLineItems = services.map((service: any) => {
+        const priceId = isTestMode ? service.stripe_test_price_id : service.stripe_live_price_id;
+        
+        if (!priceId) {
+          throw new Error(`No Stripe Price ID found for service: ${service.name}`);
+        }
+        
+        return {
+          price: priceId,
+          quantity: 1
+        };
+      });
+      
+      logStep("Service line items prepared", { finalLineItems });
+    }
+
     // Create checkout session - use Price ID if provided, otherwise use dynamic pricing
     const sessionConfig: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       client_reference_id: user.id, // Add user ID for session tracking
-      mode: "subscription",
+      mode: serviceIds.length > 0 ? "payment" : "subscription", // Use payment mode for service bookings
       success_url: `${finalSuccessUrl}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: finalCancelUrl,
       metadata: {
         user_id: user.id,
         tier_name: tier_name || 'unknown',
-        is_annual: is_annual ? 'true' : 'false'
-      },
-      subscription_data: {
+        is_annual: is_annual ? 'true' : 'false',
+        service_ids: serviceIds.join(',')
+      }
+    };
+
+    // Enable automatic tax if requested or if services have tax enabled
+    if (automaticTax || serviceIds.length > 0) {
+      sessionConfig.automatic_tax = { enabled: true };
+      sessionConfig.billing_address_collection = 'required';
+      logStep("Automatic tax enabled for checkout");
+    }
+
+    // Add subscription data only for subscription mode
+    if (sessionConfig.mode === "subscription") {
+      sessionConfig.subscription_data = {
         metadata: {
           user_id: user.id,
           tier_name: tier_name || 'unknown',
           is_annual: is_annual ? 'true' : 'false'
         }
-      }
-    };
+      };
+    }
 
-    if (priceId) {
+    if (finalLineItems.length > 0) {
+      // Use service-based line items
+      sessionConfig.line_items = finalLineItems;
+      logStep("Using service-based line items", { count: finalLineItems.length });
+    } else if (priceId) {
       // Use predefined Stripe Price ID
       sessionConfig.line_items = [
         {

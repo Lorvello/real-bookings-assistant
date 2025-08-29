@@ -10,6 +10,7 @@ import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useToast } from '@/hooks/use-toast';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ServiceTypeFormData {
   name: string;
@@ -43,6 +44,7 @@ export function ServiceTypesManager() {
   const [formData, setFormData] = useState<ServiceTypeFormData>(DEFAULT_FORM_DATA);
   const [saving, setSaving] = useState(false);
   const [taxConfigured, setTaxConfigured] = useState(false);
+  const [userTaxBehavior, setUserTaxBehavior] = useState<string | null>(null);
 
   const {
     serviceTypes,
@@ -53,15 +55,40 @@ export function ServiceTypesManager() {
     refetch
   } = useServiceTypes(selectedCalendar?.id);
 
-  // Check if tax is configured for this account
+  // Fetch user tax configuration
+  useEffect(() => {
+    const fetchUserTaxConfig = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data, error } = await supabase
+            .from('users')
+            .select('tax_configured, default_tax_behavior')
+            .eq('id', user.id)
+            .single();
+
+          if (!error && data) {
+            setTaxConfigured(data.tax_configured || false);
+            setUserTaxBehavior(data.default_tax_behavior);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user tax configuration:', error);
+      }
+    };
+
+    fetchUserTaxConfig();
+  }, []);
+
+  // Check if tax is configured for this account (Stripe-based)
   useEffect(() => {
     const checkTaxConfiguration = async () => {
       try {
         const stripeAccount = await getStripeAccount();
-        setTaxConfigured(!!stripeAccount?.onboarding_completed);
+        const stripeConfigured = !!stripeAccount?.onboarding_completed;
+        setTaxConfigured(prev => prev || stripeConfigured);
       } catch (error) {
         console.error('Failed to check tax configuration:', error);
-        setTaxConfigured(false);
       }
     };
 
@@ -209,15 +236,16 @@ export function ServiceTypesManager() {
                     }
                   </DialogDescription>
                 </DialogHeader>
-                <ServiceTypeForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  onSave={handleSave}
-                  onCancel={handleCancel}
-                  saving={saving}
-                  isEditing={!!editingService}
-                  taxConfigured={taxConfigured}
-                />
+              <ServiceTypeForm
+                formData={formData}
+                setFormData={setFormData}
+                onSave={handleSave}
+                onCancel={handleCancel}
+                saving={saving}
+                isEditing={!!editingService}
+                taxConfigured={taxConfigured}
+                userTaxBehavior={userTaxBehavior}
+              />
               </DialogContent>
             </Dialog>
           </div>
