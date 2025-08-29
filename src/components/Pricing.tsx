@@ -66,10 +66,6 @@ export const Pricing = () => {
           tooltip: "Everything from the Starter plan plus additional professional features"
         },
         {
-          text: "Unlimited WhatsApp contact management",
-          tooltip: "Unlimited WhatsApp contacts with advanced segmentation, bulk messaging, and automated workflows"
-        },
-        {
           text: "Unlimited calendar orchestration platform",
           tooltip: "Connect and manage unlimited calendars across different platforms with advanced synchronization"
         },
