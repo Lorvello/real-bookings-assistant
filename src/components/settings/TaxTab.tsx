@@ -81,17 +81,62 @@ export const TaxTab = () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         setTaxData(mockTaxData);
       } else {
-        // In real implementation, this would fetch actual tax data from Stripe
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setTaxData(null); // No real data yet
+        // Fetch real tax data from Stripe
+        const { data, error } = await supabase.functions.invoke('get-tax-data', {
+          body: {
+            calendar_id: selectedCalendar?.id,
+            test_mode: true, // Always use test mode for now
+            start_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // Last 90 days
+            end_date: new Date().toISOString()
+          }
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Failed to fetch tax data');
+        }
+
+        if (data?.success) {
+          // Transform Stripe data to match expected format
+          const transformedData = {
+            currentMonth: {
+              totalRevenue: data.overview.totalRevenue || 0,
+              vatCollected: data.overview.totalTaxCollected || 0,
+              vatRate: 21,
+              transactions: data.overview.transactionCount || 0,
+              exemptTransactions: data.overview.transactionCount - data.overview.taxableTransactions || 0
+            },
+            quarterly: {
+              q1: { revenue: data.quarterlyData?.revenue || 0, vat: data.quarterlyData?.taxCollected || 0 },
+              q2: { revenue: 0, vat: 0 },
+              q3: { revenue: 0, vat: 0 },
+              q4: { revenue: 0, vat: 0 }
+            },
+            compliance: {
+              lastReportGenerated: data.lastUpdated ? new Date(data.lastUpdated).toISOString().split('T')[0] : '2024-01-15',
+              nextDueDate: '2024-04-01',
+              status: data.overview.complianceStatus || 'unknown',
+              autoSubmission: data.stripeAccountStatus?.automaticTaxEnabled || false
+            }
+          };
+          setTaxData(transformedData);
+        } else {
+          // No data available or error
+          setTaxData(null);
+          toast({
+            title: "No Data Available",
+            description: data?.error || "No tax data found. Make sure you have completed Stripe onboarding and have processed payments.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error('Error loading tax data:', error);
       toast({
         title: "Error",
-        description: "Failed to load tax data",
+        description: error.message || "Failed to load tax data",
         variant: "destructive"
       });
+      setTaxData(null);
     } finally {
       setLoading(false);
     }
@@ -136,21 +181,61 @@ export const TaxTab = () => {
   };
 
   const handleGenerateReport = async () => {
-    setLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast({
-        title: "Report Generated",
-        description: "Your tax report has been generated and will be emailed to you"
-      });
-    } catch (error) {
+    if (!selectedCalendar?.id) {
       toast({
         title: "Error",
-        description: "Failed to generate tax report",
-        variant: "destructive"
+        description: "No calendar selected",
+        variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      return;
+    }
+
+    toast({
+      title: "Generating Report",
+      description: "Your tax report is being generated...",
+    });
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-tax-report', {
+        body: {
+          calendar_id: selectedCalendar.id,
+          test_mode: true,
+          report_type: 'quarterly',
+          year: new Date().getFullYear(),
+          quarter: Math.floor(new Date().getMonth() / 3) + 1
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to generate report');
+      }
+
+      if (data?.success) {
+        // Create blob and download link for the report
+        const reportBlob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const downloadUrl = URL.createObjectURL(reportBlob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `tax-report-${data.reportMetadata.period.year}-Q${data.reportMetadata.period.quarter || new Date().getMonth()}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(downloadUrl);
+
+        toast({
+          title: "Report Ready",
+          description: `Tax report generated with ${data.reportMetadata.transactionCount} transactions. Download started.`,
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to generate report');
+      }
+    } catch (error) {
+      console.error('Error generating report:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate tax report",
+        variant: "destructive",
+      });
     }
   };
 

@@ -80,3 +80,9 @@ verify_jwt = true
 
 [functions.whatsapp-payment-handler]
 verify_jwt = false
+
+[functions.get-tax-data]
+verify_jwt = true
+
+[functions.generate-tax-report]
+verify_jwt = true
