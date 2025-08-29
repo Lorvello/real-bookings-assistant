@@ -27,6 +27,7 @@ import { useAccessControl } from '@/hooks/useAccessControl';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
+import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 
 export const TaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -34,11 +35,13 @@ export const TaxTab = () => {
   const { settings } = usePaymentSettings(selectedCalendar?.id);
   const { checkAccess } = useAccessControl();
   const { toast } = useToast();
+  const { isDeveloper } = useDeveloperAccess();
   
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [taxData, setTaxData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [useMockData, setUseMockData] = useState(false);
 
   const hasAccess = checkAccess('canAccessTaxCompliance');
 
@@ -74,9 +77,14 @@ export const TaxTab = () => {
   const loadTaxData = async () => {
     setLoading(true);
     try {
-      // In real implementation, this would fetch actual tax data from Stripe
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setTaxData(mockTaxData);
+      if (useMockData) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setTaxData(mockTaxData);
+      } else {
+        // In real implementation, this would fetch actual tax data from Stripe
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setTaxData(null); // No real data yet
+      }
     } catch (error) {
       console.error('Error loading tax data:', error);
       toast({
@@ -87,6 +95,24 @@ export const TaxTab = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSetMockData = () => {
+    setUseMockData(true);
+    loadTaxData();
+    toast({
+      title: "Mock Data Enabled",
+      description: "Displaying mock tax data for development"
+    });
+  };
+
+  const handleRemoveMockData = () => {
+    setUseMockData(false);
+    setTaxData(null);
+    toast({
+      title: "Mock Data Disabled",
+      description: "Mock tax data has been cleared"
+    });
   };
 
   const handleRefreshTaxData = async () => {
@@ -259,6 +285,48 @@ export const TaxTab = () => {
           </Button>
         </div>
       </div>
+
+      {/* Developer Controls */}
+      {isDeveloper && (
+        <Card className="bg-yellow-900/20 border-yellow-700">
+          <CardHeader>
+            <CardTitle className="text-yellow-400 flex items-center gap-2">
+              <Calculator className="w-5 h-5" />
+              Developer Controls
+            </CardTitle>
+            <CardDescription className="text-yellow-200/70">
+              Mock data controls for development and testing
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <Button 
+                onClick={handleSetMockData}
+                disabled={useMockData || loading}
+                variant="outline"
+                size="sm"
+                className="border-yellow-600 text-yellow-400 hover:bg-yellow-900/30"
+              >
+                Set MockData
+              </Button>
+              <Button 
+                onClick={handleRemoveMockData}
+                disabled={!useMockData || loading}
+                variant="outline"
+                size="sm"
+                className="border-yellow-600 text-yellow-400 hover:bg-yellow-900/30"
+              >
+                Remove MockData
+              </Button>
+              {useMockData && (
+                <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20">
+                  Mock Data Active
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tax Status Overview */}
       <Card className="bg-gray-800 border-gray-700">
