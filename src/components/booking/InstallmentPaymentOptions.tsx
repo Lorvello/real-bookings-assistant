@@ -12,15 +12,15 @@ interface InstallmentPlan {
   deposits?: Array<{
     percentage?: number;
     amount?: number;
-    timing: 'now' | 'appointment' | 'days_after';
-    days?: number;
+    timing: 'now' | 'appointment' | 'hours_after';
+    hours?: number;
   }>;
   fixed_deposit_amount?: number;
 }
 
 interface PaymentScheduleItem {
   amount: number;
-  timing: 'now' | 'appointment' | 'days_after';
+  timing: 'now' | 'appointment' | 'hours_after';
   description: string;
   paymentMethod: 'online' | 'cash';
   dueDate?: string;
@@ -91,9 +91,9 @@ export function InstallmentPaymentOptions({
         let dueDate: string | undefined;
         if (deposit.timing === 'appointment') {
           dueDate = appointmentDate?.toLocaleDateString();
-        } else if (deposit.timing === 'days_after' && appointmentDate && deposit.days) {
+        } else if (deposit.timing === 'hours_after' && appointmentDate && deposit.hours) {
           const futureDate = new Date(appointmentDate);
-          futureDate.setDate(futureDate.getDate() + deposit.days);
+          futureDate.setHours(futureDate.getHours() + deposit.hours);
           dueDate = futureDate.toLocaleDateString();
         }
         
@@ -102,7 +102,7 @@ export function InstallmentPaymentOptions({
           timing: deposit.timing,
           description: isFirst ? 
             `Payment ${index + 1} (due now)` : 
-            `Payment ${index + 1} (${deposit.timing === 'appointment' ? 'at appointment' : `${deposit.days} days after`})`,
+            `Payment ${index + 1} (${deposit.timing === 'appointment' ? 'at appointment' : `${deposit.hours} hours after`})`,
           paymentMethod: deposit.timing === 'now' ? 'online' : 'cash',
           dueDate
         });

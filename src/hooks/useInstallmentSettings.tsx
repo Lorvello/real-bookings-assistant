@@ -9,8 +9,8 @@ interface InstallmentPlan {
   deposits?: Array<{
     percentage?: number;
     amount?: number;
-    timing: 'now' | 'appointment' | 'days_after';
-    days?: number;
+    timing: 'now' | 'appointment' | 'hours_after';
+    hours?: number;
   }>;
   fixed_deposit_amount?: number;
 }

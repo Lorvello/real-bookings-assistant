@@ -16,8 +16,8 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 interface DepositInfo {
   percentage?: number;
   amount?: number;
-  timing: 'now' | 'appointment' | 'days_after';
-  days?: number;
+  timing: 'now' | 'appointment' | 'hours_after';
+  hours?: number;
 }
 
 interface InstallmentPlan {
@@ -72,7 +72,7 @@ export function InstallmentSettings({
       description: '25% at booking, 25% 1 week later, 50% on location',
       deposits: [
         { percentage: 25, timing: 'now' as const },
-        { percentage: 25, timing: 'days_after' as const, days: 7 },
+        { percentage: 25, timing: 'hours_after' as const, hours: 168 }, // 1 week = 168 hours
         { percentage: 50, timing: 'appointment' as const }
       ]
     },
@@ -84,7 +84,18 @@ export function InstallmentSettings({
   };
 
   const addCustomDeposit = () => {
-    setCustomDeposits([...customDeposits, { percentage: 0, timing: 'appointment' }]);
+    // Find the next appropriate timing
+    const hasAtBooking = customDeposits.some(d => d.timing === 'now');
+    const hasOnLocation = customDeposits.some(d => d.timing === 'appointment');
+    
+    let defaultTiming: 'now' | 'appointment' | 'hours_after' = 'hours_after';
+    if (!hasAtBooking) {
+      defaultTiming = 'now';
+    } else if (!hasOnLocation) {
+      defaultTiming = 'appointment';
+    }
+    
+    setCustomDeposits([...customDeposits, { timing: defaultTiming }]);
   };
 
   const removeCustomDeposit = (index: number) => {
@@ -94,7 +105,37 @@ export function InstallmentSettings({
   const updateCustomDeposit = (index: number, field: string, value: any) => {
     const updated = [...customDeposits];
     updated[index] = { ...updated[index], [field]: value };
+    
+    // Clear hours when timing changes away from hours_after
+    if (field === 'timing' && value !== 'hours_after') {
+      delete updated[index].hours;
+    }
+    
     setCustomDeposits(updated);
+  };
+
+  const getAvailableTimingOptions = (currentIndex: number) => {
+    const hasAtBooking = customDeposits.some((d, i) => d.timing === 'now' && i !== currentIndex);
+    const hasOnLocation = customDeposits.some((d, i) => d.timing === 'appointment' && i !== currentIndex);
+    const currentTiming = customDeposits[currentIndex]?.timing;
+    
+    return [
+      {
+        value: 'now',
+        label: 'At Booking',
+        disabled: hasAtBooking && currentTiming !== 'now'
+      },
+      {
+        value: 'appointment',
+        label: 'On Location',
+        disabled: hasOnLocation && currentTiming !== 'appointment'
+      },
+      {
+        value: 'hours_after',
+        label: 'Hours After Booking',
+        disabled: false
+      }
+    ];
   };
 
   const getTotalPercentage = () => {
@@ -109,17 +150,41 @@ export function InstallmentSettings({
   };
 
   const isValidPlan = () => {
+    if (planType === 'preset') return true;
+    
     const total = getTotalPercentage();
-    return total === 100 && customDeposits.length >= 2;
+    const hasAtBooking = customDeposits.some(d => d.timing === 'now');
+    const atBookingCount = customDeposits.filter(d => d.timing === 'now').length;
+    const onLocationCount = customDeposits.filter(d => d.timing === 'appointment').length;
+    
+    return total === 100 && 
+           customDeposits.length >= 2 && 
+           hasAtBooking && 
+           atBookingCount === 1 && 
+           onLocationCount <= 1;
   };
 
   const handleSave = async () => {
     if (!user) return;
 
-    if (enabled && !isValidPlan()) {
+    if (enabled && planType === 'custom' && !isValidPlan()) {
+      const hasAtBooking = customDeposits.some(d => d.timing === 'now');
+      const atBookingCount = customDeposits.filter(d => d.timing === 'now').length;
+      const onLocationCount = customDeposits.filter(d => d.timing === 'appointment').length;
+      
+      let errorMessage = "Percentages must total 100% and have at least 2 payments.";
+      
+      if (!hasAtBooking) {
+        errorMessage = "At least one payment must be 'At Booking'.";
+      } else if (atBookingCount > 1) {
+        errorMessage = "Only one payment can be 'At Booking'.";
+      } else if (onLocationCount > 1) {
+        errorMessage = "Only one payment can be 'On Location'.";
+      }
+      
       toast({
         title: "Invalid installment plan",
-        description: "Percentages must total 100% and have at least 2 payments.",
+        description: errorMessage,
         variant: "destructive"
       });
       return;
@@ -331,7 +396,8 @@ export function InstallmentSettings({
                             <div className="flex items-center gap-2 mt-1">
                               <Input
                                 type="number"
-                                value={deposit.percentage}
+                                value={deposit.percentage || ''}
+                                placeholder="0"
                                 onChange={(e) => updateCustomDeposit(index, 'percentage', Number(e.target.value))}
                                 min="0"
                                 max="100"
@@ -351,20 +417,27 @@ export function InstallmentSettings({
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-background border shadow-md">
-                                <SelectItem value="now">At Booking</SelectItem>
-                                <SelectItem value="appointment">On Location</SelectItem>
-                                <SelectItem value="days_after">Days After Booking</SelectItem>
+                                {getAvailableTimingOptions(index).map(option => (
+                                  <SelectItem 
+                                    key={option.value} 
+                                    value={option.value}
+                                    disabled={option.disabled}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </div>
 
-                          {deposit.timing === 'days_after' && (
+                          {deposit.timing === 'hours_after' && (
                             <div>
-                              <Label className="text-sm font-medium">Days</Label>
+                              <Label className="text-sm font-medium">Hours</Label>
                               <Input
                                 type="number"
-                                value={deposit.days || 1}
-                                onChange={(e) => updateCustomDeposit(index, 'days', Number(e.target.value))}
+                                value={deposit.hours || 1}
+                                placeholder="1"
+                                onChange={(e) => updateCustomDeposit(index, 'hours', Number(e.target.value))}
                                 min="1"
                                 className="w-20 mt-1"
                               />
