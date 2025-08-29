@@ -59,7 +59,7 @@ export const TaxTab = () => {
   const { checkAccess } = useAccessControl();
   const { toast } = useToast();
   const { isDeveloper } = useDeveloperAccess();
-  const { getStripeAccount, createOnboardingLink, createLoginLink } = useStripeConnect();
+  const { getStripeAccount, createOnboardingLink, createLoginLink, refreshAccountStatus } = useStripeConnect();
   
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [taxData, setTaxData] = useState<any>(null);
@@ -88,37 +88,59 @@ export const TaxTab = () => {
     try {
       setCheckingStripe(true);
       
-      // First try to get fresh account data from Stripe
-      const { refreshAccountStatus } = useStripeConnect();
-      const account = await refreshAccountStatus();
-      
-      if (!account) {
-        // Fallback to local data
-        const localAccount = await getStripeAccount();
-        setStripeAccount(localAccount);
-      } else {
-        setStripeAccount(account);
-      }
-      
-      // Log the current status for debugging
-      console.log('Stripe account status check:', {
+      // First try to get fresh account data from Stripe (no hooks here)
+      const freshAccount = await refreshAccountStatus();
+
+      let account = freshAccount || (await getStripeAccount());
+      setStripeAccount(account);
+
+      console.log('Stripe account status check (after refresh):', {
         exists: !!account,
         onboardingCompleted: account?.onboarding_completed,
         chargesEnabled: account?.charges_enabled,
         accountId: account?.stripe_account_id
       });
-      
-      // Only load tax data if Stripe onboarding is completed
+
+      // If onboarding not marked completed, try dashboard login link as heuristic
+      if (!account?.onboarding_completed) {
+        try {
+          const dashboardUrl = await createLoginLink();
+          if (dashboardUrl) {
+            console.log('Login link obtained; treating onboarding as completed');
+            // Locally mark as completed so UI can proceed
+            if (account) {
+              account = { ...account, onboarding_completed: true };
+              setStripeAccount(account);
+            }
+          }
+        } catch (e) {
+          console.warn('Login link heuristic failed:', e);
+        }
+      }
+
+      // Load tax data/settings when considered onboarded
       if (account?.onboarding_completed) {
         loadTaxData();
         loadTaxSettings();
       }
     } catch (error) {
       console.error('Failed to check Stripe account:', error);
-      
+
       // Fallback to local data on error
       const localAccount = await getStripeAccount();
       setStripeAccount(localAccount);
+
+      // Last attempt: if we can get a login link, assume onboarded
+      try {
+        if (!localAccount?.onboarding_completed) {
+          const dashboardUrl = await createLoginLink();
+          if (dashboardUrl && localAccount) {
+            setStripeAccount({ ...localAccount, onboarding_completed: true });
+          }
+        }
+      } catch (e) {
+        console.warn('Login link heuristic in catch failed:', e);
+      }
     } finally {
       setCheckingStripe(false);
     }
@@ -212,7 +234,7 @@ export const TaxTab = () => {
 
   const refreshAll = async () => {
     await checkStripeAccountStatus();
-    if (stripeAccount?.onboarding_completed && stripeAccount?.charges_enabled) {
+    if (stripeAccount?.onboarding_completed) {
       await refreshTaxData();
     }
   };
@@ -225,6 +247,16 @@ export const TaxTab = () => {
     }
   }, [hasAccess, selectedCalendar?.id, stripeAccount?.onboarding_completed]);
 
+  // Re-check status when tab becomes visible (user may finish onboarding in Stripe)
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'visible' && hasAccess && selectedCalendar?.id) {
+        checkStripeAccountStatus();
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [hasAccess, selectedCalendar?.id]);
   // Locked state for users without Professional access
   if (!hasAccess) {
     return (
