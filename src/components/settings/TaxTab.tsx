@@ -87,17 +87,38 @@ export const TaxTab = () => {
   const checkStripeAccountStatus = async () => {
     try {
       setCheckingStripe(true);
-      const account = await getStripeAccount();
-      setStripeAccount(account);
       
-      // Only load tax data if Stripe is fully onboarded
-      if (account?.onboarding_completed && account?.charges_enabled) {
+      // First try to get fresh account data from Stripe
+      const { refreshAccountStatus } = useStripeConnect();
+      const account = await refreshAccountStatus();
+      
+      if (!account) {
+        // Fallback to local data
+        const localAccount = await getStripeAccount();
+        setStripeAccount(localAccount);
+      } else {
+        setStripeAccount(account);
+      }
+      
+      // Log the current status for debugging
+      console.log('Stripe account status check:', {
+        exists: !!account,
+        onboardingCompleted: account?.onboarding_completed,
+        chargesEnabled: account?.charges_enabled,
+        accountId: account?.stripe_account_id
+      });
+      
+      // Only load tax data if Stripe onboarding is completed
+      if (account?.onboarding_completed) {
         loadTaxData();
         loadTaxSettings();
-        // Tax codes are loaded by ServiceTypeTaxCodes component
       }
     } catch (error) {
       console.error('Failed to check Stripe account:', error);
+      
+      // Fallback to local data on error
+      const localAccount = await getStripeAccount();
+      setStripeAccount(localAccount);
     } finally {
       setCheckingStripe(false);
     }
@@ -324,8 +345,8 @@ export const TaxTab = () => {
     );
   }
 
-  // Show simple onboarding message if Stripe is not set up
-  if (!stripeAccount?.onboarding_completed || !stripeAccount?.charges_enabled) {
+  // Show simple onboarding message if Stripe is not set up (only check onboarding completion)
+  if (!stripeAccount?.onboarding_completed) {
     return (
       <div className="space-y-6">
         <Card>
