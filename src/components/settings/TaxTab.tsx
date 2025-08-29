@@ -21,6 +21,10 @@ import { QuarterlyTaxSummary } from '@/components/tax/QuarterlyTaxSummary';
 import { ServiceBreakdown } from '@/components/tax/ServiceBreakdown';
 import { TaxExportSection } from '@/components/tax/TaxExportSection';
 import { TaxStatusOverview } from '@/components/tax/TaxStatusOverview';
+import { TaxRegistrationsManager } from '@/components/tax/TaxRegistrationsManager';
+import { ThresholdMonitoringDashboard } from '@/components/tax/ThresholdMonitoringDashboard';
+import { AccountRequirements } from '@/components/tax/AccountRequirements';
+import { ProductTaxCodeManager } from '@/components/tax/ProductTaxCodeManager';
 
 export const TaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -228,7 +232,7 @@ export const TaxTab = () => {
 
   // Main Tax Tab UI - Business-focused quarterly overview
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header with Developer Mode Toggle */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -252,31 +256,65 @@ export const TaxTab = () => {
         </div>
       </div>
 
-      {/* Quarterly Tax Summary - Primary Focus */}
-      <QuarterlyTaxSummary 
-        accountId={stripeAccount?.stripe_account_id} 
-        calendarId={selectedCalendar?.id}
-      />
+      {/* Global Tax Coverage Banner */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-success" />
+            <div>
+              <p className="text-sm font-medium">Global Tax Coverage Active</p>
+              <p className="text-xs text-muted-foreground">
+                Automatic tax calculation is available in supported countries. 
+                Some regions may have limited support (e.g., UK/NO/CH domestic only).
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Service Breakdown */}
-      <ServiceBreakdown 
-        accountId={stripeAccount?.stripe_account_id}
-        calendarId={selectedCalendar?.id}
-        quarter={selectedQuarter}
-        year={selectedYear}
-      />
+      <div className="space-y-6">
+        <QuarterlyTaxSummary 
+          accountId={stripeAccount?.stripe_account_id} 
+          calendarId={stripeAccount?.calendar_id}
+        />
+        
+        <ServiceBreakdown
+          accountId={stripeAccount?.stripe_account_id}
+          calendarId={stripeAccount?.calendar_id}
+          quarter={1}
+          year={2024}
+        />
+        
+        <TaxExportSection 
+          accountId={stripeAccount?.stripe_account_id} 
+          calendarId={stripeAccount?.calendar_id}
+        />
 
-      {/* Export Section */}
-      <TaxExportSection 
-        accountId={stripeAccount?.stripe_account_id}
-        calendarId={selectedCalendar?.id}
-      />
+        <ProductTaxCodeManager
+          accountId={stripeAccount?.stripe_account_id}
+          calendarId={stripeAccount?.calendar_id}
+        />
+        
+        <TaxRegistrationsManager
+          accountId={stripeAccount?.stripe_account_id}
+          calendarId={stripeAccount?.calendar_id}
+        />
 
-      {/* Status Overview - Minimal */}
-      <TaxStatusOverview 
-        accountId={stripeAccount?.stripe_account_id}
-        calendarId={selectedCalendar?.id}
-      />
+        <ThresholdMonitoringDashboard
+          accountId={stripeAccount?.stripe_account_id}
+          calendarId={stripeAccount?.calendar_id}
+        />
+
+        <AccountRequirements
+          accountId={stripeAccount?.stripe_account_id}
+          calendarId={stripeAccount?.calendar_id}
+        />
+        
+        <TaxStatusOverview 
+          accountId={stripeAccount?.stripe_account_id} 
+          calendarId={stripeAccount?.calendar_id}
+        />
+      </div>
 
       <SubscriptionModal
         isOpen={showUpgradeModal}
