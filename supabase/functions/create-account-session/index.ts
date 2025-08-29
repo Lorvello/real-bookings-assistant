@@ -13,67 +13,105 @@ serve(async (req) => {
   }
 
   try {
+    // Use service role key to bypass RLS
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
     )
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      throw new Error('No authorization header')
+      console.log('[CREATE-ACCOUNT-SESSION] No authorization header')
+      return new Response(
+        JSON.stringify({ success: false, code: 'NO_AUTH' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      )
     }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
     if (authError || !user) {
-      throw new Error('Authentication failed')
+      console.log('[CREATE-ACCOUNT-SESSION] Authentication failed:', authError?.message)
+      return new Response(
+        JSON.stringify({ success: false, code: 'AUTH_FAILED' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      )
     }
 
-    const { components, account_id } = await req.json()
+    const { components, account_id, test_mode = true } = await req.json()
 
-    // Get Stripe secret key
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY')
+    // Get correct Stripe secret key based on test_mode
+    const stripeSecretKey = test_mode 
+      ? Deno.env.get('STRIPE_SECRET_KEY_TEST')
+      : Deno.env.get('STRIPE_SECRET_KEY_LIVE')
+    
     if (!stripeSecretKey) {
-      throw new Error('Stripe secret key not configured')
+      console.log(`[CREATE-ACCOUNT-SESSION] Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode`)
+      return new Response(
+        JSON.stringify({ success: false, code: 'MISSING_STRIPE_SECRET' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      )
     }
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2024-06-20',
     })
 
+    // Get platform account for tenant isolation
+    const platformAccount = await stripe.accounts.retrieve()
+    const platformAccountId = platformAccount.id
+    const environment = test_mode ? 'test' : 'live'
+
+    // Get user data to find account owner
+    const { data: userData } = await supabase
+      .from('users')
+      .select('account_owner_id')
+      .eq('id', user.id)
+      .single()
+
+    const accountOwnerId = userData?.account_owner_id || user.id
+
+    console.log(`[CREATE-ACCOUNT-SESSION] Looking for account - Owner: ${accountOwnerId}, Environment: ${environment}, Platform: ${platformAccountId}`)
+
     // Get connected account ID if not provided
     let connectedAccountId = account_id
     if (!connectedAccountId) {
-      // First try to get Stripe account directly by user_id
+      // Primary lookup: business_stripe_accounts with proper tenant isolation
       const { data: stripeAccount } = await supabase
         .from('business_stripe_accounts')
-        .select('connected_account_id, stripe_account_id')
-        .eq('user_id', user.id)
+        .select('stripe_account_id, connected_account_id')
+        .eq('account_owner_id', accountOwnerId)
+        .eq('environment', environment)
+        .eq('platform_account_id', platformAccountId)
         .eq('onboarding_completed', true)
+        .eq('charges_enabled', true)
         .single()
 
-      if (stripeAccount?.connected_account_id) {
-        connectedAccountId = stripeAccount.connected_account_id
-      } else if (stripeAccount?.stripe_account_id) {
+      if (stripeAccount?.stripe_account_id) {
         connectedAccountId = stripeAccount.stripe_account_id
+        console.log(`[CREATE-ACCOUNT-SESSION] Found account via business_stripe_accounts: ${connectedAccountId}`)
       } else {
-        // Fallback: Get via calendar relationship
+        // Fallback: Check calendar_settings for legacy stripe_connect_account_id
         const { data: calendars } = await supabase
           .from('calendars')
           .select(`
             id,
-            business_stripe_accounts!inner(connected_account_id, stripe_account_id)
+            calendar_settings!inner(stripe_connect_account_id)
           `)
           .eq('user_id', user.id)
           .eq('is_active', true)
           .limit(1)
 
-        const account = calendars?.[0]?.business_stripe_accounts
-        if (account?.connected_account_id) {
-          connectedAccountId = account.connected_account_id
-        } else if (account?.stripe_account_id) {
-          connectedAccountId = account.stripe_account_id
+        const legacyAccountId = calendars?.[0]?.calendar_settings?.stripe_connect_account_id
+        if (legacyAccountId) {
+          connectedAccountId = legacyAccountId
+          console.log(`[CREATE-ACCOUNT-SESSION] Found legacy account via calendar_settings: ${connectedAccountId}`)
         } else {
-          throw new Error('No connected Stripe account found')
+          console.log('[CREATE-ACCOUNT-SESSION] No Stripe account found')
+          return new Response(
+            JSON.stringify({ success: false, code: 'NO_ACCOUNT' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+          )
         }
       }
     }
@@ -150,11 +188,12 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: error.message,
+        code: 'SERVER_ERROR'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 200,
       }
     )
   }

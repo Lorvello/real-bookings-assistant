@@ -39,7 +39,8 @@ export const StripeEmbeddedTaxRegistrations: React.FC<StripeEmbeddedTaxRegistrat
   });
 
   useEffect(() => {
-    if (!sessionData || !containerRef.current || useFallback) return;
+    // Don't initialize if we're in an error state or loading or no session data
+    if (!sessionData || !containerRef.current || useFallback || loading || error) return;
 
     const initializeEmbedded = async () => {
       try {
@@ -61,10 +62,13 @@ export const StripeEmbeddedTaxRegistrations: React.FC<StripeEmbeddedTaxRegistrat
           throw new Error('Failed to initialize Stripe');
         }
 
+        console.log('[TAX-REGISTRATIONS] Creating embedded component with session:', sessionData.session_id);
+
         // Create embedded tax registrations component
         const component = stripe.connectEmbeddedComponents.create({
           clientSecret: sessionData.client_secret,
           fetchClientSecret: async () => {
+            console.log('[TAX-REGISTRATIONS] Refreshing client secret...');
             await refreshSession();
             return sessionData.client_secret;
           }
@@ -78,10 +82,11 @@ export const StripeEmbeddedTaxRegistrations: React.FC<StripeEmbeddedTaxRegistrat
           await taxRegistrations.mount(containerRef.current);
           setEmbeddedComponent(taxRegistrations);
           setEmbeddedError(null);
+          console.log('[TAX-REGISTRATIONS] Component mounted successfully');
         }
 
       } catch (err) {
-        console.error('Failed to initialize embedded tax registrations:', err);
+        console.error('[TAX-REGISTRATIONS] Failed to initialize embedded component:', err);
         setEmbeddedError(err instanceof Error ? err.message : 'Unknown error');
         setUseFallback(true);
       }
@@ -91,10 +96,11 @@ export const StripeEmbeddedTaxRegistrations: React.FC<StripeEmbeddedTaxRegistrat
 
     return () => {
       if (embeddedComponent) {
+        console.log('[TAX-REGISTRATIONS] Unmounting component');
         embeddedComponent.unmount();
       }
     };
-  }, [sessionData, refreshSession, useFallback]);
+  }, [sessionData, refreshSession, useFallback, loading, error]);
 
   const handleRetryEmbedded = () => {
     setUseFallback(false);

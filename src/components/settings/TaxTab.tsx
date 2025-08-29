@@ -116,11 +116,14 @@ export const TaxTab = () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         setTaxData(mockTaxData);
       } else {
+        // Import getStripeMode for test_mode detection
+        const { getStripeMode } = await import('@/utils/stripeConfig');
+        
         // Fetch real tax data from Stripe with proper tenant isolation
         const { data, error } = await supabase.functions.invoke('get-tax-data', {
           body: {
             calendar_id: selectedCalendar?.id,
-            test_mode: true,
+            test_mode: getStripeMode() === 'test',
             start_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
             end_date: new Date().toISOString()
           }
@@ -134,6 +137,15 @@ export const TaxTab = () => {
           // Use data directly from Stripe
           setTaxData(data);
         } else {
+          // Handle specific error codes with user-friendly UI instead of toast errors
+          if (data?.code === 'UPGRADE_REQUIRED') {
+            setShowUpgradeModal(true);
+            return;
+          } else if (data?.code === 'NO_ACCOUNT') {
+            // This should be handled at the parent level, but just in case
+            await checkStripeAccountStatus();
+            return;
+          }
           throw new Error(data?.error || 'Invalid response from tax service');
         }
       }
@@ -155,8 +167,11 @@ export const TaxTab = () => {
         setTaxSettings(mockTaxSettings);
         setRegistrations(mockTaxSettings.taxRegistrations);
       } else {
+        // Import getStripeMode for test_mode detection
+        const { getStripeMode } = await import('@/utils/stripeConfig');
+        
         const { data, error } = await supabase.functions.invoke('get-tax-settings', {
-          body: { test_mode: true }
+          body: { test_mode: getStripeMode() === 'test' }
         });
 
         if (error) {
@@ -170,6 +185,14 @@ export const TaxTab = () => {
             setRegistrations(data.taxRegistrations);
           }
         } else {
+          // Handle specific error codes 
+          if (data?.code === 'UPGRADE_REQUIRED') {
+            setShowUpgradeModal(true);
+            return;
+          } else if (data?.code === 'NO_ACCOUNT') {
+            await checkStripeAccountStatus();
+            return;
+          }
           throw new Error(data?.error || 'Invalid response from tax settings service');
         }
       }
@@ -188,8 +211,11 @@ export const TaxTab = () => {
       if (useMockData) {
         setTaxCodes(mockTaxCodes);
       } else {
+        // Import getStripeMode for test_mode detection
+        const { getStripeMode } = await import('@/utils/stripeConfig');
+        
         const { data, error } = await supabase.functions.invoke('get-tax-codes', {
-          body: { test_mode: true }
+          body: { test_mode: getStripeMode() === 'test' }
         });
 
         if (error) {
@@ -199,6 +225,11 @@ export const TaxTab = () => {
         if (data?.success) {
           setTaxCodes(data.taxCodes || []);
         } else {
+          // Handle specific error codes 
+          if (data?.code === 'UPGRADE_REQUIRED') {
+            setShowUpgradeModal(true);
+            return;
+          }
           throw new Error(data?.error || 'Invalid response from tax codes service');
         }
       }
@@ -215,17 +246,25 @@ export const TaxTab = () => {
   const refreshTaxData = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([loadTaxData(), loadTaxSettings(), loadTaxCodes()]);
+      // Load data in sequence to avoid race conditions
+      await loadTaxSettings(); // Load settings first (contains account status)
+      await loadTaxData();      // Then load tax data 
+      await loadTaxCodes();     // Finally load codes
+      
       toast({
         title: "Success",
         description: "Tax data refreshed successfully"
       });
     } catch (error) {
-      toast({
-        title: "Error", 
-        description: "Failed to refresh tax data",
-        variant: "destructive"
-      });
+      console.error('Refresh error:', error);
+      // Only show toast if it's not a handled error code
+      if (!error.message?.includes('upgrade') && !error.message?.includes('account')) {
+        toast({
+          title: "Error", 
+          description: "Failed to refresh tax data",
+          variant: "destructive"
+        });
+      }
     } finally {
       setRefreshing(false);
     }
@@ -385,7 +424,7 @@ export const TaxTab = () => {
                 variant="default"
               >
                 <ArrowUpRight className="w-4 h-4 mr-2" />
-                {stripeAccount ? 'Complete Setup' : 'Start Onboarding'}
+                {stripeAccount?.onboarding_completed ? 'Go To Dashboard' : 'Start Onboarding'}
               </Button>
               <Button 
                 variant="outline"

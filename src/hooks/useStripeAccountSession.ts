@@ -40,12 +40,20 @@ export const useStripeAccountSession = (options: UseStripeAccountSessionOptions)
         throw new Error(error.message || 'Failed to create account session');
       }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to create account session');
+      if (data?.success) {
+        setSessionData(data);
+        console.log('Account session created:', data.session_id);
+      } else {
+        // Handle specific error codes without showing toast
+        if (data?.code === 'NO_ACCOUNT') {
+          setError('No Stripe account found. Please complete onboarding first.');
+          return;
+        } else if (data?.code === 'MISSING_STRIPE_SECRET') {
+          setError('Stripe configuration incomplete. Please contact support.');
+          return;
+        }
+        throw new Error(data?.error || 'Failed to create account session');
       }
-
-      setSessionData(data);
-      console.log('Account session created:', data.session_id);
       
     } catch (err) {
       console.error('Failed to create account session:', err);

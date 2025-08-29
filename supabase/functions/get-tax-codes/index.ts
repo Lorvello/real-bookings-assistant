@@ -51,9 +51,10 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
+          code: 'UPGRADE_REQUIRED',
           error: 'Tax code management requires Professional or Enterprise subscription' 
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
 
@@ -90,11 +91,12 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
+        code: 'SERVER_ERROR',
         error: error.message 
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 200,
       }
     );
   }

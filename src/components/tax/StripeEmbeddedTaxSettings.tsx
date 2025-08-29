@@ -25,7 +25,8 @@ export const StripeEmbeddedTaxSettings: React.FC<StripeEmbeddedTaxSettingsProps>
   });
 
   useEffect(() => {
-    if (!sessionData || !containerRef.current || useFallback) return;
+    // Don't initialize if we're in an error state or loading or no session data
+    if (!sessionData || !containerRef.current || useFallback || loading || error) return;
 
     const initializeEmbedded = async () => {
       try {
@@ -47,10 +48,13 @@ export const StripeEmbeddedTaxSettings: React.FC<StripeEmbeddedTaxSettingsProps>
           throw new Error('Failed to initialize Stripe');
         }
 
+        console.log('[TAX-SETTINGS] Creating embedded component with session:', sessionData.session_id);
+
         // Create embedded tax settings component
         const component = stripe.connectEmbeddedComponents.create({
           clientSecret: sessionData.client_secret,
           fetchClientSecret: async () => {
+            console.log('[TAX-SETTINGS] Refreshing client secret...');
             await refreshSession();
             return sessionData.client_secret;
           }
@@ -64,10 +68,11 @@ export const StripeEmbeddedTaxSettings: React.FC<StripeEmbeddedTaxSettingsProps>
           await taxSettings.mount(containerRef.current);
           setEmbeddedComponent(taxSettings);
           setEmbeddedError(null);
+          console.log('[TAX-SETTINGS] Component mounted successfully');
         }
 
       } catch (err) {
-        console.error('Failed to initialize embedded tax settings:', err);
+        console.error('[TAX-SETTINGS] Failed to initialize embedded component:', err);
         setEmbeddedError(err instanceof Error ? err.message : 'Unknown error');
         setUseFallback(true);
         onFallback?.();
@@ -78,10 +83,11 @@ export const StripeEmbeddedTaxSettings: React.FC<StripeEmbeddedTaxSettingsProps>
 
     return () => {
       if (embeddedComponent) {
+        console.log('[TAX-SETTINGS] Unmounting component');
         embeddedComponent.unmount();
       }
     };
-  }, [sessionData, refreshSession, useFallback, onFallback]);
+  }, [sessionData, refreshSession, useFallback, onFallback, loading, error]);
 
   const handleRetryEmbedded = () => {
     setUseFallback(false);

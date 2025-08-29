@@ -51,9 +51,10 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
+          code: 'UPGRADE_REQUIRED',
           error: 'Tax compliance features require Professional or Enterprise subscription' 
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
 
@@ -89,9 +90,10 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
+          code: 'NO_ACCOUNT',
           error: 'No active Stripe account found. Please complete Stripe onboarding first.' 
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
 
@@ -182,11 +184,12 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
+        code: 'SERVER_ERROR',
         error: error.message 
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 200,
       }
     );
   }
