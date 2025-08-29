@@ -324,86 +324,38 @@ export const TaxTab = () => {
     );
   }
 
-  // Show configuration flow if not fully set up
-  if (!stripeAccount?.onboarding_completed || !stripeAccount?.charges_enabled || !configStatus?.isFullyConfigured) {
+  // Show simple onboarding message if Stripe is not set up
+  if (!stripeAccount?.onboarding_completed || !stripeAccount?.charges_enabled) {
     return (
       <div className="space-y-6">
-        {/* Configuration Progress */}
-        {configStatus && (
-          <TaxConfigurationProgress
-            status={configStatus}
-            onStripeOnboarding={async () => {
-              const link = await createOnboardingLink();
-              if (link?.url) {
-                window.open(link.url, '_blank');
-              }
-            }}
-            onOpenTaxSettings={() => setActiveSection('configuration')}
-            onOpenTaxRegistrations={() => setActiveSection('configuration')}
-            onConfigureServiceTypes={() => setActiveSection('services')}
-          />
-        )}
-
-        {/* Configuration Sections */}
-        {activeSection === 'configuration' && stripeAccount?.onboarding_completed && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Tax Settings</CardTitle>
-                <CardDescription>Configure your tax settings in Stripe</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={async () => {
-                    const dashboardUrl = await createLoginLink();
-                    if (dashboardUrl) {
-                      window.open(dashboardUrl, '_blank');
-                    }
-                  }}
-                  className="w-full"
-                >
-                  <ArrowUpRight className="w-4 h-4 mr-2" />
-                  Open Tax Settings in Stripe
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Tax Registrations</CardTitle>
-                <CardDescription>Manage tax registrations in Stripe</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={async () => {
-                    const dashboardUrl = await createLoginLink();
-                    if (dashboardUrl) {
-                      window.open(dashboardUrl, '_blank');
-                    }
-                  }}
-                  className="w-full"
-                >
-                  <ArrowUpRight className="w-4 h-4 mr-2" />
-                  Open Tax Registrations in Stripe
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {activeSection === 'services' && selectedCalendar?.id && (
-          <ServiceTypeTaxCodes calendarId={selectedCalendar.id} />
-        )}
-
-        {/* Back to Overview */}
-        {activeSection !== 'overview' && (
-          <Button
-            variant="outline"
-            onClick={() => setActiveSection('overview')}
-          >
-            Back to Overview
-          </Button>
-        )}
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="max-w-md mx-auto space-y-6">
+              <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto">
+                <Shield className="w-8 h-8 text-blue-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Complete Stripe Onboarding</h3>
+                <p className="text-muted-foreground">
+                  Go to the Pay & Book page to complete your Stripe onboarding before configuring tax settings.
+                </p>
+              </div>
+              <Button 
+                onClick={async () => {
+                  const link = await createOnboardingLink();
+                  if (link?.url) {
+                    window.open(link.url, '_blank');
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                size="lg"
+              >
+                <ArrowUpRight className="w-4 h-4 mr-2" />
+                Complete Stripe Onboarding
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
