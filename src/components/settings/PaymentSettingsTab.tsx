@@ -26,6 +26,9 @@ import { getStripeConfig } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
 import type { BusinessStripeAccount } from '@/types/payments';
 import { PaymentOptions } from '../payments/PaymentOptions';
+import { InstallmentSettings } from './InstallmentSettings';
+import { useInstallmentSettings } from '@/hooks/useInstallmentSettings';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { supabase } from '@/integrations/supabase/client';
 
 // Fixed: Removed StripeEmbeddedDashboard component
@@ -167,6 +170,8 @@ export function PaymentSettingsTab() {
     createOnboardingLink,
     resetStripeAccount
   } = useStripeConnect();
+  const { settings: installmentSettings, loading: installmentLoading, updateSettings: updateInstallmentSettings } = useInstallmentSettings();
+  const { userStatus } = useUserStatus();
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
   const [platformFee, setPlatformFee] = useState('2.50');
@@ -1388,6 +1393,14 @@ export function PaymentSettingsTab() {
             </div>
           </div>
         </div>}
+
+        {/* Installment Options */}
+        <InstallmentSettings
+          installmentsEnabled={installmentSettings?.enabled || false}
+          defaultPlan={installmentSettings?.defaultPlan || { type: 'preset', preset: '50_50' }}
+          onUpdate={updateInstallmentSettings}
+          subscriptionTier="starter"
+        />
 
     </div>;
 }
