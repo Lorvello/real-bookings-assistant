@@ -79,29 +79,26 @@ export const TaxThresholdMonitoring: React.FC<TaxThresholdMonitoringProps> = ({
       const session = await createEmbeddedSession();
       
       // For now, show placeholder until Stripe Tax embedded components are available
-      try {
-        if (session && window.Stripe) {
-          console.warn('Tax threshold monitoring component not available:', componentError);
-          // Fallback to placeholder
-          mountRef.current.innerHTML = `
-            <div class="p-6 bg-muted/50 rounded-lg border border-dashed">
-              <div class="text-center">
-                <div class="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <AlertTriangle class="w-6 h-6 text-amber-500" />
-                </div>
-                <h4 class="font-medium mb-2">Threshold Monitoring</h4>
-                <p class="text-sm text-muted-foreground mb-4">
-                  Tax threshold monitoring is not yet available for your account type.
-                </p>
-                <p class="text-xs text-muted-foreground">
-                  This feature will be automatically enabled when you approach tax registration thresholds.
-                </p>
+      if (session && window.Stripe) {
+        // Fallback to placeholder
+        mountRef.current.innerHTML = `
+          <div class="p-6 bg-muted/50 rounded-lg border border-dashed">
+            <div class="text-center">
+              <div class="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="text-amber-500 text-xl">⚠</span>
               </div>
+              <h4 class="font-medium mb-2">Threshold Monitoring</h4>
+              <p class="text-sm text-muted-foreground mb-4">
+                Tax threshold monitoring is not yet available for your account type.
+              </p>
+              <p class="text-xs text-muted-foreground">
+                This feature will be automatically enabled when you approach tax registration thresholds.
+              </p>
             </div>
-          `;
-          setComponentLoaded(true);
-          setLastUpdated(new Date());
-        }
+          </div>
+        `;
+        setComponentLoaded(true);
+        setLastUpdated(new Date());
       }
     } catch (error) {
       console.error('Failed to load threshold monitoring:', error);

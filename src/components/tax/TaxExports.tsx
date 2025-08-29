@@ -79,55 +79,48 @@ export const TaxExports: React.FC<TaxExportsProps> = ({
       const session = await createEmbeddedSession();
       
       // For now, show placeholder until Stripe Tax embedded components are available
-      try {
-        if (session && window.Stripe) {
-          console.warn('Tax export component not available:', componentError);
-          // Fallback to functional placeholder
-          mountRef.current.innerHTML = `
-            <div class="space-y-4">
-              <div class="p-4 bg-muted/50 rounded-lg border">
-                <div class="flex items-center gap-3 mb-4">
-                  <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <FileSpreadsheet class="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <h4 class="font-medium">Export Tax Data</h4>
-                    <p class="text-sm text-muted-foreground">Download tax transaction reports</p>
-                  </div>
+      if (session && window.Stripe) {
+        // Fallback to functional placeholder
+        mountRef.current.innerHTML = `
+          <div class="space-y-4">
+            <div class="p-4 bg-muted/50 rounded-lg border">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span class="text-white text-sm">📊</span>
                 </div>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button class="flex items-center gap-2 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm transition-colors" 
-                          onclick="window.open('#', '_blank')">
-                    <Calendar class="w-4 h-4" />
-                    Current Month
-                  </button>
-                  <button class="flex items-center gap-2 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm transition-colors"
-                          onclick="window.open('#', '_blank')">
-                    <FileSpreadsheet class="w-4 h-4" />
-                    Current Quarter
-                  </button>
-                  <button class="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm transition-colors"
-                          onclick="window.open('#', '_blank')">
-                    <Download class="w-4 h-4" />
-                    Custom Range
-                  </button>
-                  <button class="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm transition-colors"
-                          onclick="window.open('#', '_blank')">
-                    <FileSpreadsheet class="w-4 h-4" />
-                    Annual Report
-                  </button>
-                </div>
-                
-                <div class="mt-4 pt-3 border-t text-xs text-muted-foreground">
-                  <p>Export functionality is available through your Stripe dashboard.</p>
+                <div>
+                  <h4 class="font-medium">Export Tax Data</h4>
+                  <p class="text-sm text-muted-foreground">Download tax transaction reports</p>
                 </div>
               </div>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button class="flex items-center gap-2 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm transition-colors">
+                  <span>🗓</span>
+                  Current Month
+                </button>
+                <button class="flex items-center gap-2 px-3 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-sm transition-colors">
+                  <span>📈</span>
+                  Current Quarter
+                </button>
+                <button class="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm transition-colors">
+                  <span>⬇</span>
+                  Custom Range
+                </button>
+                <button class="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-lg text-sm transition-colors">
+                  <span>🧾</span>
+                  Annual Report
+                </button>
+              </div>
+              
+              <div class="mt-4 pt-3 border-t text-xs text-muted-foreground">
+                <p>Export functionality is available through your Stripe dashboard.</p>
+              </div>
             </div>
-          `;
-          setComponentLoaded(true);
-          setLastUpdated(new Date());
-        }
+          </div>
+        `;
+        setComponentLoaded(true);
+        setLastUpdated(new Date());
       }
     } catch (error) {
       console.error('Failed to load export component:', error);
