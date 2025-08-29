@@ -445,7 +445,7 @@ export function PaymentOptions({
             "relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200",
             "bg-background hover:border-primary/50",
             isSelected 
-              ? "border-primary bg-primary/5" 
+              ? "border-primary bg-slate-800/50" 
               : "border-border"
           )}
         >
