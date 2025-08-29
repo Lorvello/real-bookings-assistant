@@ -23,29 +23,29 @@ export const TaxComplianceSettings: React.FC<TaxComplianceSettingsProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Settings className="w-5 h-5 text-emerald-400" />
-              <CardTitle className="text-white">BTW Compliance & Administratie</CardTitle>
+              <CardTitle className="text-white">VAT Compliance & Administration</CardTitle>
             </div>
             <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
               Professional
             </Badge>
           </div>
           <CardDescription className="text-slate-400">
-            Automatische BTW berekening en compliance voor Nederlandse bedrijven
+            Automatic VAT calculation and compliance for Dutch businesses
           </CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-white font-medium">Automatische BTW berekening</span>
+              <span className="text-white font-medium">Automatic VAT calculation</span>
               <Tooltip>
                 <TooltipTrigger>
                   <Info className="w-4 h-4 text-slate-500 hover:text-slate-400" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs max-w-xs">
-                    Stripe Tax berekent automatisch de juiste BTW tarieven voor al je boekingen 
-                    volgens Nederlandse belastingwetgeving
+                    Stripe Tax automatically calculates the correct VAT rates for all your bookings 
+                    according to Dutch tax legislation
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -61,33 +61,33 @@ export const TaxComplianceSettings: React.FC<TaxComplianceSettingsProps> = ({
             <div className="space-y-3 pt-3 border-t border-slate-700">
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span className="text-slate-300">21% BTW voor zakelijke diensten</span>
+                <span className="text-slate-300">21% VAT for business services</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span className="text-slate-300">Automatische BTW administratie</span>
+                <span className="text-slate-300">Automatic VAT administration</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span className="text-slate-300">Compliance met Nederlandse wetgeving</span>
+                <span className="text-slate-300">Compliance with Dutch legislation</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span className="text-slate-300">BTW overzichten en rapportage</span>
+                <span className="text-slate-300">VAT reports and analytics</span>
               </div>
             </div>
           )}
           
           <div className="text-xs text-slate-500 bg-slate-900/50 p-3 rounded border border-slate-700/50">
-            <strong>Voordelen voor jouw bedrijf:</strong>
+            <strong>Benefits for your business:</strong>
             <br />
-            • Geen handmatige BTW berekeningen meer nodig
+            • No more manual VAT calculations needed
             <br />
-            • Automatische compliance met belastingregels
+            • Automatic compliance with tax regulations
             <br />
-            • Tijd besparen op administratie
+            • Save time on administration
             <br />
-            • Vermindert risico op fouten in BTW aangifte
+            • Reduces risk of errors in VAT returns
           </div>
         </CardContent>
       </Card>

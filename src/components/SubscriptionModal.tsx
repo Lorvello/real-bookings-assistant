@@ -106,7 +106,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
           },
           {
             text: "Automated tax compliance & administration",
-            tooltip: "Automatische BTW berekening en compliance voor Nederlandse bedrijven. Geen handmatige BTW administratie meer nodig - alles wordt automatisch berekend en toegepast volgens Nederlandse belastingregels"
+            tooltip: "Automatic VAT calculation and compliance for Dutch businesses. No more manual VAT administration - everything is automatically calculated and applied according to Dutch tax regulations"
           },
           {
             text: "Unlimited calendar orchestration platform",

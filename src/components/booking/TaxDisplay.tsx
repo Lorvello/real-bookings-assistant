@@ -32,15 +32,15 @@ export const TaxDisplay: React.FC<TaxDisplayProps> = ({
           
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1">
-              <span className="text-slate-400">BTW ({taxRate.toFixed(0)}%)</span>
+              <span className="text-slate-400">VAT ({taxRate.toFixed(0)}%)</span>
               <Tooltip>
                 <TooltipTrigger>
                   <Info className="w-3 h-3 text-slate-500 hover:text-slate-400" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs max-w-xs">
-                    Nederlandse BTW wordt automatisch berekend volgens de geldende belastingtarieven. 
-                    Voor zakelijke diensten geldt het standaardtarief van 21%.
+                    Dutch VAT is automatically calculated according to applicable tax rates. 
+                    For business services, the standard rate of 21% applies.
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -53,14 +53,14 @@ export const TaxDisplay: React.FC<TaxDisplayProps> = ({
           <hr className="border-slate-700" />
           
           <div className="flex items-center justify-between font-semibold">
-            <span className="text-white">Totaal (incl. BTW)</span>
+            <span className="text-white">Total (incl. VAT)</span>
             <span className="text-emerald-400 text-lg">
               {currency}{total.toFixed(2)}
             </span>
           </div>
           
           <div className="text-xs text-slate-500 mt-2">
-            BTW wordt automatisch berekend en geadministreerd conform Nederlandse belastingwetgeving
+            VAT is automatically calculated and administered in compliance with Dutch tax legislation
           </div>
         </CardContent>
       </Card>
