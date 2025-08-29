@@ -960,6 +960,25 @@ export function PaymentSettingsTab() {
               </div>
             </div>
 
+            {/* Installment Payments Section - placed above FundFlow */}
+            {userStatus.hasFullAccess ? (
+              <div className="bg-muted/50 p-4 rounded-lg space-y-4">
+                <InstallmentSettings 
+                  installmentsEnabled={installmentSettings?.enabled || false}
+                  defaultPlan={installmentSettings?.defaultPlan || {
+                    type: 'preset',
+                    preset: '50_50',
+                    deposits: [
+                      { percentage: 50, timing: 'now' },
+                      { percentage: 50, timing: 'appointment' }
+                    ]
+                  }}
+                  onUpdate={updateInstallmentSettings}
+                  subscriptionTier={userStatus.isSubscriber ? 'starter' : 'free'}
+                />
+              </div>
+            ) : null}
+
             {/* Fund Flow Section */}
             <Collapsible open={fundFlowOpen} onOpenChange={setFundFlowOpen}>
               <div className="bg-muted/30 border border-muted/40 p-3 rounded-lg">
@@ -1393,16 +1412,6 @@ export function PaymentSettingsTab() {
             </div>
           </div>
         </div>}
-
-        {/* Installment Options */}
-        <div className="bg-muted/50 p-4 rounded-lg space-y-4">
-          <InstallmentSettings
-            installmentsEnabled={installmentSettings?.enabled || false}
-            defaultPlan={installmentSettings?.defaultPlan || { type: 'preset', preset: '50_50' }}
-            onUpdate={updateInstallmentSettings}
-            subscriptionTier="starter"
-          />
-        </div>
 
     </div>;
 }

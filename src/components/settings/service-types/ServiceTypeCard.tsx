@@ -49,9 +49,12 @@ export function ServiceTypeCard({ service, onEdit, onDelete, onInstallmentConfig
                 taxCode={service.tax_code}
               />
               <InstallmentBadge 
-                enabled={(service as any).installments_enabled || false}
-                plan={(service as any).custom_installment_plan}
-                isOverride={!!(service as any).custom_installment_plan}
+                enabled={!!(service as any).installments_enabled}
+                plan={(service as any).custom_installment_plan ? 
+                  JSON.parse((service as any).custom_installment_plan) : 
+                  undefined
+                }
+                isOverride={!!(service as any).installments_enabled}
               />
             </div>
           </div>

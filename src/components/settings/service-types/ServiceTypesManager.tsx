@@ -308,7 +308,7 @@ export function ServiceTypesManager() {
                   service={service}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
-                  onInstallmentConfig={handleInstallmentConfig}
+                  onInstallmentConfig={installmentSettings?.enabled ? handleInstallmentConfig : undefined}
                 />
               ))}
             </div>
