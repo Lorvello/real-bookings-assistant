@@ -10,17 +10,24 @@ const transformServiceType = (data: any): ServiceType => {
     ...data,
     installment_options: data.installment_options ? 
       (typeof data.installment_options === 'string' ? 
-        JSON.parse(data.installment_options) : data.installment_options) : []
+        JSON.parse(data.installment_options) : data.installment_options) : [],
+    tax_enabled: data.tax_enabled || false,
+    tax_behavior: data.tax_behavior || 'exclusive',
+    tax_code: data.tax_code || ''
   };
 };
 
 // Helper function to transform our interface to database format
 const transformForDatabase = (data: any) => {
-  return {
-    ...data,
-    installment_options: data.installment_options ? 
-      JSON.stringify(data.installment_options) : null
-  };
+  const transformed = { ...data };
+  if (transformed.installment_options) {
+    transformed.installment_options = JSON.stringify(transformed.installment_options);
+  }
+  // Ensure tax fields are properly set
+  transformed.tax_enabled = transformed.tax_enabled || false;
+  transformed.tax_behavior = transformed.tax_behavior || 'exclusive';
+  transformed.tax_code = transformed.tax_code || null;
+  return transformed;
 };
 
 export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false) => {

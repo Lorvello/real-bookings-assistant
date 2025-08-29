@@ -28,7 +28,10 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
     description: '',
     duration: '',
     price: '',
-    color: '#3B82F6'
+    color: '#3B82F6',
+    tax_enabled: false,
+    tax_behavior: 'exclusive' as 'inclusive' | 'exclusive',
+    tax_code: ''
   });
 
   const getCalendarName = (id: string) => {
@@ -61,6 +64,9 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
           max_attendees: 1,
           preparation_time: 0,
           cleanup_time: 0,
+          tax_enabled: formData.tax_enabled,
+          tax_behavior: formData.tax_behavior,
+          tax_code: formData.tax_code,
           created_at: new Date().toISOString(),
           calendar_id: null // Global service, not tied to specific calendar
         });
@@ -81,7 +87,10 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
       description: '',
       duration: '',
       price: '',
-      color: '#3B82F6'
+      color: '#3B82F6',
+      tax_enabled: false,
+      tax_behavior: 'exclusive',
+      tax_code: ''
     });
     setEditingService(null);
     setShowDialog(false);
@@ -93,7 +102,10 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
       description: service.description || '',
       duration: service.duration.toString(),
       price: service.price?.toString() || '',
-      color: service.color
+      color: service.color,
+      tax_enabled: service.tax_enabled || false,
+      tax_behavior: service.tax_behavior || 'exclusive',
+      tax_code: service.tax_code || ''
     });
     setEditingService(service);
     setShowDialog(true);
@@ -105,7 +117,10 @@ export const ServiceTypesManager: React.FC<ServiceTypesManagerProps> = () => {
       description: '',
       duration: '',
       price: '',
-      color: '#3B82F6'
+      color: '#3B82F6',
+      tax_enabled: false,
+      tax_behavior: 'exclusive',
+      tax_code: ''
     });
     setEditingService(null);
     setShowDialog(true);

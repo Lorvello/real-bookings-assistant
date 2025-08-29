@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { Clock, Euro, Users, Edit, Trash2, MessageCircle } from 'lucide-react';
+import { Clock, Euro, Users, Edit2, Trash2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ServiceType } from '@/types/database';
+import { Card, CardContent } from '@/components/ui/card';
+import { ServiceType } from '@/types/calendar';
+import { TaxBadge } from '@/components/tax/TaxBadge';
 
 interface ServiceTypeCardProps {
   service: ServiceType;
@@ -26,30 +28,38 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
   };
 
   return (
-    <div className="bg-background-secondary rounded-lg p-4 border border-border hover:border-primary/50 transition-colors group">
-      {/* Service Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-3 flex-1">
-          <div 
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: service.color }}
-          />
-          <h3 className="text-foreground font-medium truncate">{service.name}</h3>
+    <Card className="group hover:border-primary/50 transition-colors">
+      <CardContent className="p-4">
+        {/* Service Header */}
+        <div className="flex items-start justify-between mb-3">
+          <div className="space-y-2 flex-1">
+            <div className="flex items-center space-x-3">
+              <div 
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: service.color }}
+              />
+              <h3 className="text-foreground font-medium truncate">{service.name}</h3>
+            </div>
+            <TaxBadge 
+              taxEnabled={service.tax_enabled || false}
+              taxBehavior={service.tax_behavior}
+              taxCode={service.tax_code}
+            />
+          </div>
+          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => onEdit(service)}>
+              <Edit2 className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+              onClick={() => onDelete(service.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => onEdit(service)}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-            onClick={() => onDelete(service.id)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
       
       {/* Service Description */}
       {service.description && (
@@ -79,7 +89,8 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
             {formatPrice(service.price)}
           </span>
         </div>
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

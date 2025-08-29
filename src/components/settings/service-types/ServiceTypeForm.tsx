@@ -1,8 +1,14 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ServiceTypeStripeConfig } from './ServiceTypeStripeConfig';
 import { ServiceType } from '@/types/calendar';
+import { Lock } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ServiceTypeFormData {
   name: string;
@@ -10,6 +16,9 @@ interface ServiceTypeFormData {
   duration: string;
   price: string;
   color: string;
+  tax_enabled: boolean;
+  tax_behavior: 'inclusive' | 'exclusive';
+  tax_code: string;
 }
 
 interface ServiceTypeFormProps {
@@ -19,11 +28,21 @@ interface ServiceTypeFormProps {
   onCancel: () => void;
   saving: boolean;
   isEditing: boolean;
+  taxConfigured?: boolean;
 }
 
 const colorOptions = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
   '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6B7280'
+];
+
+const TAX_CODE_OPTIONS = [
+  { value: 'txcd_99999999', label: 'Professional Services' },
+  { value: 'txcd_10401000', label: 'Digital Services' },
+  { value: 'txcd_10000000', label: 'General Services' },
+  { value: 'txcd_10103000', label: 'Software Services' },
+  { value: 'txcd_10502001', label: 'Consulting Services' },
+  { value: 'txcd_20030000', label: 'Educational Services' }
 ];
 
 export function ServiceTypeForm({ 
@@ -32,7 +51,8 @@ export function ServiceTypeForm({
   onSave, 
   onCancel, 
   saving, 
-  isEditing 
+  isEditing,
+  taxConfigured = false
 }: ServiceTypeFormProps) {
   return (
     <div className="space-y-6">
@@ -109,6 +129,97 @@ export function ServiceTypeForm({
             rows={3}
             placeholder="Optional description of the service"
           />
+        </div>
+      </div>
+
+      {/* Tax Configuration Section */}
+      <div className="space-y-4 border-t border-border pt-6">
+        <h3 className="text-lg font-medium text-foreground">Tax Configuration</h3>
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="tax-enabled" className="text-sm font-medium">
+                Enable Tax for this service
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Configure tax behavior and tax codes for this service
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {!taxConfigured && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Lock className="w-4 h-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Configure tax settings first in Tax page</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              <Switch
+                id="tax-enabled"
+                checked={formData.tax_enabled}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, tax_enabled: checked }))}
+                disabled={!taxConfigured}
+              />
+            </div>
+          </div>
+
+          {formData.tax_enabled && (
+            <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Tax Behavior</Label>
+                <RadioGroup
+                  value={formData.tax_behavior}
+                  onValueChange={(value: 'inclusive' | 'exclusive') => 
+                    setFormData(prev => ({ ...prev, tax_behavior: value }))
+                  }
+                  className="space-y-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="inclusive" id="inclusive" />
+                    <Label htmlFor="inclusive" className="text-sm">
+                      Inclusive
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="exclusive" id="exclusive" />
+                    <Label htmlFor="exclusive" className="text-sm">
+                      Exclusive
+                    </Label>
+                  </div>
+                </RadioGroup>
+                <p className="text-xs text-muted-foreground">
+                  <strong>Inclusive:</strong> Price includes tax • <strong>Exclusive:</strong> Tax added on top
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Tax Code</Label>
+                <Select
+                  value={formData.tax_code}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, tax_code: value }))}
+                >
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Select a tax code" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border border-border z-50">
+                    {TAX_CODE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Choose the appropriate tax category for this service
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       

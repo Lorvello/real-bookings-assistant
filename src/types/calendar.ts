@@ -41,6 +41,9 @@ export interface ServiceType {
   supports_installments?: boolean;
   installment_options?: InstallmentOption[];
   payment_description?: string;
+  tax_enabled?: boolean;
+  tax_behavior?: 'inclusive' | 'exclusive';
+  tax_code?: string;
   created_at: string;
 }
 

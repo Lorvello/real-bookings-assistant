@@ -25,6 +25,7 @@ import { TaxRegistrationsManager } from '@/components/tax/TaxRegistrationsManage
 import { ThresholdMonitoringDashboard } from '@/components/tax/ThresholdMonitoringDashboard';
 import { AccountRequirements } from '@/components/tax/AccountRequirements';
 import { ProductTaxCodeManager } from '@/components/tax/ProductTaxCodeManager';
+import { Settings } from 'lucide-react';
 
 export const TaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -294,6 +295,38 @@ export const TaxTab = () => {
           accountId={stripeAccount?.stripe_account_id}
           calendarId={stripeAccount?.calendar_id}
         />
+
+        {/* Manage Service Tax Button */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              Service Tax Management
+            </CardTitle>
+            <CardDescription>
+              Configure tax settings for individual services
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Set up tax behavior (inclusive/exclusive) and tax codes for each of your services. 
+                This allows you to have different tax configurations per service type.
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  // Navigate to Services tab - this would need to be implemented
+                  // based on your routing structure
+                  window.location.href = '/settings?tab=services';
+                }}
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Manage Service Tax Settings
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
         
         <TaxRegistrationsManager
           accountId={stripeAccount?.stripe_account_id}
