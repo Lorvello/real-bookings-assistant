@@ -1307,65 +1307,6 @@ export function PaymentSettingsTab() {
           </CardContent>
         </Card>}
 
-      {/* Payment Configuration */}
-      {settings?.secure_payments_enabled && isStripeSetupComplete && <Card>
-          <CardHeader>
-            <CardTitle>Payment Configuration</CardTitle>
-            <CardDescription>
-              Configure payment policies and requirements for your bookings
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">Require Payment for Booking</Label>
-                <div className="text-sm text-muted-foreground">
-                  Payment must be completed before booking is confirmed
-                </div>
-              </div>
-              <Switch checked={settings?.payment_required_for_booking || false} onCheckedChange={togglePaymentRequired} disabled={settingsSaving} />
-            </div>
-
-            <Separator />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="platform-fee" className="flex items-center space-x-2">
-                  <Euro className="h-4 w-4" />
-                  <span>Platform Fee (%)</span>
-                </Label>
-                <Input id="platform-fee" type="number" step="0.01" min="0" max="10" value={platformFee} onChange={e => setPlatformFee(e.target.value)} />
-                <p className="text-xs text-muted-foreground">
-                  Fee charged per transaction (max 10%)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="payment-deadline" className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4" />
-                  <span>Payment Deadline (hours)</span>
-                </Label>
-                <Input id="payment-deadline" type="number" min="1" max="168" value={paymentDeadline} onChange={e => setPaymentDeadline(e.target.value)} />
-                <p className="text-xs text-muted-foreground">
-                  Time limit for payment after booking (max 7 days)
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="refund-policy">Refund Policy</Label>
-              <Textarea id="refund-policy" placeholder="Describe your refund policy for customers..." value={refundPolicy} onChange={e => setRefundPolicy(e.target.value)} rows={3} />
-              <p className="text-xs text-muted-foreground">
-                This will be shown to customers during payment
-              </p>
-            </div>
-
-            <Button onClick={handleUpdateSettings} disabled={settingsSaving} className="w-full">
-              {settingsSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Save Payment Settings
-            </Button>
-          </CardContent>
-        </Card>}
 
 
       {/* Research Modal */}
