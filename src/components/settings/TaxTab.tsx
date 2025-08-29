@@ -23,6 +23,7 @@ import {
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
+import { useAccessControl } from '@/hooks/useAccessControl';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
@@ -31,6 +32,7 @@ export const TaxTab = () => {
   const { userStatus } = useUserStatus();
   const { selectedCalendar } = useCalendarContext();
   const { settings } = usePaymentSettings(selectedCalendar?.id);
+  const { checkAccess } = useAccessControl();
   const { toast } = useToast();
   
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -38,22 +40,7 @@ export const TaxTab = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Check if user has Professional or Enterprise tier
-  const isProfessionalOrHigher = () => {
-    console.log('Checking user access:', {
-      userType: userStatus.userType,
-      isSubscriber: userStatus.isSubscriber,
-      hasFullAccess: userStatus.hasFullAccess,
-      statusMessage: userStatus.statusMessage
-    });
-    
-    // Allow access for subscribers (Professional/Enterprise) and active trials
-    return userStatus.isSubscriber || 
-           (userStatus.userType === 'trial' && userStatus.hasFullAccess) ||
-           userStatus.userType === 'subscriber';
-  };
-
-  const hasAccess = isProfessionalOrHigher();
+  const hasAccess = checkAccess('canAccessTaxCompliance');
 
   // Mock tax data for demonstration
   const mockTaxData = {

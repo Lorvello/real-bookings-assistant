@@ -59,6 +59,12 @@ export const useAccessControl = () => {
           description: "Team Members management is only available for Professional and Enterprise subscriptions.",
           variant: "destructive",
         });
+      } else if (feature === 'canAccessTaxCompliance') {
+        toast({
+          title: "Professional Feature",
+          description: "Tax Compliance is only available for Professional and Enterprise subscriptions.",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Access Restricted",

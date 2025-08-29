@@ -15,12 +15,14 @@ import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
 import { SettingsProvider } from '@/contexts/SettingsContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
+import { useAccessControl } from '@/hooks/useAccessControl';
 import { useToast } from '@/hooks/use-toast';
 
 export const SettingsLayout = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('users');
   const { userStatus } = useUserStatus();
+  const { checkAccess } = useAccessControl();
   const { toast } = useToast();
 
   // Handle tab from URL parameters
@@ -40,6 +42,16 @@ export const SettingsLayout = () => {
         variant: "destructive",
       });
       return; // Don't change the tab
+    }
+    
+    // Prevent access to tax compliance for Starter users
+    if (value === 'tax' && !checkAccess('canAccessTaxCompliance')) {
+      toast({
+        title: "Professional Feature",
+        description: "Tax Compliance is only available for Professional and Enterprise subscriptions.",
+        variant: "destructive",
+      });
+      return;
     }
     
     setActiveTab(value);
@@ -91,9 +103,21 @@ export const SettingsLayout = () => {
                   </>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="tax" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
-                <Calculator className="h-3 w-3 md:h-4 md:w-4" />
+              <TabsTrigger 
+                value="tax" 
+                className={`flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3 ${!checkAccess('canAccessTaxCompliance') ? 'opacity-60' : ''}`}
+              >
+                {checkAccess('canAccessTaxCompliance') ? (
+                  <Calculator className="h-3 w-3 md:h-4 md:w-4" />
+                ) : (
+                  <Lock className="h-3 w-3 md:h-4 md:w-4" />
+                )}
                 <span className="text-xs md:text-sm">Tax</span>
+                {!checkAccess('canAccessTaxCompliance') && (
+                  <span className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+                    Pro
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="billing" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <CreditCard className="h-3 w-3 md:h-4 md:w-4" />
