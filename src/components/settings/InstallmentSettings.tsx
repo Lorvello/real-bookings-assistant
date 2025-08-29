@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { ServiceTypeInstallmentCard } from './ServiceTypeInstallmentCard';
 
 interface DepositInfo {
   percentage?: number;
@@ -50,6 +51,7 @@ export function InstallmentSettings({
   ]);
   const [applyToServices, setApplyToServices] = useState<'all' | 'selected'>('all');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [serviceTypeSettings, setServiceTypeSettings] = useState<Record<string, InstallmentPlan>>({});
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -331,8 +333,25 @@ export function InstallmentSettings({
                               onChange={(e) => {
                                 if (e.target.checked) {
                                   setSelectedServices([...selectedServices, service.id]);
+                                  // Initialize with default plan for new selections
+                                  if (!serviceTypeSettings[service.id]) {
+                                    setServiceTypeSettings(prev => ({
+                                      ...prev,
+                                      [service.id]: {
+                                        type: 'preset',
+                                        preset: '100_at_booking',
+                                        deposits: [{ percentage: 100, timing: 'now' }]
+                                      }
+                                    }));
+                                  }
                                 } else {
                                   setSelectedServices(selectedServices.filter(id => id !== service.id));
+                                  // Remove settings for unselected services
+                                  setServiceTypeSettings(prev => {
+                                    const updated = { ...prev };
+                                    delete updated[service.id];
+                                    return updated;
+                                  });
                                 }
                               }}
                               className="rounded border-gray-300"
@@ -355,250 +374,238 @@ export function InstallmentSettings({
                   )}
                 </div>
 
-                {/* Payment Structure Section - Moved below Apply to Services */}
-                <div className="space-y-3">
-                  <Label className="text-base font-medium text-foreground">Payment Structure</Label>
-                  <RadioGroup
-                    value={planType}
-                    onValueChange={(value: 'preset' | 'custom') => setPlanType(value)}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="preset" id="preset" />
-                      <Label htmlFor="preset" className="text-sm font-medium text-foreground">Quick Setup Options</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="custom" id="custom" />
-                      <Label htmlFor="custom" className="text-sm font-medium text-foreground">Advanced Custom Configuration</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                {planType === 'preset' && (
+                {/* Service Type Configuration - Only show when per-service is selected and services are chosen */}
+                {applyToServices === 'selected' && selectedServices.length > 0 && (
                   <div className="space-y-4">
-                    <Label className="text-base font-medium text-foreground">Choose Payment Plan</Label>
-                    <RadioGroup
-                      value={presetSelection}
-                      onValueChange={(value: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit') => setPresetSelection(value)}
-                      className="space-y-4"
-                    >
-                      <div className="flex items-start space-x-3 p-4 border rounded-lg">
-                        <RadioGroupItem value="100_at_booking" id="100_at_booking" className="mt-1" />
-                        <div className="flex-1">
-                          <Label htmlFor="100_at_booking" className="text-sm font-medium text-foreground cursor-pointer">
-                            {presetPlans['100_at_booking'].name}
-                          </Label>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {presetPlans['100_at_booking'].description}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start space-x-3 p-4 border rounded-lg">
-                        <RadioGroupItem value="50_50" id="50_50" className="mt-1" />
-                        <div className="flex-1">
-                          <Label htmlFor="50_50" className="text-sm font-medium text-foreground cursor-pointer">
-                            {presetPlans['50_50'].name}
-                          </Label>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {presetPlans['50_50'].description}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start space-x-3 p-4 border rounded-lg">
-                        <RadioGroupItem value="25_25_50" id="25_25_50" className="mt-1" />
-                        <div className="flex-1">
-                          <Label htmlFor="25_25_50" className="text-sm font-medium text-foreground cursor-pointer">
-                            {presetPlans['25_25_50'].name}
-                          </Label>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {presetPlans['25_25_50'].description}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start space-x-3 p-4 border rounded-lg">
-                        <RadioGroupItem value="fixed_deposit" id="fixed_deposit" className="mt-1" />
-                        <div className="flex-1">
-                          <Label htmlFor="fixed_deposit" className="text-sm font-medium text-foreground cursor-pointer">
-                            {presetPlans['fixed_deposit'].name}
-                          </Label>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {presetPlans['fixed_deposit'].description}
-                          </p>
-                        </div>
-                      </div>
-                    </RadioGroup>
+                    <Label className="text-base font-medium text-foreground">Configure Selected Service Types</Label>
+                    <div className="space-y-4">
+                      {selectedServices.map((serviceId) => {
+                        const service = serviceTypes.find(s => s.id === serviceId);
+                        if (!service) return null;
+                        
+                        const currentPlan = serviceTypeSettings[serviceId] || {
+                          type: 'preset',
+                          preset: '100_at_booking',
+                          deposits: [{ percentage: 100, timing: 'now' }]
+                        };
 
-                    {presetSelection === 'fixed_deposit' && (
-                      <div className="mt-4">
-                        <Label htmlFor="deposit-amount" className="text-sm font-medium text-foreground">Fixed Deposit Amount (€)</Label>
-                        <Input
-                          id="deposit-amount"
-                          type="number"
-                          value={fixedDepositAmount}
-                          onChange={(e) => setFixedDepositAmount(Number(e.target.value))}
-                          min="1"
-                          className="w-32 mt-1"
-                        />
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Remainder will be due on location
-                        </p>
+                        return (
+                          <ServiceTypeInstallmentCard
+                            key={serviceId}
+                            serviceType={service}
+                            plan={currentPlan}
+                            onPlanChange={(id, plan) => {
+                              setServiceTypeSettings(prev => ({
+                                ...prev,
+                                [id]: plan
+                              }));
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Payment Structure Section - Only show for "all services" mode */}
+                {applyToServices === 'all' && (
+                  <>
+                    <div className="space-y-3">
+                      <Label className="text-base font-medium text-foreground">Payment Structure</Label>
+                      <RadioGroup
+                        value={planType}
+                        onValueChange={(value: 'preset' | 'custom') => setPlanType(value)}
+                        className="space-y-2"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="preset" id="preset" />
+                          <Label htmlFor="preset" className="text-sm font-medium text-foreground">Quick Setup Options</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="custom" id="custom" />
+                          <Label htmlFor="custom" className="text-sm font-medium text-foreground">Advanced Custom Configuration</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {planType === 'preset' && (
+                      <div className="space-y-4">
+                        <Label className="text-base font-medium text-foreground">Choose Payment Plan</Label>
+                        <RadioGroup
+                          value={presetSelection}
+                          onValueChange={(value: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit') => setPresetSelection(value)}
+                          className="space-y-4"
+                        >
+                          <div className="flex items-start space-x-3 p-4 border rounded-lg">
+                            <RadioGroupItem value="100_at_booking" id="100_at_booking" className="mt-1" />
+                            <div className="flex-1">
+                              <Label htmlFor="100_at_booking" className="text-sm font-medium text-foreground cursor-pointer">
+                                {presetPlans['100_at_booking'].name}
+                              </Label>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {presetPlans['100_at_booking'].description}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-4 border rounded-lg">
+                            <RadioGroupItem value="50_50" id="50_50" className="mt-1" />
+                            <div className="flex-1">
+                              <Label htmlFor="50_50" className="text-sm font-medium text-foreground cursor-pointer">
+                                {presetPlans['50_50'].name}
+                              </Label>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {presetPlans['50_50'].description}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-4 border rounded-lg">
+                            <RadioGroupItem value="25_25_50" id="25_25_50" className="mt-1" />
+                            <div className="flex-1">
+                              <Label htmlFor="25_25_50" className="text-sm font-medium text-foreground cursor-pointer">
+                                {presetPlans['25_25_50'].name}
+                              </Label>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {presetPlans['25_25_50'].description}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start space-x-3 p-4 border rounded-lg">
+                            <RadioGroupItem value="fixed_deposit" id="fixed_deposit" className="mt-1" />
+                            <div className="flex-1">
+                              <Label htmlFor="fixed_deposit" className="text-sm font-medium text-foreground cursor-pointer">
+                                {presetPlans['fixed_deposit'].name}
+                              </Label>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {presetPlans['fixed_deposit'].description}
+                              </p>
+                            </div>
+                          </div>
+                        </RadioGroup>
+
+                        {presetSelection === 'fixed_deposit' && (
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-foreground">Fixed Deposit Amount (€)</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={fixedDepositAmount}
+                              onChange={(e) => setFixedDepositAmount(Number(e.target.value))}
+                              className="w-32"
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
-                  </div>
-                )}
 
-                {planType === 'custom' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium text-foreground">Custom Payment Schedule</Label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={addCustomDeposit}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Payment
-                      </Button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {customDeposits.map((deposit, index) => (
-                        <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
-                          <div className="flex-1">
-                            <Label className="text-sm font-medium">Payment {index + 1}</Label>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Input
-                                type="number"
-                                value={deposit.percentage || ''}
-                                placeholder="0"
-                                onChange={(e) => updateCustomDeposit(index, 'percentage', Number(e.target.value))}
-                                min="0"
-                                max="100"
-                                className="w-20"
-                              />
-                              <span className="text-sm">%</span>
-                            </div>
-                          </div>
-
-                          <div className="flex-1">
-                            <Label className="text-sm font-medium">Due</Label>
-                            <Select
-                              value={deposit.timing}
-                              onValueChange={(value) => updateCustomDeposit(index, 'timing', value)}
-                            >
-                              <SelectTrigger className="mt-1">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-background border shadow-md">
-                                {getAvailableTimingOptions(index).map(option => (
-                                  <SelectItem 
-                                    key={option.value} 
-                                    value={option.value}
-                                    disabled={option.disabled}
-                                  >
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {deposit.timing === 'hours_after' && (
-                            <div>
-                              <Label className="text-sm font-medium">Hours</Label>
-                              <Input
-                                type="number"
-                                value={deposit.hours || 1}
-                                placeholder="1"
-                                onChange={(e) => updateCustomDeposit(index, 'hours', Number(e.target.value))}
-                                min="1"
-                                className="w-20 mt-1"
-                              />
-                            </div>
-                          )}
-
+                    {planType === 'custom' && (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-base font-medium text-foreground">Custom Payment Schedule</Label>
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            onClick={() => removeCustomDeposit(index)}
-                            disabled={customDeposits.length <= 2}
+                            onClick={addCustomDeposit}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Payment
                           </Button>
                         </div>
-                      ))}
-                    </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t">
-                      <span className="text-sm font-medium">Total:</span>
-                      <Badge variant={getTotalPercentage() === 100 ? 'default' : 'destructive'}>
-                        {getTotalPercentage()}%
-                      </Badge>
-                    </div>
-                  </div>
-                )}
-
-                {/* Service Type Selection */}
-                <div className="space-y-4 pt-4 border-t">
-                  <Label className="text-base font-medium text-foreground">Apply To Services</Label>
-                  <RadioGroup
-                    value={applyToServices}
-                    onValueChange={(value: 'all' | 'selected') => setApplyToServices(value)}
-                    className="space-y-3"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="all" id="all-services" />
-                      <Label htmlFor="all-services" className="text-sm font-medium text-foreground">
-                        Enable on all services
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="selected" id="selected-services" />
-                      <Label htmlFor="selected-services" className="text-sm font-medium text-foreground">
-                        Choose per service type
-                      </Label>
-                    </div>
-                  </RadioGroup>
-
-                  {applyToServices === 'selected' && serviceTypes.length > 0 && (
-                    <div className="space-y-2 pl-6">
-                      {serviceTypes.map((service) => (
-                        <div key={service.id} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id={`service-${service.id}`}
-                            checked={selectedServices.includes(service.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedServices([...selectedServices, service.id]);
-                              } else {
-                                setSelectedServices(selectedServices.filter(id => id !== service.id));
-                              }
-                            }}
-                            className="rounded border-gray-300"
-                          />
-                          <Label htmlFor={`service-${service.id}`} className="text-sm text-foreground">
-                            {service.name} - €{service.price} ({service.duration}min)
-                          </Label>
+                        <div className="space-y-3">
+                          {customDeposits.map((deposit, index) => (
+                            <div key={index} className="flex items-center gap-3 p-4 border rounded-lg">
+                              <div className="flex-1 space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <Label className="text-sm font-medium text-foreground">Percentage</Label>
+                                    <Input
+                                      type="number"
+                                      min="1"
+                                      max="100"
+                                      value={deposit.percentage || ''}
+                                      onChange={(e) => updateCustomDeposit(index, 'percentage', Number(e.target.value))}
+                                      placeholder="0"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-sm font-medium text-foreground">When</Label>
+                                    <Select
+                                      value={deposit.timing}
+                                      onValueChange={(value) => updateCustomDeposit(index, 'timing', value)}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {getAvailableTimingOptions(index).map((option) => (
+                                          <SelectItem 
+                                            key={option.value} 
+                                            value={option.value}
+                                            disabled={option.disabled}
+                                          >
+                                            {option.label}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                                {deposit.timing === 'hours_after' && (
+                                  <div>
+                                    <Label className="text-sm font-medium text-foreground">Hours After Booking</Label>
+                                    <Input
+                                      type="number"
+                                      min="1"
+                                      value={deposit.hours || ''}
+                                      onChange={(e) => updateCustomDeposit(index, 'hours', Number(e.target.value))}
+                                      placeholder="24"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeCustomDeposit(index)}
+                                disabled={customDeposits.length <= 2}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
 
-                <div className="bg-muted/30 border rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <Settings className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-foreground">How it works</p>
-                      <p className="text-sm text-muted-foreground">
-                        Customers see clear payment options during booking. Initial payments are processed via secure WhatsApp payment links. "On location" payments are handled in-person with cash or pin.
-                      </p>
+                        <div className="flex items-center justify-between pt-4 border-t">
+                          <span className="text-sm font-medium">Total:</span>
+                          <Badge variant={getTotalPercentage() === 100 ? 'default' : 'destructive'}>
+                            {getTotalPercentage()}%
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-blue-900">
+                            How installment payments work
+                          </p>
+                          <div className="text-sm text-blue-800 space-y-1">
+                            <p>• Customers choose to pay in installments during booking</p>
+                            <p>• First payment is collected immediately via Stripe</p>
+                            <p>• Remaining payments are automatically processed at scheduled times</p>
+                            <p>• You'll receive notifications for successful and failed payments</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
 
                 <Button onClick={handleSave} disabled={saving || (enabled && !isValidPlan())} className="w-full">
                   {saving ? 'Saving...' : 'Save Installment Settings'}
