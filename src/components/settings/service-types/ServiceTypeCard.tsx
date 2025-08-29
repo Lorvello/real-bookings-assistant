@@ -6,14 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { ServiceType } from '@/types/calendar';
 import { TaxBadge } from '@/components/tax/TaxBadge';
+import { InstallmentBadge } from './InstallmentBadge';
 
 interface ServiceTypeCardProps {
   service: ServiceType;
   onEdit: (service: ServiceType) => void;
   onDelete: (id: string) => void;
+  onInstallmentConfig?: (service: ServiceType) => void;
 }
 
-export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardProps) {
+export function ServiceTypeCard({ service, onEdit, onDelete, onInstallmentConfig }: ServiceTypeCardProps) {
   const formatPrice = (price?: number) => {
     if (!price) return 'Gratis';
     return `€${price.toFixed(2)}`;
@@ -40,13 +42,25 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
               />
               <h3 className="text-foreground font-medium truncate">{service.name}</h3>
             </div>
-            <TaxBadge 
-              taxEnabled={service.tax_enabled || false}
-              taxBehavior={service.tax_behavior}
-              taxCode={service.tax_code}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <TaxBadge 
+                taxEnabled={service.tax_enabled || false}
+                taxBehavior={service.tax_behavior}
+                taxCode={service.tax_code}
+              />
+              <InstallmentBadge 
+                enabled={(service as any).installments_enabled || false}
+                plan={(service as any).custom_installment_plan}
+                isOverride={!!(service as any).custom_installment_plan}
+              />
+            </div>
           </div>
           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {onInstallmentConfig && (
+              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => onInstallmentConfig(service)}>
+                <MessageCircle className="h-4 w-4" />
+              </Button>
+            )}
             <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => onEdit(service)}>
               <Edit2 className="h-4 w-4" />
             </Button>

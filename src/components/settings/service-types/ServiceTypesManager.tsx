@@ -11,6 +11,8 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useToast } from '@/hooks/use-toast';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { supabase } from '@/integrations/supabase/client';
+import { ServiceTypeInstallmentConfig } from './ServiceTypeInstallmentConfig';
+import { useInstallmentSettings } from '@/hooks/useInstallmentSettings';
 
 interface ServiceTypeFormData {
   name: string;
@@ -45,6 +47,12 @@ export function ServiceTypesManager() {
   const [saving, setSaving] = useState(false);
   const [taxConfigured, setTaxConfigured] = useState(false);
   const [userTaxBehavior, setUserTaxBehavior] = useState<string | null>(null);
+  const [installmentConfigService, setInstallmentConfigService] = useState<ServiceType | null>(null);
+  
+  const { 
+    settings: installmentSettings, 
+    loading: installmentLoading 
+  } = useInstallmentSettings();
 
   const {
     serviceTypes,
@@ -196,6 +204,39 @@ export function ServiceTypesManager() {
     setFormData(DEFAULT_FORM_DATA);
   };
 
+  const handleInstallmentConfig = (service: ServiceType) => {
+    setInstallmentConfigService(service);
+  };
+
+  const handleInstallmentUpdate = async (serviceId: string, enabled: boolean, plan?: any) => {
+    try {
+      const { error } = await supabase
+        .from('service_types')
+        .update({
+          installments_enabled: enabled,
+          custom_installment_plan: plan || null
+        })
+        .eq('id', serviceId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Installment Settings Updated",
+        description: "Service installment configuration has been updated successfully."
+      });
+      
+      setInstallmentConfigService(null);
+      refetch();
+    } catch (error) {
+      console.error('Failed to update installment settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update installment settings. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -267,12 +308,42 @@ export function ServiceTypesManager() {
                   service={service}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onInstallmentConfig={handleInstallmentConfig}
                 />
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+      
+      {/* Installment Configuration Dialog */}
+      {installmentConfigService && (
+        <Dialog open={!!installmentConfigService} onOpenChange={() => setInstallmentConfigService(null)}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Installment Settings for {installmentConfigService.name}</DialogTitle>
+              <DialogDescription>
+                Configure installment payment options for this specific service type.
+              </DialogDescription>
+            </DialogHeader>
+            <ServiceTypeInstallmentConfig
+              serviceType={installmentConfigService}
+              businessInstallmentsEnabled={installmentSettings?.enabled || false}
+              businessDefaultPlan={installmentSettings?.defaultPlan}
+              onUpdate={(updates) => {
+                const extendedUpdates = updates as any;
+                if ('installments_enabled' in extendedUpdates || 'custom_installment_plan' in extendedUpdates) {
+                  handleInstallmentUpdate(
+                    installmentConfigService.id, 
+                    extendedUpdates.installments_enabled || false, 
+                    extendedUpdates.custom_installment_plan
+                  );
+                }
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
