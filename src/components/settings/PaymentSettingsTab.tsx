@@ -29,6 +29,7 @@ import { PaymentOptions } from '../payments/PaymentOptions';
 import { InstallmentSettings } from './InstallmentSettings';
 import { useInstallmentSettings } from '@/hooks/useInstallmentSettings';
 import { useUserStatus } from '@/contexts/UserStatusContext';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 
 // Fixed: Removed StripeEmbeddedDashboard component
@@ -172,6 +173,7 @@ export function PaymentSettingsTab() {
   } = useStripeConnect();
   const { settings: installmentSettings, loading: installmentLoading, updateSettings: updateInstallmentSettings } = useInstallmentSettings();
   const { userStatus } = useUserStatus();
+  const { profile } = useProfile();
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
   const [platformFee, setPlatformFee] = useState('2.50');
@@ -974,7 +976,7 @@ export function PaymentSettingsTab() {
                     ]
                   }}
                   onUpdate={updateInstallmentSettings}
-                  subscriptionTier={userStatus.isSubscriber ? 'starter' : 'free'}
+                  subscriptionTier={profile?.subscription_tier || 'free'}
                 />
               </div>
             ) : null}
