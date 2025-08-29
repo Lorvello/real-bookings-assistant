@@ -664,6 +664,7 @@ export const BillingTab: React.FC = () => {
                       "Streamlined payment processing & collection"
                     ] : tier.tier_name === 'professional' ? [
                       "All Starter premium features included",
+                      "Automated tax compliance & administration",
                       "Unlimited calendar orchestration platform",
                       "Advanced team collaboration suite (2-10 users)",
                       "Multi-location business coordination", 

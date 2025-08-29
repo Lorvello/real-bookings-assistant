@@ -71,7 +71,7 @@ serve(async (req) => {
     // Calculate amount (use booking total_price or service price)
     const amount = Math.round((booking.total_price || booking.service_types?.price || 0) * 100);
 
-    // Create payment intent with destination charges
+    // Create payment intent with destination charges and automatic tax calculation
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: booking.payment_currency || "eur",
@@ -79,10 +79,14 @@ serve(async (req) => {
       transfer_data: {
         destination: stripeAccount.stripe_account_id,
       },
+      automatic_tax: {
+        enabled: true,
+      },
       metadata: {
         booking_id: booking.id,
         calendar_id: calendar_id,
         customer_email: booking.customer_email,
+        service_name: booking.service_types?.name || 'Appointment Service',
       },
     });
 

@@ -78,6 +78,10 @@ export const Pricing = () => {
           tooltip: "Manage bookings and operations across multiple business locations with centralized control"
         },
         {
+          text: "Automated tax compliance & administration",
+          tooltip: "Automatische BTW berekening en compliance voor Nederlandse bedrijven. Geen handmatige BTW administratie meer nodig - alles wordt automatisch berekend en toegepast volgens Nederlandse belastingregels"
+        },
+        {
           text: "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
           tooltip: "Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization"
         },

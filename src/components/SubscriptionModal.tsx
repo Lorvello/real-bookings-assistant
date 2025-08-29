@@ -105,6 +105,10 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             tooltip: "Everything from the Starter plan plus additional professional features"
           },
           {
+            text: "Automated tax compliance & administration",
+            tooltip: "Automatische BTW berekening en compliance voor Nederlandse bedrijven. Geen handmatige BTW administratie meer nodig - alles wordt automatisch berekend en toegepast volgens Nederlandse belastingregels"
+          },
+          {
             text: "Unlimited calendar orchestration platform",
             tooltip: "Connect and manage unlimited calendars across different platforms with advanced synchronization"
           },
