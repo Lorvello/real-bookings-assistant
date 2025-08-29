@@ -17,11 +17,10 @@ import { useAccessControl } from '@/hooks/useAccessControl';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
-import { TaxOverview } from '@/components/tax/TaxOverview';
-import { TaxRegistrations } from '@/components/tax/TaxRegistrations';
-import { TaxThresholdMonitoring } from '@/components/tax/TaxThresholdMonitoring';
-import { TaxExports } from '@/components/tax/TaxExports';
-import { ServiceTypeTaxCodes } from '@/components/tax/ServiceTypeTaxCodes';
+import { QuarterlyTaxSummary } from '@/components/tax/QuarterlyTaxSummary';
+import { ServiceBreakdown } from '@/components/tax/ServiceBreakdown';
+import { TaxExportSection } from '@/components/tax/TaxExportSection';
+import { TaxStatusOverview } from '@/components/tax/TaxStatusOverview';
 
 export const TaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -34,6 +33,8 @@ export const TaxTab = () => {
   const [stripeAccount, setStripeAccount] = useState<any>(null);
   const [checkingStripe, setCheckingStripe] = useState(true);
   const [useMockData, setUseMockData] = useState(false);
+  const [selectedQuarter, setSelectedQuarter] = useState(Math.floor(new Date().getMonth() / 3) + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const hasAccess = checkAccess('canAccessTaxCompliance');
 
@@ -225,83 +226,56 @@ export const TaxTab = () => {
     );
   }
 
-  // Main Tax Tab UI - Completely rebuilt for functional Stripe Tax integration
+  // Main Tax Tab UI - Business-focused quarterly overview
   return (
     <div className="space-y-6">
       {/* Header with Developer Mode Toggle */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle className="text-2xl font-bold">Tax & Compliance</CardTitle>
-              <CardDescription>
-                Live Stripe Tax integration for Express accounts
-              </CardDescription>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Tax Summary</h1>
+          <p className="text-muted-foreground mt-1">Quarterly revenue and VAT overview for your business</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Developer Mode Toggle - Non-production only */}
+          {!import.meta.env.PROD && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-amber-100 dark:bg-amber-900/20 rounded-lg border border-amber-300">
+              <Code className="w-4 h-4 text-amber-600" />
+              <span className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                {useMockData ? 'Mock Data' : 'Live Mode'}
+              </span>
+              <Switch
+                checked={useMockData}
+                onCheckedChange={toggleMockData}
+              />
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Developer Mode Toggle - Non-production only */}
-              {!import.meta.env.PROD && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-amber-100 dark:bg-amber-900/20 rounded-lg border border-amber-300">
-                  <Code className="w-4 h-4 text-amber-600" />
-                  <span className="text-sm font-medium text-amber-700 dark:text-amber-400">
-                    {useMockData ? 'Mock Data' : 'Live Mode'}
-                  </span>
-                  <Switch
-                    checked={useMockData}
-                    onCheckedChange={toggleMockData}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Tax Settings Overview */}
-      <TaxOverview 
-        accountId={stripeAccount?.stripe_account_id} 
-        useMockData={useMockData}
-      />
-
-      {/* Tax Registrations */}
-      <TaxRegistrations 
-        accountId={stripeAccount?.stripe_account_id}
-      />
-
-      {/* Threshold Monitoring - Stripe Embedded Component */}
-      <TaxThresholdMonitoring 
-        accountId={stripeAccount?.stripe_account_id}
-        useMockData={useMockData}
-      />
-
-      {/* Product Tax Codes per Service Type */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="w-5 h-5" />
-            Product Tax Codes
-          </CardTitle>
-          <CardDescription>
-            Configure tax codes for your services using Stripe Tax codes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {selectedCalendar?.id ? (
-            <ServiceTypeTaxCodes calendarId={selectedCalendar.id} />
-          ) : (
-            <Alert>
-              <AlertDescription>
-                Select a calendar to configure product tax codes for your services.
-              </AlertDescription>
-            </Alert>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Tax Reports & Exports - Stripe Embedded Component */}
-      <TaxExports 
+      {/* Quarterly Tax Summary - Primary Focus */}
+      <QuarterlyTaxSummary 
+        accountId={stripeAccount?.stripe_account_id} 
+        calendarId={selectedCalendar?.id}
+      />
+
+      {/* Service Breakdown */}
+      <ServiceBreakdown 
         accountId={stripeAccount?.stripe_account_id}
-        useMockData={useMockData}
+        calendarId={selectedCalendar?.id}
+        quarter={selectedQuarter}
+        year={selectedYear}
+      />
+
+      {/* Export Section */}
+      <TaxExportSection 
+        accountId={stripeAccount?.stripe_account_id}
+        calendarId={selectedCalendar?.id}
+      />
+
+      {/* Status Overview - Minimal */}
+      <TaxStatusOverview 
+        accountId={stripeAccount?.stripe_account_id}
+        calendarId={selectedCalendar?.id}
       />
 
       <SubscriptionModal

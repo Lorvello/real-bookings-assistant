@@ -206,14 +206,78 @@ serve(async (req) => {
     const complianceStatus = taxComplianceRate >= 95 ? 'compliant' : 
                            taxComplianceRate >= 80 ? 'warning' : 'non_compliant';
 
-    // Get current quarter data
+    // Get current quarter data or use provided quarter/year
+    const { quarter, year } = await req.json();
     const now = new Date();
-    const currentQuarter = Math.floor(now.getMonth() / 3) + 1;
-    const quarterStart = new Date(now.getFullYear(), (currentQuarter - 1) * 3, 1);
-    const quarterEnd = new Date(now.getFullYear(), currentQuarter * 3, 0);
+    const currentQuarter = quarter || Math.floor(now.getMonth() / 3) + 1;
+    const currentYear = year || now.getFullYear();
+    
+    const quarterStart = new Date(currentYear, (currentQuarter - 1) * 3, 1);
+    const quarterEnd = new Date(currentYear, currentQuarter * 3, 0);
+
+    // Calculate service breakdown with revenue per service
+    const serviceBreakdown = new Map();
+    let quarterlyRevenue = 0;
+    let quarterlyTaxCollected = 0;
+    let quarterlyTransactionCount = 0;
+
+    for (const payment of payments || []) {
+      try {
+        const paymentDate = new Date(payment.created_at);
+        if (paymentDate >= quarterStart && paymentDate <= quarterEnd) {
+          const paymentIntent = await stripe.paymentIntents.retrieve(
+            payment.stripe_payment_intent_id,
+            { stripeAccount: stripeAccount.stripe_account_id }
+          );
+
+          const amount = paymentIntent.amount / 100;
+          quarterlyRevenue += amount;
+          quarterlyTransactionCount++;
+
+          if (paymentIntent.automatic_tax?.enabled && paymentIntent.automatic_tax?.status === 'complete') {
+            const taxAmount = (paymentIntent.amount_details?.tax?.amount || 0) / 100;
+            quarterlyTaxCollected += taxAmount;
+          }
+
+          const serviceName = payment.bookings?.service_types?.name || 'Unknown Service';
+          const existingService = serviceBreakdown.get(serviceName) || { revenue: 0, bookingCount: 0 };
+          serviceBreakdown.set(serviceName, {
+            revenue: existingService.revenue + amount,
+            bookingCount: existingService.bookingCount + 1
+          });
+        }
+      } catch (stripeError) {
+        logStep('Error fetching payment intent for quarterly data', { paymentId: payment.stripe_payment_intent_id, error: stripeError.message });
+      }
+    }
+
+    // Convert service breakdown to array
+    const servicesArray = Array.from(serviceBreakdown.entries())
+      .map(([name, data]) => ({
+        name,
+        revenue: Math.round(data.revenue * 100) / 100,
+        bookingCount: data.bookingCount,
+        percentage: quarterlyRevenue > 0 ? Math.round((data.revenue / quarterlyRevenue) * 100) : 0
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
 
     const taxData = {
       success: true,
+      quarterlyOverview: {
+        quarter: currentQuarter,
+        year: currentYear,
+        grossRevenue: Math.round(quarterlyRevenue * 100) / 100,
+        vatCollected: Math.round(quarterlyTaxCollected * 100) / 100,
+        netRevenue: Math.round((quarterlyRevenue - quarterlyTaxCollected) * 100) / 100,
+        averageBooking: quarterlyTransactionCount > 0 ? Math.round((quarterlyRevenue / quarterlyTransactionCount) * 100) / 100 : 0,
+        totalBookings: quarterlyTransactionCount,
+        vatRate: 21.0,
+        period: {
+          start: quarterStart.toISOString(),
+          end: quarterEnd.toISOString()
+        }
+      },
+      serviceBreakdown: servicesArray,
       overview: {
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         totalTaxCollected: Math.round(totalTaxCollected * 100) / 100,
@@ -227,25 +291,14 @@ serve(async (req) => {
           end: endDate.toISOString()
         }
       },
-      quarterlyData: {
-        currentQuarter,
-        quarterStart: quarterStart.toISOString(),
-        quarterEnd: quarterEnd.toISOString(),
-        revenue: totalRevenue,
-        taxCollected: totalTaxCollected,
-        vatRate: 21.0,
-        complianceStatus
-      },
-      topServices: topServicesArray,
       stripeAccountStatus: {
         accountId: stripeAccount.stripe_account_id,
         country: stripeAccount.country || 'NL',
         chargesEnabled: stripeAccount.charges_enabled,
         payoutsEnabled: stripeAccount.payouts_enabled,
-        automaticTaxEnabled: true
+        automaticTaxEnabled: true,
+        connectionStatus: 'active'
       },
-      taxSettings: taxSettings,
-      taxRegistrations: taxRegistrations,
       connectedAccountId: stripeAccount.stripe_account_id,
       lastUpdated: new Date().toISOString()
     };
