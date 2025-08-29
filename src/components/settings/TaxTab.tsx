@@ -33,8 +33,6 @@ import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { ConnectTaxThresholdMonitoring } from '@/components/tax/ConnectTaxThresholdMonitoring';
 import { TaxExportComponent } from '@/components/tax/TaxExportComponent';
-import { StripeEmbeddedTaxSettings } from '@/components/tax/StripeEmbeddedTaxSettings';
-import { StripeEmbeddedTaxRegistrations } from '@/components/tax/StripeEmbeddedTaxRegistrations';
 import { 
   Table, 
   TableBody, 
@@ -349,8 +347,47 @@ export const TaxTab = () => {
         {/* Configuration Sections */}
         {activeSection === 'configuration' && stripeAccount?.onboarding_completed && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <StripeEmbeddedTaxSettings />
-            <StripeEmbeddedTaxRegistrations />
+            <Card>
+              <CardHeader>
+                <CardTitle>Tax Settings</CardTitle>
+                <CardDescription>Configure your tax settings in Stripe</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={async () => {
+                    const dashboardUrl = await createLoginLink();
+                    if (dashboardUrl) {
+                      window.open(dashboardUrl, '_blank');
+                    }
+                  }}
+                  className="w-full"
+                >
+                  <ArrowUpRight className="w-4 h-4 mr-2" />
+                  Open Tax Settings in Stripe
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Tax Registrations</CardTitle>
+                <CardDescription>Manage tax registrations in Stripe</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={async () => {
+                    const dashboardUrl = await createLoginLink();
+                    if (dashboardUrl) {
+                      window.open(dashboardUrl, '_blank');
+                    }
+                  }}
+                  className="w-full"
+                >
+                  <ArrowUpRight className="w-4 h-4 mr-2" />
+                  Open Tax Registrations in Stripe
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         )}
 
@@ -456,12 +493,34 @@ export const TaxTab = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <StripeEmbeddedTaxSettings
-            fallbackData={taxData}
-            onFallback={() => {
-              console.log('Tax settings fallback triggered');
-            }}
-          />
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Configure your automatic tax calculation settings directly in your Stripe dashboard.
+            </p>
+            <Button 
+              onClick={async () => {
+                const dashboardUrl = await createLoginLink();
+                if (dashboardUrl) {
+                  window.open(dashboardUrl, '_blank');
+                }
+              }}
+              className="w-full"
+            >
+              <ArrowUpRight className="w-4 h-4 mr-2" />
+              Open Tax Settings in Stripe
+            </Button>
+            
+            {taxSettings && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <h4 className="font-medium mb-2">Current Settings</h4>
+                <div className="text-sm space-y-1">
+                  <p>Account ID: {taxSettings.accountId}</p>
+                  <p>Automatic Tax: {taxSettings.automaticTaxEnabled ? 'Enabled' : 'Disabled'}</p>
+                  <p>Registrations: {taxSettings.registrations || 0}</p>
+                </div>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -477,9 +536,37 @@ export const TaxTab = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <StripeEmbeddedTaxRegistrations
-            fallbackData={{ taxRegistrations: registrations }}
-          />
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Manage your tax registrations for different jurisdictions directly in your Stripe dashboard.
+            </p>
+            <Button 
+              onClick={async () => {
+                const dashboardUrl = await createLoginLink();
+                if (dashboardUrl) {
+                  window.open(dashboardUrl, '_blank');
+                }
+              }}
+              className="w-full"
+            >
+              <ArrowUpRight className="w-4 h-4 mr-2" />
+              Open Tax Registrations in Stripe
+            </Button>
+            
+            {registrations && registrations.length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-medium mb-2">Current Registrations</h4>
+                <div className="space-y-2">
+                  {registrations.map((registration, index) => (
+                    <div key={index} className="flex justify-between items-center p-2 bg-muted rounded">
+                      <span className="text-sm">{registration.country}</span>
+                      <Badge variant="secondary">{registration.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 

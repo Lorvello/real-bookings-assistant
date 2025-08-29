@@ -273,19 +273,114 @@ export function PaymentSettingsTab() {
   const handleOpenStripeDashboard = async () => {
     try {
       const url = await createLoginLink();
-      if (url) {
-        window.open(url, '_blank');
+      if (!url) {
+        throw new Error('NO_CONNECTED_ACCOUNT');
+      }
+
+      // Try opening in new tab
+      const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+      
+      if (!newWindow) {
+        // Fallback if popup blocked
+        toast({
+          title: "Pop-up Blocked",
+          description: "Your browser blocked the pop-up. Click the link below to open dashboard manually.",
+          action: (
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(url, '_blank')}
+              >
+                Try Again
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(url);
+                  toast({ title: "Link copied to clipboard" });
+                }}
+              >
+                Copy Link
+              </Button>
+            </div>
+          )
+        });
+        return;
+      }
+      
+      toast({
+        title: "Success",
+        description: "Stripe dashboard opened in new tab"
+      });
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to open dashboard';
+      
+      if (errorMessage === 'NO_CONNECTED_ACCOUNT') {
+        toast({
+          title: "No Stripe Account",
+          description: "Please complete Stripe onboarding first",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to open Stripe dashboard",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+  const handleStartOnboarding = async () => {
+    try {
+      const onboardingLink = await createOnboardingLink();
+      if (onboardingLink?.url) {
+        // Open in new tab to avoid browser blocking
+        const newWindow = window.open(onboardingLink.url, '_blank', 'noopener,noreferrer');
+        
+        if (!newWindow) {
+          // Fallback if popup blocked
+          toast({
+            title: "Pop-up Blocked",
+            description: "Your browser blocked the pop-up. Click the link below to start onboarding.",
+            action: (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.open(onboardingLink.url, '_blank')}
+                >
+                  Open Onboarding
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(onboardingLink.url);
+                    toast({ title: "Link copied to clipboard" });
+                  }}
+                >
+                  Copy Link
+                </Button>
+              </div>
+            )
+          });
+        } else {
+          toast({
+            title: "Onboarding Started",
+            description: "Complete the setup in the new tab, then return here."
+          });
+        }
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to open Stripe dashboard",
+        description: "Failed to start onboarding",
         variant: "destructive"
       });
     }
-  };
-  const handleStartOnboarding = async () => {
-    setShowEmbeddedOnboarding(true);
   };
   const handleOnboardingComplete = async () => {
     setShowEmbeddedOnboarding(false);
