@@ -31,6 +31,8 @@ import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 import { ConnectTaxThresholdMonitoring } from '@/components/tax/ConnectTaxThresholdMonitoring';
 import { TaxExportComponent } from '@/components/tax/TaxExportComponent';
+import { StripeEmbeddedTaxSettings } from '@/components/tax/StripeEmbeddedTaxSettings';
+import { StripeEmbeddedTaxRegistrations } from '@/components/tax/StripeEmbeddedTaxRegistrations';
 import { 
   Table, 
   TableBody, 
@@ -440,141 +442,24 @@ export const TaxTab = () => {
         </div>
       )}
 
-      {/* Overview Card */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Shield className="w-5 h-5" />
-            Tax Overview
-          </CardTitle>
-          <CardDescription className="text-gray-400">
-            Current tax configuration and status
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label className="text-gray-400 text-sm">Tax Enabled</Label>
-              <div className="flex items-center gap-2">
-                <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  Enabled
-                </Badge>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-gray-400 text-sm">Origin Address</Label>
-              <div className="text-sm text-white">
-                {taxSettings?.taxSettings?.originAddress?.line1 || 'Not set'}
-                <br />
-                <span className="text-gray-400">
-                  {taxSettings?.taxSettings?.originAddress?.city || ''} {taxSettings?.taxSettings?.originAddress?.postal_code || ''}
-                </span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-gray-400 text-sm">Preset PTC</Label>
-              <div className="text-sm text-white">
-                {taxSettings?.taxSettings?.presetProductTaxCode || 'txcd_10000000'}
-                <br />
-                <span className="text-gray-400">General - Tangible Goods</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-gray-400 text-sm">Price-Tax Behavior</Label>
-              <div className="text-sm text-white">
-                {taxSettings?.taxSettings?.pricesIncludeTax ? 'Inclusive' : 'Exclusive'}
-                <br />
-                <span className="text-gray-400">
-                  Automatic Tax: {taxSettings?.taxSettings?.automaticTax?.checkout?.enabled ? 'On' : 'Off'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Tax Settings Card - Using Stripe Embedded Component */}
+      <StripeEmbeddedTaxSettings 
+        fallbackData={taxSettings}
+        onFallback={() => {
+          // Load fallback data if embedded component fails
+          if (!taxSettings) {
+            loadTaxSettings();
+          }
+        }}
+      />
 
-      {/* Registrations Card */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Tax Registrations
-          </CardTitle>
-          <CardDescription className="text-gray-400">
-            Manage tax registrations across jurisdictions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {registrations.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-gray-700">
-                    <TableHead className="text-gray-400">Location</TableHead>
-                    <TableHead className="text-gray-400">Status</TableHead>
-                    <TableHead className="text-gray-400">Effective Date</TableHead>
-                    <TableHead className="text-gray-400">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {registrations.map((registration, index) => (
-                    <TableRow key={index} className="border-gray-700">
-                      <TableCell className="text-white">{registration.country}</TableCell>
-                      <TableCell>
-                        <Badge className={`${
-                          registration.status === 'active' 
-                            ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                            : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                        }`}>
-                          {registration.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        {new Date(registration.active_from * 1000).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm" className="text-xs">
-                          Configure
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-400">
-              <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>No tax registrations found</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-2"
-                onClick={() => window.open('https://dashboard.stripe.com/tax/registrations', '_blank')}
-              >
-                Add Registration in Stripe
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Tax Registrations Card - Using Stripe Embedded Component */}
+      <StripeEmbeddedTaxRegistrations 
+        fallbackData={taxSettings}
+      />
 
       {/* Threshold Monitoring Card */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Threshold Monitoring
-          </CardTitle>
-          <CardDescription className="text-gray-400">
-            Monitor sales thresholds across jurisdictions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ConnectTaxThresholdMonitoring accountId={taxData?.connectedAccountId} />
-        </CardContent>
-      </Card>
+      <ConnectTaxThresholdMonitoring />
 
       {/* Product Tax Codes Card */}
       <Card className="bg-gray-800 border-gray-700">
@@ -648,20 +533,7 @@ export const TaxTab = () => {
       </Card>
 
       {/* Exports Card */}
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Download className="w-5 h-5" />
-            Export Tax Transactions
-          </CardTitle>
-          <CardDescription className="text-gray-400">
-            Download detailed tax transaction reports
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TaxExportComponent accountId={taxData?.connectedAccountId} />
-        </CardContent>
-      </Card>
+      <TaxExportComponent />
 
       {/* Quick Actions */}
       <Card className="bg-gray-800 border-gray-700">

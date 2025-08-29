@@ -90,5 +90,5 @@ verify_jwt = true
 [functions.get-tax-settings]
 verify_jwt = true
 
-[functions.get-tax-codes]
+[functions.create-account-session]
 verify_jwt = true
