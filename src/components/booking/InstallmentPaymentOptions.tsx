@@ -8,7 +8,7 @@ import { ServiceType } from '@/types/database';
 
 interface InstallmentPlan {
   type: 'preset' | 'custom';
-  preset?: '50_50' | '25_25_50' | 'fixed_deposit';
+  preset?: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit';
   deposits?: Array<{
     percentage?: number;
     amount?: number;
@@ -47,7 +47,15 @@ export function InstallmentPaymentOptions({
     const schedule: PaymentScheduleItem[] = [];
     
     if (installmentPlan.type === 'preset') {
-      if (installmentPlan.preset === 'fixed_deposit') {
+      if (installmentPlan.preset === '100_at_booking') {
+        // 100% at booking - single payment
+        schedule.push({
+          amount: servicePrice,
+          timing: 'now',
+          description: 'Full payment (due now)',
+          paymentMethod: 'online'
+        });
+      } else if (installmentPlan.preset === 'fixed_deposit') {
         const depositAmount = installmentPlan.fixed_deposit_amount || 50;
         const remainderAmount = servicePrice - depositAmount;
         

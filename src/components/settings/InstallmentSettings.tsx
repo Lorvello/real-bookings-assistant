@@ -22,7 +22,7 @@ interface DepositInfo {
 
 interface InstallmentPlan {
   type: 'preset' | 'custom';
-  preset?: '50_50' | '25_25_50' | 'fixed_deposit';
+  preset?: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit';
   deposits?: DepositInfo[];
   fixed_deposit_amount?: number;
 }
@@ -42,7 +42,7 @@ export function InstallmentSettings({
 }: InstallmentSettingsProps) {
   const [enabled, setEnabled] = useState(installmentsEnabled);
   const [planType, setPlanType] = useState<'preset' | 'custom'>(defaultPlan.type || 'preset');
-  const [presetSelection, setPresetSelection] = useState(defaultPlan.preset || '50_50');
+  const [presetSelection, setPresetSelection] = useState(defaultPlan.preset || '100_at_booking');
   const [fixedDepositAmount, setFixedDepositAmount] = useState(defaultPlan.fixed_deposit_amount || 50);
   const [customDeposits, setCustomDeposits] = useState<DepositInfo[]>(defaultPlan.deposits || [
     { percentage: 50, timing: 'now' },
@@ -54,11 +54,18 @@ export function InstallmentSettings({
   const { toast } = useToast();
   const { user } = useAuth();
   const { selectedCalendar } = useCalendarContext();
-  const { serviceTypes } = useServiceTypes(selectedCalendar?.id);
+  const { serviceTypes } = useServiceTypes(undefined, true); // Load all service types
 
   const canUseInstallments = subscriptionTier && ['professional', 'enterprise'].includes(subscriptionTier);
 
   const presetPlans = {
+    '100_at_booking': {
+      name: '100% at Booking',
+      description: 'Full payment upfront at time of booking',
+      deposits: [
+        { percentage: 100, timing: 'now' as const }
+      ]
+    },
     '50_50': { 
       name: '50/50 Split', 
       description: '50% at booking, 50% on location',
@@ -293,6 +300,62 @@ export function InstallmentSettings({
 
             {enabled && (
               <div className="space-y-4">
+                {/* Apply to Services Section - Moved to top */}
+                <div className="space-y-3">
+                  <Label className="text-base font-medium text-foreground">Apply to Services</Label>
+                  <RadioGroup
+                    value={applyToServices}
+                    onValueChange={(value: 'all' | 'selected') => setApplyToServices(value)}
+                    className="space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="all" id="all-services" />
+                      <Label htmlFor="all-services" className="text-sm font-medium text-foreground">Enable for All Service Types</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="selected" id="selected-services" />
+                      <Label htmlFor="selected-services" className="text-sm font-medium text-foreground">Choose per Service Type</Label>
+                    </div>
+                  </RadioGroup>
+
+                  {applyToServices === 'selected' && (
+                    <div className="mt-4 space-y-3">
+                      <Label className="text-sm font-medium text-foreground">Select Service Types</Label>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {serviceTypes.map((service) => (
+                          <div key={service.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                            <input
+                              type="checkbox"
+                              id={`service-${service.id}`}
+                              checked={selectedServices.includes(service.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedServices([...selectedServices, service.id]);
+                                } else {
+                                  setSelectedServices(selectedServices.filter(id => id !== service.id));
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <Label htmlFor={`service-${service.id}`} className="text-sm font-medium cursor-pointer">
+                              {service.name}
+                            </Label>
+                            <Badge variant="outline" className="text-xs">
+                              {service.price ? `€${service.price}` : 'Free'}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                      {serviceTypes.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          No service types found. Create service types first to configure installments.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Payment Structure Section - Moved below Apply to Services */}
                 <div className="space-y-3">
                   <Label className="text-base font-medium text-foreground">Payment Structure</Label>
                   <RadioGroup
@@ -316,9 +379,20 @@ export function InstallmentSettings({
                     <Label className="text-base font-medium text-foreground">Choose Payment Plan</Label>
                     <RadioGroup
                       value={presetSelection}
-                      onValueChange={(value: '50_50' | '25_25_50' | 'fixed_deposit') => setPresetSelection(value)}
+                      onValueChange={(value: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit') => setPresetSelection(value)}
                       className="space-y-4"
                     >
+                      <div className="flex items-start space-x-3 p-4 border rounded-lg">
+                        <RadioGroupItem value="100_at_booking" id="100_at_booking" className="mt-1" />
+                        <div className="flex-1">
+                          <Label htmlFor="100_at_booking" className="text-sm font-medium text-foreground cursor-pointer">
+                            {presetPlans['100_at_booking'].name}
+                          </Label>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {presetPlans['100_at_booking'].description}
+                          </p>
+                        </div>
+                      </div>
                       <div className="flex items-start space-x-3 p-4 border rounded-lg">
                         <RadioGroupItem value="50_50" id="50_50" className="mt-1" />
                         <div className="flex-1">

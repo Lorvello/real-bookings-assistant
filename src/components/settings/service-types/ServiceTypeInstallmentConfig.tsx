@@ -11,7 +11,7 @@ import { ServiceType } from '@/types/database';
 
 interface InstallmentPlan {
   type: 'preset' | 'custom';
-  preset?: '50_50' | '25_25_50' | 'fixed_deposit';
+  preset?: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit';
   deposits?: Array<{
     percentage?: number;
     amount?: number;

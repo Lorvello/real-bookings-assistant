@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface InstallmentPlan {
   type: 'preset' | 'custom';
-  preset?: '50_50' | '25_25_50' | 'fixed_deposit';
+  preset?: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit';
   deposits?: Array<{
     percentage?: number;
     amount?: number;
@@ -31,6 +31,8 @@ export function InstallmentBadge({ enabled, plan, isOverride }: InstallmentBadge
     
     if (plan.type === 'preset') {
       switch (plan.preset) {
+        case '100_at_booking':
+          return '100% at Booking';
         case '50_50':
           return '50/50';
         case '25_25_50':
