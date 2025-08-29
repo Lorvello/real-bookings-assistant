@@ -636,12 +636,12 @@ export const TaxTab = () => {
               <h4 className="text-white font-medium text-sm">Recent Activity</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Last Report Generated</span>
-                  <span className="text-white">{taxData?.compliance.lastReportGenerated}</span>
+                  <span className="text-gray-400">Last Data Sync</span>
+                  <span className="text-white">{taxData?.lastUpdated ? new Date(taxData.lastUpdated).toLocaleString() : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Next Filing Due</span>
-                  <span className="text-yellow-400">{taxData?.compliance.nextDueDate}</span>
+                  <span className="text-yellow-400">{taxData?.quarterlyData?.quarterEnd ? new Date(taxData.quarterlyData.quarterEnd).toLocaleDateString() : 'N/A'}</span>
                 </div>
               </div>
             </div>
