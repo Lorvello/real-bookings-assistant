@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import '@/types/stripe-connect';
+import '@/types/stripe-connect.d.ts';
 
 interface StripeEmbeddedTaxRegistrationsProps {
   fallbackData?: {
