@@ -56,7 +56,7 @@ export function InstallmentSettings({
   const { selectedCalendar } = useCalendarContext();
   const { serviceTypes } = useServiceTypes(selectedCalendar?.id);
 
-  const canUseInstallments = subscriptionTier && ['starter', 'professional', 'enterprise'].includes(subscriptionTier);
+  const canUseInstallments = subscriptionTier && ['professional', 'enterprise'].includes(subscriptionTier);
 
   const presetPlans = {
     '50_50': { 
@@ -200,10 +200,10 @@ export function InstallmentSettings({
                   Upgrade Required
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Installment payment options are available for Starter and Pro plans
+                  Installment payment options are available for Professional plans and above
                 </p>
                 <Button variant="default" size="sm">
-                  Upgrade Plan
+                  Upgrade to Professional
                 </Button>
               </div>
             </div>

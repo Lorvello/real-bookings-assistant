@@ -35,6 +35,34 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
+    // Validate subscription tier first
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authentication required');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError || !userData.user) {
+      throw new Error('Invalid authentication');
+    }
+
+    // Check user's subscription tier
+    const { data: userProfile, error: profileError } = await supabaseClient
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', userData.user.id)
+      .single();
+
+    if (profileError || !userProfile) {
+      throw new Error('User profile not found');
+    }
+
+    // Only allow professional and enterprise users to use installments
+    if (!userProfile.subscription_tier || !['professional', 'enterprise'].includes(userProfile.subscription_tier)) {
+      throw new Error('Installment payments require Professional plan or higher');
+    }
+
     const { 
       conversationId, 
       serviceTypeId, 

@@ -662,13 +662,14 @@ export const BillingTab: React.FC = () => {
                       "Global multi-language localization",
                       "Streamlined payment processing & collection"
                     ] : tier.tier_name === 'professional' ? [
-                      "All Starter premium features included",
-                      "Automated tax compliance & administration",
-                      "Unlimited calendar orchestration platform",
-                      "Advanced team collaboration suite (2-10 users)",
-                      "Multi-location business coordination", 
-                      "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
-                      "Dedicated priority customer success"
+                       "All Starter premium features included",
+                       "Automated tax compliance & administration",
+                       "Flexible installment payment options",
+                       "Unlimited calendar orchestration platform",
+                       "Advanced team collaboration suite (2-10 users)",
+                       "Multi-location business coordination", 
+                       "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
+                       "Dedicated priority customer success"
                     ] : [
                       "Complete professional suite included",
                       

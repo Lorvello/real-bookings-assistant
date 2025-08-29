@@ -78,6 +78,10 @@ export const Pricing = () => {
           tooltip: "Automatic tax calculation and compliance based on your local tax regulations. No more manual tax administration - everything is automatically calculated and applied according to your local tax rules"
         },
         {
+          text: "Flexible installment payment options",
+          tooltip: "Allow customers to pay in installments with customizable payment schedules. Set up deposits, payment splits, and automated collection for better cash flow management"
+        },
+        {
           text: "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
           tooltip: "Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization"
         },
