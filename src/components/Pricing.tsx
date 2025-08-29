@@ -79,7 +79,7 @@ export const Pricing = () => {
         },
         {
           text: "Automated tax compliance & administration",
-          tooltip: "Automatic VAT calculation and compliance for Dutch businesses. No more manual VAT administration - everything is automatically calculated and applied according to Dutch tax regulations"
+          tooltip: "Automatic tax calculation and compliance based on your local tax regulations. No more manual tax administration - everything is automatically calculated and applied according to your local tax rules"
         },
         {
           text: "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",

@@ -30,7 +30,7 @@ export const TaxComplianceSettings: React.FC<TaxComplianceSettingsProps> = ({
             </Badge>
           </div>
           <CardDescription className="text-slate-400">
-            Automatic VAT calculation and compliance for Dutch businesses
+            Automatic tax calculation and compliance based on your local tax regulations
           </CardDescription>
         </CardHeader>
         
@@ -44,8 +44,8 @@ export const TaxComplianceSettings: React.FC<TaxComplianceSettingsProps> = ({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs max-w-xs">
-                    Stripe Tax automatically calculates the correct VAT rates for all your bookings 
-                    according to Dutch tax legislation
+                    Stripe Tax automatically calculates the correct tax rates for all your bookings 
+                    according to your local tax legislation
                   </p>
                 </TooltipContent>
               </Tooltip>

@@ -39,8 +39,8 @@ export const TaxDisplay: React.FC<TaxDisplayProps> = ({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs max-w-xs">
-                    Dutch VAT is automatically calculated according to applicable tax rates. 
-                    For business services, the standard rate of 21% applies.
+                    Tax rates are automatically calculated according to applicable local tax regulations. 
+                    For business services, local standard tax rates apply.
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -60,7 +60,7 @@ export const TaxDisplay: React.FC<TaxDisplayProps> = ({
           </div>
           
           <div className="text-xs text-slate-500 mt-2">
-            VAT is automatically calculated and administered in compliance with Dutch tax legislation
+            Tax is automatically calculated and administered in compliance with local tax legislation
           </div>
         </CardContent>
       </Card>
