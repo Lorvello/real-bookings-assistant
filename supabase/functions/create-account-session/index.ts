@@ -43,22 +43,39 @@ serve(async (req) => {
     // Get connected account ID if not provided
     let connectedAccountId = account_id
     if (!connectedAccountId) {
-      // Get user's calendar and associated Stripe account
-      const { data: calendars } = await supabase
-        .from('calendars')
-        .select(`
-          id,
-          business_stripe_accounts!inner(connected_account_id)
-        `)
+      // First try to get Stripe account directly by user_id
+      const { data: stripeAccount } = await supabase
+        .from('business_stripe_accounts')
+        .select('connected_account_id, stripe_account_id')
         .eq('user_id', user.id)
-        .eq('is_active', true)
-        .limit(1)
+        .eq('onboarding_completed', true)
+        .single()
 
-      if (!calendars?.[0]?.business_stripe_accounts?.connected_account_id) {
-        throw new Error('No connected Stripe account found')
+      if (stripeAccount?.connected_account_id) {
+        connectedAccountId = stripeAccount.connected_account_id
+      } else if (stripeAccount?.stripe_account_id) {
+        connectedAccountId = stripeAccount.stripe_account_id
+      } else {
+        // Fallback: Get via calendar relationship
+        const { data: calendars } = await supabase
+          .from('calendars')
+          .select(`
+            id,
+            business_stripe_accounts!inner(connected_account_id, stripe_account_id)
+          `)
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .limit(1)
+
+        const account = calendars?.[0]?.business_stripe_accounts
+        if (account?.connected_account_id) {
+          connectedAccountId = account.connected_account_id
+        } else if (account?.stripe_account_id) {
+          connectedAccountId = account.stripe_account_id
+        } else {
+          throw new Error('No connected Stripe account found')
+        }
       }
-      
-      connectedAccountId = calendars[0].business_stripe_accounts.connected_account_id
     }
 
     console.log(`[CREATE-ACCOUNT-SESSION] Creating session for account: ${connectedAccountId}`)

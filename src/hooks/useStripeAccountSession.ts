@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { getStripeMode } from '@/utils/stripeConfig';
+import { getStripeMode, getStripePublishableKey } from '@/utils/stripeConfig';
 
 interface AccountSessionData {
   client_secret: string;

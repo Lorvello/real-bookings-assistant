@@ -40,7 +40,8 @@ export const StripeEmbeddedTaxSettings: React.FC<StripeEmbeddedTaxSettingsProps>
           });
         }
 
-        const stripe = window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+        const { getStripePublishableKey } = await import('@/utils/stripeConfig');
+        const stripe = window.Stripe(getStripePublishableKey());
         
         if (!stripe) {
           throw new Error('Failed to initialize Stripe');
