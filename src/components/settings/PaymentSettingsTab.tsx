@@ -965,7 +965,7 @@ export function PaymentSettingsTab() {
             {/* Installment Payments Section - placed above FundFlow */}
             {userStatus.hasFullAccess ? (
               <div className="bg-muted/50 p-4 rounded-lg space-y-4">
-                <InstallmentSettings 
+                <InstallmentSettings
                   installmentsEnabled={installmentSettings?.enabled || false}
                   defaultPlan={installmentSettings?.defaultPlan || {
                     type: 'preset',

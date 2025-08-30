@@ -1636,6 +1636,67 @@ export type Database = {
         }
         Relationships: []
       }
+      service_installment_configs: {
+        Row: {
+          allow_customer_choice: boolean | null
+          created_at: string | null
+          custom_deposits: Json | null
+          enabled: boolean
+          fixed_deposit_amount: number | null
+          id: string
+          plan_type: string
+          preset_plan: string | null
+          service_type_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          allow_customer_choice?: boolean | null
+          created_at?: string | null
+          custom_deposits?: Json | null
+          enabled?: boolean
+          fixed_deposit_amount?: number | null
+          id?: string
+          plan_type?: string
+          preset_plan?: string | null
+          service_type_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          allow_customer_choice?: boolean | null
+          created_at?: string | null
+          custom_deposits?: Json | null
+          enabled?: boolean
+          fixed_deposit_amount?: number | null
+          id?: string
+          plan_type?: string
+          preset_plan?: string | null
+          service_type_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_installment_configs_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: true
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "service_installment_configs_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: true
+            referencedRelation: "service_type_stats"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "service_installment_configs_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: true
+            referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_types: {
         Row: {
           calendar_id: string | null
@@ -1647,10 +1708,12 @@ export type Database = {
           duration: number
           id: string
           installment_options: Json | null
+          installment_plan_override: Json | null
           installments_enabled: boolean | null
           is_active: boolean | null
           max_attendees: number | null
           name: string
+          override_installments_enabled: boolean | null
           payment_description: string | null
           preparation_time: number | null
           price: number | null
@@ -1672,10 +1735,12 @@ export type Database = {
           duration: number
           id?: string
           installment_options?: Json | null
+          installment_plan_override?: Json | null
           installments_enabled?: boolean | null
           is_active?: boolean | null
           max_attendees?: number | null
           name: string
+          override_installments_enabled?: boolean | null
           payment_description?: string | null
           preparation_time?: number | null
           price?: number | null
@@ -1697,10 +1762,12 @@ export type Database = {
           duration?: number
           id?: string
           installment_options?: Json | null
+          installment_plan_override?: Json | null
           installments_enabled?: boolean | null
           is_active?: boolean | null
           max_attendees?: number | null
           name?: string
+          override_installments_enabled?: boolean | null
           payment_description?: string | null
           preparation_time?: number | null
           price?: number | null
@@ -1945,6 +2012,7 @@ export type Database = {
           address_number: string | null
           address_postal: string | null
           address_street: string | null
+          allow_customer_installment_choice: boolean | null
           avatar_url: string | null
           business_city: string | null
           business_country: string | null
@@ -2005,6 +2073,7 @@ export type Database = {
           address_number?: string | null
           address_postal?: string | null
           address_street?: string | null
+          allow_customer_installment_choice?: boolean | null
           avatar_url?: string | null
           business_city?: string | null
           business_country?: string | null
@@ -2065,6 +2134,7 @@ export type Database = {
           address_number?: string | null
           address_postal?: string | null
           address_street?: string | null
+          allow_customer_installment_choice?: boolean | null
           avatar_url?: string | null
           business_city?: string | null
           business_country?: string | null

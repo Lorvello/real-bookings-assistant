@@ -17,7 +17,16 @@ interface InstallmentPlan {
 
 interface InstallmentSettings {
   enabled: boolean;
+  allowCustomerChoice: boolean;
   defaultPlan: InstallmentPlan;
+  applyToServices?: 'all' | 'selected';
+  selectedServices?: string[];
+  serviceConfigs?: Array<{
+    serviceTypeId: string;
+    enabled: boolean;
+    plan: InstallmentPlan;
+    allowCustomerChoice: boolean;
+  }>;
 }
 
 export const useInstallmentSettings = () => {
@@ -32,7 +41,7 @@ export const useInstallmentSettings = () => {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('installments_enabled, default_installment_plan')
+        .select('installments_enabled, default_installment_plan, allow_customer_installment_choice')
         .eq('id', user.id)
         .single();
 
@@ -40,6 +49,7 @@ export const useInstallmentSettings = () => {
 
       setSettings({
         enabled: data.installments_enabled || false,
+        allowCustomerChoice: data.allow_customer_installment_choice ?? true,
         defaultPlan: (data.default_installment_plan as any) || {
           type: 'preset',
           preset: '50_50',
@@ -61,27 +71,31 @@ export const useInstallmentSettings = () => {
     }
   };
 
-  const updateSettings = async (enabled: boolean, plan: InstallmentPlan) => {
+  const updateSettings = async (settingsData: InstallmentSettings) => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          installments_enabled: enabled,
-          default_installment_plan: plan as any
-        })
-        .eq('id', user.id);
+      const { data, error } = await supabase.functions.invoke('manage-installment-settings', {
+        body: settingsData
+      });
 
       if (error) throw error;
 
-      setSettings({ enabled, defaultPlan: plan });
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to update settings');
+      }
+
+      setSettings(settingsData);
+      toast({
+        title: "Settings saved",
+        description: "Installment settings have been updated successfully.",
+      });
       return true;
     } catch (error) {
       console.error('Error updating installment settings:', error);
       toast({
         title: "Error saving settings",
-        description: "Could not save installment settings.",
+        description: error.message || "Could not save installment settings.",
         variant: "destructive"
       });
       return false;

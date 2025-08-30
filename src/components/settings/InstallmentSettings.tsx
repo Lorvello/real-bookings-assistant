@@ -28,10 +28,16 @@ interface InstallmentPlan {
   fixed_deposit_amount?: number;
 }
 
+interface ServiceTypeInstallmentSettings {
+  enabled: boolean;
+  plan: InstallmentPlan;
+  allowCustomerChoice: boolean;
+}
+
 interface InstallmentSettingsProps {
   installmentsEnabled: boolean;
   defaultPlan: InstallmentPlan;
-  onUpdate: (enabled: boolean, plan: InstallmentPlan) => void;
+  onUpdate: (settingsData: any) => Promise<boolean>;
   subscriptionTier?: string;
 }
 
@@ -52,7 +58,7 @@ export function InstallmentSettings({
   ]);
   const [applyToServices, setApplyToServices] = useState<'all' | 'selected'>('all');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [serviceTypeSettings, setServiceTypeSettings] = useState<Record<string, InstallmentPlan>>({});
+  const [serviceTypeSettings, setServiceTypeSettings] = useState<Record<string, ServiceTypeInstallmentSettings>>({});
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -175,82 +181,41 @@ export function InstallmentSettings({
   };
 
   const handleSave = async () => {
-    if (!user) return;
-
-    if (enabled && planType === 'custom' && !isValidPlan()) {
-      const hasAtBooking = customDeposits.some(d => d.timing === 'now');
-      const atBookingCount = customDeposits.filter(d => d.timing === 'now').length;
-      const onLocationCount = customDeposits.filter(d => d.timing === 'appointment').length;
-      
-      let errorMessage = "Percentages must total 100% and have at least 2 payments.";
-      
-      if (!hasAtBooking) {
-        errorMessage = "At least one payment must be 'At Booking'.";
-      } else if (atBookingCount > 1) {
-        errorMessage = "Only one payment can be 'At Booking'.";
-      } else if (onLocationCount > 1) {
-        errorMessage = "Only one payment can be 'On Location'.";
-      }
-      
-      toast({
-        title: "Invalid installment plan",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      return;
-    }
-
     setSaving(true);
     try {
-      let plan: InstallmentPlan;
-      
-      if (planType === 'preset') {
-        if (presetSelection === 'fixed_deposit') {
-          plan = {
-            type: 'preset',
-            preset: presetSelection,
-            fixed_deposit_amount: fixedDepositAmount,
-            deposits: [
-              { amount: fixedDepositAmount, timing: 'now' },
-              { timing: 'appointment' } // Remainder calculated dynamically
-            ]
+      const plan: InstallmentPlan = planType === 'preset' 
+        ? { 
+            type: 'preset', 
+            preset: presetSelection as any,
+            ...(presetSelection === 'fixed_deposit' && { fixed_deposit_amount: fixedDepositAmount })
+          }
+        : { 
+            type: 'custom', 
+            deposits: customDeposits 
           };
-        } else {
-          plan = {
-            type: 'preset',
-            preset: presetSelection,
-            deposits: presetPlans[presetSelection].deposits
-          };
-        }
-      } else {
-        plan = {
-          type: 'custom',
-          deposits: customDeposits
-        };
+
+      const settingsData = {
+        enabled,
+        allowCustomerChoice,
+        defaultPlan: plan,
+        applyToServices,
+        selectedServices: applyToServices === 'selected' ? selectedServices : undefined,
+        serviceConfigs: applyToServices === 'selected' 
+          ? selectedServices.map(serviceId => ({
+              serviceTypeId: serviceId,
+              enabled: serviceTypeSettings[serviceId]?.enabled ?? true,
+              plan: serviceTypeSettings[serviceId]?.plan ?? plan,
+              allowCustomerChoice: serviceTypeSettings[serviceId]?.allowCustomerChoice ?? allowCustomerChoice
+            }))
+          : undefined
+      };
+
+      const success = await onUpdate(settingsData);
+      if (success) {
+        // Success handled by the hook
       }
-
-      const { error } = await supabase
-        .from('users')
-        .update({
-          installments_enabled: enabled,
-          default_installment_plan: plan as any
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      onUpdate(enabled, plan);
-      toast({
-        title: "Installment settings saved",
-        description: "Your installment payment configuration has been updated."
-      });
     } catch (error) {
       console.error('Error saving installment settings:', error);
-      toast({
-        title: "Error saving settings",
-        description: "Please try again.",
-        variant: "destructive"
-      });
     } finally {
       setSaving(false);
     }
@@ -353,14 +318,18 @@ export function InstallmentSettings({
                                   setSelectedServices([...selectedServices, service.id]);
                                   // Initialize with default plan for new selections
                                   if (!serviceTypeSettings[service.id]) {
-                                    setServiceTypeSettings(prev => ({
-                                      ...prev,
-                                      [service.id]: {
-                                        type: 'preset',
-                                        preset: '100_at_booking',
-                                        deposits: [{ percentage: 100, timing: 'now' }]
-                                      }
-                                    }));
+                                   setServiceTypeSettings(prev => ({
+                                     ...prev,
+                                     [service.id]: {
+                                       enabled: true,
+                                       plan: {
+                                         type: 'preset',
+                                         preset: '100_at_booking',
+                                         deposits: [{ percentage: 100, timing: 'now' }]
+                                       },
+                                       allowCustomerChoice: allowCustomerChoice
+                                     }
+                                   }));
                                   }
                                 } else {
                                   setSelectedServices(selectedServices.filter(id => id !== service.id));
@@ -401,7 +370,7 @@ export function InstallmentSettings({
                         const service = serviceTypes.find(s => s.id === serviceId);
                         if (!service) return null;
                         
-                        const currentPlan = serviceTypeSettings[serviceId] || {
+                        const currentPlan = serviceTypeSettings[serviceId]?.plan || {
                           type: 'preset',
                           preset: '100_at_booking',
                           deposits: [{ percentage: 100, timing: 'now' }]
@@ -415,7 +384,10 @@ export function InstallmentSettings({
                             onPlanChange={(id, plan) => {
                               setServiceTypeSettings(prev => ({
                                 ...prev,
-                                [id]: plan
+                                [id]: {
+                                  ...prev[id],
+                                  plan: plan
+                                }
                               }));
                             }}
                           />
