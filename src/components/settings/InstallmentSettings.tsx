@@ -42,6 +42,7 @@ export function InstallmentSettings({
   subscriptionTier 
 }: InstallmentSettingsProps) {
   const [enabled, setEnabled] = useState(installmentsEnabled);
+  const [allowCustomerChoice, setAllowCustomerChoice] = useState(true);
   const [planType, setPlanType] = useState<'preset' | 'custom'>(defaultPlan.type || 'preset');
   const [presetSelection, setPresetSelection] = useState(defaultPlan.preset || '100_at_booking');
   const [fixedDepositAmount, setFixedDepositAmount] = useState(defaultPlan.fixed_deposit_amount || 50);
@@ -290,7 +291,7 @@ export function InstallmentSettings({
                   Enable Installment Payments
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Customers can choose to pay in installments instead of full upfront
+                  Allow customers to pay for services in multiple installments
                 </p>
               </div>
               <Switch
@@ -301,8 +302,25 @@ export function InstallmentSettings({
             </div>
 
             {enabled && (
-              <div className="space-y-4">
-                {/* Apply to Services Section - Moved to top */}
+              <div className="space-y-6">
+                {/* Allow Customer Choice - New top option */}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label htmlFor="allow-customer-choice" className="text-sm font-medium text-foreground">
+                      Allow customers to choose
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      When enabled, customers can choose between your installment plan or paying in full upfront
+                    </p>
+                  </div>
+                  <Switch
+                    id="allow-customer-choice"
+                    checked={allowCustomerChoice}
+                    onCheckedChange={setAllowCustomerChoice}
+                  />
+                </div>
+
+                {/* Apply to Services Section */}
                 <div className="space-y-3">
                   <Label className="text-base font-medium text-foreground">Apply to Services</Label>
                   <RadioGroup
@@ -407,9 +425,9 @@ export function InstallmentSettings({
                   </div>
                 )}
 
-                {/* Payment Structure Section - Only show for "all services" mode */}
+                {/* Payment Structure Section - Only show for "all services" mode, hierarchically under Apply to Services */}
                 {applyToServices === 'all' && (
-                  <>
+                  <div className="ml-6 border-l-2 border-muted pl-4 space-y-4">
                     <div className="space-y-3">
                       <Label className="text-base font-medium text-foreground">Payment Structure</Label>
                       <RadioGroup
@@ -586,25 +604,7 @@ export function InstallmentSettings({
                       </div>
                     )}
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
-                          <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                        </div>
-                        <div className="space-y-2">
-                          <p className="text-sm font-medium text-blue-900">
-                            How installment payments work
-                          </p>
-                          <div className="text-sm text-blue-800 space-y-1">
-                            <p>• Customers choose to pay in installments during booking</p>
-                            <p>• First payment is collected immediately via Stripe</p>
-                            <p>• Remaining payments are automatically processed at scheduled times</p>
-                            <p>• You'll receive notifications for successful and failed payments</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </>
+                  </div>
                 )}
 
                 <Button onClick={handleSave} disabled={saving || (enabled && !isValidPlan())} className="w-full">
