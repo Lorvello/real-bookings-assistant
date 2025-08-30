@@ -38,6 +38,7 @@ interface InstallmentSettingsRequest {
   applyToServices: 'all' | 'selected';
   selectedServices?: string[];
   serviceConfigs?: ServiceInstallmentConfig[];
+  test_mode?: boolean;
 }
 
 serve(async (req) => {
@@ -100,11 +101,16 @@ serve(async (req) => {
     }
     logStep("User settings updated");
 
-    // Initialize Stripe for creating installment-specific products
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+    // Initialize Stripe with test/live key based on mode
+    const stripeKey = settings.test_mode 
+      ? Deno.env.get('STRIPE_SECRET_TEST_KEY')
+      : Deno.env.get('STRIPE_SECRET_LIVE_KEY');
+    
     if (!stripeKey) {
-      throw new Error('Stripe secret key not configured');
+      throw new Error(`Stripe ${settings.test_mode ? 'test' : 'live'} key is not configured`);
     }
+    logStep("Stripe key found", { mode: settings.test_mode ? 'test' : 'live' });
+    
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
 
     // Get user's Stripe account

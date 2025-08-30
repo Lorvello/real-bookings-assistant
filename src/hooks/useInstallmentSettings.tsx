@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { isTestMode } from '@/utils/stripeConfig';
 
 interface InstallmentPlan {
   type: 'preset' | 'custom';
@@ -76,7 +77,10 @@ export const useInstallmentSettings = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('manage-installment-settings', {
-        body: settingsData
+        body: {
+          ...settingsData,
+          test_mode: isTestMode()
+        }
       });
 
       if (error) throw error;
