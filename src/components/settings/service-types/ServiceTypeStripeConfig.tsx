@@ -130,17 +130,7 @@ export const ServiceTypeStripeConfig: React.FC<ServiceTypeStripeConfigProps> = (
               </p>
             </div>
           </>
-        ) : (
-          <div className="text-center space-y-4 py-6">
-            <div className="text-muted-foreground">
-              <Settings className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>Geen Stripe integratie geconfigureerd</p>
-              <p className="text-sm">
-                Stel een prijs in en sla de service op om automatisch Stripe integratie toe te voegen.
-              </p>
-            </div>
-          </div>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

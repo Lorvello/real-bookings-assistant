@@ -205,9 +205,9 @@ export function ServiceTypeForm({
             </div>
           </div>
 
-          {!taxConfigured && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-              <p className="text-sm text-destructive">
+          {!taxConfigured && formData.tax_enabled && (
+            <div className="p-3 bg-muted border border-border rounded-md">
+              <p className="text-sm text-muted-foreground">
                 Configure tax first. Please complete your tax settings before enabling tax on services.
               </p>
             </div>

@@ -87,8 +87,8 @@ serve(async (req) => {
 
     // Initialize Stripe with appropriate key based on mode
     const stripeKey = testMode 
-      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
-      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
+      ? Deno.env.get("STRIPE_SECRET_TEST_KEY")
+      : Deno.env.get("STRIPE_SECRET_LIVE_KEY");
     
     if (!stripeKey) {
       throw new Error(`Stripe ${testMode ? 'test' : 'live'} secret key not configured`);
@@ -144,9 +144,9 @@ serve(async (req) => {
       user_id: userData.user.id,
       // Store price ID based on mode
       ...(testMode ? {
-        stripe_price_id_test: price.id
+        stripe_test_price_id: price.id
       } : {
-        stripe_price_id_live: price.id
+        stripe_live_price_id: price.id
       })
     }
 

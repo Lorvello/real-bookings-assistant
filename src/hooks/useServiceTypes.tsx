@@ -114,7 +114,7 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
         const { data, error } = await supabase.functions.invoke('create-service-type-with-stripe', {
           body: {
             serviceData: transformForDatabase(serviceData),
-            isTestMode: true, // Could be configurable
+            testMode: true, // Could be configurable
           },
         });
 
@@ -123,11 +123,11 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
           throw error;
         }
 
-        const transformedData = transformServiceType(data.serviceType);
+        const transformedData = transformServiceType(data.service);
         setServiceTypes(prev => [transformedData, ...prev]);
         toast({
           title: "Service created with Stripe integration",
-          description: `Service type created successfully with Stripe price ID: ${data.stripePriceId}`,
+          description: `Service type created successfully with Stripe price ID: ${data.stripe_price_id}`,
         });
         
         return transformedData;
