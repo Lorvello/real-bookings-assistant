@@ -57,5 +57,65 @@ export const ServiceTypeStripeConfig: React.FC<ServiceTypeStripeConfigProps> = (
       installment_options: enabled ? defaultInstallmentOptions : []
     });
   };
-  return;
+
+  // Only show if there's actual Stripe integration
+  if (!hasStripeIntegration) {
+    return null;
+  }
+
+  return (
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <CreditCard className="h-4 w-4" />
+          Stripe Integratie
+        </CardTitle>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <Settings className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      {isExpanded && (
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <label className="text-sm font-medium">Termijnbetalingen</label>
+              <p className="text-xs text-muted-foreground">
+                Sta klanten toe om in termijnen te betalen
+              </p>
+            </div>
+            <Switch
+              checked={serviceType.supports_installments || false}
+              onCheckedChange={handleInstallmentToggle}
+            />
+          </div>
+          
+          {serviceType.supports_installments && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Beschikbare opties:</h4>
+              <div className="space-y-2">
+                {serviceType.installment_options?.map((option, index) => (
+                  <div key={option.id || index} className="p-2 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{option.name}</span>
+                      <Badge variant="outline">
+                        <Euro className="h-3 w-3 mr-1" />
+                        {option.payments.length} betalingen
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {option.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      )}
+    </Card>
+  );
 };

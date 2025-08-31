@@ -33,7 +33,8 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { calendar_id, test_mode = true, start_date, end_date } = await req.json();
+    const requestBody = await req.json();
+    const { calendar_id, test_mode = true, start_date, end_date, quarter, year } = requestBody;
 
     // Check user's subscription tier
     const { data: userData, error: userDataError } = await supabaseClient
@@ -62,8 +63,8 @@ serve(async (req) => {
 
     // Initialize Stripe
     const stripeSecretKey = test_mode 
-      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
-      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
+      ? Deno.env.get("STRIPE_SECRET_TEST_KEY")
+      : Deno.env.get("STRIPE_SECRET_LIVE_KEY");
     
     if (!stripeSecretKey) {
       throw new Error(`Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode`);
@@ -207,7 +208,6 @@ serve(async (req) => {
                            taxComplianceRate >= 80 ? 'warning' : 'non_compliant';
 
     // Get current quarter data or use provided quarter/year
-    const { quarter, year } = await req.json();
     const now = new Date();
     const currentQuarter = quarter || Math.floor(now.getMonth() / 3) + 1;
     const currentYear = year || now.getFullYear();
