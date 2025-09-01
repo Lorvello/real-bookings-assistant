@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { 
   Shield, 
   Crown, 
   Lock, 
   CheckCircle2,
-  AlertTriangle,
-  Settings,
-  Zap,
+  Calculator,
   ArrowRight
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
@@ -18,11 +16,7 @@ import { useAccessControl } from '@/hooks/useAccessControl';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
-import { SyncServicesButton } from '@/components/stripe/SyncServicesButton';
-import { TaxAnalyticsDashboard } from '@/components/tax/TaxAnalyticsDashboard';
-import { AutomatedTaxSetup } from '@/components/tax/AutomatedTaxSetup';
-import { TaxComplianceMonitor } from '@/components/tax/TaxComplianceMonitor';
-import { PremiumInternationalDashboard } from '@/components/admin/PremiumInternationalDashboard';
+import { ConsistentTaxTab } from './ConsistentTaxTab';
 
 export const SimplifiedTaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -61,34 +55,55 @@ export const SimplifiedTaxTab = () => {
   // Locked state for users without Professional access
   if (!hasAccess) {
     return (
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Tax & Compliance</h1>
-            <p className="text-muted-foreground mt-1">Automated VAT management for your business</p>
-          </div>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Calculator className="w-6 h-6" />
+            Tax Management
+          </h2>
+          <p className="text-gray-400 mt-1">
+            Professional tax compliance and management features
+          </p>
         </div>
 
-        <Card>
-          <CardContent className="p-8 text-center">
-            <div className="max-w-md mx-auto space-y-6">
-              <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
-                <Lock className="w-8 h-8 text-amber-500" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Professional Feature</h3>
-                <p className="text-muted-foreground">
-                  Automated VAT management is available for Professional and Enterprise users.
-                </p>
-              </div>
-              <Button 
-                onClick={() => setShowUpgradeModal(true)}
-                size="lg"
-              >
-                <Crown className="w-4 h-4 mr-2" />
-                Upgrade to Professional
-              </Button>
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mb-4">
+              <Lock className="w-8 h-8 text-white" />
             </div>
+            <CardTitle className="text-xl font-semibold text-white">
+              Premium Feature
+            </CardTitle>
+            <CardDescription className="text-gray-400">
+              Tax management is available for Professional users
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-center gap-2 text-gray-300">
+                <Crown className="w-5 h-5 text-yellow-400" />
+                <span>Advanced tax compliance monitoring</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-gray-300">
+                <Crown className="w-5 h-5 text-yellow-400" />
+                <span>Automated service tax configuration</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-gray-300">
+                <Crown className="w-5 h-5 text-yellow-400" />
+                <span>Multi-country tax management</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-gray-300">
+                <Crown className="w-5 h-5 text-yellow-400" />
+                <span>Real-time compliance analytics</span>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={() => setShowUpgradeModal(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
+            >
+              Upgrade to Professional
+            </Button>
           </CardContent>
         </Card>
 
@@ -105,10 +120,10 @@ export const SimplifiedTaxTab = () => {
   if (checkingStripe) {
     return (
       <div className="space-y-6">
-        <Card>
+        <Card className="bg-gray-800 border-gray-700">
           <CardContent className="p-8 text-center">
-            <Shield className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Checking Stripe account status...</p>
+            <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-gray-400">Checking Stripe account status...</p>
           </CardContent>
         </Card>
       </div>
@@ -119,29 +134,41 @@ export const SimplifiedTaxTab = () => {
   if (!stripeAccount?.onboarding_completed) {
     return (
       <div className="space-y-6">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <div className="max-w-md mx-auto space-y-6">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Complete Stripe Setup</h3>
-                <p className="text-muted-foreground">
-                  Go to the Pay & Book page to complete your Stripe onboarding before you can configure tax settings.
-                </p>
-              </div>
+        <div>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Calculator className="w-6 h-6" />
+            Tax Management
+          </h2>
+          <p className="text-gray-400 mt-1">
+            Configure and monitor tax settings for your services
+          </p>
+        </div>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4">
+              <Calculator className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-xl font-semibold text-white">
+              Stripe Setup Required
+            </CardTitle>
+            <CardDescription className="text-gray-400">
+              Complete your Stripe onboarding to enable tax features
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-gray-300">
+              Tax management requires Stripe to be configured for payment processing.
+            </p>
+            <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+              Setup Required
+            </Badge>
+            <div className="pt-4">
               <Button 
-                onClick={async () => {
-                  const link = await createOnboardingLink();
-                  if (link?.url) {
-                    window.open(link.url, '_blank');
-                  }
-                }}
-                size="lg"
+                onClick={() => window.location.href = '/settings?tab=payments'}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                <ArrowRight className="w-4 h-4 mr-2" />
-                Go to Pay & Book
+                Go to Payment Settings
               </Button>
             </div>
           </CardContent>
@@ -150,8 +177,18 @@ export const SimplifiedTaxTab = () => {
     );
   }
 
-  // Premium International Tax Management UI
-  return (
-    <PremiumInternationalDashboard calendarId={selectedCalendar?.id} />
-  );
+  // Return consistent tax interface
+  if (!selectedCalendar?.id) {
+    return (
+      <div className="space-y-6">
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-8 text-center">
+            <p className="text-gray-400">Please select a calendar to manage tax settings.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return <ConsistentTaxTab calendarId={selectedCalendar.id} />;
 };
