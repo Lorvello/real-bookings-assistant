@@ -22,7 +22,7 @@ import { SyncServicesButton } from '@/components/stripe/SyncServicesButton';
 import { TaxAnalyticsDashboard } from '@/components/tax/TaxAnalyticsDashboard';
 import { AutomatedTaxSetup } from '@/components/tax/AutomatedTaxSetup';
 import { TaxComplianceMonitor } from '@/components/tax/TaxComplianceMonitor';
-import { InternationalDashboard } from '@/components/admin/InternationalDashboard';
+import { PremiumInternationalDashboard } from '@/components/admin/PremiumInternationalDashboard';
 
 export const SimplifiedTaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -150,8 +150,8 @@ export const SimplifiedTaxTab = () => {
     );
   }
 
-  // Main International Tax Management UI
+  // Premium International Tax Management UI
   return (
-    <InternationalDashboard calendarId={selectedCalendar?.id} />
+    <PremiumInternationalDashboard calendarId={selectedCalendar?.id} />
   );
 };
