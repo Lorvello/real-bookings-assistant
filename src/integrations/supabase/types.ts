@@ -534,6 +534,90 @@ export type Database = {
           },
         ]
       }
+      business_countries: {
+        Row: {
+          calendar_id: string | null
+          country_code: string
+          created_at: string | null
+          id: string
+          is_primary: boolean | null
+          registration_required: boolean | null
+          registration_status: string | null
+          registration_threshold_amount: number | null
+          tax_collection_enabled: boolean | null
+          threshold_currency: string | null
+          threshold_period: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          calendar_id?: string | null
+          country_code: string
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          registration_required?: boolean | null
+          registration_status?: string | null
+          registration_threshold_amount?: number | null
+          tax_collection_enabled?: boolean | null
+          threshold_currency?: string | null
+          threshold_period?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          calendar_id?: string | null
+          country_code?: string
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          registration_required?: boolean | null
+          registration_status?: string | null
+          registration_threshold_amount?: number | null
+          tax_collection_enabled?: boolean | null
+          threshold_currency?: string | null
+          threshold_period?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_countries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_countries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_countries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_countries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_countries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
       business_stripe_accounts: {
         Row: {
           account_owner_id: string | null
@@ -1639,6 +1723,36 @@ export type Database = {
         }
         Relationships: []
       }
+      service_classifications: {
+        Row: {
+          classification_keywords: string[] | null
+          confidence_score: number | null
+          country_specific_tax_codes: Json | null
+          created_at: string | null
+          id: string
+          service_name: string
+          suggested_category: string
+        }
+        Insert: {
+          classification_keywords?: string[] | null
+          confidence_score?: number | null
+          country_specific_tax_codes?: Json | null
+          created_at?: string | null
+          id?: string
+          service_name: string
+          suggested_category: string
+        }
+        Update: {
+          classification_keywords?: string[] | null
+          confidence_score?: number | null
+          country_specific_tax_codes?: Json | null
+          created_at?: string | null
+          id?: string
+          service_name?: string
+          suggested_category?: string
+        }
+        Relationships: []
+      }
       service_installment_configs: {
         Row: {
           allow_customer_choice: boolean | null
@@ -2011,6 +2125,84 @@ export type Database = {
             referencedColumns: ["calendar_id"]
           },
         ]
+      }
+      tax_setup_queue: {
+        Row: {
+          calendar_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          operation_data: Json
+          operation_type: string
+          retry_count: number | null
+          scheduled_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          calendar_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          operation_data?: Json
+          operation_type: string
+          retry_count?: number | null
+          scheduled_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          calendar_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          operation_data?: Json
+          operation_type?: string
+          retry_count?: number | null
+          scheduled_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tax_thresholds: {
+        Row: {
+          country_code: string
+          created_at: string | null
+          currency: string
+          description: string | null
+          id: string
+          period: string | null
+          threshold_amount_cents: number
+          threshold_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          country_code: string
+          created_at?: string | null
+          currency: string
+          description?: string | null
+          id?: string
+          period?: string | null
+          threshold_amount_cents: number
+          threshold_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          country_code?: string
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          id?: string
+          period?: string | null
+          threshold_amount_cents?: number
+          threshold_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       team_invitations: {
         Row: {

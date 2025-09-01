@@ -20,6 +20,8 @@ import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { SyncServicesButton } from '@/components/stripe/SyncServicesButton';
 import { TaxAnalyticsDashboard } from '@/components/tax/TaxAnalyticsDashboard';
+import { AutomatedTaxSetup } from '@/components/tax/AutomatedTaxSetup';
+import { TaxComplianceMonitor } from '@/components/tax/TaxComplianceMonitor';
 
 export const SimplifiedTaxTab = () => {
   const { userStatus } = useUserStatus();
