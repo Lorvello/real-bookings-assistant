@@ -29,12 +29,22 @@ serve(async (req) => {
 
     const { booking_id, calendar_id, test_mode = false } = await req.json();
 
-    // Get booking details
+    // Get booking details with complete service information including tax config
     const { data: booking, error: bookingError } = await supabaseClient
       .from("bookings")
       .select(`
         *,
-        service_types (name, price)
+        service_types (
+          name, 
+          price, 
+          tax_enabled,
+          tax_code,
+          tax_behavior,
+          applicable_tax_rate,
+          business_country,
+          stripe_test_price_id,
+          stripe_live_price_id
+        )
       `)
       .eq("id", booking_id)
       .single();
@@ -69,38 +79,76 @@ serve(async (req) => {
     });
 
     // Calculate amount (use booking total_price or service price)
-    const amount = Math.round((booking.total_price || booking.service_types?.price || 0) * 100);
+    const baseAmount = booking.total_price || booking.service_types?.price || 0;
+    let amount = Math.round(baseAmount * 100);
+    
+    // Check if service has tax configuration and calculate tax if needed
+    const service = booking.service_types;
+    let taxAmount = 0;
+    let automaticTaxEnabled = false;
+    
+    if (service?.tax_enabled && service?.tax_code && service?.applicable_tax_rate) {
+      // Calculate tax based on service configuration
+      if (service.tax_behavior === 'inclusive') {
+        // Tax is already included in the price, calculate the tax portion
+        const taxRate = service.applicable_tax_rate / 100;
+        taxAmount = Math.round((baseAmount * taxRate / (1 + taxRate)) * 100);
+      } else {
+        // Tax is exclusive, add it to the base amount
+        const taxRate = service.applicable_tax_rate / 100;
+        taxAmount = Math.round((baseAmount * taxRate) * 100);
+        amount = Math.round(baseAmount * 100) + taxAmount;
+      }
+      
+      automaticTaxEnabled = true;
+      console.log(`Tax calculation: Base: €${baseAmount}, Tax Rate: ${service.applicable_tax_rate}%, Tax Amount: €${taxAmount/100}, Total: €${amount/100}`);
+    }
 
-    // Get user's subscription tier for tax compliance
+    // Get user's subscription tier for enhanced tax compliance features
     const { data: userData } = await supabaseClient
       .from("users")
       .select("subscription_tier")
       .eq("id", user.id)
       .single();
 
-    // Enable automatic tax only for Professional and Enterprise tiers
-    const enableAutomaticTax = userData?.subscription_tier === 'professional' || 
-                              userData?.subscription_tier === 'enterprise';
+    // Enhanced automatic tax for higher tiers with Stripe Tax API
+    const useStripeTaxAPI = userData?.subscription_tier === 'professional' || 
+                           userData?.subscription_tier === 'enterprise';
 
-    // Create payment intent with conditional tax calculation
-    const paymentIntent = await stripe.paymentIntents.create({
+    // Create payment intent with advanced tax calculation
+    const paymentIntentData: any = {
       amount,
-      currency: booking.payment_currency || "eur",
+      currency: booking.payment_currency || service?.business_country === 'GB' ? 'gbp' : 'eur',
       customer: user.email,
       transfer_data: {
         destination: stripeAccount.stripe_account_id,
-      },
-      automatic_tax: {
-        enabled: enableAutomaticTax,
       },
       metadata: {
         booking_id: booking.id,
         calendar_id: calendar_id,
         customer_email: booking.customer_email,
-        service_name: booking.service_types?.name || 'Appointment Service',
+        service_name: service?.name || 'Appointment Service',
         subscription_tier: userData?.subscription_tier || 'starter',
+        business_country: service?.business_country || 'NL',
+        tax_enabled: service?.tax_enabled?.toString() || 'false',
+        base_amount: baseAmount.toString(),
+        tax_amount: (taxAmount / 100).toString(),
       },
-    });
+    };
+
+    // Use Stripe Tax API for professional/enterprise tiers, or manual calculation for others
+    if (useStripeTaxAPI && service?.tax_enabled) {
+      paymentIntentData.automatic_tax = { enabled: true };
+      console.log('Using Stripe Tax API for automatic tax calculation');
+    } else if (automaticTaxEnabled) {
+      // Manual tax calculation is already included in the amount
+      paymentIntentData.metadata.manual_tax_calculated = 'true';
+      paymentIntentData.metadata.tax_rate = service?.applicable_tax_rate?.toString() || '0';
+      paymentIntentData.metadata.tax_behavior = service?.tax_behavior || 'exclusive';
+      console.log('Using manual tax calculation based on service configuration');
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create(paymentIntentData);
 
     // Record payment attempt
     const { error: paymentError } = await supabaseClient

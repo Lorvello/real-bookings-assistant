@@ -22,6 +22,7 @@ import { SyncServicesButton } from '@/components/stripe/SyncServicesButton';
 import { TaxAnalyticsDashboard } from '@/components/tax/TaxAnalyticsDashboard';
 import { AutomatedTaxSetup } from '@/components/tax/AutomatedTaxSetup';
 import { TaxComplianceMonitor } from '@/components/tax/TaxComplianceMonitor';
+import { InternationalDashboard } from '@/components/admin/InternationalDashboard';
 
 export const SimplifiedTaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -149,58 +150,8 @@ export const SimplifiedTaxTab = () => {
     );
   }
 
-  // Main Real-Data Tax Management UI
+  // Main International Tax Management UI
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Tax Management</h1>
-          <p className="text-muted-foreground mt-1">Real-time tax analytics and compliance</p>
-        </div>
-        <SyncServicesButton />
-      </div>
-
-      {/* Real-Data Tax Analytics Dashboard */}
-      <TaxAnalyticsDashboard 
-        calendarId={selectedCalendar?.id}
-        accountId={stripeAccount?.stripe_account_id}
-      />
-
-      {/* Service Tax Management Link */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Service Tax Configuration
-          </CardTitle>
-          <CardDescription>
-            Configure tax settings and rates for your services
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Enable tax collection and set rates for each service type to see them in your analytics.
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                window.location.href = '/settings?tab=services';
-              }}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Configure Service Taxes
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <SubscriptionModal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-        userType={userStatus.userType}
-      />
-    </div>
+    <InternationalDashboard calendarId={selectedCalendar?.id} />
   );
 };

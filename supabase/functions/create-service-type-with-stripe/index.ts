@@ -79,13 +79,46 @@ serve(async (req) => {
         throw new Error('Tax behavior must be either "inclusive" or "exclusive"');
       }
 
-      logStep("Tax validation passed", { 
-        tax_code: serviceData.tax_code, 
-        tax_behavior: serviceData.tax_behavior 
+    logStep("Tax validation passed", { 
+      tax_code: serviceData.tax_code, 
+      tax_behavior: serviceData.tax_behavior 
+    });
+  } else {
+    // Auto-assign tax codes for services without explicit tax configuration
+    logStep("Auto-assigning tax codes for service");
+    
+    try {
+      // Call assign-tax-codes function to automatically configure tax
+      const { data: taxAssignmentResult } = await supabaseClient.functions.invoke('assign-tax-codes', {
+        body: {
+          calendar_id: serviceData.calendar_id,
+          service_data: {
+            name: serviceData.name,
+            category: serviceData.service_category || 'general',
+            description: serviceData.description
+          }
+        }
       });
-    }
 
-    // Initialize Stripe with appropriate key based on mode
+      if (taxAssignmentResult?.success && taxAssignmentResult?.tax_code) {
+        serviceData.tax_enabled = true;
+        serviceData.tax_code = taxAssignmentResult.tax_code;
+        serviceData.tax_behavior = taxAssignmentResult.tax_behavior || 'exclusive';
+        serviceData.applicable_tax_rate = taxAssignmentResult.applicable_tax_rate;
+        serviceData.business_country = taxAssignmentResult.business_country || 'NL';
+        
+        logStep("Tax codes auto-assigned successfully", {
+          tax_code: serviceData.tax_code,
+          business_country: serviceData.business_country,
+          tax_rate: serviceData.applicable_tax_rate
+        });
+      }
+    } catch (taxError) {
+      logStep("Auto tax assignment failed, continuing without tax", { error: taxError.message });
+    }
+  }
+
+  // Initialize Stripe with appropriate key based on mode
     const stripeKey = testMode 
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
       : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
