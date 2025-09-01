@@ -19,9 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { SyncServicesButton } from '@/components/stripe/SyncServicesButton';
-import { SimplifiedTaxStatusOverview } from '@/components/tax/SimplifiedTaxStatusOverview';
-import { InternationalTaxSetup } from '@/components/tax/InternationalTaxSetup';
-import { InternationalServiceTaxManager } from '@/components/tax/InternationalServiceTaxManager';
+import { TaxAnalyticsDashboard } from '@/components/tax/TaxAnalyticsDashboard';
 
 export const SimplifiedTaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -149,34 +147,22 @@ export const SimplifiedTaxTab = () => {
     );
   }
 
-  // Main Simplified Tax UI
+  // Main Real-Data Tax Management UI
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Tax Setup</h1>
-          <p className="text-muted-foreground mt-1">VAT configuration for your services</p>
+          <h1 className="text-2xl font-bold">Tax Management</h1>
+          <p className="text-muted-foreground mt-1">Real-time tax analytics and compliance</p>
         </div>
         <SyncServicesButton />
       </div>
 
-      {/* Quick Status Overview */}
-      <SimplifiedTaxStatusOverview 
-        accountId={stripeAccount?.stripe_account_id}
+      {/* Real-Data Tax Analytics Dashboard */}
+      <TaxAnalyticsDashboard 
         calendarId={selectedCalendar?.id}
-      />
-
-      {/* International Tax Setup */}
-      <InternationalTaxSetup 
         accountId={stripeAccount?.stripe_account_id}
-        calendarId={selectedCalendar?.id}
-      />
-
-      {/* International Service Tax Manager */}
-      <InternationalServiceTaxManager
-        accountId={stripeAccount?.stripe_account_id}
-        calendarId={selectedCalendar?.id}
       />
 
       {/* Service Tax Management Link */}
@@ -184,16 +170,16 @@ export const SimplifiedTaxTab = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
-            Service Tax Settings
+            Service Tax Configuration
           </CardTitle>
           <CardDescription>
-            Configure tax settings per service type
+            Configure tax settings and rates for your services
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Set VAT behavior (inclusive/exclusive) and tax codes for each of your services.
+              Enable tax collection and set rates for each service type to see them in your analytics.
             </p>
             <Button 
               variant="outline" 
@@ -202,7 +188,7 @@ export const SimplifiedTaxTab = () => {
               }}
             >
               <Settings className="w-4 h-4 mr-2" />
-              Manage Service Taxes
+              Configure Service Taxes
             </Button>
           </div>
         </CardContent>
