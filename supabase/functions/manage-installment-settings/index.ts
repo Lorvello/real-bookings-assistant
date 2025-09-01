@@ -103,8 +103,8 @@ serve(async (req) => {
 
     // Initialize Stripe with test/live key based on mode
     const stripeKey = settings.test_mode 
-      ? Deno.env.get('STRIPE_SECRET_TEST_KEY')
-      : Deno.env.get('STRIPE_SECRET_LIVE_KEY');
+      ? Deno.env.get('STRIPE_SECRET_KEY_TEST')
+      : Deno.env.get('STRIPE_SECRET_KEY_LIVE');
     
     if (!stripeKey) {
       throw new Error(`Stripe ${settings.test_mode ? 'test' : 'live'} key is not configured`);
