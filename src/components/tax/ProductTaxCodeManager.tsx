@@ -7,6 +7,7 @@ import { RefreshCw, Tag, Check, X, ArrowRightLeft } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getStripeMode } from '@/utils/stripeConfig';
 
 interface ProductTaxCodeManagerProps {
   accountId?: string;
@@ -48,18 +49,45 @@ export const ProductTaxCodeManager: React.FC<ProductTaxCodeManagerProps> = ({
   const queryClient = useQueryClient();
   const [syncingServices, setSyncingServices] = useState<Set<string>>(new Set());
 
-  // Get service types
+  // Get service types using same logic as useServiceTypes hook
   const { data: serviceTypes, isLoading: servicesLoading } = useQuery({
     queryKey: ['service-types', calendarId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!calendarId) return [];
+
+      // Get current user
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return [];
+
+      // Fetch service types linked to specific calendar via junction table OR directly via calendar_id
+      const { data: junctionData, error: junctionError } = await supabase
+        .from('service_types')
+        .select(`
+          id, name, tax_code, stripe_test_price_id, stripe_live_price_id,
+          calendar_service_types!inner(calendar_id)
+        `)
+        .eq('calendar_service_types.calendar_id', calendarId)
+        .eq('user_id', userData.user.id)
+        .eq('is_active', true);
+
+      const { data: directData, error: directError } = await supabase
         .from('service_types')
         .select('id, name, tax_code, stripe_test_price_id, stripe_live_price_id')
         .eq('calendar_id', calendarId)
+        .eq('user_id', userData.user.id)
         .eq('is_active', true);
 
-      if (error) throw error;
-      return data as ServiceType[];
+      if (junctionError || directError) {
+        throw junctionError || directError;
+      }
+
+      // Combine both results and remove duplicates
+      const allServiceTypes = [...(junctionData || []), ...(directData || [])];
+      const uniqueServiceTypes = allServiceTypes.filter((item, index, self) => 
+        index === self.findIndex(t => t.id === item.id)
+      );
+
+      return uniqueServiceTypes as ServiceType[];
     },
     enabled: !!calendarId,
   });
@@ -71,7 +99,7 @@ export const ProductTaxCodeManager: React.FC<ProductTaxCodeManagerProps> = ({
       if (!accountId) return null;
 
       const { data, error } = await supabase.functions.invoke('get-tax-codes', {
-        body: { test_mode: true }
+        body: { test_mode: getStripeMode() === 'test' }
       });
 
       if (error) throw error;
@@ -95,7 +123,7 @@ export const ProductTaxCodeManager: React.FC<ProductTaxCodeManagerProps> = ({
         body: {
           service_type_id: serviceTypeId,
           tax_code: taxCode,
-          test_mode: true
+          test_mode: getStripeMode() === 'test'
         }
       });
 

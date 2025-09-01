@@ -26,6 +26,7 @@ import { ThresholdMonitoringDashboard } from '@/components/tax/ThresholdMonitori
 import { AccountRequirements } from '@/components/tax/AccountRequirements';
 import { ProductTaxCodeManager } from '@/components/tax/ProductTaxCodeManager';
 import { Settings } from 'lucide-react';
+import { getStripeMode } from '@/utils/stripeConfig';
 
 export const TaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -276,24 +277,24 @@ export const TaxTab = () => {
       <div className="space-y-6">
         <QuarterlyTaxSummary 
           accountId={stripeAccount?.stripe_account_id} 
-          calendarId={stripeAccount?.calendar_id}
+          calendarId={selectedCalendar?.id}
         />
         
         <ServiceBreakdown
           accountId={stripeAccount?.stripe_account_id}
-          calendarId={stripeAccount?.calendar_id}
+          calendarId={selectedCalendar?.id}
           quarter={1}
           year={2024}
         />
         
         <TaxExportSection 
           accountId={stripeAccount?.stripe_account_id} 
-          calendarId={stripeAccount?.calendar_id}
+          calendarId={selectedCalendar?.id}
         />
 
         <ProductTaxCodeManager
           accountId={stripeAccount?.stripe_account_id}
-          calendarId={stripeAccount?.calendar_id}
+          calendarId={selectedCalendar?.id}
         />
 
         {/* Manage Service Tax Button */}
@@ -330,22 +331,22 @@ export const TaxTab = () => {
         
         <TaxRegistrationsManager
           accountId={stripeAccount?.stripe_account_id}
-          calendarId={stripeAccount?.calendar_id}
+          calendarId={selectedCalendar?.id}
         />
 
         <ThresholdMonitoringDashboard
           accountId={stripeAccount?.stripe_account_id}
-          calendarId={stripeAccount?.calendar_id}
+          calendarId={selectedCalendar?.id}
         />
 
         <AccountRequirements
           accountId={stripeAccount?.stripe_account_id}
-          calendarId={stripeAccount?.calendar_id}
+          calendarId={selectedCalendar?.id}
         />
         
         <TaxStatusOverview 
           accountId={stripeAccount?.stripe_account_id} 
-          calendarId={stripeAccount?.calendar_id}
+          calendarId={selectedCalendar?.id}
         />
       </div>
 

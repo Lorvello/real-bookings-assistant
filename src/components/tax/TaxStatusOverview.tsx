@@ -6,6 +6,7 @@ import { RefreshCw, CheckCircle, AlertTriangle, Shield, Zap } from 'lucide-react
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getStripeMode } from '@/utils/stripeConfig';
 
 interface TaxStatusOverviewProps {
   accountId?: string;
@@ -26,7 +27,7 @@ export const TaxStatusOverview: React.FC<TaxStatusOverviewProps> = ({
       const { data, error } = await supabase.functions.invoke('get-tax-data', {
         body: {
           calendar_id: calendarId,
-          test_mode: true
+          test_mode: getStripeMode() === 'test'
         }
       });
 
@@ -62,6 +63,24 @@ export const TaxStatusOverview: React.FC<TaxStatusOverviewProps> = ({
   const overview = taxData?.overview;
   
   const getConnectionStatus = () => {
+    // Handle different error cases
+    if (taxData?.success === false) {
+      if (taxData.code === 'NO_ACCOUNT') {
+        return { 
+          icon: AlertTriangle, 
+          text: 'Setup required', 
+          color: 'bg-warning text-warning-foreground' 
+        };
+      }
+      if (taxData.code === 'UPGRADE_REQUIRED') {
+        return { 
+          icon: AlertTriangle, 
+          text: 'Upgrade required', 
+          color: 'bg-warning text-warning-foreground' 
+        };
+      }
+    }
+
     if (!stripeStatus) return { icon: AlertTriangle, text: 'Unknown', color: 'bg-muted' };
     
     if (stripeStatus.chargesEnabled && stripeStatus.automaticTaxEnabled) {
@@ -154,16 +173,18 @@ export const TaxStatusOverview: React.FC<TaxStatusOverviewProps> = ({
           </div>
         )}
         
-        {taxData && (
+        {taxData && taxData.lastUpdated && (
           <div className="mt-6 pt-4 border-t">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4" />
                 <span>Account: {stripeStatus?.country || 'NL'} • Express</span>
               </div>
-              <div>
-                Last updated: {new Date(taxData.lastUpdated).toLocaleString('nl-NL')}
-              </div>
+              {taxData.lastUpdated && !isNaN(new Date(taxData.lastUpdated).getTime()) && (
+                <div>
+                  Last updated: {new Date(taxData.lastUpdated).toLocaleString('nl-NL')}
+                </div>
+              )}
             </div>
           </div>
         )}
