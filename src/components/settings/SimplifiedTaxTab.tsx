@@ -16,7 +16,7 @@ import { useAccessControl } from '@/hooks/useAccessControl';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
-import { SimpleRevenueTab } from './SimpleRevenueTab';
+import { ComprehensiveTaxDashboard } from './ComprehensiveTaxDashboard';
 
 export const SimplifiedTaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -190,5 +190,5 @@ export const SimplifiedTaxTab = () => {
     );
   }
 
-  return <SimpleRevenueTab />;
+  return <ComprehensiveTaxDashboard />;
 };
