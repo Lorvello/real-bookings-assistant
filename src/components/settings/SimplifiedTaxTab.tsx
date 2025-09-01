@@ -20,8 +20,8 @@ import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { SyncServicesButton } from '@/components/stripe/SyncServicesButton';
 import { SimplifiedTaxStatusOverview } from '@/components/tax/SimplifiedTaxStatusOverview';
-import { AutoTaxSetup } from '@/components/tax/AutoTaxSetup';
-import { SimpleProductTaxManager } from '@/components/tax/SimpleProductTaxManager';
+import { InternationalTaxSetup } from '@/components/tax/InternationalTaxSetup';
+import { InternationalServiceTaxManager } from '@/components/tax/InternationalServiceTaxManager';
 
 export const SimplifiedTaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -167,15 +167,15 @@ export const SimplifiedTaxTab = () => {
         calendarId={selectedCalendar?.id}
       />
 
-      {/* Auto Tax Setup for Dutch businesses */}
-      <AutoTaxSetup 
-        accountId={stripeAccount?.stripe_account_id}
+      {/* International Tax Setup */}
+      <InternationalTaxSetup 
+        accountId={stripeAccount?.account_owner_id}
         calendarId={selectedCalendar?.id}
       />
 
-      {/* Simple Product Tax Manager */}
-      <SimpleProductTaxManager
-        accountId={stripeAccount?.stripe_account_id}
+      {/* International Service Tax Manager */}
+      <InternationalServiceTaxManager
+        accountId={stripeAccount?.account_owner_id}
         calendarId={selectedCalendar?.id}
       />
 

@@ -551,6 +551,7 @@ export type Database = {
           payouts_enabled: boolean
           platform_account_id: string | null
           stripe_account_id: string
+          tax_collection_countries: string[] | null
           updated_at: string
           user_id: string
         }
@@ -570,6 +571,7 @@ export type Database = {
           payouts_enabled?: boolean
           platform_account_id?: string | null
           stripe_account_id: string
+          tax_collection_countries?: string[] | null
           updated_at?: string
           user_id: string
         }
@@ -589,6 +591,7 @@ export type Database = {
           payouts_enabled?: boolean
           platform_account_id?: string | null
           stripe_account_id?: string
+          tax_collection_countries?: string[] | null
           updated_at?: string
           user_id?: string
         }
@@ -1699,6 +1702,8 @@ export type Database = {
       }
       service_types: {
         Row: {
+          applicable_tax_rate: number | null
+          business_country: string | null
           calendar_id: string | null
           cleanup_time: number | null
           color: string | null
@@ -1717,15 +1722,19 @@ export type Database = {
           payment_description: string | null
           preparation_time: number | null
           price: number | null
+          service_category: string | null
           stripe_live_price_id: string | null
           stripe_test_price_id: string | null
           supports_installments: boolean | null
           tax_behavior: string | null
           tax_code: string | null
           tax_enabled: boolean | null
+          tax_rate_type: string | null
           user_id: string | null
         }
         Insert: {
+          applicable_tax_rate?: number | null
+          business_country?: string | null
           calendar_id?: string | null
           cleanup_time?: number | null
           color?: string | null
@@ -1744,15 +1753,19 @@ export type Database = {
           payment_description?: string | null
           preparation_time?: number | null
           price?: number | null
+          service_category?: string | null
           stripe_live_price_id?: string | null
           stripe_test_price_id?: string | null
           supports_installments?: boolean | null
           tax_behavior?: string | null
           tax_code?: string | null
           tax_enabled?: boolean | null
+          tax_rate_type?: string | null
           user_id?: string | null
         }
         Update: {
+          applicable_tax_rate?: number | null
+          business_country?: string | null
           calendar_id?: string | null
           cleanup_time?: number | null
           color?: string | null
@@ -1771,12 +1784,14 @@ export type Database = {
           payment_description?: string | null
           preparation_time?: number | null
           price?: number | null
+          service_category?: string | null
           stripe_live_price_id?: string | null
           stripe_test_price_id?: string | null
           supports_installments?: boolean | null
           tax_behavior?: string | null
           tax_code?: string | null
           tax_enabled?: boolean | null
+          tax_rate_type?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -1924,6 +1939,78 @@ export type Database = {
           white_label?: boolean | null
         }
         Relationships: []
+      }
+      tax_configurations: {
+        Row: {
+          calendar_id: string | null
+          country_code: string
+          created_at: string
+          default_tax_code: string
+          default_tax_rate: number
+          id: string
+          multi_country_business: boolean | null
+          tax_system_name: string
+          updated_at: string
+        }
+        Insert: {
+          calendar_id?: string | null
+          country_code: string
+          created_at?: string
+          default_tax_code?: string
+          default_tax_rate?: number
+          id?: string
+          multi_country_business?: boolean | null
+          tax_system_name?: string
+          updated_at?: string
+        }
+        Update: {
+          calendar_id?: string | null
+          country_code?: string
+          created_at?: string
+          default_tax_code?: string
+          default_tax_rate?: number
+          id?: string
+          multi_country_business?: boolean | null
+          tax_system_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_configurations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "tax_configurations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tax_configurations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "tax_configurations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "tax_configurations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
       }
       team_invitations: {
         Row: {

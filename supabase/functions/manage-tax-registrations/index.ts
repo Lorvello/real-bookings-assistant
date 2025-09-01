@@ -12,6 +12,20 @@ const logStep = (step: string, details?: any) => {
   console.log(`[MANAGE-TAX-REGISTRATIONS] ${step}${detailsStr}`);
 };
 
+// International tax registration support
+const SUPPORTED_COUNTRIES = [
+  'NL', 'DE', 'FR', 'GB', 'BE', 'ES', 'IT', 'AT', 'DK', 'SE', 'FI', 'PT', 'IE',
+  'LU', 'CY', 'MT', 'SI', 'SK', 'CZ', 'HU', 'PL', 'EE', 'LV', 'LT', 'BG', 'RO', 'HR',
+  'US', 'CA', 'AU'
+];
+
+const detectBusinessCountry = (stripeAccount: any): string => {
+  if (stripeAccount?.country) {
+    return stripeAccount.country.toUpperCase();
+  }
+  return 'NL'; // Default fallback
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -52,7 +66,7 @@ serve(async (req) => {
         JSON.stringify({ 
           success: false, 
           code: 'UPGRADE_REQUIRED',
-          error: 'Tax registration management requires Professional or Enterprise subscription' 
+          error: 'International tax registration management requires Professional or Enterprise subscription' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
@@ -99,6 +113,10 @@ serve(async (req) => {
 
     logStep('Found Stripe account', { accountId: stripeAccount.stripe_account_id });
 
+    // Detect business country if not specified
+    const businessCountry = country || detectBusinessCountry(stripeAccount);
+    logStep('Business country determined', { country: businessCountry });
+
     // Handle different actions
     switch (action) {
       case 'list':
@@ -107,19 +125,26 @@ serve(async (req) => {
             stripeAccount: stripeAccount.stripe_account_id
           });
 
+          // Enhance registrations with country info
+          const enhancedRegistrations = registrations.data.map(reg => ({
+            id: reg.id,
+            country: reg.country,
+            status: reg.status,
+            active_from: reg.active_from,
+            expires_at: reg.expires_at,
+            livemode: reg.livemode,
+            type: reg.type,
+            country_options: reg.country_options,
+            is_supported: SUPPORTED_COUNTRIES.includes(reg.country),
+            business_country: businessCountry
+          }));
+
           return new Response(
             JSON.stringify({
               success: true,
-              registrations: registrations.data.map(reg => ({
-                id: reg.id,
-                country: reg.country,
-                status: reg.status,
-                active_from: reg.active_from,
-                expires_at: reg.expires_at,
-                livemode: reg.livemode,
-                type: reg.type,
-                country_options: reg.country_options
-              })),
+              registrations: enhancedRegistrations,
+              businessCountry,
+              supportedCountries: SUPPORTED_COUNTRIES,
               lastUpdated: new Date().toISOString()
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
@@ -130,6 +155,8 @@ serve(async (req) => {
             JSON.stringify({
               success: true,
               registrations: [],
+              businessCountry,
+              supportedCountries: SUPPORTED_COUNTRIES,
               lastUpdated: new Date().toISOString(),
               note: 'Tax registrations may not be available for Express accounts'
             }),
@@ -138,24 +165,50 @@ serve(async (req) => {
         }
 
       case 'create':
-        if (!country) {
+        const targetCountry = country || businessCountry;
+        
+        if (!targetCountry) {
           throw new Error('Country is required for creating tax registration');
         }
 
+        if (!SUPPORTED_COUNTRIES.includes(targetCountry)) {
+          throw new Error(`Tax registration not yet supported for country: ${targetCountry}`);
+        }
+
         try {
-          const registration = await stripe.tax.registrations.create({
-            country,
-            country_options: vat_id ? {
-              [country.toLowerCase()]: {
+          const registrationData: any = {
+            country: targetCountry,
+          };
+
+          // Add country-specific options for VAT registration
+          if (vat_id && ['NL', 'DE', 'FR', 'GB', 'BE', 'ES', 'IT'].includes(targetCountry)) {
+            registrationData.country_options = {
+              [targetCountry.toLowerCase()]: {
                 type: 'vat',
                 value: vat_id
               }
-            } : undefined
-          }, {
+            };
+          }
+
+          const registration = await stripe.tax.registrations.create(registrationData, {
             stripeAccount: stripeAccount.stripe_account_id
           });
 
-          logStep('Created tax registration', { country, registrationId: registration.id });
+          logStep('Created international tax registration', { 
+            country: targetCountry, 
+            registrationId: registration.id,
+            businessCountry 
+          });
+
+          // Update business stripe account with new tax collection country
+          await supabaseClient
+            .from('business_stripe_accounts')
+            .update({
+              tax_collection_countries: stripeAccount.tax_collection_countries 
+                ? [...(stripeAccount.tax_collection_countries || []), targetCountry]
+                : [targetCountry]
+            })
+            .eq('id', stripeAccount.id);
 
           return new Response(
             JSON.stringify({
@@ -168,14 +221,18 @@ serve(async (req) => {
                 expires_at: registration.expires_at,
                 livemode: registration.livemode,
                 type: registration.type,
-                country_options: registration.country_options
+                country_options: registration.country_options,
+                business_country: businessCountry
               }
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
           );
         } catch (error) {
-          logStep('Failed to create tax registration', { error: error.message });
-          throw new Error(`Failed to create tax registration: ${error.message}`);
+          logStep('Failed to create international tax registration', { 
+            error: error.message, 
+            country: targetCountry 
+          });
+          throw new Error(`Failed to create tax registration for ${targetCountry}: ${error.message}`);
         }
 
       case 'delete':
@@ -190,12 +247,16 @@ serve(async (req) => {
             stripeAccount: stripeAccount.stripe_account_id
           });
 
-          logStep('Deleted tax registration', { registrationId: registration_id });
+          logStep('Deleted international tax registration', { 
+            registrationId: registration_id,
+            businessCountry 
+          });
 
           return new Response(
             JSON.stringify({
               success: true,
-              message: 'Tax registration deleted successfully'
+              message: 'Tax registration deleted successfully',
+              businessCountry
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
           );

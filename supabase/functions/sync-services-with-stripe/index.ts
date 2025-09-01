@@ -12,6 +12,43 @@ const logStep = (step: string, details?: any) => {
   console.log(`[SYNC-SERVICES-WITH-STRIPE] ${step}${detailsStr}`);
 };
 
+// International tax code mapping for countries
+const INTERNATIONAL_TAX_CODES = {
+  // EU countries - use harmonized VAT codes
+  NL: { // Netherlands
+    'txcd_10000000': 'Standard services (21% VAT)',
+    'txcd_20030000': 'Personal care services (21% VAT)',
+    'txcd_30060000': 'Professional services (21% VAT)',
+    'txcd_30070000': 'Medical services (9% VAT)',
+  },
+  DE: { // Germany  
+    'txcd_10000000': 'Standard services (19% VAT)',
+    'txcd_20030000': 'Personal care services (19% VAT)',
+    'txcd_30060000': 'Professional services (19% VAT)',
+    'txcd_30070000': 'Medical services (7% VAT)',
+  },
+  FR: { // France
+    'txcd_10000000': 'Standard services (20% VAT)',
+    'txcd_20030000': 'Personal care services (20% VAT)',
+    'txcd_30060000': 'Professional services (20% VAT)',
+    'txcd_30070000': 'Medical services (10% VAT)',
+  },
+  GB: { // United Kingdom
+    'txcd_10000000': 'Standard services (20% VAT)',
+    'txcd_20030000': 'Personal care services (20% VAT)',
+    'txcd_30060000': 'Professional services (20% VAT)',
+    'txcd_30070000': 'Medical services (5% VAT)',
+  },
+  // Add more countries as needed
+};
+
+const detectBusinessCountry = (stripeAccount: any): string => {
+  if (stripeAccount?.country) {
+    return stripeAccount.country.toUpperCase();
+  }
+  return 'NL'; // Default fallback
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -62,6 +99,10 @@ serve(async (req) => {
 
     logStep('Found Stripe account', { accountId: stripeAccount.stripe_account_id });
 
+    // Detect business country for international tax handling
+    const businessCountry = detectBusinessCountry(stripeAccount);
+    logStep('Detected business country', { country: businessCountry });
+
     // Get all services that need Stripe integration
     const { data: services, error: servicesError } = await supabaseClient
       .from('service_types')
@@ -91,32 +132,44 @@ serve(async (req) => {
 
     for (const service of services) {
       try {
-        logStep('Processing service', { serviceId: service.id, name: service.name, price: service.price });
+        logStep('Processing service', { 
+          serviceId: service.id, 
+          name: service.name, 
+          price: service.price,
+          country: businessCountry 
+        });
 
-        // Create Stripe Price
+        // Create Stripe Price with international support
         const priceData: any = {
-          currency: 'eur',
+          currency: stripeAccount.currency || 'eur',
           unit_amount: Math.round((service.price || 0) * 100), // Convert to cents
           product_data: {
             name: service.name,
-            description: service.payment_description || `${service.name} - ${service.duration} minuten`,
+            description: service.payment_description || `${service.name} - ${service.duration} minutes`,
             metadata: {
               service_duration: service.duration.toString(),
               calendar_id: service.calendar_id || '',
               service_type_id: service.id,
+              business_country: businessCountry,
             },
           },
         };
 
-        // Add tax configuration if enabled
+        // Add tax configuration if enabled - with international support
         if (service.tax_enabled && service.tax_code) {
-          logStep('Adding tax configuration to Stripe Price', {
+          logStep('Adding international tax configuration to Stripe Price', {
             tax_code: service.tax_code,
-            tax_behavior: service.tax_behavior
+            tax_behavior: service.tax_behavior,
+            country: businessCountry,
+            applicable_rate: service.applicable_tax_rate
           });
 
           priceData.product_data.tax_code = service.tax_code;
           priceData.tax_behavior = service.tax_behavior || 'exclusive';
+          
+          // Add country-specific tax metadata
+          priceData.product_data.metadata.tax_country = businessCountry;
+          priceData.product_data.metadata.tax_rate = service.applicable_tax_rate?.toString() || '0';
         }
 
         const price = await stripe.prices.create(priceData, {
@@ -125,10 +178,16 @@ serve(async (req) => {
 
         logStep('Stripe price created', { priceId: price.id, serviceId: service.id });
 
-        // Update service with Stripe price ID
+        // Update service with Stripe price ID and ensure country is set
         const updateData = test_mode 
-          ? { stripe_test_price_id: price.id }
-          : { stripe_live_price_id: price.id };
+          ? { 
+              stripe_test_price_id: price.id,
+              business_country: businessCountry
+            }
+          : { 
+              stripe_live_price_id: price.id,
+              business_country: businessCountry
+            };
 
         const { error: updateError } = await supabaseClient
           .from('service_types')
@@ -144,12 +203,17 @@ serve(async (req) => {
             error: updateError.message
           });
         } else {
-          logStep('Service updated successfully', { serviceId: service.id, priceId: price.id });
+          logStep('Service updated successfully', { 
+            serviceId: service.id, 
+            priceId: price.id,
+            country: businessCountry
+          });
           results.push({
             serviceId: service.id,
             serviceName: service.name,
             success: true,
-            stripePriceId: price.id
+            stripePriceId: price.id,
+            businessCountry: businessCountry
           });
         }
 
@@ -167,14 +231,21 @@ serve(async (req) => {
     const successCount = results.filter(r => r.success).length;
     const failureCount = results.filter(r => !r.success).length;
 
-    logStep('Processing complete', { successCount, failureCount });
+    logStep('Processing complete', { 
+      successCount, 
+      failureCount, 
+      businessCountry,
+      internationalSupport: true
+    });
 
     return new Response(JSON.stringify({
       success: true,
-      message: `Processed ${services.length} services: ${successCount} successful, ${failureCount} failed`,
+      message: `Processed ${services.length} services for ${businessCountry}: ${successCount} successful, ${failureCount} failed`,
       servicesProcessed: services.length,
       successCount,
       failureCount,
+      businessCountry,
+      internationalSupport: true,
       results
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

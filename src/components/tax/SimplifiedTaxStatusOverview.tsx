@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, AlertTriangle, Clock, Shield } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Clock, Shield, Globe } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { 
+  detectBusinessCountry, 
+  getTaxConfigForCountry,
+  CountryTaxConfig 
+} from '@/utils/internationalTax';
 
 interface SimplifiedTaxStatusOverviewProps {
   accountId?: string;
@@ -14,6 +19,8 @@ interface TaxStatus {
   compliance: 'compliant' | 'needs_attention' | 'not_configured';
   services: 'configured' | 'partial' | 'none';
   registrations: 'configured' | 'missing';
+  businessCountry: string;
+  countryConfig: CountryTaxConfig | null;
 }
 
 export const SimplifiedTaxStatusOverview = ({ 
@@ -24,7 +31,9 @@ export const SimplifiedTaxStatusOverview = ({
     connection: 'inactive',
     compliance: 'not_configured',
     services: 'none',
-    registrations: 'missing'
+    registrations: 'missing',
+    businessCountry: 'NL',
+    countryConfig: null
   });
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +46,27 @@ export const SimplifiedTaxStatusOverview = ({
   const checkTaxStatus = async () => {
     try {
       setLoading(true);
+
+      // Detect business country first
+      let businessCountry = 'NL';
+      let countryConfig = null;
+      
+      try {
+        const { data: stripeAccountData } = await supabase
+          .from('business_stripe_accounts')
+          .select('*')
+          .eq('account_owner_id', accountId)
+          .eq('charges_enabled', true)
+          .single();
+
+        if (stripeAccountData) {
+          businessCountry = detectBusinessCountry(stripeAccountData);
+          countryConfig = getTaxConfigForCountry(businessCountry);
+        }
+      } catch (error) {
+        console.log('Using default country (NL)');
+        countryConfig = getTaxConfigForCountry('NL');
+      }
 
       // Check services with Stripe Price IDs
       const { data: services } = await supabase
@@ -86,7 +116,9 @@ export const SimplifiedTaxStatusOverview = ({
         connection: connectionActive,
         compliance: complianceStatus,
         services: serviceStatus,
-        registrations: registrationStatus
+        registrations: registrationStatus,
+        businessCountry,
+        countryConfig
       });
 
     } catch (error) {
@@ -95,7 +127,9 @@ export const SimplifiedTaxStatusOverview = ({
         connection: 'error',
         compliance: 'not_configured',
         services: 'none',
-        registrations: 'missing'
+        registrations: 'missing',
+        businessCountry: 'NL',
+        countryConfig: getTaxConfigForCountry('NL')
       });
     } finally {
       setLoading(false);
@@ -127,7 +161,7 @@ export const SimplifiedTaxStatusOverview = ({
     switch (statusType) {
       case 'connection':
         switch (value) {
-          case 'active': return 'VAT Collection Active';
+          case 'active': return `${status.countryConfig?.taxSystemName || 'Tax'} Collection Active`;
           case 'inactive': return 'Inactive';
           case 'error': return 'Error';
           default: return 'Unknown';
@@ -148,7 +182,7 @@ export const SimplifiedTaxStatusOverview = ({
         }
       case 'registrations':
         switch (value) {
-          case 'configured': return 'Netherlands Registered';
+          case 'configured': return `${status.countryConfig?.countryName || 'Country'} Registered`;
           case 'missing': return 'No Registrations';
           default: return 'Unknown';
         }
@@ -181,7 +215,7 @@ export const SimplifiedTaxStatusOverview = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="w-5 h-5" />
-          VAT Status Overview
+          {status.countryConfig?.flag} {status.countryConfig?.taxSystemName || 'Tax'} Status Overview
         </CardTitle>
       </CardHeader>
       <CardContent>
