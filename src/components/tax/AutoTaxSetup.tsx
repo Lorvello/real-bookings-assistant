@@ -61,8 +61,8 @@ export const AutoTaxSetup = ({ accountId, calendarId }: AutoTaxSetupProps) => {
 
       setHasNLRegistration(true);
       toast({
-        title: "Nederland BTW Registratie Toegevoegd",
-        description: "Je account is nu geconfigureerd voor Nederlandse BTW collectie"
+        title: "Netherlands VAT Registration Added",
+        description: "Your account is now configured for Dutch VAT collection"
       });
 
       // Refresh status
@@ -71,8 +71,8 @@ export const AutoTaxSetup = ({ accountId, calendarId }: AutoTaxSetupProps) => {
     } catch (error: any) {
       console.error('Failed to setup Dutch tax:', error);
       toast({
-        title: "Fout bij BTW Setup",
-        description: error.message || "Er is een fout opgetreden bij het configureren van de BTW registratie",
+        title: "VAT Setup Error",
+        description: error.message || "An error occurred while configuring the VAT registration",
         variant: "destructive"
       });
     } finally {
@@ -85,7 +85,7 @@ export const AutoTaxSetup = ({ accountId, calendarId }: AutoTaxSetupProps) => {
       <Card>
         <CardContent className="p-6 text-center">
           <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Controleren registraties...</p>
+          <p className="text-sm text-muted-foreground">Checking registrations...</p>
         </CardContent>
       </Card>
     );
@@ -96,10 +96,10 @@ export const AutoTaxSetup = ({ accountId, calendarId }: AutoTaxSetupProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MapPin className="w-5 h-5" />
-          Nederlandse BTW Setup
+          Netherlands VAT Setup
         </CardTitle>
         <CardDescription>
-          Automatische configuratie voor Nederlandse bedrijven
+          Automatic configuration for Dutch businesses
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -107,14 +107,14 @@ export const AutoTaxSetup = ({ accountId, calendarId }: AutoTaxSetupProps) => {
           <Alert>
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
-              Nederland BTW registratie is actief. Je services collecteren automatisch BTW voor Nederlandse klanten.
+              Netherlands VAT registration is active. Your services automatically collect VAT for Dutch customers.
             </AlertDescription>
           </Alert>
         ) : (
           <div className="space-y-4">
             <Alert>
               <AlertDescription>
-                Voor Nederlandse bedrijven: Voeg automatisch een Nederland BTW registratie toe om BTW te collecteren van klanten.
+                For Dutch businesses: Automatically add a Netherlands VAT registration to collect VAT from customers.
               </AlertDescription>
             </Alert>
             <Button 
@@ -125,12 +125,12 @@ export const AutoTaxSetup = ({ accountId, calendarId }: AutoTaxSetupProps) => {
               {isSettingUp ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  BTW Setup Uitvoeren...
+                  Executing VAT Setup...
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4 mr-2" />
-                  Configureer Nederlandse BTW
+                  Configure Netherlands VAT
                 </>
               )}
             </Button>

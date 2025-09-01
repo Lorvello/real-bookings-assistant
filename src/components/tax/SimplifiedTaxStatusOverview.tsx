@@ -127,33 +127,33 @@ export const SimplifiedTaxStatusOverview = ({
     switch (statusType) {
       case 'connection':
         switch (value) {
-          case 'active': return 'BTW Collectie Actief';
-          case 'inactive': return 'Niet Actief';
-          case 'error': return 'Fout';
-          default: return 'Onbekend';
+          case 'active': return 'VAT Collection Active';
+          case 'inactive': return 'Inactive';
+          case 'error': return 'Error';
+          default: return 'Unknown';
         }
       case 'compliance':
         switch (value) {
-          case 'compliant': return 'Volledig Geconfigureerd';
-          case 'needs_attention': return 'Actie Vereist';
-          case 'not_configured': return 'Niet Geconfigureerd';
-          default: return 'Onbekend';
+          case 'compliant': return 'Fully Configured';
+          case 'needs_attention': return 'Action Required';
+          case 'not_configured': return 'Not Configured';
+          default: return 'Unknown';
         }
       case 'services':
         switch (value) {
-          case 'configured': return 'Alle Services Gekoppeld';
-          case 'partial': return 'Gedeeltelijk Gekoppeld';
-          case 'none': return 'Niet Gekoppeld';
-          default: return 'Onbekend';
+          case 'configured': return 'All Services Connected';
+          case 'partial': return 'Partially Connected';
+          case 'none': return 'Not Connected';
+          default: return 'Unknown';
         }
       case 'registrations':
         switch (value) {
-          case 'configured': return 'Nederland Geregistreerd';
-          case 'missing': return 'Geen Registraties';
-          default: return 'Onbekend';
+          case 'configured': return 'Netherlands Registered';
+          case 'missing': return 'No Registrations';
+          default: return 'Unknown';
         }
       default:
-        return 'Onbekend';
+        return 'Unknown';
     }
   };
 
@@ -181,7 +181,7 @@ export const SimplifiedTaxStatusOverview = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="w-5 h-5" />
-          BTW Status Overzicht
+          VAT Status Overview
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -190,7 +190,7 @@ export const SimplifiedTaxStatusOverview = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {getStatusIcon('connection', status.connection)}
-                <span className="text-sm font-medium">Connectie Status</span>
+                <span className="text-sm font-medium">Connection Status</span>
               </div>
               <Badge variant={getStatusVariant(status.connection)}>
                 {getStatusText('connection', status.connection)}
@@ -222,7 +222,7 @@ export const SimplifiedTaxStatusOverview = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {getStatusIcon('registrations', status.registrations)}
-                <span className="text-sm font-medium">Registraties</span>
+                <span className="text-sm font-medium">Registrations</span>
               </div>
               <Badge variant={getStatusVariant(status.registrations)}>
                 {getStatusText('registrations', status.registrations)}

@@ -63,8 +63,8 @@ export const SimplifiedTaxTab = () => {
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Belasting & Compliance</h1>
-            <p className="text-muted-foreground mt-1">Automatisch BTW beheer voor je bedrijf</p>
+            <h1 className="text-2xl font-bold">Tax & Compliance</h1>
+            <p className="text-muted-foreground mt-1">Automated VAT management for your business</p>
           </div>
         </div>
 
@@ -75,9 +75,9 @@ export const SimplifiedTaxTab = () => {
                 <Lock className="w-8 h-8 text-amber-500" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">Professional Functie</h3>
+                <h3 className="text-xl font-semibold mb-2">Professional Feature</h3>
                 <p className="text-muted-foreground">
-                  Automatisch BTW beheer is beschikbaar voor Professional en Enterprise gebruikers.
+                  Automated VAT management is available for Professional and Enterprise users.
                 </p>
               </div>
               <Button 
@@ -85,7 +85,7 @@ export const SimplifiedTaxTab = () => {
                 size="lg"
               >
                 <Crown className="w-4 h-4 mr-2" />
-                Upgrade naar Professional
+                Upgrade to Professional
               </Button>
             </div>
           </CardContent>
@@ -107,7 +107,7 @@ export const SimplifiedTaxTab = () => {
         <Card>
           <CardContent className="p-8 text-center">
             <Shield className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Controleren van Stripe account status...</p>
+            <p className="text-muted-foreground">Checking Stripe account status...</p>
           </CardContent>
         </Card>
       </div>
@@ -125,9 +125,9 @@ export const SimplifiedTaxTab = () => {
                 <Shield className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">Voltooi Stripe Setup</h3>
+                <h3 className="text-xl font-semibold mb-2">Complete Stripe Setup</h3>
                 <p className="text-muted-foreground">
-                  Ga naar de Betaal & Boek pagina om je Stripe onboarding te voltooien voordat je belastinginstellingen kunt configureren.
+                  Go to the Pay & Book page to complete your Stripe onboarding before you can configure tax settings.
                 </p>
               </div>
               <Button 
@@ -140,7 +140,7 @@ export const SimplifiedTaxTab = () => {
                 size="lg"
               >
                 <ArrowRight className="w-4 h-4 mr-2" />
-                Ga naar Betaal & Boek
+                Go to Pay & Book
               </Button>
             </div>
           </CardContent>
@@ -155,8 +155,8 @@ export const SimplifiedTaxTab = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Belasting Setup</h1>
-          <p className="text-muted-foreground mt-1">BTW configuratie voor je services</p>
+          <h1 className="text-2xl font-bold">Tax Setup</h1>
+          <p className="text-muted-foreground mt-1">VAT configuration for your services</p>
         </div>
         <SyncServicesButton />
       </div>
@@ -184,16 +184,16 @@ export const SimplifiedTaxTab = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
-            Service Belasting Instellingen
+            Service Tax Settings
           </CardTitle>
           <CardDescription>
-            Pas belastinginstellingen aan per service type
+            Configure tax settings per service type
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Stel BTW gedrag (inclusief/exclusief) en belastingcodes in voor elk van je services.
+              Set VAT behavior (inclusive/exclusive) and tax codes for each of your services.
             </p>
             <Button 
               variant="outline" 
@@ -202,7 +202,7 @@ export const SimplifiedTaxTab = () => {
               }}
             >
               <Settings className="w-4 h-4 mr-2" />
-              Beheer Service Belastingen
+              Manage Service Taxes
             </Button>
           </div>
         </CardContent>

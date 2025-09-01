@@ -25,10 +25,10 @@ interface ServiceType {
 
 // Simple relevant tax codes for Dutch businesses
 const RELEVANT_TAX_CODES = [
-  { code: 'txcd_10000000', name: 'Standaard Service (21% BTW)', description: 'De meeste dienstverlening' },
-  { code: 'txcd_20030000', name: 'Persoonlijke Verzorging (21% BTW)', description: 'Kapper, schoonheid, wellness' },
-  { code: 'txcd_30060000', name: 'Professionele Diensten (21% BTW)', description: 'Consultancy, advies, coaching' },
-  { code: 'txcd_30070000', name: 'Medische Zorg (0% BTW)', description: 'Medische behandelingen, fysiotherapie' }
+  { code: 'txcd_10000000', name: 'Standard Service (21% VAT)', description: 'Most services' },
+  { code: 'txcd_20030000', name: 'Personal Care (21% VAT)', description: 'Hair, beauty, wellness' },
+  { code: 'txcd_30060000', name: 'Professional Services (21% VAT)', description: 'Consulting, advice, coaching' },
+  { code: 'txcd_30070000', name: 'Medical Care (0% VAT)', description: 'Medical treatments, physiotherapy' }
 ];
 
 export const SimpleProductTaxManager = ({ 
@@ -60,8 +60,8 @@ export const SimpleProductTaxManager = ({
     } catch (error) {
       console.error('Failed to fetch services:', error);
       toast({
-        title: "Fout bij Laden Services",
-        description: "Kon services niet laden",
+        title: "Error Loading Services",
+        description: "Could not load services",
         variant: "destructive"
       });
     } finally {
@@ -93,15 +93,15 @@ export const SimpleProductTaxManager = ({
       ));
 
       toast({
-        title: "BTW Code Bijgewerkt",
-        description: `${selectedTaxCode?.name} toegepast`
+        title: "VAT Code Updated",
+        description: `${selectedTaxCode?.name} applied`
       });
 
     } catch (error: any) {
       console.error('Failed to update service tax:', error);
       toast({
-        title: "Fout bij Bijwerken",
-        description: error.message || "Kon BTW code niet bijwerken",
+        title: "Update Error",
+        description: error.message || "Could not update VAT code",
         variant: "destructive"
       });
     } finally {
@@ -114,11 +114,11 @@ export const SimpleProductTaxManager = ({
     const hasTaxCode = service.tax_enabled && service.tax_code;
     
     if (hasStripePrice && hasTaxCode) {
-      return { status: 'complete', text: 'Volledig Geconfigureerd', variant: 'default' as const };
+      return { status: 'complete', text: 'Fully Configured', variant: 'default' as const };
     } else if (hasStripePrice || hasTaxCode) {
-      return { status: 'partial', text: 'Gedeeltelijk Geconfigureerd', variant: 'secondary' as const };
+      return { status: 'partial', text: 'Partially Configured', variant: 'secondary' as const };
     } else {
-      return { status: 'none', text: 'Niet Geconfigureerd', variant: 'destructive' as const };
+      return { status: 'none', text: 'Not Configured', variant: 'destructive' as const };
     }
   };
 
@@ -127,7 +127,7 @@ export const SimpleProductTaxManager = ({
       <Card>
         <CardContent className="p-6 text-center">
           <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Services laden...</p>
+          <p className="text-sm text-muted-foreground">Loading services...</p>
         </CardContent>
       </Card>
     );
@@ -138,18 +138,18 @@ export const SimpleProductTaxManager = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Package className="w-5 h-5" />
-          Service BTW Codes
+          Service VAT Codes
         </CardTitle>
         <CardDescription>
-          Stel BTW codes in voor je services (vereist voor automatische BTW berekening)
+          Set VAT codes for your services (required for automatic VAT calculation)
         </CardDescription>
       </CardHeader>
       <CardContent>
         {services.length === 0 ? (
           <div className="text-center py-6 text-muted-foreground">
             <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>Geen actieve services gevonden</p>
-            <p className="text-sm">Voeg eerst services toe in de Services tab</p>
+            <p>No active services found</p>
+            <p className="text-sm">Add services first in the Services tab</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -165,7 +165,7 @@ export const SimpleProductTaxManager = ({
                       <Badge variant={status.variant}>{status.text}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      €{service.price} • {currentTaxCode?.name || 'Geen BTW code'}
+                      €{service.price} • {currentTaxCode?.name || 'No VAT code'}
                     </p>
                   </div>
                   
@@ -176,7 +176,7 @@ export const SimpleProductTaxManager = ({
                       disabled={saving === service.id}
                     >
                       <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="Kies BTW code" />
+                        <SelectValue placeholder="Choose VAT code" />
                       </SelectTrigger>
                       <SelectContent>
                         {RELEVANT_TAX_CODES.map((taxCode) => (
