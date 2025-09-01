@@ -10,19 +10,25 @@ interface RevenueData {
   totalRevenue: number;
   totalTax: number;
   currency: string;
+  previousMonthRevenue: number;
+  previousMonthTax: number;
+  yearToDateRevenue: number;
+  yearToDateTax: number;
+  revenueChange: number;
+  taxChange: number;
   serviceBreakdown: {
     serviceId: string;
     serviceName: string;
     bookingCount: number;
-    revenue: number;
-    taxCollected: number;
+    totalRevenue: number;
+    totalTax: number;
     price: number;
     taxRate: number;
   }[];
   monthlyTrends: {
     month: string;
     revenue: number;
-    taxCollected: number;
+    tax: number;
     bookings: number;
   }[];
 }
@@ -87,7 +93,7 @@ serve(async (req) => {
 
     if (bookingsError) throw bookingsError;
 
-    // Calculate revenue and tax by service
+    // Calculate current month revenue and tax
     const serviceMap = new Map();
     let totalRevenue = 0;
     let totalTax = 0;
@@ -99,7 +105,7 @@ serve(async (req) => {
 
       const revenue = Number(booking.total_price) || 0;
       const taxRate = service.tax_enabled ? (Number(service.applicable_tax_rate) || 0) / 100 : 0;
-      const taxCollected = revenue * taxRate / (1 + taxRate); // Tax from inclusive price
+      const taxCollected = revenue * taxRate / (1 + taxRate);
 
       totalRevenue += revenue;
       totalTax += taxCollected;
@@ -110,8 +116,8 @@ serve(async (req) => {
           serviceId: service.id,
           serviceName: service.name,
           bookingCount: 0,
-          revenue: 0,
-          taxCollected: 0,
+          totalRevenue: 0,
+          totalTax: 0,
           price: Number(service.price) || 0,
           taxRate: taxRate * 100
         });
@@ -119,9 +125,61 @@ serve(async (req) => {
 
       const serviceData = serviceMap.get(serviceKey);
       serviceData.bookingCount += 1;
-      serviceData.revenue += revenue;
-      serviceData.taxCollected += taxCollected;
+      serviceData.totalRevenue += revenue;
+      serviceData.totalTax += taxCollected;
     });
+
+    // Calculate previous month for comparison
+    const prevMonthStart = new Date(currentYear, currentMonth - 1, 1).toISOString();
+    const prevMonthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59).toISOString();
+
+    const { data: prevBookings } = await supabase
+      .from('bookings')
+      .select('total_price, service_types(tax_enabled, applicable_tax_rate)')
+      .eq('calendar_id', calendar_id)
+      .eq('status', 'confirmed')
+      .gte('start_time', prevMonthStart)
+      .lte('start_time', prevMonthEnd);
+
+    let previousMonthRevenue = 0;
+    let previousMonthTax = 0;
+    prevBookings?.forEach(booking => {
+      const revenue = Number(booking.total_price) || 0;
+      const service = booking.service_types;
+      const taxRate = service?.tax_enabled ? (Number(service.applicable_tax_rate) || 0) / 100 : 0;
+      const tax = revenue * taxRate / (1 + taxRate);
+      
+      previousMonthRevenue += revenue;
+      previousMonthTax += tax;
+    });
+
+    // Calculate year to date
+    const ytdStart = new Date(currentYear, 0, 1).toISOString();
+    const { data: ytdBookings } = await supabase
+      .from('bookings')
+      .select('total_price, service_types(tax_enabled, applicable_tax_rate)')
+      .eq('calendar_id', calendar_id)
+      .eq('status', 'confirmed')
+      .gte('start_time', ytdStart)
+      .lte('start_time', endDate);
+
+    let yearToDateRevenue = 0;
+    let yearToDateTax = 0;
+    ytdBookings?.forEach(booking => {
+      const revenue = Number(booking.total_price) || 0;
+      const service = booking.service_types;
+      const taxRate = service?.tax_enabled ? (Number(service.applicable_tax_rate) || 0) / 100 : 0;
+      const tax = revenue * taxRate / (1 + taxRate);
+      
+      yearToDateRevenue += revenue;
+      yearToDateTax += tax;
+    });
+
+    // Calculate percentage changes
+    const revenueChange = previousMonthRevenue > 0 ? 
+      ((totalRevenue - previousMonthRevenue) / previousMonthRevenue) * 100 : 0;
+    const taxChange = previousMonthTax > 0 ? 
+      ((totalTax - previousMonthTax) / previousMonthTax) * 100 : 0;
 
     // Generate monthly trends for last 6 months
     const monthlyTrends = [];
@@ -153,7 +211,7 @@ serve(async (req) => {
       monthlyTrends.push({
         month: trendMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
         revenue: monthRevenue,
-        taxCollected: monthTax,
+        tax: monthTax,
         bookings: monthBookings?.length || 0
       });
     }
@@ -161,8 +219,14 @@ serve(async (req) => {
     const response: RevenueData = {
       totalRevenue: Math.round(totalRevenue * 100) / 100,
       totalTax: Math.round(totalTax * 100) / 100,
+      previousMonthRevenue: Math.round(previousMonthRevenue * 100) / 100,
+      previousMonthTax: Math.round(previousMonthTax * 100) / 100,
+      yearToDateRevenue: Math.round(yearToDateRevenue * 100) / 100,
+      yearToDateTax: Math.round(yearToDateTax * 100) / 100,
+      revenueChange: Math.round(revenueChange * 100) / 100,
+      taxChange: Math.round(taxChange * 100) / 100,
       currency: currency.toUpperCase(),
-      serviceBreakdown: Array.from(serviceMap.values()).sort((a, b) => b.revenue - a.revenue),
+      serviceBreakdown: Array.from(serviceMap.values()).sort((a, b) => b.totalRevenue - a.totalRevenue),
       monthlyTrends
     };
 
