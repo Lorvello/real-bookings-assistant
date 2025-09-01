@@ -169,13 +169,13 @@ export const SimplifiedTaxTab = () => {
 
       {/* International Tax Setup */}
       <InternationalTaxSetup 
-        accountId={stripeAccount?.account_owner_id}
+        accountId={stripeAccount?.stripe_account_id}
         calendarId={selectedCalendar?.id}
       />
 
       {/* International Service Tax Manager */}
       <InternationalServiceTaxManager
-        accountId={stripeAccount?.account_owner_id}
+        accountId={stripeAccount?.stripe_account_id}
         calendarId={selectedCalendar?.id}
       />
 

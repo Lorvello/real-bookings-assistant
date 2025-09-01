@@ -103,11 +103,11 @@ serve(async (req) => {
     const businessCountry = detectBusinessCountry(stripeAccount);
     logStep('Detected business country', { country: businessCountry });
 
-    // Get all services that need Stripe integration
+    // Get all services that need Stripe integration for calendars owned by this user
     const { data: services, error: servicesError } = await supabaseClient
       .from('service_types')
-      .select('*')
-      .eq('user_id', user.id)
+      .select('*, calendars!inner(user_id)')
+      .eq('calendars.user_id', user.id)
       .is(test_mode ? 'stripe_test_price_id' : 'stripe_live_price_id', null)
       .not('price', 'is', null);
 

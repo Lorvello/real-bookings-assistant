@@ -55,9 +55,9 @@ export const SimplifiedTaxStatusOverview = ({
         const { data: stripeAccountData } = await supabase
           .from('business_stripe_accounts')
           .select('*')
-          .eq('account_owner_id', accountId)
+          .eq('stripe_account_id', accountId)
           .eq('charges_enabled', true)
-          .single();
+          .maybeSingle();
 
         if (stripeAccountData) {
           businessCountry = detectBusinessCountry(stripeAccountData);
