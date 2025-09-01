@@ -127,7 +127,8 @@ export function TaxManagementPage() {
     }).format(amount);
   };
 
-  const formatPercentage = (value: number): string => {
+  const formatPercentage = (value?: number | null): string => {
+    if (typeof value !== 'number' || !isFinite(value)) return '0.0%';
     return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
   };
 
@@ -313,7 +314,7 @@ export function TaxManagementPage() {
               {data ? formatCurrency(data.totalRevenue) : formatCurrency(0)}
             </div>
             <div className="flex items-center space-x-2 text-xs">
-              {data && data.revenueChange !== 0 && (
+              {typeof data?.revenueChange === 'number' && data.revenueChange !== 0 && (
                 <>
                   {data.revenueChange > 0 ? (
                     <TrendingUp className="h-3 w-3 text-green-500" />
@@ -340,7 +341,7 @@ export function TaxManagementPage() {
               {data ? formatCurrency(data.totalTax) : formatCurrency(0)}
             </div>
             <div className="flex items-center space-x-2 text-xs">
-              {data && data.taxChange !== 0 && (
+              {typeof data?.taxChange === 'number' && data.taxChange !== 0 && (
                 <>
                   {data.taxChange > 0 ? (
                     <TrendingUp className="h-3 w-3 text-green-500" />
@@ -413,7 +414,9 @@ export function TaxManagementPage() {
                   <TableCell className="font-medium text-white">{service.serviceName}</TableCell>
                   <TableCell className="text-gray-300">{service.bookingCount}</TableCell>
                   <TableCell className="text-white">{formatCurrency(service.totalRevenue)}</TableCell>
-                  <TableCell className="text-gray-300">{service.taxRate.toFixed(1)}%</TableCell>
+                  <TableCell className="text-gray-300">
+                    {typeof service.taxRate === 'number' ? `${service.taxRate.toFixed(1)}%` : '—'}
+                  </TableCell>
                   <TableCell className="text-green-400">{formatCurrency(service.totalTax)}</TableCell>
                 </TableRow>
               ))}
