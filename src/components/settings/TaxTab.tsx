@@ -9,7 +9,8 @@ import {
   Lock, 
   CheckCircle,
   Code,
-  Building2
+  Building2,
+  Zap
 } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -25,6 +26,7 @@ import { TaxRegistrationsManager } from '@/components/tax/TaxRegistrationsManage
 import { ThresholdMonitoringDashboard } from '@/components/tax/ThresholdMonitoringDashboard';
 import { AccountRequirements } from '@/components/tax/AccountRequirements';
 import { ProductTaxCodeManager } from '@/components/tax/ProductTaxCodeManager';
+import { SyncServicesButton } from '@/components/stripe/SyncServicesButton';
 import { Settings } from 'lucide-react';
 import { getStripeMode } from '@/utils/stripeConfig';
 
@@ -242,6 +244,7 @@ export const TaxTab = () => {
           <p className="text-muted-foreground mt-1">Quarterly revenue and VAT overview for your business</p>
         </div>
         <div className="flex items-center gap-2">
+          <SyncServicesButton />
           {/* Developer Mode Toggle - Non-production only */}
           {!import.meta.env.PROD && (
             <div className="flex items-center gap-2 px-3 py-1 bg-amber-100 dark:bg-amber-900/20 rounded-lg border border-amber-300">
