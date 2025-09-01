@@ -16,7 +16,7 @@ import { useAccessControl } from '@/hooks/useAccessControl';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
-import { ConsistentTaxTab } from './ConsistentTaxTab';
+import { SimpleRevenueTab } from './SimpleRevenueTab';
 
 export const SimplifiedTaxTab = () => {
   const { userStatus } = useUserStatus();
@@ -190,5 +190,5 @@ export const SimplifiedTaxTab = () => {
     );
   }
 
-  return <ConsistentTaxTab calendarId={selectedCalendar.id} />;
+  return <SimpleRevenueTab />;
 };
