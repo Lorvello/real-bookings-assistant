@@ -13,6 +13,7 @@ import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { supabase } from '@/integrations/supabase/client';
 import { ServiceTypeInstallmentConfig } from './ServiceTypeInstallmentConfig';
 import { useInstallmentSettings } from '@/hooks/useInstallmentSettings';
+import { useTaxConfiguration } from '@/hooks/useTaxConfiguration';
 
 interface ServiceTypeFormData {
   name: string;
@@ -45,9 +46,11 @@ export function ServiceTypesManager() {
   const [editingService, setEditingService] = useState<ServiceType | null>(null);
   const [formData, setFormData] = useState<ServiceTypeFormData>(DEFAULT_FORM_DATA);
   const [saving, setSaving] = useState(false);
-  const [taxConfigured, setTaxConfigured] = useState(false);
   const [userTaxBehavior, setUserTaxBehavior] = useState<string | null>(null);
   const [installmentConfigService, setInstallmentConfigService] = useState<ServiceType | null>(null);
+  
+  // Use unified tax configuration logic
+  const { status: taxStatus, loading: taxLoading, refetch: refetchTaxStatus } = useTaxConfiguration(selectedCalendar?.id);
   
   const { 
     settings: installmentSettings, 
@@ -63,47 +66,29 @@ export function ServiceTypesManager() {
     refetch
   } = useServiceTypes(selectedCalendar?.id);
 
-  // Fetch user tax configuration
+  // Fetch user default tax behavior
   useEffect(() => {
-    const fetchUserTaxConfig = async () => {
+    const fetchUserTaxBehavior = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data, error } = await supabase
             .from('users')
-            .select('tax_configured, default_tax_behavior')
+            .select('default_tax_behavior')
             .eq('id', user.id)
             .single();
 
           if (!error && data) {
-            setTaxConfigured(data.tax_configured || false);
             setUserTaxBehavior(data.default_tax_behavior);
           }
         }
       } catch (error) {
-        console.error('Error fetching user tax configuration:', error);
+        console.error('Error fetching user tax behavior:', error);
       }
     };
 
-    fetchUserTaxConfig();
+    fetchUserTaxBehavior();
   }, []);
-
-  // Check if tax is configured for this account (Stripe-based)
-  useEffect(() => {
-    const checkTaxConfiguration = async () => {
-      try {
-        const stripeAccount = await getStripeAccount();
-        const stripeConfigured = !!stripeAccount?.onboarding_completed;
-        setTaxConfigured(prev => prev || stripeConfigured);
-      } catch (error) {
-        console.error('Failed to check tax configuration:', error);
-      }
-    };
-
-    if (selectedCalendar?.id) {
-      checkTaxConfiguration();
-    }
-  }, [selectedCalendar?.id, getStripeAccount]);
 
   const handleCreate = () => {
     setEditingService(null);
@@ -257,6 +242,20 @@ export function ServiceTypesManager() {
               <CardDescription>
                 Manage your available services and their tax configurations
               </CardDescription>
+              {taxStatus && !taxStatus.isFullyConfigured && (
+                <div className="mt-2 p-3 bg-warning/10 border border-warning/20 rounded-md">
+                  <p className="text-sm text-warning-foreground">
+                    Tax not fully configured. Complete setup in{' '}
+                    <button 
+                      onClick={() => window.location.href = '/settings?tab=tax'} 
+                      className="underline font-medium"
+                    >
+                      Tax Settings
+                    </button>{' '}
+                    to enable tax on services.
+                  </p>
+                </div>
+              )}
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
@@ -284,8 +283,9 @@ export function ServiceTypesManager() {
                 onCancel={handleCancel}
                 saving={saving}
                 isEditing={!!editingService}
-                taxConfigured={taxConfigured}
+                taxConfigured={taxStatus?.isFullyConfigured || false}
                 userTaxBehavior={userTaxBehavior}
+                onRefreshTaxStatus={refetchTaxStatus}
               />
               </DialogContent>
             </Dialog>

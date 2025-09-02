@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ServiceTypeStripeConfig } from './ServiceTypeStripeConfig';
 import { ServiceType } from '@/types/calendar';
-import { Lock, AlertTriangle } from 'lucide-react';
+import { Lock, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ServiceTypeFormData {
@@ -30,6 +30,7 @@ interface ServiceTypeFormProps {
   isEditing: boolean;
   taxConfigured?: boolean;
   userTaxBehavior?: string | null;
+  onRefreshTaxStatus?: () => void;
 }
 
 const colorOptions = [
@@ -54,7 +55,8 @@ export function ServiceTypeForm({
   saving, 
   isEditing,
   taxConfigured = false,
-  userTaxBehavior
+  userTaxBehavior,
+  onRefreshTaxStatus
 }: ServiceTypeFormProps) {
   const [showTaxBehaviorWarning, setShowTaxBehaviorWarning] = useState(false);
   const [previousTaxBehavior] = useState(formData.tax_behavior);
@@ -180,7 +182,26 @@ export function ServiceTypeForm({
                       <Lock className="w-4 h-4 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Configure tax settings first in Tax page</p>
+                      <p>Complete tax setup in Tax Settings page</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {onRefreshTaxStatus && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onRefreshTaxStatus}
+                        className="h-8 w-8 p-0"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Refresh tax configuration status</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -208,7 +229,15 @@ export function ServiceTypeForm({
           {!taxConfigured && formData.tax_enabled && (
             <div className="p-3 bg-muted border border-border rounded-md">
               <p className="text-sm text-muted-foreground">
-                Configure tax first. Please complete your tax settings before enabling tax on services.
+                Tax configuration incomplete. Please complete your{' '}
+                <button
+                  type="button" 
+                  onClick={() => window.location.href = '/settings?tab=tax'}
+                  className="underline font-medium text-primary"
+                >
+                  Tax Settings
+                </button>{' '}
+                before enabling tax on services.
               </p>
             </div>
           )}
