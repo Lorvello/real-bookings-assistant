@@ -3828,6 +3828,14 @@ export type Database = {
         Args: { p_calendar_id: string; p_phone_number: string }
         Returns: Json
       }
+      get_customer_metrics: {
+        Args: {
+          p_calendar_ids: string[]
+          p_month_start: string
+          p_thirty_days_ago: string
+        }
+        Returns: Json
+      }
       get_dashboard_metrics: {
         Args: { p_calendar_id: string }
         Returns: Json
