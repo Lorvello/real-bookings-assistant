@@ -12,11 +12,18 @@ export interface CustomerMetrics {
 
 export function useCustomerMetrics(calendarIds: string[]) {
   const { useMockData } = useMockDataControl();
+  const defaultMetrics: CustomerMetrics = {
+    unique_customers: 0,
+    returning_customers: 0,
+    total_customers: 0,
+    new_customers_this_month: 0,
+    customer_growth_rate: 0
+  };
   
   return useQuery({
     queryKey: ['customer-metrics', calendarIds],
     queryFn: async (): Promise<CustomerMetrics | null> => {
-      if (!calendarIds || calendarIds.length === 0) return null;
+      if (!calendarIds || calendarIds.length === 0) return defaultMetrics;
 
       console.log('📊 Fetching customer metrics for calendars:', calendarIds);
 
