@@ -3,6 +3,24 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
 import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
 
+// Configuration status caching utilities
+const getConfigCacheKey = (calendarId: string) => `availability_configured_${calendarId}`;
+
+const isConfigurationCached = (calendarId: string): boolean => {
+  if (!calendarId) return false;
+  const cached = localStorage.getItem(getConfigCacheKey(calendarId));
+  return cached === 'true';
+};
+
+const cacheConfigurationStatus = (calendarId: string, isConfigured: boolean) => {
+  if (!calendarId) return;
+  if (isConfigured) {
+    localStorage.setItem(getConfigCacheKey(calendarId), 'true');
+  } else {
+    localStorage.removeItem(getConfigCacheKey(calendarId));
+  }
+};
+
 interface AvailabilityState {
   setupState: 'checking' | 'needs_calendar' | 'needs_config' | 'configured';
   configurationExists: boolean;
@@ -21,16 +39,31 @@ export const useStableAvailabilityState = () => {
   // Cache to prevent unnecessary recalculations
   const lastConfigStateRef = useRef<string>('');
 
-  // Initialize with intelligent state - never show wrong configuration screen
+  // Initialize with intelligent state - check cache to prevent flash
   const [state, setState] = useState<AvailabilityState>(() => {
     const hasCalendar = !!selectedCalendar && !viewingAllCalendars;
+    
+    if (!hasCalendar) {
+      return {
+        setupState: 'needs_calendar',
+        configurationExists: false,
+        isRefreshing: false,
+        hasDefaultSchedule: false,
+        selectedCalendar,
+        defaultSchedule: null
+      };
+    }
+
+    // Check cache to determine initial state intelligently
+    const isCachedAsConfigured = isConfigurationCached(selectedCalendar.id);
+    
     return {
-      // Smart initialization: show 'checking' if we have calendar but need to load data
-      // This prevents showing "Configure" screen when user already has configuration
-      setupState: hasCalendar ? 'checking' : 'needs_calendar',
-      configurationExists: false,
+      // If cached as configured, start optimistically as 'configured'
+      // If not cached, still check first to avoid flash
+      setupState: isCachedAsConfigured ? 'configured' : 'checking',
+      configurationExists: isCachedAsConfigured,
       isRefreshing: false,
-      hasDefaultSchedule: false,
+      hasDefaultSchedule: isCachedAsConfigured,
       selectedCalendar,
       defaultSchedule: null
     };
@@ -77,6 +110,11 @@ export const useStableAvailabilityState = () => {
       selectedCalendar,
       defaultSchedule
     };
+
+    // Update cache with current configuration status
+    if (hasCalendar) {
+      cacheConfigurationStatus(selectedCalendar.id, isConfigured);
+    }
 
     setState(newState);
   }, [
