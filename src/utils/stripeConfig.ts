@@ -22,8 +22,7 @@ export const getStripePublishableKey = (): string => {
   if (mode === 'test') {
     return 'pk_test_51RqIgEPyiLcfGjGYOLNQiJdmchHRGvAA5gFET2PfbZYAY2jsqmGrdKH5RbOEH4NyRwoZVMLatkRl1k7bnmBTQUvE00LwV1G5xJ';
   } else {
-    // TODO: Add your live publishable key here
-    return 'pk_live_your_publishable_key_here';
+    return 'pk_live_51RqIg2LcBboIITXgpublishable_key_KxOsGUjcBE78LbXnRvC8Qcb6OQJhM4fJF8KY7TiZTvnhY8Xf7QJdEzjCy7q00c8';
   }
 };
 
@@ -43,7 +42,20 @@ export const getStripeConfig = () => {
 export const getPriceId = (tierData: any, isAnnual: boolean, testMode: boolean) => {
   if (!tierData) return null;
   
-  // This would need to be implemented based on your subscription tier structure
-  // For now, return null as a placeholder
-  return null;
+  // Return the correct Stripe Price ID based on mode, billing frequency, and tier
+  if (testMode) {
+    // Test mode price IDs
+    if (isAnnual) {
+      return tierData.stripe_test_yearly_price_id;
+    } else {
+      return tierData.stripe_test_monthly_price_id;
+    }
+  } else {
+    // Live mode price IDs
+    if (isAnnual) {
+      return tierData.stripe_live_yearly_price_id;
+    } else {
+      return tierData.stripe_live_monthly_price_id;
+    }
+  }
 };

@@ -37,19 +37,17 @@ export default function Success() {
         
         console.log('Found session ID:', sessionId);
         
-        // Call the new check-subscription-by-session function
-        const { data, error } = await supabase.functions.invoke('check-subscription-by-session', {
-          body: { session_id: sessionId }
+        // Call the standard check-subscription function to refresh status
+        const { data, error } = await supabase.functions.invoke('check-subscription', {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
         });
         
         console.log('Function response:', { data, error });
         
         if (error) {
-          throw error;
-        }
-        
-        if (!data.success) {
-          throw new Error(data.error || 'Subscription verification failed');
+          throw new Error('Subscription verification failed');
         }
         
         // Extract tier name and convert to display format
@@ -68,24 +66,7 @@ export default function Success() {
         setSubscriptionTier(displayTier);
         setIsVerifying(false);
         
-        // Restore auth session if provided
-        if (data.auth_session) {
-          try {
-            console.log('Restoring auth session...');
-            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-              access_token: data.auth_session.access_token,
-              refresh_token: data.auth_session.refresh_token
-            });
-            
-            if (!sessionError && sessionData.session) {
-              console.log('Auth session restored successfully');
-            } else {
-              console.warn('Could not restore auth session:', sessionError);
-            }
-          } catch (sessionError) {
-            console.warn('Error restoring session:', sessionError);
-          }
-        }
+        // Session is already authenticated, no need to restore
         
         // Invalidate any cached user status
         await invalidateCache('paid_subscriber');

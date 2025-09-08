@@ -28,9 +28,10 @@ serve(async (req) => {
     const stripeMode = mode || Deno.env.get("STRIPE_MODE") || 'test'; // Default to test for safety
     const isTestMode = stripeMode === 'test';
     
+    // Use hardcoded keys for consistency with check-subscription function
     const stripeKey = isTestMode 
-      ? Deno.env.get("STRIPE_TEST_SECRET_KEY") 
-      : Deno.env.get("STRIPE_SECRET_KEY");
+      ? "sk_test_51RqIg2LcBboIITXgKEm5tW3HPrSXHKn3dz0k689nF8u3USXvIkjO7wLdRJTmlUphZ7KnfiLPOByp4tnlfFaRWxPj00UoWOQ0mq"
+      : "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";
     
     if (!stripeKey) {
       throw new Error(`${isTestMode ? 'STRIPE_TEST_SECRET_KEY' : 'STRIPE_SECRET_KEY'} is not set`);
