@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserStatus } from '@/contexts/UserStatusContext';
+import { useProfile } from '@/hooks/useProfile';
 
 export default function Success() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const { invalidateCache } = useUserStatus();
+  const { refetch: refetchProfile } = useProfile();
   const [isVerifying, setIsVerifying] = useState(true);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(5);
@@ -70,17 +72,30 @@ export default function Success() {
         console.log('Database updated successfully. Tier:', displayTier);
         setSubscriptionTier(displayTier);
         
-        // Step 2: Wait a moment for database changes to propagate
-        console.log('Step 2: Waiting for database changes to propagate...');
+        // Step 2: Force refresh profile data to ensure it's in sync with database
+        console.log('Step 2: Refreshing profile data...');
+        await refetchProfile();
+        
+        // Step 3: Wait a moment for changes to propagate
+        console.log('Step 3: Waiting for changes to propagate...');
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Step 3: Invalidate cache and update frontend user status
-        console.log('Step 3: Invalidating cache and updating user status to paid_subscriber...');
-        await invalidateCache('paid_subscriber');
+        // Step 4: Directly fetch the definitive user status from database
+        console.log('Step 4: Fetching definitive user status from database...');
+        const { data: userStatusData, error: statusError } = await supabase
+          .rpc('get_user_status_type', { 
+            p_user_id: (await supabase.auth.getUser()).data.user?.id 
+          });
         
-        // Step 4: Wait additional time to ensure UI updates
-        console.log('Step 4: Allowing UI to update...');
-        await new Promise(resolve => setTimeout(resolve, 500));
+        if (statusError) {
+          console.error('Error fetching user status:', statusError);
+        } else {
+          console.log('Database user status:', userStatusData);
+          
+          // Step 5: Force update the user status context with the definitive status
+          console.log('Step 5: Updating user status context to:', userStatusData);
+          await invalidateCache(userStatusData || 'paid_subscriber');
+        }
         
         setIsVerifying(false);
         
