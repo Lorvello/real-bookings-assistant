@@ -1,5 +1,5 @@
 
-export type UserType = 'trial' | 'expired_trial' | 'subscriber' | 'canceled_subscriber' | 'canceled_and_inactive' | 'setup_incomplete' | 'unknown';
+export type UserType = 'trial' | 'expired_trial' | 'subscriber' | 'canceled_subscriber' | 'canceled_and_inactive' | 'setup_incomplete' | 'missed_payment' | 'unknown';
 
 export interface UserStatus {
   userType: UserType;
