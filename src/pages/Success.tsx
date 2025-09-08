@@ -94,7 +94,7 @@ export default function Success() {
           
           // Step 5: Force update the user status context with the definitive status
           console.log('Step 5: Updating user status context to:', userStatusData);
-          await invalidateCache(userStatusData || 'paid_subscriber');
+          await invalidateCache(userStatusData || 'subscriber');
         }
         
         setIsVerifying(false);
