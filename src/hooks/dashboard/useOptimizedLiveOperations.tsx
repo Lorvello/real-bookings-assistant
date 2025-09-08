@@ -52,13 +52,12 @@ export function useOptimizedLiveOperations(calendarIds?: string[]) {
         throw bookingsError;
       }
 
-      // Get active WhatsApp conversations that had activity today across all selected calendars
+      // Get ALL active WhatsApp conversations across all selected calendars
       const { data: conversationsData, error: conversationsError } = await supabase
         .from('whatsapp_conversations')
-        .select('id, last_message_at')
+        .select('id, status')
         .in('calendar_id', calendarIds)
-        .eq('status', 'active')
-        .gte('last_message_at', todayStart.toISOString());
+        .eq('status', 'active');
 
       if (conversationsError) {
         console.error('Error fetching conversations:', conversationsError);
@@ -96,12 +95,8 @@ export function useOptimizedLiveOperations(calendarIds?: string[]) {
         }
       }
       
-      // Count active conversations (filter out conversations with no recent activity)
-      const activeConversationsToday = conversationsData?.filter(conv => {
-        if (!conv.last_message_at) return false;
-        const lastMessage = new Date(conv.last_message_at);
-        return lastMessage >= todayStart && lastMessage <= todayEnd;
-      }).length || 0;
+      // Count ALL active conversations - this is what "active conversations" means
+      const activeConversationsToday = conversationsData?.length || 0;
       
       return {
         today_bookings: todayBookings.length,

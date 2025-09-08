@@ -66,32 +66,63 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
         throw historicalError;
       }
 
-      // Calculate customer growth rate (current month vs previous month) across all calendars
+      // Calculate customer growth rate including WhatsApp contacts
       const currentMonth = new Date();
       const startOfCurrentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
       const startOfPreviousMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
 
+      // Get bookings for current and previous month
       const { data: currentMonthBookings } = await supabase
         .from('bookings')
-        .select('customer_email')
+        .select('customer_email, customer_phone')
         .in('calendar_id', calendarIds)
-        .gte('start_time', startOfCurrentMonth.toISOString())
-        .neq('status', 'cancelled');
+        .neq('status', 'cancelled')
+        .gte('start_time', startOfCurrentMonth.toISOString());
 
       const { data: previousMonthBookings } = await supabase
         .from('bookings')
-        .select('customer_email')
+        .select('customer_email, customer_phone')
         .in('calendar_id', calendarIds)
+        .neq('status', 'cancelled')
         .gte('start_time', startOfPreviousMonth.toISOString())
-        .lt('start_time', startOfCurrentMonth.toISOString())
-        .neq('status', 'cancelled');
+        .lt('start_time', startOfCurrentMonth.toISOString());
 
-      const currentMonthCustomers = new Set(currentMonthBookings?.map(b => b.customer_email) || []).size;
-      const previousMonthCustomers = new Set(previousMonthBookings?.map(b => b.customer_email) || []).size;
+      // Get WhatsApp contacts for current and previous month  
+      const { data: currentMonthContacts } = await supabase
+        .from('whatsapp_contacts')
+        .select('phone_number, linked_customer_email')
+        .gte('created_at', startOfCurrentMonth.toISOString());
+
+      const { data: previousMonthContacts } = await supabase
+        .from('whatsapp_contacts')
+        .select('phone_number, linked_customer_email')
+        .gte('created_at', startOfPreviousMonth.toISOString())
+        .lt('created_at', startOfCurrentMonth.toISOString());
+
+      // Count unique customers (email priority, then phone)
+      const currentCustomers = new Set();
+      currentMonthBookings?.forEach(b => {
+        if (b.customer_email) currentCustomers.add(b.customer_email);
+        else if (b.customer_phone) currentCustomers.add(b.customer_phone);
+      });
+      currentMonthContacts?.forEach(c => {
+        if (c.linked_customer_email) currentCustomers.add(c.linked_customer_email);
+        else currentCustomers.add(c.phone_number);
+      });
+
+      const previousCustomers = new Set();
+      previousMonthBookings?.forEach(b => {
+        if (b.customer_email) previousCustomers.add(b.customer_email);
+        else if (b.customer_phone) previousCustomers.add(b.customer_phone);
+      });
+      previousMonthContacts?.forEach(c => {
+        if (c.linked_customer_email) previousCustomers.add(c.linked_customer_email);
+        else previousCustomers.add(c.phone_number);
+      });
       
-      const customerGrowthRate = previousMonthCustomers > 0 
-        ? ((currentMonthCustomers - previousMonthCustomers) / previousMonthCustomers) * 100
-        : currentMonthCustomers > 0 ? 100 : 0;
+      const customerGrowthRate = previousCustomers.size > 0 
+        ? ((currentCustomers.size - previousCustomers.size) / previousCustomers.size) * 100
+        : currentCustomers.size > 0 ? 100 : 0;
 
       // Calculate capacity utilization across ALL selected calendars
       let capacityUtilization = 0;
@@ -160,13 +191,22 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
         });
       }
 
-      // Simple seasonal patterns (placeholder based on historical data)
+      // Real seasonal patterns based on historical booking data
       const monthNames = ['Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni', 
                          'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December'];
-      const seasonalPatterns = monthNames.map((name, index) => ({
-        month_name: name,
-        avg_bookings: Math.floor(Math.random() * 20) + 10 // Placeholder data - should be based on historical patterns
-      }));
+      
+      const seasonalPatterns = [];
+      for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+        const monthBookings = historicalBookings?.filter(booking => {
+          const bookingDate = new Date(booking.start_time);
+          return bookingDate.getMonth() === monthIndex;
+        }) || [];
+        
+        seasonalPatterns.push({
+          month_name: monthNames[monthIndex],
+          avg_bookings: monthBookings.length
+        });
+      }
 
       return {
         demand_forecast: weeklyTrends,
