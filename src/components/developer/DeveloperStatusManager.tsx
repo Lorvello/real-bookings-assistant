@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useAdminControls } from '@/hooks/useAdminControls';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Settings, RefreshCw, Crown, User, AlertCircle } from 'lucide-react';
 
 const userStatusOptions = [
@@ -75,7 +76,8 @@ const subscriptionTierOptions = [
 export const DeveloperStatusManager = () => {
   const { profile, refetch } = useProfile();
   const { userStatus, invalidateCache } = useUserStatus();
-  const { updateUserSubscription, setupMockIncompleteUser, isLoading } = useAdminControls();
+  const { applyDeveloperStatus, isLoading } = useAdminControls();
+  const { refreshCalendars } = useCalendarContext();
   const { toast } = useToast();
   const [selectedUserStatus, setSelectedUserStatus] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<string>('');
@@ -199,43 +201,33 @@ export const DeveloperStatusManager = () => {
       : selectedTier || 'professional';
 
     try {
-      console.log('Updating user status to:', selectedUserStatus, 'with tier:', effectiveTier);
+      console.log('Applying developer status:', selectedUserStatus, 'with tier:', effectiveTier);
       
-      // For setup_incomplete, use the special function that clears all data
-      if (selectedUserStatus === 'setup_incomplete') {
-        await setupMockIncompleteUser(profile.id);
-      } else {
-        // For other statuses, use normal update
-        const updates = mapStatusToDatabase(selectedUserStatus, effectiveTier);
-        await updateUserSubscription(profile.id, updates);
-      }
+      // Use the new unified function that handles users, subscribers AND calendars
+      await applyDeveloperStatus(profile.id, selectedUserStatus, effectiveTier);
 
-      toast({
-        title: "Status Updated Successfully",
-        description: `User status changed to ${selectedStatusOption.label}${effectiveTier ? ` with ${effectiveTier} tier` : ''}`,
-        variant: "default",
-      });
-
-      // Force complete refresh
-      console.log('Refreshing profile and clearing cache...');
+      // Step 1: Force refresh profile data
+      console.log('Step 1: Refreshing profile data...');
       await refetch();
-      invalidateCache();
       
-      // Reload page as fallback
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // Step 2: Refresh calendars (restore or ensure calendar exists)
+      console.log('Step 2: Refreshing calendars...');
+      await refreshCalendars();
+      
+      // Step 3: Clear user status cache and force re-fetch with the correct status
+      console.log('Step 3: Clearing user status cache and re-fetch...');
+      await invalidateCache(selectedUserStatus);
       
       // Clear selections
       setSelectedUserStatus('');
       setSelectedTier('');
       
-      console.log('Status update completed successfully');
+      console.log('Developer status update completed successfully');
     } catch (error) {
-      console.error('Error updating user status:', error);
+      console.error('Error applying developer status:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update user status",
+        description: error instanceof Error ? error.message : "Failed to apply developer status",
         variant: "destructive",
       });
     }

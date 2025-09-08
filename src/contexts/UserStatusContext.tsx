@@ -140,8 +140,11 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     initialLoadComplete.current = false;
     fetchInProgress.current = false;
     
+    // Normalize 'subscriber' to 'paid_subscriber' for consistency with database
+    const normalizedStatus = newStatus === 'subscriber' ? 'paid_subscriber' : newStatus;
+    
     // For paid_subscriber status, immediately set and force re-fetch to verify
-    if (newStatus === 'paid_subscriber') {
+    if (normalizedStatus === 'paid_subscriber') {
       // Immediately update the UI state for responsiveness
       setUserStatusType('paid_subscriber');
       setIsLoading(false);
@@ -178,16 +181,16 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     }
     
     // For other statuses, update immediately
-    if (newStatus) {
-      console.log('[UserStatusContext] Updating user status to:', newStatus);
-      setUserStatusType(newStatus);
+    if (normalizedStatus) {
+      console.log('[UserStatusContext] Updating user status to:', normalizedStatus);
+      setUserStatusType(normalizedStatus);
       setIsLoading(false);
       
       // Cache immediately
       try {
         sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
           version: CACHE_VERSION,
-          data: { userStatusType: newStatus },
+          data: { userStatusType: normalizedStatus },
           userId: profile.id,
           timestamp: Date.now()
         }));

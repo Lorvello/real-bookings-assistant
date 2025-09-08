@@ -3548,6 +3548,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_apply_developer_status: {
+        Args: { p_status: string; p_tier?: string; p_user_id: string }
+        Returns: Json
+      }
       admin_clear_user_data: {
         Args: { p_user_id: string }
         Returns: Json

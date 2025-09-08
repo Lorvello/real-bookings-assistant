@@ -148,11 +148,50 @@ export const useAdminControls = () => {
     }
   };
 
+  const applyDeveloperStatus = async (
+    userId: string,
+    status: string,
+    tier?: string
+  ) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_apply_developer_status', {
+        p_user_id: userId,
+        p_status: status,
+        p_tier: tier,
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; applied_status?: string; tier?: string; error?: string };
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `Developer status applied: ${result.applied_status}${result.tier ? ` with ${result.tier} tier` : ''}`,
+        });
+        return result;
+      } else {
+        throw new Error(result.error || "Failed to apply developer status");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to apply developer status",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     updateUserSubscription,
     extendTrial,
     getUserSubscriptionDetails,
     setupMockIncompleteUser,
+    applyDeveloperStatus,
     isLoading,
   };
 };
