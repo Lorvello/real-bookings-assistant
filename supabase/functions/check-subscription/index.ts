@@ -86,12 +86,15 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
+    // Check all subscription statuses, not just active
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
       limit: 1,
     });
-    const hasActiveSub = subscriptions.data.length > 0;
+    
+    const hasActiveSub = subscriptions.data.length > 0 && subscriptions.data[0].status === 'active';
+    const hasPastDueSub = subscriptions.data.length > 0 && subscriptions.data[0].status === 'past_due';
+    const hasIncompletePayment = subscriptions.data.length > 0 && subscriptions.data[0].status === 'incomplete';
     let subscriptionTier = null;
     let subscriptionEnd = null;
     let paymentStatus = 'unpaid';
@@ -100,13 +103,23 @@ serve(async (req) => {
     let lastPaymentDate = null;
     let lastPaymentAmount = null;
     let billingHistory: Array<any> = [];
+    let subscriptionStatus = 'expired';
 
-    if (hasActiveSub) {
+    if (hasActiveSub || hasPastDueSub || hasIncompletePayment) {
       const subscription = subscriptions.data[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       nextBillingDate = subscriptionEnd; // For active subs, next billing is current period end
-      paymentStatus = 'paid';
+      paymentStatus = hasActiveSub ? 'paid' : 'unpaid';
       billingCycle = subscription.items.data[0].price.recurring?.interval || 'month';
+      
+      // Set correct subscription status
+      if (hasActiveSub) {
+        subscriptionStatus = 'active';
+      } else if (hasPastDueSub) {
+        subscriptionStatus = 'past_due';
+      } else if (hasIncompletePayment) {
+        subscriptionStatus = 'incomplete';
+      }
       
       // Get payment history from invoices
       try {
@@ -210,7 +223,7 @@ serve(async (req) => {
 
     // Update user record in database with detailed logging
     const updateResult = await supabaseClient.from("users").update({
-      subscription_status: hasActiveSub ? 'active' : 'expired',
+      subscription_status: subscriptionStatus,
       subscription_tier: subscriptionTier,
       subscription_end_date: subscriptionEnd,
       payment_status: paymentStatus,
@@ -220,7 +233,7 @@ serve(async (req) => {
     logStep("Database update result", { 
       error: updateResult.error, 
       data: updateResult.data,
-      subscription_status: hasActiveSub ? 'active' : 'expired',
+      subscription_status: subscriptionStatus,
       subscription_tier: subscriptionTier 
     });
     
@@ -246,7 +259,8 @@ serve(async (req) => {
     logStep("Updated database with subscription info", { 
       subscribed: hasActiveSub, 
       subscriptionTier, 
-      paymentStatus 
+      paymentStatus,
+      subscriptionStatus
     });
 
     return new Response(JSON.stringify({

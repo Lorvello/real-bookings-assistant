@@ -52,6 +52,13 @@ const userStatusOptions = [
     description: 'Subscription ended and inactive',
     tier: null,
     tierRequired: false
+  },
+  { 
+    value: 'missed_payment', 
+    label: 'Missed Payment',
+    description: 'Payment issues or past due',
+    tier: null,
+    tierRequired: false
   }
 ];
 

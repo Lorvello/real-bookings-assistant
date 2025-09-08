@@ -302,6 +302,11 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         statusMessage = 'Trial Expired. Upgrade Now';
         statusColor = 'red';
         break;
+      case 'missed_payment':
+        userType = 'missed_payment';
+        statusMessage = 'Payment Issue - Update Payment Method';
+        statusColor = 'red';
+        break;
       case 'paid_subscriber':
         userType = 'subscriber';
         statusMessage = 'Active Subscription';
@@ -589,6 +594,34 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canCreateBookings: false,
         canEditBookings: false,
         canManageSettings: true,
+        canAccessWhatsApp: false,
+        canAccessBookingAssistant: false,
+        canUseAI: false,
+        canExportData: false,
+        canInviteUsers: false,
+        canAccessAPI: false,
+        canUseWhiteLabel: false,
+        hasPrioritySupport: false,
+        canAccessFutureInsights: false,
+        canAccessBusinessIntelligence: false,
+        canAccessPerformance: false,
+        canAccessCustomerSatisfaction: false,
+        canAccessTeamMembers: false,
+        canAccessTaxCompliance: false,
+        maxCalendars: 0,
+        maxBookingsPerMonth: 0,
+        maxTeamMembers: 0,
+        maxWhatsAppContacts: 0
+      };
+    }
+
+    // Missed payment users - restricted access like expired trial
+    if (userType === 'missed_payment') {
+      return {
+        canViewDashboard: true,
+        canCreateBookings: false,
+        canEditBookings: false,
+        canManageSettings: false,
         canAccessWhatsApp: false,
         canAccessBookingAssistant: false,
         canUseAI: false,
