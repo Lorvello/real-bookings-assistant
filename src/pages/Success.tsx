@@ -37,17 +37,22 @@ export default function Success() {
         
         console.log('Found session ID:', sessionId);
         
-        // Call the standard check-subscription function to refresh status
+        // Call the standard check-subscription function to refresh database status
+        console.log('Step 1: Calling check-subscription to update database...');
         const { data, error } = await supabase.functions.invoke('check-subscription', {
           headers: {
             Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
           },
         });
         
-        console.log('Function response:', { data, error });
+        console.log('Check-subscription response:', { data, error });
         
         if (error) {
-          throw new Error('Subscription verification failed');
+          throw new Error(`Subscription verification failed: ${error.message || error}`);
+        }
+        
+        if (!data.subscribed) {
+          throw new Error('Subscription not found or inactive after payment');
         }
         
         // Extract tier name and convert to display format
@@ -62,14 +67,22 @@ export default function Success() {
           displayTier = 'Enterprise';
         }
         
-        console.log('Setting subscription tier:', displayTier);
+        console.log('Database updated successfully. Tier:', displayTier);
         setSubscriptionTier(displayTier);
-        setIsVerifying(false);
         
-        // Session is already authenticated, no need to restore
+        // Step 2: Wait a moment for database changes to propagate
+        console.log('Step 2: Waiting for database changes to propagate...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Invalidate any cached user status
+        // Step 3: Invalidate cache and update frontend user status
+        console.log('Step 3: Invalidating cache and updating user status to paid_subscriber...');
         await invalidateCache('paid_subscriber');
+        
+        // Step 4: Wait additional time to ensure UI updates
+        console.log('Step 4: Allowing UI to update...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setIsVerifying(false);
         
         // Show success toast
         if (!toastShownRef.current) {
@@ -79,6 +92,8 @@ export default function Success() {
             description: `Your ${displayTier} subscription has been activated.`,
           });
         }
+        
+        console.log('Subscription verification completed successfully!');
         
         
       } catch (error) {
