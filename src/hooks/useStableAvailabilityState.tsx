@@ -31,7 +31,7 @@ interface AvailabilityState {
 }
 
 export const useStableAvailabilityState = () => {
-  const { selectedCalendar, calendars, viewingAllCalendars } = useCalendarContext();
+  const { selectedCalendar, calendars, viewingAllCalendars, loading: calendarsLoading } = useCalendarContext();
   const { schedules, loading: schedulesLoading } = useAvailabilitySchedules(selectedCalendar?.id);
   const defaultSchedule = schedules.find(s => s.is_default) || schedules[0];
   const { rules, loading: rulesLoading } = useAvailabilityRules(defaultSchedule?.id);
@@ -41,29 +41,12 @@ export const useStableAvailabilityState = () => {
 
   // Initialize with intelligent state - check cache to prevent flash
   const [state, setState] = useState<AvailabilityState>(() => {
-    const hasCalendar = !!selectedCalendar && !viewingAllCalendars;
-    
-    if (!hasCalendar) {
-      return {
-        setupState: 'needs_calendar',
-        configurationExists: false,
-        isRefreshing: false,
-        hasDefaultSchedule: false,
-        selectedCalendar,
-        defaultSchedule: null
-      };
-    }
-
-    // Check cache to determine initial state intelligently
-    const isCachedAsConfigured = isConfigurationCached(selectedCalendar.id);
-    
+    // Always start with 'checking' to prevent flash - we'll determine real state once data loads
     return {
-      // If cached as configured, start optimistically as 'configured'
-      // If not cached, still check first to avoid flash
-      setupState: isCachedAsConfigured ? 'configured' : 'checking',
-      configurationExists: isCachedAsConfigured,
+      setupState: 'checking',
+      configurationExists: false,
       isRefreshing: false,
-      hasDefaultSchedule: isCachedAsConfigured,
+      hasDefaultSchedule: false,
       selectedCalendar,
       defaultSchedule: null
     };
@@ -74,8 +57,8 @@ export const useStableAvailabilityState = () => {
 
   // Combined effect to compute state with caching
   useEffect(() => {
-    // Skip state computation during loading to prevent intermediate states
-    if (schedulesLoading || rulesLoading) return;
+    // Skip state computation during ANY loading to prevent intermediate states and flash
+    if (calendarsLoading || schedulesLoading || rulesLoading) return;
 
     const hasCalendar = !!selectedCalendar && !viewingAllCalendars;
     const hasSchedule = !!defaultSchedule;
@@ -122,6 +105,7 @@ export const useStableAvailabilityState = () => {
     viewingAllCalendars,
     schedules.length,
     rules.length,
+    calendarsLoading,
     schedulesLoading,
     rulesLoading,
     state.isRefreshing
