@@ -36,8 +36,12 @@ serve(async (req) => {
     const isTestMode = stripeMode === 'test';
     
     const stripeKey = isTestMode 
-      ? "sk_test_51RqIg2LcBboIITXgKEm5tW3HPrSXHKn3dz0k689nF8u3USXvIkjO7wLdRJTmlUphZ7KnfiLPOByp4tnlfFaRWxPj00UoWOQ0mq"
-      : "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";
+      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
+      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
+    
+    if (!stripeKey) {
+      throw new Error(`Missing Stripe secret key for ${isTestMode ? 'test' : 'live'} mode`);
+    }
     
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 

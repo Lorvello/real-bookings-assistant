@@ -19,6 +19,7 @@ export const getStripeMode = (): 'test' | 'live' => {
 export const getStripePublishableKey = (): string => {
   const mode = getStripeMode();
   
+  // These are safe to hardcode as they are publishable keys (not secret)
   if (mode === 'test') {
     return 'pk_test_51RqIgEPyiLcfGjGYOLNQiJdmchHRGvAA5gFET2PfbZYAY2jsqmGrdKH5RbOEH4NyRwoZVMLatkRl1k7bnmBTQUvE00LwV1G5xJ';
   } else {

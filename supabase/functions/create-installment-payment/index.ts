@@ -31,7 +31,13 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    // For installments, use test mode by default since it's likely development/testing
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY_TEST') || Deno.env.get('STRIPE_SECRET_KEY_LIVE');
+    if (!stripeKey) {
+      throw new Error('Missing Stripe secret key');
+    }
+    
+    const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
     });
 

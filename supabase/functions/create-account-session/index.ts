@@ -41,7 +41,7 @@ serve(async (req) => {
     const { components, account_id, test_mode = true } = await req.json()
 
     // Get correct Stripe secret key based on test_mode
-    const stripeSecretKey = test_mode 
+    const stripeSecretKey = test_mode
       ? Deno.env.get('STRIPE_SECRET_KEY_TEST')
       : Deno.env.get('STRIPE_SECRET_KEY_LIVE')
     

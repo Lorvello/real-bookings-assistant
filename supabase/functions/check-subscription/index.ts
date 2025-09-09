@@ -32,10 +32,14 @@ serve(async (req) => {
     const stripeMode = Deno.env.get("STRIPE_MODE") || 'test'; // Default to test for safety
     const isTestMode = stripeMode === 'test';
     
-    // Use hardcoded keys for now since we have them
+    // Get Stripe key from secrets
     const stripeKey = isTestMode 
-      ? "sk_test_51RqIg2LcBboIITXgKEm5tW3HPrSXHKn3dz0k689nF8u3USXvIkjO7wLdRJTmlUphZ7KnfiLPOByp4tnlfFaRWxPj00UoWOQ0mq"
-      : "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";
+      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
+      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
+    
+    if (!stripeKey) {
+      throw new Error(`Missing Stripe secret key for ${isTestMode ? 'test' : 'live'} mode`);
+    }
     
     logStep("Stripe configuration", { mode: stripeMode, isTestMode, hasKey: !!stripeKey });
 
