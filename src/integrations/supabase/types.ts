@@ -3628,12 +3628,20 @@ export type Database = {
         Returns: boolean
       }
       check_booking_conflicts: {
-        Args: {
-          p_calendar_id: string
-          p_end_time: string
-          p_exclude_booking_id?: string
-          p_start_time: string
-        }
+        Args:
+          | {
+              p_allow_double_bookings?: boolean
+              p_calendar_id: string
+              p_end_time: string
+              p_exclude_booking_id?: string
+              p_start_time: string
+            }
+          | {
+              p_calendar_id: string
+              p_end_time: string
+              p_exclude_booking_id?: string
+              p_start_time: string
+            }
         Returns: boolean
       }
       check_booking_rate_limit: {
