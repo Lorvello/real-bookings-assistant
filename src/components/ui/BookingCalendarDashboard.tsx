@@ -503,61 +503,57 @@ function CalendarDashboard({ data = [] }: CalendarDashboardProps) {
           </div>
 
           <div className="isolate grid w-full grid-cols-7 grid-rows-5 border-l border-r border-gray-700 lg:hidden">
-            {days.map((day, dayIdx) => (
-              <button
-                onClick={() => setSelectedDay(day)}
-                key={dayIdx}
-                type="button"
-                className={cn(
-                  isEqual(day, selectedDay) && "text-white",
-                  !isEqual(day, selectedDay) &&
-                    !isToday(day) &&
-                    isSameMonth(day, firstDayCurrentMonth) &&
-                    "text-gray-300",
-                  !isEqual(day, selectedDay) &&
-                    !isToday(day) &&
-                    !isSameMonth(day, firstDayCurrentMonth) &&
-                    "text-gray-500",
-                  (isEqual(day, selectedDay) || isToday(day)) &&
-                    "font-semibold",
-                  "flex h-14 flex-col border-b border-r border-gray-700 px-3 py-2 hover:bg-gray-800 focus:z-10",
-                )}
-              >
-                <time
-                  dateTime={format(day, "yyyy-MM-dd")}
+            {days.map((day, dayIdx) => {
+              const dayData = data.filter((date) => isSameDay(date.day, day));
+              const hasBookings = dayData.length > 0;
+              
+              return (
+                <button
+                  onClick={() => setSelectedDay(day)}
+                  key={dayIdx}
+                  type="button"
                   className={cn(
-                    "ml-auto flex size-6 items-center justify-center rounded-full",
-                    isEqual(day, selectedDay) &&
-                      isToday(day) &&
-                      "bg-green-600 text-white",
-                    isEqual(day, selectedDay) &&
+                    isEqual(day, selectedDay) && "text-white",
+                    !isEqual(day, selectedDay) &&
                       !isToday(day) &&
-                      "bg-green-600 text-white",
+                      isSameMonth(day, firstDayCurrentMonth) &&
+                      "text-gray-300",
+                    !isEqual(day, selectedDay) &&
+                      !isToday(day) &&
+                      !isSameMonth(day, firstDayCurrentMonth) &&
+                      "text-gray-500",
+                    (isEqual(day, selectedDay) || isToday(day)) &&
+                      "font-semibold",
+                    "flex h-14 flex-col border-b border-r border-gray-700 px-3 py-2 hover:bg-gray-800 focus:z-10",
                   )}
                 >
-                  {format(day, "d")}
-                </time>
-                {data.filter((date) => isSameDay(date.day, day)).length > 0 && (
-                  <div>
-                    {data
-                      .filter((date) => isSameDay(date.day, day))
-                      .map((date) => (
-                        <div
-                          key={date.day.toString()}
-                          className="-mx-0.5 mt-auto flex flex-wrap-reverse"
-                        >
-                          {date.bookings.map((booking) => (
-                            <span
-                              key={booking.id}
-                              className="mx-0.5 mt-1 h-1.5 w-1.5 rounded-full bg-green-600"
-                            />
-                          ))}
-                        </div>
+                  <time
+                    dateTime={format(day, "yyyy-MM-dd")}
+                    className={cn(
+                      "ml-auto flex size-6 items-center justify-center rounded-full",
+                      isEqual(day, selectedDay) &&
+                        isToday(day) &&
+                        "bg-green-600 text-white",
+                      isEqual(day, selectedDay) &&
+                        !isToday(day) &&
+                        "bg-green-600 text-white",
+                    )}
+                  >
+                    {format(day, "d")}
+                  </time>
+                  {hasBookings && (
+                    <div className="-mx-0.5 mt-auto flex flex-wrap-reverse">
+                      {dayData[0].bookings.slice(0, 2).map((booking) => (
+                        <span
+                          key={booking.id}
+                          className="mx-0.5 mt-1 h-1.5 w-1.5 rounded-full bg-green-600"
+                        />
                       ))}
-                  </div>
-                )}
-              </button>
-            ))}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

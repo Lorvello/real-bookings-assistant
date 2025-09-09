@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { generateEnglishSampleBookings } from './calendar/utils/englishSampleBookings';
 import { DayBookingsModal } from './calendar/DayBookingsModal';
@@ -140,10 +140,10 @@ const CalendarMockup = () => {
         </div>
       </div>
       
-      {/* Much more compact mobile calendar grid */}
+      {/* Optimized mobile calendar grid */}
       <div className="p-1 md:p-2">
         <div className="grid grid-cols-7 gap-0.5 md:gap-1">
-          {days.map(day => {
+          {useMemo(() => days.map(day => {
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isDayToday = isToday(day);
             const dayBookings = getBookingsForDay(day);
@@ -198,7 +198,7 @@ const CalendarMockup = () => {
                 </div>
               </div>
             );
-          })}
+          }), [days, currentDate])}
         </div>
       </div>
 

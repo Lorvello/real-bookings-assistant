@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isSameMonth, isAfter, isBefore } from 'date-fns';
@@ -151,9 +151,9 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
         ))}
       </div>
 
-      {/* Calendar grid */}
+      {/* Optimized calendar grid */}
       <div className="grid grid-cols-7 gap-1">
-        {allDays.map((date) => {
+        {useMemo(() => allDays.map((date) => {
           const isCurrentMonth = isSameMonth(date, currentMonth);
           const isSelected = isRangeStart(date) || isRangeEnd(date);
           const isInRangeDate = isInRange(date);
@@ -188,7 +188,7 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
               {format(date, 'd')}
             </button>
           );
-        })}
+        }), [allDays, value])}
       </div>
 
       {/* Selected range display */}
