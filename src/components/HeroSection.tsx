@@ -30,7 +30,7 @@ const HeroSection: React.FC = () => {
 
         {/* Main headline - HEADER (Largest) */}
         <div className="space-y-2 md:space-y-8">
-          <h1 className="text-3xl md:text-5xl xl:text-6xl font-bold text-white leading-tight md:leading-[0.95] tracking-tight animate-appear opacity-100">
+          <h1 className="text-3xl md:text-5xl xl:text-6xl font-bold text-white leading-tight md:leading-[0.95] tracking-tight opacity-100">
             <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
               Bookings
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
