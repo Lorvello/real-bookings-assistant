@@ -16,15 +16,23 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
       {/* Logo - only show when expanded */}
       {isSidebarOpen && (
         <div className="transition-all duration-300 select-none">
-          <img 
-            src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
-            alt="Bookings Assistant logo" 
-            className={`w-auto pointer-events-none select-none ${isMobile ? 'h-10' : 'h-12'}`}
-            width="107"
-            height="48"
-            loading="eager"
-            decoding="async"
-          />
+          <picture>
+            <source 
+              srcSet="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.webp" 
+              type="image/webp"
+              width="107"
+              height="48"
+            />
+            <img 
+              src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
+              alt="Bookings Assistant logo" 
+              className={`w-auto pointer-events-none select-none ${isMobile ? 'h-10' : 'h-12'}`}
+              width="107"
+              height="48"
+              loading="eager"
+              decoding="async"
+            />
+          </picture>
         </div>
       )}
       

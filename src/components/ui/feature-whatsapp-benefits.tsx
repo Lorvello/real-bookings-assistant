@@ -131,15 +131,23 @@ export const WhatsAppBenefits = ({
                 >
                   <div className="bg-slate-900/95 rounded-lg border border-slate-700/50 shadow-lg overflow-hidden mx-2">
                     <div className="h-48 overflow-hidden">
-                      <img
-                        src={benefit.image}
-                        alt={benefit.title}
-                        className="h-full w-full object-cover object-center"
-                        width="340"
-                        height="256"
-                        loading="lazy"
-                        decoding="async"
-                      />
+                      <picture>
+                        <source 
+                          srcSet={benefit.image.replace('.png', '.webp')} 
+                          type="image/webp"
+                          width="340"
+                          height="256"
+                        />
+                        <img
+                          src={benefit.image}
+                          alt={benefit.title}
+                          className="h-full w-full object-cover object-center"
+                          width="340"
+                          height="256"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </picture>
                     </div>
                     <div className="p-4">
                       <h3 className="text-lg font-bold text-white mb-3 leading-tight">
@@ -211,15 +219,23 @@ export const WhatsAppBenefits = ({
             {enhancedBenefits[0] && (
               <div className={`group md:col-span-2 flex flex-col md:flex-row overflow-hidden rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-xl shadow-black/30 transition-all duration-300 ease-out transform-gpu isolate hover:scale-[1.03] hover:z-10 hover:shadow-2xl hover:shadow-emerald-500/40 hover:border-emerald-400/80 cursor-pointer ${isVisible ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
                 <div className="md:flex-1 md:min-h-[16rem] lg:min-h-[18rem] xl:min-h-[20rem] overflow-hidden rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
-                  <img
-                    src={enhancedBenefits[0].image}
-                    alt={enhancedBenefits[0].title}
-                    className="aspect-[16/9] h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
-                    width="340"
-                    height="256"
-                    loading="eager"
-                    decoding="async"
-                  />
+                  <picture>
+                    <source 
+                      srcSet={enhancedBenefits[0].image.replace('.png', '.webp')} 
+                      type="image/webp"
+                      width="340"
+                      height="256"
+                    />
+                    <img
+                      src={enhancedBenefits[0].image}
+                      alt={enhancedBenefits[0].title}
+                      className="aspect-[16/9] h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
+                      width="340"
+                      height="256"
+                      loading="eager"
+                      decoding="async"
+                    />
+                  </picture>
                 </div>
                 <div className="md:flex-1 flex flex-col justify-center px-6 py-7 md:px-8 md:py-9 lg:px-10 lg:py-11 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
                   <h3 className="mb-3 text-xl font-bold tracking-tight text-white md:mb-4 md:text-2xl lg:mb-5 lg:text-3xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
@@ -237,15 +253,23 @@ export const WhatsAppBenefits = ({
                 className={`group flex flex-col overflow-hidden rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-lg shadow-black/30 transition-all duration-300 ease-out transform-gpu isolate hover:scale-[1.03] hover:z-10 hover:shadow-xl hover:shadow-emerald-500/40 hover:border-emerald-400/80 cursor-pointer ${isVisible ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}
               >
                 <div className="overflow-hidden h-52 md:h-56 lg:h-60 rounded-t-xl">
-                  <img
-                    src={benefit.image}
-                    alt={benefit.title}
-                    className="h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
-                    width="347"
-                    height="194"
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  <picture>
+                    <source 
+                      srcSet={benefit.image.replace('.png', '.webp')} 
+                      type="image/webp"
+                      width="347"
+                      height="194"
+                    />
+                    <img
+                      src={benefit.image}
+                      alt={benefit.title}
+                      className="h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
+                      width="347"
+                      height="194"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </picture>
                 </div>
                 <div className="px-6 py-7 md:px-7 md:py-8 lg:px-8 lg:py-9 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
                   <h3 className="mb-3 text-lg font-bold tracking-tight text-white md:mb-4 md:text-xl lg:mb-5 lg:text-2xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
