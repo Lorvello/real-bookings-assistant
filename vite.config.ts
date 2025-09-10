@@ -8,10 +8,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    headers: {
-      // Cache static assets for better performance
-      'Cache-Control': 'public, max-age=31536000, immutable',
-    },
   },
   plugins: [
     react(),
