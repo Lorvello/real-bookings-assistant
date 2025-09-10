@@ -74,6 +74,10 @@ const Header = () => {
               src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
               alt="Bookings Assistant logo" 
               className="h-10 sm:h-12 w-auto -my-2 pointer-events-none select-none"
+              width="107"
+              height="48"
+              loading="eager"
+              decoding="async"
             />
           </Link>
           

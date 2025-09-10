@@ -135,6 +135,10 @@ export const WhatsAppBenefits = ({
                         src={benefit.image}
                         alt={benefit.title}
                         className="h-full w-full object-cover object-center"
+                        width="340"
+                        height="256"
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     <div className="p-4">
@@ -211,6 +215,10 @@ export const WhatsAppBenefits = ({
                     src={enhancedBenefits[0].image}
                     alt={enhancedBenefits[0].title}
                     className="aspect-[16/9] h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
+                    width="340"
+                    height="256"
+                    loading="eager"
+                    decoding="async"
                   />
                 </div>
                 <div className="md:flex-1 flex flex-col justify-center px-6 py-7 md:px-8 md:py-9 lg:px-10 lg:py-11 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
@@ -233,6 +241,10 @@ export const WhatsAppBenefits = ({
                     src={benefit.image}
                     alt={benefit.title}
                     className="h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
+                    width="347"
+                    height="194"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="px-6 py-7 md:px-7 md:py-8 lg:px-8 lg:py-9 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
