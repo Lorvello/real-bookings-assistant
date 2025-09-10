@@ -86,15 +86,11 @@ export const TestimonialsColumn = (props: {
                 <div className="text-[10px] md:text-base leading-tight md:leading-normal">{text}</div>
                 <div className="flex items-center gap-2 mt-3 md:mt-5">
                   <img
-                    width="32"
-                    height="32"
-                    src={`${image}?s=80`}
-                    srcSet={`${image}?s=40 1x, ${image}?s=80 2x`}
-                    sizes="(max-width: 768px) 32px, 40px"
+                    width={32}
+                    height={32}
+                    src={image}
                     alt={name}
                     className="h-8 w-8 md:h-10 md:w-10 rounded-full"
-                    loading="lazy"
-                    decoding="async"
                   />
                   <div className="flex flex-col">
                     <div className="font-medium tracking-tight leading-tight text-[10px] md:text-base md:leading-5">{name}</div>

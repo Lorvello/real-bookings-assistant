@@ -70,24 +70,15 @@ const Header = () => {
             onClick={handleNavClick}
             className="flex items-center hover:opacity-80 transition-opacity select-none cursor-pointer"
           >
-            <picture>
-              <source 
-                srcSet="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.webp" 
-                type="image/webp"
-                width="107"
-                height="48"
-              />
-              <img 
-                src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
-                alt="Bookings Assistant logo" 
-                className="h-10 sm:h-12 w-auto -my-2 pointer-events-none select-none"
-                width="107"
-                height="48"
-                loading="eager"
-                decoding="async"
-                sizes="(max-width: 640px) 107px, 107px"
-              />
-            </picture>
+            <img 
+              src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
+              alt="Bookings Assistant logo" 
+              className="h-10 sm:h-12 w-auto -my-2 pointer-events-none select-none"
+              width="107"
+              height="48"
+              loading="eager"
+              decoding="async"
+            />
           </Link>
           
           {/* Desktop Navigation Links */}
