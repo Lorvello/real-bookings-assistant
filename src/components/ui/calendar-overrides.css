@@ -1,341 +1,98 @@
-/* AGGRESSIVE React Day Picker Calendar Grid Overrides */
-/* Force complete override of React Day Picker's internal structure */
-
-/* Nuclear option - override everything with maximum specificity */
-.react-day-picker * {
-  box-sizing: border-box !important;
+/* Optimized React Day Picker Overrides */
+.react-day-picker table {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-/* Force the main container to use CSS Grid */
-.react-day-picker,
-.react-day-picker > div {
-  display: block !important;
-  width: 100% !important;
+.react-day-picker thead {
+  display: contents;
 }
 
-/* Force months container to use horizontal layout */
-.react-day-picker .rdp-months {
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 1.5rem !important;
-  width: 100% !important;
-  justify-content: center !important;
-  align-items: flex-start !important;
-  flex-wrap: nowrap !important;
+.react-day-picker thead tr {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-column: 1 / -1;
 }
 
-.react-day-picker .rdp-month {
-  display: block !important;
-  width: auto !important;
-  min-width: 280px !important;
-  max-width: 320px !important;
-  flex-shrink: 0 !important;
-  flex-grow: 0 !important;
+.react-day-picker thead th {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-right: 1px solid hsl(var(--border) / 0.12);
+  border-bottom: 1px solid hsl(var(--border) / 0.18);
+  color: hsl(var(--muted-foreground));
+  padding: 0.5rem 0.25rem;
 }
 
-/* Additional overrides for month containers */
-.react-day-picker .rdp-month_wrapper,
-.react-day-picker .rdp-month_grid {
-  display: block !important;
-  width: 100% !important;
+.react-day-picker thead th:last-child {
+  border-right: none;
 }
 
-/* Force any month-related containers to not stack vertically */
-.react-day-picker [class*="rdp-month"] {
-  display: block !important;
-  width: 100% !important;
-  margin: 0 !important;
+.react-day-picker tbody {
+  display: contents;
 }
 
-/* Override any potential vertical stacking */
-.react-day-picker .rdp-months > * {
-  display: block !important;
-  flex-shrink: 0 !important;
+.react-day-picker tbody tr {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-column: 1 / -1;
+  border-bottom: 1px solid hsl(var(--border) / 0.08);
 }
 
-/* Force the table to be a proper grid */
-.react-day-picker table,
-.react-day-picker .rdp-table {
-  display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important;
-  grid-template-rows: auto 1fr !important;
-  width: 100% !important;
-  table-layout: fixed !important;
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
+.react-day-picker tbody tr:last-child {
+  border-bottom: none;
 }
 
-/* Force header structure */
-.react-day-picker thead,
-.react-day-picker .rdp-thead {
-  display: contents !important;
+.react-day-picker tbody td {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.75rem;
+  padding: 0.25rem;
+  border-right: 1px solid hsl(var(--border) / 0.1);
 }
 
-.react-day-picker thead tr,
-.react-day-picker .rdp-head_row {
-  display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important;
-  grid-column: 1 / -1 !important;
-  gap: 0 !important;
-  width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
+.react-day-picker tbody td:last-child {
+  border-right: none;
 }
 
-.react-day-picker thead th,
-.react-day-picker .rdp-head_cell {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  height: 2.5rem !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  border-right: 1px solid hsl(var(--border) / 0.12) !important;
-  border-bottom: 1px solid hsl(var(--border) / 0.18) !important;
-  color: hsl(var(--muted-foreground)) !important;
-  background: transparent !important;
-  text-align: center !important;
-  padding: 0.5rem 0.25rem !important;
-  margin: 0 !important;
-  min-width: 0 !important;
-  flex: 1 !important;
-  letter-spacing: 0.025em !important;
+.react-day-picker button {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-.react-day-picker thead th:last-child,
-.react-day-picker .rdp-head_cell:last-child {
-  border-right: none !important;
+.react-day-picker button[aria-selected="true"] {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
-/* Force body structure */
-.react-day-picker tbody,
-.react-day-picker .rdp-tbody {
-  display: contents !important;
+.react-day-picker button[data-today="true"] {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
 }
 
-.react-day-picker tbody tr,
-.react-day-picker .rdp-row {
-  display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important;
-  grid-column: 1 / -1 !important;
-  gap: 0 !important;
-  width: 100% !important;
-  border-bottom: 1px solid hsl(var(--border) / 0.08) !important;
-  margin: 0 !important;
-  padding: 0 !important;
+.react-day-picker button:hover:not([aria-selected="true"]):not(:disabled) {
+  background-color: hsl(var(--accent) / 0.4);
 }
 
-.react-day-picker tbody tr:last-child,
-.react-day-picker .rdp-row:last-child {
-  border-bottom: none !important;
-}
-
-.react-day-picker tbody td,
-.react-day-picker .rdp-cell {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  height: 2.75rem !important;
-  padding: 0.25rem !important;
-  position: relative !important;
-  border-right: 1px solid hsl(var(--border) / 0.1) !important;
-  text-align: center !important;
-  font-size: 0.875rem !important;
-  margin: 0 !important;
-  min-width: 0 !important;
-  flex: 1 !important;
-}
-
-.react-day-picker tbody td:last-child,
-.react-day-picker .rdp-cell:last-child {
-  border-right: none !important;
-}
-
-/* Day button styling */
-.react-day-picker button,
-.react-day-picker .rdp-day {
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0 !important;
-  border-radius: 0.5rem !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border: none !important;
-  background: transparent !important;
-  cursor: pointer !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  padding: 0.5rem !important;
-  min-width: 0 !important;
-  flex: 1 !important;
-  line-height: 1 !important;
-}
-
-/* Selected day styling */
-.react-day-picker button[aria-selected="true"],
-.react-day-picker .rdp-day[aria-selected="true"],
-.react-day-picker .rdp-day_selected {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-}
-
-.react-day-picker button[aria-selected="true"]:hover,
-.react-day-picker .rdp-day[aria-selected="true"]:hover,
-.react-day-picker .rdp-day_selected:hover {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-}
-
-/* Today styling */
-.react-day-picker button[data-today="true"],
-.react-day-picker .rdp-day[data-today="true"],
-.react-day-picker .rdp-day_today {
-  background-color: hsl(var(--accent)) !important;
-  color: hsl(var(--accent-foreground)) !important;
-}
-
-/* Outside month days */
-.react-day-picker button[data-outside="true"],
-.react-day-picker .rdp-day[data-outside="true"],
-.react-day-picker .rdp-day_outside {
-  color: hsl(var(--muted-foreground)) !important;
-  opacity: 0.5 !important;
-}
-
-/* Disabled days */
-.react-day-picker button:disabled,
-.react-day-picker .rdp-day:disabled,
-.react-day-picker .rdp-day_disabled {
-  color: hsl(var(--muted-foreground)) !important;
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-}
-
-/* Range selection styling - Complete visual feedback */
-/* Range start (first selected date) */
-.react-day-picker button[data-range-start="true"],
-.react-day-picker .rdp-day[data-range-start="true"],
-.react-day-picker .rdp-day_range_start {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-  border-radius: 0.5rem 0 0 0.5rem !important;
-  position: relative !important;
-}
-
-/* Range end (last selected date) */
-.react-day-picker button[data-range-end="true"],
-.react-day-picker .rdp-day[data-range-end="true"],
-.react-day-picker .rdp-day_range_end {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-  border-radius: 0 0.5rem 0.5rem 0 !important;
-  position: relative !important;
-}
-
-/* Range middle (dates between start and end) */
-.react-day-picker button[data-range-middle="true"],
-.react-day-picker .rdp-day[data-range-middle="true"],
-.react-day-picker .rdp-day_range_middle {
-  background-color: hsl(var(--primary) / 0.4) !important;
-  color: hsl(var(--primary-foreground)) !important;
-  border-radius: 0 !important;
-  position: relative !important;
-}
-
-/* Alternative range selection classes for better compatibility */
-.react-day-picker .rdp-day_range_start,
-.react-day-picker .rdp-day_range_end,
-.react-day-picker .rdp-day_range_middle {
-  background-color: hsl(var(--primary) / 0.4) !important;
-  color: hsl(var(--primary-foreground)) !important;
-}
-
-.react-day-picker .rdp-day_range_start,
-.react-day-picker .rdp-day_range_end {
-  background-color: hsl(var(--primary)) !important;
-}
-
-/* Ensure full range is visually connected */
-.react-day-picker [data-selected="true"] {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-}
-
-/* Range selection in progress */
-.react-day-picker .rdp-day[data-range-middle="true"]::before,
-.react-day-picker .rdp-day_range_middle::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: -0.25rem !important;
-  right: -0.25rem !important;
-  bottom: 0 !important;
-  background-color: hsl(var(--primary) / 0.2) !important;
-  z-index: -1 !important;
-}
-
-/* Hover effects */
-.react-day-picker button:hover:not([aria-selected="true"]):not(:disabled),
-.react-day-picker .rdp-day:hover:not([aria-selected="true"]):not(:disabled) {
-  background-color: hsl(var(--accent) / 0.4) !important;
-  transform: scale(1.02) !important;
-}
-
-/* Focus styling */
-.react-day-picker button:focus-visible,
-.react-day-picker .rdp-day:focus-visible {
-  outline: 2px solid hsl(var(--ring)) !important;
-  outline-offset: 2px !important;
-  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2) !important;
-}
-
-/* Additional nuclear overrides for maximum compatibility */
-.react-day-picker [class*="rdp-head"],
-.react-day-picker [class*="rdp-row"],
-.react-day-picker [class*="rdp-cell"] {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  min-width: 0 !important;
-}
-
-/* Force any flexbox containers to be grid instead */
-.react-day-picker [style*="display: flex"],
-.react-day-picker [style*="display:flex"] {
-  display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important;
-}
-
-/* Override inline styles that might be applied by React Day Picker */
-.react-day-picker * {
-  box-sizing: border-box !important;
-}
-
-/* Ensure proper spacing and alignment */
-.react-day-picker .rdp-caption {
-  margin-bottom: 1rem !important;
-  text-align: center !important;
-}
-
-.react-day-picker .rdp-nav {
-  display: flex !important;
-  justify-content: space-between !important;
-  position: absolute !important;
-  width: 100% !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-}
-
-.react-day-picker .rdp-nav_button {
-  position: relative !important;
+.react-day-picker button:disabled {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.5;
+  cursor: not-allowed;
 }
