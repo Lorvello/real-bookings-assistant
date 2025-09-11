@@ -120,16 +120,14 @@ serve(async (req) => {
       if (hasActiveSub) {
         subscriptionStatus = 'active';
       } else if (hasPastDueSub) {
-        subscriptionStatus = 'past_due';
-        // Missed payment - nullify subscription tier and end subscription
+        subscriptionStatus = 'missed_payment';
         subscriptionTier = null;
-        subscriptionEnd = new Date().toISOString(); // End subscription immediately
+        subscriptionEnd = new Date().toISOString();
         logStep("Payment missed - ending subscription", { status: 'past_due' });
       } else if (hasIncompletePayment) {
-        subscriptionStatus = 'incomplete';
-        // Missed payment - nullify subscription tier and end subscription
+        subscriptionStatus = 'missed_payment';
         subscriptionTier = null;
-        subscriptionEnd = new Date().toISOString(); // End subscription immediately
+        subscriptionEnd = new Date().toISOString();
         logStep("Payment incomplete - ending subscription", { status: 'incomplete' });
       }
       
@@ -171,47 +169,45 @@ serve(async (req) => {
         subscriptionStatus
       });
       
-      // Only determine subscription tier for active subscriptions
-      // For past_due/incomplete, tier is already set to null above
+      // Determine subscription tier only for active subscriptions
       if (hasActiveSub) {
         // Determine subscription tier from metadata first
         subscriptionTier = subscription.metadata?.tier_name || subscription.metadata?.tier;
         logStep("Checking metadata for tier", { metadata: subscription.metadata, tier: subscriptionTier });
-      }
-      
+
         if (!subscriptionTier || subscriptionTier === 'unknown') {
           // Fallback: determine from price if metadata not available
           const priceId = subscription.items.data[0].price.id;
           logStep("Determining tier from price", { priceId });
-          
+
           const price = await stripe.prices.retrieve(priceId);
           const amount = price.unit_amount || 0;
-          
+
           logStep("Price details", { amount, currency: price.currency, nickname: price.nickname });
-          
+
           // Map specific price IDs to tiers (based on your Stripe prices)
           if (priceId === 'price_1RqwecLcBboIITXgsuyzCCcU' || priceId === 'price_1RqwcuLcBboIITXgCew589Ao') {
-            subscriptionTier = "professional";
+            subscriptionTier = 'professional';
           } else if (priceId === 'price_1RqwcHLcBboIITXgYhJupraj' || priceId === 'price_1RqwdWLcBboIITXgMHKmGtbv') {
-            subscriptionTier = "starter";
+            subscriptionTier = 'starter';
           } else {
             // Fallback to price-based determination
             const centAmount = amount;
-            if (centAmount <= 2000) { // €20 or less
-              subscriptionTier = "starter";
-            } else if (centAmount <= 5000) { // €50 or less  
-              subscriptionTier = "professional";
+            if (centAmount <= 2000) {
+              subscriptionTier = 'starter';
+            } else if (centAmount <= 5000) {
+              subscriptionTier = 'professional';
             } else {
-              subscriptionTier = "enterprise";
+              subscriptionTier = 'enterprise';
             }
           }
-          
+
           logStep("Tier determined from price", { centAmount: amount, priceId, tier: subscriptionTier });
         } else {
           logStep("Tier found in metadata", { tier: subscriptionTier });
         }
       }
-      
+
       logStep("Determined subscription tier", { subscriptionTier, paymentStatus });
     } else {
       logStep("No active subscription found");
