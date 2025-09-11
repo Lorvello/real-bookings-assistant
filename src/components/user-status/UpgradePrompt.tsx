@@ -27,17 +27,20 @@ export function UpgradePrompt({ userStatus, isExpanded, onUpgrade }: UpgradeProm
   const getButtonText = () => {
     if (userType === 'expired_trial') return 'Upgrade Now';
     if (userType === 'canceled_subscriber') return 'Reactivate';
+    if (userType === 'missed_payment') return 'Fix Payment';
     return 'Upgrade';
   };
 
   const getButtonIcon = () => {
     if (userType === 'canceled_subscriber') return <RefreshCw className="h-4 w-4" />;
+    if (userType === 'missed_payment') return <CreditCard className="h-4 w-4" />;
     return <ArrowUp className="h-4 w-4" />;
   };
 
   const getButtonColor = () => {
     if (userType === 'expired_trial') return 'bg-red-600 hover:bg-red-700';
     if (userType === 'canceled_subscriber') return 'bg-yellow-600 hover:bg-yellow-700';
+    if (userType === 'missed_payment') return 'bg-red-600 hover:bg-red-700';
     return 'bg-green-600 hover:bg-green-700';
   };
 

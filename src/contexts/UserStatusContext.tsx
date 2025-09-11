@@ -344,10 +344,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     const isCanceled = userType === 'canceled_subscriber' || userType === 'canceled_and_inactive';
     const isSetupIncomplete = userType === 'setup_incomplete';
     const hasFullAccess = isTrialActive || isSubscriber || (isCanceled && userType === 'canceled_subscriber') || gracePeriodActive;
-    const needsUpgrade = (userType === 'expired_trial' && !gracePeriodActive) || userType === 'canceled_and_inactive';
+    const needsUpgrade = (userType === 'expired_trial' && !gracePeriodActive) || userType === 'canceled_and_inactive' || userType === 'missed_payment';
     const canEdit = hasFullAccess;
     const canCreate = hasFullAccess;
-    const showUpgradePrompt = userType === 'expired_trial' || userType === 'canceled_subscriber' || userType === 'canceled_and_inactive';
+    const showUpgradePrompt = userType === 'expired_trial' || userType === 'canceled_subscriber' || userType === 'canceled_and_inactive' || userType === 'missed_payment';
 
     return {
       userType,

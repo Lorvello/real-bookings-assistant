@@ -99,6 +99,8 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
         return <Zap className={`h-4 w-4 ${getColorClass()}`} />;
       case 'expired_trial':
         return <XCircle className={`h-4 w-4 ${getColorClass()}`} />;
+      case 'missed_payment':
+        return <XCircle className={`h-4 w-4 ${getColorClass()}`} />;
       case 'subscriber':
         return <CheckCircle className={`h-4 w-4 ${getColorClass()}`} />;
       case 'canceled_subscriber':
@@ -189,8 +191,8 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
                 <p className={`text-xs font-medium ${getColorClass()}`}>
                   {statusMessage}
                 </p>
-                {/* Always show subscription tier if available */}
-                {currentTier && tierDisplay && (
+                {/* Show subscription tier only for active/canceled_subscriber users */}
+                {currentTier && tierDisplay && (userType === 'subscriber' || userType === 'canceled_subscriber') && (
                   <div className="flex items-center gap-1 mt-1">
                     <Crown className={`h-3 w-3 ${getTierColor(currentTier)}`} />
                     <p className={`text-xs ${getTierColor(currentTier)}`}>

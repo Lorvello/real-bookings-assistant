@@ -98,6 +98,8 @@ export const DeveloperStatusManager = () => {
           return userStatus.userType === 'trial' && userStatus.isTrialActive;
         case 'expired_trial':
           return userStatus.userType === 'expired_trial';
+        case 'missed_payment':
+          return userStatus.userType === 'missed_payment';
         case 'paid_subscriber':
           return userStatus.userType === 'subscriber';
         case 'canceled_but_active':
@@ -130,7 +132,7 @@ export const DeveloperStatusManager = () => {
       return subscriptionTierOptions.filter(tier => tier.value === selectedOption.tier);
     }
     
-    if (selectedOption.value === 'expired_trial' || selectedOption.value === 'canceled_and_inactive') {
+    if (selectedOption.value === 'expired_trial' || selectedOption.value === 'canceled_and_inactive' || selectedOption.value === 'missed_payment') {
       return [];
     }
     
@@ -192,6 +194,14 @@ export const DeveloperStatusManager = () => {
         updates.business_name = 'Demo Business';
         updates.business_type = 'salon';
         break;
+      case 'missed_payment':
+        updates.subscription_status = 'missed_payment';
+        updates.subscription_tier = null;
+        updates.trial_end_date = null;
+        updates.subscription_end_date = new Date().toISOString();
+        updates.business_name = 'Demo Business';
+        updates.business_type = 'salon';
+        break;
     }
     
     return updates;
@@ -205,7 +215,7 @@ export const DeveloperStatusManager = () => {
 
     const effectiveTier = selectedStatusOption.tierRequired 
       ? selectedStatusOption.tier 
-      : selectedTier || 'professional';
+      : availableTiers.length === 0 ? undefined : (selectedTier || 'professional');
 
     try {
       console.log('Applying developer status:', selectedUserStatus, 'with tier:', effectiveTier);
