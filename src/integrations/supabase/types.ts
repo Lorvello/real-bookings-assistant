@@ -3718,6 +3718,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      validate_booking_calendar_and_service: {
+        Args: { p_calendar_id: string; p_service_type_id: string }
+        Returns: boolean
+      }
       validate_booking_security: {
         Args:
           | {
