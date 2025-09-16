@@ -31,6 +31,7 @@ import { useInstallmentSettings } from '@/hooks/useInstallmentSettings';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
+import { usePayAndBookActivation } from '@/hooks/usePayAndBookActivation';
 
 // Fixed: Removed StripeEmbeddedDashboard component
 
@@ -172,6 +173,7 @@ export function PaymentSettingsTab() {
     resetStripeAccount
   } = useStripeConnect();
   const { settings: installmentSettings, loading: installmentLoading, updateSettings: updateInstallmentSettings } = useInstallmentSettings();
+  const { loading: activationLoading, activatePayAndBook, syncServicePrices } = usePayAndBookActivation();
   const { userStatus } = useUserStatus();
   const { profile } = useProfile();
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
@@ -529,6 +531,18 @@ export function PaymentSettingsTab() {
     if (account.charges_enabled) return 'Charges Only';
     return account.account_status.charAt(0).toUpperCase() + account.account_status.slice(1);
   };
+
+  const handleQuickActivate = async () => {
+    await activatePayAndBook(selectedCalendar?.id);
+    // Refresh payment settings and Stripe account after activation
+    if (settings) {
+      await refreshAccountStatus();
+    }
+  };
+
+  const handleSyncPrices = async () => {
+    await syncServicePrices();
+  };
   if (settingsLoading || roleLoading) {
     return <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -547,6 +561,42 @@ export function PaymentSettingsTab() {
   const hasStripeAccount = !!stripeAccount?.stripe_account_id;
   const isStripeSetupComplete = stripeAccount?.onboarding_completed && stripeAccount?.charges_enabled && stripeAccount?.payouts_enabled;
   return <div className="space-y-6">
+      {/* Quick Activation Section */}
+      {(!settings?.secure_payments_enabled || !settings?.payment_required_for_booking) && stripeAccount?.account_status === 'active' && (
+        <Card className="border-green-600/30 bg-green-50/10">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-green-200 mb-1 flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  Quick Pay & Book Setup
+                </h3>
+                <p className="text-sm text-green-300/80">
+                  Your Stripe account is ready! Activate Pay & Book with optimal settings.
+                </p>
+              </div>
+              <Button 
+                onClick={handleQuickActivate}
+                disabled={activationLoading}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {activationLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Activating...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4 mr-2" />
+                    Activate Pay & Book
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stripe Mode Switcher (for development) */}
       {stripeConfig.isTestMode && <StripeModeSwitcher />}
 
@@ -958,6 +1008,41 @@ export function PaymentSettingsTab() {
                   <button onClick={() => handleSavePayoutOption(selectedPayoutOption)} disabled={!hasUnsavedPayoutChanges || savingMethods} aria-disabled={!hasUnsavedPayoutChanges || savingMethods} className={cn("px-4 py-2 text-sm font-medium rounded-md transition-colors", "bg-primary text-primary-foreground hover:bg-primary/90", (!hasUnsavedPayoutChanges || savingMethods) && "opacity-50 cursor-not-allowed hover:bg-primary")} title={!hasUnsavedPayoutChanges ? "Geen wijzigingen om op te slaan" : undefined}>
                     {savingMethods ? 'Saving...' : 'Save Changes'}
                   </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Stripe Price Sync Section */}
+            <div className="bg-muted/50 p-4 rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-foreground mb-1 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Stripe Integration
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Sync your services with Stripe to create payment links and price objects.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleSyncPrices}
+                    disabled={activationLoading}
+                    variant="outline"
+                    className="border-blue-600 text-blue-400 hover:bg-blue-600/10"
+                  >
+                    {activationLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Syncing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Sync Prices
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
