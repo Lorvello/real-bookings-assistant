@@ -564,7 +564,7 @@ export function PaymentSettingsTab() {
       {/* Quick Activation Section */}
       {(!settings?.secure_payments_enabled || !settings?.payment_required_for_booking) && stripeAccount?.account_status === 'active' && (
         <Card className="border-green-600/30 bg-green-50/10">
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium text-green-200 mb-1 flex items-center gap-2">
