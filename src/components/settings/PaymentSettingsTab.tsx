@@ -529,9 +529,6 @@ export function PaymentSettingsTab() {
       await refreshAccountStatus();
     }
   };
-  const handleSyncPrices = async () => {
-    await syncServicePrices();
-  };
   if (settingsLoading || roleLoading) {
     return <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -968,31 +965,6 @@ export function PaymentSettingsTab() {
               </div>
             </div>
 
-            {/* Stripe Price Sync Section */}
-            <div className="bg-muted/50 p-4 rounded-lg space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-foreground mb-1 flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Stripe Integration
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    Sync your services with Stripe to create payment links and price objects.
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleSyncPrices} disabled={activationLoading} variant="outline" className="border-blue-600 text-blue-400 hover:bg-blue-600/10">
-                    {activationLoading ? <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Syncing...
-                      </> : <>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Sync Prices
-                      </>}
-                  </Button>
-                </div>
-              </div>
-            </div>
 
             {/* Installment Payments Section - placed above FundFlow */}
             {userStatus.hasFullAccess ? <div className="bg-muted/50 p-4 rounded-lg space-y-4">
