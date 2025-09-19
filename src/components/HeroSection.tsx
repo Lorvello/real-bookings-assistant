@@ -21,7 +21,7 @@ const HeroSection: React.FC = () => {
       "
     >
       {/* container that allows the headline to run far to the right */}
-      <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-8 lg:px-12 pt-24 md:pt-32 pb-16 sm:pb-20 lg:pb-28">
+      <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-8 lg:px-12 pt-32 md:pt-40 pb-16 sm:pb-20 lg:pb-28">
         {/* Headline */}
         <h1
           className="
