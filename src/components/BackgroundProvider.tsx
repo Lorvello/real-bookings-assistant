@@ -36,13 +36,12 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
         return {
           backgroundColor: 'hsl(217, 35%, 12%)',
           backgroundImage: `
-            linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+            linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
             url('/assets/hero-futuristic-bg.png')
           `,
           backgroundSize: 'cover',
           backgroundPosition: 'center center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
+          backgroundRepeat: 'no-repeat'
         };
       case 'dark':
         return {
