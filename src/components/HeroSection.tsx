@@ -20,7 +20,7 @@ const HeroSection: React.FC = () => {
       "
     >
       {/* container that allows the headline to run far to the right */}
-      <div className="mx-auto w-full max-w-none px-6 sm:px-8 md:px-16 lg:px-[92px] py-16 sm:py-20 lg:py-28">
+      <div className="mx-auto w-full max-w-none px-6 sm:px-8 md:px-16 lg:px-[102px] py-16 sm:py-20 lg:py-28">
         {/* Headline */}
         <h1
           className="
@@ -30,7 +30,7 @@ const HeroSection: React.FC = () => {
             max-w-none
           "
         >
-          <span className="block">The #1 WhatsApp Booking Assistant.</span>
+          <span className="block">The #1 WhatsApp AI-agent.</span>
           <span className="block">24/7 automated scheduling.</span>
           <span className="block">Zero missed opportunities.</span>
         </h1>
