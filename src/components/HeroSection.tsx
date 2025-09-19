@@ -54,7 +54,7 @@ const HeroSection: React.FC = () => {
           </div>
 
           {/* Right paragraph + CTAs */}
-          <div className="md:col-span-8 lg:col-span-9">
+          <div className="md:col-span-8 lg:col-span-9 md:text-right">
             <p className="max-w-[60ch] text-base sm:text-lg text-white/85 font-sans">
               The Booking Assistant combines an AI Agent for customer booking with
               WhatsApp-native flows—on one platform that boosts conversions, cuts
