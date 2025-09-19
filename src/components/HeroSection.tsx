@@ -16,7 +16,6 @@ const HeroSection: React.FC = () => {
     <section
       className="
         relative w-full
-        bg-[linear-gradient(180deg,#0B1520_0%,#0F1A25_100%)]
         text-white
       "
     >
