@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface BackgroundProviderProps {
-  variant?: 'hero' | 'page' | 'dark';
+  variant?: 'hero' | 'page' | 'dark' | 'futuristic';
   children: React.ReactNode;
   className?: string;
 }
@@ -31,6 +31,18 @@ const BackgroundProvider: React.FC<BackgroundProviderProps> = ({
           `,
           backgroundSize: '40px 40px, cover, cover, cover, cover, cover, cover, cover, cover, cover, cover',
           backgroundRepeat: 'repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat'
+        };
+      case 'futuristic':
+        return {
+          backgroundColor: 'hsl(217, 35%, 12%)',
+          backgroundImage: `
+            linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+            url('/assets/hero-futuristic-bg.png')
+          `,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed'
         };
       case 'dark':
         return {
