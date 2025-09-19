@@ -47,45 +47,47 @@ const HeroSection: React.FC = () => {
           "
         >
           {/* Left small label */}
-          <div className="md:col-span-4 lg:col-span-3">
+          <div className="md:col-span-2 lg:col-span-2">
             <p className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.16em] text-white/70">
               WA AI AGENT • BOOKINGS
             </p>
           </div>
 
           {/* Right paragraph + CTAs */}
-          <div className="md:col-span-8 lg:col-span-9">
-            <p className="max-w-[60ch] text-base sm:text-lg text-white/85 font-sans">
-              The Booking Assistant combines an AI Agent for customer booking with
-              WhatsApp-native flows—on one platform that boosts conversions, cuts
-              no-shows, and automates reminders and payments.
-            </p>
+          <div className="md:col-span-10 lg:col-span-10 md:flex md:justify-end">
+            <div className="md:max-w-[60ch] md:text-right">
+              <p className="text-base sm:text-lg text-white/85 font-sans md:text-right">
+                The Booking Assistant combines an AI Agent for customer booking with
+                WhatsApp-native flows—on one platform that boosts conversions, cuts
+                no-shows, and automates reminders and payments.
+              </p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <button
-                onClick={handleStartTrial}
-                aria-label="Start your free 30-day trial"
-                className="
-                  inline-flex items-center justify-center
-                  rounded-lg px-5 py-3 text-sm sm:text-base font-semibold
-                  bg-[#22C55E] text-black hover:bg-[#16A34A] hover:text-white
-                  transition-colors
-                "
-              >
-                Start Free 30-Day Trial
-              </button>
-              <button
-                onClick={handleHowItWorks}
-                aria-label="See how it works"
-                className="
-                  inline-flex items-center justify-center
-                  rounded-lg px-5 py-3 text-sm sm:text-base font-semibold
-                  border border-white/60 text-white hover:bg-white/10
-                  transition-colors
-                "
-              >
-                See how it works
-              </button>
+              <div className="mt-6 flex flex-wrap items-center gap-3 md:justify-end">
+                <button
+                  onClick={handleStartTrial}
+                  aria-label="Start your free 30-day trial"
+                  className="
+                    inline-flex items-center justify-center
+                    rounded-lg px-5 py-3 text-sm sm:text-base font-semibold
+                    bg-[#22C55E] text-black hover:bg-[#16A34A] hover:text-white
+                    transition-colors
+                  "
+                >
+                  Start Free 30-Day Trial
+                </button>
+                <button
+                  onClick={handleHowItWorks}
+                  aria-label="See how it works"
+                  className="
+                    inline-flex items-center justify-center
+                    rounded-lg px-5 py-3 text-sm sm:text-base font-semibold
+                    border border-white/60 text-white hover:bg-white/10
+                    transition-colors
+                  "
+                >
+                  See how it works
+                </button>
+              </div>
             </div>
           </div>
         </div>
