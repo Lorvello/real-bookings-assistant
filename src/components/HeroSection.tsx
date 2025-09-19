@@ -1,7 +1,5 @@
-import React from 'react';
+import React from "react";
 import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "lucide-react";
 
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
@@ -13,47 +11,88 @@ const HeroSection: React.FC = () => {
   const handleHowItWorks = () => {
     navigate('/how-it-works');
   };
-  
-  return (
-    <section 
-      className="flex flex-row justify-center items-center px-16 relative w-full min-h-[960px]"
-      style={{
-        background: 'linear-gradient(180deg, #0B1520 0%, #101B27 100%)'
-      }}
-    >
-      <div className="flex flex-col items-start p-0 gap-20 w-full max-w-[1280px] h-auto">
-        <div className="flex flex-col items-start gap-8 w-full max-w-[560px]">
-          <div className="flex flex-col gap-6 w-full max-w-[560px]">
-            {/* Hero headline */}
-            <h1 className="font-sans font-bold text-[56px] leading-[120%] text-white">
-              The #1 WhatsApp Booking Assistant.<br />
-              24/7 automated scheduling.<br />
-              Zero missed opportunities.
-            </h1>
 
-            {/* Supporting text */}
-            <p className="font-sans font-normal text-lg leading-[150%] text-[#A0AEC0]">
-              Your AI assistant books appointments via WhatsApp while you sleep — instant responses, reminders, and secure payments built in.
+  return (
+    <section
+      className="
+        relative w-full
+        bg-[linear-gradient(180deg,#0B1520_0%,#0F1A25_100%)]
+        text-white
+      "
+    >
+      {/* container that allows the headline to run far to the right */}
+      <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-8 lg:px-12 py-16 sm:py-20 lg:py-28">
+        {/* Headline */}
+        <h1
+          className="
+            font-bold tracking-tight
+            leading-[1.02]
+            text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl
+            max-w-none
+          "
+        >
+          <span className="block">The #1 WhatsApp Booking Assistant.</span>
+          <span className="block">24/7 automated scheduling.</span>
+          <span className="block">Zero missed opportunities.</span>
+        </h1>
+
+        {/* Divider */}
+        <hr className="mt-10 border-t border-white/30" />
+
+        {/* Underline row: left small label + right paragraph + CTAs under right */}
+        <div
+          className="
+            mt-6 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8
+            items-start
+          "
+        >
+          {/* Left small label */}
+          <div className="md:col-span-4 lg:col-span-3">
+            <p className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.16em] text-white/70">
+              WA AI AGENT • BOOKINGS
             </p>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex flex-row gap-4">
-            <button 
-              onClick={handleStartTrial}
-              className="px-6 py-3 text-base leading-[150%] font-sans rounded-lg transition-all duration-200 ease-in-out bg-[#22C55E] text-white border-none hover:bg-[#16A34A]"
-            >
-              Start Free 30-Day Trial
-            </button>
-            <button 
-              onClick={handleHowItWorks}
-              className="px-6 py-3 text-base leading-[150%] font-sans rounded-lg transition-all duration-200 ease-in-out bg-transparent border border-white text-white hover:bg-white/10"
-            >
-              See how it works
-            </button>
+          {/* Right paragraph + CTAs */}
+          <div className="md:col-span-8 lg:col-span-9">
+            <p className="max-w-[60ch] text-base sm:text-lg text-white/85">
+              The Booking Assistant combines an AI Agent for customer booking with
+              WhatsApp-native flows—on one platform that boosts conversions, cuts
+              no-shows, and automates reminders and payments.
+            </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <button
+                onClick={handleStartTrial}
+                aria-label="Start your free 30-day trial"
+                className="
+                  inline-flex items-center justify-center
+                  rounded-lg px-5 py-3 text-sm sm:text-base font-semibold
+                  bg-[#22C55E] text-black hover:bg-[#16A34A] hover:text-white
+                  transition-colors
+                "
+              >
+                Start Free 30-Day Trial
+              </button>
+              <button
+                onClick={handleHowItWorks}
+                aria-label="See how it works"
+                className="
+                  inline-flex items-center justify-center
+                  rounded-lg px-5 py-3 text-sm sm:text-base font-semibold
+                  border border-white/60 text-white hover:bg-white/10
+                  transition-colors
+                "
+              >
+                See how it works
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* optional subtle vignette / star specks if desired */}
+      <div className="pointer-events-none absolute inset-0 [background:radial-gradient(1000px_600px_at_50%_-20%,rgba(255,255,255,.07),transparent_60%)]" />
     </section>
   );
 };
