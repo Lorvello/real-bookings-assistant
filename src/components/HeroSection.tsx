@@ -21,14 +21,14 @@ const HeroSection: React.FC = () => {
       "
     >
       {/* container that allows the headline to run far to the right */}
-      <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-8 lg:px-12 py-16 sm:py-20 lg:py-28">
+      <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-8 lg:px-12 pt-24 md:pt-32 pb-16 sm:pb-20 lg:pb-28">
         {/* Headline */}
         <h1
           className="
-            font-bold tracking-tight
+            font-bold tracking-tight text-white
             leading-[1.02]
-            text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl
-            max-w-none
+            text-4xl md:text-6xl xl:text-7xl
+            max-w-none lg:max-w-[90%]
           "
         >
           <span className="block">The #1 WhatsApp Booking Assistant.</span>
