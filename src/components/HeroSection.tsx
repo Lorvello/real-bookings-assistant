@@ -55,14 +55,14 @@ const HeroSection: React.FC = () => {
 
           {/* Right paragraph + CTAs */}
           <div className="md:col-span-10 lg:col-span-10 md:flex md:justify-end">
-            <div className="md:max-w-[60ch] md:text-right">
-              <p className="text-base sm:text-lg text-white/85 font-sans md:text-right">
+            <div className="md:max-w-[60ch]">
+              <p className="text-base sm:text-lg text-white/85 font-sans">
                 The Booking Assistant combines an AI Agent for customer booking with
                 WhatsApp-native flows—on one platform that boosts conversions, cuts
                 no-shows, and automates reminders and payments.
               </p>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3 md:justify-end">
+              <div className="mt-6 flex flex-wrap items-center gap-3">
                 <button
                   onClick={handleStartTrial}
                   aria-label="Start your free 30-day trial"
