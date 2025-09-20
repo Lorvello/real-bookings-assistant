@@ -1,5 +1,7 @@
-import React from "react";
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "lucide-react";
 
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
@@ -11,89 +13,92 @@ const HeroSection: React.FC = () => {
   const handleHowItWorks = () => {
     navigate('/how-it-works');
   };
-
+  
   return (
-    <section
-      className="
-        relative w-full
-        text-white
-      "
-    >
-      {/* container that allows the headline to run far to the right */}
-      <div className="mx-auto w-full max-w-none px-6 sm:px-8 md:px-16 lg:px-[102px] py-16 sm:py-20 lg:py-28">
-        {/* Headline */}
-        <h1
-          className="
-            font-bold tracking-tight
-            leading-[1.02]
-            text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl
-            max-w-none
-          "
-        >
-          <span className="block">The #1 WhatsApp AI-agent.</span>
-          <span className="block">24/7 automated scheduling.</span>
-          <span className="block">Zero missed opportunities.</span>
-        </h1>
+    <section className="relative min-h-screen overflow-hidden flex items-center justify-center -mt-24 md:mt-0 md:pt-24">
+      {/* Grid pattern overlay */}
+      <div 
+        className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"
+      ></div>
+      
+      <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center z-10">
+        {/* Floating badge - SUBTEXT */}
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-2 md:mb-8 animate-appear opacity-0">
+          <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
+          <span className="text-emerald-300 text-xs md:text-sm font-medium">AI-Powered Booking Revolution</span>
+        </div>
 
-        {/* Divider */}
-        <hr className="mt-10 border-t border-white/30" />
+        {/* Main headline - HEADER (Largest) */}
+        <div className="space-y-2 md:space-y-8">
+          <h1 className="text-3xl md:text-5xl xl:text-6xl font-bold text-white leading-tight md:leading-[0.95] tracking-tight opacity-100">
+            <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
+              Bookings
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
+            </span>
+            {" "}on Auto Pilot
+            <br />
+            via WhatsApp
+          </h1>
 
-        {/* Underline row: left small label + right paragraph + CTAs under right */}
-        <div
-          className="
-            mt-6 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8
-            items-start
-          "
-        >
-          {/* Left small label */}
-          <div className="md:col-span-2 lg:col-span-2">
-            <p className="text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.16em] text-white/70">
-              WA AI AGENT • BOOKINGS
-            </p>
+          <p className="text-xs md:text-lg text-slate-300 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0 mb-6 md:mb-0">
+            <span className="md:hidden">AI Books Appointments, Zero Missed Opportunities</span>
+            <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
+            <span className="text-emerald-400 font-semibold">24/7 automation</span>,{" "}
+            <span className="text-emerald-400 font-semibold">instant responses</span>,{" "}
+            <span className="text-emerald-400 font-semibold">zero missed opportunities</span>.</span>
+          </p>
+
+          {/* CTA Section - BUTTONS (Medium-Large) */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-6 pt-6 md:pt-8 animate-appear opacity-100 delay-500 px-4 sm:px-0">
+            <Button 
+              onClick={handleStartTrial}
+              className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-2 md:px-8 md:py-6 text-sm md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[40px] md:min-h-[48px]"
+            >
+              <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
+              Start Free 30-Day Trial
+            </Button>
+            
+            <button 
+              onClick={handleHowItWorks}
+              className="w-full sm:w-auto text-slate-300 hover:text-white text-sm md:text-lg font-medium flex items-center justify-center gap-2 group transition-colors min-h-[40px] md:min-h-[48px] px-4"
+            >
+              <Zap className="w-4 h-4 md:w-5 md:h-5 group-hover:text-emerald-400 transition-colors" />
+              See how it works
+            </button>
           </div>
 
-          {/* Right paragraph + CTAs */}
-          <div className="md:col-span-10 lg:col-span-10 md:flex md:justify-end">
-            <div className="md:max-w-[60ch]">
-              <p className="text-base sm:text-lg text-white/85 font-sans">
-                The Booking Assistant combines an AI Agent for customer booking with
-                WhatsApp-native flows—on one platform that boosts conversions, cuts
-                no-shows, and automates reminders and payments.
-              </p>
-
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <button
-                  onClick={handleStartTrial}
-                  aria-label="Start your free 30-day trial"
-                  className="
-                    inline-flex items-center justify-center
-                    rounded-lg px-5 py-3 text-sm sm:text-base font-semibold
-                    bg-[#22C55E] text-black hover:bg-[#16A34A] hover:text-white
-                    transition-colors
-                  "
-                >
-                  Start Free 30-Day Trial
-                </button>
-                <button
-                  onClick={handleHowItWorks}
-                  aria-label="See how it works"
-                  className="
-                    inline-flex items-center justify-center
-                    rounded-lg px-5 py-3 text-sm sm:text-base font-semibold
-                    border border-white/60 text-white hover:bg-white/10
-                    transition-colors
-                  "
-                >
-                  See how it works
-                </button>
+          {/* Social proof - SUBTEXT (Smallest) */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-8 pt-1 md:pt-4 animate-appear opacity-100 delay-700 px-4 sm:px-0 mb-2 md:mb-0">
+            <div className="flex items-center gap-1.5 md:gap-3">
+              <div className="flex -space-x-1 md:-space-x-2">
+                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
+                  <Scissors className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
+                </div>
+                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 md:w-4 md:h-4 bg-slate-700 rounded-t-full" style={{
+                    clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)"
+                  }}></div>
+                </div>
+                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
+                  <Dumbbell className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
+                </div>
+                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
+                  <Stethoscope className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
+                </div>
               </div>
+              <span className="text-slate-400 text-xs md:text-sm">1000+ businesses automated</span>
+            </div>
+            
+            <div className="flex items-center gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <span key={i} className="text-yellow-400 text-xs md:text-lg">★</span>
+              ))}
+              <span className="text-slate-400 text-xs md:text-sm ml-1">4.9/5 rating</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* optional subtle vignette / star specks if desired */}
-      <div className="pointer-events-none absolute inset-0 [background:radial-gradient(1000px_600px_at_50%_-20%,rgba(255,255,255,.07),transparent_60%)]" />
     </section>
   );
 };

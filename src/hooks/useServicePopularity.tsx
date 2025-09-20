@@ -14,7 +14,7 @@ export function useServicePopularity(calendarId?: string) {
     queryFn: async (): Promise<ServicePopularity[]> => {
       if (!calendarId) return [];
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('service_popularity_stats')
         .select('*')
         .eq('calendar_id', calendarId)

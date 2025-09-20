@@ -44,21 +44,22 @@ const Index = () => {
   return (
     <PublicPageWrapper>
       <div className="min-h-screen w-full">
-        {/* Hero Section with futuristic background extending to Solution */}
-        <BackgroundProvider variant="futuristic">
-          <Header />
-          <HeroSection />
-          
-          {/* Solution Section with same background */}
+        {/* Hero Section with green effects */}
+        <div className="min-h-screen">
+          <BackgroundProvider variant="hero">
+            <Header />
+            <HeroSection />
+          </BackgroundProvider>
+        </div>
+        
+        {/* All other sections with pure dark blue background */}
+        <BackgroundProvider variant="dark">
+          {/* Solution Section */}
           <ScrollAnimatedSection delay={50} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
             <div className="pt-0 md:pt-0">
               <Solution />
             </div>
           </ScrollAnimatedSection>
-        </BackgroundProvider>
-        
-        {/* All other sections with pure dark blue background */}
-        <BackgroundProvider variant="dark">
 
           {/* Process Section */}
           <ScrollAnimatedSection delay={100} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>

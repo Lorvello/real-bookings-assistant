@@ -41,19 +41,7 @@
     <div id="root"></div>
     
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script type="module" src="/src/main.tsx"></script>
-    <!-- Expose React singletons globally so external scripts reuse them -->
-    <script type="module">
-      import * as React from 'react';
-      import * as ReactDOM from 'react-dom';
-      import * as ReactDOMClient from 'react-dom/client';
-      // @ts-ignore
-      window.React = React;
-      // @ts-ignore
-      window.ReactDOM = ReactDOM;
-      // @ts-ignore
-      window.ReactDOMClient = ReactDOMClient;
-    </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

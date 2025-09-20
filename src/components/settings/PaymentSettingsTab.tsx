@@ -31,7 +31,6 @@ import { useInstallmentSettings } from '@/hooks/useInstallmentSettings';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
-import { usePayAndBookActivation } from '@/hooks/usePayAndBookActivation';
 
 // Fixed: Removed StripeEmbeddedDashboard component
 
@@ -172,22 +171,9 @@ export function PaymentSettingsTab() {
     createOnboardingLink,
     resetStripeAccount
   } = useStripeConnect();
-  const {
-    settings: installmentSettings,
-    loading: installmentLoading,
-    updateSettings: updateInstallmentSettings
-  } = useInstallmentSettings();
-  const {
-    loading: activationLoading,
-    activatePayAndBook,
-    syncServicePrices
-  } = usePayAndBookActivation();
-  const {
-    userStatus
-  } = useUserStatus();
-  const {
-    profile
-  } = useProfile();
+  const { settings: installmentSettings, loading: installmentLoading, updateSettings: updateInstallmentSettings } = useInstallmentSettings();
+  const { userStatus } = useUserStatus();
+  const { profile } = useProfile();
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
   const [platformFee, setPlatformFee] = useState('2.50');
@@ -300,33 +286,45 @@ export function PaymentSettingsTab() {
 
       // Try opening in new tab
       const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+      
       if (!newWindow) {
         // Fallback if popup blocked
         toast({
           title: "Pop-up Blocked",
           description: "Your browser blocked the pop-up. Click the link below to open dashboard manually.",
-          action: <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => window.open(url, '_blank')}>
+          action: (
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open(url, '_blank')}
+              >
                 Try Again
               </Button>
-              <Button variant="outline" size="sm" onClick={() => {
-              navigator.clipboard.writeText(url);
-              toast({
-                title: "Link copied to clipboard"
-              });
-            }}>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(url);
+                  toast({ title: "Link copied to clipboard" });
+                }}
+              >
                 Copy Link
               </Button>
             </div>
+          )
         });
         return;
       }
+      
       toast({
         title: "Success",
         description: "Stripe dashboard opened in new tab"
       });
+      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to open dashboard';
+      
       if (errorMessage === 'NO_CONNECTED_ACCOUNT') {
         toast({
           title: "No Stripe Account",
@@ -348,24 +346,33 @@ export function PaymentSettingsTab() {
       if (onboardingLink?.url) {
         // Open in new tab to avoid browser blocking
         const newWindow = window.open(onboardingLink.url, '_blank', 'noopener,noreferrer');
+        
         if (!newWindow) {
           // Fallback if popup blocked
           toast({
             title: "Pop-up Blocked",
             description: "Your browser blocked the pop-up. Click the link below to start onboarding.",
-            action: <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => window.open(onboardingLink.url, '_blank')}>
+            action: (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.open(onboardingLink.url, '_blank')}
+                >
                   Open Onboarding
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => {
-                navigator.clipboard.writeText(onboardingLink.url);
-                toast({
-                  title: "Link copied to clipboard"
-                });
-              }}>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(onboardingLink.url);
+                    toast({ title: "Link copied to clipboard" });
+                  }}
+                >
                   Copy Link
                 </Button>
               </div>
+            )
           });
         } else {
           toast({
@@ -522,13 +529,6 @@ export function PaymentSettingsTab() {
     if (account.charges_enabled) return 'Charges Only';
     return account.account_status.charAt(0).toUpperCase() + account.account_status.slice(1);
   };
-  const handleQuickActivate = async () => {
-    await activatePayAndBook(selectedCalendar?.id);
-    // Refresh payment settings and Stripe account after activation
-    if (settings) {
-      await refreshAccountStatus();
-    }
-  };
   if (settingsLoading || roleLoading) {
     return <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -547,9 +547,6 @@ export function PaymentSettingsTab() {
   const hasStripeAccount = !!stripeAccount?.stripe_account_id;
   const isStripeSetupComplete = stripeAccount?.onboarding_completed && stripeAccount?.charges_enabled && stripeAccount?.payouts_enabled;
   return <div className="space-y-6">
-      {/* Quick Activation Section */}
-      {(!settings?.secure_payments_enabled || !settings?.payment_required_for_booking) && stripeAccount?.account_status === 'active'}
-
       {/* Stripe Mode Switcher (for development) */}
       {stripeConfig.isTestMode && <StripeModeSwitcher />}
 
@@ -965,21 +962,24 @@ export function PaymentSettingsTab() {
               </div>
             </div>
 
-
             {/* Installment Payments Section - placed above FundFlow */}
-            {userStatus.hasFullAccess ? <div className="bg-muted/50 p-4 rounded-lg space-y-4">
-                <InstallmentSettings installmentsEnabled={installmentSettings?.enabled || false} defaultPlan={installmentSettings?.defaultPlan || {
-            type: 'preset',
-            preset: '50_50',
-            deposits: [{
-              percentage: 50,
-              timing: 'now'
-            }, {
-              percentage: 50,
-              timing: 'appointment'
-            }]
-          }} onUpdate={updateInstallmentSettings} subscriptionTier={profile?.subscription_tier || 'free'} />
-              </div> : null}
+            {userStatus.hasFullAccess ? (
+              <div className="bg-muted/50 p-4 rounded-lg space-y-4">
+                <InstallmentSettings
+                  installmentsEnabled={installmentSettings?.enabled || false}
+                  defaultPlan={installmentSettings?.defaultPlan || {
+                    type: 'preset',
+                    preset: '50_50',
+                    deposits: [
+                      { percentage: 50, timing: 'now' },
+                      { percentage: 50, timing: 'appointment' }
+                    ]
+                  }}
+                  onUpdate={updateInstallmentSettings}
+                  subscriptionTier={profile?.subscription_tier || 'free'}
+                />
+              </div>
+            ) : null}
 
             {/* Fund Flow Section */}
             <Collapsible open={fundFlowOpen} onOpenChange={setFundFlowOpen}>
@@ -1013,16 +1013,24 @@ export function PaymentSettingsTab() {
                            <div className="w-full border-t-2 border-dashed border-primary/30 relative">
                              <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
                            </div>
-                           <FundFlowCard title="Payment Processing" items={[{
-                        label: "Currency Conversion",
-                        description: "+2% fee if payment currency differs from your account currency"
-                      }, {
-                        label: "Payment Method Fee",
-                        description: "Based on selected method (iDEAL: €0.29, Cards: 1.5-2.5% + €0.25)"
-                      }, {
-                        label: "Platform Fee",
-                        description: "1.9% + €0.25/€0.35 deducted by Booking Assistant platform"
-                      }]} className="max-w-[200px]" />
+                           <FundFlowCard 
+                             title="Payment Processing"
+                             items={[
+                               {
+                                 label: "Currency Conversion",
+                                 description: "+2% fee if payment currency differs from your account currency"
+                               },
+                               {
+                                 label: "Payment Method Fee", 
+                                 description: "Based on selected method (iDEAL: €0.29, Cards: 1.5-2.5% + €0.25)"
+                               },
+                               {
+                                 label: "Platform Fee",
+                                 description: "1.9% + €0.25/€0.35 deducted by Booking Assistant platform"
+                               }
+                             ]}
+                             className="max-w-[200px]"
+                           />
                          </div>
                   
                   {/* Connected Account */}
@@ -1038,10 +1046,16 @@ export function PaymentSettingsTab() {
                            <div className="w-full border-t-2 border-dashed border-primary/30 relative">
                              <ArrowRight className="absolute -right-1 -top-2 h-4 w-4 text-primary/60" />
                            </div>
-                           <FundFlowCard title="Stripe Processing" items={[{
-                        label: "Stripe Processing Fee",
-                        description: "0.25% + €0.10 for Standard Payout, 1% for Instant Payout"
-                      }]} className="max-w-[200px]" />
+                           <FundFlowCard 
+                             title="Stripe Processing"
+                             items={[
+                               {
+                                 label: "Stripe Processing Fee",
+                                 description: "0.25% + €0.10 for Standard Payout, 1% for Instant Payout"
+                               }
+                             ]}
+                             className="max-w-[200px]"
+                           />
                          </div>
                   
                   {/* Bank Account */}

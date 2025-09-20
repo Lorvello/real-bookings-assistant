@@ -107,58 +107,62 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
 
   const createServiceType = async (serviceData: Omit<ServiceType, 'id'>) => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('User not authenticated');
-      }
-
-      const serviceDataForDb = transformForDatabase({
-        ...serviceData,
-        user_id: userData.user.id
-      });
-
-      const { data, error } = await supabase
-        .from('service_types')
-        .insert([serviceDataForDb])
-        .select('*')
-        .single();
-
-      if (error) {
-        console.error('Supabase error creating service type:', error);
-        throw error;
-      }
-
-      const transformedData = transformServiceType(data);
-      setServiceTypes(prev => [transformedData, ...prev]);
-
-      // Auto-sync with Stripe if service has a price
+      // Check if we should create with Stripe integration
       if (serviceData.price && serviceData.price > 0) {
-        try {
-          await supabase.functions.invoke('sync-service-stripe-prices', {
-            body: {
-              service_type_id: data.id,
-              test_mode: true
-            }
-          });
-          toast({
-            title: "Service created with Stripe sync",
-            description: "Service created and automatically synced with Stripe.",
-          });
-        } catch (syncError) {
-          console.warn('Auto-sync with Stripe failed:', syncError);
-          toast({
-            title: "Service created",
-            description: "Service created successfully. Stripe sync will retry automatically.",
-          });
+        console.log('Creating service type with Stripe integration...');
+        
+        const { data, error } = await supabase.functions.invoke('create-service-type-with-stripe', {
+          body: {
+            serviceData: transformForDatabase(serviceData),
+            testMode: true, // Could be configurable
+          },
+        });
+
+        if (error) {
+          console.error('Error creating service with Stripe:', error);
+          throw error;
         }
+
+        const transformedData = transformServiceType(data.service);
+        setServiceTypes(prev => [transformedData, ...prev]);
+        toast({
+          title: "Service created with Stripe integration",
+          description: `Service type created successfully with Stripe price ID: ${data.stripe_price_id}`,
+        });
+        
+        return transformedData;
       } else {
+        // Fallback to regular creation for free services
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          throw new Error('User not authenticated');
+        }
+
+        const serviceDataForDb = transformForDatabase({
+          ...serviceData,
+          user_id: userData.user.id
+        });
+
+        const { data, error } = await supabase
+          .from('service_types')
+          .insert([serviceDataForDb])
+          .select('*')
+          .single();
+
+        if (error) {
+          console.error('Supabase error creating service type:', error);
+          throw error;
+        }
+
+        const transformedData = transformServiceType(data);
+        setServiceTypes(prev => [transformedData, ...prev]);
         toast({
           title: "Service created",
           description: "The service type was created successfully.",
         });
+        
+        return transformedData;
       }
-      
-      return transformedData;
     } catch (error) {
       console.error('Error creating service type:', error);
       toast({
@@ -186,21 +190,6 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
       setServiceTypes(prev => prev.map(service => 
         service.id === id ? { ...service, ...serviceData } : service
       ));
-
-      // Auto-sync with Stripe if service has a price
-      const updatedService = serviceTypes.find(s => s.id === id);
-      if (updatedService && serviceData.price && serviceData.price > 0) {
-        try {
-          await supabase.functions.invoke('sync-service-stripe-prices', {
-            body: {
-              service_type_id: id,
-              test_mode: true
-            }
-          });
-        } catch (syncError) {
-          console.warn('Auto-sync with Stripe failed:', syncError);
-        }
-      }
 
       toast({
         title: "Service updated",
