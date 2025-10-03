@@ -19,6 +19,7 @@ import { FullPageLoadingSkeleton } from '@/components/loading/FullPageLoadingSke
 import { InlineRouteSpinner } from '@/components/loading/InlineRouteSpinner';
 import { PagePrefetcher } from '@/components/loading/PagePrefetcher';
 import { RouteErrorBoundary } from '@/components/error-boundaries/RouteErrorBoundary';
+import { OfflineIndicator } from '@/components/ui/OfflineIndicator';
 
 // Lazy-loaded pages for code splitting
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
@@ -117,6 +118,7 @@ function App() {
                   <GlobalWebhookProcessor />
                   <RecoveryRedirector />
                   <PagePrefetcher />
+                  <OfflineIndicator />
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />

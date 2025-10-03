@@ -6,6 +6,16 @@ import './index.css'
 import './utils/productionSecurity'
 import { secureLogger } from './utils/secureLogger'
 
+// Register service worker in production
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  import('workbox-window').then(({ Workbox }) => {
+    const wb = new Workbox('/sw.js');
+    wb.register().catch(err => {
+      secureLogger.error('Service Worker registration failed', err);
+    });
+  });
+}
+
 // Global error handler
 window.addEventListener('error', (event) => {
   secureLogger.error('Global error', event.error, {
