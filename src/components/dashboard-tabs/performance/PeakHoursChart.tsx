@@ -52,12 +52,12 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
   
   // Simplified function to determine color based on activity (3 categories only)
   const getBarColor = (bookings: number) => {
-    if (bookings === 0) return '#64748B'; // Gray for no bookings
+    if (bookings === 0) return 'rgb(100, 116, 139)'; // Gray for no bookings
     
     const intensity = bookings / maxBookings;
-    if (intensity >= 0.7) return '#F97316'; // Orange for busy
-    if (intensity >= 0.4) return '#EAB308'; // Yellow for moderate
-    return '#22C55E'; // Green for quiet
+    if (intensity >= 0.7) return 'rgb(249, 115, 22)'; // Orange for busy
+    if (intensity >= 0.4) return 'rgb(234, 179, 8)'; // Yellow for moderate
+    return 'rgb(34, 197, 94)'; // Green for quiet
   };
 
   // Custom tooltip component with simplified categories
@@ -114,21 +114,21 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={completeHourData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(55, 65, 81)" opacity={0.3} />
               <XAxis 
                 dataKey="display_label" 
-                stroke="#94A3B8"
+                stroke="rgb(148, 163, 184)"
                 fontSize={11}
-                tick={{ fill: '#94A3B8' }}
+                tick={{ fill: 'rgb(148, 163, 184)' }}
                 angle={-45}
                 textAnchor="end"
                 height={60}
               />
               <YAxis 
-                stroke="#94A3B8" 
+                stroke="rgb(148, 163, 184)" 
                 fontSize={12}
-                tick={{ fill: '#94A3B8' }}
-                label={{ value: 'Number of appointments', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#94A3B8' } }}
+                tick={{ fill: 'rgb(148, 163, 184)' }}
+                label={{ value: 'Number of appointments', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'rgb(148, 163, 184)' } }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="bookings" radius={[4, 4, 0, 0]}>

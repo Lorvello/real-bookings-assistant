@@ -18,11 +18,11 @@ interface PeakHoursBarChartProps {
 
 const getBarColor = (count: number, maxCount: number) => {
   const intensity = count / maxCount;
-  if (intensity > 0.8) return '#dc2626'; // Red for very busy
-  if (intensity > 0.6) return '#ea580c'; // Orange for busy
-  if (intensity > 0.4) return '#ca8a04'; // Yellow for moderate
-  if (intensity > 0.2) return '#16a34a'; // Green for quiet
-  return '#64748b'; // Gray for very quiet
+  if (intensity > 0.8) return 'rgb(220, 38, 38)'; // Red for very busy
+  if (intensity > 0.6) return 'rgb(234, 88, 12)'; // Orange for busy
+  if (intensity > 0.4) return 'rgb(202, 138, 4)'; // Yellow for moderate
+  if (intensity > 0.2) return 'rgb(22, 163, 74)'; // Green for quiet
+  return 'rgb(100, 116, 139)'; // Gray for very quiet
 };
 
 export function PeakHoursBarChart({ data, maxCount }: PeakHoursBarChartProps) {
@@ -30,14 +30,14 @@ export function PeakHoursBarChart({ data, maxCount }: PeakHoursBarChartProps) {
     <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgb(71, 85, 105)" />
           <XAxis 
             dataKey="hour" 
             tickFormatter={(hour) => `${hour}:00`}
             fontSize={12}
-            stroke="#94a3b8"
+            stroke="rgb(148, 163, 184)"
           />
-          <YAxis fontSize={12} stroke="#94a3b8" />
+          <YAxis fontSize={12} stroke="rgb(148, 163, 184)" />
           <Tooltip content={<PeakHoursTooltip />} />
           <Bar dataKey="count" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (

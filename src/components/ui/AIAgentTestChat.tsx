@@ -189,9 +189,9 @@ function PlaceholdersAndVanishInput({
   return (
     <form
       className={cn(
-        "w-full relative mx-auto bg-[#1F2937] rounded-2xl sm:rounded-full overflow-hidden shadow-xl border border-[#10B981]/20 transition duration-200",
+        "w-full relative mx-auto bg-background rounded-2xl sm:rounded-full overflow-hidden shadow-xl border border-primary/20 transition duration-200",
         "h-12 sm:h-14", // Smaller height on mobile
-        value && "bg-[#111827]"
+        value && "bg-background-secondary"
       )}
       onSubmit={handleSubmit}
     >
@@ -222,7 +222,7 @@ function PlaceholdersAndVanishInput({
       <button
         disabled={!value}
         type="submit"
-        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-8 w-8 sm:h-10 sm:w-10 rounded-full disabled:bg-gray-600 bg-[#10B981] hover:bg-[#25D366] transition duration-200 flex items-center justify-center disabled:opacity-50"
+        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-8 w-8 sm:h-10 sm:w-10 rounded-full disabled:bg-gray-600 bg-primary hover:bg-whatsapp transition duration-200 flex items-center justify-center disabled:opacity-50"
       >
         <Send className="text-white h-3 w-3 sm:h-4 sm:w-4" />
       </button>
@@ -320,11 +320,11 @@ export default function AIAgentTestPage() {
           className="w-full h-full flex flex-col"
         >
           {/* Chat Container - Smaller on mobile */}
-          <div className="bg-[#1F2937]/50 backdrop-blur-sm border border-[#10B981]/20 rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col h-full">
+          <div className="bg-background/50 backdrop-blur-sm border border-primary/20 rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col h-full">
             {/* Chat Header - More compact on mobile */}
-            <div className="bg-gradient-to-r from-[#1F2937] to-[#111827] px-2 sm:px-6 py-2 sm:py-4 border-b border-[#10B981]/20">
+            <div className="bg-gradient-to-r from-background to-background-secondary px-2 sm:px-6 py-2 sm:py-4 border-b border-primary/20">
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-1.5 sm:p-2 bg-[#10B981] rounded-full">
+                <div className="p-1.5 sm:p-2 bg-primary rounded-full">
                   <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -332,14 +332,14 @@ export default function AIAgentTestPage() {
                   <p className="text-xs sm:text-sm text-gray-400 truncate">Online and ready to help</p>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#25D366] rounded-full animate-pulse"></div>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-whatsapp rounded-full animate-pulse"></div>
                   <span className="text-xs text-gray-400">Live</span>
                 </div>
               </div>
             </div>
 
             {/* Messages - More compact on mobile */}
-            <div className="flex-1 overflow-y-auto p-2 sm:p-6 space-y-2 sm:space-y-4 bg-gradient-to-b from-[#111827]/30 to-[#1F2937]/30 min-h-0">
+            <div className="flex-1 overflow-y-auto p-2 sm:p-6 space-y-2 sm:space-y-4 bg-gradient-to-b from-background-secondary/30 to-background/30 min-h-0">
               <AnimatePresence>
                 {messages.map((message) => (
                   <motion.div
@@ -354,7 +354,7 @@ export default function AIAgentTestPage() {
                     )}
                   >
                     {message.type === "bot" && (
-                      <div className="p-1.5 sm:p-2 bg-[#10B981] rounded-full h-fit shrink-0">
+                      <div className="p-1.5 sm:p-2 bg-primary rounded-full h-fit shrink-0">
                         <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                       </div>
                     )}
@@ -362,8 +362,8 @@ export default function AIAgentTestPage() {
                       className={cn(
                         "max-w-[75%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl",
                         message.type === "user"
-                          ? "bg-[#10B981] text-white rounded-br-md"
-                          : "bg-[#1F2937] text-white border border-[#10B981]/20 rounded-bl-md"
+                          ? "bg-primary text-white rounded-br-md"
+                          : "bg-background text-white border border-primary/20 rounded-bl-md"
                       )}
                     >
                       <p className="text-xs sm:text-sm leading-relaxed">{message.content}</p>
@@ -375,7 +375,7 @@ export default function AIAgentTestPage() {
                       </p>
                     </div>
                     {message.type === "user" && (
-                      <div className="p-1.5 sm:p-2 bg-[#25D366] rounded-full h-fit shrink-0">
+                      <div className="p-1.5 sm:p-2 bg-whatsapp rounded-full h-fit shrink-0">
                         <User className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                       </div>
                     )}
@@ -389,14 +389,14 @@ export default function AIAgentTestPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-2 sm:gap-3 justify-start"
                 >
-                  <div className="p-1.5 sm:p-2 bg-[#10B981] rounded-full h-fit shrink-0">
+                  <div className="p-1.5 sm:p-2 bg-primary rounded-full h-fit shrink-0">
                     <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                   </div>
-                  <div className="bg-[#1F2937] border border-[#10B981]/20 px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl rounded-bl-md">
+                  <div className="bg-background border border-primary/20 px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl rounded-bl-md">
                     <div className="flex gap-1">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#10B981] rounded-full animate-bounce"></div>
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#10B981] rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#10B981] rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-bounce"></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                     </div>
                   </div>
                 </motion.div>

@@ -38,7 +38,16 @@ export default {
 				foreground: '#FFFFFF', // Primary text
 				
 				// Accent colors
-				whatsapp: '#25D366',
+				whatsapp: {
+					DEFAULT: '#25D366',
+					green: '#25D366',
+					bg: '#f0f2f5',
+					'bubble-user': '#10b981',
+					'bubble-ai': '#ffffff',
+					'chat-bg': '#ece5dd',
+					'msg-bg': '#dcf8c6',
+					header: '#25D366'
+				},
 				success: '#10B981',
 				warning: '#F59E0B',
 				destructive: '#EF4444',
@@ -71,6 +80,29 @@ export default {
 					outbound: '#10B981', // Outbound chat bubbles
 					timestamp: '#6B7280', // Message timestamps
 					online: '#10B981' // Online indicator
+				},
+				
+				// Chart colors for data visualization
+				chart: {
+					blue: '#3b82f6',
+					green: '#10b981',
+					purple: '#a855f7',
+					red: '#dc2626',
+					orange: '#ea580c',
+					yellow: '#ca8a04',
+					emerald: '#10b981',
+					slate: {
+						DEFAULT: '#64748b',
+						100: '#f1f5f9',
+						200: '#e2e8f0',
+						300: '#cbd5e1',
+						400: '#94a3b8',
+						500: '#64748b',
+						600: '#475569',
+						700: '#334155',
+						800: '#1e293b',
+						900: '#0f172a'
+					}
 				},
 				
 				// Legacy shadcn colors (keeping for compatibility)

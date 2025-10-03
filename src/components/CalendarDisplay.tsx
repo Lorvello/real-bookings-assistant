@@ -63,7 +63,7 @@ const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
   height,
 }) => {
   return (
-    <div className="flex flex-col items-center bg-[#f3f1ea] w-full pb-20">
+    <div className="flex flex-col items-center bg-slate-100 w-full pb-20">
       <div className="mt-8 w-full relative animate-appear opacity-0 delay-700 max-w-6xl mx-auto px-4">
         <MockupFrame>
           <Mockup type="responsive">

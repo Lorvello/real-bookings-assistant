@@ -4,7 +4,7 @@ import { ArrowRight, MessageCircle, Calendar } from 'lucide-react';
 
 const Timeline = () => {
   return (
-    <section className="bg-[#f3f1ea] py-20 px-4">
+    <section className="bg-slate-100 py-20 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Timeline Header */}
         <div className="text-center mb-16">

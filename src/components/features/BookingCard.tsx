@@ -19,7 +19,7 @@ export const BookingCard = () => {
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 bg-black rounded-b-lg z-10"></div>
                 
                 {/* WhatsApp header */}
-                <div className="bg-[#25D366] text-white px-2 py-1.5 flex items-center gap-1.5 pt-4">
+                <div className="bg-whatsapp text-white px-2 py-1.5 flex items-center gap-1.5 pt-4">
                   <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
                     <span className="text-xs">🤖</span>
                   </div>
@@ -30,11 +30,11 @@ export const BookingCard = () => {
                 </div>
                 
                 {/* Chat area - fills exactly from header to input */}
-                <div className="bg-[#e5ddd5] flex-1 flex flex-col justify-between p-2 py-1">
+                <div className="bg-whatsapp-chat-bg flex-1 flex flex-col justify-between p-2 py-1">
                   <div className="space-y-2">
                     {/* Customer message */}
                     <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                      <div className="bg-whatsapp-msg-bg rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
                         <p className="text-gray-800 text-[9px] font-medium leading-tight">Hi, I need to reschedule my appointment</p>
                       </div>
                     </div>
@@ -48,7 +48,7 @@ export const BookingCard = () => {
                     
                     {/* Customer choice */}
                     <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                      <div className="bg-whatsapp-msg-bg rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
                         <p className="text-gray-800 text-[9px] font-medium leading-tight">Can we move it to next week Friday?</p>
                       </div>
                     </div>
@@ -62,7 +62,7 @@ export const BookingCard = () => {
                     
                     {/* Customer time choice */}
                     <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
+                      <div className="bg-whatsapp-msg-bg rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
                         <p className="text-gray-800 text-[9px] font-medium leading-tight">4:00 PM works</p>
                       </div>
                     </div>

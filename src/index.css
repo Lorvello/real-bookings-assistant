@@ -179,7 +179,7 @@
 /* WhatsApp Chat Specific Styles */
 @layer components {
   .whatsapp-chat-bg {
-    background-color: #ece5dd;
+    @apply bg-whatsapp-chat-bg;
     background-image: linear-gradient(45deg, transparent 35%, rgba(255, 255, 255, 0.1) 35%, rgba(255, 255, 255, 0.1) 65%, transparent 65%), 
                       linear-gradient(-45deg, transparent 35%, rgba(0, 0, 0, 0.05) 35%, rgba(0, 0, 0, 0.05) 65%, transparent 65%);
     background-size: 20px 20px;
@@ -197,7 +197,7 @@
     width: 0;
     height: 0;
     border: 8px solid transparent;
-    border-left: 8px solid #22c55e;
+    @apply border-l-green-500;
     border-bottom: 0;
     transform: rotate(-45deg);
   }
@@ -214,7 +214,7 @@
     width: 0;
     height: 0;
     border: 8px solid transparent;
-    border-right: 8px solid white;
+    @apply border-r-white;
     border-bottom: 0;
     transform: rotate(45deg);
   }
@@ -227,7 +227,7 @@
     width: 0;
     height: 0;
     border: 8px solid transparent;
-    border-right: 8px solid #e5e7eb;
+    @apply border-r-gray-200;
     border-bottom: 0;
     transform: rotate(45deg);
     z-index: -1;
@@ -479,7 +479,7 @@
 /* Compact Modern WhatsApp Chat Specific Styles */
 @layer components {
   .whatsapp-chat-bg {
-    background-color: #f0f2f5;
+    @apply bg-whatsapp-bg;
     background-image: 
       radial-gradient(circle at 1px 1px, rgba(0,0,0,0.03) 1px, transparent 0);
     background-size: 16px 16px;
@@ -499,7 +499,7 @@
     width: 0;
     height: 0;
     border: 5px solid transparent;
-    border-left: 5px solid #10b981;
+    @apply border-l-whatsapp-bubble-user;
     border-bottom: 0;
     transform: rotate(-45deg);
     filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
@@ -519,7 +519,7 @@
     width: 0;
     height: 0;
     border: 5px solid transparent;
-    border-right: 5px solid white;
+    @apply border-r-white;
     border-bottom: 0;
     transform: rotate(45deg);
     filter: drop-shadow(-1px 1px 1px rgba(0, 0, 0, 0.05));
@@ -540,16 +540,12 @@
     width: 0;
     height: 0;
     border: 5px solid transparent;
-    border-right: 5px solid white;
+    @apply border-r-white;
     border-bottom: 0;
     transform: rotate(45deg);
     filter: drop-shadow(-1px 1px 1px rgba(0, 0, 0, 0.05));
   }
 
-  /* Custom WhatsApp green color */
-  .bg-whatsapp {
-    background-color: #25D366;
-  }
 
   /* Perfect carousel snapping */
   .perfect-snap-carousel {
