@@ -15,6 +15,7 @@ import { BookingsList } from '@/components/bookings/BookingsList';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 import { Button } from '@/components/ui/button';
 import { Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { DashboardLoadingScreen } from '@/components/dashboard/DashboardLoadingScreen';
 
 const Bookings = () => {
   const navigate = useNavigate();
@@ -62,12 +63,7 @@ const Bookings = () => {
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full bg-gray-900">
-          <div className="text-center">
-            <div className="w-6 h-6 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
-            <div className="text-base text-muted-foreground">Loading...</div>
-          </div>
-        </div>
+        <DashboardLoadingScreen />
       </DashboardLayout>
     );
   }

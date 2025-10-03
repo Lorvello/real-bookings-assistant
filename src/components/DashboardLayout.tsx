@@ -117,7 +117,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Mobile Overlay */}
       {isMobile && isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+          className="sidebar-overlay fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -125,13 +125,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar - Mobile: Complete hide/show, Desktop: Collapsible */}
       <div 
         className={`
+          sidebar-transform
           ${isMobile 
-            ? `fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-in-out
-               ${isSidebarOpen 
-                 ? 'translate-x-0 opacity-100 pointer-events-auto w-[85%] max-w-sm' 
-                 : '-translate-x-full opacity-0 pointer-events-none w-0'
-               }` 
-            : `${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative opacity-100 pointer-events-auto h-full max-h-full`
+            ? `fixed left-0 top-0 h-full w-[85%] max-w-sm z-50 
+               transition-transform duration-300 ease-out
+               ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}` 
+            : `${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative h-full max-h-full`
           }
         `}
         style={{ backgroundColor: '#0F172A' }}

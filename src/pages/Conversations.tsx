@@ -18,6 +18,7 @@ import { useWhatsAppConversationMetrics } from '@/hooks/useWhatsAppConversationM
 import { useWhatsAppConversationsList } from '@/hooks/useWhatsAppConversationsList';
 import { WhatsAppDashboard } from '@/components/whatsapp/WhatsAppDashboard';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
+import { ConversationsSkeleton } from '@/components/loading/ConversationsSkeleton';
 
 const ConversationsContent = () => {
   const navigate = useNavigate();
@@ -73,12 +74,7 @@ const ConversationsContent = () => {
   if (authLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-300">Loading...</div>
-          </div>
-        </div>
+        <ConversationsSkeleton />
       </DashboardLayout>
     );
   }

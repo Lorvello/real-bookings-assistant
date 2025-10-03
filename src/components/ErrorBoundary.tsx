@@ -13,16 +13,19 @@ interface State {
   hasError: boolean;
   error?: Error;
   errorInfo?: ErrorInfo;
+  retryCount: number;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
+  private maxRetries = 3;
+
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, retryCount: 0 };
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error, retryCount: 0 };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -48,7 +51,12 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    this.setState(prev => ({ 
+      hasError: false, 
+      error: undefined, 
+      errorInfo: undefined,
+      retryCount: prev.retryCount + 1
+    }));
   };
 
   render() {
@@ -66,6 +74,11 @@ export class ErrorBoundary extends Component<Props, State> {
               <p>
                 Er is een onverwachte fout opgetreden. Probeer de pagina te vernieuwen of neem contact op met ondersteuning als het probleem aanhoudt.
               </p>
+              {this.state.retryCount > 0 && this.state.retryCount < this.maxRetries && (
+                <p className="text-sm text-muted-foreground">
+                  Pogingen: {this.state.retryCount}/{this.maxRetries}
+                </p>
+              )}
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <details className="text-xs bg-gray-50 p-2 rounded">
                   <summary>Error details (development only)</summary>
@@ -74,9 +87,13 @@ export class ErrorBoundary extends Component<Props, State> {
                   </pre>
                 </details>
               )}
-              <Button onClick={this.handleRetry} className="w-full">
+              <Button 
+                onClick={this.handleRetry} 
+                className="w-full"
+                disabled={this.state.retryCount >= this.maxRetries}
+              >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Opnieuw proberen
+                {this.state.retryCount >= this.maxRetries ? 'Max pogingen bereikt' : 'Opnieuw proberen'}
               </Button>
             </AlertDescription>
           </Alert>

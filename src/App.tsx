@@ -15,6 +15,8 @@ import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import AuthCallback from '@/pages/AuthCallback';
 import Index from '@/pages/Index';
+import { FullPageLoadingSkeleton } from '@/components/loading/FullPageLoadingSkeleton';
+import { RouteErrorBoundary } from '@/components/error-boundaries/RouteErrorBoundary';
 
 // Lazy-loaded pages for code splitting
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
@@ -112,37 +114,175 @@ function App() {
                 >
                   <GlobalWebhookProcessor />
                   <RecoveryRedirector />
-                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/signup" element={<Signup />} />
-                      <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/verify-email" element={<VerifyEmail />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/success" element={<Success />} />
-                  <Route path="/calendar" element={<Calendar />} />
-                  <Route path="/bookings" element={<Bookings />} />
-                  <Route path="/availability" element={<Availability />} />
-                  <Route path="/conversations" element={<Conversations />} />
-                  <Route path="/conversations/:id" element={<ConversationDetail />} />
-                  <Route path="/whatsapp-booking-assistant" element={<WhatsAppBookingAssistantPage />} />
-                  <Route path="/test-ai-agent" element={<TestAIAgent />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/testing" element={<Testing />} />
-                  <Route path="/team-invite" element={<TeamInvite />} />
-                  <Route path="/how-it-works" element={<SeeHowItWorks />} />
-                  <Route path="/why-us" element={<WhyUs />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="/terms-of-service" element={<TermsOfService />} />
-                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                      <Route path="/stripe/go" element={<StripeGo />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
+                    
+                    {/* Protected routes with error boundaries and loading states */}
+                    <Route path="/forgot-password" element={
+                      <RouteErrorBoundary routeName="Forgot Password">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <ForgotPassword />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/reset-password" element={
+                      <RouteErrorBoundary routeName="Reset Password">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <ResetPassword />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/verify-email" element={
+                      <RouteErrorBoundary routeName="Verify Email">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <VerifyEmail />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/profile" element={
+                      <RouteErrorBoundary routeName="Profile">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <Profile />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/dashboard" element={
+                      <RouteErrorBoundary routeName="Dashboard">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <Dashboard />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/success" element={
+                      <RouteErrorBoundary routeName="Success">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <Success />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/calendar" element={
+                      <RouteErrorBoundary routeName="Calendar">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <Calendar />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/bookings" element={
+                      <RouteErrorBoundary routeName="Bookings">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <Bookings />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/availability" element={
+                      <RouteErrorBoundary routeName="Availability">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <Availability />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/conversations" element={
+                      <RouteErrorBoundary routeName="Conversations">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <Conversations />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/conversations/:id" element={
+                      <RouteErrorBoundary routeName="Conversation Detail">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <ConversationDetail />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/whatsapp-booking-assistant" element={
+                      <RouteErrorBoundary routeName="WhatsApp Booking Assistant">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <WhatsAppBookingAssistantPage />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/test-ai-agent" element={
+                      <RouteErrorBoundary routeName="Test AI Agent">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <TestAIAgent />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/settings" element={
+                      <RouteErrorBoundary routeName="Settings">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <Settings />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/testing" element={
+                      <RouteErrorBoundary routeName="Testing">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <Testing />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/team-invite" element={
+                      <RouteErrorBoundary routeName="Team Invite">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <TeamInvite />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/how-it-works" element={
+                      <RouteErrorBoundary routeName="How It Works">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <SeeHowItWorks />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/why-us" element={
+                      <RouteErrorBoundary routeName="Why Us">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <WhyUs />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/faq" element={
+                      <RouteErrorBoundary routeName="FAQ">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <FAQ />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/terms-of-service" element={
+                      <RouteErrorBoundary routeName="Terms of Service">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <TermsOfService />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/privacy-policy" element={
+                      <RouteErrorBoundary routeName="Privacy Policy">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <PrivacyPolicy />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/stripe/go" element={
+                      <RouteErrorBoundary routeName="Stripe">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <StripeGo />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="*" element={
+                      <RouteErrorBoundary routeName="Not Found">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <NotFound />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                  </Routes>
                   <Toaster />
                   <SecurityAlertsMonitor />
                 </div>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { BookingCard } from './BookingCard';
 import { BookingsEmptyState } from './BookingsEmptyState';
+import { BookingsListSkeleton } from '@/components/loading/BookingsListSkeleton';
 
 interface BookingsListProps {
   bookings: any[];
@@ -12,16 +13,7 @@ interface BookingsListProps {
 
 export function BookingsList({ bookings, loading, hasFilters, onBookingClick }: BookingsListProps) {
   if (loading) {
-    return (
-      <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="w-8 h-8 bg-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-gray-300">Loading bookings...</div>
-          </div>
-        </div>
-      </div>
-    );
+    return <BookingsListSkeleton />;
   }
 
   return (
