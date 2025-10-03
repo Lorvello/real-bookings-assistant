@@ -52,6 +52,7 @@ export function useTodaysBookings(calendarId?: string) {
       }));
     },
     enabled: !!calendarId,
-    staleTime: 30000, // 30 seconds
+    staleTime: 60000, // 1 minute (optimized from 30s)
+    gcTime: 300000, // 5 minutes
   });
 }

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -62,7 +62,7 @@ export const useAuth = () => {
     };
   }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
       logger.info('User signing out', { 
         component: 'useAuth',
@@ -90,9 +90,9 @@ export const useAuth = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [user?.id, toast]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     // Check rate limiting for authentication attempts
     const rateLimitCheck = checkAuthRateLimit(email);
     if (!rateLimitCheck.allowed) {
@@ -138,14 +138,15 @@ export const useAuth = () => {
       });
       return { error: { message: 'An unexpected error occurred' } };
     }
-  };
+  }, [toast]);
 
-  return {
+  // Memoize return object to prevent unnecessary re-renders
+  return useMemo(() => ({
     user,
     session,
     loading,
     signOut,
     signIn,
     isAuthenticated: !!user && !!session
-  };
+  }), [user, session, loading, signOut, signIn]);
 };

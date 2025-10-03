@@ -27,7 +27,8 @@ export function useWhatsAppWebhookQueue() {
       if (error) throw error;
       return data as WhatsAppWebhookQueueItem[];
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 60000, // Data fresh for 1 minute
+    refetchInterval: 60000, // Refresh every 60 seconds (reduced from 30s)
   });
 }
 
@@ -44,7 +45,8 @@ export function useUnprocessedWebhooks() {
       if (error) throw error;
       return data as WhatsAppWebhookQueueItem[];
     },
-    refetchInterval: 10000, // Refresh every 10 seconds for unprocessed
+    staleTime: 30000, // Data fresh for 30 seconds
+    refetchInterval: 30000, // Refresh every 30 seconds (reduced from 10s)
   });
 }
 

@@ -5,39 +5,41 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CalendarProvider } from '@/contexts/CalendarContext';
 import { ConversationCalendarProvider } from '@/contexts/ConversationCalendarContext';
 import { UserStatusProvider } from '@/contexts/UserStatusContext';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
 import { useAuth } from '@/hooks/useAuth';
 import SecurityAlertsMonitor from '@/components/security/SecurityAlertsMonitor';
+
+// Eager-loaded auth pages (needed immediately)
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import AuthCallback from '@/pages/AuthCallback';
-import ForgotPassword from '@/pages/ForgotPassword';
-import ResetPassword from '@/pages/ResetPassword';
-import VerifyEmail from '@/pages/VerifyEmail';
-import Testing from '@/pages/Testing';
-import NotFound from '@/pages/NotFound';
-import Settings from '@/pages/Settings';
-import Availability from '@/pages/Availability';
-import Conversations from '@/pages/Conversations';
-import ConversationDetail from '@/pages/ConversationDetail';
-import SeeHowItWorks from '@/pages/SeeHowItWorks';
-import WhyUs from '@/pages/WhyUs';
-import FAQ from '@/pages/FAQ';
-import TestAIAgent from '@/pages/TestAIAgent';
-import WhatsAppBookingAssistantPage from '@/pages/WhatsAppBookingAssistant';
-import Profile from '@/pages/Profile';
-import TeamInvite from '@/pages/TeamInvite';
-import TermsOfService from '@/pages/TermsOfService';
-import PrivacyPolicy from '@/pages/PrivacyPolicy';
-import Success from '@/pages/Success';
-
-// Pages
 import Index from '@/pages/Index';
-import Dashboard from '@/pages/Dashboard';
-import Calendar from '@/pages/Calendar';
-import Bookings from '@/pages/Bookings';
-import StripeGo from '@/pages/StripeGo';
+
+// Lazy-loaded pages for code splitting
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
+const VerifyEmail = lazy(() => import('@/pages/VerifyEmail'));
+const Testing = lazy(() => import('@/pages/Testing'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
+const Settings = lazy(() => import('@/pages/Settings'));
+const Availability = lazy(() => import('@/pages/Availability'));
+const Conversations = lazy(() => import('@/pages/Conversations'));
+const ConversationDetail = lazy(() => import('@/pages/ConversationDetail'));
+const SeeHowItWorks = lazy(() => import('@/pages/SeeHowItWorks'));
+const WhyUs = lazy(() => import('@/pages/WhyUs'));
+const FAQ = lazy(() => import('@/pages/FAQ'));
+const TestAIAgent = lazy(() => import('@/pages/TestAIAgent'));
+const WhatsAppBookingAssistantPage = lazy(() => import('@/pages/WhatsAppBookingAssistant'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const TeamInvite = lazy(() => import('@/pages/TeamInvite'));
+const TermsOfService = lazy(() => import('@/pages/TermsOfService'));
+const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
+const Success = lazy(() => import('@/pages/Success'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Calendar = lazy(() => import('@/pages/Calendar'));
+const Bookings = lazy(() => import('@/pages/Bookings'));
+const StripeGo = lazy(() => import('@/pages/StripeGo'));
 
 const queryClient = new QueryClient();
 
@@ -46,9 +48,10 @@ function GlobalWebhookProcessor() {
   const { user } = useAuth();
   
   // Start global webhook auto-processor when user is authenticated
+  // OPTIMIZED: Reduced from 3s to 15s for better performance
   useWebhookAutoProcessor({ 
     enabled: !!user,
-    intervalMs: 3000 // Process every 3 seconds globally
+    intervalMs: 15000 // Process every 15 seconds globally
   });
 
   return null; // This component doesn't render anything
@@ -109,11 +112,12 @@ function App() {
                 >
                   <GlobalWebhookProcessor />
                   <RecoveryRedirector />
-                  <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<Signup />} />
+                      <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/verify-email" element={<VerifyEmail />} />
                   <Route path="/auth/callback" element={<AuthCallback />} />
@@ -135,9 +139,10 @@ function App() {
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                  <Route path="/stripe/go" element={<StripeGo />} />
-                  <Route path="*" element={<NotFound />} />
-                  </Routes>
+                      <Route path="/stripe/go" element={<StripeGo />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
                   <Toaster />
                   <SecurityAlertsMonitor />
                 </div>
