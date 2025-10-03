@@ -16,6 +16,8 @@ import Signup from '@/pages/Signup';
 import AuthCallback from '@/pages/AuthCallback';
 import Index from '@/pages/Index';
 import { FullPageLoadingSkeleton } from '@/components/loading/FullPageLoadingSkeleton';
+import { InlineRouteSpinner } from '@/components/loading/InlineRouteSpinner';
+import { PagePrefetcher } from '@/components/loading/PagePrefetcher';
 import { RouteErrorBoundary } from '@/components/error-boundaries/RouteErrorBoundary';
 
 // Lazy-loaded pages for code splitting
@@ -114,6 +116,7 @@ function App() {
                 >
                   <GlobalWebhookProcessor />
                   <RecoveryRedirector />
+                  <PagePrefetcher />
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />
@@ -179,7 +182,7 @@ function App() {
                     } />
                     <Route path="/availability" element={
                       <RouteErrorBoundary routeName="Availability">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                        <Suspense fallback={<InlineRouteSpinner />}>
                           <Availability />
                         </Suspense>
                       </RouteErrorBoundary>
@@ -200,21 +203,21 @@ function App() {
                     } />
                     <Route path="/whatsapp-booking-assistant" element={
                       <RouteErrorBoundary routeName="WhatsApp Booking Assistant">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                        <Suspense fallback={<InlineRouteSpinner />}>
                           <WhatsAppBookingAssistantPage />
                         </Suspense>
                       </RouteErrorBoundary>
                     } />
                     <Route path="/test-ai-agent" element={
                       <RouteErrorBoundary routeName="Test AI Agent">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                        <Suspense fallback={<InlineRouteSpinner />}>
                           <TestAIAgent />
                         </Suspense>
                       </RouteErrorBoundary>
                     } />
                     <Route path="/settings" element={
                       <RouteErrorBoundary routeName="Settings">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                        <Suspense fallback={<InlineRouteSpinner />}>
                           <Settings />
                         </Suspense>
                       </RouteErrorBoundary>
