@@ -26,13 +26,11 @@ export const AvailabilityManager = () => {
     }
   }, [authLoading, user]); // Minimal dependencies
 
-  if (authLoading || profileLoading) {
+  // Only show loading on INITIAL page load, not on tab switches
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center h-full bg-gray-900">
-        <div className="text-center">
-          <div className="w-6 h-6 bg-primary rounded-full animate-spin mx-auto mb-3"></div>
-          <div className="text-base text-muted-foreground">Loading...</div>
-        </div>
+        <div className="w-6 h-6 bg-primary rounded-full animate-spin mx-auto"></div>
       </div>
     );
   }

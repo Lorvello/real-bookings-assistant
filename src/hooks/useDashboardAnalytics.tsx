@@ -30,7 +30,8 @@ export const useDashboardAnalytics = () => {
     whatsapp_messages_today: 0,
     last_updated: new Date().toISOString()
   });
-  const [loading, setLoading] = useState(true);
+  // Start with loading false to prevent skeleton screens on tab switches
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

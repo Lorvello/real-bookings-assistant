@@ -71,14 +71,12 @@ const Dashboard = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Only show loading skeleton on INITIAL page load
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full bg-gray-900">
-          <div className="text-center">
-            <div className="w-8 h-8 bg-cyan-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-gray-300">Loading Dashboard...</div>
-          </div>
+          <div className="w-8 h-8 bg-cyan-600 rounded-full animate-spin mx-auto"></div>
         </div>
       </DashboardLayout>
     );

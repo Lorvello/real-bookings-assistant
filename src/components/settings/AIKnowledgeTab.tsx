@@ -14,7 +14,6 @@ export const AIKnowledgeTab: React.FC = () => {
     setProfileData,
     businessData,
     setBusinessData,
-    loading,
     handleUpdateProfile,
     handleUpdateBusiness,
     refetch
@@ -148,8 +147,8 @@ export const AIKnowledgeTab: React.FC = () => {
   return (
     <TooltipProvider delayDuration={100}>
       <div className="space-y-8">
-        {/* Save indicator */}
-        {(saving || loading) && (
+        {/* Save indicator - only show when actively saving */}
+        {saving && (
           <div className="flex items-center justify-center bg-blue-800/90 border border-blue-700/50 rounded-2xl shadow-lg p-3">
             <div className="flex items-center space-x-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>

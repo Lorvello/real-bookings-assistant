@@ -9,11 +9,11 @@ export const ProfileTab: React.FC = () => {
     setProfileData,
     businessData,
     setBusinessData,
-    loading,
     handleUpdateProfile,
     handleUpdateBusiness
   } = useSettingsContext();
 
+  // No loading state - render immediately with cached data
   return (
     <div className="space-y-8">
       {/* The enhanced UserManagement component now handles both user management and profile information */}
@@ -24,7 +24,7 @@ export const ProfileTab: React.FC = () => {
         onProfileDataChange={setProfileData}
         onUpdateBusiness={handleUpdateBusiness}
         onUpdateProfile={handleUpdateProfile}
-        externalLoading={loading}
+        externalLoading={false}
       />
     </div>
   );

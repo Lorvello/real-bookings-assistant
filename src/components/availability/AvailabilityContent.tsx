@@ -169,14 +169,11 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     }
   }, [selectedCalendar?.id, localTimezone, refreshCalendars, toast]);
 
-  // OPTIMIZED: Simplified loading state
-  if (availabilityState.setupState === 'checking' || availabilityState.isRefreshing) {
+  // Only show loading on INITIAL page load, not during tab switches or refreshes
+  if (availabilityState.setupState === 'checking' && !availabilityState.selectedCalendar) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-base font-medium text-foreground">Loading availability</div>
-        </div>
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto"></div>
       </div>
     );
   }

@@ -51,10 +51,12 @@ export const useSettingsData = () => {
     team_size: '1'
   });
 
+  // No loading state for immediate rendering with cached data
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
+      // Fetch silently in background without showing loading state
       fetchUserData();
     }
   }, [user]);
@@ -129,6 +131,7 @@ export const useSettingsData = () => {
   const handleUpdateProfile = async (customProfileData?: any) => {
     if (!user) return;
     
+    // Only set loading during actual save operations
     setLoading(true);
     const dataToUse = customProfileData || profileData;
     console.log('Updating profile with data:', dataToUse);
@@ -189,6 +192,7 @@ export const useSettingsData = () => {
   const handleUpdateBusiness = async (customBusinessData?: any) => {
     if (!user) return;
     
+    // Only set loading during actual save operations
     setLoading(true);
     const dataToUse = customBusinessData || businessData;
     console.log('Updating business with data:', dataToUse);
