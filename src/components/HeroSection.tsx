@@ -25,6 +25,11 @@ const HeroSection: React.FC = () => {
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(15,23,42,0.3)_100%)] pointer-events-none"
       ></div>
       
+      {/* Bottom gradient fade-out voor smooth transition */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-32 md:h-48 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent pointer-events-none z-10"
+      />
+      
       <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center z-10">
         {/* Floating badge - SUBTEXT */}
         <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-2 md:mb-8 animate-appear opacity-0">
