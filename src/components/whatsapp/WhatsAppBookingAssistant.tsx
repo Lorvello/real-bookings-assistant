@@ -94,28 +94,24 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-sm text-muted-foreground/60">Loading...</div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-sm text-muted-foreground/50 font-medium">Loading...</div>
       </div>
     );
   }
 
   return (
     <>
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-10">
         {/* Left Column: QR Code */}
-        <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg transition-all duration-200">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <QrCode className="h-4 w-4 text-primary" />
+        <Card className="bg-card border border-border/40 rounded-xl hover:border-border/60 transition-colors">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-base font-semibold tracking-tight">
               QR Code
             </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground/80">
-              Download or share to enable WhatsApp bookings
-            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="text-center p-8 bg-card/40 backdrop-blur-sm rounded-xl border border-border/40">
+          <CardContent className="space-y-8">
+            <div className="text-center p-8 bg-muted/30 rounded-lg border border-border/20">
               {qrUrl && !imgBroken ? (
                 <>
                   <div className="inline-block bg-white p-4 rounded-lg mb-4">
@@ -142,7 +138,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                       onClick={handleCopyLink}
                       variant="outline" 
                       size="sm"
-                      className="gap-2 border-border/60 hover:border-border hover:bg-card/60 transition-all duration-200"
+                      className="gap-2"
                     >
                       {linkCopied ? (
                         <>
@@ -177,7 +173,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                       onClick={handleCopyLink}
                       variant="outline" 
                       size="sm"
-                      className="gap-2 border-border/60 hover:border-border hover:bg-card/60 transition-all duration-200"
+                      className="gap-2"
                     >
                       {linkCopied ? (
                         <>
@@ -195,7 +191,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                 </>
               ) : (
                 <>
-                  <div className="w-64 h-64 mx-auto bg-card/40 backdrop-blur-sm rounded-xl border border-border/40 flex items-center justify-center mb-4">
+                  <div className="w-64 h-64 mx-auto bg-muted/30 rounded-lg border border-border/20 flex items-center justify-center mb-4">
                     <QrCode className="h-16 w-16 text-muted-foreground/40" />
                   </div>
                   <Button
@@ -213,8 +209,8 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
 
 
             {/* Platform Number */}
-            <div className="text-center p-6 bg-card/40 backdrop-blur-sm rounded-xl border border-border/40">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">Platform Number</p>
+            <div className="text-center p-6 bg-muted/30 rounded-lg border border-border/20">
+              <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground/60 mb-4">Platform Number</p>
               <div className="text-lg font-mono font-bold text-foreground mb-4">
                 {platformNumber}
               </div>
@@ -222,7 +218,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                 onClick={handleCopyNumber}
                 variant="outline" 
                 size="sm"
-                className="gap-2 border-border/60 hover:border-border hover:bg-card/60 transition-all duration-200"
+                className="gap-2"
               >
                 {copied ? (
                   <>
@@ -241,19 +237,18 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         </Card>
 
         {/* Right Column: Preview & Info */}
-        <div className="space-y-8">
+        <div className="space-y-10">
           {/* WhatsApp Message Preview */}
-          <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg transition-all duration-200">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-primary" />
+          <Card className="bg-card border border-border/40 rounded-xl hover:border-border/60 transition-colors">
+            <CardHeader className="pb-6">
+              <CardTitle className="text-base font-semibold tracking-tight">
                 Customer Preview
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-[#DCF8C6] text-black p-4 rounded-lg rounded-tl-none max-w-sm shadow-md border border-black/5">
                 <p className="text-sm whitespace-pre-line leading-relaxed">
-                  👋 Hello {businessName}!{'\n'}
+                  Hello {businessName}!{'\n'}
                   (Send this message to save the chat, then you can always book via WhatsApp.)
                 </p>
               </div>
@@ -261,55 +256,55 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
           </Card>
 
           {/* How It Works - 4 Steps */}
-          <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg transition-all duration-200">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm font-semibold">How It Works</CardTitle>
+          <Card className="bg-card border border-border/40 rounded-xl hover:border-border/60 transition-colors">
+            <CardHeader className="pb-6">
+              <CardTitle className="text-base font-semibold tracking-tight">How It Works</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="flex gap-4">
-                  <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm shadow-sm flex-shrink-0">
-                    1
+                  <div className="text-muted-foreground/60 font-mono text-sm font-medium min-w-[24px]">
+                    01
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-sm text-foreground mb-1">Customer scans QR code</h4>
-                    <p className="text-xs text-muted-foreground/80 leading-relaxed">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-sm mb-1">Customer scans QR code</h4>
+                    <p className="text-xs text-muted-foreground/70 leading-relaxed">
                       With their smartphone camera or WhatsApp scanner
                     </p>
                   </div>
                 </div>
                 
                 <div className="flex gap-4">
-                  <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm shadow-sm flex-shrink-0">
-                    2
+                  <div className="text-muted-foreground/60 font-mono text-sm font-medium min-w-[24px]">
+                    02
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-sm text-foreground mb-1">WhatsApp opens automatically</h4>
-                    <p className="text-xs text-muted-foreground/80 leading-relaxed">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-sm mb-1">WhatsApp opens automatically</h4>
+                    <p className="text-xs text-muted-foreground/70 leading-relaxed">
                       With a pre-filled welcome message
                     </p>
                   </div>
                 </div>
                 
                 <div className="flex gap-4">
-                  <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm shadow-sm flex-shrink-0">
-                    3
+                  <div className="text-muted-foreground/60 font-mono text-sm font-medium min-w-[24px]">
+                    03
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-sm text-foreground mb-1">Customer sends the message</h4>
-                    <p className="text-xs text-muted-foreground/80 leading-relaxed">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-sm mb-1">Customer sends the message</h4>
+                    <p className="text-xs text-muted-foreground/70 leading-relaxed">
                       By tapping "send" to activate the chat
                     </p>
                   </div>
                 </div>
                 
                 <div className="flex gap-4">
-                  <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm shadow-sm flex-shrink-0">
-                    4
+                  <div className="text-muted-foreground/60 font-mono text-sm font-medium min-w-[24px]">
+                    04
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-sm text-foreground mb-1">AI assistant responds instantly</h4>
-                    <p className="text-xs text-muted-foreground/80 leading-relaxed">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-sm mb-1">AI assistant responds instantly</h4>
+                    <p className="text-xs text-muted-foreground/70 leading-relaxed">
                       Available 24/7 for bookings, questions, and changes
                     </p>
                   </div>
@@ -321,35 +316,27 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
       </div>
 
       {/* Best Practices */}
-      <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg transition-all duration-200 mt-8">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-sm font-semibold">Best Practices</CardTitle>
+      <Card className="bg-card border border-border/40 rounded-xl hover:border-border/60 transition-colors mt-10">
+        <CardHeader className="pb-6">
+          <CardTitle className="text-base font-semibold tracking-tight">Best Practices</CardTitle>
         </CardHeader>
         <CardContent>
-          <div>
-            <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">Where to Display</h4>
-            <ul className="space-y-2.5">
-              <li className="flex items-start gap-3">
-                <span className="text-primary mt-0.5 text-lg leading-none">•</span>
-                <span className="text-sm text-muted-foreground/90 leading-relaxed">At reception or checkout</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-primary mt-0.5 text-lg leading-none">•</span>
-                <span className="text-sm text-muted-foreground/90 leading-relaxed">On business cards and flyers</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-primary mt-0.5 text-lg leading-none">•</span>
-                <span className="text-sm text-muted-foreground/90 leading-relaxed">In confirmation emails</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-primary mt-0.5 text-lg leading-none">•</span>
-                <span className="text-sm text-muted-foreground/90 leading-relaxed">On social media profiles</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-primary mt-0.5 text-lg leading-none">•</span>
-                <span className="text-sm text-muted-foreground/90 leading-relaxed">In storefront windows</span>
-              </li>
-            </ul>
+          <div className="space-y-0 divide-y divide-border/20">
+            <div className="py-3 first:pt-0 last:pb-0">
+              <p className="text-sm text-foreground/90">At reception or checkout</p>
+            </div>
+            <div className="py-3 first:pt-0 last:pb-0">
+              <p className="text-sm text-foreground/90">On business cards and flyers</p>
+            </div>
+            <div className="py-3 first:pt-0 last:pb-0">
+              <p className="text-sm text-foreground/90">In confirmation emails</p>
+            </div>
+            <div className="py-3 first:pt-0 last:pb-0">
+              <p className="text-sm text-foreground/90">On social media profiles</p>
+            </div>
+            <div className="py-3 first:pt-0 last:pb-0">
+              <p className="text-sm text-foreground/90">In storefront windows</p>
+            </div>
           </div>
         </CardContent>
       </Card>
