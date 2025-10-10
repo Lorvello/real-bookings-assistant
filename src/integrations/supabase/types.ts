@@ -1846,7 +1846,6 @@ export type Database = {
           tax_code: string | null
           tax_enabled: boolean | null
           tax_rate_type: string | null
-          user_id: string | null
         }
         Insert: {
           applicable_tax_rate?: number | null
@@ -1879,7 +1878,6 @@ export type Database = {
           tax_code?: string | null
           tax_enabled?: boolean | null
           tax_rate_type?: string | null
-          user_id?: string | null
         }
         Update: {
           applicable_tax_rate?: number | null
@@ -1912,7 +1910,6 @@ export type Database = {
           tax_code?: string | null
           tax_enabled?: boolean | null
           tax_rate_type?: string | null
-          user_id?: string | null
         }
         Relationships: [
           {
