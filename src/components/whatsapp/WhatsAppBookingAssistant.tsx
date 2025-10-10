@@ -59,10 +59,10 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     try {
       await navigator.clipboard.writeText(platformNumber);
       setCopied(true);
-      toast.success('Nummer gekopieerd');
+      toast.success('Number copied');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast.error('Kon nummer niet kopiëren');
+      toast.error('Failed to copy number');
     }
   };
 
@@ -72,10 +72,10 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     try {
       await navigator.clipboard.writeText(whatsappLink);
       setLinkCopied(true);
-      toast.success('WhatsApp link gekopieerd');
+      toast.success('WhatsApp link copied');
       setTimeout(() => setLinkCopied(false), 2000);
     } catch (err) {
-      toast.error('Kon link niet kopiëren');
+      toast.error('Failed to copy link');
     }
   };
 
@@ -89,7 +89,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('QR code gedownload');
+    toast.success('QR code downloaded');
   };
 
   if (loading) {
@@ -104,14 +104,14 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     <>
       <div className="grid md:grid-cols-2 gap-6">
         {/* Left Column: QR Code */}
-        <Card className="bg-card border-border">
+        <Card className="bg-card border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
-              <QrCode className="h-5 w-5 text-green-500" />
-              WhatsApp QR Code
+              <QrCode className="h-5 w-5 text-primary" />
+              QR Code
             </CardTitle>
             <CardDescription>
-              Deel deze QR-code met klanten voor directe WhatsApp toegang
+              Download or share this code for instant WhatsApp access
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -147,12 +147,12 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                       {linkCopied ? (
                         <>
                           <Check className="h-4 w-4 text-green-500" />
-                          Gekopieerd!
+                          Copied!
                         </>
                       ) : (
                         <>
                           <Copy className="h-4 w-4" />
-                          Kopieer WhatsApp Link
+                          Copy WhatsApp Link
                         </>
                       )}
                     </Button>
@@ -166,7 +166,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                   {(needsMigration || imgBroken) && (
                     <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-md mb-3">
                       <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                      <span>QR code moet gerepareerd worden voor permanente versie</span>
+                      <span>QR code requires repair for permanent version</span>
                     </div>
                   )}
                   <Button
@@ -177,7 +177,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                     className="gap-2"
                   >
                     <QrCode className="h-4 w-4" />
-                    {generating ? 'Repareren...' : 'Repareer QR Code'}
+                    {generating ? 'Repairing...' : 'Repair QR Code'}
                   </Button>
                 </>
               ) : (
@@ -192,7 +192,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                     className="gap-2"
                   >
                     <QrCode className="h-4 w-4" />
-                    {generating ? 'Genereren...' : 'Genereer QR Code'}
+                    {generating ? 'Generating...' : 'Generate QR Code'}
                   </Button>
                 </>
               )}
@@ -201,7 +201,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
 
             {/* Platform Number */}
             <div className="text-center p-4 bg-muted/50 rounded-lg border border-border">
-              <p className="text-xs text-muted-foreground mb-2">Platform Nummer</p>
+              <p className="text-xs text-muted-foreground mb-2">Platform Number</p>
               <div className="text-lg font-mono font-bold text-foreground mb-3">
                 {platformNumber}
               </div>
@@ -214,12 +214,12 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                 {copied ? (
                   <>
                     <Check className="h-4 w-4 text-green-500" />
-                    Gekopieerd!
+                    Copied!
                   </>
                 ) : (
                   <>
                     <Copy className="h-4 w-4" />
-                    Kopieer Nummer
+                    Copy Number
                   </>
                 )}
               </Button>
@@ -230,31 +230,31 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         {/* Right Column: Preview & Info */}
         <div className="space-y-6">
           {/* WhatsApp Message Preview */}
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-green-500" />
-                Preview: Wat klanten zien
+                <MessageSquare className="h-4 w-4 text-primary" />
+                Customer Preview
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="bg-[#DCF8C6] text-black p-4 rounded-lg rounded-tl-none max-w-sm shadow-md">
                 <p className="text-sm whitespace-pre-line leading-relaxed">
-                  👋 Hallo {businessName}!{'\n'}
-                  (Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)
+                  👋 Hello {businessName}!{'\n'}
+                  (Send this message to save the chat, then you can always book via WhatsApp.)
                 </p>
               </div>
               <p className="text-xs text-muted-foreground mt-3 flex items-start gap-2">
                 <span className="text-green-500 mt-0.5">✓</span>
-                <span>Dit bericht staat automatisch klaar wanneer klanten de QR-code scannen</span>
+                <span>This message is pre-filled when customers scan the QR code</span>
               </p>
             </CardContent>
           </Card>
 
           {/* How It Works - 4 Steps */}
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border shadow-sm">
             <CardHeader>
-              <CardTitle className="text-sm">Hoe het werkt</CardTitle>
+              <CardTitle className="text-sm">How It Works</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -263,9 +263,9 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                     1
                   </div>
                   <div>
-                    <h4 className="font-medium text-sm">Klant scant QR-code</h4>
+                    <h4 className="font-medium text-sm">Customer scans QR code</h4>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Met hun smartphone camera of WhatsApp scanner
+                      With their smartphone camera or WhatsApp scanner
                     </p>
                   </div>
                 </div>
@@ -275,9 +275,9 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                     2
                   </div>
                   <div>
-                    <h4 className="font-medium text-sm">WhatsApp opent automatisch</h4>
+                    <h4 className="font-medium text-sm">WhatsApp opens automatically</h4>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Met een vooringevuld welkomstbericht
+                      With a pre-filled welcome message
                     </p>
                   </div>
                 </div>
@@ -287,9 +287,9 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                     3
                   </div>
                   <div>
-                    <h4 className="font-medium text-sm">Klant verstuurt het bericht</h4>
+                    <h4 className="font-medium text-sm">Customer sends the message</h4>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Door op "verzenden" te tikken activeert de chat
+                      By tapping "send" to activate the chat
                     </p>
                   </div>
                 </div>
@@ -299,86 +299,64 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                     4
                   </div>
                   <div>
-                    <h4 className="font-medium text-sm">AI assistent helpt direct</h4>
+                    <h4 className="font-medium text-sm">AI assistant responds instantly</h4>
                     <p className="text-xs text-muted-foreground mt-1">
-                      24/7 beschikbaar voor boekingen, vragen en wijzigingen
+                      Available 24/7 for bookings, questions, and changes
                     </p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Important Customer Action Required */}
+          <Card className="bg-card border-border shadow-sm border-amber-500/30">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                Customer Action Required
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Customers must send the first message to save the conversation. If they close WhatsApp without sending, the chat will be lost.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      {/* Tips & Best Practices */}
-      <Card className="bg-card border-border mt-6">
+      {/* Best Practices */}
+      <Card className="bg-card border-border mt-6 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-sm">Tips voor optimaal gebruik</CardTitle>
+          <CardTitle className="text-sm">Best Practices</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                <span>📍</span> Waar te plaatsen
-              </h4>
-              <ul className="text-sm text-muted-foreground space-y-1 ml-6">
-                <li>• Bij de receptie of kassa</li>
-                <li>• Op visitekaartjes en folders</li>
-                <li>• In bevestigingsmails</li>
-                <li>• Op sociale media profielen</li>
-                <li>• In de winkel vitrine</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                <span>💡</span> Hoe te promoten
-              </h4>
-              <ul className="text-sm text-muted-foreground space-y-1 ml-6">
-                <li>• "Scan voor 24/7 afspraken maken"</li>
-                <li>• "Direct via WhatsApp boeken"</li>
-                <li>• "WhatsApp ons voor snelle service"</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                <span>⚡</span> Belangrijke notities
-              </h4>
-              <ul className="text-sm text-muted-foreground space-y-1 ml-6">
-                <li>• Klanten MOETEN het eerste bericht versturen</li>
-                <li>• Anders verdwijnt de chat na sluiten WhatsApp</li>
-                <li>• QR codes worden automatisch bijgewerkt wanneer je bericht wijzigt</li>
-              </ul>
-            </div>
+          <div>
+            <h4 className="text-sm font-medium mb-2">Where to Display</h4>
+            <ul className="text-sm text-muted-foreground space-y-1.5">
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>At reception or checkout</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>On business cards and flyers</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>In confirmation emails</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>On social media profiles</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary">•</span>
+                <span>In storefront windows</span>
+              </li>
+            </ul>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Technical Info */}
-      <Card className="bg-card border-border mt-6">
-        <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Phone className="h-4 w-4 text-muted-foreground" />
-            Technische informatie
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li className="flex gap-2">
-              <span className="text-primary">•</span>
-              <span>Alle bedrijven delen hetzelfde WhatsApp nummer ({platformNumber}) voor naadloze klantervaring</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-primary">•</span>
-              <span>Bestaande WhatsApp-gesprekken worden herkend via telefoonnummer</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-primary">•</span>
-              <span>Nieuwe gesprekken worden handmatig toegewezen aan jouw bedrijf</span>
-            </li>
-          </ul>
         </CardContent>
       </Card>
     </>
