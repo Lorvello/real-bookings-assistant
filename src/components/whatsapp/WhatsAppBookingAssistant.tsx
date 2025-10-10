@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, Check, QrCode, Phone, Download, AlertTriangle, MessageSquare } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
 import { supabase } from '@/integrations/supabase/client';
@@ -125,32 +125,9 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Button 
-                      onClick={downloadQRCode}
-                      variant="default" 
-                      size="sm"
-                      className="gap-2 shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <Download className="h-4 w-4" />
-                      Download QR Code
-                    </Button>
-                    <Button 
-                      onClick={handleCopyLink}
-                      variant="outline" 
-                      size="sm"
-                      className="gap-2"
-                    >
-                      {linkCopied ? (
-                        <>
-                          <Check className="h-4 w-4 text-green-500" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4" />
-                          Copy WhatsApp Link
-                        </>
-                      )}
+                    <Button onClick={downloadQRCode} variant="default" size="sm">Download QR Code</Button>
+                    <Button onClick={handleCopyLink} variant="outline" size="sm">
+                      {linkCopied ? 'Copied!' : 'Copy WhatsApp Link'}
                     </Button>
                   </div>
                 </>
@@ -160,47 +137,18 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                     <QRCodeSVG value={whatsappLink} size={256} />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Button 
-                      onClick={downloadQRCode}
-                      variant="default" 
-                      size="sm"
-                      className="gap-2 shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <Download className="h-4 w-4" />
-                      Download QR Code
-                    </Button>
-                    <Button 
-                      onClick={handleCopyLink}
-                      variant="outline" 
-                      size="sm"
-                      className="gap-2"
-                    >
-                      {linkCopied ? (
-                        <>
-                          <Check className="h-4 w-4 text-green-500" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4" />
-                          Copy WhatsApp Link
-                        </>
-                      )}
+                    <Button onClick={downloadQRCode} variant="default" size="sm">Download QR Code</Button>
+                    <Button onClick={handleCopyLink} variant="outline" size="sm">
+                      {linkCopied ? 'Copied!' : 'Copy WhatsApp Link'}
                     </Button>
                   </div>
                 </>
               ) : (
                 <>
                   <div className="w-64 h-64 mx-auto bg-muted/30 rounded-lg border border-border/20 flex items-center justify-center mb-4">
-                    <QrCode className="h-16 w-16 text-muted-foreground/40" />
+                    <span className="text-xs text-muted-foreground">QR code will appear here</span>
                   </div>
-                  <Button
-                    onClick={() => generateQR()}
-                    disabled={generating}
-                    size="sm"
-                    className="gap-2 shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <QrCode className="h-4 w-4" />
+                  <Button onClick={() => generateQR()} disabled={generating} variant="default" size="sm">
                     {generating ? 'Generating...' : 'Generate QR Code'}
                   </Button>
                 </>
@@ -218,19 +166,8 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                 onClick={handleCopyNumber}
                 variant="outline" 
                 size="sm"
-                className="gap-2"
               >
-                {copied ? (
-                  <>
-                    <Check className="h-4 w-4 text-green-500" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4" />
-                    Copy Number
-                  </>
-                )}
+                {copied ? 'Copied!' : 'Copy Number'}
               </Button>
             </div>
           </CardContent>
@@ -246,7 +183,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-[#DCF8C6] text-black p-4 rounded-lg rounded-tl-none max-w-sm shadow-md border border-black/5">
+              <div className="bg-muted text-foreground p-4 rounded-lg max-w-sm border border-border/20">
                 <p className="text-sm whitespace-pre-line leading-relaxed">
                   Hello {businessName}!{'\n'}
                   (Send this message to save the chat, then you can always book via WhatsApp.)
