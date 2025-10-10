@@ -25,26 +25,59 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Use platform-wide WhatsApp number
-    const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+31612345678';
-    const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
+    // Check if QR code already exists (QR codes are permanent)
+    const { data: existingUser } = await supabaseClient
+      .from('users')
+      .select('whatsapp_qr_url, whatsapp_qr_generated_at')
+      .eq('id', user.id)
+      .single();
 
-    // Generate WhatsApp link with user tracking code
+    if (existingUser?.whatsapp_qr_url) {
+      // QR already exists - return existing URL
+      const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';
+      const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
+      const trackingCode = user.id.substring(0, 8).toUpperCase();
+      const prefilledMessage = `START_${trackingCode}`;
+      const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
+
+      console.log(`QR code already exists for user ${user.id}, returning existing URL`);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          qrUrl: existingUser.whatsapp_qr_url,
+          whatsappLink,
+          alreadyExists: true
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Generate new QR code (first time only)
+    const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';
+    const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
     const trackingCode = user.id.substring(0, 8).toUpperCase();
     const prefilledMessage = `START_${trackingCode}`;
-    const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${prefilledMessage}`;
+    const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
-    // Generate SVG QR code
-    const qrSize = 400;
-    const qrSvg = generateQRCodeSVG(whatsappLink, qrSize);
+    // Fetch QR code PNG from QRServer.com
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(whatsappLink)}`;
+    const qrResponse = await fetch(qrApiUrl);
+    
+    if (!qrResponse.ok) {
+      console.error('QR API error:', qrResponse.statusText);
+      throw new Error(`Failed to generate QR code: ${qrResponse.statusText}`);
+    }
 
-    // Upload to Storage
-    const fileName = `${user.id}/whatsapp-qr.svg`;
+    const qrImageBlob = await qrResponse.blob();
+
+    // Upload PNG to Storage
+    const fileName = `${user.id}/whatsapp-qr.png`;
     const { error: uploadError } = await supabaseClient.storage
       .from('whatsapp-qr-codes')
-      .upload(fileName, new Blob([qrSvg], { type: 'image/svg+xml' }), {
-        contentType: 'image/svg+xml',
-        upsert: true
+      .upload(fileName, qrImageBlob, {
+        contentType: 'image/png',
+        upsert: false // No overwrite - this should only happen once
       });
 
     if (uploadError) {
@@ -57,7 +90,7 @@ serve(async (req) => {
       .from('whatsapp-qr-codes')
       .getPublicUrl(fileName);
 
-    // Update users table (only QR URL, not phone number)
+    // Update users table with permanent QR URL
     const { error: updateError } = await supabaseClient
       .from('users')
       .update({
@@ -68,16 +101,17 @@ serve(async (req) => {
 
     if (updateError) {
       console.error('Database update error:', updateError);
-      throw new Error(`Failed to update settings: ${updateError.message}`);
+      throw new Error(`Failed to update user record: ${updateError.message}`);
     }
 
-    console.log(`QR code generated successfully for user ${user.id}`);
+    console.log(`QR code generated successfully for user ${user.id} at ${fileName}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         qrUrl: publicUrl,
-        whatsappLink 
+        whatsappLink,
+        alreadyExists: false
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -94,29 +128,3 @@ serve(async (req) => {
   }
 });
 
-// Simple QR Code SVG generator using path data
-function generateQRCodeSVG(data: string, size: number): string {
-  // For production, we'd use a proper QR library
-  // This is a simplified version that creates a data URL QR via qrserver.com API approach
-  // But for Deno edge functions, we'll use a different strategy
-  
-  // QRServer.com handles encoding automatically, no need to encode here
-  const encodedData = data;
-  
-  // Generate QR using an embedded approach (base64 data URL pattern)
-  // In a real implementation, you'd use qrcode-generator or similar
-  // For now, we'll create a simple SVG with embedded image
-  
-  const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-     width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" fill="white"/>
-  <image x="10" y="10" width="${size - 20}" height="${size - 20}" 
-         xlink:href="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&amp;data=${encodedData}"/>
-  <text x="${size / 2}" y="${size - 10}" text-anchor="middle" font-size="12" fill="#666">
-    Scan voor WhatsApp
-  </text>
-</svg>`;
-
-  return svg;
-}

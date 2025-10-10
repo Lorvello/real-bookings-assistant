@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const PLATFORM_WHATSAPP_NUMBER = '+31612345678';
+const PLATFORM_WHATSAPP_NUMBER = '+15551766290';
 
 export function useWhatsAppSettings(userId: string) {
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [qrExists, setQrExists] = useState(false);
 
   // Load settings from users table
   useEffect(() => {
@@ -26,13 +27,15 @@ export function useWhatsAppSettings(userId: string) {
         if (error) throw error;
 
         if (data) {
+          const hasQr = !!data.whatsapp_qr_url;
           setQrUrl(data.whatsapp_qr_url || null);
+          setQrExists(hasQr);
           
           // Generate WhatsApp link with platform number and tracking code
           const formatted = PLATFORM_WHATSAPP_NUMBER.replace(/\s+/g, '').replace('+', '');
           const trackingCode = userId.substring(0, 8).toUpperCase();
           const prefilledMessage = `START_${trackingCode}`;
-          setWhatsappLink(`https://wa.me/${formatted}?text=${prefilledMessage}`);
+          setWhatsappLink(`https://wa.me/${formatted}?text=${encodeURIComponent(prefilledMessage)}`);
         }
       } catch (error) {
         console.error('Error loading WhatsApp settings:', error);
@@ -45,10 +48,15 @@ export function useWhatsAppSettings(userId: string) {
     loadSettings();
   }, [userId]);
 
-  // Generate QR code via edge function
+  // Generate QR code via edge function (only once)
   const generateQR = async () => {
     if (!userId) {
       toast.error('User ID is required');
+      return false;
+    }
+
+    if (qrExists) {
+      toast.error('QR code already exists and cannot be regenerated');
       return false;
     }
 
@@ -62,7 +70,8 @@ export function useWhatsAppSettings(userId: string) {
 
       if (data?.qrUrl) {
         setQrUrl(data.qrUrl);
-        toast.success('QR code generated successfully');
+        setQrExists(true);
+        toast.success(data.alreadyExists ? 'QR code already exists' : 'QR code generated successfully');
         return true;
       } else {
         throw new Error('No QR URL returned');
@@ -82,6 +91,7 @@ export function useWhatsAppSettings(userId: string) {
     whatsappLink,
     loading,
     generating,
+    qrExists,
     generateQR
   };
 }
