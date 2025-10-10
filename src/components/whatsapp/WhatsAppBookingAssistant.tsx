@@ -193,15 +193,6 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               )}
             </div>
 
-            {/* Business Code Badge */}
-            {trackingCode && (
-              <div className="text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
-                  <span className="text-xs text-muted-foreground">Jouw business code:</span>
-                  <span className="text-sm font-mono font-bold text-primary">{trackingCode}</span>
-                </div>
-              </div>
-            )}
 
             {/* Platform Number */}
             <div className="text-center p-4 bg-muted/50 rounded-lg border border-border">
@@ -245,8 +236,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               <div className="bg-[#DCF8C6] text-black p-4 rounded-lg rounded-tl-none max-w-sm shadow-md">
                 <p className="text-sm whitespace-pre-line leading-relaxed">
                   👋 Hallo {businessName}!{'\n'}
-                  (Verstuur dit bericht om de chat op te slaan){'\n'}
-                  Code: {trackingCode}
+                  (Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)
                 </p>
               </div>
               <p className="text-xs text-muted-foreground mt-3 flex items-start gap-2">
@@ -354,7 +344,6 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               <ul className="text-sm text-muted-foreground space-y-1 ml-6">
                 <li>• Klanten MOETEN het eerste bericht versturen</li>
                 <li>• Anders verdwijnt de chat na sluiten WhatsApp</li>
-                <li>• De code in het bericht linkt automatisch naar jouw bedrijf</li>
                 <li>• QR codes zijn permanent en kunnen niet opnieuw gegenereerd worden</li>
               </ul>
             </div>
@@ -374,15 +363,15 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex gap-2">
               <span className="text-primary">•</span>
-              <span>Elke QR code bevat een unieke tracking code gekoppeld aan jouw account</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-primary">•</span>
               <span>Alle bedrijven delen hetzelfde WhatsApp nummer ({platformNumber}) voor naadloze klantervaring</span>
             </li>
             <li className="flex gap-2">
               <span className="text-primary">•</span>
-              <span>Onze AI assistent routeert gesprekken automatisch naar jouw bedrijf op basis van de tracking code</span>
+              <span>Bestaande WhatsApp-gesprekken worden herkend via telefoonnummer</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary">•</span>
+              <span>Nieuwe gesprekken worden handmatig toegewezen aan jouw bedrijf</span>
             </li>
           </ul>
         </CardContent>

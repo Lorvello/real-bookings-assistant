@@ -50,16 +50,16 @@ serve(async (req) => {
         const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
         const trackingCode = user.id.substring(0, 8).toUpperCase();
         
-        // Haal business_name op uit users tabel voor existing QR
-        const { data: userData } = await supabaseClient
-          .from('users')
-          .select('business_name')
-          .eq('id', user.id)
-          .single();
+    // Haal business_name op uit users tabel voor existing QR
+    const { data: userData } = await supabaseClient
+      .from('users')
+      .select('business_name')
+      .eq('id', user.id)
+      .single();
 
-        const businessName = userData?.business_name || 'Ons bedrijf';
-        const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan)\nCode: ${trackingCode}`;
-        const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
+    const businessName = userData?.business_name || 'Ons bedrijf';
+    const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)`;
+    const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
         console.log(`QR code already exists for user ${user.id}, returning existing URL`);
         
@@ -75,10 +75,9 @@ serve(async (req) => {
       }
     }
 
-    // Generate new QR code (first time only)
+    // Generate new QR code
     const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';
     const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
-    const trackingCode = user.id.substring(0, 8).toUpperCase();
     
     // Haal business_name op uit users tabel
     const { data: userData } = await supabaseClient
@@ -88,7 +87,7 @@ serve(async (req) => {
       .single();
 
     const businessName = userData?.business_name || 'Ons bedrijf';
-    const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan)\nCode: ${trackingCode}`;
+    const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)`;
     const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
     // Fetch QR code PNG from QRServer.com
