@@ -275,20 +275,35 @@ serve(async (req) => {
             const message = messages[0];
             const contact = contacts[0];
             
-            // Extract calendar_id from business phone number or metadata
-            // Dit zou je moeten aanpassen op basis van je WhatsApp Business setup
-            const businessPhoneNumberId = payload.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id;
+            // Parse tracking code uit bericht (nieuwe format: "Code: XXX")
+            const messageText = message.text?.body || '';
+            const trackingMatch = messageText.match(/Code:\s*([A-F0-9]{8})/i);
+            const trackingCode = trackingMatch ? trackingMatch[1].toLowerCase() : null;
             
-            // Voor nu gebruiken we een default calendar_id - dit moet je aanpassen
-            const calendarId = Deno.env.get('DEFAULT_CALENDAR_ID');
-            
-            if (calendarId && message.type === 'text') {
-              await supabaseClient.rpc('process_whatsapp_message', {
-                p_phone_number: contact.wa_id,
-                p_message_id: message.id,
-                p_message_content: message.text?.body || '',
-                p_calendar_id: calendarId
-              });
+            if (!trackingCode) {
+              console.log('No tracking code found in message, skipping calendar lookup');
+            } else {
+              // Find calendar via tracking code (eerste 8 karakters van user_id)
+              const { data: calendarData } = await supabaseClient
+                .from('users')
+                .select('id, business_name, calendars!inner(id)')
+                .ilike('id', `${trackingCode}%`)
+                .limit(1)
+                .single();
+
+              const calendarId = calendarData?.calendars?.[0]?.id;
+              
+              if (calendarId && message.type === 'text') {
+                console.log(`Routing message to calendar ${calendarId} for tracking code ${trackingCode}`);
+                await supabaseClient.rpc('process_whatsapp_message', {
+                  p_phone_number: contact.wa_id,
+                  p_message_id: message.id,
+                  p_message_content: messageText,
+                  p_calendar_id: calendarId
+                });
+              } else {
+                console.log(`No calendar found for tracking code ${trackingCode}`);
+              }
             }
           }
         } catch (processError) {

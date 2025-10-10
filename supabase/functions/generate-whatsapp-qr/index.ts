@@ -49,7 +49,16 @@ serve(async (req) => {
         const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';
         const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
         const trackingCode = user.id.substring(0, 8).toUpperCase();
-        const prefilledMessage = `START_${trackingCode}`;
+        
+        // Haal business_name op uit users tabel voor existing QR
+        const { data: userData } = await supabaseClient
+          .from('users')
+          .select('business_name')
+          .eq('id', user.id)
+          .single();
+
+        const businessName = userData?.business_name || 'Ons bedrijf';
+        const prefilledMessage = `👋 Hallo van ${businessName}!\nVerstuur dit bericht zodat je ons altijd kunt bereiken voor afspraken, vragen of wijzigingen.\nCode: ${trackingCode}`;
         const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
         console.log(`QR code already exists for user ${user.id}, returning existing URL`);
@@ -70,7 +79,16 @@ serve(async (req) => {
     const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';
     const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
     const trackingCode = user.id.substring(0, 8).toUpperCase();
-    const prefilledMessage = `START_${trackingCode}`;
+    
+    // Haal business_name op uit users tabel
+    const { data: userData } = await supabaseClient
+      .from('users')
+      .select('business_name')
+      .eq('id', user.id)
+      .single();
+
+    const businessName = userData?.business_name || 'Ons bedrijf';
+    const prefilledMessage = `👋 Hallo van ${businessName}!\nVerstuur dit bericht zodat je ons altijd kunt bereiken voor afspraken, vragen of wijzigingen.\nCode: ${trackingCode}`;
     const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
     // Fetch QR code PNG from QRServer.com

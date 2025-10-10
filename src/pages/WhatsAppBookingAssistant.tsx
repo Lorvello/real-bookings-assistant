@@ -40,7 +40,13 @@ export default function WhatsAppBookingAssistantPage() {
     <DashboardLayout>
       <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
         <div className="space-y-3 sm:space-y-4 md:space-y-6">
-          <SimplePageHeader title="WhatsApp Booking Assistant" />
+          <div className="space-y-2">
+            <SimplePageHeader title="WhatsApp Booking Assistant" />
+            <p className="text-muted-foreground text-sm max-w-3xl">
+              Deel deze QR-code met klanten zodat ze 24/7 via WhatsApp afspraken kunnen maken, 
+              vragen kunnen stellen en boekingen kunnen beheren - volledig automatisch door onze AI assistent.
+            </p>
+          </div>
           <WhatsAppBookingAssistant userId={user.id} />
         </div>
       </div>

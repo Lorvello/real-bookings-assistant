@@ -38,7 +38,16 @@ export function useWhatsAppSettings(userId: string) {
           // Generate WhatsApp link with platform number and tracking code
           const formatted = PLATFORM_WHATSAPP_NUMBER.replace(/\s+/g, '').replace('+', '');
           const trackingCode = userId.substring(0, 8).toUpperCase();
-          const prefilledMessage = `START_${trackingCode}`;
+          
+          // Haal business_name op
+          const { data: userData } = await supabase
+            .from('users')
+            .select('business_name')
+            .eq('id', userId)
+            .single();
+
+          const businessName = userData?.business_name || 'Ons bedrijf';
+          const prefilledMessage = `👋 Hallo van ${businessName}!\nVerstuur dit bericht zodat je ons altijd kunt bereiken voor afspraken, vragen of wijzigingen.\nCode: ${trackingCode}`;
           setWhatsappLink(`https://wa.me/${formatted}?text=${encodeURIComponent(prefilledMessage)}`);
           
           // Auto-migrate legacy SVG to PNG
