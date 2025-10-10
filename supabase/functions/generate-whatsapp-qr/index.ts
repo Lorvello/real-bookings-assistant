@@ -102,13 +102,13 @@ serve(async (req) => {
 
     const qrImageBlob = await qrResponse.blob();
 
-    // Upload PNG to Storage
+    // Upload PNG to Storage (allow overwrite for QR text updates)
     const fileName = `${user.id}/whatsapp-qr.png`;
     const { error: uploadError } = await supabaseClient.storage
       .from('whatsapp-qr-codes')
       .upload(fileName, qrImageBlob, {
         contentType: 'image/png',
-        upsert: false // No overwrite - this should only happen once
+        upsert: true // Allow overwrite when QR text changes
       });
 
     if (uploadError) {
