@@ -19,7 +19,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     if (!containerRef.current) return;
 
     const SEPARATION = 180;
-    const AMOUNTX = window.innerWidth < 768 ? 20 : 40;
+    const AMOUNTX = window.innerWidth < 768 ? 25 : 50;
     const AMOUNTY = window.innerWidth < 768 ? 30 : 60;
 
     // Scene setup with dark theme (slate-900 fog)
@@ -27,12 +27,12 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     scene.fog = new THREE.Fog(0x0f172a, 2000, 10000);
 
     const camera = new THREE.PerspectiveCamera(
-      75,
+      80,
       window.innerWidth / window.innerHeight,
       1,
       10000,
     );
-    camera.position.set(-100, 355, 1000);
+    camera.position.set(0, 355, 1000);
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,

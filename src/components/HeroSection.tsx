@@ -27,7 +27,7 @@ const HeroSection: React.FC = () => {
       
       {/* Bottom gradient fade-out voor smooth transition */}
       <div 
-        className="absolute bottom-0 left-0 right-0 h-32 md:h-48 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent pointer-events-none z-10"
+        className="absolute bottom-0 left-0 right-0 h-64 md:h-96 bg-gradient-to-t from-slate-900 via-slate-900/60 via-slate-900/30 to-transparent pointer-events-none z-10"
       />
       
       <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center z-10">
