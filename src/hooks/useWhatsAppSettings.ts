@@ -10,8 +10,9 @@ export function useWhatsAppSettings(userId: string) {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [qrExists, setQrExists] = useState(false);
+  const [needsMigration, setNeedsMigration] = useState(false);
 
-  // Load settings from users table
+  // Load settings from users table and auto-migrate legacy SVG
   useEffect(() => {
     const loadSettings = async () => {
       if (!userId) return;
@@ -27,15 +28,40 @@ export function useWhatsAppSettings(userId: string) {
         if (error) throw error;
 
         if (data) {
+          const isSvg = data.whatsapp_qr_url?.endsWith('.svg');
           const hasQr = !!data.whatsapp_qr_url;
+          
           setQrUrl(data.whatsapp_qr_url || null);
           setQrExists(hasQr);
+          setNeedsMigration(isSvg);
           
           // Generate WhatsApp link with platform number and tracking code
           const formatted = PLATFORM_WHATSAPP_NUMBER.replace(/\s+/g, '').replace('+', '');
           const trackingCode = userId.substring(0, 8).toUpperCase();
           const prefilledMessage = `START_${trackingCode}`;
           setWhatsappLink(`https://wa.me/${formatted}?text=${encodeURIComponent(prefilledMessage)}`);
+          
+          // Auto-migrate legacy SVG to PNG
+          if (isSvg) {
+            console.log('Legacy SVG QR detected, triggering migration...');
+            try {
+              const { data: migrateData, error: migrateError } = await supabase.functions.invoke('generate-whatsapp-qr', {
+                body: {}
+              });
+
+              if (migrateError) throw migrateError;
+
+              if (migrateData?.qrUrl) {
+                setQrUrl(migrateData.qrUrl);
+                setQrExists(true);
+                setNeedsMigration(false);
+                toast.success('QR code migrated to new format');
+              }
+            } catch (error) {
+              console.error('Error migrating QR code:', error);
+              toast.error('Failed to migrate QR code');
+            }
+          }
         }
       } catch (error) {
         console.error('Error loading WhatsApp settings:', error);
@@ -48,14 +74,14 @@ export function useWhatsAppSettings(userId: string) {
     loadSettings();
   }, [userId]);
 
-  // Generate QR code via edge function (only once)
-  const generateQR = async () => {
+  // Generate QR code via edge function (only once, or repair if broken)
+  const generateQR = async (options?: { repair?: boolean }) => {
     if (!userId) {
       toast.error('User ID is required');
       return false;
     }
 
-    if (qrExists) {
+    if (qrExists && !options?.repair && !needsMigration) {
       toast.error('QR code already exists and cannot be regenerated');
       return false;
     }
@@ -71,7 +97,8 @@ export function useWhatsAppSettings(userId: string) {
       if (data?.qrUrl) {
         setQrUrl(data.qrUrl);
         setQrExists(true);
-        toast.success(data.alreadyExists ? 'QR code already exists' : 'QR code generated successfully');
+        setNeedsMigration(false);
+        toast.success(options?.repair ? 'QR code repaired successfully' : data.alreadyExists ? 'QR code already exists' : 'QR code generated successfully');
         return true;
       } else {
         throw new Error('No QR URL returned');
@@ -92,6 +119,7 @@ export function useWhatsAppSettings(userId: string) {
     loading,
     generating,
     qrExists,
+    needsMigration,
     generateQR
   };
 }

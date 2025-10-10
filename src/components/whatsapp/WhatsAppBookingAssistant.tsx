@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Copy, Check, QrCode, Phone, Download } from 'lucide-react';
+import { Copy, Check, QrCode, Phone, Download, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
+import QRCodeSVG from 'react-qr-code';
 
 interface WhatsAppBookingAssistantProps {
   userId: string;
@@ -11,13 +12,16 @@ interface WhatsAppBookingAssistantProps {
 
 export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantProps) {
   const [copied, setCopied] = useState(false);
+  const [imgBroken, setImgBroken] = useState(false);
   
   const {
     platformNumber,
     qrUrl,
+    whatsappLink,
     loading,
     generating,
     qrExists,
+    needsMigration,
     generateQR
   } = useWhatsAppSettings(userId);
 
@@ -95,7 +99,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
             {/* Right: QR Code */}
             <div className="space-y-4">
               <div className="text-center p-6 bg-muted/50 rounded-lg border border-border">
-                {qrUrl ? (
+                {qrUrl && !imgBroken ? (
                   <>
                     <div className="inline-block bg-white p-4 rounded-lg mb-4">
                       <img
@@ -104,6 +108,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                         className="mx-auto"
                         width={200}
                         height={200}
+                        onError={() => setImgBroken(true)}
                       />
                     </div>
                     <Button 
@@ -116,14 +121,36 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                       Download QR Code
                     </Button>
                   </>
+                ) : whatsappLink && (qrExists || imgBroken) ? (
+                  <>
+                    <div className="inline-block bg-white p-4 rounded-lg mb-4">
+                      <QRCodeSVG value={whatsappLink} size={192} />
+                    </div>
+                    {(needsMigration || imgBroken) && (
+                      <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-md mb-3">
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                        <span>QR code needs repair to download permanent version</span>
+                      </div>
+                    )}
+                    <Button
+                      onClick={() => generateQR({ repair: true })}
+                      disabled={generating}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <QrCode className="h-4 w-4" />
+                      {generating ? 'Repairing...' : 'Repair QR Code'}
+                    </Button>
+                  </>
                 ) : (
                   <>
                     <div className="w-48 h-48 mx-auto bg-muted rounded-lg flex items-center justify-center mb-4">
                       <QrCode className="h-16 w-16 text-muted-foreground" />
                     </div>
                     <Button
-                      onClick={generateQR}
-                      disabled={generating || qrExists}
+                      onClick={() => generateQR()}
+                      disabled={generating}
                       size="sm"
                       className="gap-2"
                     >
