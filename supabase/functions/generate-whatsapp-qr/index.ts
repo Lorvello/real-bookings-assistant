@@ -109,7 +109,8 @@ function generateQRCodeSVG(data: string, size: number): string {
   // This is a simplified version that creates a data URL QR via qrserver.com API approach
   // But for Deno edge functions, we'll use a different strategy
   
-  const encodedData = encodeURIComponent(data);
+  // QRServer.com handles encoding automatically, no need to encode here
+  const encodedData = data;
   
   // Generate QR using an embedded approach (base64 data URL pattern)
   // In a real implementation, you'd use qrcode-generator or similar
