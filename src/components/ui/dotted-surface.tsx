@@ -10,77 +10,128 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
-    particles: THREE.Points[];
+    geometry: THREE.BufferGeometry | null;
+    points: THREE.Points | null;
     animationId: number;
     count: number;
+    amountX: number;
+    amountY: number;
   } | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
+    const container = containerRef.current;
     const SEPARATION = 140;
-    const AMOUNTX = window.innerWidth < 768 ? 30 : 60;
-    const AMOUNTY = window.innerWidth < 768 ? 40 : 70;
+
+    // Measure and calculate zoom compensation
+    const measure = () => {
+      const rect = container.getBoundingClientRect();
+      const scaleX = rect.width > 0 ? window.innerWidth / rect.width : 1;
+      const scaleY = rect.height > 0 ? window.innerHeight / rect.height : 1;
+      return { rect, scaleX, scaleY };
+    };
 
     // Scene setup with dark theme (slate-900 fog)
     const scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0x0f172a, 2000, 10000);
 
-    const camera = new THREE.PerspectiveCamera(
-      60,
-      window.innerWidth / window.innerHeight,
-      1,
-      10000,
-    );
+    const camera = new THREE.PerspectiveCamera(60, 1, 1, 10000);
     camera.position.set(0, 355, 1220);
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(scene.fog.color, 0);
 
-    containerRef.current.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
-    // Create particles
-    const positions: number[] = [];
-    const colors: number[] = [];
+    let currentGeometry: THREE.BufferGeometry | null = null;
+    let currentPoints: THREE.Points | null = null;
+    let currentAmountX = 0;
+    let currentAmountY = 0;
 
-    // Create geometry for all particles
-    const geometry = new THREE.BufferGeometry();
+    // Build particles function
+    const buildParticles = () => {
+      const { rect, scaleX, scaleY } = measure();
 
-    for (let ix = 0; ix < AMOUNTX; ix++) {
-      for (let iy = 0; iy < AMOUNTY; iy++) {
-        const x = ix * SEPARATION - (AMOUNTX * SEPARATION) / 2;
-        const y = 0; // Will be animated
-        const z = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
+      // Apply renderer size with zoom compensation
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      renderer.setPixelRatio(dpr);
+      renderer.setSize(rect.width * scaleX, rect.height * scaleY, false);
+      
+      const canvas = renderer.domElement;
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
 
-        positions.push(x, y, z);
-        // Emerald-300 color for subtle effect: rgb(110, 231, 183)
-        colors.push(110 / 255, 231 / 255, 183 / 255);
+      // Update camera
+      camera.aspect = rect.width / rect.height;
+      camera.updateProjectionMatrix();
+
+      // Calculate grid size with compensation
+      const effectiveW = rect.width * scaleX;
+      const effectiveH = rect.height * scaleY;
+      const margin = 12;
+      const amountX = Math.ceil(effectiveW / SEPARATION) + margin;
+      const amountY = Math.ceil(effectiveH / SEPARATION) + margin;
+
+      currentAmountX = amountX;
+      currentAmountY = amountY;
+
+      // Dispose old geometry and points if they exist
+      if (currentPoints) {
+        scene.remove(currentPoints);
+        if (currentGeometry) currentGeometry.dispose();
+        if (currentPoints.material) {
+          if (Array.isArray(currentPoints.material)) {
+            currentPoints.material.forEach((m) => m.dispose());
+          } else {
+            currentPoints.material.dispose();
+          }
+        }
       }
-    }
 
-    geometry.setAttribute(
-      'position',
-      new THREE.Float32BufferAttribute(positions, 3),
-    );
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      // Create particles
+      const positions: number[] = [];
+      const colors: number[] = [];
 
-    // Create material
-    const material = new THREE.PointsMaterial({
-      size: window.innerWidth < 768 ? 4 : 8,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.5,
-      sizeAttenuation: true,
-    });
+      for (let ix = 0; ix < amountX; ix++) {
+        for (let iy = 0; iy < amountY; iy++) {
+          const x = ix * SEPARATION - (amountX * SEPARATION) / 2;
+          const y = 0; // Will be animated
+          const z = iy * SEPARATION - (amountY * SEPARATION) / 2;
 
-    // Create points object
-    const points = new THREE.Points(geometry, material);
-    scene.add(points);
+          positions.push(x, y, z);
+          // Emerald-300 color: rgb(110, 231, 183)
+          colors.push(110 / 255, 231 / 255, 183 / 255);
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute(positions, 3),
+      );
+      geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+      const material = new THREE.PointsMaterial({
+        size: window.innerWidth < 768 ? 4 : 8,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.5,
+        sizeAttenuation: true,
+      });
+
+      const points = new THREE.Points(geometry, material);
+      scene.add(points);
+
+      currentGeometry = geometry;
+      currentPoints = points;
+    };
+
+    // Initial build
+    buildParticles();
 
     let count = 0;
     let animationId: number;
@@ -89,12 +140,14 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
-      const positionAttribute = geometry.attributes.position;
+      if (!currentGeometry || !currentPoints) return;
+
+      const positionAttribute = currentGeometry.attributes.position;
       const positions = positionAttribute.array as Float32Array;
 
       let i = 0;
-      for (let ix = 0; ix < AMOUNTX; ix++) {
-        for (let iy = 0; iy < AMOUNTY; iy++) {
+      for (let ix = 0; ix < currentAmountX; ix++) {
+        for (let iy = 0; iy < currentAmountY; iy++) {
           const index = i * 3;
 
           // Animate Y position with sine waves
@@ -107,19 +160,25 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       }
 
       positionAttribute.needsUpdate = true;
-
       renderer.render(scene, camera);
       count += 0.1;
     };
 
-    // Handle window resize
-    const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+    // Debounce helper
+    let resizeTimeout: ReturnType<typeof setTimeout>;
+    const debouncedRebuild = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        buildParticles();
+      }, 150);
     };
 
-    window.addEventListener('resize', handleResize);
+    // ResizeObserver for container
+    const resizeObserver = new ResizeObserver(debouncedRebuild);
+    resizeObserver.observe(container);
+
+    // Window resize handler
+    window.addEventListener('resize', debouncedRebuild);
 
     // Start animation
     animate();
@@ -129,14 +188,19 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       scene,
       camera,
       renderer,
-      particles: [points],
+      geometry: currentGeometry,
+      points: currentPoints,
       animationId,
       count,
+      amountX: currentAmountX,
+      amountY: currentAmountY,
     };
 
     // Cleanup function
     return () => {
-      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
+      window.removeEventListener('resize', debouncedRebuild);
+      resizeObserver.disconnect();
 
       if (sceneRef.current) {
         cancelAnimationFrame(sceneRef.current.animationId);
