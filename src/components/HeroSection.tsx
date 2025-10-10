@@ -20,12 +20,6 @@ const HeroSection: React.FC = () => {
       {/* 3D Dotted Surface Background - extends into next section */}
       <DottedSurface className="absolute inset-0" />
       
-      {/* Green gradient effects for top of page */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/30 rounded-full blur-3xl"></div>
-        <div className="absolute top-20 right-1/4 w-[400px] h-[400px] bg-teal-500/25 rounded-full blur-3xl"></div>
-      </div>
-      
       {/* Subtle radial gradient overlay for depth */}
       <div 
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(15,23,42,0.3)_100%)] pointer-events-none"
