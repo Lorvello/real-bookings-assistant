@@ -33,24 +33,37 @@ serve(async (req) => {
       .single();
 
     if (existingUser?.whatsapp_qr_url) {
-      // QR already exists - return existing URL
-      const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';
-      const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
-      const trackingCode = user.id.substring(0, 8).toUpperCase();
-      const prefilledMessage = `START_${trackingCode}`;
-      const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
+      // If it's an old SVG format, force regeneration to PNG
+      if (existingUser.whatsapp_qr_url.endsWith('.svg')) {
+        console.log(`Migrating old SVG QR to PNG for user ${user.id}`);
+        
+        // Delete old SVG file
+        const oldFileName = `${user.id}/whatsapp-qr.svg`;
+        await supabaseClient.storage
+          .from('whatsapp-qr-codes')
+          .remove([oldFileName]);
+        
+        // Continue to generate new PNG below (don't return early)
+      } else {
+        // QR already exists as PNG - return existing URL
+        const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';
+        const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
+        const trackingCode = user.id.substring(0, 8).toUpperCase();
+        const prefilledMessage = `START_${trackingCode}`;
+        const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
-      console.log(`QR code already exists for user ${user.id}, returning existing URL`);
-      
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          qrUrl: existingUser.whatsapp_qr_url,
-          whatsappLink,
-          alreadyExists: true
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+        console.log(`QR code already exists for user ${user.id}, returning existing URL`);
+        
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            qrUrl: existingUser.whatsapp_qr_url,
+            whatsappLink,
+            alreadyExists: true
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Generate new QR code (first time only)
