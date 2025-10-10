@@ -17,6 +17,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
   const [imgBroken, setImgBroken] = useState(false);
   const [businessName, setBusinessName] = useState('');
   const [trackingCode, setTrackingCode] = useState('');
+  const [cacheBust, setCacheBust] = useState(0);
   
   const {
     platformNumber,
@@ -43,6 +44,11 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     
     loadBusinessData();
   }, [userId]);
+
+  // Force refresh QR image when a new URL is set to bypass browser cache
+  useEffect(() => {
+    if (qrUrl) setCacheBust(Date.now());
+  }, [qrUrl]);
 
   const handleCopyNumber = async () => {
     try {
@@ -109,7 +115,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                 <>
                   <div className="inline-block bg-white p-4 rounded-lg mb-4">
                     <img
-                      src={qrUrl}
+                      src={`${qrUrl}?v=${cacheBust}`}
                       alt="WhatsApp QR Code"
                       className="mx-auto"
                       width={256}
