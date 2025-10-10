@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { createPortal } from 'react-dom';
 
 type DottedSurfaceProps = Omit<React.ComponentProps<'div'>, 'ref'>;
 
@@ -22,10 +23,11 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    const SEPARATION = 180;
-    const isMobile = width < 768;
-    const AMOUNTX = isMobile ? 30 : 60;
-    const AMOUNTY = isMobile ? 30 : 60;
+    const SEPARATION = 160; // iets dichter voor meer coverage
+    const cols = Math.ceil(width / SEPARATION) + 8; // marge buiten viewport
+    const rows = Math.ceil(height / SEPARATION) + 8;
+    const AMOUNTX = cols;
+    const AMOUNTY = rows;
 
     // Scene setup with dark theme (slate-900 fog)
     const scene = new THREE.Scene();
@@ -38,6 +40,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       10000,
     );
     camera.position.set(0, 355, 1000);
+    camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -172,12 +175,13 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     };
   }, []);
 
-  return (
+  return createPortal(
     <div
       ref={containerRef}
       className={cn('pointer-events-none fixed inset-0 w-screen h-screen', className)}
       style={{ willChange: 'transform' }}
       {...props}
-    />
+    />,
+    document.body
   );
 }
