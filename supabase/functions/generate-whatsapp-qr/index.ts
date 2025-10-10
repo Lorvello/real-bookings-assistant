@@ -25,10 +25,10 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { calendarId, phoneNumber } = await req.json();
+    const { phoneNumber } = await req.json();
 
-    if (!calendarId || !phoneNumber) {
-      throw new Error('Calendar ID and phone number are required');
+    if (!phoneNumber) {
+      throw new Error('Phone number is required');
     }
 
     // Validate phone number format (remove spaces/dashes, ensure starts with +)
@@ -37,15 +37,17 @@ serve(async (req) => {
       throw new Error('Invalid phone number format');
     }
 
-    // Generate WhatsApp link
-    const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}`;
+    // Generate WhatsApp link with tracking code
+    const trackingCode = user.id.substring(0, 8).toUpperCase();
+    const prefilledMessage = encodeURIComponent(`START_${trackingCode}`);
+    const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${prefilledMessage}`;
 
     // Generate SVG QR code
     const qrSize = 400;
     const qrSvg = generateQRCodeSVG(whatsappLink, qrSize);
 
     // Upload to Storage
-    const fileName = `${user.id}/whatsapp-qr-${calendarId}.svg`;
+    const fileName = `${user.id}/whatsapp-qr.svg`;
     const { error: uploadError } = await supabaseClient.storage
       .from('whatsapp-qr-codes')
       .upload(fileName, new Blob([qrSvg], { type: 'image/svg+xml' }), {
@@ -63,21 +65,22 @@ serve(async (req) => {
       .from('whatsapp-qr-codes')
       .getPublicUrl(fileName);
 
-    // Update calendar_settings
+    // Update users table
     const { error: updateError } = await supabaseClient
-      .from('calendar_settings')
+      .from('users')
       .update({
+        whatsapp_phone_number: phoneNumber,
         whatsapp_qr_url: publicUrl,
         whatsapp_qr_generated_at: new Date().toISOString()
       })
-      .eq('calendar_id', calendarId);
+      .eq('id', user.id);
 
     if (updateError) {
       console.error('Database update error:', updateError);
       throw new Error(`Failed to update settings: ${updateError.message}`);
     }
 
-    console.log(`QR code generated successfully for calendar ${calendarId}`);
+    console.log(`QR code generated successfully for user ${user.id}`);
 
     return new Response(
       JSON.stringify({ 

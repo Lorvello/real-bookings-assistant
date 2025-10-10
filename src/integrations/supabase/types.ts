@@ -2352,6 +2352,9 @@ export type Database = {
           updated_at: string | null
           website: string | null
           whatsapp_bot_active: boolean | null
+          whatsapp_phone_number: string | null
+          whatsapp_qr_generated_at: string | null
+          whatsapp_qr_url: string | null
         }
         Insert: {
           accessibility_info?: string | null
@@ -2413,6 +2416,9 @@ export type Database = {
           updated_at?: string | null
           website?: string | null
           whatsapp_bot_active?: boolean | null
+          whatsapp_phone_number?: string | null
+          whatsapp_qr_generated_at?: string | null
+          whatsapp_qr_url?: string | null
         }
         Update: {
           accessibility_info?: string | null
@@ -2474,6 +2480,9 @@ export type Database = {
           updated_at?: string | null
           website?: string | null
           whatsapp_bot_active?: boolean | null
+          whatsapp_phone_number?: string | null
+          whatsapp_qr_generated_at?: string | null
+          whatsapp_qr_url?: string | null
         }
         Relationships: [
           {
@@ -2833,6 +2842,7 @@ export type Database = {
           phone_number: string
           profile_picture_url: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -2847,6 +2857,7 @@ export type Database = {
           phone_number: string
           profile_picture_url?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -2861,8 +2872,24 @@ export type Database = {
           phone_number?: string
           profile_picture_url?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_status_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       whatsapp_conversations: {
         Row: {

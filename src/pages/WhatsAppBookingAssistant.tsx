@@ -3,22 +3,21 @@ import React from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { WhatsAppBookingAssistant } from '@/components/whatsapp/WhatsAppBookingAssistant';
 import { WhatsAppNotAvailable } from '@/components/whatsapp/WhatsAppNotAvailable';
-import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
-import { CalendarSwitcher } from '@/components/CalendarSwitcher';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function WhatsAppBookingAssistantPage() {
-  const { selectedCalendar } = useCalendarContext();
+  const { user } = useAuth();
   const { userStatus } = useUserStatus();
 
-  if (!selectedCalendar) {
+  if (!user) {
     return (
       <DashboardLayout>
         <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <p className="text-muted-foreground">Geen kalender geselecteerd</p>
+              <p className="text-muted-foreground">Niet ingelogd</p>
             </div>
           </div>
         </div>
@@ -42,7 +41,7 @@ export default function WhatsAppBookingAssistantPage() {
       <div className="bg-gray-900 min-h-full p-3 sm:p-4 md:p-8">
         <div className="space-y-3 sm:space-y-4 md:space-y-6">
           <SimplePageHeader title="WhatsApp Booking Assistant" />
-          <WhatsAppBookingAssistant calendarId={selectedCalendar.id} />
+          <WhatsAppBookingAssistant userId={user.id} />
         </div>
       </div>
     </DashboardLayout>

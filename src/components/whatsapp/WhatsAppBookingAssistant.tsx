@@ -8,10 +8,10 @@ import { toast } from 'sonner';
 import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
 
 interface WhatsAppBookingAssistantProps {
-  calendarId: string;
+  userId: string;
 }
 
-export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistantProps) {
+export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantProps) {
   const [copied, setCopied] = useState(false);
   
   const {
@@ -24,7 +24,7 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
     generating,
     savePhoneNumber,
     generateQR
-  } = useWhatsAppSettings(calendarId);
+  } = useWhatsAppSettings(userId);
   
   const formattedNumber = phoneNumber.replace(/\s+/g, '').replace('+', '');
 
