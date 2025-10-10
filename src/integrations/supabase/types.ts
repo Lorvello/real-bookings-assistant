@@ -2492,6 +2492,51 @@ export type Database = {
           },
         ]
       }
+      webhook_rate_limits: {
+        Row: {
+          id: string
+          ip_address: string
+          request_count: number | null
+          updated_at: string | null
+          window_start: string
+        }
+        Insert: {
+          id?: string
+          ip_address: string
+          request_count?: number | null
+          updated_at?: string | null
+          window_start: string
+        }
+        Update: {
+          id?: string
+          ip_address?: string
+          request_count?: number | null
+          updated_at?: string | null
+          window_start?: string
+        }
+        Relationships: []
+      }
+      webhook_security_logs: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+        }
+        Relationships: []
+      }
       whatsapp_contact_overview: {
         Row: {
           booking_id: string | null
