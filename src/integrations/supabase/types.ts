@@ -64,6 +64,13 @@ export type Database = {
             foreignKeyName: "availability_overrides_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_overrides_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -148,6 +155,13 @@ export type Database = {
             foreignKeyName: "availability_schedules_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_schedules_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -226,6 +240,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_intents_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "public_bookings_view"
             referencedColumns: ["id"]
           },
           {
@@ -318,6 +339,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "booking_payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "public_bookings_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       booking_rate_limits: {
@@ -370,9 +398,11 @@ export type Database = {
           customer_email: string | null
           customer_name: string
           customer_phone: string | null
+          deleted_at: string | null
           end_time: string
           id: string
           internal_notes: string | null
+          is_deleted: boolean | null
           notes: string | null
           payment_currency: string | null
           payment_deadline: string | null
@@ -400,9 +430,11 @@ export type Database = {
           customer_email?: string | null
           customer_name: string
           customer_phone?: string | null
+          deleted_at?: string | null
           end_time: string
           id?: string
           internal_notes?: string | null
+          is_deleted?: boolean | null
           notes?: string | null
           payment_currency?: string | null
           payment_deadline?: string | null
@@ -430,9 +462,11 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string
           customer_phone?: string | null
+          deleted_at?: string | null
           end_time?: string
           id?: string
           internal_notes?: string | null
+          is_deleted?: boolean | null
           notes?: string | null
           payment_currency?: string | null
           payment_deadline?: string | null
@@ -460,6 +494,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -551,6 +592,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_countries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -656,6 +704,13 @@ export type Database = {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -705,6 +760,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_members_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -776,6 +838,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -891,6 +960,13 @@ export type Database = {
             foreignKeyName: "calendar_settings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: true
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -907,10 +983,12 @@ export type Database = {
         Row: {
           color: string | null
           created_at: string | null
+          deleted_at: string | null
           description: string | null
           id: string
           is_active: boolean | null
           is_default: boolean | null
+          is_deleted: boolean | null
           name: string | null
           slug: string | null
           timezone: string | null
@@ -919,10 +997,12 @@ export type Database = {
         Insert: {
           color?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
           is_default?: boolean | null
+          is_deleted?: boolean | null
           name?: string | null
           slug?: string | null
           timezone?: string | null
@@ -931,10 +1011,12 @@ export type Database = {
         Update: {
           color?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
           is_default?: boolean | null
+          is_deleted?: boolean | null
           name?: string | null
           slug?: string | null
           timezone?: string | null
@@ -1195,6 +1277,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "payment_security_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "public_bookings_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       payment_security_settings: {
@@ -1259,6 +1348,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_security_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -1335,10 +1431,59 @@ export type Database = {
             foreignKeyName: "payment_settings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: true
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
         ]
+      }
+      public_api_rate_limits: {
+        Row: {
+          blocked_until: string | null
+          calendar_slug: string | null
+          created_at: string | null
+          endpoint: string
+          id: string
+          ip_address: unknown
+          last_violation_reason: string | null
+          request_count: number | null
+          total_blocks: number | null
+          updated_at: string | null
+          window_start: string | null
+        }
+        Insert: {
+          blocked_until?: string | null
+          calendar_slug?: string | null
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          ip_address: unknown
+          last_violation_reason?: string | null
+          request_count?: number | null
+          total_blocks?: number | null
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          blocked_until?: string | null
+          calendar_slug?: string | null
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          ip_address?: unknown
+          last_violation_reason?: string | null
+          request_count?: number | null
+          total_blocks?: number | null
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
       }
       quick_reply_flows: {
         Row: {
@@ -1384,6 +1529,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quick_reply_flows_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -1445,6 +1597,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_availability_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -1655,6 +1814,7 @@ export type Database = {
           color: string | null
           created_at: string | null
           custom_installment_plan: Json | null
+          deleted_at: string | null
           description: string | null
           duration: number
           id: string
@@ -1662,6 +1822,7 @@ export type Database = {
           installment_plan_override: Json | null
           installments_enabled: boolean | null
           is_active: boolean | null
+          is_deleted: boolean | null
           max_attendees: number | null
           name: string
           override_installments_enabled: boolean | null
@@ -1686,6 +1847,7 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           custom_installment_plan?: Json | null
+          deleted_at?: string | null
           description?: string | null
           duration: number
           id?: string
@@ -1693,6 +1855,7 @@ export type Database = {
           installment_plan_override?: Json | null
           installments_enabled?: boolean | null
           is_active?: boolean | null
+          is_deleted?: boolean | null
           max_attendees?: number | null
           name: string
           override_installments_enabled?: boolean | null
@@ -1717,6 +1880,7 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           custom_installment_plan?: Json | null
+          deleted_at?: string | null
           description?: string | null
           duration?: number
           id?: string
@@ -1724,6 +1888,7 @@ export type Database = {
           installment_plan_override?: Json | null
           installments_enabled?: boolean | null
           is_active?: boolean | null
+          is_deleted?: boolean | null
           max_attendees?: number | null
           name?: string
           override_installments_enabled?: boolean | null
@@ -1753,6 +1918,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -1925,6 +2097,13 @@ export type Database = {
             foreignKeyName: "tax_configurations_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tax_configurations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -2061,6 +2240,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_invitations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -2362,6 +2548,13 @@ export type Database = {
             foreignKeyName: "waitlist_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -2432,6 +2625,13 @@ export type Database = {
             foreignKeyName: "webhook_endpoints_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_endpoints_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -2481,6 +2681,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -2701,6 +2908,13 @@ export type Database = {
             foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -2831,6 +3045,13 @@ export type Database = {
             foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -2914,6 +3135,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_templates_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -3006,6 +3234,13 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -3040,8 +3275,146 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
+      public_bookings_view: {
+        Row: {
+          booking_duration: number | null
+          business_name: string | null
+          calendar_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          confirmation_token: string | null
+          confirmed_at: string | null
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          end_time: string | null
+          id: string | null
+          notes: string | null
+          payment_currency: string | null
+          payment_deadline: string | null
+          payment_required: boolean | null
+          payment_status: string | null
+          service_name: string | null
+          service_type_id: string | null
+          start_time: string | null
+          status: string | null
+          total_amount_cents: number | null
+          total_price: number | null
+        }
+        Insert: {
+          booking_duration?: number | null
+          business_name?: string | null
+          calendar_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          confirmation_token?: string | null
+          confirmed_at?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          end_time?: string | null
+          id?: string | null
+          notes?: string | null
+          payment_currency?: string | null
+          payment_deadline?: string | null
+          payment_required?: boolean | null
+          payment_status?: string | null
+          service_name?: string | null
+          service_type_id?: string | null
+          start_time?: string | null
+          status?: string | null
+          total_amount_cents?: number | null
+          total_price?: number | null
+        }
+        Update: {
+          booking_duration?: number | null
+          business_name?: string | null
+          calendar_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          confirmation_token?: string | null
+          confirmed_at?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          end_time?: string | null
+          id?: string | null
+          notes?: string | null
+          payment_currency?: string | null
+          payment_deadline?: string | null
+          payment_required?: boolean | null
+          payment_status?: string | null
+          service_name?: string | null
+          service_type_id?: string | null
+          start_time?: string | null
+          status?: string | null
+          total_amount_cents?: number | null
+          total_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "public_service_types_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_type_stats"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "bookings_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -3069,16 +3442,93 @@ export type Database = {
         }
         Relationships: []
       }
+      public_calendars_view: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          slug: string | null
+          timezone: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          slug?: string | null
+          timezone?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          slug?: string | null
+          timezone?: string | null
+        }
+        Relationships: []
+      }
       public_service_types_view: {
         Row: {
           calendar_id: string | null
+          cleanup_time: number | null
           color: string | null
+          created_at: string | null
           description: string | null
           duration: number | null
           id: string | null
           is_active: boolean | null
+          max_attendees: number | null
           name: string | null
+          payment_description: string | null
+          preparation_time: number | null
           price: number | null
+          service_category: string | null
+          supports_installments: boolean | null
+          tax_behavior: string | null
+          tax_enabled: boolean | null
+        }
+        Insert: {
+          calendar_id?: string | null
+          cleanup_time?: number | null
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string | null
+          is_active?: boolean | null
+          max_attendees?: number | null
+          name?: string | null
+          payment_description?: string | null
+          preparation_time?: number | null
+          price?: number | null
+          service_category?: string | null
+          supports_installments?: boolean | null
+          tax_behavior?: string | null
+          tax_enabled?: boolean | null
+        }
+        Update: {
+          calendar_id?: string | null
+          cleanup_time?: number | null
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string | null
+          is_active?: boolean | null
+          max_attendees?: number | null
+          name?: string | null
+          payment_description?: string | null
+          preparation_time?: number | null
+          price?: number | null
+          service_category?: string | null
+          supports_installments?: boolean | null
+          tax_behavior?: string | null
+          tax_enabled?: boolean | null
         }
         Relationships: [
           {
@@ -3093,6 +3543,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -3127,6 +3584,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -3233,6 +3697,13 @@ export type Database = {
             foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -3260,6 +3731,13 @@ export type Database = {
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
           },
           {
@@ -3401,6 +3879,16 @@ export type Database = {
       }
       check_payment_rate_limit: {
         Args: { p_calendar_id: string; p_ip_address: unknown }
+        Returns: Json
+      }
+      check_public_rate_limit: {
+        Args: {
+          p_calendar_slug?: string
+          p_endpoint?: string
+          p_ip_address: unknown
+          p_rate_limit?: number
+          p_window_minutes?: number
+        }
         Returns: Json
       }
       check_team_member_limit: {
