@@ -22,9 +22,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const AMOUNTX = window.innerWidth < 768 ? 20 : 40;
     const AMOUNTY = window.innerWidth < 768 ? 30 : 60;
 
-    // Scene setup with dark theme
+    // Scene setup with dark theme (slate-900 fog)
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x0f172a, 2000, 10000); // slate-900
+    scene.fog = new THREE.Fog(0x0f172a, 2000, 10000);
 
     const camera = new THREE.PerspectiveCamera(
       60,
@@ -58,8 +58,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         const z = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
 
         positions.push(x, y, z);
-        // Emerald-400 color: rgb(52, 211, 153)
-        colors.push(52 / 255, 211 / 255, 153 / 255);
+        // Emerald-300 color for subtle effect: rgb(110, 231, 183)
+        colors.push(110 / 255, 231 / 255, 183 / 255);
       }
     }
 
@@ -71,7 +71,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
     // Create material
     const material = new THREE.PointsMaterial({
-      size: window.innerWidth < 768 ? 4 : 6,
+      size: window.innerWidth < 768 ? 4 : 8,
       vertexColors: true,
       transparent: true,
       opacity: 0.5,
@@ -167,7 +167,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   return (
     <div
       ref={containerRef}
-      className={cn('pointer-events-none fixed inset-0 -z-10', className)}
+      className={cn('pointer-events-none fixed inset-0', className)}
       style={{ willChange: 'transform' }}
       {...props}
     />
