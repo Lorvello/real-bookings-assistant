@@ -16,9 +16,15 @@ const HeroSection: React.FC = () => {
   };
   
   return (
-    <section className="relative min-h-[130vh] overflow-hidden flex items-center justify-center -mt-24 md:mt-0 md:pt-24">
+    <section className="relative min-h-screen overflow-hidden flex items-center justify-center -mt-24 md:mt-0 md:pt-24">
       {/* 3D Dotted Surface Background - extends into next section */}
-      <DottedSurface className="absolute -top-[10vh] left-0 right-0 h-[140vh]" />
+      <DottedSurface className="absolute inset-0" />
+      
+      {/* Green gradient effects for top of page */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/30 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 right-1/4 w-[400px] h-[400px] bg-teal-500/25 rounded-full blur-3xl"></div>
+      </div>
       
       {/* Subtle radial gradient overlay for depth */}
       <div 
