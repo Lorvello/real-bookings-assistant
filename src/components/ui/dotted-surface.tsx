@@ -18,9 +18,14 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   useEffect(() => {
     if (!containerRef.current) return;
 
+    const container = containerRef.current;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
     const SEPARATION = 180;
-    const AMOUNTX = window.innerWidth < 768 ? 25 : 50;
-    const AMOUNTY = window.innerWidth < 768 ? 30 : 60;
+    const isMobile = width < 768;
+    const AMOUNTX = isMobile ? 30 : 60;
+    const AMOUNTY = isMobile ? 30 : 60;
 
     // Scene setup with dark theme (slate-900 fog)
     const scene = new THREE.Scene();
@@ -28,7 +33,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
     const camera = new THREE.PerspectiveCamera(
       80,
-      window.innerWidth / window.innerHeight,
+      width / height,
       1,
       10000,
     );
@@ -39,7 +44,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       antialias: true,
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(width, height);
     renderer.setClearColor(scene.fog.color, 0);
 
     containerRef.current.appendChild(renderer.domElement);
@@ -114,9 +119,12 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
     // Handle window resize
     const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      if (!containerRef.current) return;
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(width, height);
     };
 
     window.addEventListener('resize', handleResize);
@@ -167,7 +175,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   return (
     <div
       ref={containerRef}
-      className={cn('pointer-events-none fixed inset-0', className)}
+      className={cn('pointer-events-none fixed inset-0 w-screen h-screen', className)}
       style={{ willChange: 'transform' }}
       {...props}
     />
