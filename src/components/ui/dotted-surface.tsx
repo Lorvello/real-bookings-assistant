@@ -18,9 +18,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const SEPARATION = 150;
-    const AMOUNTX = window.innerWidth < 768 ? 20 : 40;
-    const AMOUNTY = window.innerWidth < 768 ? 30 : 60;
+    const SEPARATION = 140;
+    const AMOUNTX = window.innerWidth < 768 ? 30 : 60;
+    const AMOUNTY = window.innerWidth < 768 ? 40 : 70;
 
     // Scene setup with dark theme (slate-900 fog)
     const scene = new THREE.Scene();
@@ -167,7 +167,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   return (
     <div
       ref={containerRef}
-      className={cn('pointer-events-none fixed inset-0', className)}
+      className={cn('pointer-events-none absolute inset-0', className)}
       style={{ willChange: 'transform' }}
       {...props}
     />
