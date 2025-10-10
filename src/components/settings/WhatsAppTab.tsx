@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { MessageSquare, Phone, QrCode, Loader2 } from 'lucide-react';
+import { MessageSquare, Phone, QrCode, Loader2, Save } from 'lucide-react';
 import { QRCodeDisplay } from '@/components/profile/QRCodeDisplay';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -25,25 +25,72 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [botActive, setBotActive] = useState(false);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
   const [generatingQr, setGeneratingQr] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (calendarId) {
-      loadQrCode();
+      loadSettings();
     }
   }, [calendarId]);
 
-  const loadQrCode = async () => {
+  const loadSettings = async () => {
     if (!calendarId) return;
 
     const { data, error } = await supabase
       .from('calendar_settings')
-      .select('whatsapp_qr_url')
+      .select('whatsapp_qr_url, whatsapp_phone_number')
       .eq('calendar_id', calendarId)
       .single();
 
-    if (data?.whatsapp_qr_url) {
-      setQrUrl(data.whatsapp_qr_url);
+    if (data) {
+      if (data.whatsapp_phone_number) {
+        setPhoneNumber(data.whatsapp_phone_number);
+      }
+      if (data.whatsapp_qr_url) {
+        setQrUrl(data.whatsapp_qr_url);
+        // Generate WhatsApp link from stored number
+        if (data.whatsapp_phone_number) {
+          const cleanNumber = data.whatsapp_phone_number.replace(/\D/g, '');
+          setWhatsappLink(`https://wa.me/${cleanNumber}`);
+        }
+      }
+    }
+  };
+
+  const handleSaveNumber = async () => {
+    if (!calendarId || !phoneNumber) {
+      toast({
+        title: 'Fout',
+        description: 'Voer een telefoonnummer in',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('calendar_settings')
+        .update({ whatsapp_phone_number: phoneNumber })
+        .eq('calendar_id', calendarId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Opgeslagen',
+        description: 'WhatsApp nummer is opgeslagen'
+      });
+    } catch (error: any) {
+      console.error('Save error:', error);
+      toast({
+        title: 'Fout',
+        description: error.message || 'Kon nummer niet opslaan',
+        variant: 'destructive'
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -66,6 +113,8 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
       if (error) throw error;
 
       setQrUrl(data.qrUrl);
+      setWhatsappLink(data.whatsappLink);
+      
       toast({
         title: 'Succes',
         description: 'WhatsApp QR-code is gegenereerd'
@@ -114,9 +163,28 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
                   id="phone"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="+31 6 12345678"
+                  placeholder="+1 555 176 6290"
                   className="bg-slate-700/50 border-slate-600 text-white flex-1"
                 />
+                <Button
+                  onClick={handleSaveNumber}
+                  disabled={saving || !phoneNumber}
+                  variant="outline"
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Opslaan...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Opslaan
+                    </>
+                  )}
+                </Button>
                 <Button
                   onClick={handleGenerateQr}
                   disabled={generatingQr || !phoneNumber}
@@ -138,17 +206,17 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
                 </Button>
               </div>
               <p className="text-xs text-gray-400 mt-1">
-                Formaat: +31 6 12345678 (met landcode)
+                Formaat: +1 555 176 6290 (met landcode)
               </p>
             </div>
 
-            {qrUrl && (
+            {whatsappLink && (
               <div className="p-4 bg-slate-700/30 rounded-lg border border-slate-600">
                 <h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
                   <QrCode className="h-4 w-4" />
                   Jouw WhatsApp QR-Code
                 </h3>
-                <QRCodeDisplay data={qrUrl} size={200} />
+                <QRCodeDisplay data={whatsappLink} size={200} />
                 <p className="text-xs text-gray-400 mt-2">
                   Klanten kunnen deze QR-code scannen om direct een WhatsApp gesprek met je te starten
                 </p>
