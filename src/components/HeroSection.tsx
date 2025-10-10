@@ -18,7 +18,7 @@ const HeroSection: React.FC = () => {
   return (
     <section className="relative min-h-[130vh] overflow-hidden flex items-center justify-center -mt-24 md:mt-0 md:pt-24">
       {/* 3D Dotted Surface Background - extends into next section */}
-      <DottedSurface className="absolute inset-0 h-[130vh]" />
+      <DottedSurface className="absolute -top-[10vh] left-0 right-0 h-[140vh]" />
       
       {/* Subtle radial gradient overlay for depth */}
       <div 
