@@ -25,21 +25,13 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { phoneNumber } = await req.json();
+    // Use platform-wide WhatsApp number
+    const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+31612345678';
+    const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
 
-    if (!phoneNumber) {
-      throw new Error('Phone number is required');
-    }
-
-    // Validate phone number format (remove spaces/dashes, ensure starts with +)
-    const cleanPhone = phoneNumber.replace(/[\s-]/g, '');
-    if (!cleanPhone.match(/^\+?[1-9]\d{1,14}$/)) {
-      throw new Error('Invalid phone number format');
-    }
-
-    // Generate WhatsApp link with tracking code
+    // Generate WhatsApp link with user tracking code
     const trackingCode = user.id.substring(0, 8).toUpperCase();
-    const prefilledMessage = encodeURIComponent(`START_${trackingCode}`);
+    const prefilledMessage = `START_${trackingCode}`;
     const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${prefilledMessage}`;
 
     // Generate SVG QR code
@@ -65,11 +57,10 @@ serve(async (req) => {
       .from('whatsapp-qr-codes')
       .getPublicUrl(fileName);
 
-    // Update users table
+    // Update users table (only QR URL, not phone number)
     const { error: updateError } = await supabaseClient
       .from('users')
       .update({
-        whatsapp_phone_number: phoneNumber,
         whatsapp_qr_url: publicUrl,
         whatsapp_qr_generated_at: new Date().toISOString()
       })

@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const PLATFORM_WHATSAPP_NUMBER = '+31612345678';
+
 export function useWhatsAppSettings(userId: string) {
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
 
   // Load settings from users table
@@ -19,23 +19,20 @@ export function useWhatsAppSettings(userId: string) {
       try {
         const { data, error } = await supabase
           .from('users')
-          .select('whatsapp_phone_number, whatsapp_qr_url')
+          .select('whatsapp_qr_url')
           .eq('id', userId)
           .single();
 
         if (error) throw error;
 
         if (data) {
-          setPhoneNumber(data.whatsapp_phone_number || '');
           setQrUrl(data.whatsapp_qr_url || null);
           
-          // Generate WhatsApp link with tracking
-          if (data.whatsapp_phone_number) {
-            const formatted = data.whatsapp_phone_number.replace(/\s+/g, '').replace('+', '');
-            const trackingCode = userId.substring(0, 8).toUpperCase();
-            const prefilledMessage = encodeURIComponent(`START_${trackingCode}`);
-            setWhatsappLink(`https://wa.me/${formatted}?text=${prefilledMessage}`);
-          }
+          // Generate WhatsApp link with platform number and tracking code
+          const formatted = PLATFORM_WHATSAPP_NUMBER.replace(/\s+/g, '').replace('+', '');
+          const trackingCode = userId.substring(0, 8).toUpperCase();
+          const prefilledMessage = `START_${trackingCode}`;
+          setWhatsappLink(`https://wa.me/${formatted}?text=${prefilledMessage}`);
         }
       } catch (error) {
         console.error('Error loading WhatsApp settings:', error);
@@ -48,52 +45,17 @@ export function useWhatsAppSettings(userId: string) {
     loadSettings();
   }, [userId]);
 
-  // Save phone number to database
-  const savePhoneNumber = async () => {
-    if (!userId || !phoneNumber.trim()) {
-      toast.error('Please enter a phone number');
-      return false;
-    }
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({ whatsapp_phone_number: phoneNumber })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      // Update WhatsApp link with tracking
-      const formatted = phoneNumber.replace(/\s+/g, '').replace('+', '');
-      const trackingCode = userId.substring(0, 8).toUpperCase();
-      const prefilledMessage = encodeURIComponent(`START_${trackingCode}`);
-      setWhatsappLink(`https://wa.me/${formatted}?text=${prefilledMessage}`);
-
-      toast.success('WhatsApp number saved successfully');
-      return true;
-    } catch (error) {
-      console.error('Error saving WhatsApp number:', error);
-      toast.error('Failed to save WhatsApp number');
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  };
-
   // Generate QR code via edge function
   const generateQR = async () => {
-    if (!userId || !phoneNumber.trim()) {
-      toast.error('Please save a phone number first');
+    if (!userId) {
+      toast.error('User ID is required');
       return false;
     }
 
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-whatsapp-qr', {
-        body: { 
-          phoneNumber: phoneNumber.trim()
-        }
+        body: {}
       });
 
       if (error) throw error;
@@ -115,14 +77,11 @@ export function useWhatsAppSettings(userId: string) {
   };
 
   return {
-    phoneNumber,
-    setPhoneNumber,
+    platformNumber: PLATFORM_WHATSAPP_NUMBER,
     qrUrl,
     whatsappLink,
     loading,
-    saving,
     generating,
-    savePhoneNumber,
     generateQR
   };
 }

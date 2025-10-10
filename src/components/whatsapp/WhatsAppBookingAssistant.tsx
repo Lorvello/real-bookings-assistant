@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Copy, Check, QrCode, Phone, Download, Database, CalendarClock, Share2, MessageSquare, Save } from 'lucide-react';
+import { Copy, Check, QrCode, Phone, Download, Database, CalendarClock, Share2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
 
@@ -15,18 +14,16 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
   const [copied, setCopied] = useState(false);
   
   const {
-    phoneNumber,
-    setPhoneNumber,
+    platformNumber,
     qrUrl,
     whatsappLink,
     loading,
-    saving,
     generating,
-    savePhoneNumber,
     generateQR
   } = useWhatsAppSettings(userId);
   
-  const formattedNumber = phoneNumber.replace(/\s+/g, '').replace('+', '');
+  const formattedNumber = platformNumber.replace(/\s+/g, '').replace('+', '');
+  const trackingCode = userId.substring(0, 8).toUpperCase();
 
   const handleCopyNumber = async () => {
     try {
@@ -69,116 +66,91 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
 
   return (
     <div className="space-y-6">
-      {/* WhatsApp Configuration */}
+      {/* Platform WhatsApp Number Info */}
       <Card className="bg-slate-800/90 border-slate-700/50">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <Phone className="h-5 w-5 text-green-500" />
-            WhatsApp Configuration
+            BookingsAssistant WhatsApp
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Input
-              type="tel"
-              placeholder="+1 555 176 6290"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="flex-1 bg-slate-700/50 border-slate-600 text-white placeholder:text-gray-400"
-              disabled={loading}
-            />
-            <div className="flex gap-2">
-              <Button
-                onClick={savePhoneNumber}
-                disabled={saving || loading || !phoneNumber.trim()}
-                className="gap-2 bg-green-600 hover:bg-green-700"
-              >
-                <Save className="h-4 w-4" />
-                {saving ? 'Saving...' : 'Save'}
-              </Button>
-              <Button
-                onClick={generateQR}
-                disabled={generating || loading || !phoneNumber.trim()}
-                variant="outline"
-                className="gap-2 border-slate-600 text-gray-300 hover:bg-slate-700"
-              >
-                <QrCode className="h-4 w-4" />
-                {generating ? 'Generating...' : 'Generate QR'}
-              </Button>
-            </div>
+          <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-4">
+            <p className="text-sm text-blue-300">
+              <strong>Let op:</strong> Dit is het centrale BookingsAssistant nummer dat alle bedrijven delen. 
+              Jouw unieke QR-code zorgt ervoor dat klanten automatisch bij jouw bedrijf terecht komen.
+            </p>
           </div>
-          <p className="text-xs text-gray-400">
-            Save your WhatsApp number and generate a QR code for easy customer access
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* WhatsApp Number Display Card */}
-      <Card className="bg-slate-800/90 border-slate-700/50">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Phone className="h-5 w-5 text-green-500" />
-            WhatsApp Number
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Left Side - Number */}
-            <div className="space-y-4">
-              <div className="bg-slate-700/50 rounded-xl p-6 text-center border border-slate-600/30">
-                <div className="text-2xl font-mono font-bold text-white mb-4">
-                  {phoneNumber || '+1 555 176 6290'}
-                </div>
-                <div className="flex flex-col gap-3">
-                  <Button
-                    onClick={handleCopyNumber}
-                    className="gap-2 bg-green-600 hover:bg-green-700"
-                    size="lg"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="h-4 w-4" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4" />
-                        Copy Number
-                      </>
-                    )}
-                  </Button>
-                  <Badge variant="outline" className="bg-slate-700/50 border-green-500/50 text-green-400">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                    AI Assistant Active
-                  </Badge>
-                </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Platform Number */}
+            <div className="bg-slate-700/50 rounded-xl p-6 text-center border border-slate-600/30">
+              <div className="text-3xl font-mono font-bold text-white mb-4">
+                {platformNumber}
               </div>
+              <Button
+                onClick={handleCopyNumber}
+                className="gap-2 bg-green-600 hover:bg-green-700 w-full"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Gekopieerd!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" />
+                    Kopieer Nummer
+                  </>
+                )}
+              </Button>
+              <Badge variant="outline" className="bg-slate-700/50 border-green-500/50 text-green-400 mt-4">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                AI Assistant Active
+              </Badge>
             </div>
 
-            {/* Right Side - QR Code */}
-            <div className="space-y-4">
-              <div className="bg-slate-700/50 rounded-xl p-6 text-center border border-slate-600/30">
-                <div className="inline-block bg-white p-4 rounded-lg mb-4">
-                  <img
-                    src={qrUrl || generateQRCodeFallback()}
-                    alt="WhatsApp QR Code"
-                    className="mx-auto rounded"
-                    width={200}
-                    height={200}
-                  />
-                </div>
-                <p className="text-gray-400 text-sm mb-4">
-                  {qrUrl ? 'Scan to open WhatsApp directly' : 'Save number and generate QR code'}
-                </p>
-                <Button 
-                  onClick={downloadQRCode}
-                  variant="outline" 
-                  className="gap-2 border-slate-600 text-gray-300 hover:bg-slate-700"
-                >
-                  <Download className="h-4 w-4" />
-                  Download QR Code
-                </Button>
-              </div>
+            {/* Unique QR Code */}
+            <div className="bg-slate-700/50 rounded-xl p-6 text-center border border-slate-600/30">
+              {qrUrl ? (
+                <>
+                  <div className="inline-block bg-white p-3 rounded-lg mb-3">
+                    <img
+                      src={qrUrl}
+                      alt="WhatsApp QR Code"
+                      className="mx-auto rounded"
+                      width={180}
+                      height={180}
+                    />
+                  </div>
+                  <p className="text-gray-400 text-xs mb-2">
+                    Tracking: <span className="font-mono text-green-400">START_{trackingCode}</span>
+                  </p>
+                  <Button 
+                    onClick={downloadQRCode}
+                    variant="outline" 
+                    className="gap-2 border-slate-600 text-gray-300 hover:bg-slate-700 w-full"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download QR Code
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="py-8">
+                    <QrCode className="h-16 w-16 mx-auto text-slate-600 mb-4" />
+                    <p className="text-gray-400 mb-4">Genereer je unieke QR-code</p>
+                    <Button
+                      onClick={generateQR}
+                      disabled={generating || loading}
+                      className="gap-2 bg-green-600 hover:bg-green-700 w-full"
+                    >
+                      <QrCode className="h-4 w-4" />
+                      {generating ? 'Genereren...' : 'Genereer QR-Code'}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </CardContent>
