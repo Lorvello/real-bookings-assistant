@@ -349,7 +349,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               <ul className="text-sm text-muted-foreground space-y-1 ml-6">
                 <li>• Klanten MOETEN het eerste bericht versturen</li>
                 <li>• Anders verdwijnt de chat na sluiten WhatsApp</li>
-                <li>• QR codes zijn permanent en kunnen niet opnieuw gegenereerd worden</li>
+                <li>• QR codes worden automatisch bijgewerkt wanneer je bericht wijzigt</li>
               </ul>
             </div>
           </div>

@@ -110,13 +110,16 @@ serve(async (req) => {
 
     const qrImageBlob = await qrResponse.blob();
 
-    // Upload PNG to Storage (allow overwrite for QR text updates)
-    const fileName = `${user.id}/whatsapp-qr.png`;
+    // Upload PNG to Storage with unique filename to prevent CDN caching
+    const timestamp = Date.now();
+    const fileName = `${user.id}/whatsapp-qr-${timestamp}.png`;
+    console.log(`Uploading new QR code: ${fileName}`);
+    
     const { error: uploadError } = await supabaseClient.storage
       .from('whatsapp-qr-codes')
       .upload(fileName, qrImageBlob, {
         contentType: 'image/png',
-        upsert: true // Allow overwrite when QR text changes
+        upsert: true
       });
 
     if (uploadError) {
@@ -141,6 +144,33 @@ serve(async (req) => {
     if (updateError) {
       console.error('Database update error:', updateError);
       throw new Error(`Failed to update user record: ${updateError.message}`);
+    }
+
+    // Clean up old QR code files
+    try {
+      const { data: existingFiles } = await supabaseClient.storage
+        .from('whatsapp-qr-codes')
+        .list(user.id);
+      
+      if (existingFiles && existingFiles.length > 0) {
+        const filesToDelete = existingFiles
+          .filter(f => `${user.id}/${f.name}` !== fileName)
+          .map(f => `${user.id}/${f.name}`);
+        
+        if (filesToDelete.length > 0) {
+          const { error: deleteError } = await supabaseClient.storage
+            .from('whatsapp-qr-codes')
+            .remove(filesToDelete);
+          
+          if (deleteError) {
+            console.warn('Failed to clean up old QR files:', deleteError);
+          } else {
+            console.log(`Cleaned up ${filesToDelete.length} old QR file(s)`);
+          }
+        }
+      }
+    } catch (cleanupError) {
+      console.warn('Error during cleanup:', cleanupError);
     }
 
     console.log(`QR code generated successfully for user ${user.id} at ${fileName}`);
