@@ -58,7 +58,7 @@ serve(async (req) => {
           .single();
 
         const businessName = userData?.business_name || 'Ons bedrijf';
-        const prefilledMessage = `👋 Hallo van ${businessName}!\nVerstuur dit bericht zodat je ons altijd kunt bereiken voor afspraken, vragen of wijzigingen.\nCode: ${trackingCode}`;
+        const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan)\nCode: ${trackingCode}`;
         const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
         console.log(`QR code already exists for user ${user.id}, returning existing URL`);
@@ -88,7 +88,7 @@ serve(async (req) => {
       .single();
 
     const businessName = userData?.business_name || 'Ons bedrijf';
-    const prefilledMessage = `👋 Hallo van ${businessName}!\nVerstuur dit bericht zodat je ons altijd kunt bereiken voor afspraken, vragen of wijzigingen.\nCode: ${trackingCode}`;
+    const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan)\nCode: ${trackingCode}`;
     const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
     // Fetch QR code PNG from QRServer.com

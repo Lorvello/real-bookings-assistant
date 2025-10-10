@@ -47,7 +47,7 @@ export function useWhatsAppSettings(userId: string) {
             .single();
 
           const businessName = userData?.business_name || 'Ons bedrijf';
-          const prefilledMessage = `👋 Hallo van ${businessName}!\nVerstuur dit bericht zodat je ons altijd kunt bereiken voor afspraken, vragen of wijzigingen.\nCode: ${trackingCode}`;
+          const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan)\nCode: ${trackingCode}`;
           setWhatsappLink(`https://wa.me/${formatted}?text=${encodeURIComponent(prefilledMessage)}`);
           
           // Auto-migrate legacy SVG to PNG

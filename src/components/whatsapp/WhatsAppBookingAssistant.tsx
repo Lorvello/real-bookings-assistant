@@ -244,8 +244,8 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
             <CardContent>
               <div className="bg-[#DCF8C6] text-black p-4 rounded-lg rounded-tl-none max-w-sm shadow-md">
                 <p className="text-sm whitespace-pre-line leading-relaxed">
-                  👋 Hallo van {businessName}!{'\n'}
-                  Verstuur dit bericht zodat je ons altijd kunt bereiken voor afspraken, vragen of wijzigingen.{'\n'}
+                  👋 Hallo {businessName}!{'\n'}
+                  (Verstuur dit bericht om de chat op te slaan){'\n'}
                   Code: {trackingCode}
                 </p>
               </div>
