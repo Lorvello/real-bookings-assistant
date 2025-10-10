@@ -898,6 +898,8 @@ export type Database = {
           slot_duration: number | null
           stripe_connect_account_id: string | null
           whatsapp_bot_active: boolean | null
+          whatsapp_qr_generated_at: string | null
+          whatsapp_qr_url: string | null
         }
         Insert: {
           allow_cancellations?: boolean | null
@@ -919,6 +921,8 @@ export type Database = {
           slot_duration?: number | null
           stripe_connect_account_id?: string | null
           whatsapp_bot_active?: boolean | null
+          whatsapp_qr_generated_at?: string | null
+          whatsapp_qr_url?: string | null
         }
         Update: {
           allow_cancellations?: boolean | null
@@ -940,6 +944,8 @@ export type Database = {
           slot_duration?: number | null
           stripe_connect_account_id?: string | null
           whatsapp_bot_active?: boolean | null
+          whatsapp_qr_generated_at?: string | null
+          whatsapp_qr_url?: string | null
         }
         Relationships: [
           {
