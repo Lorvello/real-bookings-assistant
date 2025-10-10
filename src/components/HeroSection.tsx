@@ -17,16 +17,13 @@ const HeroSection: React.FC = () => {
   
   return (
     <section className="relative min-h-screen overflow-hidden flex items-center justify-center -mt-24 md:mt-0 md:pt-24">
-      {/* 3D Dotted Surface Background - extends into next section */}
+      {/* 3D Dotted Surface Background */}
       <DottedSurface className="absolute inset-0" />
       
       {/* Subtle radial gradient overlay for depth */}
       <div 
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(15,23,42,0.3)_100%)] pointer-events-none"
       ></div>
-      
-      {/* Fade out gradient at bottom for smooth transition */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-b from-transparent via-[hsl(217,35%,12%)]/50 to-[hsl(217,35%,12%)] pointer-events-none z-10"></div>
       
       <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center z-10">
         {/* Floating badge - SUBTEXT */}
